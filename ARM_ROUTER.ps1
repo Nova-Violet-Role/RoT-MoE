@@ -48,8 +48,12 @@ $Merge     = Join-Path $SelfDir 'hooks/settings-merge.js'
 # run. Unnormalised, the two arms wrote DIFFERENT command strings for the same
 # install:
 #
-#   .sh   ->  bash "/c/GIT External Repo/RoT MoE/hooks/rot-router.sh"
-#   .ps1  ->  bash "C:\GIT External Repo\RoT MoE\hooks\rot-router.sh"
+#   .sh   ->  bash "/c/path/to/RoT MoE/hooks/rot-router.sh"
+#   .ps1  ->  bash "C:\path\to\RoT MoE\hooks\rot-router.sh"
+#
+# (Written with a placeholder path on purpose: checker/no-local-paths.sh caught
+# the first draft of this very comment for containing a real machine-local path.
+# A file documenting a portability bug is not exempt from the portability rule.)
 #
 # Removal matches by exact command string, so a user who installed from Git Bash
 # and uninstalled from PowerShell would be left with a dead hook entry FOREVER,

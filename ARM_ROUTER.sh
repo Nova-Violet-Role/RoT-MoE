@@ -64,6 +64,44 @@ SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROUTER_SH="$SELF_DIR/hooks/rot-router.sh"
 ROUTER_PS1="$SELF_DIR/hooks/rot-router.ps1"
 
+# --- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded --
+# The command string is the identity used for idempotence AND for removal, so
+# the two installer arms must spell the repo path identically or one installs
+# what the other cannot remove.
+#
+# A CLEAN-CLONE RUN FOUND THE HOLE that the working copy hid. Under a Git Bash
+# MOUNT ALIAS the two arms disagree even after normalisation:
+#
+#   bash sees        /tmp/x/RoT-MoE
+#   PowerShell sees  <drive>:\tmp\x\RoT-MoE  ->  /<drive>/tmp/x/RoT-MoE
+#
+# ...because /tmp can be an alias for a different drive entirely. Round-tripping with
+# `cygpath -u` does NOT fix it: cygpath prefers the alias and hands /tmp back.
+#
+# So the canonical form is derived from the WINDOWS path by the same rule the
+# .ps1 arms use (backslashes to slashes, drive letter lowercased into /d/...).
+# On Linux and macOS there is no cygpath and no drive letter, so this is the
+# identity function and costs nothing.
+canon_path () {
+  _p="$1"
+  if command -v cygpath >/dev/null 2>&1; then
+    _w=$(cygpath -w "$_p" 2>/dev/null) || _w=""
+    if [ -n "$_w" ]; then
+      _p=$(printf '%s' "$_w" | tr '\\' '/')
+      case "$_p" in
+        [A-Za-z]:/*)
+          _d=$(printf '%s' "$_p" | cut -c1 | tr 'A-Z' 'a-z')
+          _p="/$_d$(printf '%s' "$_p" | cut -c3-)"
+          ;;
+      esac
+    fi
+  fi
+  printf '%s' "$_p"
+}
+
+ROUTER_SH="$(canon_path "$ROUTER_SH")"
+ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
+
 # The command string is the identity used for idempotence and for removal.
 # `pwsh ... || bash ...` mirrors the org's working plugin: Windows takes the
 # first arm, POSIX falls through to the second.

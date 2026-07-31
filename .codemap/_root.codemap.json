@@ -2,13 +2,23 @@
   "directory": "",
   "files": {
     "ARM_ROUTER.sh": {
-      "hash": "6e6ff02219f2",
-      "indexed_at": "2026-07-31T12:03:35.252547+00:00",
+      "hash": "e0a98d766381",
+      "indexed_at": "2026-07-31T12:09:46.256370+00:00",
       "language": "shell",
-      "lines": 124,
-      "mtime_ns": 1785499131619749500,
-      "size": 5416,
-      "symbols": []
+      "lines": 162,
+      "mtime_ns": 1785499766434360100,
+      "size": 6864,
+      "symbols": [
+        {
+          "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
+          "lines": [
+            85,
+            100
+          ],
+          "name": "canon_path",
+          "type": "function"
+        }
+      ]
     },
     "CODE_OF_CONDUCT.md": {
       "hash": "c859256e95f9",
@@ -102,13 +112,23 @@
       ]
     },
     "DISARM_ROUTER.sh": {
-      "hash": "556fdccce45e",
-      "indexed_at": "2026-07-31T12:03:35.890748+00:00",
+      "hash": "3c186e8698e0",
+      "indexed_at": "2026-07-31T12:09:46.414106+00:00",
       "language": "shell",
-      "lines": 60,
-      "mtime_ns": 1785499131619749500,
-      "size": 2531,
-      "symbols": []
+      "lines": 98,
+      "mtime_ns": 1785499766436360200,
+      "size": 3979,
+      "symbols": [
+        {
+          "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
+          "lines": [
+            51,
+            66
+          ],
+          "name": "canon_path",
+          "type": "function"
+        }
+      ]
     },
     "NOTICE.md": {
       "hash": "adfaa29f9716",
@@ -281,6 +301,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T12:03:36.210207+00:00",
+  "generated_at": "2026-07-31T12:09:46.414158+00:00",
   "version": "1.0"
 }
