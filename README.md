@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **80
+lens activities off disk, computes an `R/s+` gauge from them, and **89
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -182,7 +182,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **50 applied, 50 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **55 applied, 55 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -203,7 +203,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 > and wrote the reason into the file, where the next reader will find it.
 > `NOTICE.md` §C keeps the full engineering log for anyone who wants it.
 
-### 📐 The six modules
+### 📐 The seven modules
 
 * **`lean/Proofs/RotGauge.lean`** (35 theorems) — the R/s+ gauge.
   `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
@@ -243,6 +243,19 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   proves the hypothesis cannot be dropped. `lower_threshold_speaks_more` is
   quantified over the threshold rather than pinned at 45, so retuning the default
   cannot turn a correct change red.
+* **`lean/Proofs/RotAcquire.lean`** (9 theorems) — **a checker must never
+  acquire anything**, and this module exists because one of ours did. Every Lean
+  script here calls `lake`, and `lake` resolves the package *before* it runs
+  anything, so a single probe began fetching mathlib into this 200 KB repository
+  and reached **7.2 GB** before it was stopped. `no_lake_on_unbuilt` states the
+  invariant over an *arbitrary* workspace: if it was never built, no execution
+  path reaches lake. `lake_implies_built` is its converse, so a guard that
+  simply refused everything would not satisfy the pair.
+  `guard_survives_target_deletion` covers the subtle half — every mutant deletes
+  the module's own `.olean` on purpose, so keying the guard on that artefact
+  made a real workspace look never-built, and
+  `old_guard_false_skips_after_target_deleted` exhibits exactly that workspace
+  rather than describing it.
 * **`lean/Proofs/RotVacuity.lean`** (0 theorems — deliberately; the content is `example`s)
   — the audit that catches what every other gate certifies. A theorem with
   contradictory hypotheses is *true*, builds green, has clean axioms and passes
@@ -347,7 +360,7 @@ Then:
 
 ```sh
 cd lean
-lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotVacuity
+lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVacuity
 echo "lake build exit=$?"                   # read it DIRECTLY, never through a pipe
 lake env leanchecker Proofs.RotGauge        # exit 0, zero bytes = kernel pass
 lake env leanchecker Proofs.NoSuchModule    # exit 1 = the control
@@ -356,6 +369,7 @@ bash mutate/mutate_rotroute.sh              # expect 11 killed, 0 survived
 bash mutate/mutate_rotinstall.sh            # expect 10 killed, 0 survived
 bash mutate/mutate_rotpath.sh               # expect  5 killed, 0 survived
 bash mutate/mutate_rotremind.sh             # expect  6 killed, 0 survived
+bash mutate/mutate_rotacquire.sh            # expect  5 killed, 0 survived
 bash mutate/mutate_rotvacuity.sh            # expect  6 killed, 0 survived
 ```
 

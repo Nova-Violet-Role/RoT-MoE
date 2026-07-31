@@ -28,6 +28,32 @@
         }
       ]
     },
+    "mutate_rotacquire.sh": {
+      "hash": "b0732bd9bc5f",
+      "indexed_at": "2026-07-31T19:33:48.633845+00:00",
+      "language": "shell",
+      "lines": 225,
+      "mtime_ns": 1785525603820247900,
+      "size": 11028,
+      "symbols": [
+        {
+          "lines": [
+            112,
+            140
+          ],
+          "name": "run_mut",
+          "type": "function"
+        },
+        {
+          "lines": [
+            142,
+            191
+          ],
+          "name": "run_mut_nth",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotgauge.sh": {
       "hash": "b062e3207850",
       "indexed_at": "2026-07-31T19:17:28.975869+00:00",
@@ -179,6 +205,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T19:17:29.736409+00:00",
+  "generated_at": "2026-07-31T19:33:48.633898+00:00",
   "version": "1.0"
 }

@@ -318,12 +318,12 @@
       ]
     },
     "README.md": {
-      "hash": "8cfef1c6a781",
-      "indexed_at": "2026-07-31T19:17:29.887260+00:00",
+      "hash": "f94276877f12",
+      "indexed_at": "2026-07-31T19:33:48.784469+00:00",
       "language": "markdown",
-      "lines": 542,
-      "mtime_ns": 1785524332304679000,
-      "size": 29567,
+      "lines": 556,
+      "mtime_ns": 1785525704782710600,
+      "size": 30581,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -367,16 +367,16 @@
               "docstring": "* **`lean/Proofs/RotGauge.lean`** (35 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
               "lines": [
                 206,
-                257
+                270
               ],
-              "name": "\ud83d\udcd0 The six modules",
+              "name": "\ud83d\udcd0 The seven modules",
               "type": "subsection"
             }
           ],
           "docstring": "| instrument | what it establishes | result | |---|---|---| | `lake build Proofs.*` | the modules elaborate | exit **0** | | `#print axioms` on every",
           "lines": [
             178,
-            257
+            270
           ],
           "name": "\ud83d\udd2c What is actually verified",
           "type": "section"
@@ -384,8 +384,8 @@
         {
           "docstring": "| organ | file | what it does | |:--|:--|:--| | 1 \u00b7 engine | `engine/rot-lean.md` | the specification: nine lenses, the three-tier router, the `R/s+`",
           "lines": [
-            258,
-            279
+            271,
+            292
           ],
           "name": "\ud83e\udec0 The four organs",
           "type": "section"
@@ -395,8 +395,8 @@
             {
               "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
               "lines": [
-                307,
-                314
+                320,
+                327
               ],
               "name": "\ud83d\udd27 Requirements",
               "type": "subsection"
@@ -404,8 +404,8 @@
             {
               "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
               "lines": [
-                315,
-                327
+                328,
+                340
               ],
               "name": "\u2699\ufe0f Configuration",
               "type": "subsection"
@@ -413,8 +413,8 @@
           ],
           "docstring": "**Look before you leap.** This installs a hook that runs on every prompt you submit and before every tool call, by editing `~/.claude/settings.json`.",
           "lines": [
-            280,
-            327
+            293,
+            340
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -422,8 +422,8 @@
         {
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
-            328,
-            389
+            341,
+            403
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -431,8 +431,8 @@
         {
           "docstring": "**This is the section we are proudest of.** Knowing exactly where the guarantee ends is what makes everything before it worth having \u2014 a proof with an",
           "lines": [
-            390,
-            450
+            404,
+            464
           ],
           "name": "\ud83d\uddfa\ufe0f The map: PROVED \u00b7 MEASURED \u00b7 OUT OF SCOPE",
           "type": "section"
@@ -440,8 +440,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            451,
-            465
+            465,
+            479
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -451,8 +451,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                484,
-                492
+                498,
+                506
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -460,8 +460,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            466,
-            492
+            480,
+            506
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -471,8 +471,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                516,
-                543
+                530,
+                557
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -480,8 +480,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            493,
-            543
+            507,
+            557
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -563,6 +563,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-07-31T19:17:29.887333+00:00",
+  "generated_at": "2026-07-31T19:33:48.784544+00:00",
   "version": "1.0"
 }
