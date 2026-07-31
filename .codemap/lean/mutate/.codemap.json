@@ -1,0 +1,88 @@
+{
+  "directory": "lean\\mutate",
+  "files": {
+    "attribute_mut.sh": {
+      "hash": "d761370a81a3",
+      "indexed_at": "2026-07-31T11:35:25.336513+00:00",
+      "language": "shell",
+      "lines": 26,
+      "mtime_ns": 1785495730211329900,
+      "size": 1391,
+      "symbols": []
+    },
+    "mutate_rotgauge.sh": {
+      "hash": "276d915419bc",
+      "indexed_at": "2026-07-31T11:35:25.337772+00:00",
+      "language": "shell",
+      "lines": 143,
+      "mtime_ns": 1785495730245330900,
+      "size": 5320,
+      "symbols": [
+        {
+          "lines": [
+            33,
+            81
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotinstall.sh": {
+      "hash": "06780671ab9a",
+      "indexed_at": "2026-07-31T11:35:25.339266+00:00",
+      "language": "shell",
+      "lines": 185,
+      "mtime_ns": 1785495730278330900,
+      "size": 7891,
+      "symbols": [
+        {
+          "docstring": "Map error line numbers back to the enclosing declaration.  TWO KNOWN LIMITS, stated because an attribution that overstates its reach is the same defec",
+          "lines": [
+            41,
+            51
+          ],
+          "name": "attribute",
+          "type": "function"
+        },
+        {
+          "lines": [
+            53,
+            79
+          ],
+          "name": "run_mut",
+          "type": "function"
+        },
+        {
+          "docstring": "Occurrence-indexed, strictly LINE-ORIENTED variant.  It exists because I01/I09 were DISCARDED on the first run: their needle spanned two lines, and `g",
+          "lines": [
+            95,
+            124
+          ],
+          "name": "run_mut_nth",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotroute.sh": {
+      "hash": "0fff94f94ce0",
+      "indexed_at": "2026-07-31T11:35:25.340335+00:00",
+      "language": "shell",
+      "lines": 126,
+      "mtime_ns": 1785495730310330700,
+      "size": 5126,
+      "symbols": [
+        {
+          "lines": [
+            30,
+            60
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-07-31T11:35:25.344557+00:00",
+  "version": "1.0"
+}

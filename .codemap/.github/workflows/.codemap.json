@@ -1,0 +1,1015 @@
+{
+  "directory": ".github\\workflows",
+  "files": {
+    "ads-manager.yml": {
+      "hash": "267945851021",
+      "indexed_at": "2026-07-31T11:35:25.326004+00:00",
+      "language": "yaml",
+      "lines": 157,
+      "mtime_ns": 1785495760786074300,
+      "size": 7205,
+      "symbols": [
+        {
+          "docstring": "Ads Manager",
+          "lines": [
+            25,
+            26
+          ],
+          "name": "name",
+          "type": "key"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "\"0 8 * * 1,3,5\"   # Mon / Wed / Fri, 08:00 UTC -- one hour after tags",
+                  "lines": [
+                    29,
+                    29
+                  ],
+                  "name": "cron",
+                  "type": "item"
+                }
+              ],
+              "lines": [
+                28,
+                29
+              ],
+              "name": "schedule",
+              "type": "list"
+            },
+            {
+              "lines": [
+                30,
+                31
+              ],
+              "name": "workflow_dispatch",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            27,
+            31
+          ],
+          "name": "on",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "write",
+              "lines": [
+                33,
+                34
+              ],
+              "name": "contents",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            32,
+            34
+          ],
+          "name": "permissions",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "ads-manager",
+              "lines": [
+                36,
+                36
+              ],
+              "name": "group",
+              "type": "key"
+            },
+            {
+              "docstring": "false",
+              "lines": [
+                37,
+                38
+              ],
+              "name": "cancel-in-progress",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            35,
+            38
+          ],
+          "name": "concurrency",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "ubuntu-latest",
+                  "lines": [
+                    41,
+                    41
+                  ],
+                  "name": "runs-on",
+                  "type": "key"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "actions/checkout@v4",
+                      "lines": [
+                        43,
+                        46
+                      ],
+                      "name": "uses",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "Measure ground truth",
+                      "lines": [
+                        47,
+                        47
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "gt",
+                      "lines": [
+                        48,
+                        48
+                      ],
+                      "name": "id",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        49,
+                        70
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Refuse to advertise an unproved repo",
+                      "lines": [
+                        71,
+                        71
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        72,
+                        80
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Require a STATUS.md from a real verify run",
+                      "lines": [
+                        81,
+                        81
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        82,
+                        89
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Write PROMO.md from measured numbers only",
+                      "lines": [
+                        90,
+                        90
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        91,
+                        120
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Audit README claims against ground truth",
+                      "lines": [
+                        121,
+                        121
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        122,
+                        135
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Audit negative control",
+                      "lines": [
+                        136,
+                        136
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        137,
+                        145
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Commit only on real drift",
+                      "lines": [
+                        146,
+                        146
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        147,
+                        158
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    }
+                  ],
+                  "lines": [
+                    42,
+                    158
+                  ],
+                  "name": "steps",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                40,
+                158
+              ],
+              "name": "copy",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            39,
+            158
+          ],
+          "name": "jobs",
+          "type": "section"
+        }
+      ]
+    },
+    "tag-manager.yml": {
+      "hash": "3db42ba9d167",
+      "indexed_at": "2026-07-31T11:35:25.326676+00:00",
+      "language": "yaml",
+      "lines": 215,
+      "mtime_ns": 1785494835449958400,
+      "size": 9537,
+      "symbols": [
+        {
+          "docstring": "Meta Hashtag Manager",
+          "lines": [
+            27,
+            28
+          ],
+          "name": "name",
+          "type": "key"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "\"0 7 * * 1,3,5\"   # Mon / Wed / Fri, 07:00 UTC",
+                  "lines": [
+                    31,
+                    31
+                  ],
+                  "name": "cron",
+                  "type": "item"
+                }
+              ],
+              "lines": [
+                30,
+                31
+              ],
+              "name": "schedule",
+              "type": "list"
+            },
+            {
+              "children": [
+                {
+                  "lines": [
+                    33,
+                    34
+                  ],
+                  "name": "paths",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                32,
+                34
+              ],
+              "name": "push",
+              "type": "section"
+            },
+            {
+              "lines": [
+                35,
+                36
+              ],
+              "name": "workflow_dispatch",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            29,
+            36
+          ],
+          "name": "on",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "write",
+              "lines": [
+                38,
+                39
+              ],
+              "name": "contents",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            37,
+            39
+          ],
+          "name": "permissions",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "tag-manager",
+              "lines": [
+                41,
+                41
+              ],
+              "name": "group",
+              "type": "key"
+            },
+            {
+              "docstring": "false",
+              "lines": [
+                42,
+                43
+              ],
+              "name": "cancel-in-progress",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            40,
+            43
+          ],
+          "name": "concurrency",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "ubuntu-latest",
+                  "lines": [
+                    46,
+                    46
+                  ],
+                  "name": "runs-on",
+                  "type": "key"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "actions/checkout@v4",
+                      "lines": [
+                        48,
+                        55
+                      ],
+                      "name": "uses",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "Validate tags.txt",
+                      "lines": [
+                        56,
+                        56
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        57,
+                        95
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Evidence check against both accounts",
+                      "lines": [
+                        96,
+                        96
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "children": [
+                        {
+                          "docstring": "${{ secrets.GITHUB_TOKEN }}",
+                          "lines": [
+                            98,
+                            98
+                          ],
+                          "name": "GH_TOKEN",
+                          "type": "key"
+                        }
+                      ],
+                      "lines": [
+                        97,
+                        98
+                      ],
+                      "name": "env",
+                      "type": "section"
+                    },
+                    {
+                      "lines": [
+                        99,
+                        129
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Evidence check negative control",
+                      "lines": [
+                        130,
+                        130
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        131,
+                        142
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Validator negative control",
+                      "lines": [
+                        143,
+                        143
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        144,
+                        152
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Derive every copy from tags.txt",
+                      "lines": [
+                        153,
+                        153
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        154,
+                        192
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Push repo topics",
+                      "lines": [
+                        193,
+                        193
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "children": [
+                        {
+                          "docstring": "${{ secrets.GITHUB_TOKEN }}",
+                          "lines": [
+                            195,
+                            195
+                          ],
+                          "name": "GH_TOKEN",
+                          "type": "key"
+                        }
+                      ],
+                      "lines": [
+                        194,
+                        195
+                      ],
+                      "name": "env",
+                      "type": "section"
+                    },
+                    {
+                      "lines": [
+                        196,
+                        203
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Commit only on real drift",
+                      "lines": [
+                        204,
+                        204
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        205,
+                        216
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    }
+                  ],
+                  "lines": [
+                    47,
+                    216
+                  ],
+                  "name": "steps",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                45,
+                216
+              ],
+              "name": "sync",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            44,
+            216
+          ],
+          "name": "jobs",
+          "type": "section"
+        }
+      ]
+    },
+    "verify.yml": {
+      "hash": "3448e3e288cd",
+      "indexed_at": "2026-07-31T11:35:25.327277+00:00",
+      "language": "yaml",
+      "lines": 157,
+      "mtime_ns": 1785493646105065200,
+      "size": 6561,
+      "symbols": [
+        {
+          "docstring": "verify",
+          "lines": [
+            28,
+            29
+          ],
+          "name": "name",
+          "type": "key"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "[main]",
+                  "lines": [
+                    32,
+                    32
+                  ],
+                  "name": "branches",
+                  "type": "collection"
+                }
+              ],
+              "lines": [
+                31,
+                32
+              ],
+              "name": "push",
+              "type": "section"
+            },
+            {
+              "lines": [
+                33,
+                33
+              ],
+              "name": "pull_request",
+              "type": "section"
+            },
+            {
+              "children": [
+                {
+                  "docstring": "\"0 6 * * 1\"",
+                  "lines": [
+                    37,
+                    37
+                  ],
+                  "name": "cron",
+                  "type": "item"
+                }
+              ],
+              "lines": [
+                34,
+                37
+              ],
+              "name": "schedule",
+              "type": "section"
+            },
+            {
+              "lines": [
+                38,
+                39
+              ],
+              "name": "workflow_dispatch",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            30,
+            39
+          ],
+          "name": "on",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "write",
+              "lines": [
+                41,
+                42
+              ],
+              "name": "contents",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            40,
+            42
+          ],
+          "name": "permissions",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "ubuntu-latest",
+                  "lines": [
+                    45,
+                    45
+                  ],
+                  "name": "runs-on",
+                  "type": "key"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "actions/checkout@v4",
+                      "lines": [
+                        47,
+                        48
+                      ],
+                      "name": "uses",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "Install elan",
+                      "lines": [
+                        49,
+                        49
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        50,
+                        56
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Toolchain in use",
+                      "lines": [
+                        57,
+                        57
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        58,
+                        58
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        59,
+                        62
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Fetch mathlib cache",
+                      "lines": [
+                        63,
+                        63
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        64,
+                        64
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake exe cache get",
+                      "lines": [
+                        65,
+                        69
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake build",
+                      "lines": [
+                        70,
+                        70
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        71,
+                        71
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        72,
+                        79
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "'#print axioms'",
+                      "lines": [
+                        80,
+                        80
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        81,
+                        81
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        82,
+                        93
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "leanchecker sweep",
+                      "lines": [
+                        94,
+                        94
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        95,
+                        95
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        96,
+                        105
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "leanchecker negative control",
+                      "lines": [
+                        106,
+                        106
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        107,
+                        107
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        108,
+                        116
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "mutation suite",
+                      "lines": [
+                        117,
+                        117
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        118,
+                        118
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash ../checker/mutate_rotgauge.sh | tee /tmp/mut.log",
+                      "lines": [
+                        119,
+                        120
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "Write STATUS.md",
+                      "lines": [
+                        121,
+                        121
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "github.event_name == 'schedule'",
+                      "lines": [
+                        122,
+                        122
+                      ],
+                      "name": "if",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        123,
+                        145
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "Commit STATUS.md",
+                      "lines": [
+                        146,
+                        146
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "github.event_name == 'schedule'",
+                      "lines": [
+                        147,
+                        147
+                      ],
+                      "name": "if",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        148,
+                        158
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    }
+                  ],
+                  "lines": [
+                    46,
+                    158
+                  ],
+                  "name": "steps",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                44,
+                158
+              ],
+              "name": "lean",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            43,
+            158
+          ],
+          "name": "jobs",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-07-31T11:35:25.341707+00:00",
+  "version": "1.0"
+}

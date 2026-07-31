@@ -1,0 +1,117 @@
+{
+  "directory": "checker",
+  "files": {
+    "cross-diff.sh": {
+      "hash": "194cebf9c306",
+      "indexed_at": "2026-07-31T11:35:25.328277+00:00",
+      "language": "shell",
+      "lines": 138,
+      "mtime_ns": 1785497240941889100,
+      "size": 6474,
+      "symbols": []
+    },
+    "install-roundtrip.sh": {
+      "hash": "1c13d56d3ba3",
+      "indexed_at": "2026-07-31T11:35:25.330001+00:00",
+      "language": "shell",
+      "lines": 292,
+      "mtime_ns": 1785496398989982400,
+      "size": 13719,
+      "symbols": [
+        {
+          "docstring": "--- the fixture ------------------------------------------------------------ Deliberately hostile, and every hostile trait is one measured on the real",
+          "lines": [
+            49,
+            76
+          ],
+          "name": "make_fixture",
+          "type": "function"
+        }
+      ]
+    },
+    "live-session-smoke.sh": {
+      "hash": "17c3d76fc612",
+      "indexed_at": "2026-07-31T11:56:31.100076+00:00",
+      "language": "shell",
+      "lines": 252,
+      "mtime_ns": 1785498967825277300,
+      "size": 12341,
+      "symbols": [
+        {
+          "lines": [
+            74,
+            97
+          ],
+          "name": "run_session",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate-checker.sh": {
+      "hash": "492264c5287b",
+      "indexed_at": "2026-07-31T11:35:25.332312+00:00",
+      "language": "shell",
+      "lines": 190,
+      "mtime_ns": 1785497225132954300,
+      "size": 8910,
+      "symbols": [
+        {
+          "lines": [
+            36,
+            68
+          ],
+          "name": "run",
+          "type": "function"
+        }
+      ]
+    },
+    "no-local-paths.sh": {
+      "hash": "7a82517d53eb",
+      "indexed_at": "2026-07-31T11:35:25.333013+00:00",
+      "language": "shell",
+      "lines": 104,
+      "mtime_ns": 1785495880057954200,
+      "size": 4557,
+      "symbols": []
+    },
+    "preflight.sh": {
+      "hash": "4883f9ba4d77",
+      "indexed_at": "2026-07-31T11:51:26.854129+00:00",
+      "language": "shell",
+      "lines": 131,
+      "mtime_ns": 1785498598868506600,
+      "size": 6227,
+      "symbols": [
+        {
+          "lines": [
+            52,
+            74
+          ],
+          "name": "check",
+          "type": "function"
+        }
+      ]
+    },
+    "spdx-sweep.sh": {
+      "hash": "e7538638c1a2",
+      "indexed_at": "2026-07-31T11:35:25.333761+00:00",
+      "language": "shell",
+      "lines": 102,
+      "mtime_ns": 1785495721198294200,
+      "size": 4506,
+      "symbols": [
+        {
+          "docstring": "Source files that must carry the header. Verbatim licence texts must NOT -- editing them would break the licences themselves.",
+          "lines": [
+            33,
+            38
+          ],
+          "name": "list_sources",
+          "type": "function"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-07-31T11:56:31.100134+00:00",
+  "version": "1.0"
+}

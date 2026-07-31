@@ -1,0 +1,149 @@
+{
+  "directory": "",
+  "files": {
+    "ARM_ROUTER.sh": {
+      "hash": "4d1651967d4e",
+      "indexed_at": "2026-07-31T11:35:25.322566+00:00",
+      "language": "shell",
+      "lines": 215,
+      "mtime_ns": 1785496272286523100,
+      "size": 9251,
+      "symbols": []
+    },
+    "DISARM_ROUTER.sh": {
+      "hash": "4c2b51baec46",
+      "indexed_at": "2026-07-31T11:35:25.323294+00:00",
+      "language": "shell",
+      "lines": 123,
+      "mtime_ns": 1785496278643901500,
+      "size": 4969,
+      "symbols": []
+    },
+    "NOTICE.md": {
+      "hash": "adfaa29f9716",
+      "indexed_at": "2026-07-31T11:35:25.323707+00:00",
+      "language": "markdown",
+      "lines": 139,
+      "mtime_ns": 1785496439362337000,
+      "size": 8125,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "`Nova-Violet-Role/claude-rolling-context-Lean-4-` is explicitly **a fork**. Its root `LICENSE` stays MIT \u00a9 NodeNestor because a fork may not relicense",
+              "lines": [
+                25,
+                38
+              ],
+              "name": "A.1 How this differs from the sibling repo, and why",
+              "type": "subsection"
+            },
+            {
+              "docstring": "* **Lean 4** and **mathlib4** \u2014 Apache-2.0, \u00a9 their authors. This project depends on them at build time and vendors none of their source. The pinned r",
+              "lines": [
+                39,
+                49
+              ],
+              "name": "A.2 Dependencies, which are not covered by the grant above",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**RoT MoE is an original work.** It is not a fork, and that single fact decides the whole licence layout.",
+          "lines": [
+            9,
+            49
+          ],
+          "name": "A. Licensing",
+          "type": "section"
+        },
+        {
+          "docstring": "The README carries the full boundary section. The short form, repeated here because a `NOTICE` is where a lawyer or a packager looks and neither will",
+          "lines": [
+            50,
+            101
+          ],
+          "name": "B. What the proofs cover, and what they do not",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Recorded rather than quietly fixed, because a checker that has been wrong once should be read with that history visible.",
+              "lines": [
+                117,
+                140
+              ],
+              "name": "C.1 Two instrument defects found in this repo's own checkers",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Every claim in this repo names the instrument behind it. Every instrument has a recorded way to fail, because a check that has never been observed fai",
+          "lines": [
+            102,
+            140
+          ],
+          "name": "C. Instruments and their controls",
+          "type": "section"
+        }
+      ]
+    },
+    "README.md": {
+      "hash": "536effe479de",
+      "indexed_at": "2026-07-31T11:35:25.324072+00:00",
+      "language": "markdown",
+      "lines": 154,
+      "mtime_ns": 1785496425651824700,
+      "size": 7684,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "* **`lean/Proofs/RotGauge.lean`** (34 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
+              "lines": [
+                36,
+                56
+              ],
+              "name": "The three modules",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "| instrument | what it establishes | result | |---|---|---| | `lake build Proofs.*` | the modules elaborate | exit **0** | | `#print axioms` on every",
+          "lines": [
+            18,
+            56
+          ],
+          "name": "What is actually verified",
+          "type": "section"
+        },
+        {
+          "docstring": "This section is not modesty. It is the part that makes the rest credible, and it is deliberately the most specific section in this README.",
+          "lines": [
+            57,
+            103
+          ],
+          "name": "What Lean does NOT prove here",
+          "type": "section"
+        },
+        {
+          "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
+          "lines": [
+            104,
+            123
+          ],
+          "name": "Licence",
+          "type": "section"
+        },
+        {
+          "lines": [
+            124,
+            155
+          ],
+          "name": "Verify it yourself",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-07-31T11:35:25.340523+00:00",
+  "version": "1.0"
+}

@@ -132,7 +132,66 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
     }'
 }
 
+# --- HOOK MODE ---------------------------------------------------------------
+# THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful thing
+# in this file.
+#
+# The router shipped with --vector and --route and NOTHING ELSE. ARM_ROUTER
+# registers it as a hook command with no arguments, so every real invocation hit
+# the usage branch and exited 2. The hook fired on every turn and did nothing.
+#
+# lake build was green. leanchecker was green. The cross-diff agreed byte for
+# byte on 49 rows. The installer round trip was byte-identical. The mutation
+# suite killed 10 of 10. ALL OF IT WAS GREEN while the shipped hook errored on
+# every single turn -- because none of those instruments RUNS the hook the way
+# Claude Code runs it. Only an executed session found it, which is exactly why
+# R20 exists.
+#
+# Claude Code sends the invoking event as JSON on STDIN (measured in the shipped
+# PowerShell at rot-lean-inject.ps1:119-128, which reads it via
+# [Console]::In.ReadToEnd() guarded by IsInputRedirected). Hook mode is
+# therefore the DEFAULT: no arguments means "you were called as a hook".
+hook_mode () {
+  # Never block. A terminal on stdin means a human ran this by hand, and reading
+  # unconditionally would hang forever -- the same trap leanchecker --help falls
+  # into. The guard is not optional.
+  if [ -t 0 ]; then
+    echo "rot-router.sh: hook mode expects a JSON payload on stdin." >&2
+    echo "  try: rot-router.sh --route \"some text\"" >&2
+    exit 2
+  fi
+  payload=$(cat)
+  [ -z "$payload" ] && exit 0     # nothing to route; silence is correct
+
+  # Extract the prompt. node gives an exact parse and is GUARANTEED here --
+  # Claude Code is itself a Node application, so anything that can invoke this
+  # hook can run node. The sed path is a degraded fallback and is labelled as
+  # one rather than presented as equivalent: it cannot handle escaped quotes,
+  # and it scans the whole payload, so a stem appearing in some other field
+  # (a cwd containing "lake", say) would route on it. Benign, but not the same.
+  if command -v node >/dev/null 2>&1; then
+    prompt=$(printf '%s' "$payload" | node -e '
+      let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+        try { const j=JSON.parse(s); process.stdout.write(String(j.prompt||j.tool_name||"")); }
+        catch(e) { process.stdout.write(""); }
+      });' 2>/dev/null)
+  else
+    prompt=$(printf '%s' "$payload" | sed -n 's/.*"prompt"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    [ -z "$prompt" ] && prompt="$payload"
+  fi
+
+  lane=$(route "$prompt")
+  # The gauge needs measured activities, which a single hook invocation does not
+  # have -- they come from disk state across turns. Emitting a FABRICATED vector
+  # here would be worse than emitting none, so hook mode reports the routing
+  # decision only and says nothing it has not measured.
+  echo "RoT MoE :: TIER 1 -> $lane"
+  exit 0
+}
+
 # --- entry point -------------------------------------------------------------
+[ $# -eq 0 ] && hook_mode
+
 MODE=""; VEC=""; BREADTH=0; M=1.05; C=1.0; T=1.0; PROMPT=""
 while [ $# -gt 0 ]; do
   case "$1" in

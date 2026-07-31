@@ -1,0 +1,151 @@
+{
+  "directory": "lean",
+  "files": {
+    "lakefile.toml": {
+      "hash": "3deddb6df831",
+      "indexed_at": "2026-07-31T11:35:25.335868+00:00",
+      "language": "toml",
+      "lines": 26,
+      "mtime_ns": 1785495730394330700,
+      "size": 795,
+      "symbols": [
+        {
+          "lines": [
+            4,
+            4
+          ],
+          "name": "name",
+          "type": "key"
+        },
+        {
+          "lines": [
+            5,
+            5
+          ],
+          "name": "version",
+          "type": "key"
+        },
+        {
+          "lines": [
+            6,
+            6
+          ],
+          "name": "keywords",
+          "type": "key"
+        },
+        {
+          "lines": [
+            7,
+            7
+          ],
+          "name": "defaultTargets",
+          "type": "key"
+        },
+        {
+          "children": [
+            {
+              "lines": [
+                10,
+                10
+              ],
+              "name": "pp.unicode.fun",
+              "type": "key"
+            },
+            {
+              "lines": [
+                11,
+                11
+              ],
+              "name": "relaxedAutoImplicit",
+              "type": "key"
+            },
+            {
+              "lines": [
+                12,
+                12
+              ],
+              "name": "weak.linter.mathlibStandardSet",
+              "type": "key"
+            },
+            {
+              "lines": [
+                13,
+                13
+              ],
+              "name": "maxSynthPendingDepth",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            9,
+            14
+          ],
+          "name": "leanOptions",
+          "type": "table"
+        },
+        {
+          "children": [
+            {
+              "lines": [
+                16,
+                16
+              ],
+              "name": "name",
+              "type": "key"
+            },
+            {
+              "lines": [
+                17,
+                17
+              ],
+              "name": "scope",
+              "type": "key"
+            },
+            {
+              "lines": [
+                18,
+                18
+              ],
+              "name": "rev",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            15,
+            19
+          ],
+          "name": "require",
+          "type": "array_table"
+        },
+        {
+          "children": [
+            {
+              "lines": [
+                21,
+                21
+              ],
+              "name": "name",
+              "type": "key"
+            },
+            {
+              "lines": [
+                26,
+                26
+              ],
+              "name": "globs",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            20,
+            27
+          ],
+          "name": "lean_lib",
+          "type": "array_table"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-07-31T11:35:25.344032+00:00",
+  "version": "1.0"
+}

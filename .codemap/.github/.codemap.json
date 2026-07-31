@@ -1,0 +1,173 @@
+{
+  "directory": ".github",
+  "files": {
+    "dependabot.yml": {
+      "hash": "f240fccd0c22",
+      "indexed_at": "2026-07-31T11:35:25.324810+00:00",
+      "language": "yaml",
+      "lines": 34,
+      "mtime_ns": 1785493987389068300,
+      "size": 1416,
+      "symbols": [
+        {
+          "docstring": "2",
+          "lines": [
+            24,
+            24
+          ],
+          "name": "version",
+          "type": "key"
+        },
+        {
+          "children": [
+            {
+              "docstring": "\"github-actions\"",
+              "lines": [
+                26,
+                26
+              ],
+              "name": "package-ecosystem",
+              "type": "item"
+            },
+            {
+              "docstring": "\"/\"",
+              "lines": [
+                27,
+                27
+              ],
+              "name": "directory",
+              "type": "key"
+            },
+            {
+              "children": [
+                {
+                  "docstring": "\"daily\"",
+                  "lines": [
+                    29,
+                    29
+                  ],
+                  "name": "interval",
+                  "type": "key"
+                }
+              ],
+              "lines": [
+                28,
+                29
+              ],
+              "name": "schedule",
+              "type": "section"
+            },
+            {
+              "docstring": "5",
+              "lines": [
+                30,
+                30
+              ],
+              "name": "open-pull-requests-limit",
+              "type": "key"
+            },
+            {
+              "children": [
+                {
+                  "docstring": "\"ci\"",
+                  "lines": [
+                    32,
+                    32
+                  ],
+                  "name": "prefix",
+                  "type": "key"
+                }
+              ],
+              "lines": [
+                31,
+                32
+              ],
+              "name": "commit-message",
+              "type": "section"
+            },
+            {
+              "lines": [
+                33,
+                35
+              ],
+              "name": "labels",
+              "type": "list"
+            }
+          ],
+          "lines": [
+            25,
+            35
+          ],
+          "name": "updates",
+          "type": "list"
+        }
+      ]
+    },
+    "topics.md": {
+      "hash": "391632892595",
+      "indexed_at": "2026-07-31T11:35:25.325244+00:00",
+      "language": "markdown",
+      "lines": 142,
+      "mtime_ns": 1785493943708064600,
+      "size": 6505,
+      "symbols": [
+        {
+          "docstring": "Topics are GitHub's own tag system. Up to **20** per repo. They are not decoration: `github.com/topics/<topic>` is a real, crawlable, ranked page, and",
+          "lines": [
+            15,
+            50
+          ],
+          "name": "Where it moved: repo TOPICS",
+          "type": "section"
+        },
+        {
+          "docstring": "| surface | limit | why it is indexed | |---|---|---| | repo **description** | ~350 chars | shown in every search result and every org listing; the si",
+          "lines": [
+            51,
+            58
+          ],
+          "name": "The other three legitimate surfaces",
+          "type": "section"
+        },
+        {
+          "docstring": "**This works, and it was measured rather than argued.** One call to GitHub's own markdown renderer (`POST https://api.github.com/markdown`, HTTP 200)",
+          "lines": [
+            59,
+            101
+          ],
+          "name": "The signature block \u2014 the forum trick, ported verbatim",
+          "type": "section"
+        },
+        {
+          "docstring": "**A \"META injector\" cannot inject meta tags into a GitHub page** \u2014 row 1 of the table above. `<meta>` is deleted before the page is served, so no craw",
+          "lines": [
+            102,
+            111
+          ],
+          "name": "What does NOT work, measured rather than assumed",
+          "type": "section"
+        },
+        {
+          "docstring": "A bot whose job is to bump a timestamp so the repo *looks* updated is **inauthentic activity** under GitHub's Acceptable Use Policies, and enforcement",
+          "lines": [
+            112,
+            125
+          ],
+          "name": "What would actively cost us the repo",
+          "type": "section"
+        },
+        {
+          "docstring": "`.github/workflows/verify.yml` runs **every Monday**. It re-proves the whole packet against whatever Lean and mathlib currently are, then writes the r",
+          "lines": [
+            126,
+            143
+          ],
+          "name": "What we ship instead, which produces the same visible effect honestly",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-07-31T11:35:25.341059+00:00",
+  "version": "1.0"
+}

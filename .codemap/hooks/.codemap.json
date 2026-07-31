@@ -1,0 +1,50 @@
+{
+  "directory": "hooks",
+  "files": {
+    "rot-router.sh": {
+      "hash": "21014820a6e8",
+      "indexed_at": "2026-07-31T11:56:31.430004+00:00",
+      "language": "shell",
+      "lines": 215,
+      "mtime_ns": 1785498945604479500,
+      "size": 10278,
+      "symbols": [
+        {
+          "lines": [
+            60,
+            66
+          ],
+          "name": "fired",
+          "type": "function"
+        },
+        {
+          "lines": [
+            68,
+            81
+          ],
+          "name": "route",
+          "type": "function"
+        },
+        {
+          "lines": [
+            94,
+            133
+          ],
+          "name": "gauge",
+          "type": "function"
+        },
+        {
+          "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
+          "lines": [
+            154,
+            190
+          ],
+          "name": "hook_mode",
+          "type": "function"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-07-31T11:56:31.430069+00:00",
+  "version": "1.0"
+}

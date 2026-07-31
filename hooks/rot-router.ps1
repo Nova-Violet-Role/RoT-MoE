@@ -110,5 +110,43 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
 if ($Route)  { Write-Output (Invoke-Route $Route); exit 0 }
 if ($Vector) { Write-Output (Invoke-Gauge $Vector $Breadth $M $C $T); exit 0 }
 
-Write-Error 'rot-router.ps1: no mode given (-Vector or -Route)'
-exit 2
+# --- HOOK MODE, and the defect it exists to fix ------------------------------
+# This script previously ENDED at Write-Error. ARM_ROUTER registers it as a hook
+# command with no arguments, so every real invocation reached that line and
+# exited 2 -- the hook fired on every turn and did nothing but complain.
+#
+# Every other instrument was green while that was true: the build, the kernel
+# re-check, a 49-row byte-identical cross-diff, a byte-identical installer round
+# trip, 10/10 mutants killed. None of them invokes the hook the way Claude Code
+# invokes it. A live session found it in one run.
+#
+# Claude Code sends the invoking event as JSON on stdin -- measured in the
+# shipped hook at rot-lean-inject.ps1:119-128. IsInputRedirected is the guard
+# that keeps a manual run from blocking forever on a terminal; reading stdin
+# unconditionally would hang.
+$payload = ''
+if ([Console]::IsInputRedirected) {
+  try { $payload = [Console]::In.ReadToEnd() } catch { $payload = '' }
+}
+
+if ([string]::IsNullOrWhiteSpace($payload)) {
+  Write-Error 'rot-router.ps1: hook mode expects a JSON payload on stdin. Try -Route "some text".'
+  exit 2
+}
+
+$prompt = ''
+try {
+  $j = $payload | ConvertFrom-Json
+  if ($j.prompt)         { $prompt = [string]$j.prompt }
+  elseif ($j.tool_name)  { $prompt = [string]$j.tool_name }
+} catch {
+  # A payload that does not parse is not a reason to fail the user's turn. Route
+  # the raw text: the routing decision degrades, the session does not break.
+  $prompt = $payload
+}
+
+# The gauge needs activities measured off disk across turns, which one hook
+# invocation does not have. Emitting a fabricated vector would be worse than
+# emitting none, so hook mode reports only the routing decision it measured.
+Write-Output ("RoT MoE :: TIER 1 -> " + (Invoke-Route $prompt))
+exit 0
