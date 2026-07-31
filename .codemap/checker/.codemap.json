@@ -221,12 +221,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "70c94db54334",
-      "indexed_at": "2026-07-31T15:55:19.326189+00:00",
+      "hash": "930d26effa19",
+      "indexed_at": "2026-07-31T16:24:13.269071+00:00",
       "language": "shell",
-      "lines": 316,
-      "mtime_ns": 1785512017566038700,
-      "size": 14708,
+      "lines": 351,
+      "mtime_ns": 1785513877931703400,
+      "size": 16777,
       "symbols": [
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
@@ -239,8 +239,8 @@
         },
         {
           "lines": [
-            262,
-            277
+            297,
+            312
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -248,6 +248,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T15:55:19.326249+00:00",
+  "generated_at": "2026-07-31T16:24:13.269143+00:00",
   "version": "1.0"
 }

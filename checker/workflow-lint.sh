@@ -212,6 +212,41 @@ for h in lean/mutate/mutate_*.sh; do
 done
 [ "$missing_anchor" -eq 0 ] && ok "all mutation harnesses attribute on '^error:' (linter warnings cannot be mistaken for kills)"
 
+# A KILL MUST BE ATTRIBUTABLE, AND THAT IS NOW CHECKED STRUCTURALLY.
+#
+# MEASURED DEFECT, 2026-07-31: two of the five suites resolved their paths from
+# `cd "$(dirname "$0")"` -- lean/mutate/ -- where no Proofs/*.lean exists and
+# lake has no lakefile. Every build failed for THAT reason, every failure was
+# scored KILLED, and they reported 11 perfect kills between them without ever
+# opening a source file. The needle guard did not save it: the count was EMPTY,
+# so `[ "$n" -ne 1 ]` errored instead of firing.
+#
+# Two structural requirements come out of it, and they are cheap to check:
+#   * the suite resolves its workspace from LEAN_ROOT, like every other one
+#   * the suite PREFLIGHTS -- it refuses to run when the source is missing or
+#     the unmutated baseline is red, because a kill measured against a red
+#     baseline cannot be attributed to the mutation
+mut_defects=0
+for h in lean/mutate/mutate_*.sh; do
+  b="$(basename "$h")"
+  grep -q 'LEAN_ROOT' "$h" \
+    || { bad "$b does not resolve its workspace from LEAN_ROOT -- it will build in whatever directory it is called from"; mut_defects=$((mut_defects+1)); }
+  grep -qE 'preflight|FATAL' "$h" \
+    || { bad "$b has no preflight -- it cannot tell 'my workspace is missing' from 'the theorem caught it'"; mut_defects=$((mut_defects+1)); }
+done
+[ "$mut_defects" -eq 0 ] && ok "all $(ls lean/mutate/mutate_*.sh | wc -l | tr -d ' ') mutation suites resolve from LEAN_ROOT and preflight a green baseline"
+
+# CONTROL: the exact broken shape must be rejected. Without this, the two greens
+# above are a pattern nobody has seen fail.
+MCTL="$(mktemp -d "${TMPDIR:-/tmp}/mutctl.XXXXXX")"
+printf '#!/usr/bin/env bash\ncd "$(dirname "$0")"\nSRC="Proofs/X.lean"\nlake build Proofs.X\n' > "$MCTL/mutate_broken.sh"
+if grep -q 'LEAN_ROOT' "$MCTL/mutate_broken.sh" || grep -qE 'preflight|FATAL' "$MCTL/mutate_broken.sh"; then
+  bad "CONTROL DEAD: the pre-2026-07-31 broken suite shape passes these checks"
+else
+  ok "CONTROL: a suite that cds to its own directory with no preflight IS rejected"
+fi
+rm -rf "$MCTL"
+
 # --- 4. the anti-inauthenticity rule ----------------------------------------
 echo
 echo "-- the --allow-empty rule (R18) --"

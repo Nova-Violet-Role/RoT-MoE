@@ -24,6 +24,26 @@ OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotGauge.olean
 LOG=/d/tmp/mut
 
 mkdir -p "$LOG"
+# --- PREFLIGHT: no green baseline, no attributable kills --------------------
+# Added 2026-07-31 after two SIBLING suites were caught scoring 11 kills
+# without ever opening a source file: their builds failed because the
+# workspace was not there, and every such failure was recorded as KILLED.
+# This suite resolved its paths correctly, but it shared the deeper defect --
+# it never checked that the UNMUTATED tree builds. A kill measured against a
+# red baseline cannot be attributed to the mutation that supposedly caused it.
+[ -f "$F" ] || {
+  echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
+  echo "and be scored KILLED without a line having been mutated."
+  exit 2
+}
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotGauge ) >/tmp/mut_pre_rotgauge.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotGauge)."
+  echo "A kill measured against a red baseline is unattributable. Fix the tree first."
+  tail -5 /tmp/mut_pre_rotgauge.log
+  exit 2
+fi
+echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
+
 cp "$F" "$BAK"
 
 killed=0; survived=0; discarded=0

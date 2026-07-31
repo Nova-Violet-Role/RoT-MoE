@@ -10,7 +10,7 @@
 
 **Nine lenses, one mind — and a kernel that checks the arithmetic**
 
-*A Mixture-of-Experts router for Claude Code, specified in Lean 4 and bound to the shipped hooks by executable checkers*
+*RoleThinkering: a Mixture-of-Experts router for Claude Code — nine named lenses, an auditable routing rule, and a divergence gauge specified in Lean 4*
 
 [![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/saimonokuma)
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
@@ -67,6 +67,48 @@ machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
 break each definition on purpose and require the theorems to die.
+
+---
+
+## 🧠 What "RoT" means, and how it sits next to CoT and ToT
+
+**RoT is RoleThinkering** — and yes, the name is deliberately in the family of
+**CoT** (Chain of Thought) and **ToT** (Tree of Thought). They answer the same
+question in three different shapes:
+
+| | shape of the reasoning | who decides the next step | can you audit the choice? |
+|:--|:--|:--|:--|
+| **CoT** — Chain of Thought | one line, step after step | the model, implicitly | you read the chain afterwards |
+| **ToT** — Tree of Thought | branches, explored and pruned | a search procedure over the branches | you read the surviving branch |
+| **RoT** — RoleThinkering | several *named lenses* reasoning at once, then converging | a **router you can read**, plus a measured divergence gauge | ✅ the routing rule is code, and the gauge is a number with theorems attached |
+
+A chain is one voice thinking longer. A tree is one voice thinking wider. **RoT
+is several defined points of view held at the same time** — clinical,
+executive, empathic, chaotic, predictive, compressive, recursive, strategic,
+empirical — which then *converge* rather than vote. The interesting part is not
+that the lenses exist; it is that **nine voices agreeing is treated as a
+failure, not a success.** Productive tension is the signal, and `R/s+` is what
+measures it.
+
+That gives RoT the property the other two lack by construction: **the routing
+decision is external, inspectable and testable.** A native Mixture-of-Experts
+inside a model routes each token through a learned gating network across
+hundreds of experts — extremely powerful, and *not interpretable*: you cannot
+ask why expert 217 fired. RoT routes at the level of the *prompt*, in shell
+code you can read, with a priority order a Lean theorem characterises in both
+directions. It is not a competitor to weight-level MoE; it is the orthogonal
+layer. One decides *how the reasoning is framed* before generation; the other
+decides *which parameters fire* during it.
+
+> 📚 **Provenance, stated plainly.** RoT began as a prompt-level architecture —
+> five facets, a four-phase expansion, and an `R/s+` score written by hand —
+> and it was stress-tested that way against native MoE models before any of it
+> was executable. **This repository is the generation where it stopped being a
+> document.** The nine lenses, the three-tier router and the gauge now run as
+> real code in two shells, and the properties that used to be claimed in prose
+> are theorems in `lean/Proofs/`. Those earlier comparisons are history, not
+> evidence for what is in here; everything on this page is measured from *this*
+> tree.
 
 ---
 
