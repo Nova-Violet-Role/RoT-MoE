@@ -1,0 +1,65 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# THE GAUGE CORPUS.
+# Format:  vector|breadth|M|C|T|expected output string|note
+# Lens order: Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude
+#
+# Two kinds of row, and the difference is the whole value of this file:
+#
+#   LIVE   -- the expected string was MEASURED from the running PowerShell hook
+#             during a real session. These rows bind the port to observed
+#             behaviour, not to my reading of the source. If the port drifts,
+#             these break first.
+#
+#   MODEL  -- derived from lean/Proofs/RotGauge.lean's #eval mirror and its
+#             theorems. These bind the shipped code to the proofs.
+#
+# A row is never edited to make a checker pass. If a row and the code disagree,
+# one of them is wrong and the disagreement is the finding.
+#
+# Rounding is part of the observable: the strings below are compared BYTE FOR
+# BYTE, which is what catches a locale bug that a numeric compare would miss.
+
+# --- LIVE: the four readings recorded from the running hook, plus the control
+#     emitted during the session that wrote the POSIX port (0.83).
+0,0,0,0,0,0,0,0,0|0|1.05|0.7|0.8|R/s+ = 0.09 [BELOW RANGE] mean=0 breadth=0 K=9 lenses=none|LIVE all-quiet, C=0.7 T=0.8 (the gauge FLOOR, never 0)
+0,0,0,0,0,0,1,0,1|1|1.05|0.7|0.8|R/s+ = 0.49 [BELOW RANGE] mean=0.222 breadth=1 K=9 lenses=Soleil,Claude|LIVE Soleil+Claude, breadth 1
+0,1,0,0,0,0,0,0,0|1|1.05|0.7|0.8|R/s+ = 0.18 [BELOW RANGE] mean=0.111 breadth=1 K=9 lenses=Violet|LIVE Violet alone, breadth 1
+0,0,0,0,0,0,0,0,0|0|1.05|1.0|0.8|R/s+ = 0.13 [BELOW RANGE] mean=0 breadth=0 K=9 lenses=none|LIVE all-quiet at C=1.0
+0,0,1,0,0,0,0,0,1|1|1.05|1.0|0.8|R/s+ = 0.83 [BELOW RANGE] mean=0.222 breadth=1 K=9 lenses=AntiVenom,Claude|LIVE AntiVenom+Claude, C=1.0 T=0.8
+
+# --- MODEL: rows that pin theorems from RotGauge.lean.
+#
+# gauge_pos                        R > 0 for every input. An all-quiet turn
+#                                  reads the FLOOR, never 0.00 -- a reading of
+#                                  exactly 0 means the gauge did not run.
+# gauge_allLive_eq_two_mul_allQuiet all nine live is EXACTLY twice all quiet at
+#                                  the same M/C/T, because every H_i saturates.
+#
+# A CORRECTION THAT THIS FILE CAUGHT, KEPT VISIBLE BECAUSE IT IS INSTRUCTIVE:
+# the doubling rows were first written with breadth=9 and the expected value
+# 0.33, on the assumption that "all nine lenses live" implies breadth 9. It
+# does not. BREADTH AND ACTIVITY ARE INDEPENDENT INPUTS: activity is per-lens,
+# breadth counts how many distinct SIGNAL AREAS moved, and H_i = a_i/breadth.
+# At breadth 9 each H_i is 1/9 and the gauge reads 0.18, not 0.33. The doubling
+# theorem needs H_i to saturate at 1, which happens at breadth 1.
+#
+# Both rows are kept. The 0.33 row pins the theorem; the 0.18 row pins the
+# independence, so a future refactor that quietly ties breadth to the activity
+# count breaks a corpus row instead of silently changing every gauge reading.
+1,1,1,1,1,1,1,1,1|1|1.05|0.7|0.8|R/s+ = 0.19 [BELOW RANGE] mean=1 breadth=1 K=9 lenses=Nova,Violet,AntiVenom,Venom,Carnage,Chroma,Soleil,Eidolon,Claude|MODEL all-live = 2x all-quiet at C=0.7 T=0.8 (0.0926 -> 0.1852)
+1,1,1,1,1,1,1,1,1|1|1.05|1.0|1.0|R/s+ = 0.33 [BELOW RANGE] mean=1 breadth=1 K=9 lenses=Nova,Violet,AntiVenom,Venom,Carnage,Chroma,Soleil,Eidolon,Claude|MODEL all-live = 2x all-quiet at C=1 T=1 (0.16529 -> 0.33057, ratio verified = 2.000000)
+1,1,1,1,1,1,1,1,1|9|1.05|1.0|1.0|R/s+ = 0.18 [BELOW RANGE] mean=1 breadth=9 K=9 lenses=Nova,Violet,AntiVenom,Venom,Carnage,Chroma,Soleil,Eidolon,Claude|MODEL breadth is INDEPENDENT of activity -- same vector, breadth 9, H_i=1/9, NOT the doubling
+0,0,0,0,0,0,0,0,0|0|1.05|1.0|1.0|R/s+ = 0.17 [BELOW RANGE] mean=0 breadth=0 K=9 lenses=none|MODEL the floor at M=1.05 C=1 T=1 (gauge_ge_floor)
+1,0,0,0,0,0,0,0,0|1|1.05|1.0|1.0|R/s+ = 0.49 [BELOW RANGE] mean=0.111 breadth=1 K=9 lenses=Nova|MODEL Nova alone -- hand-verified 0.494991. This is the lens the :362-366 bug pinned at 0 forever
+0,0,0,0,0,0,0,0,1|1|1.05|1.0|1.0|R/s+ = 0.7 [BELOW RANGE] mean=0.111 breadth=1 K=9 lenses=Claude|MODEL Claude alone, the heaviest lens -- hand-verified 0.697467
+0,1,0,0,0,0,0,0,0|1|1.05|1.0|1.0|R/s+ = 0.33 [BELOW RANGE] mean=0.111 breadth=1 K=9 lenses=Violet|MODEL Violet alone, the lightest lens -- hand-verified 0.329551. gauge_not_constant is witnessed by this row vs Nova alone (0.49)
+#
+# ROUNDING COLLISION, recorded so nobody later treats a gauge reading as an
+# identifier: Violet-alone and all-live-at-breadth-1 BOTH print 0.33 while being
+# entirely different turns (0.329551 vs 0.330570). The reading is a MEASUREMENT,
+# not a fingerprint, and two rows sharing one is expected rather than a defect.
+# It is also why every row here carries its own vector: the corpus is keyed by
+# input, never by the number that comes out.

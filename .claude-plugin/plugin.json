@@ -1,0 +1,15 @@
+{
+  "name": "rot-moe",
+  "version": "1.0.0",
+  "description": "RoT MoE - a nine-lens Mixture-of-Experts router with a measured R/s+ divergence gauge, specified in Lean 4 and bound to the shipped hooks by an executable checker. 63 machine-checked theorems, zero sorry, kernel re-verified.",
+  "author": {
+    "name": "Saimonokuma",
+    "url": "https://github.com/Nova-Violet-Role"
+  },
+  "license": "AGPL-3.0-or-later OR EUPL-1.2",
+  "homepage": "https://github.com/Nova-Violet-Role/RoT-MoE",
+  "keywords": [
+    "mixture-of-experts", "router", "lean4", "formal-verification",
+    "claude-code", "hooks", "mutation-testing", "theorem-proving"
+  ]
+}
