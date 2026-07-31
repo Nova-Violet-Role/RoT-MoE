@@ -281,12 +281,12 @@
       ]
     },
     "ci.yml": {
-      "hash": "fcd38822e4b4",
-      "indexed_at": "2026-07-31T16:59:13.849312+00:00",
+      "hash": "3e643dc65adc",
+      "indexed_at": "2026-07-31T17:21:48.399000+00:00",
       "language": "yaml",
-      "lines": 292,
-      "mtime_ns": 1785516742020086000,
-      "size": 12473,
+      "lines": 293,
+      "mtime_ns": 1785518101489557600,
+      "size": 12549,
       "symbols": [
         {
           "docstring": "CI",
@@ -1309,7 +1309,7 @@
                     {
                       "lines": [
                         286,
-                        293
+                        294
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1317,7 +1317,7 @@
                   ],
                   "lines": [
                     187,
-                    293
+                    294
                   ],
                   "name": "steps",
                   "type": "list"
@@ -1325,7 +1325,7 @@
               ],
               "lines": [
                 184,
-                293
+                294
               ],
               "name": "lean",
               "type": "section"
@@ -1333,7 +1333,7 @@
           ],
           "lines": [
             48,
-            293
+            294
           ],
           "name": "jobs",
           "type": "section"
@@ -1915,6 +1915,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T16:59:13.849463+00:00",
+  "generated_at": "2026-07-31T17:21:48.399158+00:00",
   "version": "1.0"
 }

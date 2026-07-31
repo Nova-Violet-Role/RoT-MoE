@@ -205,7 +205,7 @@ jobs:
       - name: lake build (exit code read DIRECTLY, never through a pipe)
         working-directory: lean
         run: |
-          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotVacuity
+          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotVacuity
           echo "lake build exit=$?"
 
       # A green build means it ELABORATED. It does not mean the theorems rest on
@@ -270,7 +270,7 @@ jobs:
         working-directory: lean
         run: |
           set +e
-          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotVacuity; do
+          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotVacuity; do
             lake env leanchecker "$m"; rc=$?
             echo "$m -> $rc"
             [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }
@@ -289,4 +289,5 @@ jobs:
           bash mutate/mutate_rotroute.sh
           bash mutate/mutate_rotinstall.sh
           bash mutate/mutate_rotpath.sh
+          bash mutate/mutate_rotremind.sh
           bash mutate/mutate_rotvacuity.sh

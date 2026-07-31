@@ -145,7 +145,23 @@ claim_exempt () {   # 0 = exempt (carries the pattern by construction)
 }
 claims=0; wrong=0; scanned=0
 scan_file_claims () {   # scan_file_claims <file> ; echoes "<file> <claimed>" per claim
-  grep -oE '[0-9]+ machine-checked( Lean 4)? theorems?' "$1" \
+  # MEASURED DEFECT, 2026-07-31: this was line-based, and README.md wrapped its
+  # own claim across a line break --
+  #
+  #     ... computes an `R/s+` gauge from them, and **72
+  #     machine-checked theorems in Lean 4** state what that gauge must satisfy
+  #
+  # so the sweep that exists to catch a stale count walked straight past the
+  # most prominent claim in the repository. Every OTHER file was caught; the
+  # front page was not, purely because a paragraph was rewrapped. A checker
+  # whose blind spot is "the author reflowed a sentence" fails exactly when
+  # prose is being edited, which is exactly when counts go stale.
+  #
+  # Folding newlines to spaces first removes the blind spot. Markdown emphasis
+  # markers are stripped for the same reason: `**72** machine-checked` is the
+  # same claim to a reader and must be the same claim to the checker.
+  tr '\n' ' ' < "$1" | tr -s ' ' | sed 's/\*\*//g; s/__//g' \
+    | grep -oE '[0-9]+ machine-checked( Lean 4)? theorems?' \
     | grep -oE '^[0-9]+' \
     | while read -r n; do printf '%s %s\n' "$1" "$n"; done
 }
@@ -202,6 +218,16 @@ fi
 # reaches beyond prose: a JSON manifest must be reachable and readable by it.
 # `plugin.json` is not required to CARRY a claim (a future edit may drop the
 # sentence); what must hold is that if it does, the sweep sees it.
+# WRAP CONTROL. The blind spot that actually shipped: a claim split across a
+# line break by ordinary paragraph rewrapping. Planted in the exact shape
+# README.md had it, so this control fails the day someone makes the scan
+# line-based again.
+printf 'the router computes a gauge, and **99999\nmachine-checked theorems in Lean 4** say what it must satisfy.\n' > "$CTL/wrapped.md"
+if [ "$(scan_file_claims "$CTL/wrapped.md" | awk '{print $2}')" = "99999" ]; then
+  ok "WRAP CONTROL: a claim split across a line break IS detected (the README's own shape)"
+else
+  bad "WRAP CONTROL DEAD: a rewrapped claim is invisible -- the front page could go stale unseen"
+fi
 if git ls-files --error-unmatch .claude-plugin/plugin.json >/dev/null 2>&1; then
   cp .claude-plugin/plugin.json "$CTL/manifest.json"
   # plant a wrong count into the COPY -- the tree is never touched

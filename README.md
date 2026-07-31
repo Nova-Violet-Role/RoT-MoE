@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **72
+lens activities off disk, computes an `R/s+` gauge from them, and **80
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -182,7 +182,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **44 applied, 44 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **50 applied, 50 killed, 0 survived, 0 discarded** |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 
 Every one of those has a **negative control** recorded beside it, because an
@@ -201,7 +201,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 > and wrote the reason into the file, where the next reader will find it.
 > `NOTICE.md` §C keeps the full engineering log for anyone who wants it.
 
-### 📐 The five modules
+### 📐 The six modules
 
 * **`lean/Proofs/RotGauge.lean`** (35 theorems) — the R/s+ gauge.
   `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
@@ -228,6 +228,19 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   over **all keys**, so your `permissions`, your `env`, and every key not yet
   invented survive. `arm_idempotent`, `arm_appends` (your hooks keep their
   order), `disarm_removes`, `disarm_preserves_others`.
+* **`lean/Proofs/RotRemind.lean`** (8 theorems) — organ 4's decision, and the
+  first theorems about the reminder rather than about the router. The cross-diff
+  proves the two arms agree on 23 corpus rows; these prove the properties no
+  corpus can reach. `silent_regardless_of_alarms` quantifies over the alarm
+  count, so open alarms alone can never make it speak — the wallpaper failure
+  its ancestor died of. `speaks_iff` characterises speech in **both** directions,
+  because "if there is debt it speaks" would still be satisfied by something that
+  speaks always. `stale_monotone` says time can only make it louder — and carries
+  a freshness hypothesis that **Lean refused to let me omit**: `-1` does not mean
+  "a minute ago", it means *no proofs found*, so `stale_monotone_needs_nonneg`
+  proves the hypothesis cannot be dropped. `lower_threshold_speaks_more` is
+  quantified over the threshold rather than pinned at 45, so retuning the default
+  cannot turn a correct change red.
 * **`lean/Proofs/RotVacuity.lean`** (0 theorems — deliberately; the content is `example`s)
   — the audit that catches what every other gate certifies. A theorem with
   contradictory hypotheses is *true*, builds green, has clean axioms and passes
@@ -332,7 +345,7 @@ Then:
 
 ```sh
 cd lean
-lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotVacuity
+lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotVacuity
 echo "lake build exit=$?"                   # read it DIRECTLY, never through a pipe
 lake env leanchecker Proofs.RotGauge        # exit 0, zero bytes = kernel pass
 lake env leanchecker Proofs.NoSuchModule    # exit 1 = the control
@@ -340,6 +353,7 @@ bash mutate/mutate_rotgauge.sh              # expect 12 killed, 0 survived
 bash mutate/mutate_rotroute.sh              # expect 11 killed, 0 survived
 bash mutate/mutate_rotinstall.sh            # expect 10 killed, 0 survived
 bash mutate/mutate_rotpath.sh               # expect  5 killed, 0 survived
+bash mutate/mutate_rotremind.sh             # expect  6 killed, 0 survived
 bash mutate/mutate_rotvacuity.sh            # expect  6 killed, 0 survived
 ```
 

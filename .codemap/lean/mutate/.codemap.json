@@ -108,6 +108,32 @@
         }
       ]
     },
+    "mutate_rotremind.sh": {
+      "hash": "bed8391c505d",
+      "indexed_at": "2026-07-31T17:21:48.708519+00:00",
+      "language": "shell",
+      "lines": 221,
+      "mtime_ns": 1785518061794738500,
+      "size": 11029,
+      "symbols": [
+        {
+          "lines": [
+            83,
+            111
+          ],
+          "name": "run_mut",
+          "type": "function"
+        },
+        {
+          "lines": [
+            113,
+            162
+          ],
+          "name": "run_mut_nth",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotroute.sh": {
       "hash": "16920c4ab638",
       "indexed_at": "2026-07-31T16:24:13.756105+00:00",
@@ -153,6 +179,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T16:24:13.756163+00:00",
+  "generated_at": "2026-07-31T17:21:48.708570+00:00",
   "version": "1.0"
 }
