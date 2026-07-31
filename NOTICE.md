@@ -45,6 +45,32 @@ fails the build if that header appears.
   endorsed by Anthropic. "Claude" is used nominatively to say what this plugin
   plugs into.
 
+### A.3 `agents/lean4-prover.md` declares a derivation, and it is credited here
+
+The prover head opens with a sentence it inherited from the private original:
+
+> *"Adapted from Mistral's Leanstral system prompt (`vibe/core/prompts/lean.md`),
+> with the local toolchain facts measured on this machine and the verification
+> discipline made non-negotiable."*
+
+That is the document's own account of where it came from, so it is stated here
+rather than quietly dropped — **an omitted credit is the same defect as a false
+one**, and the file would have shipped carrying the sentence either way.
+
+What is credited: the *shape* of a Lean-specialist system prompt (prime rule,
+tactic ladder, reporting contract) as adapted from that upstream. What is not:
+the substance this repo adds — the instrument table, the mutation discipline,
+the ELAN arsenal map, the `leanchecker` ritual and every measured fact, all of
+which were written and measured here.
+
+**Unresolved, and stated as unresolved rather than assumed:** the licence of the
+upstream prompt has not been verified from a primary source by this project. The
+dual grant in §A applies to *this* repository's original content; it makes no
+claim over anything traceable to that upstream. If the derivation is found to be
+more than structural, or the upstream terms turn out to be incompatible, the
+correct fix is to rewrite the affected passages — not to delete this paragraph.
+Tracked as an open alarm (R22) rather than treated as settled.
+
 ---
 
 ## B. What the proofs cover, and what they do not

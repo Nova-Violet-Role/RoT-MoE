@@ -26,15 +26,36 @@ set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 SH="$REPO/hooks/rot-router.sh"
 PS1="$REPO/hooks/rot-router.ps1"
+# Organ 4 -- the reminder arms. Mutated by the same harness because they are
+# shipped code with two implementations that must agree, exactly like the
+# router. A second pair of arms with no mutation suite would be the "instrument
+# exists, nobody broke it on purpose" state this file was written to end.
+RSH="$REPO/hooks/prover-remind.sh"
+RPS1="$REPO/hooks/prover-remind.ps1"
 LOG="${TMPDIR:-/tmp}/rotmoe-mutchk"; mkdir -p "$LOG"
 
-cp "$SH" "$SH.mutbak"; cp "$PS1" "$PS1.mutbak"
+for f in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$f" "$f.mutbak"; done
 killed=0; survived=0; discarded=0
 
-restore () { cp "$SH.mutbak" "$SH"; cp "$PS1.mutbak" "$PS1"; }
+# THE LOOP VARIABLE IS `_rf`, AND THAT IS LOAD-BEARING. It was `f`, and `run()`
+# declares `local f` for the file it is about to mutate -- bash has DYNAMIC
+# scope, so `restore` (called from inside `run`) silently reassigned the
+# caller's `f` to the LAST file in this list. Every router mutation then
+# measured its needle against `prover-remind.ps1`, found 0, and reported
+# DISCARDED: 12 of them in one run.
+#
+# It failed in the safe direction by luck, not by design. Had any needle also
+# existed in the last file of the list, the harness would have mutated the WRONG
+# FILE and reported the result as if it had mutated the right one. `local` on
+# the loop variable is the fix; the rename is what makes it obvious.
+restore () { local _rf; for _rf in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$_rf.mutbak" "$_rf"; done; }
 
-run () {  # run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note>
+# run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker]
+# The 7th argument names the checker to run; it defaults to the router
+# cross-diff so every existing call site keeps its meaning unchanged.
+run () {
   local id="$1" f="$2" needle="$3" repl="$4" expect="$5" note="$6"
+  local checker="${7:-checker/cross-diff.sh}"
   restore
   local n; n=$(grep -F -c -- "$needle" "$f")
   if [ "$n" -ne 1 ]; then
@@ -50,7 +71,7 @@ run () {  # run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note>
     discarded=$((discarded+1)); restore; return
   fi
 
-  bash "$REPO/checker/cross-diff.sh" > "$LOG/$id.log" 2>&1
+  bash "$REPO/$checker" > "$LOG/$id.log" 2>&1
   local rc=$?
   if [ "$expect" = "GREEN" ]; then
     if [ "$rc" -eq 0 ]; then echo "$id  OK (meta-control) checker stayed GREEN on a no-op -- $note"; killed=$((killed+1))
@@ -179,12 +200,60 @@ else
   echo "     locale-invariance phase in cross-diff.sh is what exercises it there."
 fi
 
+echo
+echo "=== ORGAN 4: breaking the reminder arms on purpose ==="
+# Same discipline, second pair of arms. H20 is this section's OWN meta-control:
+# without it, a reminder cross-diff that failed on everything would score four
+# perfect kills below.
+run H20 "$RSH" \
+  '# --- DECIDE ---' \
+  '# --- DECIDE (no-op comment edit) ---' \
+  GREEN 'meta-control: a comment change must not turn the reminder cross-diff red' \
+  checker/cross-diff-remind.sh
+
+run H21 "$RSH" \
+  '[ "$_mins" -lt "$STALE_MIN" ]' \
+  '[ "$_mins" -le "$STALE_MIN" ]' \
+  RED 'staleness boundary moved in the POSIX arm only -- the 45-minute row flips to silence' \
+  checker/cross-diff-remind.sh
+
+run H22 "$RPS1" \
+  '$Mins -lt $StaleMin' \
+  '$Mins -le $StaleMin' \
+  RED 'the SAME boundary moved in the WINDOWS arm only -- caught from the other side' \
+  checker/cross-diff-remind.sh
+
+run H23 "$RSH" \
+  'A sorry is an admission, never a result' \
+  'A sorry is an admission, never a resul' \
+  RED 'one character dropped from a message -- proves the comparison is BYTE-for-byte' \
+  checker/cross-diff-remind.sh
+
+run H24 "$RPS1" \
+  'Select-Object -First $N' \
+  'Select-Object -First 99' \
+  RED 'truncation limit changed in the Windows arm -- the "(+N more)" rows diverge' \
+  checker/cross-diff-remind.sh
+
+# H25 -- the one that matters most, and it is aimed at the hook's PURPOSE
+# rather than its arithmetic: silence. An arm that always speaks is the
+# wallpaper this organ was rewritten to stop being, and it would pass every
+# equality test above if BOTH arms did it. Here only one arm loses silence, so
+# the cross-diff names it.
+run H25 "$RSH" \
+  '    return 1' \
+  '    :' \
+  RED 'the POSIX arm loses its SILENT branch -- it becomes wallpaper' \
+  checker/cross-diff-remind.sh
+
 restore
 bash "$REPO/checker/cross-diff.sh" > "$LOG/baseline.log" 2>&1
 base=$?
-rm -f "$SH.mutbak" "$PS1.mutbak"
+bash "$REPO/checker/cross-diff-remind.sh" > "$LOG/baseline-remind.log" 2>&1
+baseR=$?
+rm -f "$SH.mutbak" "$PS1.mutbak" "$RSH.mutbak" "$RPS1.mutbak"
 
 echo "---"
 echo "killed=$killed survived=$survived discarded=$discarded"
-echo "baseline restored -> cross-diff exit=$base"
-[ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && [ "$base" -eq 0 ] && exit 0 || exit 1
+echo "baseline restored -> cross-diff exit=$base, cross-diff-remind exit=$baseR"
+[ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && [ "$base" -eq 0 ] && [ "$baseR" -eq 0 ] && exit 0 || exit 1

@@ -58,10 +58,47 @@ DISARM_ROUTER.sh
 DISARM_ROUTER.ps1
 lean/lakefile.toml
 lean/lean-toolchain
+SETUP_LEAN.sh
+SETUP_LEAN.ps1
 "
 for f in $REQUIRED; do
   [ -f "$f" ] && ok "present: $f" || bad "MISSING: $f"
 done
+
+# --- 1b. THE FOUR ORGANS ----------------------------------------------------
+#
+# MEASURED DEFECT, 2026-07-31. This checker reported a COMPLETE repository while
+# three of the packet's four organs did not exist: there was no `engine/`, no
+# `agents/`, and no reminder hook. The list above named the router and the
+# licences, so the tree it certified was a router with paperwork.
+#
+# The lesson is not "add three filenames". It is that a completeness check must
+# be written against the STRUCTURE THE PROJECT CLAIMS TO SHIP, not against the
+# files that happened to exist when the check was written. Each organ below is
+# named with what it IS, so a future reader can tell whether a replacement
+# satisfies it.
+echo
+echo "-- the four organs of the packet --"
+organ () {   # organ <path> <what it is>
+  if [ -f "$1" ]; then ok "organ present: $1 -- $2"
+  else bad "ORGAN MISSING: $1 -- $2"; fi
+}
+organ engine/rot-lean.md        "the engine specification the router implements"
+organ agents/lean4-prover.md    "the prover head, with its frontmatter and tool list"
+organ hooks/rot-router.sh       "the router, POSIX arm"
+organ hooks/rot-router.ps1      "the router, Windows arm"
+organ hooks/prover-remind.sh    "the proof-debt reminder, POSIX arm"
+organ hooks/prover-remind.ps1   "the proof-debt reminder, Windows arm"
+
+# An agent file without frontmatter is a text file: Claude Code will not load
+# it, and the organ would be present and inert.
+if [ -f agents/lean4-prover.md ]; then
+  if head -1 agents/lean4-prover.md | grep -q '^---$' && grep -q '^name: lean4-prover$' agents/lean4-prover.md; then
+    ok "agents/lean4-prover.md carries the frontmatter that makes it loadable"
+  else
+    bad "agents/lean4-prover.md has no usable frontmatter -- present but inert"
+  fi
+fi
 
 # --- 2. the counts ----------------------------------------------------------
 echo
@@ -79,18 +116,54 @@ MODS=$(ls lean/Proofs/*.lean 2>/dev/null | wc -l | tr -d ' ')
 SUITES=$(ls lean/mutate/mutate_*.sh 2>/dev/null | wc -l | tr -d ' ')
 echo "  measured: $TH theorems, $MODS modules, $SUITES mutation suites"
 
-# Every "<n> theorems" / "<n> machine-checked" claim in the prose must equal TH.
-claims=0; wrong=0
-for f in README.md NOTICE.md CITATION.cff; do
+# Every "<n> theorems" / "<n> machine-checked" claim must equal TH -- ANYWHERE
+# IN THE TREE, not in three files chosen by hand.
+#
+# MEASURED DEFECT, 2026-07-31, and the reason this loop is no longer a fixed
+# list. The scan covered README.md, NOTICE.md and CITATION.cff. It did not cover
+# `.claude-plugin/plugin.json`, whose description read "63 machine-checked
+# theorems" while the source held 72 -- nine short, green, and sitting in THE
+# ONE FILE A MARKETPLACE READER SEES FIRST. plugin.json was in REQUIRED, so the
+# gate confirmed it EXISTED and never read a word of it.
+#
+# A hand-maintained list of files-that-may-carry-a-claim has the same defect as
+# a hand-maintained list of modules: it stops covering whatever is added after
+# it was written. Sweep every tracked file instead, and exempt only the files
+# that carry the pattern BY CONSTRUCTION, each with a reason.
+#
+# `git ls-files -z` because this checkout's path contains spaces (`GIT External
+# Repo`, `RoT MoE`); anything that word-splits produces fragments, which is
+# precisely how the R1 sweep once reported 68 missing files in a tree of 17.
+claim_exempt () {   # 0 = exempt (carries the pattern by construction)
+  case "$1" in
+    checker/repo-complete.sh)  return 0 ;;  # this file: the control plants 99999
+    checker/count-theorems.sh) return 0 ;;  # its comments quote the 73-vs-71 defect
+    .github/workflows/*)       return 0 ;;  # ads-manager plants its own control count
+    .codemap/*)                return 0 ;;  # generated index, not prose
+    *) return 1 ;;
+  esac
+}
+claims=0; wrong=0; scanned=0
+scan_file_claims () {   # scan_file_claims <file> ; echoes "<file> <claimed>" per claim
+  grep -oE '[0-9]+ machine-checked( Lean 4)? theorems?' "$1" \
+    | grep -oE '^[0-9]+' \
+    | while read -r n; do printf '%s %s\n' "$1" "$n"; done
+}
+while IFS= read -r -d '' f; do
   [ -f "$f" ] || continue
-  while read -r n; do
+  claim_exempt "$f" && continue
+  # skip binaries
+  grep -Iq . "$f" 2>/dev/null || continue
+  scanned=$((scanned+1))
+  while read -r cf n; do
     claims=$((claims+1))
     if [ "$n" != "$TH" ]; then
-      bad "$f claims $n theorems; source has $TH"
+      bad "$cf claims $n theorems; source has $TH"
       wrong=$((wrong+1))
     fi
-  done < <(grep -oE '[0-9]+ machine-checked( Lean 4)? theorems?' "$f" | grep -oE '^[0-9]+')
-done
+  done < <(scan_file_claims "$f")
+done < <(git ls-files -z)
+echo "  scanned $scanned tracked text file(s) for count claims"
 [ "$claims" -eq 0 ] && bad "no theorem-count claim found in the prose -- the check is vacuous"
 [ "$claims" -gt 0 ] && [ "$wrong" -eq 0 ] && ok "all $claims theorem-count claim(s) match source ($TH)"
 
@@ -116,11 +189,30 @@ echo
 echo "-- negative control --"
 CTL="$(mktemp -d "${TMPDIR:-/tmp}/repocomp.XXXXXX")"
 printf 'This project has 99999 machine-checked theorems.\n' > "$CTL/fake.md"
-planted=$(grep -oE '[0-9]+ machine-checked( Lean 4)? theorems?' "$CTL/fake.md" | grep -oE '^[0-9]+')
+# Run the SAME function the sweep runs, not a re-typed grep. A control that
+# exercises a copy of the logic tests the copy.
+planted=$(scan_file_claims "$CTL/fake.md" | awk '{print $2}')
 if [ "$planted" = "99999" ] && [ "$planted" != "$TH" ]; then
-  ok "CONTROL: a planted false count (99999) is extracted and would be rejected"
+  ok "CONTROL: a planted false count (99999) is extracted by the sweep's own function and would be rejected"
 else
   bad "CONTROL DEAD: the extractor did not see the planted count"
+fi
+# SCOPE CONTROL. The defect this phase was rewritten for was not a broken
+# extractor -- it was an extractor pointed at three files. So prove the sweep
+# reaches beyond prose: a JSON manifest must be reachable and readable by it.
+# `plugin.json` is not required to CARRY a claim (a future edit may drop the
+# sentence); what must hold is that if it does, the sweep sees it.
+if git ls-files --error-unmatch .claude-plugin/plugin.json >/dev/null 2>&1; then
+  cp .claude-plugin/plugin.json "$CTL/manifest.json"
+  # plant a wrong count into the COPY -- the tree is never touched
+  printf '\n{"description": "99999 machine-checked theorems"}\n' >> "$CTL/manifest.json"
+  if [ "$(scan_file_claims "$CTL/manifest.json" | awk '{print $2}' | tail -1)" = "99999" ]; then
+    ok "SCOPE CONTROL: a false count planted in a JSON manifest is detected (the class that shipped 63 vs $TH)"
+  else
+    bad "SCOPE CONTROL DEAD: a JSON manifest claim is invisible to the sweep"
+  fi
+else
+  bad "SCOPE CONTROL: .claude-plugin/plugin.json is not tracked -- the sweep cannot reach it"
 fi
 rm -rf "$CTL"
 

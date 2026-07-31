@@ -1,0 +1,16 @@
+{
+  "directory": ".claude\\commands",
+  "files": {
+    "rot-moe-install.md": {
+      "hash": "6aca0bff5cf4",
+      "indexed_at": "2026-07-31T15:55:18.020879+00:00",
+      "language": "markdown",
+      "lines": 46,
+      "mtime_ns": 1785512177262747900,
+      "size": 2216,
+      "symbols": []
+    }
+  },
+  "generated_at": "2026-07-31T15:55:18.020931+00:00",
+  "version": "1.0"
+}

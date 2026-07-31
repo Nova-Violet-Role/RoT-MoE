@@ -106,6 +106,20 @@ jobs:
         shell: bash
         run: bash checker/cross-diff.sh
 
+      # Organ 4 has two arms for the same reason the router does, so it gets the
+      # same instrument. The runner has PowerShell, so this is a real comparison
+      # here rather than the POSIX-only degraded mode.
+      - name: cross-diff -- both reminder arms (organ 4)
+        shell: bash
+        run: bash checker/cross-diff-remind.sh
+
+      # CLAUDE.md and /rot-moe-install are instructions to an AGENT WITH A
+      # SHELL. A stale path in them is not a documentation nit -- it is an
+      # agent improvising on someone else's machine.
+      - name: install-document lint -- the agent-facing docs cannot go stale
+        shell: bash
+        run: bash checker/claude-md-lint.sh
+
       - name: mutate the checker -- it must be able to fail
         shell: bash
         run: bash checker/mutate-checker.sh

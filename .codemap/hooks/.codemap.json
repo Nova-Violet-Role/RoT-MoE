@@ -1,12 +1,89 @@
 {
   "directory": "hooks",
   "files": {
+    "prover-remind.sh": {
+      "hash": "02a9b2e3f05e",
+      "indexed_at": "2026-07-31T15:55:19.814760+00:00",
+      "language": "shell",
+      "lines": 269,
+      "mtime_ns": 1785513293081547400,
+      "size": 13229,
+      "symbols": [
+        {
+          "docstring": "--- DECIDE ------------------------------------------------------------------ A PURE function of measured inputs. Nothing below touches the disk, whic",
+          "lines": [
+            85,
+            88
+          ],
+          "name": "first_n",
+          "type": "function"
+        },
+        {
+          "lines": [
+            89,
+            92
+          ],
+          "name": "count_csv",
+          "type": "function"
+        },
+        {
+          "lines": [
+            94,
+            144
+          ],
+          "name": "decide",
+          "type": "function"
+        },
+        {
+          "docstring": "--- MEASURE ----------------------------------------------------------------- Each probe is individually tolerant: one unreadable path must not blind",
+          "lines": [
+            150,
+            162
+          ],
+          "name": "measure_mins_since_proof",
+          "type": "function"
+        },
+        {
+          "lines": [
+            164,
+            178
+          ],
+          "name": "measure_debt",
+          "type": "function"
+        },
+        {
+          "lines": [
+            180,
+            183
+          ],
+          "name": "measure_alarms",
+          "type": "function"
+        },
+        {
+          "lines": [
+            185,
+            198
+          ],
+          "name": "measure_kernel",
+          "type": "function"
+        },
+        {
+          "docstring": "--- HOOK MODE --------------------------------------------------------------- No arguments means \"you were called as a hook\". That default is not a ni",
+          "lines": [
+            205,
+            270
+          ],
+          "name": "hook_mode",
+          "type": "function"
+        }
+      ]
+    },
     "rot-router.sh": {
       "hash": "21014820a6e8",
-      "indexed_at": "2026-07-31T15:03:39.761871+00:00",
+      "indexed_at": "2026-07-31T15:55:21.052186+00:00",
       "language": "shell",
       "lines": 215,
-      "mtime_ns": 1785510203792613800,
+      "mtime_ns": 1785513293061040900,
       "size": 10278,
       "symbols": [
         {
@@ -54,6 +131,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-07-31T15:03:39.784863+00:00",
+  "generated_at": "2026-07-31T15:55:21.071197+00:00",
   "version": "1.0"
 }

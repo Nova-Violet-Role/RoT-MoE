@@ -1,6 +1,25 @@
 {
   "directory": "checker",
   "files": {
+    "claude-md-lint.sh": {
+      "hash": "9ad8f8ab1498",
+      "indexed_at": "2026-07-31T15:55:18.513777+00:00",
+      "language": "shell",
+      "lines": 120,
+      "mtime_ns": 1785512211792609700,
+      "size": 5086,
+      "symbols": [
+        {
+          "docstring": "--- 1. every repo path the documents name must exist ------------------------ Extract candidates: anything inside backticks that looks like a repo-rel",
+          "lines": [
+            43,
+            46
+          ],
+          "name": "extract_paths",
+          "type": "function"
+        }
+      ]
+    },
     "count-theorems.sh": {
       "hash": "9376cfdcb98b",
       "indexed_at": "2026-07-31T12:50:32.235294+00:00",
@@ -19,6 +38,15 @@
         }
       ]
     },
+    "cross-diff-remind.sh": {
+      "hash": "c958a71f636a",
+      "indexed_at": "2026-07-31T15:55:18.677435+00:00",
+      "language": "shell",
+      "lines": 102,
+      "mtime_ns": 1785511143825602600,
+      "size": 4349,
+      "symbols": []
+    },
     "cross-diff.sh": {
       "hash": "194cebf9c306",
       "indexed_at": "2026-07-31T11:35:25.328277+00:00",
@@ -29,12 +57,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "ae7480a70950",
-      "indexed_at": "2026-07-31T14:10:08.593487+00:00",
+      "hash": "bc9d085815b7",
+      "indexed_at": "2026-07-31T15:55:18.837710+00:00",
       "language": "shell",
-      "lines": 98,
-      "mtime_ns": 1785503810058990300,
-      "size": 3521,
+      "lines": 100,
+      "mtime_ns": 1785512229463338100,
+      "size": 3640,
       "symbols": []
     },
     "install-roundtrip.sh": {
@@ -84,17 +112,18 @@
       ]
     },
     "mutate-checker.sh": {
-      "hash": "492264c5287b",
-      "indexed_at": "2026-07-31T11:35:25.332312+00:00",
+      "hash": "22f964eb488f",
+      "indexed_at": "2026-07-31T15:55:19.002296+00:00",
       "language": "shell",
-      "lines": 190,
-      "mtime_ns": 1785497225132954300,
-      "size": 8910,
+      "lines": 259,
+      "mtime_ns": 1785512586641368500,
+      "size": 12174,
       "symbols": [
         {
+          "docstring": "run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker] The 7th argument names the checker to run; it defaults to the router cross",
           "lines": [
-            36,
-            68
+            56,
+            89
           ],
           "name": "run",
           "type": "function"
@@ -138,13 +167,39 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "9a5ca61a5807",
-      "indexed_at": "2026-07-31T12:50:32.390329+00:00",
+      "hash": "0350471f93f9",
+      "indexed_at": "2026-07-31T15:55:19.163875+00:00",
       "language": "shell",
-      "lines": 130,
-      "mtime_ns": 1785502022787576700,
-      "size": 5161,
-      "symbols": []
+      "lines": 222,
+      "mtime_ns": 1785512069124743700,
+      "size": 10001,
+      "symbols": [
+        {
+          "lines": [
+            82,
+            85
+          ],
+          "name": "organ",
+          "type": "function"
+        },
+        {
+          "docstring": "Every \"<n> theorems\" / \"<n> machine-checked\" claim must equal TH -- ANYWHERE IN THE TREE, not in three files chosen by hand.  MEASURED DEFECT, 2026-07",
+          "lines": [
+            137,
+            145
+          ],
+          "name": "claim_exempt",
+          "type": "function"
+        },
+        {
+          "lines": [
+            147,
+            151
+          ],
+          "name": "scan_file_claims",
+          "type": "function"
+        }
+      ]
     },
     "spdx-sweep.sh": {
       "hash": "e7538638c1a2",
@@ -166,12 +221,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "ca1268a7fb6d",
-      "indexed_at": "2026-07-31T15:03:39.172679+00:00",
+      "hash": "70c94db54334",
+      "indexed_at": "2026-07-31T15:55:19.326189+00:00",
       "language": "shell",
-      "lines": 252,
-      "mtime_ns": 1785509952170315000,
-      "size": 11787,
+      "lines": 316,
+      "mtime_ns": 1785512017566038700,
+      "size": 14708,
       "symbols": [
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
@@ -181,10 +236,18 @@
           ],
           "name": "hook_verdict",
           "type": "function"
+        },
+        {
+          "lines": [
+            262,
+            277
+          ],
+          "name": "setup_verdict",
+          "type": "function"
         }
       ]
     }
   },
-  "generated_at": "2026-07-31T15:03:39.172733+00:00",
+  "generated_at": "2026-07-31T15:55:19.326249+00:00",
   "version": "1.0"
 }

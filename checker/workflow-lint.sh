@@ -246,6 +246,70 @@ else
 fi
 rm -rf "$CTLDIR"
 
+# --- 5. the toolchain fetch must stay OPT-IN --------------------------------
+echo
+echo "-- SETUP_LEAN is opt-in, and the installer must never call it --"
+#
+# THE RULE AND WHY IT IS MECHANICAL. Installing this plugin must never download
+# gigabytes as a side effect. A mathlib build tree measured 7.2 GB on the
+# author's machine, and elan pulls a per-platform toolchain on top of that.
+# ARM_ROUTER's contract is that it touches the plugin directory and nothing
+# else. "We promise not to" is not a control; this is.
+for f in SETUP_LEAN.sh SETUP_LEAN.ps1; do
+  [ -f "$f" ] && ok "present: $f" || bad "MISSING: $f -- the opt-in path must exist"
+done
+
+setup_verdict () {   # setup_verdict <file> -> prints defects, empty = clean
+  local f="$1" v=""
+  [ -f "$f" ] || { echo "ABSENT"; return; }
+  # A refusal path: running it with no consent flag must be able to REFUSE.
+  grep -qE 'REFUSING' "$f" || v="$v NO_REFUSAL"
+  # A dry run: the negative control of an installer is that it can create
+  # nothing and say so.
+  grep -qE 'DRY RUN|DryRun|--dry-run' "$f" || v="$v NO_DRYRUN"
+  # Never elevate. A setup script that needs root is the wrong design, and this
+  # is the cheapest possible place to notice.
+  grep -qE '(^|[^[:alnum:]_#])sudo ' "$f" && v="$v USES_SUDO"
+  # The toolchain must be PINNED. A floating "latest" makes the proofs
+  # unreproducible and would silently move under the reader.
+  grep -q 'lean-toolchain' "$f" || v="$v NOT_PINNED"
+  printf '%s' "$v"
+}
+for f in SETUP_LEAN.sh SETUP_LEAN.ps1; do
+  v="$(setup_verdict "$f")"
+  [ -z "$v" ] && ok "$f: refusal + dry-run + pinned toolchain + no sudo" \
+              || bad "$f defects:$v"
+done
+
+# The separation itself: no installer may invoke the fetch.
+armed_bad=0
+for f in ARM_ROUTER.sh ARM_ROUTER.ps1 DISARM_ROUTER.sh DISARM_ROUTER.ps1 hooks/settings-merge.js; do
+  [ -f "$f" ] || continue
+  if grep -q 'SETUP_LEAN' "$f"; then
+    bad "$f references SETUP_LEAN -- installing must never trigger a multi-GB download"
+    armed_bad=1
+  fi
+done
+[ "$armed_bad" -eq 0 ] && ok "no installer references SETUP_LEAN (the fetch stays opt-in)"
+
+# CONTROLS, both directions. Without them this section is four greens that have
+# never been seen to fail.
+SCTL="$(mktemp -d "${TMPDIR:-/tmp}/setupctl.XXXXXX")"
+printf '#!/usr/bin/env bash\ncurl -sSfL https://example/x | sudo sh\nlake exe cache get\n' > "$SCTL/bad-setup.sh"
+v="$(setup_verdict "$SCTL/bad-setup.sh")"
+case "$v" in
+  *NO_REFUSAL*|*USES_SUDO*)
+    ok "CONTROL: a consentless sudo-piping setup script is rejected ($v )" ;;
+  *) bad "CONTROL DEAD: a consentless sudo setup script passed the verdict" ;;
+esac
+printf '#!/usr/bin/env bash\nbash "$HERE/SETUP_LEAN.sh" --yes\n' > "$SCTL/bad-arm.sh"
+if grep -q 'SETUP_LEAN' "$SCTL/bad-arm.sh"; then
+  ok "CONTROL: an installer that calls SETUP_LEAN WOULD be detected"
+else
+  bad "CONTROL DEAD: the installer-calls-fetch detector cannot see it"
+fi
+rm -rf "$SCTL"
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" -Route \"${CLAUDE_USER_PROMPT}\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\" --route \"${CLAUDE_USER_PROMPT}\""
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\""
           }
         ]
       }
@@ -18,6 +22,21 @@
           {
             "type": "command",
             "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" -Vector 0,0,0,0,0,0,0,0,0 -Breadth 0 || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\" --vector 0,0,0,0,0,0,0,0,0 --breadth 0"
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\""
           }
         ]
       }

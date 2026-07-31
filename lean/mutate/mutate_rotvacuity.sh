@@ -16,11 +16,41 @@
 #   3. DISCARDED is not SURVIVED. One is a claim about the harness, the other
 #      about the theorem.
 
+#   4. A KILL IS ONLY A KILL IF THE BASELINE WAS GREEN. This suite and
+#      mutate_rotpath.sh were both caught on 2026-07-31 reporting a full sweep
+#      of kills while having never opened their source file: `cd
+#      "$(dirname "$0")"` put them in `lean/mutate/`, where `Proofs/*.lean` does
+#      not exist and `lake` has no lakefile. Every build failed for that reason
+#      and every failure was scored KILLED. The needle guard did not save it --
+#      `$n` was empty, so `[ "$n" -ne 1 ]` errored instead of firing. A guard
+#      that crashes is not a guard, and a suite that cannot tell "my workspace
+#      is missing" from "the theorem caught it" is not an instrument.
+#      Repaired the same way in both files: resolve from LEAN_ROOT, make every
+#      guard robust to an empty measurement, and PREFLIGHT a green baseline.
+
 set -uo pipefail
-cd "$(dirname "$0")"
+# Override with LEAN_ROOT=... to run against a different workspace.
+LEAN_ROOT="${LEAN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+cd "$LEAN_ROOT" || { echo "FATAL: cannot enter LEAN_ROOT=$LEAN_ROOT"; exit 2; }
 SRC="Proofs/RotVacuity.lean"
 OLEAN=".lake/build/lib/lean/Proofs/RotVacuity.olean"
 BAK="$SRC.mutbak"
+
+# --- PREFLIGHT: no green baseline, no attributable kills --------------------
+[ -f "$SRC" ] || {
+  echo "FATAL: $SRC not found under LEAN_ROOT=$LEAN_ROOT."
+  echo "Refusing to run: every mutant would 'fail to build' and be scored KILLED"
+  echo "without a single line having been mutated."
+  exit 2
+}
+if ! lake build Proofs.RotVacuity >/tmp/mut_baseline_prev.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (lake build Proofs.RotVacuity != 0)."
+  echo "A kill measured against a red baseline is unattributable. Fix the tree first."
+  tail -5 /tmp/mut_baseline_prev.log
+  exit 2
+fi
+echo "preflight: baseline builds GREEN, $SRC present -- kills are attributable"
+
 cp "$SRC" "$BAK"
 trap 'cp "$BAK" "$SRC"; rm -f "$BAK"' EXIT
 
@@ -29,7 +59,7 @@ killed=0; survived=0; discarded=0
 run_mut () {  # run_mut <id> <needle> <replacement> <description>
   id="$1"; needle="$2"; repl="$3"; desc="$4"
   cp "$BAK" "$SRC"
-  n=$(grep -F -c "$needle" "$SRC")
+  n=$(grep -F -c "$needle" "$SRC" 2>/dev/null); n=${n:-0}
   if [ "$n" -ne 1 ]; then
     echo "  $id DISCARDED -- needle appears $n times (expected exactly 1): $desc"
     discarded=$((discarded+1)); return
@@ -65,7 +95,7 @@ run_mut_nth () {  # run_mut_nth <id> <needle> <repl> <occurrence> <total> <desc>
   # harness exists to avoid.
   id="$1"; needle="$2"; repl="$3"; occ="$4"; total="$5"; desc="$6"
   cp "$BAK" "$SRC"
-  n=$(grep -F -c "$needle" "$SRC")
+  n=$(grep -F -c "$needle" "$SRC" 2>/dev/null); n=${n:-0}
   if [ "$n" -ne "$total" ]; then
     echo "  $id DISCARDED -- needle appears $n times (expected $total): $desc"
     discarded=$((discarded+1)); return
@@ -89,7 +119,7 @@ run_mut_nth () {  # run_mut_nth <id> <needle> <repl> <occurrence> <total> <desc>
         seen_line = 1
       }
       print (seen_line ? out rest : $0) }' "$SRC" > "$SRC.tmp" && mv "$SRC.tmp" "$SRC"
-  left=$(grep -F -c "$needle" "$SRC")
+  left=$(grep -F -c "$needle" "$SRC" 2>/dev/null); left=${left:-0}
   if [ "$left" -ne $((total-1)) ]; then
     echo "  $id DISCARDED -- expected $((total-1)) needle(s) left, found $left: $desc"
     discarded=$((discarded+1)); return
@@ -160,5 +190,7 @@ echo "== RESULT =="
 echo "killed=$killed survived=$survived discarded=$discarded"
 cp "$BAK" "$SRC"; rm -f "$OLEAN"
 lake build Proofs.RotVacuity >/dev/null 2>&1
-echo "baseline restored -> lake build exit=$?"
-[ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && exit 0 || exit 1
+base=$?
+echo "baseline restored -> lake build exit=$base"
+# The restored baseline GATES the verdict; it used to be printed and ignored.
+[ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && [ "$base" -eq 0 ] && exit 0 || exit 1

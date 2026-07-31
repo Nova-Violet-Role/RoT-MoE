@@ -1,0 +1,40 @@
+# RoT MoE -- reminder corpus (organ 4).
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# One row per line, fed to BOTH arms in --decide mode:
+#
+#   EVENT  MINS  LASTPROOF  DEBT  KRED  KSORRY  ALARMS
+#
+# `-` means empty. MINS < 0 means "no proofs found". The rows are chosen for
+# the BRANCHES, not for realism: every clause of the decision, both preambles,
+# the truncation boundary, the staleness boundary, and -- most importantly --
+# the SILENT rows. A corpus with no silent row would let an arm that never
+# shuts up pass, and silence is this hook's healthy state.
+#
+# Boundary rows are deliberate: 44 is silence and 45 speaks, because the
+# comparison is `>= STALE_MIN`. If someone changes that to `>`, exactly one row
+# flips and the cross-diff names it.
+PostToolUse 10 RotGauge - - - 0
+PostToolUse 44 RotGauge - - - 0
+PostToolUse 45 RotGauge - - - 0
+PostToolUse 46 RotGauge - - - 0
+PostToolUse 120 RotInstall - - - 0
+PreToolUse 10 RotGauge - - - 0
+PreToolUse 90 RotRoute - - - 0
+UserPromptSubmit 10 RotGauge - - - 0
+UserPromptSubmit 90 RotVacuity - - - 0
+PostToolUse 10 RotGauge a.rs - - 0
+PostToolUse 10 RotGauge a.rs,b.c,c.go,d.ts - - 0
+PostToolUse 10 RotGauge a.rs,b.c,c.go,d.ts,e.py - - 0
+PostToolUse 10 RotGauge a.rs,b.c,c.go,d.ts,e.py,f.kt,g.swift - - 0
+PostToolUse 10 RotGauge - RotPath - 0
+PostToolUse 10 RotGauge - RotPath,RotGauge,RotRoute,RotInstall,RotVacuity - 0
+PostToolUse 10 RotGauge - - Basic.lean 0
+PostToolUse 10 RotGauge - RotPath Basic.lean 0
+PostToolUse -1 - - - - 0
+PostToolUse -1 - a.rs - - 0
+PostToolUse 10 RotGauge - - - 3
+PostToolUse 10 RotGauge a.rs - - 14
+PreToolUse -1 - a.rs,b.rs,c.rs,d.rs,e.rs RotPath Basic.lean 14
+UserPromptSubmit 999 RotGauge a.rs,b.rs,c.rs,d.rs,e.rs,f.rs RotPath,RotGauge Basic.lean,Other.lean 20

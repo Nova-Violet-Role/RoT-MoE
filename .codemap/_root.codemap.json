@@ -20,6 +20,98 @@
         }
       ]
     },
+    "CLAUDE.md": {
+      "hash": "2bd4eba20f9b",
+      "indexed_at": "2026-07-31T15:55:19.488664+00:00",
+      "language": "markdown",
+      "lines": 159,
+      "mtime_ns": 1785512159809504300,
+      "size": 5975,
+      "symbols": [
+        {
+          "docstring": "1. **Never elevate.** No `sudo`, no admin shell, no system directory, no package manager. Nothing in this project needs it. If a step seems to, you ha",
+          "lines": [
+            17,
+            32
+          ],
+          "name": "THE TWO LIMITS",
+          "type": "section"
+        },
+        {
+          "docstring": "A Claude Code plugin: a nine-lens Mixture-of-Experts router with a measured divergence gauge (`R/s+`), specified in Lean 4 and bound to the shipped ho",
+          "lines": [
+            33,
+            51
+          ],
+          "name": "WHAT THIS IS, IN ONE PARAGRAPH",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "lines": [
+                58,
+                70
+              ],
+              "name": "Step 0 \u2014 verify the tree before trusting it",
+              "type": "subsection"
+            },
+            {
+              "docstring": "POSIX:",
+              "lines": [
+                71,
+                90
+              ],
+              "name": "Step 1 \u2014 install the plugin (offline, seconds, reversible)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Installed is not running. Ask the user to start a new Claude Code session and send any message; the router fires on `UserPromptSubmit`. You can also e",
+              "lines": [
+                91,
+                105
+              ],
+              "name": "Step 2 \u2014 confirm it is actually running",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**Ask first. Show the size. Wait for an answer.**",
+              "lines": [
+                106,
+                135
+              ],
+              "name": "Step 3 (OPTIONAL) \u2014 Lean, only if the user wants to re-verify the proofs",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Run these from the repository root. **Read each exit code directly.** Never through a pipe: `cmd | tail` reports `tail`'s status, and that has produce",
+          "lines": [
+            52,
+            135
+          ],
+          "name": "INSTALL \u2014 the whole thing, in order",
+          "type": "section"
+        },
+        {
+          "docstring": "Report the real error text and the real exit code. Do not summarise it as \"there was an issue\", and do not work around a red gate by disabling it.",
+          "lines": [
+            136,
+            150
+          ],
+          "name": "IF SOMETHING FAILS",
+          "type": "section"
+        },
+        {
+          "docstring": "* Do not `git commit` anything on the user's behalf unless asked. * Do not modify `~/.claude` beyond what `ARM_ROUTER` does. * Do not run `lake exe ca",
+          "lines": [
+            151,
+            160
+          ],
+          "name": "WHAT YOU MUST NOT DO WHILE INSTALLING THIS",
+          "type": "section"
+        }
+      ]
+    },
     "CODE_OF_CONDUCT.md": {
       "hash": "c859256e95f9",
       "indexed_at": "2026-07-31T12:03:35.572742+00:00",
@@ -140,12 +232,12 @@
       ]
     },
     "NOTICE.md": {
-      "hash": "adfaa29f9716",
-      "indexed_at": "2026-07-31T11:35:25.323707+00:00",
+      "hash": "6faf78c1cb59",
+      "indexed_at": "2026-07-31T15:55:20.298077+00:00",
       "language": "markdown",
-      "lines": 139,
-      "mtime_ns": 1785496439362337000,
-      "size": 8125,
+      "lines": 165,
+      "mtime_ns": 1785510844479276500,
+      "size": 9618,
       "symbols": [
         {
           "children": [
@@ -162,16 +254,25 @@
               "docstring": "* **Lean 4** and **mathlib4** \u2014 Apache-2.0, \u00a9 their authors. This project depends on them at build time and vendors none of their source. The pinned r",
               "lines": [
                 39,
-                49
+                47
               ],
               "name": "A.2 Dependencies, which are not covered by the grant above",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The prover head opens with a sentence it inherited from the private original:",
+              "lines": [
+                48,
+                75
+              ],
+              "name": "A.3 `agents/lean4-prover.md` declares a derivation, and it is credited here",
               "type": "subsection"
             }
           ],
           "docstring": "**RoT MoE is an original work.** It is not a fork, and that single fact decides the whole licence layout.",
           "lines": [
             9,
-            49
+            75
           ],
           "name": "A. Licensing",
           "type": "section"
@@ -179,8 +280,8 @@
         {
           "docstring": "The README carries the full boundary section. The short form, repeated here because a `NOTICE` is where a lawyer or a packager looks and neither will",
           "lines": [
-            50,
-            101
+            76,
+            127
           ],
           "name": "B. What the proofs cover, and what they do not",
           "type": "section"
@@ -190,8 +291,8 @@
             {
               "docstring": "Recorded rather than quietly fixed, because a checker that has been wrong once should be read with that history visible.",
               "lines": [
-                117,
-                140
+                143,
+                166
               ],
               "name": "C.1 Two instrument defects found in this repo's own checkers",
               "type": "subsection"
@@ -199,8 +300,8 @@
           ],
           "docstring": "Every claim in this repo names the instrument behind it. Every instrument has a recorded way to fail, because a check that has never been observed fai",
           "lines": [
-            102,
-            140
+            128,
+            166
           ],
           "name": "C. Instruments and their controls",
           "type": "section"
@@ -208,66 +309,134 @@
       ]
     },
     "README.md": {
-      "hash": "6a3331a72f31",
-      "indexed_at": "2026-07-31T14:10:08.584046+00:00",
+      "hash": "e1a9dc0eeb3d",
+      "indexed_at": "2026-07-31T15:55:20.459754+00:00",
       "language": "markdown",
-      "lines": 203,
-      "mtime_ns": 1785506043736098400,
-      "size": 10103,
+      "lines": 380,
+      "mtime_ns": 1785512877031968400,
+      "size": 18854,
       "symbols": [
+        {
+          "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
+          "lines": [
+            29,
+            57
+          ],
+          "name": "\ud83d\udc4b Welcome",
+          "type": "section"
+        },
+        {
+          "docstring": "Every engine like this meets the same objection, and it is a fair one: ***the number is made up.*** A \"divergence score\" that no one can audit is a de",
+          "lines": [
+            58,
+            78
+          ],
+          "name": "\ud83d\udcdc About",
+          "type": "section"
+        },
         {
           "children": [
             {
               "docstring": "* **`lean/Proofs/RotGauge.lean`** (35 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
               "lines": [
-                36,
-                74
+                107,
+                145
               ],
-              "name": "The five modules",
+              "name": "\ud83d\udcd0 The five modules",
               "type": "subsection"
             }
           ],
           "docstring": "| instrument | what it establishes | result | |---|---|---| | `lake build Proofs.*` | the modules elaborate | exit **0** | | `#print axioms` on every",
           "lines": [
-            18,
-            74
+            79,
+            145
           ],
-          "name": "What is actually verified",
+          "name": "\ud83d\udd2c What is actually verified",
+          "type": "section"
+        },
+        {
+          "docstring": "| organ | file | what it does | |:--|:--|:--| | 1 \u00b7 engine | `engine/rot-lean.md` | the specification: nine lenses, the three-tier router, the `R/s+`",
+          "lines": [
+            146,
+            167
+          ],
+          "name": "\ud83e\udec0 The four organs",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
+              "lines": [
+                195,
+                202
+              ],
+              "name": "\ud83d\udd27 Requirements",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
+              "lines": [
+                203,
+                215
+              ],
+              "name": "\u2699\ufe0f Configuration",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**Look before you leap.** This installs a hook that runs on every prompt you submit and before every tool call, by editing `~/.claude/settings.json`.",
+          "lines": [
+            168,
+            215
+          ],
+          "name": "\ud83d\ude80 Install",
+          "type": "section"
+        },
+        {
+          "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
+          "lines": [
+            216,
+            266
+          ],
+          "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
         },
         {
           "docstring": "This section is not modesty. It is the part that makes the rest credible, and it is deliberately the most specific section in this README.",
           "lines": [
-            75,
-            121
+            267,
+            316
           ],
-          "name": "What Lean does NOT prove here",
+          "name": "\ud83d\udea7 What Lean does NOT prove here",
           "type": "section"
         },
         {
+          "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
+          "lines": [
+            317,
+            331
+          ],
+          "name": "\ud83e\udd1d Contributing",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
+              "lines": [
+                354,
+                381
+              ],
+              "name": "\ud83d\udf0f RoT MoE",
+              "type": "subsection"
+            }
+          ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            122,
-            141
+            332,
+            381
           ],
-          "name": "Licence",
-          "type": "section"
-        },
-        {
-          "docstring": "**Look before you leap.** This installs a hook that runs on every prompt you submit and before every tool call, by editing `~/.claude/settings.json`.",
-          "lines": [
-            142,
-            170
-          ],
-          "name": "Install",
-          "type": "section"
-        },
-        {
-          "lines": [
-            171,
-            204
-          ],
-          "name": "Verify it yourself",
+          "name": "\ud83d\udcc4 Licence",
           "type": "section"
         }
       ]
@@ -336,8 +505,17 @@
           "type": "section"
         }
       ]
+    },
+    "SETUP_LEAN.sh": {
+      "hash": "4660acfb5ab6",
+      "indexed_at": "2026-07-31T15:55:20.623337+00:00",
+      "language": "shell",
+      "lines": 197,
+      "mtime_ns": 1785511922311387800,
+      "size": 8818,
+      "symbols": []
     }
   },
-  "generated_at": "2026-07-31T14:10:08.639963+00:00",
+  "generated_at": "2026-07-31T15:55:20.623388+00:00",
   "version": "1.0"
 }

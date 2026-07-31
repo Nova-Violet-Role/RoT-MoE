@@ -97,19 +97,22 @@
   },
   "directories": [
     "",
+    ".claude\\commands",
     ".github",
     ".github\\workflows",
+    "agents",
     "checker",
+    "engine",
     "hooks",
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-07-31T15:03:39.173439+00:00",
+  "generated_at": "2026-07-31T15:55:20.624563+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-07-31T15:03:39.172726+00:00",
-    "total_files": 36,
-    "total_symbols": 278
+    "last_full_index": "2026-07-31T15:55:20.623382+00:00",
+    "total_files": 44,
+    "total_symbols": 335
   },
   "version": "1.0"
 }
