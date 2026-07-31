@@ -53,6 +53,24 @@
 
 set -euo pipefail
 
+# --- --dry-run: SEE THE CHANGE BEFORE CONSENTING TO IT ------------------------
+# This script edits a file the user's live session depends on. Rule 6 says "show
+# the diff", but showing it AFTER writing is a report, not a choice. --dry-run
+# performs the entire merge against a COPY, prints exactly what would change,
+# and leaves the real file untouched -- verified by checker/install-roundtrip.sh
+# comparing the file's bytes before and after a dry run.
+DRY=0
+for a in "$@"; do
+  case "$a" in
+    --dry-run|-n) DRY=1 ;;
+    --help|-h)
+      echo "usage: ARM_ROUTER.sh [--dry-run]"
+      echo "  --dry-run   show what would change; write nothing"
+      exit 0 ;;
+  esac
+done
+
+
 # --- rule 7: scope ----------------------------------------------------------
 # CLAUDE_DIR is overridable ONLY so the checker can run this against a scratch
 # HOME. That is not a backdoor: it is what makes rules 1-6 testable at all,
@@ -119,6 +137,17 @@ if [ ! -f "$SETTINGS" ]; then
 fi
 
 # --- rule 1: backup ---------------------------------------------------------
+if [ "$DRY" -eq 1 ]; then
+  # Operate on a copy. Nothing below can reach the real file, which is the
+  # only honest way to promise "write nothing" -- a flag checked at the write
+  # site would still be one forgotten branch away from writing.
+  DRY_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rotmoe-dryrun.XXXXXX")"
+  cp "$SETTINGS" "$DRY_DIR/settings.json"
+  DRY_ORIG="$SETTINGS"
+  SETTINGS="$DRY_DIR/settings.json"
+  echo "  DRY RUN    : nothing will be written to $DRY_ORIG"
+fi
+
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP="$SETTINGS.pre-armrouter-$STAMP.bak"
 cp "$SETTINGS" "$BACKUP"
@@ -158,5 +187,11 @@ if command -v diff >/dev/null 2>&1; then
   diff -u "$BACKUP" "$SETTINGS" | sed 's/^/  /' || true
 else
   echo "  (diff unavailable; backup is at $BACKUP)"
+fi
+if [ "$DRY" -eq 1 ]; then
+  echo "  --- the above is what WOULD change ---"
+  echo "  DRY RUN: $DRY_ORIG was NOT modified."
+  rm -rf "$DRY_DIR"
+  exit 0
 fi
 echo "RoT MoE :: armed."

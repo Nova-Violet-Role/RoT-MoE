@@ -2,18 +2,18 @@
   "directory": "",
   "files": {
     "ARM_ROUTER.sh": {
-      "hash": "e0a98d766381",
-      "indexed_at": "2026-07-31T12:09:46.256370+00:00",
+      "hash": "5408ec45e1b9",
+      "indexed_at": "2026-07-31T12:18:17.249007+00:00",
       "language": "shell",
-      "lines": 162,
-      "mtime_ns": 1785499766434360100,
-      "size": 6864,
+      "lines": 197,
+      "mtime_ns": 1785500116894024400,
+      "size": 8172,
       "symbols": [
         {
           "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
           "lines": [
-            85,
-            100
+            103,
+            118
           ],
           "name": "canon_path",
           "type": "function"
@@ -301,6 +301,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T12:09:46.414158+00:00",
+  "generated_at": "2026-07-31T12:18:17.249065+00:00",
   "version": "1.0"
 }

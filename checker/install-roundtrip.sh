@@ -206,6 +206,34 @@ else
 fi
 
 # ============================================================================
+h "--dry-run -- consent before the write, not a report after it"
+# ============================================================================
+# Rule 6 says "show the diff", and the original satisfied it by printing the
+# diff AFTER writing. That is a report, not a choice. --dry-run has to be
+# guarded by a test or it decays into a flag that lies: the dangerous failure
+# is a dry run that writes, and it would look identical in the terminal.
+make_fixture
+DRY_BEFORE=$(cksum < "$S")
+bash "$REPO/ARM_ROUTER.sh" --dry-run > "$WORK/dry.log" 2>&1
+DRY_RC=$?
+DRY_AFTER=$(cksum < "$S")
+[ "$DRY_RC" -eq 0 ] && ok "--dry-run exit 0" || bad "--dry-run exit $DRY_RC"
+[ "$DRY_BEFORE" = "$DRY_AFTER" ] \
+  && ok "--dry-run left the file BYTE-IDENTICAL" \
+  || bad "--dry-run MODIFIED the file -- the flag is lying"
+grep -q 'rot-router' "$S" && bad "--dry-run actually installed the router" \
+                          || ok "--dry-run installed nothing"
+grep -q 'WOULD change' "$WORK/dry.log" \
+  && ok "--dry-run showed the prospective diff" \
+  || bad "--dry-run wrote nothing and showed nothing -- useless either way"
+# It must still be able to ARM afterwards: a dry run that leaves the config in
+# a state where the real install fails is worse than no dry run.
+bash "$REPO/ARM_ROUTER.sh" >/dev/null 2>&1
+grep -q 'rot-router' "$S" && ok "a real arm still works after a dry run" \
+                          || bad "arming FAILED after a dry run"
+bash "$REPO/DISARM_ROUTER.sh" >/dev/null 2>&1
+
+# ============================================================================
 h "BOTH INSTALLER ARMS -- .sh and .ps1 must write BYTE-IDENTICAL settings"
 # ============================================================================
 # The spec says ARM_ROUTER.ps1 honours "the same contract". Left as prose, that

@@ -33,7 +33,7 @@
 # =============================================================================
 
 [CmdletBinding()]
-param()
+param([switch] $DryRun)   # -DryRun: show the change, write nothing
 $ErrorActionPreference = 'Stop'
 
 $ClaudeDir = if ($env:CLAUDE_DIR) { $env:CLAUDE_DIR } else { Join-Path $HOME '.claude' }
@@ -103,6 +103,17 @@ if (-not (Test-Path -LiteralPath $Settings)) {
 }
 
 # --- rule 1: backup ---------------------------------------------------------
+if ($DryRun) {
+  # Operate on a copy, for the same reason as the bash arm: a flag checked at
+  # the write site is one forgotten branch away from writing anyway.
+  $DryDir = Join-Path ([System.IO.Path]::GetTempPath()) ('rotmoe-dryrun-' + [guid]::NewGuid().ToString('N'))
+  New-Item -ItemType Directory -Force -Path $DryDir | Out-Null
+  $DryOrig = $Settings
+  $Settings = Join-Path $DryDir 'settings.json'
+  Copy-Item -LiteralPath $DryOrig -Destination $Settings -Force
+  Write-Output ('  DRY RUN    : nothing will be written to ' + $DryOrig)
+}
+
 $Stamp  = Get-Date -Format 'yyyyMMdd-HHmmss'
 $Backup = "$Settings.pre-armrouter-$Stamp.bak"
 Copy-Item -LiteralPath $Settings -Destination $Backup -Force
@@ -131,5 +142,11 @@ $b = Get-Content -LiteralPath $Settings
 $d = Compare-Object $a $b
 if ($d) { $d | ForEach-Object { Write-Output ('  ' + $_.SideIndicator + ' ' + $_.InputObject) } }
 else    { Write-Output '  (no textual difference)' }
+if ($DryRun) {
+  Write-Output '  --- the above is what WOULD change ---'
+  Write-Output ('  DRY RUN: ' + $DryOrig + ' was NOT modified.')
+  Remove-Item -LiteralPath $DryDir -Recurse -Force
+  exit 0
+}
 Write-Output 'RoT MoE :: armed.'
 exit 0
