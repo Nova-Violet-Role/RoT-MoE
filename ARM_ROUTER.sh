@@ -89,103 +89,12 @@ echo "  restore    : cp \"$BACKUP\" \"$SETTINGS\""
 
 # --- rules 2,3,5: the merge -------------------------------------------------
 MERGE_RC=0
-ROUTER_CMD="$ROUTER_CMD" SETTINGS="$SETTINGS" EVENTS="$EVENTS" node - <<'NODE' || MERGE_RC=$?
-const fs = require("fs");
-const file = process.env.SETTINGS;
-const cmd  = process.env.ROUTER_CMD;
-const events = process.env.EVENTS.split(/\s+/).filter(Boolean);
-
-const raw = fs.readFileSync(file, "utf8");
-const hadBOM  = raw.charCodeAt(0) === 0xFEFF;
-const body    = hadBOM ? raw.slice(1) : raw;
-const hadNL   = body.endsWith("\n");
-
-let s;
-try { s = JSON.parse(body); }
-catch (e) { console.error("  FATAL: settings.json does not parse BEFORE we touch it: " + e.message);
-            console.error("  refusing to write. Nothing has been changed."); process.exit(3); }
-
-// Snapshot for rule 4. Deep clone so later mutation cannot reach it.
-const before = JSON.parse(JSON.stringify(s));
-
-// rule 5: idempotence is by COMMAND STRING, across every matcher group.
-const alreadyIn = (ev) => {
-  const groups = (s.hooks && s.hooks[ev]) || [];
-  return groups.some(g => (g.hooks || []).some(h => h.command === cmd));
-};
-
-s.hooks = s.hooks || {};
-let added = [];
-for (const ev of events) {
-  s.hooks[ev] = s.hooks[ev] || [];
-  if (alreadyIn(ev)) { console.log(`  ${ev}: already armed, skipping`); continue; }
-  // rule 2: APPEND a NEW group. Appending to an existing group would mutate an
-  // object the user owns; adding one leaves every existing group untouched,
-  // and it lands at the END so the user's hooks keep firing first.
-  s.hooks[ev].push({ matcher: "*", hooks: [{ type: "command", command: cmd }] });
-  added.push(ev);
-}
-
-if (added.length === 0) {
-  console.log("  nothing to do -- already armed on every event (rule 5)");
-  process.exit(10);   // distinct code: "no change", not an error
-}
-
-// rule 3 + the BOM rule: reproduce the input's encoding decisions exactly.
-//
-// INDENT IS DETECTED, NOT ASSUMED. The spec says "indent=2", but hardcoding 2
-// would silently reformat a file indented with 4 spaces or tabs -- a whole-file
-// diff on a file this script was told to preserve. Detect from the first
-// nested key and reproduce it.
-//
-// HONEST LIMIT, and the checker tests for it rather than hiding it:
-// JSON.stringify cannot reproduce INTRA-LINE layout. A file containing
-// `"env": { "A": "b" }` on one line comes back expanded across three. Values,
-// keys, order, BOM and indent width all survive; compact inline objects do
-// not. That is a real reformat and it is stated in README and NOTICE.
-const im = body.match(/\n([ \t]+)"/);
-const indent = im ? (im[1][0] === "\t" ? "\t" : im[1].length) : 2;
-let out = JSON.stringify(s, null, indent);
-if (hadNL) out += "\n";
-if (hadBOM) out = "﻿" + out;
-fs.writeFileSync(file, out, "utf8");
-console.log("  armed on   : " + added.join(", "));
-
-// rule 4: VALIDATE by re-reading from disk -- not by trusting the object we
-// just serialised. A writer bug lives between those two things.
-const raw2 = fs.readFileSync(file, "utf8");
-const body2 = raw2.charCodeAt(0) === 0xFEFF ? raw2.slice(1) : raw2;
-let after;
-try { after = JSON.parse(body2); }
-catch (e) { console.error("  VALIDATION FAILED: written file does not parse: " + e.message); process.exit(4); }
-
-if ((raw2.charCodeAt(0) === 0xFEFF) !== hadBOM) {
-  console.error("  VALIDATION FAILED: BOM state changed"); process.exit(4);
-}
-
-// Remove exactly what we added, then require deep equality with the snapshot.
-// This is the strong form of rule 3: not "the four critical keys survived" but
-// "NOTHING survived differently", which is the version that still holds the day
-// a fifth critical key appears.
-const stripped = JSON.parse(JSON.stringify(after));
-for (const ev of added) {
-  stripped.hooks[ev] = stripped.hooks[ev].filter(
-    g => !((g.hooks || []).some(h => h.command === cmd)));
-  if (stripped.hooks[ev].length === 0 && !(before.hooks && before.hooks[ev])) {
-    delete stripped.hooks[ev];
-  }
-}
-if (Object.keys(stripped.hooks || {}).length === 0 && !before.hooks) delete stripped.hooks;
-
-const a = JSON.stringify(stripped), b = JSON.stringify(before);
-if (a !== b) {
-  console.error("  VALIDATION FAILED: a pre-existing value changed.");
-  console.error("  before: " + b.slice(0, 400));
-  console.error("  after : " + a.slice(0, 400));
-  process.exit(4);
-}
-console.log("  validated  : every pre-existing key byte-identical (deep compare)");
-NODE
+# The merge itself lives in ONE place, shared by both installer arms. See
+# hooks/settings-merge.js for why the installer is shared while the router is
+# deliberately duplicated: for the router, two agreeing implementations ARE the
+# evidence; for the installer there is nothing to cross-check and byte
+# divergence between arms would be pure risk.
+node "$SELF_DIR/hooks/settings-merge.js" arm "$SETTINGS" "$ROUTER_CMD" || MERGE_RC=$?
 
 # rule 4: auto-restore on any validation failure.
 if [ "$MERGE_RC" -eq 4 ]; then

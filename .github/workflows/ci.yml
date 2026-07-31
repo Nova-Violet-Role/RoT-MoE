@@ -1,0 +1,180 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# CI -- every gate, on a clean clone, on a machine that is not the author's.
+#
+# The point of this file is not "tests pass". It is that they pass somewhere
+# with NO LOCAL STATE: no mathlib cache warmed by hand, no toolchain the author
+# happens to have, no ~/.claude built up over months. A green here is the first
+# evidence the packet works for someone else.
+#
+# TWO THINGS CI CAN DO THAT THE DEVELOPMENT MACHINE CANNOT, and they are the
+# reason this is not just a duplicate run:
+#
+#   1. THE LOCALE TRAP. Measured on the dev machine: awk there formats %.2f in
+#      the C locale REGARDLESS of LC_ALL, so the mutation that forces a
+#      comma-decimal locale is INEXPRESSIBLE and is recorded as such -- not as
+#      killed, not as survived. glibc awk on ubuntu DOES honour the locale, so
+#      the trap can finally be expressed here.
+#   2. THE TTY GUARD. The router must refuse to block when stdin is a terminal.
+#      /dev/tty does not exist in the dev machine's non-interactive shell and
+#      winpty needs a console it does not have, so the guard is UNTESTED there.
+#      util-linux `script` gives a real pty here.
+#
+# A job that SKIPS a phase says so. A skip is never counted as a pass.
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # --------------------------------------------------------------------------
+  checkers:
+    name: checkers (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false          # a Windows failure must not hide a Linux one
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: preflight -- what is available here
+        shell: bash
+        run: bash checker/preflight.sh
+
+      - name: install comma-decimal locales (ubuntu only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo locale-gen de_DE.UTF-8 fr_FR.UTF-8
+          sudo update-locale
+          # Prove the trap is expressible HERE before relying on it below.
+          echo "awk under de_DE.UTF-8: $(LC_ALL=de_DE.UTF-8 awk 'BEGIN{printf "%.2f", 0.09}')"
+
+      - name: SPDX + copyright sweep
+        shell: bash
+        run: sh checker/spdx-sweep.sh
+
+      - name: no machine-local paths
+        shell: bash
+        run: sh checker/no-local-paths.sh
+
+      - name: installer round trip (scratch config dir only)
+        shell: bash
+        run: bash checker/install-roundtrip.sh
+
+      - name: cross-diff -- both router arms + locale invariance
+        shell: bash
+        run: bash checker/cross-diff.sh
+
+      - name: mutate the checker -- it must be able to fail
+        shell: bash
+        run: bash checker/mutate-checker.sh
+
+      # The guard the development machine cannot test. `script` allocates a real
+      # pty, so stdin IS a terminal and the router must refuse rather than block.
+      # Bounded by timeout: a hang here is the exact failure being tested for,
+      # and an unbounded hang reports nothing.
+      - name: tty guard -- the router must not block on a terminal
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set +e
+          timeout 15 script -q -e -c 'sh hooks/rot-router.sh' /dev/null > tty.out 2>&1
+          rc=$?
+          echo "exit=$rc"; cat tty.out
+          if [ "$rc" -eq 124 ]; then echo "FAIL: the router BLOCKED on a tty"; exit 1; fi
+          if [ "$rc" -eq 0 ];   then echo "FAIL: the router accepted a tty as hook input"; exit 1; fi
+          grep -qi 'expects a JSON payload on stdin' tty.out \
+            && echo "PASS: refused a terminal with the documented message" \
+            || { echo "FAIL: refused, but not for the documented reason"; exit 1; }
+
+  # --------------------------------------------------------------------------
+  lean:
+    name: lean -- build, axioms, kernel re-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install elan (toolchain pinned by lean/lean-toolchain)
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: toolchain (read, never assumed)
+        working-directory: lean
+        run: cat lean-toolchain && lake --version && lean --version
+
+      - name: mathlib cache -- NEVER build it from source
+        working-directory: lean
+        run: lake exe cache get
+
+      - name: lake build (exit code read DIRECTLY, never through a pipe)
+        working-directory: lean
+        run: |
+          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall
+          echo "lake build exit=$?"
+
+      # A green build means it ELABORATED. It does not mean the theorems rest on
+      # nothing unsound, and it does not mean there is no `sorry`.
+      - name: axiom gate -- zero sorryAx
+        working-directory: lean
+        run: |
+          set -e
+          for m in RotGauge RotRoute RotInstall; do
+            printf 'import Proofs.%s\n' "$m" > /tmp/ax_$m.lean
+            lake env lean /tmp/ax_$m.lean
+          done
+          if grep -rn 'sorry' Proofs/*.lean | grep -v 'STEMS\|sorry.*stem\|-- '; then
+            echo "FAIL: a sorry is present"; exit 1
+          fi
+          echo "PASS: no sorry in any module"
+
+      - name: forbid native_decide
+        working-directory: lean
+        run: |
+          if grep -rn 'native_decide' Proofs/*.lean; then
+            echo "FAIL: native_decide trusts the compiler binary, not the kernel"; exit 1
+          fi
+          echo "PASS: no native_decide"
+
+      # The kernel's own second opinion, independent of the elaborator that
+      # produced the terms. Silence with exit 0 is the pass.
+      - name: leanchecker -- kernel re-verification, with its negative control
+        working-directory: lean
+        run: |
+          set +e
+          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall; do
+            lake env leanchecker "$m"; rc=$?
+            echo "$m -> $rc"
+            [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }
+          done
+          # NEGATIVE CONTROL: an instrument that cannot fail is decoration.
+          lake env leanchecker Proofs.DeliberatelyAbsentModule; ctl=$?
+          echo "control (absent module) -> $ctl"
+          [ "$ctl" -eq 0 ] && { echo "FAIL: leanchecker passed a module that does not exist"; exit 1; }
+          echo "PASS: all modules re-verified; the control failed as it must"
+
+      - name: mutation suites -- theorems must DIE when the model breaks
+        working-directory: lean
+        run: |
+          set -e
+          bash mutate/mutate_rotgauge.sh
+          bash mutate/mutate_rotroute.sh
+          bash mutate/mutate_rotinstall.sh

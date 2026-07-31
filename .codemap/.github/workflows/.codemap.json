@@ -280,6 +280,683 @@
         }
       ]
     },
+    "ci.yml": {
+      "hash": "acb1b001da56",
+      "indexed_at": "2026-07-31T12:03:35.088937+00:00",
+      "language": "yaml",
+      "lines": 180,
+      "mtime_ns": 1785499314421348200,
+      "size": 7171,
+      "symbols": [
+        {
+          "docstring": "CI",
+          "lines": [
+            29,
+            30
+          ],
+          "name": "name",
+          "type": "key"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "[main]",
+                  "lines": [
+                    33,
+                    33
+                  ],
+                  "name": "branches",
+                  "type": "collection"
+                }
+              ],
+              "lines": [
+                32,
+                33
+              ],
+              "name": "push",
+              "type": "section"
+            },
+            {
+              "lines": [
+                34,
+                34
+              ],
+              "name": "pull_request",
+              "type": "section"
+            },
+            {
+              "lines": [
+                35,
+                36
+              ],
+              "name": "workflow_dispatch",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            31,
+            36
+          ],
+          "name": "on",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "read",
+              "lines": [
+                38,
+                39
+              ],
+              "name": "contents",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            37,
+            39
+          ],
+          "name": "permissions",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "ci-${{ github.ref }}",
+              "lines": [
+                41,
+                41
+              ],
+              "name": "group",
+              "type": "key"
+            },
+            {
+              "docstring": "true",
+              "lines": [
+                42,
+                43
+              ],
+              "name": "cancel-in-progress",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            40,
+            43
+          ],
+          "name": "concurrency",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "checkers (${{ matrix.os }})",
+                  "lines": [
+                    47,
+                    47
+                  ],
+                  "name": "name",
+                  "type": "key"
+                },
+                {
+                  "docstring": "${{ matrix.os }}",
+                  "lines": [
+                    48,
+                    48
+                  ],
+                  "name": "runs-on",
+                  "type": "key"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "false          # a Windows failure must not hide a Linux one",
+                      "lines": [
+                        50,
+                        50
+                      ],
+                      "name": "fail-fast",
+                      "type": "key"
+                    },
+                    {
+                      "children": [
+                        {
+                          "docstring": "[ubuntu-latest, windows-latest]",
+                          "lines": [
+                            52,
+                            52
+                          ],
+                          "name": "os",
+                          "type": "collection"
+                        }
+                      ],
+                      "lines": [
+                        51,
+                        52
+                      ],
+                      "name": "matrix",
+                      "type": "section"
+                    }
+                  ],
+                  "lines": [
+                    49,
+                    52
+                  ],
+                  "name": "strategy",
+                  "type": "section"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "actions/checkout@v4",
+                      "lines": [
+                        54,
+                        55
+                      ],
+                      "name": "uses",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "preflight -- what is available here",
+                      "lines": [
+                        56,
+                        56
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash",
+                      "lines": [
+                        57,
+                        57
+                      ],
+                      "name": "shell",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash checker/preflight.sh",
+                      "lines": [
+                        58,
+                        59
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "install comma-decimal locales (ubuntu only)",
+                      "lines": [
+                        60,
+                        60
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "runner.os == 'Linux'",
+                      "lines": [
+                        61,
+                        61
+                      ],
+                      "name": "if",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        62,
+                        67
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "SPDX + copyright sweep",
+                      "lines": [
+                        68,
+                        68
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash",
+                      "lines": [
+                        69,
+                        69
+                      ],
+                      "name": "shell",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "sh checker/spdx-sweep.sh",
+                      "lines": [
+                        70,
+                        71
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "no machine-local paths",
+                      "lines": [
+                        72,
+                        72
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash",
+                      "lines": [
+                        73,
+                        73
+                      ],
+                      "name": "shell",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "sh checker/no-local-paths.sh",
+                      "lines": [
+                        74,
+                        75
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "installer round trip (scratch config dir only)",
+                      "lines": [
+                        76,
+                        76
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash",
+                      "lines": [
+                        77,
+                        77
+                      ],
+                      "name": "shell",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash checker/install-roundtrip.sh",
+                      "lines": [
+                        78,
+                        79
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "cross-diff -- both router arms + locale invariance",
+                      "lines": [
+                        80,
+                        80
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash",
+                      "lines": [
+                        81,
+                        81
+                      ],
+                      "name": "shell",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash checker/cross-diff.sh",
+                      "lines": [
+                        82,
+                        83
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "mutate the checker -- it must be able to fail",
+                      "lines": [
+                        84,
+                        84
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash",
+                      "lines": [
+                        85,
+                        85
+                      ],
+                      "name": "shell",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash checker/mutate-checker.sh",
+                      "lines": [
+                        86,
+                        91
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "tty guard -- the router must not block on a terminal",
+                      "lines": [
+                        92,
+                        92
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "runner.os == 'Linux'",
+                      "lines": [
+                        93,
+                        93
+                      ],
+                      "name": "if",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash",
+                      "lines": [
+                        94,
+                        94
+                      ],
+                      "name": "shell",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        95,
+                        106
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    }
+                  ],
+                  "lines": [
+                    53,
+                    106
+                  ],
+                  "name": "steps",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                46,
+                106
+              ],
+              "name": "checkers",
+              "type": "section"
+            },
+            {
+              "children": [
+                {
+                  "docstring": "lean -- build, axioms, kernel re-check",
+                  "lines": [
+                    108,
+                    108
+                  ],
+                  "name": "name",
+                  "type": "key"
+                },
+                {
+                  "docstring": "ubuntu-latest",
+                  "lines": [
+                    109,
+                    109
+                  ],
+                  "name": "runs-on",
+                  "type": "key"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "actions/checkout@v4",
+                      "lines": [
+                        111,
+                        112
+                      ],
+                      "name": "uses",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "install elan (toolchain pinned by lean/lean-toolchain)",
+                      "lines": [
+                        113,
+                        113
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        114,
+                        119
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "toolchain (read, never assumed)",
+                      "lines": [
+                        120,
+                        120
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        121,
+                        121
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "cat lean-toolchain && lake --version && lean --version",
+                      "lines": [
+                        122,
+                        123
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "mathlib cache -- NEVER build it from source",
+                      "lines": [
+                        124,
+                        124
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        125,
+                        125
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake exe cache get",
+                      "lines": [
+                        126,
+                        127
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake build (exit code read DIRECTLY, never through a pipe)",
+                      "lines": [
+                        128,
+                        128
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        129,
+                        129
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        130,
+                        135
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "axiom gate -- zero sorryAx",
+                      "lines": [
+                        136,
+                        136
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        137,
+                        137
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        138,
+                        148
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "forbid native_decide",
+                      "lines": [
+                        149,
+                        149
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        150,
+                        150
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        151,
+                        158
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "leanchecker -- kernel re-verification, with its negative control",
+                      "lines": [
+                        159,
+                        159
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        160,
+                        160
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        161,
+                        173
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "mutation suites -- theorems must DIE when the model breaks",
+                      "lines": [
+                        174,
+                        174
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        175,
+                        175
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        176,
+                        181
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    }
+                  ],
+                  "lines": [
+                    110,
+                    181
+                  ],
+                  "name": "steps",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                107,
+                181
+              ],
+              "name": "lean",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            44,
+            181
+          ],
+          "name": "jobs",
+          "type": "section"
+        }
+      ]
+    },
     "tag-manager.yml": {
       "hash": "3db42ba9d167",
       "indexed_at": "2026-07-31T11:35:25.326676+00:00",
@@ -1010,6 +1687,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T11:35:25.341707+00:00",
+  "generated_at": "2026-07-31T12:03:35.088992+00:00",
   "version": "1.0"
 }

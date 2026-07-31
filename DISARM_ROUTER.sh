@@ -43,70 +43,7 @@ echo "  backup     : $BACKUP"
 echo "  restore    : cp \"$BACKUP\" \"$SETTINGS\""
 
 RC=0
-ROUTER_CMD="$ROUTER_CMD" SETTINGS="$SETTINGS" node - <<'NODE' || RC=$?
-const fs = require("fs");
-const file = process.env.SETTINGS;
-const cmd  = process.env.ROUTER_CMD;
-
-const raw = fs.readFileSync(file, "utf8");
-const hadBOM = raw.charCodeAt(0) === 0xFEFF;
-const body   = hadBOM ? raw.slice(1) : raw;
-const hadNL  = body.endsWith("\n");
-
-let s;
-try { s = JSON.parse(body); }
-catch (e) { console.error("  FATAL: settings.json does not parse: " + e.message); process.exit(3); }
-
-const before = JSON.parse(JSON.stringify(s));
-let removed = 0;
-
-for (const ev of Object.keys(s.hooks || {})) {
-  const groups = s.hooks[ev];
-  if (!Array.isArray(groups)) continue;
-  const keep = [];
-  let removedHere = 0;
-  for (const g of groups) {
-    if (!Array.isArray(g.hooks)) { keep.push(g); continue; }
-    const had = g.hooks.some(h => h.command === cmd);
-    const n = g.hooks.length;
-    // Remove ONLY our exact command string. Anything else in the same group
-    // stays -- an uninstaller that took a neighbour with it would satisfy
-    // "the router is gone" perfectly while destroying the user's setup.
-    g.hooks = g.hooks.filter(h => h.command !== cmd);
-    removedHere += n - g.hooks.length;
-    // Drop a group ONLY if WE emptied it. A group the user left empty stays
-    // empty: it is not ours to tidy, and tidying it would be a change to a key
-    // this script did not come to touch.
-    if (had && g.hooks.length === 0) continue;
-    keep.push(g);
-  }
-  removed += removedHere;
-  if (removedHere > 0) {
-    s.hooks[ev] = keep;
-    if (keep.length === 0) delete s.hooks[ev];
-  }
-}
-
-if (removed === 0) { console.log("  not armed -- nothing to remove"); process.exit(10); }
-
-// Indent detected, not assumed -- same rule and same reason as ARM_ROUTER.
-const im = body.match(/\n([ \t]+)"/);
-const indent = im ? (im[1][0] === "\t" ? "\t" : im[1].length) : 2;
-let out = JSON.stringify(s, null, indent);
-if (hadNL) out += "\n";
-if (hadBOM) out = "﻿" + out;
-fs.writeFileSync(file, out, "utf8");
-
-// Validate by re-reading, exactly as the installer does.
-const raw2 = fs.readFileSync(file, "utf8");
-const body2 = raw2.charCodeAt(0) === 0xFEFF ? raw2.slice(1) : raw2;
-try { JSON.parse(body2); }
-catch (e) { console.error("  VALIDATION FAILED: written file does not parse"); process.exit(4); }
-if ((raw2.charCodeAt(0) === 0xFEFF) !== hadBOM) {
-  console.error("  VALIDATION FAILED: BOM state changed"); process.exit(4);
-}
-console.log("  removed    : " + removed + " router hook entr" + (removed === 1 ? "y" : "ies"));
-NODE
+node "$SELF_DIR/hooks/settings-merge.js" disarm "$SETTINGS" "$ROUTER_CMD" || RC=$?
 
 if [ "$RC" -eq 4 ]; then
   cp "$BACKUP" "$SETTINGS"; echo "  AUTO-RESTORED from backup."; exit 4

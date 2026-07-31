@@ -1,0 +1,131 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# ARM_ROUTER.ps1 -- install the RoT MoE router hooks. Windows arm.
+#
+# SAME CONTRACT as ARM_ROUTER.sh, and "same" is mechanical here rather than
+# aspirational: checker/install-roundtrip.sh runs BOTH installers over the same
+# fixture and requires the resulting settings.json to be BYTE-IDENTICAL.
+#
+# It is byte-identical because both arms call ONE merge engine,
+# hooks/settings-merge.js. That is a deliberate asymmetry with the router, and
+# the reasoning is worth stating because it looks inconsistent at first glance:
+#
+#   the ROUTER is duplicated on purpose -- two independent implementations that
+#   agree is evidence a single green cannot fake; a shared bug would have to be
+#   written twice, in two languages.
+#
+#   the INSTALLER shares one engine on purpose -- there is nothing to
+#   cross-check against, the file it edits is the user's live session, and
+#   PowerShell's ConvertTo-Json and node's JSON.stringify disagree on escaping,
+#   key order and depth. Two native implementations would produce different
+#   bytes from identical inputs while both looked correct.
+#
+# Evidence beats duplication where evidence exists; where it does not,
+# duplication is just two chances to be wrong.
+#
+# The seven rules -- backup, additive merge, preserve, validate with
+# auto-restore, idempotent by command string, show the diff, never leave the
+# config dir -- are enforced jointly: the shell half here does backup/restore
+# and the diff, the engine does merge/preserve/validate/idempotence.
+# =============================================================================
+
+[CmdletBinding()]
+param()
+$ErrorActionPreference = 'Stop'
+
+$ClaudeDir = if ($env:CLAUDE_DIR) { $env:CLAUDE_DIR } else { Join-Path $HOME '.claude' }
+$Settings  = Join-Path $ClaudeDir 'settings.json'
+$SelfDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RouterSh  = Join-Path $SelfDir 'hooks/rot-router.sh'
+$RouterPs1 = Join-Path $SelfDir 'hooks/rot-router.ps1'
+$Merge     = Join-Path $SelfDir 'hooks/settings-merge.js'
+
+# --- PATH NORMALISATION, and the stranding bug that forced it ----------------
+# The cross-arm phase of checker/install-roundtrip.sh caught this on its first
+# run. Unnormalised, the two arms wrote DIFFERENT command strings for the same
+# install:
+#
+#   .sh   ->  bash "/c/GIT External Repo/RoT MoE/hooks/rot-router.sh"
+#   .ps1  ->  bash "C:\GIT External Repo\RoT MoE\hooks\rot-router.sh"
+#
+# Removal matches by exact command string, so a user who installed from Git Bash
+# and uninstalled from PowerShell would be left with a dead hook entry FOREVER,
+# with both scripts reporting success. Nothing in Lean, and nothing in a
+# single-arm test, can see that: it only appears when the two arms are compared.
+#
+# POSIX is the normal form, and the choice is empirical rather than aesthetic.
+# Claude Code executes hooks through Git Bash on Windows -- measured in a live
+# session debug log: `Using bash path: "C:\Program Files\Git\bin\bash.exe"` --
+# and the POSIX-form command is the one OBSERVED FIRING in that session
+# (checker/live-session-smoke.sh). The Windows-form string has never been seen
+# to fire. Between a form that is measured to work and one that merely looks
+# native, the measured one wins.
+function ConvertTo-PosixPath([string] $p) {
+  if ([string]::IsNullOrEmpty($p)) { return $p }
+  $q = $p -replace '\\', '/'
+  # C:/foo -> /c/foo   (drive letter lowercased, matching Git Bash's own form)
+  if ($q -match '^([A-Za-z]):/(.*)$') {
+    $q = '/' + $Matches[1].ToLowerInvariant() + '/' + $Matches[2]
+  }
+  return $q
+}
+
+# The command string is the identity used for idempotence AND for removal. It
+# must match ARM_ROUTER.sh character for character, or the arms install entries
+# the other cannot uninstall. The roundtrip checker compares the written bytes,
+# which is what makes that a tested claim rather than an intention.
+$RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
+             '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
+
+Write-Output 'RoT MoE :: ARM_ROUTER (PowerShell arm)'
+Write-Output ('  config dir : ' + $ClaudeDir)
+Write-Output ('  settings   : ' + $Settings)
+
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+  Write-Output '  FATAL: node not found. Claude Code is a Node application, so if you'
+  Write-Output '         can run Claude Code you have node -- check your PATH.'
+  exit 2
+}
+
+if (-not (Test-Path -LiteralPath $Settings)) {
+  Write-Output '  no settings.json found -- creating a minimal one'
+  New-Item -ItemType Directory -Force -Path $ClaudeDir | Out-Null
+  # No BOM, LF: a file we create sets its own conventions, and these are the
+  # ones the engine will then preserve on every later run.
+  [System.IO.File]::WriteAllText($Settings, "{}`n", (New-Object System.Text.UTF8Encoding($false)))
+}
+
+# --- rule 1: backup ---------------------------------------------------------
+$Stamp  = Get-Date -Format 'yyyyMMdd-HHmmss'
+$Backup = "$Settings.pre-armrouter-$Stamp.bak"
+Copy-Item -LiteralPath $Settings -Destination $Backup -Force
+Write-Output ('  backup     : ' + $Backup)
+Write-Output ('  restore    : Copy-Item "' + $Backup + '" "' + $Settings + '" -Force')
+
+# --- rules 2,3,4,5: the shared engine ---------------------------------------
+& node $Merge arm $Settings $RouterCmd
+$rc = $LASTEXITCODE
+
+switch ($rc) {
+  4 { Copy-Item -LiteralPath $Backup -Destination $Settings -Force
+      Write-Output '  AUTO-RESTORED from backup. settings.json is as it was.'; exit 4 }
+  3 { Write-Output '  settings.json was already invalid. Nothing written.'; exit 3 }
+  10 { Remove-Item -LiteralPath $Backup -Force
+       Write-Output '  already armed -- backup removed, nothing changed.'; exit 0 }
+  0 { }
+  default { Copy-Item -LiteralPath $Backup -Destination $Settings -Force
+            Write-Output ('  unexpected failure (' + $rc + '). AUTO-RESTORED.'); exit $rc }
+}
+
+# --- rule 6: show the diff --------------------------------------------------
+Write-Output '  --- diff ---'
+$a = Get-Content -LiteralPath $Backup
+$b = Get-Content -LiteralPath $Settings
+$d = Compare-Object $a $b
+if ($d) { $d | ForEach-Object { Write-Output ('  ' + $_.SideIndicator + ' ' + $_.InputObject) } }
+else    { Write-Output '  (no textual difference)' }
+Write-Output 'RoT MoE :: armed.'
+exit 0

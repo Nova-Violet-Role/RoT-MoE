@@ -1,0 +1,74 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+cff-version: 1.2.0
+title: "RoT MoE - a nine-lens Mixture-of-Experts router for Claude Code, specified in Lean 4"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - name: "Saimonokuma"
+    website: "https://github.com/Nova-Violet-Role"
+repository-code: "https://github.com/Nova-Violet-Role/RoT-MoE"
+license:
+  - AGPL-3.0-or-later
+  - EUPL-1.2
+version: 1.0.0
+date-released: 2026-07-31
+abstract: >-
+  A Mixture-of-Experts router for Claude Code: nine lenses, a measured R/s+
+  divergence gauge, and TIER 1 keyword routing, shipped in two independent
+  implementations (POSIX shell and PowerShell) that are cross-diffed
+  byte-for-byte. The specification is 66 machine-checked Lean 4 theorems with
+  zero sorry and zero native_decide, re-verified by the Lean kernel via
+  leanchecker. An executable checker binds the proofs to the shipped hooks and
+  is itself mutation-tested; the packet is additionally verified by a live
+  Claude Code session in which the router is observed firing, with the
+  uninstalled run recorded as the negative control.
+keywords:
+  - "mixture-of-experts"
+  - "moe"
+  - "router"
+  - "lean4"
+  - "formal-verification"
+  - "theorem-proving"
+  - "mathlib"
+  - "machine-checked"
+  - "proof-engineering"
+  - "claude-code"
+  - "claude-code-plugin"
+  - "ai-agents"
+  - "agentic-workflow"
+  - "llm-tooling"
+  - "prompt-engineering"
+  - "hooks"
+  - "powershell"
+  - "bash"
+  - "agpl"
+  - "eupl"
+  - "dependent-types"
+  - "proof-assistant"
+  - "kernel-verified"
+  - "mutation-testing"
+  - "leanchecker"
+  - "sigmoid"
+  - "ensemble-methods"
+  - "expert-routing"
+  - "plugin"
+  - "cli-tool"
+  - "developer-tools"
+  - "static-analysis"
+  - "specification"
+  - "verified-software"
+  - "copyleft"
+  - "reuse-compliance"
+  - "spdx"
+  - "dual-licensed"
+  - "free-software"
+  - "open-source"
+  - "non-profit"
+  - "python"
+  - "c"
+  - "compiler"
+  - "rolling-context"
+  - "context-compression"
+  - "anthropic"

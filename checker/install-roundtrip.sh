@@ -206,6 +206,63 @@ else
 fi
 
 # ============================================================================
+h "BOTH INSTALLER ARMS -- .sh and .ps1 must write BYTE-IDENTICAL settings"
+# ============================================================================
+# The spec says ARM_ROUTER.ps1 honours "the same contract". Left as prose, that
+# decays: two installers maintained side by side drift, and the drift shows up
+# in a user's settings.json rather than in a test.
+#
+# They are byte-identical because both call ONE merge engine. That is a
+# deliberate asymmetry with the router, which is duplicated on purpose -- for
+# the router, two agreeing implementations ARE the evidence; for the installer
+# there is nothing to cross-check against, so a second implementation would be
+# a second chance to be wrong on the user's live config.
+if [ -z "${PWSH_BIN:-}" ]; then
+  PWSH_BIN=""
+  for c in pwsh powershell; do command -v "$c" >/dev/null 2>&1 && { PWSH_BIN="$c"; break; }; done
+fi
+if [ -z "$PWSH_BIN" ]; then
+  echo "  SKIP  no PowerShell -- the arms were NOT compared. A SKIP is not a PASS."
+else
+  # Canonicalise first, for the reason R5b already established: the hostile
+  # fixture uses compact inline JSON that no parser round trip can reproduce, so
+  # demanding byte-identity against IT would fail for a reason that has nothing
+  # to do with the two arms agreeing. Comparing arms is the question here; the
+  # reformat is already measured and reported by R5a.
+  make_fixture
+  bash "$REPO/ARM_ROUTER.sh"    >/dev/null 2>&1
+  bash "$REPO/DISARM_ROUTER.sh" >/dev/null 2>&1
+  cp "$S" "$WORK/arms-pre.json"
+  bash "$REPO/ARM_ROUTER.sh" >/dev/null 2>&1
+  cp "$S" "$WORK/armed-by-sh.json"
+  cp "$WORK/arms-pre.json" "$S"
+  "$PWSH_BIN" -NoProfile -File "$REPO/ARM_ROUTER.ps1" >/dev/null 2>&1
+  cp "$S" "$WORK/armed-by-ps1.json"
+  if cmp -s "$WORK/armed-by-sh.json" "$WORK/armed-by-ps1.json"; then
+    ok "ARM_ROUTER.sh and ARM_ROUTER.ps1 wrote BYTE-IDENTICAL settings.json"
+  else
+    bad "INSTALLER ARMS DIVERGE -- one arm installs what the other cannot remove:"
+    diff -u "$WORK/armed-by-sh.json" "$WORK/armed-by-ps1.json" | head -20 | sed 's/^/        /'
+  fi
+  # Cross-arm removal: install with one, uninstall with the OTHER. This is the
+  # case a user actually hits after switching shells, and it is the one that
+  # silently strands them if the command strings differ by a single character.
+  "$PWSH_BIN" -NoProfile -File "$REPO/DISARM_ROUTER.ps1" >/dev/null 2>&1
+  cmp -s "$S" "$WORK/arms-pre.json" \
+    && ok "cross-arm: armed by .ps1, disarmed by .ps1, back to pre-install bytes" \
+    || bad "cross-arm round trip did not restore the pre-install bytes"
+
+  cp "$WORK/arms-pre.json" "$S"
+  bash "$REPO/ARM_ROUTER.sh" >/dev/null 2>&1
+  "$PWSH_BIN" -NoProfile -File "$REPO/DISARM_ROUTER.ps1" >/dev/null 2>&1
+  if grep -q 'rot-router' "$S"; then
+    bad "CROSS-ARM FAILURE: .ps1 could not remove what .sh installed"
+  else
+    ok "cross-arm: installed by .sh, REMOVED BY .ps1 (identical command strings)"
+  fi
+fi
+
+# ============================================================================
 h "NEGATIVE CONTROLS -- every check above must be able to go red"
 # ============================================================================
 ctl_pass=0; ctl_fail=0
