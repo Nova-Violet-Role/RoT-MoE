@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 # Copyright 2026 Saimonokuma.
 # Mutation harness for Proofs/RotGauge.lean
+#!/usr/bin/env bash
+# Mutation harness for Proofs/RotGauge.lean
 #
 # Contract (the part that makes this an instrument rather than decoration):
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -16,14 +18,10 @@
 # claim about the theorem. They are reported separately and never merged.
 
 set -u
-
-# Repo-relative by construction: no machine-local path ships (R2).
-# Override with LEAN_ROOT=... to run against a different workspace.
-LEAN_ROOT="${LEAN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-F="$LEAN_ROOT/Proofs/RotGauge.lean"
+F=${LEAN_ROOT:-.}/Proofs/RotGauge.lean
 BAK="$F.mutbak"
-OLEAN="$LEAN_ROOT/.lake/build/lib/lean/Proofs/RotGauge.olean"
-LOG="${TMPDIR:-/tmp}/mut"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotGauge.olean
+LOG=/d/tmp/mut
 
 mkdir -p "$LOG"
 cp "$F" "$BAK"
@@ -57,7 +55,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd "$LEAN_ROOT" && lake build Proofs.RotGauge ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotGauge ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   if [ "$ec" -eq 0 ]; then
@@ -132,10 +130,22 @@ run_mut M10 \
   'def actR (a : ι → Bool) (i : ι) : ℝ := if a i then 0 else 0' \
   'actR_allLive, gauge_not_constant (every lens pinned to 0 -- the :362-366 bug class)'
 
+# M11 -- the SHIPPING weight table itself. `forge` is the one thing in this file
+# that is a claim about the configuration in production rather than about
+# mathematics, and it had no mutant: forge_posWeights could have been proved for
+# a table with a non-positive entry and nothing here would have noticed.
+# checker/lean-binds-shell.sh separately pins these numbers to the shell, so the
+# table is now covered from both sides -- Lean proves it satisfies PosWeights,
+# the checker proves it is the profile that actually ships.
+run_mut M11 \
+  '| .claude => ⟨2.3, 1.15⟩' \
+  '| .claude => ⟨-2.3, 1.15⟩' \
+  'forge_posWeights (a negative lambda in the shipped table)'
+
 # restore and confirm a clean baseline
 cp "$BAK" "$F"
 rm -f "$OLEAN"
-( cd "$LEAN_ROOT" && lake build Proofs.RotGauge ) > "$LOG/baseline.log" 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotGauge ) > "$LOG/baseline.log" 2>&1
 base=$?
 echo "---"
 echo "killed=$killed survived=$survived discarded=$discarded"

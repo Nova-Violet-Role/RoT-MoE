@@ -117,20 +117,29 @@ echo "== mutation suite: Proofs/RotVacuity.lean (the audit itself) =="
 # corresponding non-vacuity claim is decoration.
 # ---------------------------------------------------------------------------
 
-# V01 -- a negative lambda. PosWeights.lam demands 0 < lam for EVERY lens, so
-# the shipping-profile witness must collapse.
-run_mut V01 "![⟨1.4, 1.05⟩" "![⟨-1.4, 1.05⟩" \
-  "first FORGE lambda made negative (PosWeights.lam must fail)"
+# V01..V03 originally mutated a SECOND copy of the FORGE weight table that had
+# been written into RotVacuity.lean. That duplicate was deleted -- RotGauge.lean
+# already defines `forge` and already proves `forge_posWeights`, so the copy was
+# a second source of truth and the binding checker was validating the wrong one.
+# The table's own mutation coverage now lives in mutate_rotgauge.sh, where the
+# table lives. These three mutate what is genuinely UNIQUE here: the witnesses.
 
-# V02 -- a zero mu. Strictly positive is the requirement; zero is the boundary
-# case a careless edit would produce.
-run_mut V02 "⟨2.3, 1.15⟩" "⟨2.3, 0.0⟩" \
-  "Claude's mu set to zero (PosWeights.mu must fail)"
+# V01 -- the scalar arguments no longer match the witness they are discharged
+# by. forge_posWeights is stated at M=1.05 C=0.7 T=0.8; move T and the
+# instantiation must stop type-checking.
+run_mut_nth V01 "1.05 0.7 0.8" "1.05 0.7 0.9" 1 5 \
+  "witness scalars moved off forge_posWeights (instantiation must fail)"
 
-# V03 -- M = 0. The scalar multipliers are separate fields; one of them going
-# to zero must be caught independently of the lens table.
-run_mut V03 "forgeLenses 1.05 1 0.99" "forgeLenses 0 1 0.99" \
-  "M set to 0 in the witness (PosWeights.hM must fail)"
+# V02 -- gauge_ge_floor's floor is the ALL-QUIET gauge. Swapping in allLive
+# claims the floor is the maximum, which the lemma cannot prove.
+run_mut_nth V02 "RotMoE.allQuiet RotMoE.Face) 0" "RotMoE.allLive RotMoE.Face) 0" 1 2 \
+  "floor witness changed from allQuiet to allLive"
+
+# V03 -- the freshness witness stops being fresh. emptySettings is what makes
+# disarm_arm_id applicable; give it a pre-existing hook and the hypothesis it
+# discharges becomes false.
+run_mut V03 'def emptySettings : Settings := ⟨fun _ => none, fun _ => []⟩' 'def emptySettings : Settings := ⟨fun _ => none, fun _ => ["rot"]⟩' \
+  "emptySettings pre-loaded with the command (freshness must fail)"
 
 # V04 -- the drive-letter witness is no longer a letter. 'both_spellings_agree'
 # requires d.isAlpha, so `decide` must refuse.

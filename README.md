@@ -8,7 +8,7 @@
 
 A Mixture-of-Experts router for [Claude Code](https://claude.com/claude-code):
 nine reasoning lenses, a divergence gauge measured off disk on every turn, and
-**72 machine-checked theorems in Lean 4** saying the gauge is not decoration.
+**71 machine-checked theorems in Lean 4** saying the gauge is not decoration.
 
 The standard objection to any engine like this is *the number is made up*. This
 repo exists to answer that objection with a kernel rather than with prose.
@@ -22,7 +22,7 @@ repo exists to answer that objection with a kernel rather than with prose.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| mutation suite | the theorems are load-bearing | **42 applied, 42 killed, 0 survived, 0 discarded** |
+| mutation suite | the theorems are load-bearing | **43 applied, 43 killed, 0 survived, 0 discarded** |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -60,7 +60,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   over **all keys**, so your `permissions`, your `env`, and every key not yet
   invented survive. `arm_idempotent`, `arm_appends` (your hooks keep their
   order), `disarm_removes`, `disarm_preserves_others`.
-* **`lean/Proofs/RotVacuity.lean`** (1 theorem, and the point is the `example`s)
+* **`lean/Proofs/RotVacuity.lean`** (0 theorems — deliberately; the content is `example`s)
   — the audit that catches what every other gate certifies. A theorem with
   contradictory hypotheses is *true*, builds green, has clean axioms and passes
   `leanchecker`, while saying nothing at all. This module instantiates every

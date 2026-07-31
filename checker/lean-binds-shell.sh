@@ -6,9 +6,14 @@
 # =============================================================================
 # THE BINDING: the Lean witness must carry the SAME weights the shell ships.
 #
-# lean/Proofs/RotVacuity.lean witnesses the gauge theorems at the FORGE profile
-# -- deliberately the shipping numbers rather than convenient toy values, so the
+# lean/Proofs/RotGauge.lean:432 defines `forge`, the nine-lens table the gauge
+# theorems are instantiated at -- the SHIPPING numbers, not toy values, so the
 # proofs demonstrably apply to the configuration in production.
+#
+# IT MUST BE THE REAL TABLE. This checker originally read a SECOND copy of the
+# same weights that had been written into RotVacuity.lean. Binding the copy
+# means `forge` itself could drift from the router with every gate still green
+# -- the duplicate was deleted and this now reads the one the theorems use.
 #
 # That choice creates an obligation this checker discharges. The moment someone
 # retunes LAMBDAS or MUS in hooks/rot-router.sh, the Lean witness silently
@@ -29,7 +34,7 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
 SH="hooks/rot-router.sh"
-LEAN="lean/Proofs/RotVacuity.lean"
+LEAN="lean/Proofs/RotGauge.lean"
 pass=0; fail=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
 bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
@@ -44,23 +49,17 @@ sh_lam=$(grep -m1 "^LAMBDAS=" "$SH" | sed "s/^LAMBDAS='//; s/'$//")
 sh_mu=$(grep  -m1 "^MUS="     "$SH" | sed "s/^MUS='//; s/'$//")
 
 # --- extract from the Lean witness ------------------------------------------
-# The forgeLenses table is a list of ⟨lam, mu⟩ pairs, one per line, with the
+# The forge table is a list of ⟨lam, mu⟩ pairs, one per line, with the
 # lens name in a trailing comment. Pull the two numbers from each pair.
+# PRECISION MATTERS HERE, and the sloppy version was caught in the act. A first
+# attempt started the scan on any line merely CONTAINING "forge" -- which caught
+# docstrings mentioning `forge_posWeights` and pulled 11 pairs out of a 9-lens
+# table. It failed loudly, but a variant of that mistake that over-matched by
+# ZERO rows would have compared two empty lists and passed. Anchor on the
+# definition, stop at the first line that is not a match arm.
 lean_pairs=$(awk '
-  /^def forgeLenses/ { inside = 1; next }
-  inside && /^]/     { inside = 0 }
-  inside {
-    if (match($0, /[0-9]+\.[0-9]+, *[0-9]+\.[0-9]+/)) {
-      s = substr($0, RSTART, RLENGTH)
-      gsub(/ /, "", s)
-      print s
-    }
-  }' "$LEAN")
-
-# Also catch the first pair, which shares the `:=  ![⟨...⟩` line.
-lean_pairs=$(awk '
-  /forgeLenses/ { inside = 1 }
-  inside && /^]/ { inside = 0 }
+  /^def forge / { inside = 1; next }
+  inside && $0 !~ /^[ \t]*\|/ { inside = 0 }
   inside {
     if (match($0, /[0-9]+\.[0-9]+, *[0-9]+\.[0-9]+/)) {
       s = substr($0, RSTART, RLENGTH); gsub(/ /, "", s); print s

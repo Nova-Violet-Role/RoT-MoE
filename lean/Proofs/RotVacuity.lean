@@ -154,53 +154,40 @@ are they met **by the configuration in production**. A theorem that only applies
 to weights nobody runs would be technically non-vacuous and practically useless.
 -/
 
-open RotMoE in
-/-- The nine shipping FORGE lenses, λ and μ as measured from the profile. -/
-def forgeLenses : Fin 9 → RotMoE.Lens :=
-  ![⟨1.4, 1.05⟩,   -- Nova
-    ⟨0.6, 0.85⟩,   -- Violet
-    ⟨1.9, 1.10⟩,   -- Anti-Venom
-    ⟨1.2, 1.05⟩,   -- Venom
-    ⟨0.6, 0.90⟩,   -- Carnage
-    ⟨1.0, 1.10⟩,   -- Chroma
-    ⟨1.0, 0.95⟩,   -- Soleil
-    ⟨1.2, 1.10⟩,   -- Eidolon
-    ⟨2.3, 1.15⟩]   -- Claude
+/-! **A duplicate was found here and removed, which is itself the audit working.**
 
-open RotMoE in
-/-- **The witness.** All five `PosWeights` fields hold simultaneously for the
-shipping profile, with the real `M = 1.05`, `C = 1`, `T = 0.99`. -/
-theorem forge_posWeights : RotMoE.PosWeights forgeLenses 1.05 1 0.99 where
-  lam i := by fin_cases i <;> norm_num [forgeLenses]
-  mu i := by fin_cases i <;> norm_num [forgeLenses]
-  hM := by norm_num
-  hC := by norm_num
-  hT := by norm_num
+This section originally defined its own nine-lens table and re-proved
+`PosWeights` for it. Both already existed: `RotMoE.forge` at
+`RotGauge.lean:432` and `RotMoE.forge_posWeights` at `:446`. Two tables of
+the same shipping weights in one packet is a second source of truth, and the
+checker that binds Lean to the shell was validating the COPY -- so the table
+the gauge theorems actually use could have drifted from the router with every
+gate still green. The witnesses below now use the real one. -/
 
 open RotMoE in
 /-- `gauge_pos` instantiated at the shipping profile: not vacuous, and true of
 the configuration actually in use. Holds for EVERY activity vector and breadth,
 so the witness does not depend on a lucky input either. -/
-example (a : Fin 9 → Bool) (breadth : ℕ) :
-    0 < RotMoE.gauge forgeLenses a breadth 1.05 1 0.99 :=
-  RotMoE.gauge_pos forge_posWeights a breadth
+example (a : RotMoE.Face → Bool) (breadth : ℕ) :
+    0 < RotMoE.gauge RotMoE.forge a breadth 1.05 0.7 0.8 :=
+  RotMoE.gauge_pos RotMoE.forge_posWeights a breadth
 
 open RotMoE in
 /-- `gauge_ge_floor` needs only non-negativity, which follows from the same
 witness — so its hypothesis is satisfiable too. -/
-example (a : Fin 9 → Bool) (breadth : ℕ) :
-    RotMoE.gauge forgeLenses (RotMoE.allQuiet (Fin 9)) 0 1.05 1 0.99 ≤
-      RotMoE.gauge forgeLenses a breadth 1.05 1 0.99 :=
-  RotMoE.gauge_ge_floor (fun i => RotMoE.weight_nonneg forge_posWeights i) a breadth
+example (a : RotMoE.Face → Bool) (breadth : ℕ) :
+    RotMoE.gauge RotMoE.forge (RotMoE.allQuiet RotMoE.Face) 0 1.05 0.7 0.8 ≤
+      RotMoE.gauge RotMoE.forge a breadth 1.05 0.7 0.8 :=
+  RotMoE.gauge_ge_floor (fun i => RotMoE.weight_nonneg RotMoE.forge_posWeights i) a breadth
 
 open RotMoE in
 /-- `gauge_not_constant` — the theorem that says the gauge is not a decorative
 constant — instantiated at the shipping profile. This is the one that would be
 most embarrassing to have proved vacuously. -/
 example :
-    RotMoE.gauge forgeLenses (RotMoE.allLive (Fin 9)) 1 1.05 1 0.99 ≠
-      RotMoE.gauge forgeLenses (RotMoE.allQuiet (Fin 9)) 0 1.05 1 0.99 :=
-  RotMoE.gauge_not_constant forge_posWeights
+    RotMoE.gauge RotMoE.forge (RotMoE.allLive RotMoE.Face) 1 1.05 0.7 0.8 ≠
+      RotMoE.gauge RotMoE.forge (RotMoE.allQuiet RotMoE.Face) 0 1.05 0.7 0.8 :=
+  RotMoE.gauge_not_constant RotMoE.forge_posWeights
 
 open RotMoE in
 /-- `classify_above_iff` needs `lo ≤ hi`. Witnessed with the REAL FORGE band
