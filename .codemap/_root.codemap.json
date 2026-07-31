@@ -309,12 +309,12 @@
       ]
     },
     "README.md": {
-      "hash": "e1a9dc0eeb3d",
-      "indexed_at": "2026-07-31T15:55:20.459754+00:00",
+      "hash": "51ce1a1fe680",
+      "indexed_at": "2026-07-31T16:03:43.967886+00:00",
       "language": "markdown",
-      "lines": 380,
-      "mtime_ns": 1785512877031968400,
-      "size": 18854,
+      "lines": 465,
+      "mtime_ns": 1785513424032847400,
+      "size": 23892,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -329,9 +329,18 @@
           "docstring": "Every engine like this meets the same objection, and it is a fair one: ***the number is made up.*** A \"divergence score\" that no one can audit is a de",
           "lines": [
             58,
-            78
+            72
           ],
           "name": "\ud83d\udcdc About",
+          "type": "section"
+        },
+        {
+          "docstring": "**This repository exists because of Lean 4, and it deserves the front page.**",
+          "lines": [
+            73,
+            126
+          ],
+          "name": "\ud83c\udf1f Why Lean 4 \u2014 and why you should be excited about it",
           "type": "section"
         },
         {
@@ -339,8 +348,8 @@
             {
               "docstring": "* **`lean/Proofs/RotGauge.lean`** (35 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
               "lines": [
-                107,
-                145
+                153,
+                191
               ],
               "name": "\ud83d\udcd0 The five modules",
               "type": "subsection"
@@ -348,8 +357,8 @@
           ],
           "docstring": "| instrument | what it establishes | result | |---|---|---| | `lake build Proofs.*` | the modules elaborate | exit **0** | | `#print axioms` on every",
           "lines": [
-            79,
-            145
+            127,
+            191
           ],
           "name": "\ud83d\udd2c What is actually verified",
           "type": "section"
@@ -357,8 +366,8 @@
         {
           "docstring": "| organ | file | what it does | |:--|:--|:--| | 1 \u00b7 engine | `engine/rot-lean.md` | the specification: nine lenses, the three-tier router, the `R/s+`",
           "lines": [
-            146,
-            167
+            192,
+            213
           ],
           "name": "\ud83e\udec0 The four organs",
           "type": "section"
@@ -368,8 +377,8 @@
             {
               "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
               "lines": [
-                195,
-                202
+                241,
+                248
               ],
               "name": "\ud83d\udd27 Requirements",
               "type": "subsection"
@@ -377,8 +386,8 @@
             {
               "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
               "lines": [
-                203,
-                215
+                249,
+                261
               ],
               "name": "\u2699\ufe0f Configuration",
               "type": "subsection"
@@ -386,8 +395,8 @@
           ],
           "docstring": "**Look before you leap.** This installs a hook that runs on every prompt you submit and before every tool call, by editing `~/.claude/settings.json`.",
           "lines": [
-            168,
-            215
+            214,
+            261
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -395,26 +404,26 @@
         {
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
-            216,
-            266
+            262,
+            312
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
         },
         {
-          "docstring": "This section is not modesty. It is the part that makes the rest credible, and it is deliberately the most specific section in this README.",
+          "docstring": "**This is the section we are proudest of.** Knowing exactly where the guarantee ends is what makes everything before it worth having \u2014 a proof with an",
           "lines": [
-            267,
-            316
+            313,
+            373
           ],
-          "name": "\ud83d\udea7 What Lean does NOT prove here",
+          "name": "\ud83d\uddfa\ufe0f The map: PROVED \u00b7 MEASURED \u00b7 OUT OF SCOPE",
           "type": "section"
         },
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            317,
-            331
+            374,
+            388
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -422,10 +431,30 @@
         {
           "children": [
             {
+              "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
+              "lines": [
+                407,
+                415
+              ],
+              "name": "\ud83d\ude4f Standing on other people's work",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
+          "lines": [
+            389,
+            415
+          ],
+          "name": "\u2615 Supporting a non-profit",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                354,
-                381
+                439,
+                466
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -433,8 +462,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            332,
-            381
+            416,
+            466
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -516,6 +545,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-07-31T15:55:20.623388+00:00",
+  "generated_at": "2026-07-31T16:03:43.967963+00:00",
   "version": "1.0"
 }

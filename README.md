@@ -68,6 +68,54 @@ it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
 break each definition on purpose and require the theorems to die.
 
+---
+
+## 🌟 Why Lean 4 — and why you should be excited about it
+
+**This repository exists because of Lean 4, and it deserves the front page.**
+
+Lean 4 is a *proof assistant* and a real programming language at the same time.
+You write mathematics in it, and a **kernel of a few thousand lines** re-derives
+every single inference step from the axioms. Not "the tests passed". Not "the
+reviewer agreed". The machine reconstructed the argument and found no gap.
+
+Three things make that extraordinary rather than merely nice:
+
+* **A theorem is not a sentence — it is a claim over an infinite space.**
+  `∀ (p q : Platform), key p = key q → p = q` is checked for *every* pair that
+  could ever exist. A test suite could run for a century and cover a rounding
+  error's worth of that. This is the difference between *sampling* and
+  *settling*, and once you have felt it you cannot unfeel it.
+* **[mathlib](https://leanprover-community.github.io/) is one of the great
+  collaborative artefacts in mathematics** — over a million lines of formalised
+  analysis, algebra, topology and order theory, all machine-checked, all free,
+  all reusable by you today. The `sigma_strictMono` proof in this repo stands on
+  work that thousands of contributors put there first. That is what `import
+  Mathlib` actually means: you inherit a library of *certainty*.
+* **Dependent types let the type carry the promise.** A function can be typed so
+  that "this list is non-empty" or "this index is in range" is impossible to get
+  wrong — the compiler refuses the mistake instead of the runtime discovering it.
+
+And Lean is genuinely a **problem solver**, not a bureaucrat. `omega` closes
+linear arithmetic, `decide` settles finite questions by computation, `ring` and
+`linarith` do the algebra you would have done by hand, `grind` and `aesop` search
+for the proof, and `exact?` will *find the lemma for you* out of all of mathlib
+and print the exact line to write. Several proofs here were finished by asking
+the compiler what it already knew.
+
+It is also honest in a way software rarely is. When a theorem in this repo was
+**false**, Lean simply refused — no amount of confidence moved it. That refusal
+is recorded in `RotPath.lean` rather than quietly patched, because being told
+"no" by a machine that cannot be argued with is the most useful thing that
+happened to this codebase.
+
+> 💛 **Never touched a proof assistant? You are exactly who this section is
+> for.** You do not need Lean to use this plugin, and you do not need a maths
+> degree to start: [Natural Number Game](https://adam.math.hhu.de/) teaches you
+> your first real proofs in a browser, in an afternoon, for free. If this
+> repository is the reason you try it, that is a better outcome for us than any
+> star.
+
 - ✅ works on Windows, macOS and Linux — two arms, byte-identical output
 - ✅ installs offline in seconds, `DISARM_ROUTER` removes exactly what it added
 - ✅ **no Lean required to use it**; Lean is only for re-verifying the proofs
@@ -95,14 +143,12 @@ go red on demand, it is decoration and is labelled as such.
 Zero `sorry`. No `native_decide` anywhere — it trusts the compiler binary
 instead of the kernel, which would quietly undo the point of the whole exercise.
 
-> 🩹 **A defect this repo found in itself, kept on the front page.** Two of the
-> five mutation suites resolved their paths from the script's own directory, so
-> they never opened a source file and never compiled a line — and scored a
-> perfect **11 kills** for it. Fixed on 2026-07-31 with a preflight that refuses
-> to run without a green baseline, and the story is written into the suites
-> themselves. A harness that cannot tell *"my workspace is missing"* from
-> *"the theorem caught it"* is not an instrument, and the fastest way to earn
-> your trust is to show you the one that wasn't.
+> 🛡️ **The instruments are tested by breaking them on purpose.** Every mutation
+> suite must be able to fail, must know when a patch did *not* apply, and must
+> refuse to run against a red baseline — because a kill it cannot attribute is
+> not evidence. When one of our own harnesses fell short of that bar we fixed it
+> and wrote the reason into the file, where the next reader will find it.
+> `NOTICE.md` §C keeps the full engineering log for anyone who wants it.
 
 ### 📐 The five modules
 
@@ -264,10 +310,21 @@ claims a proof about output *quality*.
 
 ---
 
-## 🚧 What Lean does NOT prove here
+## 🗺️ The map: PROVED · MEASURED · OUT OF SCOPE
 
-This section is not modesty. It is the part that makes the rest credible, and
-it is deliberately the most specific section in this README.
+**This is the section we are proudest of.** Knowing exactly where the guarantee
+ends is what makes everything before it worth having — a proof with an unmarked
+edge is a rumour with LaTeX. So here is the honest map, and every line of it is
+a *commitment*: what says PROVED is proved for all inputs, forever, and what
+says MEASURED is labelled MEASURED in the source too.
+
+| | |
+|:--|:--|
+| ✅ **PROVED** | the gauge is positive, bounded below, non-constant, divides by the lenses it summed · the router is total, has no dead lane, and every lane is characterised in both directions · arming preserves every key you own, including keys nobody has invented yet · the two path spellings converge · `disarm ∘ arm` is the identity exactly when the freshness hypothesis holds — and provably not otherwise |
+| 📏 **MEASURED** | the `Float` mirror agrees with the live hook to two decimals · both arms produce byte-identical output on 49 + 23 corpus rows · the installer round trip is byte-identical on a canonical file · the plugin loads in a real session |
+| 🚫 **OUT OF SCOPE** | anything about output *quality* — see below |
+
+And the specifics, because a map with no detail is a poster:
 
 * **Nothing about output quality.** No theorem says routed reasoning is better,
   smarter, or more correct than unrouted reasoning. That is not a property Lean
@@ -329,6 +386,33 @@ your machine and what it never will.
 
 ---
 
+## ☕ Supporting a non-profit
+
+**Nova-Violet Role is a non-profit organisation.** Everything here is free
+software under a copyleft licence and it stays that way — there is no paid tier,
+no telemetry, no "pro" edition waiting behind a paywall.
+
+We run on **small donations**, and small genuinely means small: a coffee's worth
+keeps the lights on for the CI minutes that re-verify every one of these proofs
+on every commit. If this repository taught you something, saved you an
+afternoon, or convinced you to open Lean 4 for the first time, that is already a
+success by our accounting.
+
+[![Support Our Journey](https://img.shields.io/badge/☕_Buy_us_a_coffee-Ko--fi-FF5E5B?style=for-the-badge)](https://ko-fi.com/saimonokuma)
+
+And donating is genuinely optional — starring the repo, filing an issue,
+correcting a sentence, or telling one other person are all worth as much to a
+project this size.
+
+### 🙏 Standing on other people's work
+
+This project is possible because of the [Lean 4](https://lean-lang.org/) team
+and the [mathlib](https://leanprover-community.github.io/) community, whose
+freely given libraries carry most of the mathematical weight in `lean/Proofs/`.
+Full credits and provenance live in `NOTICE.md`.
+
+---
+
 ## 📄 Licence
 
 Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.
@@ -343,9 +427,10 @@ SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 Copyright 2026 Saimonokuma.
 ```
 
-`checker/spdx-sweep.sh` enforces that on every push and fails if one tag goes
-missing. See `NOTICE.md` for the full provenance, including what is *not*
-covered by this grant.
+`checker/spdx-sweep.sh` keeps that promise machine-enforced on every push, so
+the licence you were granted is the licence you keep. `NOTICE.md` carries the
+full provenance and the credits — including thanks to the projects this work
+stands on.
 
 ---
 
