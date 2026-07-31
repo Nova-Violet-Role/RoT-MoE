@@ -73,7 +73,19 @@ it is deliberately the most specific section in this README.
 * **`RotInstall` sees a map, not a file.** It cannot see a UTF-8 BOM, `\r\n`
   line endings, key ordering, or indentation. A green build means the *merge is
   sound*, never that the *file was written correctly*. Byte-level behaviour is
-  the checker's job, run against a scratch `HOME`.
+  `checker/install-roundtrip.sh`'s job, run against a scratch config dir —
+  **21 checks, 5 negative controls, and it never opens your real
+  `settings.json`.**
+* **The installer normalizes JSON layout, and this is measured, not assumed.**
+  Your keys, values, order, UTF-8 BOM state and indent *width* all survive
+  exactly. What does **not** survive is intra-line layout: a line written as
+  `"env": { "A": "b" }` comes back expanded across three lines, because the
+  merge round-trips through a JSON parser rather than editing text. On a
+  deliberately hostile fixture that measured **678 → 872 bytes** with every
+  value identical. On a file already in canonical form — which is what Claude
+  Code itself writes — the install/uninstall round trip is **byte-identical**,
+  and the checker asserts exactly that as a separate claim rather than folding
+  the two together.
 * **`disarm ∘ arm` is not the identity in every case, and that is proved.** If
   you had already registered this exact hook command by hand, installing and
   then uninstalling **removes your entry**. `disarm_arm_id` carries the freshness

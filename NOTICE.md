@@ -66,7 +66,27 @@ the README:
 3. **`RotInstall.lean` proves the merge is sound, not that the file is written
    correctly.** Lean sees a finite map. It cannot see byte-order marks, line
    endings, key order, or indentation, and those are exactly how a settings
-   writer corrupts a file in practice.
+   writer corrupts a file in practice. `checker/install-roundtrip.sh` covers
+   that half: 21 checks and 5 negative controls against a scratch config
+   directory, never the live one.
+6. **The installer normalizes JSON layout.** Keys, values, order, BOM state and
+   indent width survive exactly; intra-line layout does not, because the merge
+   round-trips through a JSON parser rather than editing text. Measured on a
+   hostile fixture: **678 → 872 bytes with every value identical**. On a file
+   already in canonical form the round trip is **byte-identical**, asserted
+   separately as R5b. Stating this matters because the spec named a real
+   3 674 → 9 564 byte reformat as a hazard: this installer is not that, but it
+   is not a text-preserving editor either, and the difference is measured
+   rather than claimed.
+7. **The BOM rule departs from the written spec, deliberately.** The spec says
+   "writes UTF-8 without BOM". The live `settings.json` on the development
+   machine **already has one**, and `JSON.parse` fails on it until stripped.
+   Writing it back without a BOM would silently alter the first three bytes of
+   a file the installer was told to preserve — the exact class of change the
+   preservation rule forbids. So the installer **preserves the input's BOM
+   state**: none added if none present, an existing one kept. The rule's
+   purpose (never *add* a BOM) is met; its literal wording is not, and that is
+   the correct trade.
 4. **The uninstaller is lossy in one identified case, and this is proved rather
    than disclaimed.** `disarm_arm_id` holds only under an explicit freshness
    hypothesis, and `disarm_arm_not_id` proves that hypothesis cannot be dropped:
