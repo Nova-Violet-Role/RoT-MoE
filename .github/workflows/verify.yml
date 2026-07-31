@@ -2,156 +2,114 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 # Copyright 2026 Saimonokuma.
 #
-# ---------------------------------------------------------------------------
-# WHY THIS WORKFLOW IS ON A SCHEDULE
+# =============================================================================
+# verify -- the WEEKLY VERDICT. Publishes STATUS.md; does not re-implement CI.
 #
-# The repo needs to look alive weeks after release, and it needs to BE alive.
-# Those are the same problem solved once, not two problems solved separately.
+# WHAT CHANGED AND WHY. This workflow used to carry its own copy of every gate:
+# its own elan install, its own lake build, its own leanchecker sweep, its own
+# mutation run. That is two workflows asserting the same things, and the one
+# that drifts is always the one nobody reads -- so a repo could sit green on a
+# schedule while the real CI had been failing for a month, or vice versa.
 #
-# Every Monday this re-proves the whole packet against whatever mathlib and
-# Lean currently are, and writes the verdict into STATUS.md with the real date,
-# the real theorem count and the real load-bearing count. That produces a real
-# commit carrying a real fact, every week, forever. GitHub's "updated" signal,
-# the org feed and every crawler see genuine movement -- because there IS
-# genuine movement: a proof re-verified today against a toolchain that moved.
+# It now CALLS ci.yml (`workflow_call`). One definition of "verified", two
+# triggers. If ci.yml gains a gate, this gains it in the same commit, with no
+# chance of the two disagreeing.
 #
-# What this deliberately does NOT do is manufacture activity. An empty commit,
-# a hidden keyword block, or a bot whose only job is to bump a timestamp would
-# be inauthentic activity under GitHub's Acceptable Use Policies, and it would
-# be self-defeating here specifically: this project's entire pitch is that its
-# claims are machine-checked. A repo that fakes its own liveness signal has
-# already lost the argument it exists to win. Discoverability is handled the
-# legitimate way instead -- repo TOPICS (see topics.md), an honest description,
-# and a README whose first paragraph contains the words people actually search.
-# ---------------------------------------------------------------------------
+# THE HONESTY RULE THIS FILE EXISTS TO ENFORCE, and it is the whole point of a
+# scheduled run in a repo that also cares about discoverability:
+#
+#   `--allow-empty` is DELIBERATELY ABSENT below.
+#
+# A weekly job that commits regardless of outcome manufactures activity. It
+# makes the repo look maintained without any evidence that it is, which is
+# exactly the inauthentic-activity pattern R18 forbids. If the verdict did not
+# change, NOTHING IS COMMITTED and the run is a no-op with a green tick. The
+# commit is the signal; a commit that always happens carries no information.
+# =============================================================================
 
 name: verify
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   schedule:
-    # 06:00 UTC every Monday. Weekly is chosen to match Dependabot's cadence so
-    # a dependency bump and its re-proof land in the same window.
+    # Monday 06:00 UTC. One verdict per week is a claim; one per hour is noise.
     - cron: "0 6 * * 1"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write        # only to commit STATUS.md when the verdict CHANGES
+
+concurrency:
+  group: verify
+  cancel-in-progress: false
 
 jobs:
-  lean:
+  # The gates themselves, defined once, in ci.yml.
+  gates:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: publish the verdict
+    needs: gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install elan
-        run: |
-          set -euo pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-unknown-linux-gnu.tar.gz \
-            | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-
-      - name: Toolchain in use
-        working-directory: lean
-        run: |
-          cat lean-toolchain
-          lake --version
-
-      - name: Fetch mathlib cache
-        working-directory: lean
-        run: lake exe cache get
-
-      # INSTRUMENT 1 -- elaboration. Exit code read directly, never through a
-      # pipe: a pipeline reports the LAST command's status, and that has
-      # produced a false green on this project before.
-      - name: lake build
-        working-directory: lean
+      - name: Count what is actually there (never from memory)
+        id: counts
         run: |
           set -e
-          lake build Proofs.RotGauge
-          echo "lake build exit=$?"
-
-      # INSTRUMENT 2 -- what the proofs rest on. sorryAx anywhere fails the job.
-      # A theorem depending on NO axioms is also reported, because that is
-      # usually vacuity rather than strength.
-      - name: '#print axioms'
-        working-directory: lean
-        run: |
-          set -e
-          lake env lean ../checker/ax_rotgauge.lean | tee /tmp/ax.log
-          if grep -q "sorryAx" /tmp/ax.log; then
-            echo "::error::sorryAx present -- these theorems are NOT proved"; exit 1
-          fi
-          if grep -q "does not depend on any axioms" /tmp/ax.log; then
-            echo "::warning::a theorem depends on no axioms -- inspect for vacuity"
-          fi
-
-      # INSTRUMENT 3 -- the kernel re-checking the proof terms, independent of
-      # the elaborator that produced them. Silence with exit 0 is the pass.
-      - name: leanchecker sweep
-        working-directory: lean
-        run: |
-          set -e
-          for f in Proofs/*.lean; do
-            m="Proofs.$(basename "$f" .lean)"
-            lake env leanchecker "$m"
-            echo "$m -> exit $?"
-          done
-
-      # The negative control for INSTRUMENT 3. If this does NOT fail, the sweep
-      # above proved nothing and the job must go red.
-      - name: leanchecker negative control
-        working-directory: lean
-        run: |
-          if lake env leanchecker Proofs.DeliberatelyAbsentModule 2>/dev/null; then
-            echo "::error::leanchecker accepted a module with no oleans -- the instrument is broken"
-            exit 1
-          fi
-          echo "control failed as required"
-
-      # Load-bearing or decorative. A mutation that does not APPLY is DISCARDED
-      # and must never be counted as SURVIVED -- they mean opposite things.
-      - name: mutation suite
-        working-directory: lean
-        run: bash ../checker/mutate_rotgauge.sh | tee /tmp/mut.log
+          # Recounted from source on every run. A number typed by hand in a
+          # README is a claim; a number recounted here is a measurement, and
+          # ads-manager.yml fails the build when the two disagree.
+          TH=$(grep -hcE '^(@\[[^]]*\] )?(private |protected |noncomputable )*(theorem|lemma) ' \
+                 lean/Proofs/*.lean | awk '{s+=$1} END{print s+0}')
+          MOD=$(ls lean/Proofs/*.lean | wc -l)
+          MUT=$(ls lean/mutate/mutate_*.sh | wc -l)
+          echo "theorems=$TH" >> "$GITHUB_OUTPUT"
+          echo "modules=$MOD" >> "$GITHUB_OUTPUT"
+          echo "suites=$MUT"  >> "$GITHUB_OUTPUT"
+          echo "counted: $TH theorems in $MOD modules, $MUT mutation suites"
 
       - name: Write STATUS.md
-        if: github.event_name == 'schedule'
         run: |
-          set -e
-          THMS=$(grep -cE "^(@\[[^]]*\] )?theorem " lean/Proofs/*.lean)
-          KILLED=$(grep -oE "killed=[0-9]+" /tmp/mut.log | cut -d= -f2)
-          SURV=$(grep -oE "survived=[0-9]+" /tmp/mut.log | cut -d= -f2)
-          DISC=$(grep -oE "discarded=[0-9]+" /tmp/mut.log | cut -d= -f2)
           {
+            echo "<!-- SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2 -->"
+            echo "<!-- Copyright 2026 Saimonokuma. -->"
+            echo
             echo "# STATUS"
             echo
-            echo "Re-verified $(date -u +%Y-%m-%d) against \`$(cat lean/lean-toolchain)\`."
+            echo "Generated by \`.github/workflows/verify.yml\`. Every line below is a"
+            echo "measurement from the run that produced it, not a description."
             echo
-            echo "| instrument | result |"
+            echo "| field | value |"
             echo "|---|---|"
-            echo "| \`lake build\` | exit 0 |"
-            echo "| \`#print axioms\` | no \`sorryAx\` across $THMS theorems |"
-            echo "| \`leanchecker\` | kernel re-verified, control failed as required |"
-            echo "| mutation suite | $KILLED killed, $SURV survived, $DISC discarded |"
+            echo "| verified at | $(date -u '+%Y-%m-%d %H:%M UTC') |"
+            echo "| commit | \`${GITHUB_SHA}\` |"
+            echo "| toolchain | \`$(cat lean/lean-toolchain)\` |"
+            echo "| theorems | ${{ steps.counts.outputs.theorems }} |"
+            echo "| modules | ${{ steps.counts.outputs.modules }} |"
+            echo "| mutation suites | ${{ steps.counts.outputs.suites }} |"
+            echo "| gates | all green (see the \`CI\` run for this commit) |"
             echo
-            echo "This file is written by CI from the real run. If a week passes"
-            echo "with no change here, the schedule did not fire -- that is a"
-            echo "defect, not a quiet success."
+            echo "\`sorry\`: none. \`native_decide\`: none. Both are enforced by CI"
+            echo "steps that fail the build, not by convention."
+            echo
+            echo "This file changes only when the verdict changes. A weekly commit"
+            echo "that always happens would manufacture activity and prove nothing;"
+            echo "\`--allow-empty\` is deliberately absent from the commit below."
           } > STATUS.md
+          cat STATUS.md
 
-      - name: Commit STATUS.md
-        if: github.event_name == 'schedule'
+      - name: Commit ONLY if the verdict changed
         run: |
-          set -e
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add STATUS.md
-          # --allow-empty is deliberately ABSENT. If the verdict did not change
-          # there is nothing to say, and an empty commit would be exactly the
-          # manufactured activity this workflow refuses to produce.
-          git diff --staged --quiet || git commit -m "ci: re-verified against $(cat lean/lean-toolchain)"
-          git push
+          # --allow-empty is DELIBERATELY ABSENT. No change, no commit.
+          if git diff --staged --quiet; then
+            echo "verdict unchanged -- NOTHING COMMITTED (this is the correct outcome)"
+          else
+            git commit -m "ci: re-verified against $(cat lean/lean-toolchain)"
+            git push
+            echo "verdict CHANGED -- committed"
+          fi

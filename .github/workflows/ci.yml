@@ -33,6 +33,10 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # Reusable: verify.yml calls this instead of duplicating every gate. Two
+  # workflows running the same checks is two places for them to drift, and the
+  # one that drifts is always the one nobody reads.
+  workflow_call:
 
 permissions:
   contents: read
@@ -85,6 +89,30 @@ jobs:
         shell: bash
         run: bash checker/mutate-checker.sh
 
+      # These SKIP (exit 3) when the claude CLI is absent, which it is on a
+      # bare runner. A skip is reported as a skip; it is never a pass.
+      - name: plugin + fresh-user install (skips without the CLI)
+        shell: bash
+        run: |
+          set +e
+          bash checker/plugin-install.sh; rc=$?
+          [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
+          exit $rc
+
+      # Catches a checker that CI never runs -- the repo would look more
+      # verified than it is, with a green tick saying nothing about it.
+      - name: workflow lint -- parse + drift
+        shell: bash
+        run: bash checker/workflow-lint.sh
+
+      - name: live-session smoke (skips without the CLI)
+        shell: bash
+        run: |
+          set +e
+          bash checker/live-session-smoke.sh; rc=$?
+          [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
+          exit $rc
+
       # The guard the development machine cannot test. `script` allocates a real
       # pty, so stdin IS a terminal and the router must refuse rather than block.
       # Bounded by timeout: a hang here is the exact failure being tested for,
@@ -128,7 +156,7 @@ jobs:
       - name: lake build (exit code read DIRECTLY, never through a pipe)
         working-directory: lean
         run: |
-          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall
+          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath
           echo "lake build exit=$?"
 
       # A green build means it ELABORATED. It does not mean the theorems rest on
@@ -137,7 +165,7 @@ jobs:
         working-directory: lean
         run: |
           set -e
-          for m in RotGauge RotRoute RotInstall; do
+          for m in RotGauge RotRoute RotInstall RotPath; do
             printf 'import Proofs.%s\n' "$m" > /tmp/ax_$m.lean
             lake env lean /tmp/ax_$m.lean
           done
@@ -160,7 +188,7 @@ jobs:
         working-directory: lean
         run: |
           set +e
-          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall; do
+          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath; do
             lake env leanchecker "$m"; rc=$?
             echo "$m -> $rc"
             [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }
@@ -178,3 +206,4 @@ jobs:
           bash mutate/mutate_rotgauge.sh
           bash mutate/mutate_rotroute.sh
           bash mutate/mutate_rotinstall.sh
+          bash mutate/mutate_rotpath.sh

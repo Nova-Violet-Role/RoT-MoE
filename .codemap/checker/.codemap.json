@@ -119,8 +119,17 @@
           "type": "function"
         }
       ]
+    },
+    "workflow-lint.sh": {
+      "hash": "d61c7585c63d",
+      "indexed_at": "2026-07-31T12:35:57.704267+00:00",
+      "language": "shell",
+      "lines": 140,
+      "mtime_ns": 1785501215096028000,
+      "size": 5793,
+      "symbols": []
     }
   },
-  "generated_at": "2026-07-31T12:18:17.585041+00:00",
+  "generated_at": "2026-07-31T12:35:57.704316+00:00",
   "version": "1.0"
 }
