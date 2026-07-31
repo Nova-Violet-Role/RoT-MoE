@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 # Copyright 2026 Saimonokuma.
 #
-# Mutation suite for Proofs/RotPath.lean.
+# Mutation suite for Proofs/RotVacuity.lean.
 #
 # A theorem no mutation kills is decoration. Each mutant below breaks the MODEL
 # in a way a careless edit really could, and the theorems must die.
@@ -18,8 +18,8 @@
 
 set -uo pipefail
 cd "$(dirname "$0")"
-SRC="Proofs/RotPath.lean"
-OLEAN=".lake/build/lib/lean/Proofs/RotPath.olean"
+SRC="Proofs/RotVacuity.lean"
+OLEAN=".lake/build/lib/lean/Proofs/RotVacuity.olean"
 BAK="$SRC.mutbak"
 cp "$SRC" "$BAK"
 trap 'cp "$BAK" "$SRC"; rm -f "$BAK"' EXIT
@@ -44,12 +44,12 @@ run_mut () {  # run_mut <id> <needle> <replacement> <description>
     discarded=$((discarded+1)); return
   fi
   rm -f "$OLEAN"
-  if lake build Proofs.RotPath >/tmp/mut_$id.log 2>&1; then
+  if lake build Proofs.RotVacuity >/tmp/mut_$id.log 2>&1; then
     echo "  $id SURVIVED  -- $desc"
     echo "       NOTHING CAUGHT THIS. The theorems above it are decorative."
     survived=$((survived+1))
   else
-    dead=$(grep -oE '^error: Proofs/RotPath.lean:[0-9]+' /tmp/mut_$id.log | head -3 | tr '\n' ' ')
+    dead=$(grep -oE '^error: Proofs/RotVacuity.lean:[0-9]+' /tmp/mut_$id.log | head -3 | tr '\n' ' ')
     echo "  $id killed    -- $desc"
     echo "       first failures at: ${dead:-<none captured>}"
     killed=$((killed+1))
@@ -95,47 +95,61 @@ run_mut_nth () {  # run_mut_nth <id> <needle> <repl> <occurrence> <total> <desc>
     discarded=$((discarded+1)); return
   fi
   rm -f "$OLEAN"
-  if lake build Proofs.RotPath >/tmp/mut_$id.log 2>&1; then
+  if lake build Proofs.RotVacuity >/tmp/mut_$id.log 2>&1; then
     echo "  $id SURVIVED  -- $desc"
     echo "       NOTHING CAUGHT THIS. The theorems above it are decorative."
     survived=$((survived+1))
   else
-    dead=$(grep -oE '^error: Proofs/RotPath.lean:[0-9]+' /tmp/mut_$id.log | head -3 | tr '\n' ' ')
+    dead=$(grep -oE '^error: Proofs/RotVacuity.lean:[0-9]+' /tmp/mut_$id.log | head -3 | tr '\n' ' ')
     echo "  $id killed    -- $desc"
     echo "       first failures at: ${dead:-<none captured>}"
     killed=$((killed+1))
   fi
 }
 
-echo "== mutation suite: Proofs/RotPath.lean =="
+echo "== mutation suite: Proofs/RotVacuity.lean (the audit itself) =="
 
-# P01 -- the whole point of slashify. If backslashes are not converted, the two
-# spellings cannot converge and the stranding bug returns.
-run_mut_nth P01 "if c = '\\\\' then '/' else c" "c" 1 2 \
-  "slashify becomes the identity (backslashes survive)"
 
-# P02 -- drive letter not lowercased: C: and c: would produce different strings,
-# so an install from one shell could not be removed from the other.
-run_mut_nth P02 "'/' :: d.toLower :: '/' :: rest" "'/' :: d :: '/' :: rest" 1 2 \
-  "drive letter no longer lowercased"
+# ---------------------------------------------------------------------------
+# The audit's claim is: "if a hypothesis set were unsatisfiable, the
+# instantiation below would not compile." Every mutant here makes one witness
+# WRONG. If the file still builds, that witness was never load-bearing and the
+# corresponding non-vacuity claim is decoration.
+# ---------------------------------------------------------------------------
 
-# P03 -- the alpha guard dropped: '1:/x' would be rewritten to '/1/x'.
-run_mut P03 "if d.isAlpha then" "if true then" \
-  "drive-prefix guard accepts any character"
+# V01 -- a negative lambda. PosWeights.lam demands 0 < lam for EVERY lens, so
+# the shipping-profile witness must collapse.
+run_mut V01 "![⟨1.4, 1.05⟩" "![⟨-1.4, 1.05⟩" \
+  "first FORGE lambda made negative (PosWeights.lam must fail)"
 
-# P04 -- the colon in the pattern changed, so no drive prefix ever matches and
-# normalize degenerates to slashify.
-run_mut P04 "| d :: ':' :: '/' :: rest =>" "| d :: ';' :: '/' :: rest =>" \
-  "drive pattern looks for ';' instead of ':'"
+# V02 -- a zero mu. Strictly positive is the requirement; zero is the boundary
+# case a careless edit would produce.
+run_mut V02 "⟨2.3, 1.15⟩" "⟨2.3, 0.0⟩" \
+  "Claude's mu set to zero (PosWeights.mu must fail)"
 
-# P05 -- separator emitted is a backslash: output is no longer POSIX.
-run_mut P05 "then '/' :: d.toLower" "then '\\\\' :: d.toLower" \
-  "canonical form emits a backslash as its root separator"
+# V03 -- M = 0. The scalar multipliers are separate fields; one of them going
+# to zero must be caught independently of the lens table.
+run_mut V03 "forgeLenses 1.05 1 0.99" "forgeLenses 0 1 0.99" \
+  "M set to 0 in the witness (PosWeights.hM must fail)"
+
+# V04 -- the drive-letter witness is no longer a letter. 'both_spellings_agree'
+# requires d.isAlpha, so `decide` must refuse.
+run_mut V04 "both_spellings_agree 'C'" "both_spellings_agree '1'" \
+  "non-alphabetic drive witness (isAlpha hypothesis must fail)"
+
+# V05 -- the band witness inverted. classify_above_iff needs lo <= hi.
+run_mut V05 "classify 0.9 1.8 R" "classify 1.8 0.9 R" \
+  "band witness inverted so lo > hi (the ordering hypothesis must fail)"
+
+# V06 -- forge_priority witnessed with forge FALSE. The hypothesis is
+# f.forge = true, so `rfl` must refuse.
+run_mut V06 "forge_priority _ rfl" "forge_priority ⟨false, true, true, false, false, false, false, false, false⟩ rfl" \
+  "forge_priority witnessed with forge = false"
 
 echo
 echo "== RESULT =="
 echo "killed=$killed survived=$survived discarded=$discarded"
 cp "$BAK" "$SRC"; rm -f "$OLEAN"
-lake build Proofs.RotPath >/dev/null 2>&1
+lake build Proofs.RotVacuity >/dev/null 2>&1
 echo "baseline restored -> lake build exit=$?"
 [ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && exit 0 || exit 1

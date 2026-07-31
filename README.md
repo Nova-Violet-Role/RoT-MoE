@@ -22,7 +22,7 @@ repo exists to answer that objection with a kernel rather than with prose.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| mutation suite | the theorems are load-bearing | **36 applied, 36 killed, 0 survived, 0 discarded** |
+| mutation suite | the theorems are load-bearing | **42 applied, 42 killed, 0 survived, 0 discarded** |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -180,6 +180,7 @@ sh ../checker/spdx-sweep.sh
 sh ../checker/no-local-paths.sh
 bash mutate/mutate_rotroute.sh              # expect 11 killed, 0 survived
 bash mutate/mutate_rotpath.sh               # expect  5 killed, 0 survived
+bash mutate/mutate_rotvacuity.sh            # expect  6 killed, 0 survived
 ```
 
 Do not take the counts in this README on faith — the **Ads Manager** workflow

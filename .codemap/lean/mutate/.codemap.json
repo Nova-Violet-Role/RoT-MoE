@@ -11,12 +11,12 @@
       "symbols": []
     },
     "mutate_rotgauge.sh": {
-      "hash": "276d915419bc",
-      "indexed_at": "2026-07-31T11:35:25.337772+00:00",
+      "hash": "24680bcfb9e7",
+      "indexed_at": "2026-07-31T13:15:48.136129+00:00",
       "language": "shell",
       "lines": 143,
-      "mtime_ns": 1785495730245330900,
-      "size": 5320,
+      "mtime_ns": 1785503717419031700,
+      "size": 5342,
       "symbols": [
         {
           "lines": [
@@ -30,10 +30,10 @@
     },
     "mutate_rotinstall.sh": {
       "hash": "06780671ab9a",
-      "indexed_at": "2026-07-31T11:35:25.339266+00:00",
+      "indexed_at": "2026-07-31T13:15:48.294513+00:00",
       "language": "shell",
       "lines": 185,
-      "mtime_ns": 1785495730278330900,
+      "mtime_ns": 1785503701619826100,
       "size": 7891,
       "symbols": [
         {
@@ -65,12 +65,12 @@
       ]
     },
     "mutate_rotpath.sh": {
-      "hash": "0f6024109cc2",
-      "indexed_at": "2026-07-31T12:30:20.983377+00:00",
+      "hash": "28074267a836",
+      "indexed_at": "2026-07-31T13:14:34.750299+00:00",
       "language": "shell",
       "lines": 141,
-      "mtime_ns": 1785500918771856500,
-      "size": 5886,
+      "mtime_ns": 1785503628911831600,
+      "size": 5914,
       "symbols": [
         {
           "lines": [
@@ -92,10 +92,10 @@
     },
     "mutate_rotroute.sh": {
       "hash": "0fff94f94ce0",
-      "indexed_at": "2026-07-31T11:35:25.340335+00:00",
+      "indexed_at": "2026-07-31T13:15:48.456813+00:00",
       "language": "shell",
       "lines": 126,
-      "mtime_ns": 1785495730310330700,
+      "mtime_ns": 1785503701565825400,
       "size": 5126,
       "symbols": [
         {
@@ -107,8 +107,34 @@
           "type": "function"
         }
       ]
+    },
+    "mutate_rotvacuity.sh": {
+      "hash": "13ba8ec5f2ab",
+      "indexed_at": "2026-07-31T13:14:35.090448+00:00",
+      "language": "shell",
+      "lines": 155,
+      "mtime_ns": 1785503628922831500,
+      "size": 6733,
+      "symbols": [
+        {
+          "lines": [
+            29,
+            57
+          ],
+          "name": "run_mut",
+          "type": "function"
+        },
+        {
+          "lines": [
+            59,
+            108
+          ],
+          "name": "run_mut_nth",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-07-31T12:30:20.983431+00:00",
+  "generated_at": "2026-07-31T13:15:48.456869+00:00",
   "version": "1.0"
 }

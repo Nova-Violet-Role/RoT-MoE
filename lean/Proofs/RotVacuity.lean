@@ -90,23 +90,23 @@ example : slashify "/c/a/b".toList = "/c/a/b".toList :=
 
 /-! ## RotInstall -/
 
-/-- **The freshness hypothesis is the one most at risk of being vacuous**, and
-it is the hypothesis that makes `disarm ∘ arm = id` true at all. If no
-`Settings` could ever satisfy "this command appears under no key", the theorem
-would be an elaborate way of saying nothing.
+/-- The brand-new user's settings: no scalars, no hooks anywhere. This is the
+state `checker/plugin-install.sh` exercises against the real installer. -/
+def emptySettings : Settings := ⟨fun _ => none, fun _ => []⟩
 
-Witness: the empty settings, which is exactly the brand-new user's state — the
-case `checker/plugin-install.sh` exercises for real. -/
-example :
-    disarm "rot" (arm "rot" ⟨fun _ => none, fun _ => []⟩) = (⟨fun _ => none, fun _ => []⟩ : Settings) :=
-  disarm_arm_id "rot" ⟨fun _ => none, fun _ => []⟩ (by intro k; simp)
+/-! **The freshness hypothesis is the one most at risk of being vacuous**, and it
+is the hypothesis that makes `disarm ∘ arm = id` true at all. If no `Settings`
+could ever satisfy "this command appears under no key", the theorem would be an
+elaborate way of saying nothing. -/
+example : disarm "rot" (arm "rot" emptySettings) = emptySettings :=
+  disarm_arm_id "rot" emptySettings (by intro k; simp [emptySettings])
 
 /-- `arm_appends` requires a key in `armEvents` whose hook list lacks the
 command. Both halves are satisfiable simultaneously — shown here rather than
 assumed. -/
 example :
-    (arm "rot" ⟨fun _ => none, fun _ => []⟩).hookEvents "UserPromptSubmit" = [] ++ ["rot"] :=
-  arm_appends "rot" ⟨fun _ => none, fun _ => []⟩ "UserPromptSubmit" (by decide) (by simp)
+    (arm "rot" emptySettings).hookEvents "UserPromptSubmit" = [] ++ ["rot"] :=
+  arm_appends "rot" emptySettings "UserPromptSubmit" (by decide) (by simp [emptySettings])
 
 /-- `arm_preserves_unrelated_events` quantifies over keys NOT in `armEvents`.
 That set must be non-empty or the theorem protects nothing. It is: any key the
@@ -114,8 +114,8 @@ installer does not touch, such as `Stop`. -/
 example : ("Stop" : String) ∉ armEvents := by decide
 
 example :
-    (arm "rot" ⟨fun _ => none, fun _ => []⟩).hookEvents "Stop" = (⟨fun _ => none, fun _ => []⟩ : Settings).hookEvents "Stop" :=
-  arm_preserves_unrelated_events "rot" ⟨fun _ => none, fun _ => []⟩ "Stop" (by decide)
+    (arm "rot" emptySettings).hookEvents "Stop" = emptySettings.hookEvents "Stop" :=
+  arm_preserves_unrelated_events "rot" emptySettings "Stop" (by decide)
 
 /-- `addOnce_of_not_mem` needs a list genuinely lacking the element. -/
 example : addOnce "b" ["a"] = ["a"] ++ ["b"] :=

@@ -65,7 +65,7 @@ run_mut() {
     survived=$((survived+1))
   else
     local dead
-    dead=$(grep -oE "RotGauge\.lean:[0-9]+" "$LOG/$id.log" | cut -d: -f2 | sort -un | \
+    dead=$(grep -oE "^error: Proofs/RotGauge\.lean:[0-9]+" "$LOG/$id.log" | grep -oE "[0-9]+$" | sort -un | \
       while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|noncomputable def|instance|structure|inductive|example)/ {

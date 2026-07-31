@@ -199,12 +199,12 @@
       ]
     },
     "README.md": {
-      "hash": "43cac105c35c",
-      "indexed_at": "2026-07-31T12:56:18.474787+00:00",
+      "hash": "3fc6ad54d8e2",
+      "indexed_at": "2026-07-31T13:14:35.254097+00:00",
       "language": "markdown",
-      "lines": 202,
-      "mtime_ns": 1785502549193227800,
-      "size": 10016,
+      "lines": 203,
+      "mtime_ns": 1785503644179470600,
+      "size": 10091,
       "symbols": [
         {
           "children": [
@@ -256,7 +256,7 @@
         {
           "lines": [
             171,
-            203
+            204
           ],
           "name": "Verify it yourself",
           "type": "section"
@@ -329,6 +329,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T12:56:18.474854+00:00",
+  "generated_at": "2026-07-31T13:14:35.254172+00:00",
   "version": "1.0"
 }

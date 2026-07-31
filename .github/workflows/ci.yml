@@ -248,3 +248,4 @@ jobs:
           bash mutate/mutate_rotroute.sh
           bash mutate/mutate_rotinstall.sh
           bash mutate/mutate_rotpath.sh
+          bash mutate/mutate_rotvacuity.sh
