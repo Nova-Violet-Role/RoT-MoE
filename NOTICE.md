@@ -71,6 +71,42 @@ more than structural, or the upstream terms turn out to be incompatible, the
 correct fix is to rewrite the affected passages — not to delete this paragraph.
 Tracked as an open alarm (R22) rather than treated as settled.
 
+### A.4 The architecture blueprint, and why an AGPL implementation of it is not a contradiction
+
+The architecture this repository implements is documented in ***The Role of
+Thoughts (RoT) — Dynamic Cognitive MoE Architecture*, © 2025–2026 Nova_Omega
+Project**, a blueprint that declares itself **proprietary, all rights reserved,
+with patent claims pending** over — among other things — the six-stage
+RoleThinkering pipeline, the R/s sovereignty score and its self-correction
+protocol, and the expression-filter layer from which the nine lenses descend.
+
+This is worth stating explicitly, because a reader who meets both documents
+without a bridge sees a licence conflict: **a proprietary architecture with a
+copyleft implementation.** There is no conflict, for the ordinary reason —
+**a rightsholder may license their own work on whatever terms they choose, and
+may choose different terms for a specification and for an implementation of it.**
+The blueprint keeps its own terms; the code, proofs, checkers and prose *in this
+repository* are released under the dual grant in §A.
+
+Precisely, so nothing is inferred:
+
+* **What the dual grant covers:** everything in this tree — the router arms, the
+  reminder, the Lean sources, the checkers, the installers, the documentation.
+* **What it does not cover:** the blueprint document itself, its patent claims,
+  and the RoT architecture as an abstract design. Nothing here grants a licence
+  to those. If you want to implement the *architecture* independently, that is a
+  question for the Nova_Omega Project, not one this repository can answer.
+* **What this means in practice for you:** using, forking and modifying *this
+  software* under AGPL-3.0-or-later or EUPL-1.2 needs nothing further.
+
+**One fact is asserted here on the project owner's statement rather than on a
+document this repository can verify:** that the Nova_Omega Project rightsholder
+and this repository's copyright holder are the same party, which is what makes
+the paragraph above true. It is recorded as an assumption, not measured — the
+correct instrument would be an explicit written grant from the blueprint's
+rightsholder, filed in this repository. Tracked as open alarm **R24** until that
+file exists.
+
 ---
 
 ## B. What the proofs cover, and what they do not

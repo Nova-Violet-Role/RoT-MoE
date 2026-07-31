@@ -232,12 +232,12 @@
       ]
     },
     "NOTICE.md": {
-      "hash": "6faf78c1cb59",
-      "indexed_at": "2026-07-31T15:55:20.298077+00:00",
+      "hash": "689675ac46d9",
+      "indexed_at": "2026-07-31T16:32:15.480222+00:00",
       "language": "markdown",
-      "lines": 165,
-      "mtime_ns": 1785510844479276500,
-      "size": 9618,
+      "lines": 201,
+      "mtime_ns": 1785515130882815500,
+      "size": 11861,
       "symbols": [
         {
           "children": [
@@ -263,16 +263,25 @@
               "docstring": "The prover head opens with a sentence it inherited from the private original:",
               "lines": [
                 48,
-                75
+                73
               ],
               "name": "A.3 `agents/lean4-prover.md` declares a derivation, and it is credited here",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The architecture this repository implements is documented in ***The Role of Thoughts (RoT) \u2014 Dynamic Cognitive MoE Architecture*, \u00a9 2025\u20132026 Nova_Ome",
+              "lines": [
+                74,
+                111
+              ],
+              "name": "A.4 The architecture blueprint, and why an AGPL implementation of it is not a contradiction",
               "type": "subsection"
             }
           ],
           "docstring": "**RoT MoE is an original work.** It is not a fork, and that single fact decides the whole licence layout.",
           "lines": [
             9,
-            75
+            111
           ],
           "name": "A. Licensing",
           "type": "section"
@@ -280,8 +289,8 @@
         {
           "docstring": "The README carries the full boundary section. The short form, repeated here because a `NOTICE` is where a lawyer or a packager looks and neither will",
           "lines": [
-            76,
-            127
+            112,
+            163
           ],
           "name": "B. What the proofs cover, and what they do not",
           "type": "section"
@@ -291,8 +300,8 @@
             {
               "docstring": "Recorded rather than quietly fixed, because a checker that has been wrong once should be read with that history visible.",
               "lines": [
-                143,
-                166
+                179,
+                202
               ],
               "name": "C.1 Two instrument defects found in this repo's own checkers",
               "type": "subsection"
@@ -300,8 +309,8 @@
           ],
           "docstring": "Every claim in this repo names the instrument behind it. Every instrument has a recorded way to fail, because a check that has never been observed fai",
           "lines": [
-            128,
-            166
+            164,
+            202
           ],
           "name": "C. Instruments and their controls",
           "type": "section"
@@ -309,12 +318,12 @@
       ]
     },
     "README.md": {
-      "hash": "210f6cfc53a9",
-      "indexed_at": "2026-07-31T16:24:13.914733+00:00",
+      "hash": "e6a3bd88213b",
+      "indexed_at": "2026-07-31T16:32:15.640408+00:00",
       "language": "markdown",
-      "lines": 507,
-      "mtime_ns": 1785514641646130600,
-      "size": 26564,
+      "lines": 516,
+      "mtime_ns": 1785515109419813900,
+      "size": 27322,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -335,10 +344,10 @@
           "type": "section"
         },
         {
-          "docstring": "**RoT is RoleThinkering** \u2014 and yes, the name is deliberately in the family of **CoT** (Chain of Thought) and **ToT** (Tree of Thought). They answer t",
+          "docstring": "**RoT is The Role of Thoughts** \u2014 a *Dynamic Cognitive Mixture-of-Experts*. The name sits deliberately in the family of **CoT** (Chain of Thought) and",
           "lines": [
             73,
-            114
+            123
           ],
           "name": "\ud83e\udde0 What \"RoT\" means, and how it sits next to CoT and ToT",
           "type": "section"
@@ -346,8 +355,8 @@
         {
           "docstring": "**This repository exists because of Lean 4, and it deserves the front page.**",
           "lines": [
-            115,
-            168
+            124,
+            177
           ],
           "name": "\ud83c\udf1f Why Lean 4 \u2014 and why you should be excited about it",
           "type": "section"
@@ -357,8 +366,8 @@
             {
               "docstring": "* **`lean/Proofs/RotGauge.lean`** (35 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
               "lines": [
-                195,
-                233
+                204,
+                242
               ],
               "name": "\ud83d\udcd0 The five modules",
               "type": "subsection"
@@ -366,8 +375,8 @@
           ],
           "docstring": "| instrument | what it establishes | result | |---|---|---| | `lake build Proofs.*` | the modules elaborate | exit **0** | | `#print axioms` on every",
           "lines": [
-            169,
-            233
+            178,
+            242
           ],
           "name": "\ud83d\udd2c What is actually verified",
           "type": "section"
@@ -375,8 +384,8 @@
         {
           "docstring": "| organ | file | what it does | |:--|:--|:--| | 1 \u00b7 engine | `engine/rot-lean.md` | the specification: nine lenses, the three-tier router, the `R/s+`",
           "lines": [
-            234,
-            255
+            243,
+            264
           ],
           "name": "\ud83e\udec0 The four organs",
           "type": "section"
@@ -386,8 +395,8 @@
             {
               "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
               "lines": [
-                283,
-                290
+                292,
+                299
               ],
               "name": "\ud83d\udd27 Requirements",
               "type": "subsection"
@@ -395,8 +404,8 @@
             {
               "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
               "lines": [
-                291,
-                303
+                300,
+                312
               ],
               "name": "\u2699\ufe0f Configuration",
               "type": "subsection"
@@ -404,8 +413,8 @@
           ],
           "docstring": "**Look before you leap.** This installs a hook that runs on every prompt you submit and before every tool call, by editing `~/.claude/settings.json`.",
           "lines": [
-            256,
-            303
+            265,
+            312
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -413,8 +422,8 @@
         {
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
-            304,
-            354
+            313,
+            363
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -422,8 +431,8 @@
         {
           "docstring": "**This is the section we are proudest of.** Knowing exactly where the guarantee ends is what makes everything before it worth having \u2014 a proof with an",
           "lines": [
-            355,
-            415
+            364,
+            424
           ],
           "name": "\ud83d\uddfa\ufe0f The map: PROVED \u00b7 MEASURED \u00b7 OUT OF SCOPE",
           "type": "section"
@@ -431,8 +440,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            416,
-            430
+            425,
+            439
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -442,8 +451,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                449,
-                457
+                458,
+                466
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -451,8 +460,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            431,
-            457
+            440,
+            466
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -462,8 +471,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                481,
-                508
+                490,
+                517
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -471,8 +480,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            458,
-            508
+            467,
+            517
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -554,6 +563,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-07-31T16:24:13.914809+00:00",
+  "generated_at": "2026-07-31T16:32:15.640500+00:00",
   "version": "1.0"
 }

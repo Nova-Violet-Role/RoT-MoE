@@ -10,7 +10,7 @@
 
 **Nine lenses, one mind — and a kernel that checks the arithmetic**
 
-*RoleThinkering: a Mixture-of-Experts router for Claude Code — nine named lenses, an auditable routing rule, and a divergence gauge specified in Lean 4*
+*The Role of Thoughts: a Dynamic Cognitive Mixture-of-Experts router for Claude Code — nine named lenses, an auditable routing rule, and a divergence gauge specified in Lean 4*
 
 [![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/saimonokuma)
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
@@ -72,43 +72,52 @@ break each definition on purpose and require the theorems to die.
 
 ## 🧠 What "RoT" means, and how it sits next to CoT and ToT
 
-**RoT is RoleThinkering** — and yes, the name is deliberately in the family of
-**CoT** (Chain of Thought) and **ToT** (Tree of Thought). They answer the same
-question in three different shapes:
+**RoT is The Role of Thoughts** — a *Dynamic Cognitive Mixture-of-Experts*. The
+name sits deliberately in the family of **CoT** (Chain of Thought) and **ToT**
+(Tree of Thought), and the three answer the same question in three shapes:
 
-| | shape of the reasoning | who decides the next step | can you audit the choice? |
+| | shape of the reasoning | where the experts come from | can you audit the choice? |
 |:--|:--|:--|:--|
-| **CoT** — Chain of Thought | one line, step after step | the model, implicitly | you read the chain afterwards |
-| **ToT** — Tree of Thought | branches, explored and pruned | a search procedure over the branches | you read the surviving branch |
-| **RoT** — RoleThinkering | several *named lenses* reasoning at once, then converging | a **router you can read**, plus a measured divergence gauge | ✅ the routing rule is code, and the gauge is a number with theorems attached |
+| **CoT** — Chain of Thought | one line, step after step | there are none — one voice, thinking longer | you read the chain afterwards |
+| **ToT** — Tree of Thought | branches, explored and pruned | there are none — one voice, thinking wider | you read the surviving branch |
+| **RoT** — Role of Thoughts | several *named roles* reasoning at once, then converging | **generated per query**, not pre-trained | ✅ the routing rule is code you can read, and the gauge has theorems attached |
 
-A chain is one voice thinking longer. A tree is one voice thinking wider. **RoT
-is several defined points of view held at the same time** — clinical,
-executive, empathic, chaotic, predictive, compressive, recursive, strategic,
-empirical — which then *converge* rather than vote. The interesting part is not
-that the lenses exist; it is that **nine voices agreeing is treated as a
-failure, not a success.** Productive tension is the signal, and `R/s+` is what
-measures it.
+A chain thinks longer. A tree thinks wider. **RoT holds several defined points
+of view at the same time** — clinical, executive, empathic, chaotic,
+predictive, compressive, recursive, strategic, empirical — and then *converges*
+rather than votes. Its engine is called **RoleThinkering**: activate memory,
+generate roles, explore each divergently, synthesise, express, and finally
+**measure itself**. The counter-intuitive part is the one that matters: **nine
+lenses agreeing is treated as a failure, not a success.** Premature convergence
+is the thing being designed against, productive tension is the signal, and
+`R/s+` is what puts a number on it.
 
 That gives RoT the property the other two lack by construction: **the routing
-decision is external, inspectable and testable.** A native Mixture-of-Experts
-inside a model routes each token through a learned gating network across
-hundreds of experts — extremely powerful, and *not interpretable*: you cannot
-ask why expert 217 fired. RoT routes at the level of the *prompt*, in shell
-code you can read, with a priority order a Lean theorem characterises in both
-directions. It is not a competitor to weight-level MoE; it is the orthogonal
-layer. One decides *how the reasoning is framed* before generation; the other
-decides *which parameters fire* during it.
+decision is external, inspectable and testable.** A weight-level
+Mixture-of-Experts routes each token through a learned gating network across
+hundreds of pre-trained experts — extremely powerful, and *not interpretable*:
+you cannot ask why expert 217 fired. RoT routes at the level of the *prompt*,
+in shell code you can read, with a priority order a Lean theorem characterises
+in both directions. It is not a competitor to weight-level MoE; it is the
+orthogonal layer. One decides **which parameters fire** during generation; the
+other decides **how the reasoning is framed** before it.
 
-> 📚 **Provenance, stated plainly.** RoT began as a prompt-level architecture —
-> five facets, a four-phase expansion, and an `R/s+` score written by hand —
-> and it was stress-tested that way against native MoE models before any of it
-> was executable. **This repository is the generation where it stopped being a
-> document.** The nine lenses, the three-tier router and the gauge now run as
-> real code in two shells, and the properties that used to be claimed in prose
-> are theorems in `lean/Proofs/`. Those earlier comparisons are history, not
-> evidence for what is in here; everything on this page is measured from *this*
-> tree.
+> 📚 **Provenance, stated plainly.** The architecture is documented in *The Role
+> of Thoughts — Dynamic Cognitive MoE Architecture*, the Nova_Omega Project
+> blueprint (2025–2026): the six-stage RoleThinkering pipeline, the R/s
+> sovereignty gauge with its self-correction protocol, and the expression-filter
+> layer the lenses grew out of. It was a **specification**, stress-tested as
+> prose against native MoE models long before any of it executed.
+>
+> **This repository is the generation where it stopped being a document.** The
+> nine lenses, the three-tier router and the gauge run as real code in two
+> shells; the gauge here is the extended `R/s+` form — per-lens weights λ, a
+> sigmoid on divergence, entropy, quality μ and calibration — rather than the
+> blueprint's plain mean of deltas; and the properties that used to be asserted
+> in prose are theorems in `lean/Proofs/`. Earlier comparison studies are
+> history, **not evidence for this tree**. Everything on this page is measured
+> from *this* repository. Licensing of the architecture document versus this
+> implementation is set out in `NOTICE.md` §A.4.
 
 ---
 
