@@ -127,6 +127,13 @@ jobs:
         shell: bash
         run: bash checker/license-bridge.sh
 
+      # tag-manager.yml owns the invariants that need the API (the evidence
+      # scan). These are the ones that need nothing at all, so they run on
+      # every commit and, crucially, on a machine with no remote.
+      - name: tag consistency -- tags.txt, README and CITATION cannot drift
+        shell: bash
+        run: bash checker/tags-consistency.sh
+
       - name: mutate the checker -- it must be able to fail
         shell: bash
         run: bash checker/mutate-checker.sh

@@ -57,12 +57,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "48f82c8f24fb",
-      "indexed_at": "2026-07-31T16:42:00.248347+00:00",
+      "hash": "610029d3d014",
+      "indexed_at": "2026-07-31T16:59:14.006092+00:00",
       "language": "shell",
-      "lines": 101,
-      "mtime_ns": 1785515694598895900,
-      "size": 3703,
+      "lines": 102,
+      "mtime_ns": 1785516734933846600,
+      "size": 3772,
       "symbols": []
     },
     "install-roundtrip.sh": {
@@ -229,6 +229,25 @@
         }
       ]
     },
+    "tags-consistency.sh": {
+      "hash": "1fc709ef77b9",
+      "indexed_at": "2026-07-31T16:59:14.166277+00:00",
+      "language": "shell",
+      "lines": 152,
+      "mtime_ns": 1785516710560984100,
+      "size": 6654,
+      "symbols": [
+        {
+          "docstring": "Section extraction: a tag line is a bare lowercase token; comments and blanks are skipped. Written as a function so the control below runs the SAME co",
+          "lines": [
+            53,
+            61
+          ],
+          "name": "section",
+          "type": "function"
+        }
+      ]
+    },
     "workflow-lint.sh": {
       "hash": "930d26effa19",
       "indexed_at": "2026-07-31T16:24:13.269071+00:00",
@@ -257,6 +276,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T16:50:49.144839+00:00",
+  "generated_at": "2026-07-31T16:59:14.166328+00:00",
   "version": "1.0"
 }
