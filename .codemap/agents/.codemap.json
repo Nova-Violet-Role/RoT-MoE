@@ -2,18 +2,18 @@
   "directory": "agents",
   "files": {
     "lean4-prover.md": {
-      "hash": "c4dc9780171c",
-      "indexed_at": "2026-07-31T15:55:18.352202+00:00",
+      "hash": "26b1c0a32287",
+      "indexed_at": "2026-07-31T16:50:48.988599+00:00",
       "language": "markdown",
-      "lines": 545,
-      "mtime_ns": 1785510850180652700,
-      "size": 31614,
+      "lines": 559,
+      "mtime_ns": 1785516231852644100,
+      "size": 32477,
       "symbols": [
         {
           "docstring": "**No claim without a green build.** Not \"this should prove\". Not \"the tactic likely closes it\". You ran `lake build`, it exited 0 \u2192 say proved. Non-ze",
           "lines": [
-            11,
-            28
+            25,
+            42
           ],
           "name": "Prime rule",
           "type": "section"
@@ -21,8 +21,8 @@
         {
           "docstring": "You are usually dispatched by an orchestrator, not chatting with a human. Nobody is coming to tell you to go deeper. **Apply everything below by defau",
           "lines": [
-            29,
-            160
+            43,
+            174
           ],
           "name": "Use the whole of Lean 4, autonomously, on every task",
           "type": "section"
@@ -30,8 +30,8 @@
         {
           "docstring": "The private original of this file pinned one machine's absolute paths into a table. That is exactly the defect this head is supposed to hunt: a consta",
           "lines": [
-            161,
-            179
+            175,
+            193
           ],
           "name": "This machine \u2014 MEASURE IT, do not read it from here",
           "type": "section"
@@ -41,8 +41,8 @@
             {
               "docstring": "`lake build` exiting 0 means the file elaborated. `leanchecker` re-runs the **kernel** over the `.olean`'s proof terms independently of the elaborator",
               "lines": [
-                270,
-                348
+                284,
+                362
               ],
               "name": "`leanchecker` is a real second opinion \u2014 use it",
               "type": "subsection"
@@ -50,8 +50,8 @@
           ],
           "docstring": "`$ELAN_HOME` (default `~/.elan`) is the whole toolchain root. Two layers, and the difference matters: `$ELAN_HOME/bin` holds **shims** that dispatch t",
           "lines": [
-            180,
-            348
+            194,
+            362
           ],
           "name": "The ELAN toolchain \u2014 every Lean 4 tool you have",
           "type": "section"
@@ -59,8 +59,8 @@
         {
           "docstring": "Read this before running anything that stops a process or edits outside your target.",
           "lines": [
-            349,
-            380
+            363,
+            394
           ],
           "name": "Operational hazards",
           "type": "section"
@@ -68,8 +68,8 @@
         {
           "docstring": "1. **Orient** \u2014 read the target file before touching it. Read `lakefile.toml` for build targets and `lean-toolchain` for the version. Restate the goal",
           "lines": [
-            381,
-            422
+            395,
+            436
           ],
           "name": "Workflow",
           "type": "section"
@@ -77,16 +77,16 @@
         {
           "docstring": "Cheapest first, escalate only on failure:",
           "lines": [
-            423,
-            489
+            437,
+            503
           ],
           "name": "Tactic ladder",
           "type": "section"
         },
         {
           "lines": [
-            490,
-            520
+            504,
+            534
           ],
           "name": "Reporting",
           "type": "section"
@@ -94,8 +94,8 @@
         {
           "docstring": "- Read before editing. Prefer editing an existing file to deleting and rewriting it. - Do not commit. No `git add`/`git commit`/`git push` unless expl",
           "lines": [
-            521,
-            537
+            535,
+            551
           ],
           "name": "Boundaries",
           "type": "section"
@@ -103,8 +103,8 @@
         {
           "docstring": "Structure first \u2014 code, table, or tree before prose. No greetings, no tool narration, no \"Let me\u2026\". Cite as `file_path:line_number`. Default to under",
           "lines": [
-            538,
-            546
+            552,
+            560
           ],
           "name": "Response style",
           "type": "section"
@@ -112,6 +112,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T15:55:18.352257+00:00",
+  "generated_at": "2026-07-31T16:50:48.988669+00:00",
   "version": "1.0"
 }

@@ -94,12 +94,12 @@
       "symbols": []
     },
     "license-bridge.sh": {
-      "hash": "66a3ead31472",
-      "indexed_at": "2026-07-31T16:42:00.416590+00:00",
+      "hash": "e792ccfc4876",
+      "indexed_at": "2026-07-31T16:50:49.144781+00:00",
       "language": "shell",
-      "lines": 125,
-      "mtime_ns": 1785515677115897800,
-      "size": 5936,
+      "lines": 160,
+      "mtime_ns": 1785516197478645000,
+      "size": 7562,
       "symbols": []
     },
     "live-session-smoke.sh": {
@@ -257,6 +257,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T16:42:00.416646+00:00",
+  "generated_at": "2026-07-31T16:50:49.144839+00:00",
   "version": "1.0"
 }

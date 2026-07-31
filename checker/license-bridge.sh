@@ -98,9 +98,44 @@ else
     || bad "$GRANT does not name *The Role of Thoughts* -- a grant must say what it grants"
 fi
 
+# --- the credit paragraphs must survive refactoring -------------------------
+#
+# A.3 credits an upstream that `agents/lean4-prover.md` itself declares descent
+# from. The failure mode is not malice, it is TIDYING: someone reformats the
+# prover head, the declaration reads oddly out of context, and it goes. The
+# credit then exists nowhere, and the repository is silently making a stronger
+# originality claim than it can support.
+#
+# So both halves are pinned, and they must agree with each other.
+echo
+echo "-- the upstream credit (A.3 / R22) --"
+if grep -q '^### A.3 ' NOTICE.md 2>/dev/null; then
+  ok "NOTICE.md carries the A.3 upstream credit"
+else
+  bad "NOTICE.md has NO A.3 section -- an omitted credit is the same defect as a false one"
+fi
+grep -qi 'unresolved' NOTICE.md \
+  && ok "A.3 still states the upstream licence as UNRESOLVED rather than assumed" \
+  || bad "A.3 no longer marks the upstream licence unresolved -- that is a claim this repo cannot support"
+if [ -f agents/lean4-prover.md ]; then
+  if grep -qi 'leanstral' agents/lean4-prover.md; then
+    ok "agents/lean4-prover.md still carries its own declaration of descent"
+  else
+    bad "agents/lean4-prover.md dropped its provenance declaration while NOTICE.md still credits it -- the two disagree"
+  fi
+fi
+
 # --- controls ---------------------------------------------------------------
 echo
 echo "-- negative controls --"
+PCTL="$(mktemp -d "${TMPDIR:-/tmp}/pvctl.XXXXXX")"
+printf 'You are a Lean 4 specialist. No provenance here.\n' > "$PCTL/agent.md"
+if grep -qi 'leanstral' "$PCTL/agent.md"; then
+  bad "CONTROL DEAD: the credit detector matched a file with no credit"
+else
+  ok "CONTROL: a prover head with its credit stripped IS detectable"
+fi
+rm -rf "$PCTL"
 # Direction 1: the prose drops the hedge while no grant exists.
 CTL="$(mktemp -d "${TMPDIR:-/tmp}/lbctl.XXXXXX")"
 printf '### A.4 bridge\nEverything is fine and fully documented.\n' > "$CTL/NOTICE.md"
