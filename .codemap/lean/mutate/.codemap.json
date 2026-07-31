@@ -10,18 +10,36 @@
       "size": 1391,
       "symbols": []
     },
-    "mutate_rotgauge.sh": {
-      "hash": "24680bcfb9e7",
-      "indexed_at": "2026-07-31T13:15:48.136129+00:00",
+    "generalization_probe.sh": {
+      "hash": "152294d8feff",
+      "indexed_at": "2026-07-31T14:10:08.623511+00:00",
       "language": "shell",
-      "lines": 143,
-      "mtime_ns": 1785503717419031700,
-      "size": 5342,
+      "lines": 137,
+      "mtime_ns": 1785506637997869200,
+      "size": 5645,
       "symbols": [
         {
           "lines": [
-            33,
-            81
+            57,
+            80
+          ],
+          "name": "probe",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotgauge.sh": {
+      "hash": "03878c87ff60",
+      "indexed_at": "2026-07-31T14:10:08.625348+00:00",
+      "language": "shell",
+      "lines": 163,
+      "mtime_ns": 1785506033329564500,
+      "size": 6448,
+      "symbols": [
+        {
+          "lines": [
+            31,
+            79
           ],
           "name": "run_mut",
           "type": "function"
@@ -66,10 +84,10 @@
     },
     "mutate_rotpath.sh": {
       "hash": "28074267a836",
-      "indexed_at": "2026-07-31T13:14:34.750299+00:00",
+      "indexed_at": "2026-07-31T14:10:08.630024+00:00",
       "language": "shell",
       "lines": 141,
-      "mtime_ns": 1785503628911831600,
+      "mtime_ns": 1785506795889868300,
       "size": 5914,
       "symbols": [
         {
@@ -109,12 +127,12 @@
       ]
     },
     "mutate_rotvacuity.sh": {
-      "hash": "13ba8ec5f2ab",
-      "indexed_at": "2026-07-31T13:14:35.090448+00:00",
+      "hash": "7b4a6721b4ac",
+      "indexed_at": "2026-07-31T14:10:08.638980+00:00",
       "language": "shell",
-      "lines": 155,
-      "mtime_ns": 1785503628922831500,
-      "size": 6733,
+      "lines": 164,
+      "mtime_ns": 1785505327951870900,
+      "size": 7496,
       "symbols": [
         {
           "lines": [
@@ -135,6 +153,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T13:15:48.456869+00:00",
+  "generated_at": "2026-07-31T14:10:08.648606+00:00",
   "version": "1.0"
 }

@@ -28,6 +28,15 @@
       "size": 6474,
       "symbols": []
     },
+    "gate-all.sh": {
+      "hash": "ae7480a70950",
+      "indexed_at": "2026-07-31T14:10:08.593487+00:00",
+      "language": "shell",
+      "lines": 98,
+      "mtime_ns": 1785503810058990300,
+      "size": 3521,
+      "symbols": []
+    },
     "install-roundtrip.sh": {
       "hash": "42ac5727e40d",
       "indexed_at": "2026-07-31T12:18:17.418756+00:00",
@@ -48,12 +57,12 @@
       ]
     },
     "lean-binds-shell.sh": {
-      "hash": "d48e2c18cd4d",
-      "indexed_at": "2026-07-31T12:56:18.319018+00:00",
+      "hash": "b0fb06086c87",
+      "indexed_at": "2026-07-31T14:10:08.597053+00:00",
       "language": "shell",
-      "lines": 118,
-      "mtime_ns": 1785502449564867600,
-      "size": 4830,
+      "lines": 117,
+      "mtime_ns": 1785504847826785000,
+      "size": 5274,
       "symbols": []
     },
     "live-session-smoke.sh": {
@@ -157,15 +166,25 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "d61c7585c63d",
-      "indexed_at": "2026-07-31T12:35:57.704267+00:00",
+      "hash": "ca1268a7fb6d",
+      "indexed_at": "2026-07-31T15:03:39.172679+00:00",
       "language": "shell",
-      "lines": 140,
-      "mtime_ns": 1785501215096028000,
-      "size": 5793,
-      "symbols": []
+      "lines": 252,
+      "mtime_ns": 1785509952170315000,
+      "size": 11787,
+      "symbols": [
+        {
+          "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
+          "lines": [
+            124,
+            131
+          ],
+          "name": "hook_verdict",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-07-31T12:56:18.319065+00:00",
+  "generated_at": "2026-07-31T15:03:39.172733+00:00",
   "version": "1.0"
 }

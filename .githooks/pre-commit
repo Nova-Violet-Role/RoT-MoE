@@ -15,6 +15,33 @@
 # The lesson is not "be more careful". A rule you must remember is a rule you
 # will forget. It has to be a program that says no.
 #
+# -----------------------------------------------------------------------------
+# SECOND FAILURE, MEASURED 2026-07-31 -- and it is why the delegation below
+# exists at all.
+#
+# An UNRELATED TOOL OVERWROTE THIS FILE. A local indexing tool (CodeMap) ships
+# its own `pre-commit` and installs it by writing `.githooks/pre-commit`
+# wholesale. The gate above was gone -- 215 lines of index maintenance, ending
+# in `exit 0`, with a comment stating outright "Never blocks a commit: every
+# failure path exits 0". Every subsequent commit in this repo would have been
+# unguarded, and NOTHING about that state looks wrong: the hook is present, it
+# is executable, it prints a friendly message, and it always succeeds.
+#
+# `checker/workflow-lint.sh` caught it (`pre-commit exists but never calls
+# gate-all -- it guards nothing`). That is the negative control firing on a real
+# regression rather than on a planted one.
+#
+# The structural fix is not "put the gate back and hope". It is to make this
+# file OWNED by the repo and give every other tool a place to live that does not
+# collide with it:
+#
+#     .githooks/pre-commit          <- this file: the gate. Repo-owned.
+#     .githooks/pre-commit.d/*      <- everything else, run only AFTER the gate.
+#
+# If a tool clobbers this file again, workflow-lint goes red on the next run.
+# The guard against silent disarming is a check, not a convention.
+# -----------------------------------------------------------------------------
+#
 # ENABLE IT (once per clone -- git does not enable hooks automatically, by
 # design, since a hook is executable code arriving from a repository):
 #
@@ -58,4 +85,22 @@ if [ "$rc" -ne 0 ]; then
 fi
 
 echo "pre-commit: all gates green."
+
+# --- delegates: everything that is not the gate -----------------------------
+# Run in sorted order, AFTER the gate has passed, so an indexer can never stage
+# files that the gates did not see. A delegate that exits non-zero refuses the
+# commit too -- if it had nothing to say it should have said nothing.
+if [ -d .githooks/pre-commit.d ]; then
+  for d in .githooks/pre-commit.d/*; do
+    [ -f "$d" ] || continue
+    case "$d" in *.md|*.txt|*.bak) continue ;; esac
+    bash "$d"
+    drc=$?
+    if [ "$drc" -ne 0 ]; then
+      echo "pre-commit: delegate $(basename "$d") exited $drc -- COMMIT REFUSED."
+      exit 1
+    fi
+  done
+fi
+
 exit 0

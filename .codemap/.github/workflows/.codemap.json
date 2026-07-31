@@ -281,12 +281,12 @@
       ]
     },
     "ci.yml": {
-      "hash": "fa29815609bb",
-      "indexed_at": "2026-07-31T13:14:34.234948+00:00",
+      "hash": "e94ac6a0af6f",
+      "indexed_at": "2026-07-31T14:10:08.587882+00:00",
       "language": "yaml",
-      "lines": 251,
-      "mtime_ns": 1785503637025902600,
-      "size": 10413,
+      "lines": 264,
+      "mtime_ns": 1785506711342869500,
+      "size": 11078,
       "symbols": [
         {
           "docstring": "CI",
@@ -1069,16 +1069,16 @@
                     {
                       "lines": [
                         207,
-                        217
+                        222
                       ],
                       "name": "run",
                       "type": "multiline"
                     },
                     {
-                      "docstring": "forbid native_decide",
+                      "docstring": "generalization probe -- decorative vs load-bearing",
                       "lines": [
-                        218,
-                        218
+                        223,
+                        223
                       ],
                       "name": "name",
                       "type": "item"
@@ -1086,16 +1086,70 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        219,
-                        219
+                        224,
+                        224
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash mutate/generalization_probe.sh",
+                      "lines": [
+                        225,
+                        226
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "decorative-vs-load-bearing isolation",
+                      "lines": [
+                        227,
+                        227
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        228,
+                        228
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake env lean mutate/decorative_isolation.lean",
+                      "lines": [
+                        229,
+                        230
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "forbid native_decide",
+                      "lines": [
+                        231,
+                        231
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        232,
+                        232
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        220,
-                        227
+                        233,
+                        240
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1103,8 +1157,8 @@
                     {
                       "docstring": "leanchecker -- kernel re-verification, with its negative control",
                       "lines": [
-                        228,
-                        228
+                        241,
+                        241
                       ],
                       "name": "name",
                       "type": "item"
@@ -1112,16 +1166,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        229,
-                        229
+                        242,
+                        242
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        230,
-                        242
+                        243,
+                        255
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1129,8 +1183,8 @@
                     {
                       "docstring": "mutation suites -- theorems must DIE when the model breaks",
                       "lines": [
-                        243,
-                        243
+                        256,
+                        256
                       ],
                       "name": "name",
                       "type": "item"
@@ -1138,16 +1192,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        244,
-                        244
+                        257,
+                        257
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        245,
-                        252
+                        258,
+                        265
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1155,7 +1209,7 @@
                   ],
                   "lines": [
                     159,
-                    252
+                    265
                   ],
                   "name": "steps",
                   "type": "list"
@@ -1163,7 +1217,7 @@
               ],
               "lines": [
                 156,
-                252
+                265
               ],
               "name": "lean",
               "type": "section"
@@ -1171,7 +1225,7 @@
           ],
           "lines": [
             48,
-            252
+            265
           ],
           "name": "jobs",
           "type": "section"
@@ -1753,6 +1807,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T13:14:34.235104+00:00",
+  "generated_at": "2026-07-31T14:10:08.644053+00:00",
   "version": "1.0"
 }

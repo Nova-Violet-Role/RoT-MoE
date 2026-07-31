@@ -218,6 +218,12 @@ jobs:
       # A [DECORATIVE] label is an opinion until something tests it. This file
       # states the decorative shape and the load-bearing shape against the SAME
       # broken definition; the first holds, the second is refuted.
+      # Does each theorem actually CONSTRAIN the function it names? Each probe
+      # refutes the generalized form with a concrete counterexample.
+      - name: generalization probe -- decorative vs load-bearing
+        working-directory: lean
+        run: bash mutate/generalization_probe.sh
+
       - name: decorative-vs-load-bearing isolation
         working-directory: lean
         run: lake env lean mutate/decorative_isolation.lean

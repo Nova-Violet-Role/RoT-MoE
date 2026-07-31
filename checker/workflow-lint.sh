@@ -111,10 +111,57 @@ if [ -f checker/gate-all.sh ]; then
     ok "gate-all names $listed checkers, all present"
   fi
   # The hook that CALLS it must exist, be executable, and actually call it.
+  #
+  # THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason
+  # it is worth its lines: on 2026-07-31 an unrelated local tool (CodeMap)
+  # installed its own hook by writing `.githooks/pre-commit` wholesale. The gate
+  # vanished; the replacement ended `exit 0` and documented that it never blocks
+  # a commit. Present, executable, friendly, and guarding nothing. The fix moved
+  # every non-gate hook to `.githooks/pre-commit.d/` and left this file
+  # repo-owned -- so the predicate below now also demands the delegation runner,
+  # because a hook that runs no delegates will be clobbered again the moment the
+  # other tool wants its behaviour back.
+  hook_verdict () {   # hook_verdict <file> -> prints one word per defect, empty = good
+    local f="$1" v=""
+    [ -f "$f" ] || { echo "MISSING"; return; }
+    grep -q "gate-all.sh" "$f" || v="$v NO_GATE"
+    grep -q "exit 1"      "$f" || v="$v NO_REFUSAL"
+    grep -q "pre-commit.d" "$f" || v="$v NO_DELEGATION"
+    echo "$v"
+  }
+
   if [ -f .githooks/pre-commit ]; then
     ok "pre-commit hook present"
-    grep -q "gate-all.sh" .githooks/pre-commit       && ok "pre-commit actually calls gate-all"       || bad "pre-commit exists but never calls gate-all -- it guards nothing"
-    grep -q "exit 1" .githooks/pre-commit       && ok "pre-commit can refuse a commit"       || bad "pre-commit has no refusing path"
+    v="$(hook_verdict .githooks/pre-commit)"
+    case "$v" in
+      *NO_GATE*)       bad "pre-commit exists but never calls gate-all -- it guards nothing" ;;
+      *)               ok "pre-commit actually calls gate-all" ;;
+    esac
+    case "$v" in
+      *NO_REFUSAL*)    bad "pre-commit has no refusing path" ;;
+      *)               ok "pre-commit can refuse a commit" ;;
+    esac
+    case "$v" in
+      *NO_DELEGATION*) bad "pre-commit runs no .githooks/pre-commit.d delegates -- another tool will overwrite it to get its own hook back" ;;
+      *)               ok "pre-commit delegates to .githooks/pre-commit.d (other tools have a place that is not this file)" ;;
+    esac
+    if [ -d .githooks/pre-commit.d ]; then
+      ndel=$(find .githooks/pre-commit.d -type f ! -name '*.md' ! -name '*.bak' | wc -l)
+      ok "delegate directory present ($ndel delegate(s))"
+    fi
+
+    # NEGATIVE CONTROL: the predicate must reject the exact shape that got past
+    # everything last time -- an always-succeeding hook with no gate. Planted
+    # here, not read from disk, so a clean clone runs the same control.
+    CTL="$(mktemp "${TMPDIR:-/tmp}/hookctl.XXXXXX")"
+    printf '#!/usr/bin/env bash\n# an indexing hook: never blocks a commit\ngit add -A .index\nexit 0\n' > "$CTL"
+    cv="$(hook_verdict "$CTL")"
+    case "$cv" in
+      *NO_GATE*NO_REFUSAL*|*NO_REFUSAL*NO_GATE*)
+        ok "CONTROL: a gateless always-exit-0 hook is rejected ($cv )" ;;
+      *) bad "CONTROL DEAD: the gateless hook was NOT rejected (verdict: '$cv') -- this phase is decoration" ;;
+    esac
+    rm -f "$CTL"
   else
     bad ".githooks/pre-commit missing -- the red-gate commit can happen again"
   fi
@@ -136,12 +183,34 @@ for m in lean/Proofs/*.lean; do
     && ok "CI builds Proofs.$mod" \
     || bad "CI NEVER BUILDS Proofs.$mod -- it is unverified in CI"
 done
-for s in lean/mutate/mutate_*.sh; do
+# EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The
+# generalization probe and the isolation artifact live here too, and a rule that
+# matched one filename prefix would have let them rot unrun -- the same blind
+# spot this phase exists to close.
+# Helpers under lean/mutate that are not independently runnable get an
+# exemption WITH a reason and WITH the evidence for it -- never a bare skip.
+declare -A MUT_EXCEPT
+MUT_EXCEPT[attribute_mut.sh]="forensic re-reader for stored mutation logs; its function (anchoring attribution on ^error:) is now inline in all five harnesses, asserted below"
+
+for s in lean/mutate/*.sh; do
   base="$(basename "$s")"
-  printf '%s' "$WF_TEXT" | grep -qF "$base" \
-    && ok "CI runs $base" \
-    || bad "CI NEVER RUNS $base -- those theorems are unmutated in CI"
+  if printf '%s' "$WF_TEXT" | grep -qF "$base"; then
+    ok "CI runs $base"
+  elif [ -n "${MUT_EXCEPT[$base]:-}" ]; then
+    echo "  NOTE  exempt: $base -- ${MUT_EXCEPT[$base]}"
+  else
+    bad "CI NEVER RUNS $base -- those theorems are unmutated in CI"
+  fi
 done
+
+# The exemption above rests on a claim. Check the claim, do not take it on
+# trust: an exemption justified by a stale sentence is worse than no exemption,
+# because it reads as though someone verified it.
+missing_anchor=0
+for h in lean/mutate/mutate_*.sh; do
+  grep -q '\^error: Proofs' "$h" || { bad "$(basename "$h") lost its anchored attribution -- the exemption's premise is false"; missing_anchor=$((missing_anchor+1)); }
+done
+[ "$missing_anchor" -eq 0 ] && ok "all mutation harnesses attribute on '^error:' (linter warnings cannot be mistaken for kills)"
 
 # --- 4. the anti-inauthenticity rule ----------------------------------------
 echo

@@ -58,12 +58,12 @@
       ]
     },
     "CONTRIBUTING.md": {
-      "hash": "d30050b8c910",
-      "indexed_at": "2026-07-31T12:03:35.731091+00:00",
+      "hash": "60983cc28d4f",
+      "indexed_at": "2026-07-31T14:10:08.581746+00:00",
       "language": "markdown",
-      "lines": 73,
-      "mtime_ns": 1785499414787346500,
-      "size": 3452,
+      "lines": 105,
+      "mtime_ns": 1785504355612940400,
+      "size": 4881,
       "symbols": [
         {
           "docstring": "**No claim without a green run.** Paste the command and its real exit code. Not \"this should work\" \u2014 the output.",
@@ -77,7 +77,16 @@
         {
           "lines": [
             15,
-            34
+            40
+          ],
+          "name": "Enable the pre-commit hook \u2014 first thing, once per clone",
+          "type": "section"
+        },
+        {
+          "docstring": "`gate-all.sh` runs all of these; they are listed individually so you know what it covers.",
+          "lines": [
+            41,
+            66
           ],
           "name": "Before you open a PR",
           "type": "section"
@@ -85,8 +94,8 @@
         {
           "docstring": "* **Zero `sorry`.** A `sorry` is an admission, not a proof. * **Never `native_decide`.** It trusts the compiler binary instead of the kernel. * **Ever",
           "lines": [
-            35,
-            48
+            67,
+            80
           ],
           "name": "Standards that are not negotiable",
           "type": "section"
@@ -94,8 +103,8 @@
         {
           "docstring": "* Weakening a theorem or deleting a check to make something pass. If a check is wrong, say so in the first sentence and fix the *check*, with evidence",
           "lines": [
-            49,
-            60
+            81,
+            92
           ],
           "name": "Things that will get a PR sent back",
           "type": "section"
@@ -103,8 +112,8 @@
         {
           "docstring": "| you want to change | file | |---|---| | the routing lanes or their priority | `hooks/rot-router.sh` + `.ps1`, then `lean/Proofs/RotRoute.lean` | | t",
           "lines": [
-            61,
-            74
+            93,
+            106
           ],
           "name": "Where to look first",
           "type": "section"
@@ -199,17 +208,17 @@
       ]
     },
     "README.md": {
-      "hash": "3fc6ad54d8e2",
-      "indexed_at": "2026-07-31T13:14:35.254097+00:00",
+      "hash": "6a3331a72f31",
+      "indexed_at": "2026-07-31T14:10:08.584046+00:00",
       "language": "markdown",
       "lines": 203,
-      "mtime_ns": 1785503644179470600,
-      "size": 10091,
+      "mtime_ns": 1785506043736098400,
+      "size": 10103,
       "symbols": [
         {
           "children": [
             {
-              "docstring": "* **`lean/Proofs/RotGauge.lean`** (34 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
+              "docstring": "* **`lean/Proofs/RotGauge.lean`** (35 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
               "lines": [
                 36,
                 74
@@ -329,6 +338,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T13:14:35.254172+00:00",
+  "generated_at": "2026-07-31T14:10:08.639963+00:00",
   "version": "1.0"
 }
