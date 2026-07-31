@@ -1,0 +1,10 @@
+D:\
+/d/Lean
+/c/Users/Saimono
+C:\Users\Saimono
+C:\GIT External Repo
+Yeah!Tort
+127.0.0.1:5588
+CLAUDE_ROT_LEAN
+.elan\toolchains
+Saimono\.claude

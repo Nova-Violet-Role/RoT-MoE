@@ -1,0 +1,119 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# ===========================================================================
+# THE SINGLE SOURCE OF TRUTH FOR THE TAG SET -- TWO TIERS, AND THE DIFFERENCE
+# BETWEEN THEM IS A HARD API LIMIT, NOT AN EDITORIAL CHOICE.
+# ===========================================================================
+#
+# TIER 1 -- [TOPICS]. GitHub repo topics. Capped at TWENTY by the server; the
+#   API rejects the 21st. Nothing we write here changes that. These are the
+#   structured, browsable tags: each becomes a crawlable github.com/topics/<t>
+#   page, which is the highest-value surface we have.
+#
+# TIER 2 -- [SIGNATURE]. The README signature block. **NO LIMIT.** This is
+#   visible markdown text, and visible text is what was MEASURED to survive
+#   GitHub's sanitizer intact (POST api.github.com/markdown: <meta> deleted,
+#   display:none stripped-but-rendered, plain "#tag" text survives verbatim).
+#   This is the true descendant of the forum signature, and it is where an
+#   unlimited tag set belongs. Put everything true here.
+#
+# The 20-cap applies ONLY to tier 1. Capping tier 2 at 20 would be throwing
+# away the one surface that has no cap.
+#
+# ---------------------------------------------------------------------------
+# THE RULE THAT GOVERNS BOTH TIERS: every tag must name something that is
+# GENUINELY PRESENT. tag-manager.yml enforces this mechanically for tier 2 by
+# scanning the actual trees of both accounts -- Saimonokuma and
+# Nova-Violet-Role -- and refusing any tag it cannot find evidence for. That is
+# why "unlimited" is safe here: the generator cannot invent a tag, so a longer
+# list is a more complete description rather than a bigger lie.
+#
+# Measured 2026-07-31 via the public API:
+#   Saimonokuma       Chaos-SymbioseOS (C) - GHC-COMPILER-PYTHON (Python)
+#                     MultiLinkExtractor- - skills (Python)
+#   Nova-Violet-Role  .github - claude-rolling-context-Lean-4- (Python)
+# Tier 2 draws from these plus this repo's own tree. A tag naming a language or
+# a subject that appears in NEITHER account is a defect and fails the job.
+# ---------------------------------------------------------------------------
+
+[TOPICS]
+# Exactly the 20 highest-value terms. Ranked: the first ones are what someone
+# who wants this repo actually types.
+mixture-of-experts
+moe
+router
+lean4
+formal-verification
+theorem-proving
+mathlib
+machine-checked
+proof-engineering
+claude-code
+claude-code-plugin
+ai-agents
+agentic-workflow
+llm-tooling
+prompt-engineering
+hooks
+powershell
+bash
+agpl
+eupl
+
+[SIGNATURE]
+# UNLIMITED. Everything above is repeated here (the signature is the superset),
+# plus every further term that is true of this repo or of the two accounts.
+# Additions must be justified by something on disk or in the API scan.
+mixture-of-experts
+moe
+router
+lean4
+formal-verification
+theorem-proving
+mathlib
+machine-checked
+proof-engineering
+claude-code
+claude-code-plugin
+ai-agents
+agentic-workflow
+llm-tooling
+prompt-engineering
+hooks
+powershell
+bash
+agpl
+eupl
+# -- the proof surface, all present in lean/Proofs/
+dependent-types
+proof-assistant
+kernel-verified
+mutation-testing
+leanchecker
+sigmoid
+ensemble-methods
+expert-routing
+# -- what the packet actually is
+plugin
+cli-tool
+developer-tools
+static-analysis
+specification
+verified-software
+# -- licensing and provenance, both licence texts are in LICENSES/
+copyleft
+reuse-compliance
+spdx
+dual-licensed
+free-software
+open-source
+non-profit
+# -- present in the org / owner accounts, measured via the API 2026-07-31
+python
+c
+compiler
+rolling-context
+context-compression
+anthropic

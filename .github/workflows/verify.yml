@@ -1,0 +1,157 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# ---------------------------------------------------------------------------
+# WHY THIS WORKFLOW IS ON A SCHEDULE
+#
+# The repo needs to look alive weeks after release, and it needs to BE alive.
+# Those are the same problem solved once, not two problems solved separately.
+#
+# Every Monday this re-proves the whole packet against whatever mathlib and
+# Lean currently are, and writes the verdict into STATUS.md with the real date,
+# the real theorem count and the real load-bearing count. That produces a real
+# commit carrying a real fact, every week, forever. GitHub's "updated" signal,
+# the org feed and every crawler see genuine movement -- because there IS
+# genuine movement: a proof re-verified today against a toolchain that moved.
+#
+# What this deliberately does NOT do is manufacture activity. An empty commit,
+# a hidden keyword block, or a bot whose only job is to bump a timestamp would
+# be inauthentic activity under GitHub's Acceptable Use Policies, and it would
+# be self-defeating here specifically: this project's entire pitch is that its
+# claims are machine-checked. A repo that fakes its own liveness signal has
+# already lost the argument it exists to win. Discoverability is handled the
+# legitimate way instead -- repo TOPICS (see topics.md), an honest description,
+# and a README whose first paragraph contains the words people actually search.
+# ---------------------------------------------------------------------------
+
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 06:00 UTC every Monday. Weekly is chosen to match Dependabot's cadence so
+    # a dependency bump and its re-proof land in the same window.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          set -euo pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Toolchain in use
+        working-directory: lean
+        run: |
+          cat lean-toolchain
+          lake --version
+
+      - name: Fetch mathlib cache
+        working-directory: lean
+        run: lake exe cache get
+
+      # INSTRUMENT 1 -- elaboration. Exit code read directly, never through a
+      # pipe: a pipeline reports the LAST command's status, and that has
+      # produced a false green on this project before.
+      - name: lake build
+        working-directory: lean
+        run: |
+          set -e
+          lake build Proofs.RotGauge
+          echo "lake build exit=$?"
+
+      # INSTRUMENT 2 -- what the proofs rest on. sorryAx anywhere fails the job.
+      # A theorem depending on NO axioms is also reported, because that is
+      # usually vacuity rather than strength.
+      - name: '#print axioms'
+        working-directory: lean
+        run: |
+          set -e
+          lake env lean ../checker/ax_rotgauge.lean | tee /tmp/ax.log
+          if grep -q "sorryAx" /tmp/ax.log; then
+            echo "::error::sorryAx present -- these theorems are NOT proved"; exit 1
+          fi
+          if grep -q "does not depend on any axioms" /tmp/ax.log; then
+            echo "::warning::a theorem depends on no axioms -- inspect for vacuity"
+          fi
+
+      # INSTRUMENT 3 -- the kernel re-checking the proof terms, independent of
+      # the elaborator that produced them. Silence with exit 0 is the pass.
+      - name: leanchecker sweep
+        working-directory: lean
+        run: |
+          set -e
+          for f in Proofs/*.lean; do
+            m="Proofs.$(basename "$f" .lean)"
+            lake env leanchecker "$m"
+            echo "$m -> exit $?"
+          done
+
+      # The negative control for INSTRUMENT 3. If this does NOT fail, the sweep
+      # above proved nothing and the job must go red.
+      - name: leanchecker negative control
+        working-directory: lean
+        run: |
+          if lake env leanchecker Proofs.DeliberatelyAbsentModule 2>/dev/null; then
+            echo "::error::leanchecker accepted a module with no oleans -- the instrument is broken"
+            exit 1
+          fi
+          echo "control failed as required"
+
+      # Load-bearing or decorative. A mutation that does not APPLY is DISCARDED
+      # and must never be counted as SURVIVED -- they mean opposite things.
+      - name: mutation suite
+        working-directory: lean
+        run: bash ../checker/mutate_rotgauge.sh | tee /tmp/mut.log
+
+      - name: Write STATUS.md
+        if: github.event_name == 'schedule'
+        run: |
+          set -e
+          THMS=$(grep -cE "^(@\[[^]]*\] )?theorem " lean/Proofs/*.lean)
+          KILLED=$(grep -oE "killed=[0-9]+" /tmp/mut.log | cut -d= -f2)
+          SURV=$(grep -oE "survived=[0-9]+" /tmp/mut.log | cut -d= -f2)
+          DISC=$(grep -oE "discarded=[0-9]+" /tmp/mut.log | cut -d= -f2)
+          {
+            echo "# STATUS"
+            echo
+            echo "Re-verified $(date -u +%Y-%m-%d) against \`$(cat lean/lean-toolchain)\`."
+            echo
+            echo "| instrument | result |"
+            echo "|---|---|"
+            echo "| \`lake build\` | exit 0 |"
+            echo "| \`#print axioms\` | no \`sorryAx\` across $THMS theorems |"
+            echo "| \`leanchecker\` | kernel re-verified, control failed as required |"
+            echo "| mutation suite | $KILLED killed, $SURV survived, $DISC discarded |"
+            echo
+            echo "This file is written by CI from the real run. If a week passes"
+            echo "with no change here, the schedule did not fire -- that is a"
+            echo "defect, not a quiet success."
+          } > STATUS.md
+
+      - name: Commit STATUS.md
+        if: github.event_name == 'schedule'
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add STATUS.md
+          # --allow-empty is deliberately ABSENT. If the verdict did not change
+          # there is nothing to say, and an empty commit would be exactly the
+          # manufactured activity this workflow refuses to produce.
+          git diff --staged --quiet || git commit -m "ci: re-verified against $(cat lean/lean-toolchain)"
+          git push

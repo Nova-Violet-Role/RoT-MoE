@@ -1,0 +1,34 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# Real dependency updates. Every PR Dependabot opens here is a genuine version
+# bump that the CI in verify.yml must re-prove before it can merge -- so repo
+# activity and repo correctness are the same signal, not two.
+#
+# Dependabot has no Lean/Lake ecosystem, so mathlib's pin is NOT managed here.
+# It is bumped by verify.yml's scheduled run, which rebuilds against the pinned
+# toolchain and reports honestly when a newer one breaks a proof.
+
+# CADENCE, measured against what Dependabot actually accepts:
+# `schedule.interval` takes ONLY daily | weekly | monthly. There is no cron and
+# no "three times a week" -- and Dependabot cannot be renamed or cloned into
+# "Ads Manager" or "Hashtag Manager"; it is one GitHub-owned service with one
+# job, updating dependencies.
+#
+# So the 3x-weekly cadence lives where it CAN live: the named workflows in
+# .github/workflows/ (tag-manager.yml, ads-manager.yml), each on a Mon/Wed/Fri
+# cron. `daily` below is Dependabot's fastest setting -- weekdays only, so about
+# five runs a week, which covers the request and then some.
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"

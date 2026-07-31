@@ -1,0 +1,26 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+name = "proofs"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["Proofs"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.33.0-rc1"
+
+[[lean_lib]]
+name = "Proofs"
+# `Proofs.+` = the root module AND every submodule under Proofs/.
+# Without this, `lake build` only checks whatever Proofs.lean happens to import,
+# so a new file under Proofs/ is never compiled and the build stays green on a
+# file full of errors. Globs mean a new file is covered the moment it exists.
+globs = ["Proofs.+"]
