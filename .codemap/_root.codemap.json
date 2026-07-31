@@ -199,12 +199,12 @@
       ]
     },
     "README.md": {
-      "hash": "536effe479de",
-      "indexed_at": "2026-07-31T11:35:25.324072+00:00",
+      "hash": "b77c976c4b04",
+      "indexed_at": "2026-07-31T12:30:21.153679+00:00",
       "language": "markdown",
-      "lines": 154,
-      "mtime_ns": 1785496425651824700,
-      "size": 7684,
+      "lines": 164,
+      "mtime_ns": 1785501020643562700,
+      "size": 8483,
       "symbols": [
         {
           "children": [
@@ -212,16 +212,16 @@
               "docstring": "* **`lean/Proofs/RotGauge.lean`** (34 theorems) \u2014 the R/s+ gauge. `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`, `gauge_divi",
               "lines": [
                 36,
-                56
+                65
               ],
-              "name": "The three modules",
+              "name": "The four modules",
               "type": "subsection"
             }
           ],
           "docstring": "| instrument | what it establishes | result | |---|---|---| | `lake build Proofs.*` | the modules elaborate | exit **0** | | `#print axioms` on every",
           "lines": [
             18,
-            56
+            65
           ],
           "name": "What is actually verified",
           "type": "section"
@@ -229,8 +229,8 @@
         {
           "docstring": "This section is not modesty. It is the part that makes the rest credible, and it is deliberately the most specific section in this README.",
           "lines": [
-            57,
-            103
+            66,
+            112
           ],
           "name": "What Lean does NOT prove here",
           "type": "section"
@@ -238,16 +238,16 @@
         {
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            104,
-            123
+            113,
+            132
           ],
           "name": "Licence",
           "type": "section"
         },
         {
           "lines": [
-            124,
-            155
+            133,
+            165
           ],
           "name": "Verify it yourself",
           "type": "section"
@@ -301,6 +301,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T12:18:17.249065+00:00",
+  "generated_at": "2026-07-31T12:30:21.153737+00:00",
   "version": "1.0"
 }

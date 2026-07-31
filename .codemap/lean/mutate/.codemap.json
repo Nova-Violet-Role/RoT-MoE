@@ -64,6 +64,32 @@
         }
       ]
     },
+    "mutate_rotpath.sh": {
+      "hash": "0f6024109cc2",
+      "indexed_at": "2026-07-31T12:30:20.983377+00:00",
+      "language": "shell",
+      "lines": 141,
+      "mtime_ns": 1785500918771856500,
+      "size": 5886,
+      "symbols": [
+        {
+          "lines": [
+            29,
+            57
+          ],
+          "name": "run_mut",
+          "type": "function"
+        },
+        {
+          "lines": [
+            59,
+            108
+          ],
+          "name": "run_mut_nth",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotroute.sh": {
       "hash": "0fff94f94ce0",
       "indexed_at": "2026-07-31T11:35:25.340335+00:00",
@@ -83,6 +109,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T11:35:25.344557+00:00",
+  "generated_at": "2026-07-31T12:30:20.983431+00:00",
   "version": "1.0"
 }

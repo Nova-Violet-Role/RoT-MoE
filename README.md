@@ -8,7 +8,7 @@
 
 A Mixture-of-Experts router for [Claude Code](https://claude.com/claude-code):
 nine reasoning lenses, a divergence gauge measured off disk on every turn, and
-**63 machine-checked theorems in Lean 4** saying the gauge is not decoration.
+**71 machine-checked theorems in Lean 4** saying the gauge is not decoration.
 
 The standard objection to any engine like this is *the number is made up*. This
 repo exists to answer that objection with a kernel rather than with prose.
@@ -22,7 +22,7 @@ repo exists to answer that objection with a kernel rather than with prose.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| mutation suite | the theorems are load-bearing | **31 applied, 31 killed, 0 survived, 0 discarded** |
+| mutation suite | the theorems are load-bearing | **36 applied, 36 killed, 0 survived, 0 discarded** |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -33,7 +33,7 @@ go red on demand, it is decoration and is labelled as such.
 Zero `sorry`. No `native_decide` anywhere — it trusts the compiler binary
 instead of the kernel, which would quietly undo the point of the whole exercise.
 
-### The three modules
+### The four modules
 
 * **`lean/Proofs/RotGauge.lean`** (34 theorems) — the R/s+ gauge.
   `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
@@ -46,6 +46,15 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   `nsil_overrides_tier1` — which proves both that the override lands *and* that
   it genuinely differs from the keyword result, the difference between a router
   and an `if`-chain.
+* **`lean/Proofs/RotPath.lean`** (8 theorems) — path canonicalisation, written
+  *after* a real stranding bug: the two installer arms wrote different command
+  strings for one install, and removal matches by exact string, so installing
+  from one shell and uninstalling from the other left a dead hook entry forever.
+  `both_spellings_agree` proves the Windows and POSIX spellings converge to one
+  string, quantified over an arbitrary drive so it does not expire when the repo
+  moves. `normalize_idem`, `normalize_posix_id` (a Linux path is never
+  rewritten), and `normalize_not_alpha_drive` — which replaced a **false**
+  theorem the compiler refused, recorded in the source rather than quietly fixed.
 * **`lean/Proofs/RotInstall.lean`** (15 theorems) — arming never disarms you.
   `arm_preserves_all_scalars` and `arm_preserves_unrelated_events`, quantified
   over **all keys**, so your `permissions`, your `env`, and every key not yet
@@ -126,12 +135,13 @@ covered by this grant.
 ```sh
 cd lean
 lake exe cache get          # never build mathlib from source
-lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall
+lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath
 lake env leanchecker Proofs.RotGauge        # exit 0, zero bytes = kernel pass
 lake env leanchecker Proofs.NoSuchModule    # exit 1 = the control
 sh ../checker/spdx-sweep.sh
 sh ../checker/no-local-paths.sh
 bash mutate/mutate_rotroute.sh              # expect 11 killed, 0 survived
+bash mutate/mutate_rotpath.sh               # expect  5 killed, 0 survived
 ```
 
 Do not take the counts in this README on faith — the **Ads Manager** workflow
