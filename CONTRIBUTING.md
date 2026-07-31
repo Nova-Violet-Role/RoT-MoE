@@ -12,7 +12,36 @@ Read the exit code **directly**, never through a pipe. `bash checker/x.sh | tail
 gives you `tail`'s status, not the checker's. That has produced a false green in
 this repository before, and it is recorded in `NOTICE.md` rather than hidden.
 
+## Enable the pre-commit hook — first thing, once per clone
+
+```sh
+git config core.hooksPath .githooks
+```
+
+Git does not enable hooks automatically, and that is correct: a hook is
+executable code arriving from a repository, so enabling it is your decision, not
+the repository's. Make it, because the alternative has already failed here.
+
+**Why it exists.** The author ran the checkers by hand, two returned `1`, and
+the `git commit` in the same shell block executed **anyway** — it did not depend
+on their exit codes. The commit message claimed verified work while two gates
+were red. The lesson is not "be more careful": a rule you must remember is a
+rule you will forget. It has to be a program that says no.
+
+```sh
+bash checker/gate-all.sh      # every fast gate, ONE exit code
+git commit --no-verify        # the documented bypass, for genuine WIP
+```
+
+The bypass is deliberate. A hook with no escape hatch gets deleted the first
+time someone needs to record work in progress, and then it protects nothing.
+What is never acceptable is a commit message claiming verification while a gate
+is red.
+
 ## Before you open a PR
+
+`gate-all.sh` runs all of these; they are listed individually so you know what
+it covers.
 
 ```sh
 bash checker/preflight.sh          # what you have, what will SKIP
@@ -21,6 +50,9 @@ sh   checker/no-local-paths.sh     # no machine-local path escapes into the pack
 bash checker/install-roundtrip.sh  # installer contract, scratch config only
 bash checker/cross-diff.sh         # both router arms agree byte-for-byte
 bash checker/mutate-checker.sh     # the checker itself can still fail
+bash checker/repo-complete.sh      # required files, and every count RECOUNTED
+bash checker/lean-binds-shell.sh   # the Lean witness still matches shipped weights
+bash checker/workflow-lint.sh      # no checker that CI forgets to run
 ```
 
 And if you touched `lean/`:

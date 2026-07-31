@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# PRE-COMMIT: refuse to record a commit on top of a red gate.
+#
+# This hook exists because of a real failure, and the failure is worth stating
+# so nobody removes the hook thinking it is paranoia. The author ran the
+# checkers by hand, two returned 1, and the `git commit` in the same shell block
+# executed anyway -- it did not depend on their exit codes. The commit message
+# claimed verified work. Two gates were red.
+#
+# The lesson is not "be more careful". A rule you must remember is a rule you
+# will forget. It has to be a program that says no.
+#
+# ENABLE IT (once per clone -- git does not enable hooks automatically, by
+# design, since a hook is executable code arriving from a repository):
+#
+#     git config core.hooksPath .githooks
+#
+# BYPASS IT, when you genuinely mean to:
+#
+#     git commit --no-verify
+#
+# The bypass is deliberate and documented rather than hidden. A hook with no
+# escape hatch gets deleted the first time someone needs to commit a WIP branch,
+# and then it protects nothing at all.
+# =============================================================================
+
+set -uo pipefail
+
+REPO="$(git rev-parse --show-toplevel)"
+cd "$REPO" || exit 1
+
+if [ ! -f checker/gate-all.sh ]; then
+  echo "pre-commit: checker/gate-all.sh is missing."
+  echo "Refusing rather than passing: a hook that cannot find its gates must not"
+  echo "report success, or it becomes a green light that checks nothing."
+  exit 1
+fi
+
+echo "pre-commit: running the fast gates (bypass with --no-verify)"
+bash checker/gate-all.sh
+rc=$?
+
+if [ "$rc" -ne 0 ]; then
+  echo
+  echo "=============================================================="
+  echo " COMMIT REFUSED -- at least one gate is red (gate-all exit $rc)."
+  echo
+  echo " Fix the gate, or commit with --no-verify if you are deliberately"
+  echo " recording work in progress. What you must NOT do is write a commit"
+  echo " message that claims the work is verified while a gate is red."
+  echo "=============================================================="
+  exit 1
+fi
+
+echo "pre-commit: all gates green."
+exit 0

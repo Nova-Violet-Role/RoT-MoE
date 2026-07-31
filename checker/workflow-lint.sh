@@ -69,6 +69,13 @@ echo "-- drift: every checker must be wired into a workflow --"
 declare -A EXCEPT
 EXCEPT[preflight.sh]="informational; run as the first CI step but not a gate"
 EXCEPT[workflow-lint.sh]="would recurse; run from CI as its own step below"
+# gate-all is an AGGREGATOR for local use and the pre-commit hook. Running it in
+# CI would re-run every gate a second time inside one step, and a failure would
+# report as "gate-all failed" instead of naming the check that broke. Per-step
+# granularity is worth more in CI than a single roll-up. It is exercised on
+# every local commit via .githooks/pre-commit, and the phase below asserts that
+# every gate it lists is a real, present checker -- so it cannot silently rot.
+EXCEPT[gate-all.sh]="aggregator for the pre-commit hook; CI runs each gate as its own named step"
 
 WF_TEXT="$(cat .github/workflows/*.yml)"
 for c in checker/*.sh; do
@@ -83,6 +90,42 @@ for c in checker/*.sh; do
     echo "        to EXCEPT in this file WITH a reason."
   fi
 done
+
+# --- 2b. the aggregator must not rot ----------------------------------------
+# gate-all.sh is exempt from the CI-wiring rule above, so it needs its own
+# check: every gate it names must be a checker that actually exists. A typo
+# there would silently drop a gate from every local commit, and the roll-up
+# would still print ALL GREEN -- the failure being green is the whole problem.
+echo
+echo "-- the pre-commit aggregator lists only real checkers --"
+if [ -f checker/gate-all.sh ]; then
+  listed=0; missing=0
+  while read -r cmd; do
+    [ -z "$cmd" ] && continue
+    listed=$((listed+1))
+    [ -f "$cmd" ] || { bad "gate-all names a checker that does not exist: $cmd"; missing=$((missing+1)); }
+  done < <(grep -oE 'checker/[a-z-]+\.sh' checker/gate-all.sh | sort -u)
+  if [ "$listed" -eq 0 ]; then
+    bad "gate-all lists NO checkers -- it would pass vacuously on every commit"
+  elif [ "$missing" -eq 0 ]; then
+    ok "gate-all names $listed checkers, all present"
+  fi
+  # The hook that CALLS it must exist, be executable, and actually call it.
+  if [ -f .githooks/pre-commit ]; then
+    ok "pre-commit hook present"
+    grep -q "gate-all.sh" .githooks/pre-commit       && ok "pre-commit actually calls gate-all"       || bad "pre-commit exists but never calls gate-all -- it guards nothing"
+    grep -q "exit 1" .githooks/pre-commit       && ok "pre-commit can refuse a commit"       || bad "pre-commit has no refusing path"
+  else
+    bad ".githooks/pre-commit missing -- the red-gate commit can happen again"
+  fi
+
+  # It must also refuse: a roll-up that cannot go red is decoration.
+  grep -q 'exit 1' checker/gate-all.sh \
+    && ok "gate-all can exit non-zero" \
+    || bad "gate-all has no failing exit path -- it cannot stop a bad commit"
+else
+  bad "checker/gate-all.sh is missing -- the pre-commit hook has nothing to call"
+fi
 
 # --- 3. does CI build every Lean module and run every mutation suite? -------
 echo
