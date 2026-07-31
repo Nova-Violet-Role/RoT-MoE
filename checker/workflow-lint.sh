@@ -270,13 +270,23 @@ done
 #   * the suite PREFLIGHTS -- it refuses to run when the source is missing or
 #     the unmutated baseline is red, because a kill measured against a red
 #     baseline cannot be attributed to the mutation
+#   * the suite carries a NO-DOWNLOAD GUARD. Added 2026-07-31 after a measured
+#     7.2 GB: every one of these scripts calls `lake`, lake RESOLVES THE PACKAGE
+#     before it does anything, and the default workspace is the vendored `lean/`
+#     tree. Running one from a fresh clone -- which is exactly what a CI dry run
+#     or a new contributor does -- started fetching mathlib INTO THE REPOSITORY.
+#     The tree ships as ~200 KB. This is checked structurally because the
+#     failure is invisible until the disk fills.
 mut_defects=0
-for h in lean/mutate/mutate_*.sh; do
+for h in lean/mutate/mutate_*.sh lean/mutate/generalization_probe.sh; do
+  [ -f "$h" ] || continue
   b="$(basename "$h")"
-  grep -q 'LEAN_ROOT' "$h" \
+  grep -qE 'LEAN_ROOT|LEAN_DIR' "$h" \
     || { bad "$b does not resolve its workspace from LEAN_ROOT -- it will build in whatever directory it is called from"; mut_defects=$((mut_defects+1)); }
-  grep -qE 'preflight|FATAL' "$h" \
+  grep -qE 'preflight|FATAL|SKIP' "$h" \
     || { bad "$b has no preflight -- it cannot tell 'my workspace is missing' from 'the theorem caught it'"; mut_defects=$((mut_defects+1)); }
+  grep -q 'NO-DOWNLOAD GUARD' "$h" \
+    || { bad "$b has no NO-DOWNLOAD GUARD -- run from a clean clone it can fetch mathlib into the repo (measured: 7.2 GB)"; mut_defects=$((mut_defects+1)); }
 done
 [ "$mut_defects" -eq 0 ] && ok "all $(ls lean/mutate/mutate_*.sh | wc -l | tr -d ' ') mutation suites resolve from LEAN_ROOT and preflight a green baseline"
 
@@ -288,6 +298,16 @@ if grep -q 'LEAN_ROOT' "$MCTL/mutate_broken.sh" || grep -qE 'preflight|FATAL' "$
   bad "CONTROL DEAD: the pre-2026-07-31 broken suite shape passes these checks"
 else
   ok "CONTROL: a suite that cds to its own directory with no preflight IS rejected"
+fi
+# SECOND CONTROL, for the guard specifically: a suite that is otherwise correct
+# -- LEAN_ROOT, preflight, the lot -- but has no download guard must still be
+# caught. Without this the new requirement would be satisfied by the two older
+# ones and would never be exercised on its own.
+printf '#!/usr/bin/env bash\nLEAN_ROOT="${LEAN_ROOT:-.}"\n# preflight\nlake build Proofs.X\n' > "$MCTL/mutate_noguard.sh"
+if grep -q 'NO-DOWNLOAD GUARD' "$MCTL/mutate_noguard.sh"; then
+  bad "CONTROL DEAD: a suite with no download guard reads as guarded"
+else
+  ok "CONTROL: a well-formed suite that can still fetch mathlib IS rejected"
 fi
 rm -rf "$MCTL"
 

@@ -48,8 +48,42 @@
 
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-LEAN_DIR="${LEAN_DIR:-$(cd "$HERE/.." && pwd)}"
+# LEAN_ROOT is what every mutation suite in this directory honours. Accepting
+# only LEAN_DIR here meant `LEAN_ROOT=... generalization_probe.sh` silently ran
+# against the VENDORED tree instead of the workspace the caller named -- and
+# after the guard below, silently SKIPPED. Two spellings for one concept is how
+# that happens; both are accepted now, LEAN_DIR winning because it was first.
+LEAN_DIR="${LEAN_DIR:-${LEAN_ROOT:-$(cd "$HERE/.." && pwd)}}"
 cd "$LEAN_DIR"
+
+# =============================================================================
+# NO-DOWNLOAD GUARD. MEASURED 2026-07-31, and the number is not a typo.
+#
+# This script calls `lake env lean`, and `lake env` RESOLVES THE PACKAGE before
+# it runs anything. Run against the VENDORED `lean/` tree -- which is the
+# DEFAULT above, and therefore what a contributor or a CI dry run gets -- that
+# resolution began fetching mathlib into the repository and reached **7.2 GB**
+# before it was noticed and removed. It also left a `lake-manifest.json` behind.
+#
+# The tree ships as ~200 KB of source. A script that can silently turn it into
+# 7.2 GB is a defect regardless of what it proves afterwards, and "it only
+# resolves declared dependencies" is exactly the sentence that precedes the
+# download.
+#
+# So: the workspace must ALREADY be built. A never-built workspace cannot
+# satisfy this, which is what makes the fetch impossible rather than unlikely.
+# SKIP is exit 3 -- reported as a skip by every caller, never as a pass.
+# =============================================================================
+_built=$(find "$LEAN_DIR/.lake/build/lib/lean" -name '*.olean' 2>/dev/null | head -1)
+if [ ! -d "$LEAN_DIR/.lake/packages" ] || [ -z "$_built" ]; then
+  echo "SKIP: $LEAN_DIR is not a BUILT Lean workspace (.lake/packages or the"
+  echo "      Proofs.RotGauge .olean is absent)."
+  echo "      Refusing to invoke lake here: resolving mathlib would DOWNLOAD"
+  echo "      ~7.2 GB into a repository that ships as ~200 KB. Measured, once."
+  echo "      Point LEAN_DIR at an already-built workspace to run this probe."
+  echo "      This is a SKIP (exit 3), never a pass."
+  exit 3
+fi
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/genprobe.XXXXXX")"
 pass=0; fail=0

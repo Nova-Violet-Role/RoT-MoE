@@ -185,6 +185,7 @@ happened to this codebase.
 | Lean mutation suites | the theorems are load-bearing | **50 applied, 50 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
+| `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -361,6 +362,16 @@ bash mutate/mutate_rotvacuity.sh            # expect  6 killed, 0 survived
 Each suite **refuses to run** unless its source file is present and the
 unmutated baseline builds green, because a kill measured against a red baseline
 is unattributable. Point them at another workspace with `LEAN_ROOT=/path/to/ws`.
+
+> 🛟 **They also refuse to download anything, and that guard was paid for.**
+> Every suite calls `lake`, and `lake` resolves the package *before* it does
+> anything — so run against this repository's own `lean/` folder on a machine
+> with no built workspace, one of them began fetching mathlib **into the repo
+> and reached 7.2 GB** before it was noticed. The tree ships as ~200 KB. Each
+> suite now checks for an already-built workspace first and **skips (exit 3)**
+> rather than building one, so nothing here can ever grow your checkout. Exit 3
+> is reported as a skip by every caller — never as a pass. If you want the
+> suites to actually run, point `LEAN_ROOT` at a workspace you built yourself.
 
 And the whole tree in one command, which is what the pre-commit hook runs:
 

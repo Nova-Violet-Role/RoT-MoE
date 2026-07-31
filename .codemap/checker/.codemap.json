@@ -1,6 +1,42 @@
 {
   "directory": "checker",
   "files": {
+    "ci-dryrun.sh": {
+      "hash": "e93722286006",
+      "indexed_at": "2026-07-31T19:17:28.359675+00:00",
+      "language": "shell",
+      "lines": 226,
+      "mtime_ns": 1785524633227387800,
+      "size": 11090,
+      "symbols": [
+        {
+          "docstring": "--- 1. extract the steps --------------------------------------------------- Line-oriented on purpose. A YAML library would be more correct in general",
+          "lines": [
+            50,
+            84
+          ],
+          "name": "extract_steps",
+          "type": "function"
+        },
+        {
+          "lines": [
+            63,
+            72
+          ],
+          "name": "flush",
+          "type": "function"
+        },
+        {
+          "docstring": "Runner-only classification. Each pattern names something this machine cannot provide or must not fetch.",
+          "lines": [
+            88,
+            96
+          ],
+          "name": "runner_only",
+          "type": "function"
+        }
+      ]
+    },
     "claude-md-lint.sh": {
       "hash": "9ad8f8ab1498",
       "indexed_at": "2026-07-31T15:55:18.513777+00:00",
@@ -57,12 +93,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "2d237b3a6abe",
-      "indexed_at": "2026-07-31T17:48:13.703897+00:00",
+      "hash": "77dcc5347c21",
+      "indexed_at": "2026-07-31T19:17:28.518827+00:00",
       "language": "shell",
-      "lines": 129,
-      "mtime_ns": 1785519447023538000,
-      "size": 5275,
+      "lines": 130,
+      "mtime_ns": 1785522089614796100,
+      "size": 5344,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -267,12 +303,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "4b4b3edbcae6",
-      "indexed_at": "2026-07-31T17:06:53.770256+00:00",
+      "hash": "23787d19767d",
+      "indexed_at": "2026-07-31T19:17:28.673532+00:00",
       "language": "shell",
-      "lines": 395,
-      "mtime_ns": 1785517199204928100,
-      "size": 18929,
+      "lines": 415,
+      "mtime_ns": 1785522042843996500,
+      "size": 20352,
       "symbols": [
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
@@ -285,8 +321,8 @@
         },
         {
           "lines": [
-            341,
-            356
+            361,
+            376
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -294,6 +330,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T17:48:13.855590+00:00",
+  "generated_at": "2026-07-31T19:17:28.673590+00:00",
   "version": "1.0"
 }

@@ -43,6 +43,35 @@ BAK="$SRC.mutbak"
   echo "without a single line having been mutated."
   exit 2
 }
+# --- NO-DOWNLOAD GUARD (measured 2026-07-31) --------------------------------
+# The preflight below runs `lake build`, and lake RESOLVES THE PACKAGE first.
+# Against the vendored `lean/` tree -- the default when LEAN_ROOT is unset, and
+# what a contributor or a CI dry run therefore gets -- that resolution started
+# fetching mathlib INTO THE REPOSITORY and reached 7.2 GB before it was caught.
+# The tree ships as ~200 KB.
+#
+# A never-built workspace gets a SKIP (exit 3), not a build. A workspace that
+# has never been built cannot satisfy this test, which is what makes the
+# download impossible rather than merely unlikely. Exit 3 is reported as a skip
+# by every caller and is never a pass.
+_WSDIR="${LEAN_ROOT:-.}"
+# THE EVIDENCE OF "ALREADY BUILT" MUST NOT BE THE ARTEFACT THIS SUITE DELETES.
+# First version keyed on THIS module's .olean -- which every mutant removes on
+# purpose (`rm -f "$OLEAN"`). An interrupted run therefore left the workspace
+# looking never-built, and the next run SKIPPED a real workspace: a false skip,
+# measured on Proofs.RotVacuity. The durable evidence is `.lake/packages` (which
+# nothing here deletes) plus SOME built module, so the guard survives its own
+# suite.
+_built=$(find "$_WSDIR/.lake/build/lib/lean" -name '*.olean' 2>/dev/null | head -1)
+if [ ! -d "$_WSDIR/.lake/packages" ] || [ -z "$_built" ]; then
+  echo "SKIP: $_WSDIR is not a BUILT Lean workspace (.lake/packages or $OLEAN absent)."
+  echo "      Refusing to invoke lake: resolving mathlib would DOWNLOAD ~7.2 GB"
+  echo "      into a repository that ships as ~200 KB. Measured, once."
+  echo "      Set LEAN_ROOT to an already-built workspace to run this suite."
+  echo "      This is a SKIP (exit 3), never a pass."
+  exit 3
+fi
+
 if ! lake build Proofs.RotVacuity >/tmp/mut_baseline_prev.log 2>&1; then
   echo "FATAL: the UNMUTATED baseline does not build (lake build Proofs.RotVacuity != 0)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."

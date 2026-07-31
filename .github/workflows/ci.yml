@@ -162,6 +162,11 @@ jobs:
 
       # Catches a checker that CI never runs -- the repo would look more
       # verified than it is, with a green tick saying nothing about it.
+      # NOT run here on purpose: ci-dryrun.sh executes THIS workflow's own step
+      # list in a clean clone, so running it inside the workflow would recurse.
+      # It is a --full gate locally, which is where a step-list defect must be
+      # caught -- before the push, not by it.
+
       - name: workflow lint -- parse + drift
         shell: bash
         run: bash checker/workflow-lint.sh

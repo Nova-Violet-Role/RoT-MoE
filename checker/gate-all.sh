@@ -55,6 +55,7 @@ installer round trip|bash checker/install-roundtrip.sh
 
 if [ "$FULL" -eq 1 ]; then
   GATES="$GATES
+ci dry run (the CI step list, clean clone)|bash checker/ci-dryrun.sh
 plugin + fresh-user install|bash checker/plugin-install.sh
 live-session smoke|bash checker/live-session-smoke.sh
 "
