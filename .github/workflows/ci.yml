@@ -69,6 +69,13 @@ jobs:
           # Prove the trap is expressible HERE before relying on it below.
           echo "awk under de_DE.UTF-8: $(LC_ALL=de_DE.UTF-8 awk 'BEGIN{printf "%.2f", 0.09}')"
 
+      # Required files present, and every count in the prose RECOUNTED from
+      # source. A README that claims more theorems than exist is the project
+      # lying about the one thing it sells.
+      - name: repo completeness + count drift
+        shell: bash
+        run: bash checker/repo-complete.sh
+
       - name: SPDX + copyright sweep
         shell: bash
         run: sh checker/spdx-sweep.sh

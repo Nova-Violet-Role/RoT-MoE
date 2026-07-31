@@ -130,6 +130,35 @@ covered by this grant.
 
 ---
 
+## Install
+
+**Look before you leap.** This installs a hook that runs on every prompt you
+submit and before every tool call, by editing `~/.claude/settings.json`. So the
+first command is the one that writes nothing:
+
+```sh
+bash ARM_ROUTER.sh --dry-run        # pwsh: ARM_ROUTER.ps1 -DryRun
+```
+
+That runs the entire merge against a copy and prints exactly what would change.
+When you are satisfied:
+
+```sh
+bash ARM_ROUTER.sh                  # backs up first, prints the restore command
+bash DISARM_ROUTER.sh               # removes only what it installed
+```
+
+Or install it as a plugin, with no `settings.json` edit at all:
+
+```sh
+claude --plugin-dir /path/to/RoT-MoE
+```
+
+Both paths are exercised by `checker/plugin-install.sh`, including from a config
+directory with no `settings.json` — the case every first-time user hits.
+
+---
+
 ## Verify it yourself
 
 ```sh

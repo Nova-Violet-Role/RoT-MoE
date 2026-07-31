@@ -24,6 +24,34 @@ The installer's contract, and how each part is verified rather than promised:
 It does **not** phone home, download anything, or execute code from the network.
 The router reads a JSON payload on stdin and prints one line.
 
+### Where the router runs, stated plainly
+
+Understating this would be the dishonest part. Once armed, the router executes
+**on every prompt you submit** (`UserPromptSubmit`) and **before every tool call**
+(`PreToolUse`). That is a program running on your machine, with your privileges,
+very often. Installing it deserves the scrutiny you would give any shell hook.
+
+`hooks/rot-router.sh` and `hooks/rot-router.ps1` are short and deliberately
+readable. **Read them before arming.** That is a reasonable thing to ask of any
+hook, this one included.
+
+What it does from that position: reads the JSON payload on stdin, extracts the
+`prompt` field to choose a lane, prints one line. It does not read your source
+files, your credentials or your history, and it writes nothing outside its own
+scratch directories.
+
+### See the change before consenting to it
+
+```sh
+bash ARM_ROUTER.sh --dry-run      # or: pwsh -File ARM_ROUTER.ps1 -DryRun
+```
+
+Runs the entire merge against a **copy**, prints exactly what would change, and
+writes nothing. Not a flag checked at the write site — that is one forgotten
+branch away from writing anyway — but a redirected target that cannot reach your
+real file. Asserted by `checker/install-roundtrip.sh`, which requires the file to
+be byte-identical after a dry run.
+
 ## Reporting a vulnerability
 
 Open a **private security advisory** on the repository, or an issue if it is not
@@ -37,6 +65,15 @@ lines of your `settings.json` **with any credentials removed**.
    parses JSON and does substring matching; it must never evaluate.
 3. Any path where a checker **passes while the property it names is false** — a
    false green is treated here as a defect of the same severity as a crash.
+4. **A theorem whose name or doc comment claims more than its statement proves.**
+   In a project whose entire value is that its claims are checkable, an
+   overclaimed proof *is* a security defect: it launders an assumption into an
+   apparent guarantee. Report it as one, and it will be fixed by restating the
+   theorem — never by deleting the check that exposed it.
+
+**Response commitment:** acknowledgement within 7 days. This is a non-profit
+project maintained by one person, so that is a realistic number rather than an
+aspirational one.
 
 ## What is out of scope, stated honestly
 

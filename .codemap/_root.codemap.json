@@ -199,12 +199,12 @@
       ]
     },
     "README.md": {
-      "hash": "b77c976c4b04",
-      "indexed_at": "2026-07-31T12:30:21.153679+00:00",
+      "hash": "284b25b423c0",
+      "indexed_at": "2026-07-31T12:42:19.315580+00:00",
       "language": "markdown",
-      "lines": 164,
-      "mtime_ns": 1785501020643562700,
-      "size": 8483,
+      "lines": 193,
+      "mtime_ns": 1785501597035280800,
+      "size": 9318,
       "symbols": [
         {
           "children": [
@@ -245,9 +245,18 @@
           "type": "section"
         },
         {
+          "docstring": "**Look before you leap.** This installs a hook that runs on every prompt you submit and before every tool call, by editing `~/.claude/settings.json`.",
           "lines": [
             133,
-            165
+            161
+          ],
+          "name": "Install",
+          "type": "section"
+        },
+        {
+          "lines": [
+            162,
+            194
           ],
           "name": "Verify it yourself",
           "type": "section"
@@ -255,18 +264,37 @@
       ]
     },
     "SECURITY.md": {
-      "hash": "e9021503b684",
-      "indexed_at": "2026-07-31T12:03:36.210160+00:00",
+      "hash": "4594c9020526",
+      "indexed_at": "2026-07-31T12:42:19.480182+00:00",
       "language": "markdown",
-      "lines": 47,
-      "mtime_ns": 1785499382780347100,
-      "size": 2277,
+      "lines": 84,
+      "mtime_ns": 1785501505387414100,
+      "size": 4120,
       "symbols": [
         {
+          "children": [
+            {
+              "docstring": "Understating this would be the dishonest part. Once armed, the router executes **on every prompt you submit** (`UserPromptSubmit`) and **before every",
+              "lines": [
+                27,
+                42
+              ],
+              "name": "Where the router runs, stated plainly",
+              "type": "subsection"
+            },
+            {
+              "lines": [
+                43,
+                54
+              ],
+              "name": "See the change before consenting to it",
+              "type": "subsection"
+            }
+          ],
           "docstring": "`ARM_ROUTER.sh` / `ARM_ROUTER.ps1` **edit `~/.claude/settings.json`** \u2014 a file your Claude Code session depends on. That is the whole security surface",
           "lines": [
             6,
-            26
+            54
           ],
           "name": "What this software does to your machine",
           "type": "section"
@@ -274,8 +302,8 @@
         {
           "docstring": "Open a **private security advisory** on the repository, or an issue if it is not sensitive. Please include your OS, shell, `node --version`, and the r",
           "lines": [
-            27,
-            32
+            55,
+            60
           ],
           "name": "Reporting a vulnerability",
           "type": "section"
@@ -283,8 +311,8 @@
         {
           "docstring": "1. Anything that makes the installer **damage or leak** `settings.json`. 2. Anything that makes the router **execute** attacker-controlled content. It",
           "lines": [
-            33,
-            40
+            61,
+            77
           ],
           "name": "Scope we care most about",
           "type": "section"
@@ -292,8 +320,8 @@
         {
           "docstring": "* The Lean proofs constrain the **model**, not your filesystem. `RotInstall.lean` proves the merge is sound; it cannot see byte-order marks, line endi",
           "lines": [
-            41,
-            48
+            78,
+            85
           ],
           "name": "What is out of scope, stated honestly",
           "type": "section"
@@ -301,6 +329,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T12:30:21.153737+00:00",
+  "generated_at": "2026-07-31T12:42:19.480240+00:00",
   "version": "1.0"
 }
