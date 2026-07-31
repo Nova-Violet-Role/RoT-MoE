@@ -120,6 +120,13 @@ jobs:
         shell: bash
         run: bash checker/claude-md-lint.sh
 
+      # The architecture blueprint is proprietary; this tree is copyleft. The
+      # bridge between them must describe the evidence that EXISTS -- and must
+      # stop hedging the day the written grant is filed.
+      - name: licence bridge -- NOTICE.md must match what is on disk
+        shell: bash
+        run: bash checker/license-bridge.sh
+
       - name: mutate the checker -- it must be able to fail
         shell: bash
         run: bash checker/mutate-checker.sh

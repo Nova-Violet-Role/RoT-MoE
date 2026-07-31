@@ -46,6 +46,7 @@ workflow lint + drift|bash checker/workflow-lint.sh
 cross-diff (both router arms)|bash checker/cross-diff.sh
 cross-diff (both reminder arms)|bash checker/cross-diff-remind.sh
 install-document lint|bash checker/claude-md-lint.sh
+licence bridge (NOTICE vs disk)|bash checker/license-bridge.sh
 mutate the checker|bash checker/mutate-checker.sh
 installer round trip|bash checker/install-roundtrip.sh
 "

@@ -57,12 +57,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "bc9d085815b7",
-      "indexed_at": "2026-07-31T15:55:18.837710+00:00",
+      "hash": "48f82c8f24fb",
+      "indexed_at": "2026-07-31T16:42:00.248347+00:00",
       "language": "shell",
-      "lines": 100,
-      "mtime_ns": 1785512229463338100,
-      "size": 3640,
+      "lines": 101,
+      "mtime_ns": 1785515694598895900,
+      "size": 3703,
       "symbols": []
     },
     "install-roundtrip.sh": {
@@ -91,6 +91,15 @@
       "lines": 117,
       "mtime_ns": 1785504847826785000,
       "size": 5274,
+      "symbols": []
+    },
+    "license-bridge.sh": {
+      "hash": "66a3ead31472",
+      "indexed_at": "2026-07-31T16:42:00.416590+00:00",
+      "language": "shell",
+      "lines": 125,
+      "mtime_ns": 1785515677115897800,
+      "size": 5936,
       "symbols": []
     },
     "live-session-smoke.sh": {
@@ -248,6 +257,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T16:24:13.269143+00:00",
+  "generated_at": "2026-07-31T16:42:00.416646+00:00",
   "version": "1.0"
 }
