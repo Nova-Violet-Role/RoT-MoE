@@ -8,7 +8,7 @@
 
 A Mixture-of-Experts router for [Claude Code](https://claude.com/claude-code):
 nine reasoning lenses, a divergence gauge measured off disk on every turn, and
-**71 machine-checked theorems in Lean 4** saying the gauge is not decoration.
+**72 machine-checked theorems in Lean 4** saying the gauge is not decoration.
 
 The standard objection to any engine like this is *the number is made up*. This
 repo exists to answer that objection with a kernel rather than with prose.
@@ -33,7 +33,7 @@ go red on demand, it is decoration and is labelled as such.
 Zero `sorry`. No `native_decide` anywhere — it trusts the compiler binary
 instead of the kernel, which would quietly undo the point of the whole exercise.
 
-### The four modules
+### The five modules
 
 * **`lean/Proofs/RotGauge.lean`** (34 theorems) — the R/s+ gauge.
   `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
@@ -60,6 +60,15 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   over **all keys**, so your `permissions`, your `env`, and every key not yet
   invented survive. `arm_idempotent`, `arm_appends` (your hooks keep their
   order), `disarm_removes`, `disarm_preserves_others`.
+* **`lean/Proofs/RotVacuity.lean`** (1 theorem, and the point is the `example`s)
+  — the audit that catches what every other gate certifies. A theorem with
+  contradictory hypotheses is *true*, builds green, has clean axioms and passes
+  `leanchecker`, while saying nothing at all. This module instantiates every
+  hypothesis-carrying theorem in the packet at a **concrete witness**, so a
+  green build is a positive statement: each guarded theorem has at least one
+  real case it applies to. The gauge witnesses use the **shipping** FORGE
+  weights rather than convenient toy values — and `checker/lean-binds-shell.sh`
+  fails the build if those numbers ever drift from `hooks/rot-router.sh`.
 
 ---
 

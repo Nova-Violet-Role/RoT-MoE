@@ -7,6 +7,7 @@ Copyright 2026 Saimonokuma.
 import Proofs.RotPath
 import Proofs.RotInstall
 import Proofs.RotRoute
+import Proofs.RotGauge
 
 /-!
 # Non-vacuity audit — proving the hypotheses can actually be MET
@@ -138,5 +139,73 @@ are also set — that is the entire point of a priority claim. A witness with on
 example :
     route ⟨true, true, true, false, false, false, false, false, false⟩ = Mode.forge :=
   forge_priority _ rfl
+
+/-! ## RotGauge
+
+`PosWeights` is a FIVE-field structure appearing as a hypothesis on most of the
+gauge theorems. If no weight assignment could satisfy all five at once, the
+entire gauge module would be vacuous — every theorem true, every gate green,
+nothing said.
+
+The witness below is deliberately **not** a convenient toy. It is the FORGE
+profile that actually ships, with the λ and μ this project really uses, so the
+witness answers the sharper question: not merely *can* the hypotheses be met, but
+are they met **by the configuration in production**. A theorem that only applies
+to weights nobody runs would be technically non-vacuous and practically useless.
+-/
+
+open RotMoE in
+/-- The nine shipping FORGE lenses, λ and μ as measured from the profile. -/
+def forgeLenses : Fin 9 → RotMoE.Lens :=
+  ![⟨1.4, 1.05⟩,   -- Nova
+    ⟨0.6, 0.85⟩,   -- Violet
+    ⟨1.9, 1.10⟩,   -- Anti-Venom
+    ⟨1.2, 1.05⟩,   -- Venom
+    ⟨0.6, 0.90⟩,   -- Carnage
+    ⟨1.0, 1.10⟩,   -- Chroma
+    ⟨1.0, 0.95⟩,   -- Soleil
+    ⟨1.2, 1.10⟩,   -- Eidolon
+    ⟨2.3, 1.15⟩]   -- Claude
+
+open RotMoE in
+/-- **The witness.** All five `PosWeights` fields hold simultaneously for the
+shipping profile, with the real `M = 1.05`, `C = 1`, `T = 0.99`. -/
+theorem forge_posWeights : RotMoE.PosWeights forgeLenses 1.05 1 0.99 where
+  lam i := by fin_cases i <;> norm_num [forgeLenses]
+  mu i := by fin_cases i <;> norm_num [forgeLenses]
+  hM := by norm_num
+  hC := by norm_num
+  hT := by norm_num
+
+open RotMoE in
+/-- `gauge_pos` instantiated at the shipping profile: not vacuous, and true of
+the configuration actually in use. Holds for EVERY activity vector and breadth,
+so the witness does not depend on a lucky input either. -/
+example (a : Fin 9 → Bool) (breadth : ℕ) :
+    0 < RotMoE.gauge forgeLenses a breadth 1.05 1 0.99 :=
+  RotMoE.gauge_pos forge_posWeights a breadth
+
+open RotMoE in
+/-- `gauge_ge_floor` needs only non-negativity, which follows from the same
+witness — so its hypothesis is satisfiable too. -/
+example (a : Fin 9 → Bool) (breadth : ℕ) :
+    RotMoE.gauge forgeLenses (RotMoE.allQuiet (Fin 9)) 0 1.05 1 0.99 ≤
+      RotMoE.gauge forgeLenses a breadth 1.05 1 0.99 :=
+  RotMoE.gauge_ge_floor (fun i => RotMoE.weight_nonneg forge_posWeights i) a breadth
+
+open RotMoE in
+/-- `gauge_not_constant` — the theorem that says the gauge is not a decorative
+constant — instantiated at the shipping profile. This is the one that would be
+most embarrassing to have proved vacuously. -/
+example :
+    RotMoE.gauge forgeLenses (RotMoE.allLive (Fin 9)) 1 1.05 1 0.99 ≠
+      RotMoE.gauge forgeLenses (RotMoE.allQuiet (Fin 9)) 0 1.05 1 0.99 :=
+  RotMoE.gauge_not_constant forge_posWeights
+
+open RotMoE in
+/-- `classify_above_iff` needs `lo ≤ hi`. Witnessed with the REAL FORGE band
+`0.9 – 1.8`, not an arbitrary pair — the band this project publishes. -/
+example (R : ℝ) : RotMoE.classify 0.9 1.8 R = RotMoE.Band.above ↔ 1.8 < R :=
+  RotMoE.classify_above_iff (by norm_num)
 
 end RotMoE.Vacuity

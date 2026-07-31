@@ -95,6 +95,13 @@ jobs:
         shell: bash
         run: bash checker/install-roundtrip.sh
 
+      # The Lean witness uses the SHIPPING weights on purpose, so the proofs
+      # apply to the profile in production. Retune LAMBDAS and every other gate
+      # stays green while "proved for the shipping profile" quietly goes false.
+      - name: Lean witness must match the shipped weights
+        shell: bash
+        run: bash checker/lean-binds-shell.sh
+
       - name: cross-diff -- both router arms + locale invariance
         shell: bash
         run: bash checker/cross-diff.sh
