@@ -8,7 +8,7 @@
 
 A Mixture-of-Experts router for [Claude Code](https://claude.com/claude-code):
 nine reasoning lenses, a divergence gauge measured off disk on every turn, and
-**71 machine-checked theorems in Lean 4** saying the gauge is not decoration.
+**72 machine-checked theorems in Lean 4** saying the gauge is not decoration.
 
 The standard objection to any engine like this is *the number is made up*. This
 repo exists to answer that objection with a kernel rather than with prose.
@@ -22,7 +22,7 @@ repo exists to answer that objection with a kernel rather than with prose.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| mutation suite | the theorems are load-bearing | **43 applied, 43 killed, 0 survived, 0 discarded** |
+| mutation suite | the theorems are load-bearing | **44 applied, 44 killed, 0 survived, 0 discarded** |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -35,7 +35,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 
 ### The five modules
 
-* **`lean/Proofs/RotGauge.lean`** (34 theorems) — the R/s+ gauge.
+* **`lean/Proofs/RotGauge.lean`** (35 theorems) — the R/s+ gauge.
   `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
   `gauge_divisor_eq_card`. The last one is the theorem that would have caught a
   real bug in the shipped hook, where one lens's activity was pinned at zero

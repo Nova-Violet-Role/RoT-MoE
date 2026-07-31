@@ -215,6 +215,13 @@ jobs:
           fi
           echo "PASS: the audit refuses a vacuous theorem (exit $rc)"
 
+      # A [DECORATIVE] label is an opinion until something tests it. This file
+      # states the decorative shape and the load-bearing shape against the SAME
+      # broken definition; the first holds, the second is refuted.
+      - name: decorative-vs-load-bearing isolation
+        working-directory: lean
+        run: lake env lean mutate/decorative_isolation.lean
+
       - name: forbid native_decide
         working-directory: lean
         run: |

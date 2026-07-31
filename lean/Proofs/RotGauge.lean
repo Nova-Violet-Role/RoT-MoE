@@ -402,10 +402,42 @@ theorem classify_inRange_iff (lo hi R : ℝ) :
     · rw [if_neg h2]
       exact iff_of_true rfl ⟨not_lt.mp h1, not_lt.mp h2⟩
 
-/-- The classifier is total: every reading gets exactly one verdict, determined
-by the reading and by nothing else — no state, no previous turn, no tie-break. -/
+/-- **[DECORATIVE — kept, relabelled, and this note is the point.]**
+
+This theorem is TRUE OF EVERY FUNCTION. `∃! b, f x = b` holds for any `f`
+whatsoever, by virtue of `f` being a function; `classify` is never used in the
+proof, and the same statement elaborates with `classify` replaced by an
+arbitrary `f : ℝ → ℝ → ℝ → Band`. That was measured, not guessed.
+
+Its previous doc comment claimed the classifier's verdict is "determined by the
+reading and by nothing else — no state, no previous turn, no tie-break". Every
+word of that is true, and NONE of it is established here: it follows from
+`classify` being a total function in Lean at all, which the type already says.
+A theorem whose name and comment claim more than the statement proves is exactly
+what `SECURITY.md` in this repo calls a defect, so it is labelled rather than
+quietly kept — and restated rather than deleted, because deleting it would hide
+that the mistake was ever made.
+
+The content it LOOKED like it had is `classify_surjective` below. -/
 theorem classify_total (lo hi R : ℝ) : ∃! b : Band, classify lo hi R = b :=
   ⟨classify lo hi R, rfl, fun _ h => h.symm⟩
+
+/-- **The theorem `classify_total` was mistaken for.** Every band is actually
+reached: the classifier has no dead verdict.
+
+This one genuinely constrains `classify`. A classifier that never returned
+`inRange` — collapsing the band to a point, which is precisely what an
+off-by-one in the comparison would do — satisfies `classify_total` and fails
+this. It is mutation-tested for exactly that. -/
+theorem classify_surjective {lo hi : ℝ} (h : lo ≤ hi) (b : Band) :
+    ∃ R : ℝ, classify lo hi R = b := by
+  cases b with
+  | below =>
+    exact ⟨lo - 1, (classify_below_iff lo hi (lo - 1)).mpr (by linarith)⟩
+  | inRange =>
+    exact ⟨lo, (classify_inRange_iff lo hi lo).mpr ⟨le_refl lo, h⟩⟩
+  | above =>
+    exact ⟨hi + 1, (classify_above_iff h).mpr (by linarith)⟩
 
 /-! ## The FORGE profile as it stands on disk today
 

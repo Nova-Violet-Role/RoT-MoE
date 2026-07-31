@@ -142,6 +142,16 @@ run_mut M11 \
   '| .claude => ⟨-2.3, 1.15⟩' \
   'forge_posWeights (a negative lambda in the shipped table)'
 
+# M12 -- collapse the band so `inRange` is never returned. This is the mutant
+# that exposes the difference between a decorative theorem and a real one:
+# classify_total SURVIVES it (it is true of any function), classify_surjective
+# must DIE. If both survived, the audit that added classify_surjective bought
+# nothing and should be reported as such.
+run_mut M12 \
+  'if R < lo then .below else if hi < R then .above else .inRange' \
+  'if R < lo then .below else .above' \
+  'classify_surjective, classify_inRange_iff (band collapsed: inRange unreachable)'
+
 # restore and confirm a clean baseline
 cp "$BAK" "$F"
 rm -f "$OLEAN"
