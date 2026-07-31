@@ -61,8 +61,11 @@ jobs:
           # Recounted from source on every run. A number typed by hand in a
           # README is a claim; a number recounted here is a measurement, and
           # ads-manager.yml fails the build when the two disagree.
-          TH=$(grep -hcE '^(@\[[^]]*\] )?(private |protected |noncomputable )*(theorem|lemma) ' \
-                 lean/Proofs/*.lean | awk '{s+=$1} END{print s+0}')
+          # The shared, comment-aware counter -- and its selftest runs first, so
+          # a counter that could be inflated by prose fails here rather than
+          # publishing an inflated verdict.
+          bash checker/count-theorems.sh --selftest
+          TH=$(bash checker/count-theorems.sh lean/Proofs/*.lean)
           MOD=$(ls lean/Proofs/*.lean | wc -l)
           MUT=$(ls lean/mutate/mutate_*.sh | wc -l)
           echo "theorems=$TH" >> "$GITHUB_OUTPUT"

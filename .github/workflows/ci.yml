@@ -72,6 +72,13 @@ jobs:
       # Required files present, and every count in the prose RECOUNTED from
       # source. A README that claims more theorems than exist is the project
       # lying about the one thing it sells.
+      # The counter that every prose claim is checked against must itself be
+      # able to fail: its selftest plants a theorem inside a doc comment and
+      # requires it NOT to be counted.
+      - name: theorem counter selftest
+        shell: bash
+        run: bash checker/count-theorems.sh --selftest
+
       - name: repo completeness + count drift
         shell: bash
         run: bash checker/repo-complete.sh
@@ -163,7 +170,7 @@ jobs:
       - name: lake build (exit code read DIRECTLY, never through a pipe)
         working-directory: lean
         run: |
-          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath
+          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotVacuity
           echo "lake build exit=$?"
 
       # A green build means it ELABORATED. It does not mean the theorems rest on
@@ -172,7 +179,7 @@ jobs:
         working-directory: lean
         run: |
           set -e
-          for m in RotGauge RotRoute RotInstall RotPath; do
+          for m in RotGauge RotRoute RotInstall RotPath RotVacuity; do
             printf 'import Proofs.%s\n' "$m" > /tmp/ax_$m.lean
             lake env lean /tmp/ax_$m.lean
           done
@@ -180,6 +187,26 @@ jobs:
             echo "FAIL: a sorry is present"; exit 1
           fi
           echo "PASS: no sorry in any module"
+
+      # A theorem with contradictory hypotheses is TRUE, builds green, has clean
+      # axioms and survives leanchecker -- and says nothing. This is the only
+      # gate here that asks whether the hypotheses can ever HOLD.
+      - name: non-vacuity audit -- every guarded theorem has a witness
+        working-directory: lean
+        run: lake build Proofs.RotVacuity
+
+      - name: non-vacuity NEGATIVE CONTROL -- the audit must be able to fail
+        working-directory: lean
+        run: |
+          set +e
+          lake env lean mutate/vacuity_control.lean > vc.log 2>&1; rc=$?
+          echo "control exit=$rc"; cat vc.log
+          if [ "$rc" -eq 0 ]; then
+            echo "CONTROL DEAD: a witness was produced for hypotheses 1 = 2."
+            echo "The vacuity audit is decoration; fix it before trusting it."
+            exit 1
+          fi
+          echo "PASS: the audit refuses a vacuous theorem (exit $rc)"
 
       - name: forbid native_decide
         working-directory: lean
@@ -195,7 +222,7 @@ jobs:
         working-directory: lean
         run: |
           set +e
-          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath; do
+          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotVacuity; do
             lake env leanchecker "$m"; rc=$?
             echo "$m -> $rc"
             [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }

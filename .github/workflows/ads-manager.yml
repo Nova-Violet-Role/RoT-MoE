@@ -52,7 +52,12 @@ jobs:
           # (it is absent on this project's own dev machine), and a counter that
           # dies on a missing tool would fail the job for a reason that has
           # nothing to do with the repo being correct.
-          THMS=$(grep -hcE '^(@\[[^]]*\] )?theorem ' lean/Proofs/*.lean | awk '{s+=$1} END{print s+0}')
+          # The SHARED counter, comment-aware, selftest first. The bare grep this
+          # replaces missed `lemma` entirely and counted a `theorem` written
+          # inside a doc comment -- wrong in both directions at once, and this
+          # job's whole purpose is to fail the build when a number is wrong.
+          bash checker/count-theorems.sh --selftest
+          THMS=$(bash checker/count-theorems.sh lean/Proofs/*.lean)
           SORRY=$(grep -rc 'sorry' lean/Proofs/*.lean | awk -F: '{s+=$2} END{print s+0}')
           NATIVE=$(grep -rc 'native_decide' lean/Proofs/*.lean | awk -F: '{s+=$2} END{print s+0}')
           MODULES=$(ls lean/Proofs/*.lean | wc -l)

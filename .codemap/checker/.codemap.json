@@ -1,6 +1,24 @@
 {
   "directory": "checker",
   "files": {
+    "count-theorems.sh": {
+      "hash": "9376cfdcb98b",
+      "indexed_at": "2026-07-31T12:50:32.235294+00:00",
+      "language": "shell",
+      "lines": 91,
+      "mtime_ns": 1785501970211848000,
+      "size": 3157,
+      "symbols": [
+        {
+          "lines": [
+            32,
+            55
+          ],
+          "name": "count_one",
+          "type": "function"
+        }
+      ]
+    },
     "cross-diff.sh": {
       "hash": "194cebf9c306",
       "indexed_at": "2026-07-31T11:35:25.328277+00:00",
@@ -102,12 +120,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "054160076477",
-      "indexed_at": "2026-07-31T12:42:19.150273+00:00",
+      "hash": "9a5ca61a5807",
+      "indexed_at": "2026-07-31T12:50:32.390329+00:00",
       "language": "shell",
-      "lines": 124,
-      "mtime_ns": 1785501565963748700,
-      "size": 4809,
+      "lines": 130,
+      "mtime_ns": 1785502022787576700,
+      "size": 5161,
       "symbols": []
     },
     "spdx-sweep.sh": {
@@ -139,6 +157,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-07-31T12:42:19.150322+00:00",
+  "generated_at": "2026-07-31T12:50:32.390384+00:00",
   "version": "1.0"
 }

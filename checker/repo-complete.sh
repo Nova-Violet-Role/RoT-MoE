@@ -67,8 +67,14 @@ done
 echo
 echo "-- counts recounted from source, never trusted from prose --"
 
-TH=$(grep -hcE '^(@\[[^]]*\] )?(private |protected |noncomputable )*(theorem|lemma) ' \
-       lean/Proofs/*.lean | awk '{s+=$1} END{print s+0}')
+# ONE definition of the count, comment-aware and self-tested. A bare grep here
+# counted a `theorem` line written inside a doc comment -- prose illustrating
+# what a vacuous theorem looks like -- and reported 73 where the truth was 71.
+# The instrument that checks every prose claim could itself be inflated by
+# writing English.
+bash "$REPO/checker/count-theorems.sh" --selftest >/dev/null 2>&1 \
+  || { echo "  FAIL  the theorem counter failed its own selftest"; exit 1; }
+TH=$(bash "$REPO/checker/count-theorems.sh" lean/Proofs/*.lean)
 MODS=$(ls lean/Proofs/*.lean 2>/dev/null | wc -l | tr -d ' ')
 SUITES=$(ls lean/mutate/mutate_*.sh 2>/dev/null | wc -l | tr -d ' ')
 echo "  measured: $TH theorems, $MODS modules, $SUITES mutation suites"
@@ -93,7 +99,7 @@ if [ -f README.md ]; then
   permod=0; permod_wrong=0
   for m in lean/Proofs/*.lean; do
     base="$(basename "$m" .lean)"
-    real=$(grep -cE '^(@\[[^]]*\] )?(private |protected |noncomputable )*(theorem|lemma) ' "$m")
+    real=$(bash "$REPO/checker/count-theorems.sh" "$m")
     claimed=$(grep -oE "$base\.lean\*\*\` \(([0-9]+) theorems\)" README.md | grep -oE '\([0-9]+' | tr -d '(')
     [ -z "$claimed" ] && claimed=$(grep -A1 "$base.lean" README.md | grep -oE '\(([0-9]+) theorems\)' | grep -oE '[0-9]+' | head -1)
     if [ -n "$claimed" ]; then
