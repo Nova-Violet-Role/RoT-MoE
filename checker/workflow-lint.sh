@@ -170,6 +170,50 @@ if [ -f checker/gate-all.sh ]; then
   grep -q 'exit 1' checker/gate-all.sh \
     && ok "gate-all can exit non-zero" \
     || bad "gate-all has no failing exit path -- it cannot stop a bad commit"
+
+  # --- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------
+  #
+  # Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts
+  # gate-all names only real checkers. NEITHER asserts the direction that
+  # actually protects a commit: that gate-all COVERS every checker.
+  #
+  # Without it, a new checker wired into CI alone leaves the pre-commit gate
+  # quietly weaker than the pipeline -- the defect passes locally, and the only
+  # place it surfaces is a push. On a repository that does not yet have a
+  # remote, "it surfaces on a push" means "it does not surface".
+  #
+  # Exemptions are allowed, and each one states its reason, because a silent
+  # exemption is how a coverage rule becomes a formality.
+  declare -A GATE_EXCEPT
+  GATE_EXCEPT[gate-all.sh]="it is the aggregator; it cannot list itself as a gate"
+  GATE_EXCEPT[preflight.sh]="bootstrap probe for a fresh clone -- it runs BEFORE the gates exist, and gate-all would re-run its work"
+
+  gate_listed="$(grep -oE 'checker/[a-z-]+\.sh' checker/gate-all.sh | sed 's|checker/||' | sort -u)"
+  uncovered=0
+  for c in checker/*.sh; do
+    b="$(basename "$c")"
+    if printf '%s\n' "$gate_listed" | grep -qx "$b"; then
+      continue
+    elif [ -n "${GATE_EXCEPT[$b]:-}" ]; then
+      echo "  NOTE  not a gate: $b -- ${GATE_EXCEPT[$b]}"
+    else
+      bad "$b is never run by gate-all -- the local commit gate is WEAKER than CI"
+      uncovered=$((uncovered+1))
+    fi
+  done
+  [ "$uncovered" -eq 0 ] && ok "every checker is either a gate or exempt with a stated reason"
+
+  # CONTROL: a planted checker that nobody wired in must be seen. Written to the
+  # real directory and removed immediately, because the check reads the
+  # directory -- a control that runs somewhere else tests somewhere else.
+  PL="checker/zz-planted-control.sh"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$PL"
+  if printf '%s\n' "$gate_listed" | grep -qx "zz-planted-control.sh"; then
+    bad "CONTROL DEAD: a checker that was never added to gate-all appears to be listed"
+  else
+    ok "CONTROL: a checker absent from gate-all IS detectable (planted, then removed)"
+  fi
+  rm -f "$PL"
 else
   bad "checker/gate-all.sh is missing -- the pre-commit hook has nothing to call"
 fi
