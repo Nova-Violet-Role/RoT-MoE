@@ -134,6 +134,18 @@ jobs:
         shell: bash
         run: bash checker/tags-consistency.sh
 
+      # The Float mirror in RotGauge.lean carries "-- hook reported 0.49"
+      # comments. Those were hand-written claims of agreement that nothing
+      # re-measured. This runs BOTH arms and diffs them; it SKIPS (exit 3),
+      # never passes, when there is no built Lean workspace.
+      - name: gauge cross-check -- Lean mirror vs the running hook
+        shell: bash
+        run: |
+          set +e
+          LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/gauge-cross.sh; rc=$?
+          [ "$rc" -eq 3 ] && { echo "SKIPPED: no built Lean workspace -- NOT a pass"; exit 0; }
+          exit $rc
+
       - name: mutate the checker -- it must be able to fail
         shell: bash
         run: bash checker/mutate-checker.sh

@@ -57,13 +57,31 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "610029d3d014",
-      "indexed_at": "2026-07-31T17:21:49.256510+00:00",
+      "hash": "2d237b3a6abe",
+      "indexed_at": "2026-07-31T17:48:13.703897+00:00",
       "language": "shell",
-      "lines": 102,
-      "mtime_ns": 1785517221668686500,
-      "size": 3772,
+      "lines": 129,
+      "mtime_ns": 1785519447023538000,
+      "size": 5275,
       "symbols": []
+    },
+    "gauge-cross.sh": {
+      "hash": "c48e9c843aa2",
+      "indexed_at": "2026-07-31T17:48:13.855539+00:00",
+      "language": "shell",
+      "lines": 182,
+      "mtime_ns": 1785519382553039500,
+      "size": 8110,
+      "symbols": [
+        {
+          "lines": [
+            106,
+            109
+          ],
+          "name": "shell_gauge",
+          "type": "function"
+        }
+      ]
     },
     "install-roundtrip.sh": {
       "hash": "42ac5727e40d",
@@ -276,6 +294,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T17:21:49.295645+00:00",
+  "generated_at": "2026-07-31T17:48:13.855590+00:00",
   "version": "1.0"
 }

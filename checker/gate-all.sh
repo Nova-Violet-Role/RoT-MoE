@@ -48,6 +48,7 @@ cross-diff (both reminder arms)|bash checker/cross-diff-remind.sh
 install-document lint|bash checker/claude-md-lint.sh
 licence bridge (NOTICE vs disk)|bash checker/license-bridge.sh
 tag consistency (local half of R18)|bash checker/tags-consistency.sh
+gauge cross (Lean mirror vs hook)|bash checker/gauge-cross.sh
 mutate the checker|bash checker/mutate-checker.sh
 installer round trip|bash checker/install-roundtrip.sh
 "
@@ -57,6 +58,32 @@ if [ "$FULL" -eq 1 ]; then
 plugin + fresh-user install|bash checker/plugin-install.sh
 live-session smoke|bash checker/live-session-smoke.sh
 "
+fi
+
+# =============================================================================
+# PREFLIGHT: REFUSE TO RUN ON A TREE A MUTATION SUITE LEFT BEHIND.
+#
+# MEASURED 2026-07-31. A gate-all run was interrupted while `mutate-checker.sh`
+# had a mutant applied. Its restore is an EXIT trap, and a process that does not
+# reach its trap does not restore: the tree was left with mutant H07 live in
+# `hooks/rot-router.sh` and four `.mutbak` files sitting beside it. Every
+# subsequent checker then measured THE MUTANT and called it the baseline.
+#
+# The damage was caught by an unrelated cross-check disagreeing, which is luck,
+# not method. A `.mutbak` on disk is unambiguous evidence that a suite did not
+# finish, and it is cheap to look for -- so the roll-up now refuses rather than
+# certifying a tree whose state is unknown. Recovery is stated, not implied,
+# because the backups ARE the repair.
+# =============================================================================
+leftover="$(find . -name '*.mutbak' -not -path './.git/*' 2>/dev/null)"
+if [ -n "$leftover" ]; then
+  echo "REFUSING: a mutation suite did not finish -- these .mutbak files remain:"
+  printf '%s\n' "$leftover" | sed 's/^/    /'
+  echo
+  echo "The tree may still carry a live mutant, and every gate below would be"
+  echo "measuring it instead of the baseline. Restore each file from its backup"
+  echo "(cp <f>.mutbak <f>), delete the backups, and re-run."
+  exit 2
 fi
 
 ran=0; red=0
