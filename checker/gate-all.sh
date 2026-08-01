@@ -69,6 +69,8 @@ ci dry run (the CI step list, clean clone)|bash checker/ci-dryrun.sh
 scheduled verdict, three weeks with a remote|bash checker/verdict-schedule-sim.sh
 plugin + fresh-user install|bash checker/plugin-install.sh
 live-session smoke|bash checker/live-session-smoke.sh
+release session (every variant, every lane, real CLI)|bash checker/release-session.sh
+sustained session (cloned auth, plugin installed, real conversation)|bash checker/release-longsession.sh
 deferred closure (the runner ran what the dry run could not)|bash checker/deferred-closure.sh
 "
 fi

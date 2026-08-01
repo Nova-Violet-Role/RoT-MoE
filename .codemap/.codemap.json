@@ -108,12 +108,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-01T20:02:15.462634+00:00",
+  "generated_at": "2026-08-01T21:53:10.609836+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-01T20:02:15.460958+00:00",
-    "total_files": 66,
-    "total_symbols": 443
+    "last_full_index": "2026-08-01T21:53:10.608096+00:00",
+    "total_files": 68,
+    "total_symbols": 454
   },
   "version": "1.0"
 }

@@ -183,12 +183,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "e73b72efc4d4",
-      "indexed_at": "2026-08-01T20:02:14.749478+00:00",
+      "hash": "288b7f967214",
+      "indexed_at": "2026-08-01T21:53:10.144276+00:00",
       "language": "shell",
-      "lines": 142,
-      "mtime_ns": 1785614024664982700,
-      "size": 6253,
+      "lines": 144,
+      "mtime_ns": 1785618302007352900,
+      "size": 6444,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -374,6 +374,34 @@
       "size": 16368,
       "symbols": []
     },
+    "release-longsession.sh": {
+      "hash": "913d907d2926",
+      "indexed_at": "2026-08-01T21:53:10.372019+00:00",
+      "language": "shell",
+      "lines": 269,
+      "mtime_ns": 1785619809313809100,
+      "size": 14568,
+      "symbols": [
+        {
+          "docstring": "--- the conversation --------------------------------------------------------- A working session, not a lane drill: the turns build on each other, and",
+          "lines": [
+            103,
+            126
+          ],
+          "name": "turn_text",
+          "type": "function"
+        },
+        {
+          "docstring": "--- INSTALL, the plugin way: the CLI loads it straight from the zip ------- `--plugin-dir` accepts a directory OR a .zip (measured: claude --help). Th",
+          "lines": [
+            169,
+            177
+          ],
+          "name": "run_turn",
+          "type": "function"
+        }
+      ]
+    },
     "release-package.sh": {
       "hash": "f4383e562174",
       "indexed_at": "2026-08-01T20:02:15.106587+00:00",
@@ -397,6 +425,41 @@
             233
           ],
           "name": "superset",
+          "type": "function"
+        }
+      ]
+    },
+    "release-session.sh": {
+      "hash": "6d2f18cfa95f",
+      "indexed_at": "2026-08-01T21:53:10.608024+00:00",
+      "language": "shell",
+      "lines": 251,
+      "mtime_ns": 1785618290936748900,
+      "size": 12392,
+      "symbols": [
+        {
+          "lines": [
+            79,
+            91
+          ],
+          "name": "prompt_for",
+          "type": "function"
+        },
+        {
+          "docstring": "The expected lens is read from THIS ARCHIVE's router, not from a copy here. A hard-coded expectation is a second source of truth that silently rots --",
+          "lines": [
+            157,
+            160
+          ],
+          "name": "lens_for",
+          "type": "function"
+        },
+        {
+          "lines": [
+            179,
+            189
+          ],
+          "name": "run_session",
           "type": "function"
         }
       ]
@@ -660,6 +723,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T20:02:15.106664+00:00",
+  "generated_at": "2026-08-01T21:53:10.608104+00:00",
   "version": "1.0"
 }

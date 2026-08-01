@@ -222,6 +222,33 @@ jobs:
           [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
           exit $rc
 
+      # The variant matrix in a REAL session. live-session-smoke above proves the
+      # repository packet fires once; this proves all three SHIPPED ARCHIVES fire
+      # on every lane -- a different artifact and a different question. It needs
+      # the zips, so it runs after the packager, and it needs API credentials, so
+      # it SKIPS (3) rather than failing on a runner that has none.
+      - name: release session (every variant, every lane, real CLI)
+        shell: bash
+        run: |
+          set +e
+          bash checker/release-package.sh || { echo "packaging failed -- cannot session-test"; exit 1; }
+          bash checker/release-session.sh; rc=$?
+          [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
+          exit $rc
+
+      # The sustained conversation. Needs a CLONED CREDENTIAL to hold a real
+      # session, which a public runner does not have -- so it SKIPS (3) there
+      # rather than passing. That is deliberate: the gate above proves routing
+      # without auth, this one proves CONVERSATION and can only run where a
+      # credential exists. A skip is never counted as a pass.
+      - name: sustained session (cloned auth, real conversation)
+        shell: bash
+        run: |
+          set +e
+          bash checker/release-longsession.sh; rc=$?
+          [ "$rc" -eq 3 ] && { echo "SKIPPED: no CLI or no credential to clone -- NOT a pass"; exit 0; }
+          exit $rc
+
       # The guard the development machine cannot test. `script` allocates a real
       # pty, so stdin IS a terminal and the router must refuse rather than block.
       # Bounded by timeout: a hang here is the exact failure being tested for,
