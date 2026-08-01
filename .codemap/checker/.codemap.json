@@ -37,6 +37,24 @@
         }
       ]
     },
+    "bench-router.sh": {
+      "hash": "0991e4783300",
+      "indexed_at": "2026-08-01T03:01:03.526859+00:00",
+      "language": "shell",
+      "lines": 182,
+      "mtime_ns": 1785552504179991800,
+      "size": 8501,
+      "symbols": [
+        {
+          "lines": [
+            114,
+            123
+          ],
+          "name": "check_priority",
+          "type": "function"
+        }
+      ]
+    },
     "ci-dryrun.sh": {
       "hash": "e93722286006",
       "indexed_at": "2026-07-31T19:17:28.359675+00:00",
@@ -129,12 +147,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "e80ed33e54f7",
-      "indexed_at": "2026-08-01T02:46:55.201344+00:00",
+      "hash": "8859a2e05297",
+      "indexed_at": "2026-08-01T03:01:03.694624+00:00",
       "language": "shell",
-      "lines": 134,
-      "mtime_ns": 1785551722113826800,
-      "size": 5650,
+      "lines": 135,
+      "mtime_ns": 1785552581247889900,
+      "size": 5715,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -484,6 +502,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T02:46:55.434714+00:00",
+  "generated_at": "2026-08-01T03:01:03.694687+00:00",
   "version": "1.0"
 }

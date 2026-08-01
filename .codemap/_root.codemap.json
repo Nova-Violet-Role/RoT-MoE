@@ -318,12 +318,12 @@
       ]
     },
     "README.md": {
-      "hash": "076b17de3995",
-      "indexed_at": "2026-08-01T02:46:55.793548+00:00",
+      "hash": "34c15aa4d4ad",
+      "indexed_at": "2026-08-01T03:01:03.867378+00:00",
       "language": "markdown",
-      "lines": 595,
-      "mtime_ns": 1785551498041312100,
-      "size": 33117,
+      "lines": 708,
+      "mtime_ns": 1785552574096043400,
+      "size": 38900,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -431,10 +431,47 @@
           "type": "section"
         },
         {
-          "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
+          "children": [
+            {
+              "docstring": "`agents/lean4-prover.md` ships as a **subagent definition** with loadable frontmatter. Point Claude Code at it and you get a specialist whose entire p",
+              "lines": [
+                382,
+                425
+              ],
+              "name": "\ud83e\udd16 The agent: `lean4-prover`",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:",
+              "lines": [
+                426,
+                444
+              ],
+              "name": "\ud83d\udf0f The router \u2014 what it delivers",
+              "type": "subsection"
+            },
+            {
+              "docstring": "This is the part worth reading twice.",
+              "lines": [
+                445,
+                492
+              ],
+              "name": "\ud83e\udde0 What Lean 4 actually changes in an agentic loop",
+              "type": "subsection"
+            }
+          ],
           "lines": [
             380,
-            442
+            492
+          ],
+          "name": "\ud83d\udca1 Tips & Tricks \u2014 getting real work out of it",
+          "type": "section"
+        },
+        {
+          "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
+          "lines": [
+            493,
+            555
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -442,8 +479,8 @@
         {
           "docstring": "**This is the section we are proudest of.** Knowing exactly where the guarantee ends is what makes everything before it worth having \u2014 a proof with an",
           "lines": [
-            443,
-            503
+            556,
+            616
           ],
           "name": "\ud83d\uddfa\ufe0f The map: PROVED \u00b7 MEASURED \u00b7 OUT OF SCOPE",
           "type": "section"
@@ -451,8 +488,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            504,
-            518
+            617,
+            631
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -462,8 +499,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                537,
-                545
+                650,
+                658
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -471,8 +508,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            519,
-            545
+            632,
+            658
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -482,8 +519,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                569,
-                596
+                682,
+                709
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -491,8 +528,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            546,
-            596
+            659,
+            709
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -574,6 +611,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-01T02:46:55.793654+00:00",
+  "generated_at": "2026-08-01T03:01:03.867461+00:00",
   "version": "1.0"
 }

@@ -377,6 +377,119 @@ directory with no `settings.json` — the case every first-time user hits.
 
 ---
 
+## 💡 Tips & Tricks — getting real work out of it
+
+### 🤖 The agent: `lean4-prover`
+
+`agents/lean4-prover.md` ships as a **subagent definition** with loadable
+frontmatter. Point Claude Code at it and you get a specialist whose entire
+personality is *refusing to claim anything it did not measure*.
+
+**What it is good at**
+
+| it does this well | why |
+|---|---|
+| turning "this should be safe" into a theorem or an honest "no universal claim" | it is required to name the instrument behind every sentence |
+| finding the lemma you cannot remember | `exact?`, `apply?`, `rw?`, `simp?` are its first reflex, not its last |
+| refusing a false green | it reads exit codes directly and treats a pipe as a bug |
+| telling you a proof is **decorative** | it mutates its own theorems and reports which ones nothing killed |
+| working on a program in *any* language | the binding is a checker that runs your real code, not a Lean rewrite of it |
+
+**Spawning it — one, several, or in the background**
+
+```sh
+# one, on a specific obligation
+claude "use the lean4-prover agent: prove the clamp in src/limits.rs never exceeds MAX"
+
+# several at once — one per module, they do not share state
+claude "spawn 4 lean4-prover agents in parallel, one per file in lean/Proofs/,
+        each: build, #print axioms, leanchecker, then mutate and report kills"
+
+# in the background, while you keep working
+claude "run the lean4-prover agent in the background on the mutation suites;
+        report only the survivors"
+```
+
+The agent is **stateless per task**, which is exactly what makes fan-out safe:
+each one owns a file, builds it, mutates it, restores it, and reports. Give two
+of them the same file and they will fight over the same `.mutbak` — one agent,
+one module is the rule that keeps kills attributable.
+
+**Useful habits**
+
+* Ask for `#print axioms` in the same breath as the proof. `sorryAx` means *not
+  proved*; **no axioms at all** usually means *vacuous*, not *strong*.
+* Ask "which mutation kills this?" before believing a theorem matters.
+* If it says `MEASURED` rather than `PROVED`, that distinction is deliberate —
+  `Float ≠ ℝ`, and it will not pretend otherwise.
+
+### 🜏 The router — what it delivers
+
+Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:
+
+| what | measured 2026-08-01 |
+|---|---|
+| routing accuracy on a labelled key written *before* the run | **18/18**, covering **9** distinct lanes |
+| cost per turn | **≈154 ms**, of which ~18 ms is bash process startup |
+| ambiguous prompts (two lanes match) | resolve by the **proved** priority order, deterministically |
+| armed vs disarmed in a real `claude` session | **1 emission vs 0** — attributable to the install |
+
+That last row is the one that matters: the router is not "probably running", it
+was watched firing and watched going silent when disarmed.
+
+**Its strong point is not the number — it is that the number is falsifiable.**
+Nine lenses, a priority order a theorem characterises in both directions, and a
+gauge whose properties are machine-checked. You can disagree with the routing;
+you cannot be lied to about it.
+
+### 🧠 What Lean 4 actually changes in an agentic loop
+
+This is the part worth reading twice.
+
+An agent writing code hits a fork on every non-trivial step: *is this actually
+correct?* It has three ways out.
+
+1. **Guess** — write it, sound confident, move on. Fast, and how most bad code
+   is born.
+2. **Ask you** — "does this look right?" Safe, and it turns an autonomous agent
+   into a chat partner that needs you awake.
+3. **Ask the compiler.** State the claim as a theorem and let a kernel of a few
+   thousand lines re-derive it from the axioms. It answers in seconds, it is
+   never polite, and it cannot be argued with.
+
+**Option 3 is what removes you from the *verification* loop.** Not from the
+project — from the tedious half. A test suite samples: it tries the inputs
+someone thought of. A theorem settles: `∀ (p q : Platform), key p = key q → p = q`
+is checked over every pair that could ever exist. Once an obligation is a
+theorem, "are you sure?" stops being a question a human has to answer, and the
+agent can keep going through the night without a single "please confirm".
+
+**And the loop closes on itself.** The agent writes the theorem, builds it,
+prints its axioms, re-checks it with `leanchecker`, then *mutates its own model
+on purpose* and requires the theorems to die. If a mutation survives, the
+theorem was decoration and the agent says so. That is a self-auditing loop —
+which is precisely why it does not need to interrupt you: it has an oracle that
+is not you, and a habit of doubting itself that does not depend on your mood.
+
+This repository is the demonstration, not the advertisement: **six defects were
+found this way in a single day** — a scheduled bot that would have committed
+forever, an "axiom gate" that never printed an axiom, a mutation harness that
+scored eleven perfect kills without opening a source file, a probe that fetched
+7.2 GB into a 200 KB repo, an infinite loop in the router's own flag parser, and
+a checker that reported a clean sweep of 29 theorems in a 35-theorem file. Every
+one was found by an instrument, on green code, with nobody asked to review
+anything.
+
+**Where you are still needed, stated honestly.** Lean settles *correctness
+against a stated property*. It cannot tell you the property was the one you
+wanted. Intent, taste, priorities, whether the feature should exist at all —
+those remain yours, and a proof that the wrong thing is correct is still the
+wrong thing. Anyone claiming otherwise is selling something. What we claim is
+narrower and worth more: **you should never again have to be the one who checks
+whether the code does what it says.**
+
+---
+
 ## 🎓 Verify it yourself
 
 The proofs are checked by CI on a clean runner for every commit, so you never
