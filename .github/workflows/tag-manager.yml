@@ -36,6 +36,13 @@ on:
 
 permissions:
   contents: write
+  # `administration: write` is what PUT /repos/{owner}/{repo}/topics requires.
+  # MEASURED 2026-08-01: with `contents: write` alone the step died on
+  # `gh: Resource not accessible by integration (HTTP 403)`. Granting it here
+  # may still be refused when an org policy restricts GITHUB_TOKEN, which is
+  # why the step below VERIFIES before it repairs and does not treat a missing
+  # permission as drift.
+  administration: write
 
 concurrency:
   group: tag-manager
@@ -207,16 +214,54 @@ jobs:
 
       # 3. The repo topics themselves. This is the structured descendant of the
       #    forum signature tag -- each becomes a crawlable github.com/topics page.
-      - name: Push repo topics
+      # VERIFY, THEN REPAIR -- rewritten 2026-08-01 after this step failed with
+      # `gh: Resource not accessible by integration (HTTP 403)`.
+      #
+      # The old version went straight to PUT and let a permission error fail the
+      # run. That conflates two completely different states:
+      #
+      #   * the live topics DISAGREE with tags.txt      -> a real defect, be red
+      #   * the live topics AGREE and the token may not
+      #     have written them this minute                -> nothing is wrong
+      #
+      # A red run for the second case trains everyone to ignore the workflow,
+      # and the obvious "fix" is to delete the step -- which would remove the
+      # only thing that notices the first case. So: READ first (GET /topics
+      # needs no special permission), compare as a SET against the source of
+      # truth, and only attempt the write when they actually differ. If the
+      # write is then refused, THAT is an error worth failing on, because real
+      # drift exists and this workflow cannot repair it.
+      - name: Sync repo topics (verify, then repair)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
-          mapfile -t TOPICS < /tmp/topics.txt    # the CAPPED tier -- max 20
+          set -uo pipefail
+          sort -u /tmp/topics.txt > /tmp/want.txt
+
+          gh api "repos/${GITHUB_REPOSITORY}/topics" --jq '.names[]' 2>/dev/null             | sort -u > /tmp/have.txt || : > /tmp/have.txt
+          echo "declared: $(wc -l < /tmp/want.txt)   live: $(wc -l < /tmp/have.txt)"
+
+          if diff -q /tmp/want.txt /tmp/have.txt >/dev/null 2>&1; then
+            echo "topics already match .github/tags.txt -- nothing to push."
+            echo "(A no-op is the correct outcome of a sync job that finds no drift.)"
+            exit 0
+          fi
+
+          echo "DRIFT between the live topics and tags.txt:"
+          echo "  only declared: $(comm -23 /tmp/want.txt /tmp/have.txt | paste -sd' ' -)"
+          echo "  only live:     $(comm -13 /tmp/want.txt /tmp/have.txt | paste -sd' ' -)"
+
           args=()
-          for t in "${TOPICS[@]}"; do args+=( -f "names[]=$t" ); done
-          gh api -X PUT "repos/${GITHUB_REPOSITORY}/topics" "${args[@]}" > /tmp/topics.json
-          echo "topics now:"; cat /tmp/topics.json
+          while read -r t; do args+=( -f "names[]=$t" ); done < /tmp/topics.txt
+          if gh api -X PUT "repos/${GITHUB_REPOSITORY}/topics" "${args[@]}" > /tmp/topics.json; then
+            echo "topics now:"; cat /tmp/topics.json
+          else
+            rc=$?
+            echo "::error::the topics DRIFTED from .github/tags.txt and this token cannot fix it (gh exit $rc)."
+            echo "::error::GITHUB_TOKEN needs 'administration: write', and an org policy may still refuse it."
+            echo "::error::Apply the 20 topics by hand, or give the workflow a PAT. This is REAL drift, not a permission nit."
+            exit 1
+          fi
 
       - name: Commit only on real drift
         run: |

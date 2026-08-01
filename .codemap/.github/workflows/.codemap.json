@@ -1494,12 +1494,12 @@
       ]
     },
     "tag-manager.yml": {
-      "hash": "9fe86db09c99",
-      "indexed_at": "2026-08-01T06:31:56.919235+00:00",
+      "hash": "8362676d53fa",
+      "indexed_at": "2026-08-01T06:41:22.103044+00:00",
       "language": "yaml",
-      "lines": 232,
-      "mtime_ns": 1785565164399626300,
-      "size": 10972,
+      "lines": 277,
+      "mtime_ns": 1785566129540382500,
+      "size": 13621,
       "symbols": [
         {
           "docstring": "Meta Hashtag Manager",
@@ -1571,15 +1571,24 @@
               "docstring": "write",
               "lines": [
                 38,
-                39
+                44
               ],
               "name": "contents",
+              "type": "key"
+            },
+            {
+              "docstring": "write",
+              "lines": [
+                45,
+                46
+              ],
+              "name": "administration",
               "type": "key"
             }
           ],
           "lines": [
             37,
-            39
+            46
           ],
           "name": "permissions",
           "type": "section"
@@ -1589,8 +1598,8 @@
             {
               "docstring": "tag-manager",
               "lines": [
-                41,
-                41
+                48,
+                48
               ],
               "name": "group",
               "type": "key"
@@ -1598,16 +1607,16 @@
             {
               "docstring": "false",
               "lines": [
-                42,
-                43
+                49,
+                50
               ],
               "name": "cancel-in-progress",
               "type": "key"
             }
           ],
           "lines": [
-            40,
-            43
+            47,
+            50
           ],
           "name": "concurrency",
           "type": "section"
@@ -1619,8 +1628,8 @@
                 {
                   "docstring": "ubuntu-latest",
                   "lines": [
-                    46,
-                    46
+                    53,
+                    53
                   ],
                   "name": "runs-on",
                   "type": "key"
@@ -1630,8 +1639,8 @@
                     {
                       "docstring": "actions/checkout@v7",
                       "lines": [
-                        48,
-                        55
+                        55,
+                        62
                       ],
                       "name": "uses",
                       "type": "item"
@@ -1639,16 +1648,16 @@
                     {
                       "docstring": "Validate tags.txt",
                       "lines": [
-                        56,
-                        56
+                        63,
+                        63
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        57,
-                        101
+                        64,
+                        108
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1656,16 +1665,16 @@
                     {
                       "docstring": "Evidence check against THIS tree",
                       "lines": [
-                        102,
-                        102
+                        109,
+                        109
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        103,
-                        125
+                        110,
+                        132
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1673,16 +1682,16 @@
                     {
                       "docstring": "Evidence check negative control",
                       "lines": [
-                        126,
-                        126
+                        133,
+                        133
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        127,
-                        138
+                        134,
+                        145
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1690,16 +1699,16 @@
                     {
                       "docstring": "Validator negative control",
                       "lines": [
-                        139,
-                        139
+                        146,
+                        146
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        140,
-                        148
+                        147,
+                        155
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1707,25 +1716,25 @@
                     {
                       "docstring": "Derive every copy from tags.txt",
                       "lines": [
-                        149,
-                        149
+                        156,
+                        156
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        150,
-                        209
+                        157,
+                        233
                       ],
                       "name": "run",
                       "type": "multiline"
                     },
                     {
-                      "docstring": "Push repo topics",
+                      "docstring": "Sync repo topics (verify, then repair)",
                       "lines": [
-                        210,
-                        210
+                        234,
+                        234
                       ],
                       "name": "name",
                       "type": "item"
@@ -1735,24 +1744,24 @@
                         {
                           "docstring": "${{ secrets.GITHUB_TOKEN }}",
                           "lines": [
-                            212,
-                            212
+                            236,
+                            236
                           ],
                           "name": "GH_TOKEN",
                           "type": "key"
                         }
                       ],
                       "lines": [
-                        211,
-                        212
+                        235,
+                        236
                       ],
                       "name": "env",
                       "type": "section"
                     },
                     {
                       "lines": [
-                        213,
-                        220
+                        237,
+                        265
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1760,40 +1769,40 @@
                     {
                       "docstring": "Commit only on real drift",
                       "lines": [
-                        221,
-                        221
+                        266,
+                        266
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        222,
-                        233
+                        267,
+                        278
                       ],
                       "name": "run",
                       "type": "multiline"
                     }
                   ],
                   "lines": [
-                    47,
-                    233
+                    54,
+                    278
                   ],
                   "name": "steps",
                   "type": "list"
                 }
               ],
               "lines": [
-                45,
-                233
+                52,
+                278
               ],
               "name": "sync",
               "type": "section"
             }
           ],
           "lines": [
-            44,
-            233
+            51,
+            278
           ],
           "name": "jobs",
           "type": "section"
@@ -2084,6 +2093,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T06:31:57.085295+00:00",
+  "generated_at": "2026-08-01T06:41:22.103133+00:00",
   "version": "1.0"
 }
