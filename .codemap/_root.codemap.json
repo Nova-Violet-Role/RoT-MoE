@@ -2,18 +2,18 @@
   "directory": "",
   "files": {
     "ARM_ROUTER.sh": {
-      "hash": "5408ec45e1b9",
-      "indexed_at": "2026-07-31T12:18:17.249007+00:00",
+      "hash": "8128bbf7ad24",
+      "indexed_at": "2026-08-01T18:40:23.824577+00:00",
       "language": "shell",
-      "lines": 197,
-      "mtime_ns": 1785500116894024400,
-      "size": 8172,
+      "lines": 211,
+      "mtime_ns": 1785606648359145800,
+      "size": 9113,
       "symbols": [
         {
           "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
           "lines": [
-            103,
-            118
+            117,
+            132
           ],
           "name": "canon_path",
           "type": "function"
@@ -213,12 +213,12 @@
       ]
     },
     "DISARM_ROUTER.sh": {
-      "hash": "3c186e8698e0",
-      "indexed_at": "2026-07-31T12:09:46.414106+00:00",
+      "hash": "8794592708c2",
+      "indexed_at": "2026-08-01T18:40:24.633975+00:00",
       "language": "shell",
       "lines": 98,
-      "mtime_ns": 1785499766436360200,
-      "size": 3979,
+      "mtime_ns": 1785606648359145800,
+      "size": 4001,
       "symbols": [
         {
           "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
@@ -594,6 +594,70 @@
         }
       ]
     },
+    "RELEASE.md": {
+      "hash": "7c831dcc9416",
+      "indexed_at": "2026-08-01T18:40:24.951926+00:00",
+      "language": "markdown",
+      "lines": 202,
+      "mtime_ns": 1785608836236645400,
+      "size": 9762,
+      "symbols": [
+        {
+          "docstring": "**Take `v0.1.0` \u2014 Core.** It is the plugin. It routes, it gauges, it reminds, and it never touches the network. If you are here to *use* RoT MoE, that",
+          "lines": [
+            28,
+            61
+          ],
+          "name": "\ud83c\udfaf Which one do I want?",
+          "type": "section"
+        },
+        {
+          "docstring": "**`rot-moe-0.1.0-core.zip`**",
+          "lines": [
+            62,
+            80
+          ],
+          "name": "\ud83d\udce6 Core \u2014 shipped from **v0.1.0**",
+          "type": "section"
+        },
+        {
+          "docstring": "**`rot-moe-0.1.0-lean.zip`**",
+          "lines": [
+            81,
+            107
+          ],
+          "name": "\ud83d\udd2c Core + Lean \u2014 shipped from **v0.1.1**",
+          "type": "section"
+        },
+        {
+          "docstring": "Stated as a list because it is easier to check than a paragraph:",
+          "lines": [
+            108,
+            125
+          ],
+          "name": "\ud83d\udee1\ufe0f What neither version does",
+          "type": "section"
+        },
+        {
+          "docstring": "<div align=\"center\">",
+          "lines": [
+            126,
+            179
+          ],
+          "name": "\ud83d\ude80 Install",
+          "type": "section"
+        },
+        {
+          "docstring": "Every claim on this page is an assertion in a script you can run:",
+          "lines": [
+            180,
+            203
+          ],
+          "name": "\ud83d\udd0d Verify the download itself",
+          "type": "section"
+        }
+      ]
+    },
     "SECURITY.md": {
       "hash": "4594c9020526",
       "indexed_at": "2026-07-31T12:42:19.480182+00:00",
@@ -697,6 +761,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T12:13:38.335893+00:00",
+  "generated_at": "2026-08-01T18:40:24.951984+00:00",
   "version": "1.0"
 }

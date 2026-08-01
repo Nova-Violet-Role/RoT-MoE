@@ -76,7 +76,21 @@ done
 # HOME. That is not a backdoor: it is what makes rules 1-6 testable at all,
 # and an installer whose guarantees have never been executed is an untested
 # alarm.
-CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
+#
+# CLAUDE_CONFIG_DIR IS HONOURED FIRST, AND THAT ORDER IS THE POINT. It is the
+# variable CLAUDE CODE ITSELF reads to relocate its configuration, so a user who
+# has set it is telling us, unambiguously, where their settings live. Honouring
+# only our own CLAUDE_DIR meant that for such a user this installer silently
+# armed the WRONG directory -- writing a backup and a hook entry into a
+# ~/.claude that Claude Code was not reading, while the config it does read
+# stayed untouched. Measured, not theorised: a scratch install driven with
+# CLAUDE_CONFIG_DIR set went straight for the live home directory and only the
+# read-only bit on the real settings.json stopped the write.
+#
+# Precedence, and why: CLAUDE_CONFIG_DIR (the user's own statement of where
+# their config is) beats CLAUDE_DIR (ours, for tests) beats $HOME/.claude (the
+# default). Ours stays second so every existing checker keeps working unchanged.
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${CLAUDE_DIR:-$HOME/.claude}}"
 SETTINGS="$CLAUDE_DIR/settings.json"
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROUTER_SH="$SELF_DIR/hooks/rot-router.sh"

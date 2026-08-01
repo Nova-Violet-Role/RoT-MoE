@@ -58,6 +58,8 @@ mutation discipline (Lean spec binds the harnesses)|bash checker/mutant-discipli
 benchmark (routing accuracy + cost)|bash checker/bench-router.sh
 hook footprint (no network, Lean optional)|bash checker/hook-footprint.sh
 installer round trip|bash checker/install-roundtrip.sh
+release package (the two artifacts, asserted)|bash checker/release-package.sh
+release install (the artifact, from the zip)|bash checker/release-install.sh
 "
 
 if [ "$FULL" -eq 1 ]; then

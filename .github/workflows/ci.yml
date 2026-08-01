@@ -101,6 +101,24 @@ jobs:
         shell: bash
         run: bash checker/install-roundtrip.sh
 
+      # THE RELEASE ARTIFACTS, BUILT AND THEN INSTALLED FROM THE ZIP.
+      # These two run in this order and only in this order: release-install.sh
+      # REFUSES (exit 2) if the archives are not on disk, because installing a
+      # stale artifact proves something about a tree nobody is shipping. That
+      # already happened once here -- a zip built before a fix was tested after
+      # it, and reported a defect that no longer existed.
+      #
+      # install-roundtrip.sh above proves the installer works IN THE REPOSITORY.
+      # This proves it works the way a stranger meets it: unzipped somewhere with
+      # no git, no checker/, no lean/ beside it.
+      - name: release artifacts build, and assert their own contents
+        shell: bash
+        run: bash checker/release-package.sh
+
+      - name: release artifacts install from the zip (scratch config dir only)
+        shell: bash
+        run: bash checker/release-install.sh
+
       # The Lean witness uses the SHIPPING weights on purpose, so the proofs
       # apply to the profile in production. Retune LAMBDAS and every other gate
       # stays green while "proved for the shipping profile" quietly goes false.

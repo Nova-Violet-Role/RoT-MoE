@@ -16,7 +16,8 @@
       "**/.lake/**",
       "**/*.olean",
       "**/*.mutbak",
-      "**/*.bak"
+      "**/*.bak",
+      "**/.release/**"
     ],
     "include_patterns": [
       "**/*.py",
@@ -107,12 +108,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-01T12:13:38.337384+00:00",
+  "generated_at": "2026-08-01T18:40:25.440345+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-01T12:13:38.335886+00:00",
-    "total_files": 61,
-    "total_symbols": 417
+    "last_full_index": "2026-08-01T18:40:25.431273+00:00",
+    "total_files": 64,
+    "total_symbols": 430
   },
   "version": "1.0"
 }

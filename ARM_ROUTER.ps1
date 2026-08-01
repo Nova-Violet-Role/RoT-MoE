@@ -36,7 +36,13 @@
 param([switch] $DryRun)   # -DryRun: show the change, write nothing
 $ErrorActionPreference = 'Stop'
 
-$ClaudeDir = if ($env:CLAUDE_DIR) { $env:CLAUDE_DIR } else { Join-Path $HOME '.claude' }
+# CLAUDE_CONFIG_DIR FIRST -- it is the variable Claude Code itself reads to
+# relocate its configuration. Honouring only our own CLAUDE_DIR armed the
+# WRONG directory for any user who had set it. Ours stays second so the
+# existing checkers keep working; the home-relative .claude remains the default.
+$ClaudeDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR }
+             elseif ($env:CLAUDE_DIR)     { $env:CLAUDE_DIR }
+             else { Join-Path $HOME '.claude' }
 $Settings  = Join-Path $ClaudeDir 'settings.json'
 $SelfDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RouterSh  = Join-Path $SelfDir 'hooks/rot-router.sh'

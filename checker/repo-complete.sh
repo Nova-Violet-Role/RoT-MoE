@@ -308,6 +308,126 @@ else
 fi
 rm -rf "$CTL"
 
+# =============================================================================
+# NO PYTHON IN THE PACKET.
+#
+# This repository ships bash, PowerShell, one Node merge engine and Lean. That
+# is the whole runtime surface a user is asked to trust, and every one of those
+# is either already required by Claude Code or already required by the proofs.
+# Adding Python would add an interpreter to the install story that buys nothing:
+# a user without it could not run the checkers, and a user with it gets a fourth
+# language to audit.
+#
+# The rule is enforced here rather than remembered, because "we do not use
+# Python" is exactly the kind of convention that survives until the first
+# convenient one-off script and then quietly stops being true. A .py file used
+# as a throwaway editing tool is fine -- OUTSIDE the tree. Inside it, it is a
+# dependency whether or not anyone calls it a dependency.
+echo
+echo "== NO PYTHON IN THE PACKET =="
+py_tracked=$(git ls-files '*.py' '*.pyw' | grep -c . || true)
+if [ "$py_tracked" -eq 0 ]; then
+  ok "no Python file is tracked in the repository"
+else
+  bad "$py_tracked Python file(s) are tracked -- the packet has grown an interpreter dependency:"
+  git ls-files '*.py' '*.pyw' | sed 's/^/        /' | head -10
+fi
+
+# Untracked ones matter too: they are what a build script would reach for, and
+# they are invisible to `git ls-files` right up until someone commits them.
+py_loose=$(find . -name '*.py' -o -name '*.pyw' 2>/dev/null | grep -v '^\./\.git/' | grep -c . || true)
+if [ "$py_loose" -eq 0 ]; then
+  ok "no untracked Python file is sitting in the working tree either"
+else
+  bad "$py_loose untracked Python file(s) in the tree -- delete them or move them outside"
+  find . -name '*.py' -o -name '*.pyw' 2>/dev/null | grep -v '^\./\.git/' | sed 's/^/        /' | head -10
+fi
+
+# No shipped script may INVOKE python either. A repository with no .py that
+# shells out to `python3 -c` has the dependency without the evidence, which is
+# the worse of the two states: nothing to grep for and everything to break.
+#
+# THE PATTERN MATCHES A COMMAND POSITION, NOT THE WORD. The first version of
+# this check matched `python|python3|py` as bare tokens and reported four files,
+# every one of them a FALSE POSITIVE: a `'*.py'` glob in this very file, a
+# `check_lang python '*.py'` row in the repo-topic table, and `py` sitting in a
+# list of source extensions the proof-debt reminder scans. A rule that fires on
+# the NAME of a language cannot tell a dependency from a mention of one, and a
+# gate that cries wolf gets weakened by the next person who has to ship past it.
+#
+# So the interpreter must appear where a command appears: at the start of a
+# line, or after ; | & ( or a $( -- and bare `py` counts only as the Windows
+# launcher form `py -3`, because two letters collide with everything.
+PYCMD='(^|[;|&(]|\$\()[[:space:]]*(python3?|uv[[:space:]]+run)([[:space:]]|$)'
+PYLAUNCH='(^|[;|&(]|\$\()[[:space:]]*py[[:space:]]+-[0-9]'
+PYTMP="$(mktemp "${TMPDIR:-/tmp}/rotmoe-pyscan.XXXXXX")"
+py_call=0
+for f in $(git ls-files '*.sh' '*.ps1' '*.js' '*.yml' '*.yaml'); do
+  [ -f "$f" ] || continue
+  # strip comments and printed strings first, or the paragraph you are reading
+  # right now would trip the detector that it describes
+  # Write the stripped text to a FILE and grep the file. Piping into `grep -q`
+  # is forbidden repo-wide (checker/portability.sh) because grep -q exits at the
+  # first match, SIGPIPEs the writer, and under `set -o pipefail` the pipeline
+  # status then depends on the platform's pipe buffer. A `case` glob cannot
+  # replace it here -- these two patterns are extended regexes -- so the text
+  # goes through a temp file instead.
+  sed 's/#.*$//; s/\/\/.*$//; s/\(say\|echo\|printf\|Write-Output\|note\|ok\|bad\).*$//' "$f" > "$PYTMP"
+  if grep -qE "$PYCMD" "$PYTMP" || grep -qE "$PYLAUNCH" "$PYTMP"; then
+    bad "$f invokes a Python interpreter"
+    py_call=$((py_call+1))
+  fi
+done
+[ "$py_call" -eq 0 ] && ok "no shipped script invokes a Python interpreter ($(git ls-files '*.sh' '*.ps1' '*.js' '*.yml' '*.yaml' | grep -c .) files scanned)"
+
+# --- controls: all three predicates must be able to fire ---------------------
+PYCTL="$(mktemp -d "${TMPDIR:-/tmp}/rotmoe-pyctl.XXXXXX")"
+printf 'print("hello")\n' > "$PYCTL/planted.py"
+if [ "$(find "$PYCTL" -name '*.py' | grep -c .)" -eq 1 ]; then
+  ok "CONTROL: a planted .py IS found by the same find expression"
+else
+  bad "CONTROL DEAD: the find expression cannot see a planted .py"
+fi
+detects () {   # $1 = file. Same two expressions, and the same temp-file shape,
+               # as the sweep above -- a control that tests a DIFFERENT pipeline
+               # from the one it is vouching for is not a control.
+  sed 's/#.*$//; s/\/\/.*$//; s/\(say\|echo\|printf\|Write-Output\|note\|ok\|bad\).*$//' "$1" > "$PYTMP"
+  grep -qE "$PYCMD" "$PYTMP" && return 0
+  grep -qE "$PYLAUNCH" "$PYTMP" && return 0
+  return 1
+}
+
+# It must FIRE on a real invocation -- three shapes, since one shape proves one shape.
+pos_ok=0
+printf '#!/bin/sh\npython3 -c "print(1)"\n'          > "$PYCTL/a.sh"; detects "$PYCTL/a.sh" && pos_ok=$((pos_ok+1))
+printf '#!/bin/sh\ncat f | python -\n'               > "$PYCTL/b.sh"; detects "$PYCTL/b.sh" && pos_ok=$((pos_ok+1))
+printf '#!/bin/sh\nv=$(uv run script)\n'             > "$PYCTL/c.sh"; detects "$PYCTL/c.sh" && pos_ok=$((pos_ok+1))
+printf '#!/bin/sh\npy -3 thing\n'                    > "$PYCTL/d.sh"; detects "$PYCTL/d.sh" && pos_ok=$((pos_ok+1))
+if [ "$pos_ok" -eq 4 ]; then
+  ok "CONTROL: all 4 planted invocations ARE detected (python3 -c, | python -, \$(uv run), py -3)"
+else
+  bad "CONTROL DEAD: only $pos_ok of 4 planted Python invocations were detected"
+fi
+
+# And it must NOT fire on any of the four shapes that made it cry wolf. These are
+# not hypotheticals: each is copied from the file that was falsely accused.
+neg_bad=0
+printf '#!/bin/sh\necho "we never call python here"\n'      > "$PYCTL/n1.sh"
+printf '#!/bin/sh\ngit ls-files "*.py" "*.pyw"\n'           > "$PYCTL/n2.sh"
+printf '#!/bin/sh\ncheck_lang python "*.py"\n'              > "$PYCTL/n3.sh"
+printf '#!/bin/sh\nDEBT_EXT="rs c h go ts js py java kt"\n' > "$PYCTL/n4.sh"
+for n in n1 n2 n3 n4; do
+  if detects "$PYCTL/$n.sh"; then
+    bad "CONTROL: $n.sh (a mention, not an invocation) is flagged -- the rule is too broad again"
+    neg_bad=$((neg_bad+1))
+  fi
+done
+if [ "$neg_bad" -eq 0 ]; then
+  ok "CONTROL: a printed word, a '*.py' glob, a language table row and an extension list are NOT flagged"
+fi
+rm -rf "$PYCTL"
+rm -f "$PYTMP"
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

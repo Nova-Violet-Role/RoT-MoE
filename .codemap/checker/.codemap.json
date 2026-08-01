@@ -156,12 +156,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "322dc1e4276c",
-      "indexed_at": "2026-08-01T09:54:12.222838+00:00",
+      "hash": "d1b02ef6c97f",
+      "indexed_at": "2026-08-01T18:40:23.982839+00:00",
       "language": "shell",
-      "lines": 139,
-      "mtime_ns": 1785577296179105700,
-      "size": 6030,
+      "lines": 141,
+      "mtime_ns": 1785606874612703700,
+      "size": 6185,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -338,13 +338,31 @@
       "size": 5227,
       "symbols": []
     },
-    "repo-complete.sh": {
-      "hash": "d8acc0629f28",
-      "indexed_at": "2026-08-01T01:59:49.216172+00:00",
+    "release-install.sh": {
+      "hash": "0a2b4ec63525",
+      "indexed_at": "2026-08-01T18:40:24.144872+00:00",
       "language": "shell",
-      "lines": 314,
-      "mtime_ns": 1785548968182405800,
-      "size": 15095,
+      "lines": 293,
+      "mtime_ns": 1785607629100090600,
+      "size": 13801,
+      "symbols": []
+    },
+    "release-package.sh": {
+      "hash": "bb869996e49d",
+      "indexed_at": "2026-08-01T18:40:24.306969+00:00",
+      "language": "shell",
+      "lines": 301,
+      "mtime_ns": 1785606438513832800,
+      "size": 12484,
+      "symbols": []
+    },
+    "repo-complete.sh": {
+      "hash": "cadd7b94b23e",
+      "indexed_at": "2026-08-01T18:40:24.471699+00:00",
+      "language": "shell",
+      "lines": 434,
+      "mtime_ns": 1785608760039511600,
+      "size": 21650,
       "symbols": [
         {
           "lines": [
@@ -369,6 +387,14 @@
             167
           ],
           "name": "scan_file_claims",
+          "type": "function"
+        },
+        {
+          "lines": [
+            391,
+            398
+          ],
+          "name": "detects",
           "type": "function"
         }
       ]
@@ -589,6 +615,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T12:13:38.170188+00:00",
+  "generated_at": "2026-08-01T18:40:24.471775+00:00",
   "version": "1.0"
 }

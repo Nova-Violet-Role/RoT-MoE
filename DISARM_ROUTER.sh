@@ -24,7 +24,7 @@
 
 set -euo pipefail
 
-CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${CLAUDE_DIR:-$HOME/.claude}}"
 SETTINGS="$CLAUDE_DIR/settings.json"
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROUTER_SH="$SELF_DIR/hooks/rot-router.sh"

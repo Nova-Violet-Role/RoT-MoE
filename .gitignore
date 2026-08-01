@@ -3,3 +3,7 @@ build/
 *.olean
 *.mutbak
 *.bak
+
+# release artifacts built by checker/release-package.sh (never committed:
+# they are rebuilt from the tree and uploaded to a GitHub Release)
+.release/

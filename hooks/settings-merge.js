@@ -109,6 +109,23 @@ if (mode === "arm") {
     }
   }
   if (removed === 0) { console.log("  not armed -- nothing to remove"); process.exit(10); }
+  // AND REMOVE THE CONTAINER WE FILLED. Deleting the per-event keys above is not
+  // enough: a settings.json that had no "hooks" key at all comes back with
+  // "hooks": {} still in it, and the round trip is then byte-DIFFERENT from what
+  // the user handed us. That is the exact claim the installer makes, so leaving
+  // it would make the claim false for the most common starting file there is.
+  //
+  // The one case this is imperfect for, stated rather than hidden: a user who
+  // deliberately kept an empty "hooks": {} gets the key removed. That is a
+  // semantic no-op -- Claude Code treats an empty hooks object and an absent one
+  // identically -- whereas the alternative is a byte-visible residue for
+  // everyone else. This is the opposite choice from the per-GROUP rule above,
+  // and deliberately so: an empty group is user-authored content sitting inside
+  // a list, while the top-level object is a container we are the ones who filled.
+  if (s.hooks && Object.keys(s.hooks).length === 0) {
+    delete s.hooks;
+    console.log("  removed    : the now-empty hooks container");
+  }
   console.log("  removed    : " + removed + " router hook entr" + (removed === 1 ? "y" : "ies"));
 } else {
   console.error("  unknown mode: " + mode);
