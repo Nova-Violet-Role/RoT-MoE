@@ -91,8 +91,25 @@ count_csv () {   # count_csv <csv> -> number of non-empty items
   printf '%s' "$1" | tr ',' '\n' | grep -c '[^[:space:]]'
 }
 
+# STRIP CARRIAGE RETURNS AT THE BOUNDARY.
+#
+# MEASURED ON THE GITHUB WINDOWS RUNNER, 2026-08-01, and reproduced locally by
+# converting the corpus to CRLF: with `core.autocrlf` on -- which is the DEFAULT
+# on a Windows checkout -- the last field of every corpus row arrives as `14\r`.
+# `[ "14\r" -gt 0 ]` is not a valid integer comparison, the test is false, and
+# the reminder SILENTLY DROPS ITS ENTIRE ALARM WARNING. Not a cosmetic space:
+# the sentence disappears, and the hook goes quiet about exactly the thing it
+# exists to shout about.
+#
+# The PowerShell arm never had this -- .NET's integer parse tolerates the CR --
+# so the two arms disagreed, which is how it was caught. Neither arm should
+# depend on the line endings of the file it was handed.
+strip_cr () { printf '%s' "$1" | tr -d '\r'; }
+
 decide () {   # decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS
-  _ev=$1; _mins=$2; _last=$3; _debt=$4; _kred=$5; _ksorry=$6; _alarms=$7
+  _ev=$(strip_cr "$1"); _mins=$(strip_cr "$2"); _last=$(strip_cr "$3")
+  _debt=$(strip_cr "$4"); _kred=$(strip_cr "$5"); _ksorry=$(strip_cr "$6")
+  _alarms=$(strip_cr "$7")
   [ "$_last" = "-" ] && _last=""
   [ "$_debt" = "-" ] && _debt=""
   [ "$_kred" = "-" ] && _kred=""

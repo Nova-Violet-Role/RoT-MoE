@@ -260,6 +260,9 @@ jobs:
       # `#print axioms` each, requires every name to be answered, cross-checks
       # its count against checker/count-theorems.sh, and plants a `sorry` to
       # prove it can fail.
+      - name: portability -- exec bits in the index, CRLF-proof hooks
+        run: bash checker/portability.sh
+
       - name: benchmark -- routing accuracy on a labelled key, and per-turn cost
         run: bash checker/bench-router.sh
 

@@ -147,12 +147,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "8859a2e05297",
-      "indexed_at": "2026-08-01T03:01:03.694624+00:00",
+      "hash": "f45d2efe5218",
+      "indexed_at": "2026-08-01T03:45:27.486806+00:00",
       "language": "shell",
-      "lines": 135,
-      "mtime_ns": 1785552581247889900,
-      "size": 5715,
+      "lines": 136,
+      "mtime_ns": 1785554760252651100,
+      "size": 5773,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -282,6 +282,15 @@
       "lines": 144,
       "mtime_ns": 1785500053367979600,
       "size": 6735,
+      "symbols": []
+    },
+    "portability.sh": {
+      "hash": "eb6fe20510e9",
+      "indexed_at": "2026-08-01T03:45:29.266413+00:00",
+      "language": "shell",
+      "lines": 141,
+      "mtime_ns": 1785554715435485600,
+      "size": 6750,
       "symbols": []
     },
     "preflight.sh": {
@@ -502,6 +511,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T03:01:03.694687+00:00",
+  "generated_at": "2026-08-01T03:45:29.266499+00:00",
   "version": "1.0"
 }
