@@ -62,6 +62,46 @@ else
   rm -f "$BADF"
 fi
 
+# --- 1b. VALID YAML IS NOT A VALID WORKFLOW ---------------------------------
+# MEASURED 2026-08-01. `permissions: administration: write` was added to
+# tag-manager.yml to let it write repo topics. It parsed perfectly -- the phase
+# above passed it -- and GitHub then refused the file and ran the workflow with
+# ZERO JOBS. `administration` is not a GITHUB_TOKEN permission; the scope does
+# not exist for that token, so the whole file is invalid.
+#
+# The failure mode is the nasty kind: the run appears in the list, it is red,
+# and there is no job and no step to read a message from. Nothing local caught
+# it, because a YAML parser has no opinion about which keys GitHub accepts.
+#
+# The permission set below is GitHub's documented list for GITHUB_TOKEN. A key
+# outside it means the workflow will not run at all.
+echo
+echo "-- permissions keys must be ones GITHUB_TOKEN actually has --"
+PERM_OK=" actions attestations checks contents deployments discussions id-token issues models packages pages pull-requests repository-projects security-events statuses "
+perm_bad=0
+for wf in .github/workflows/*.yml; do
+  # Lines inside a `permissions:` block: two-space indented `key: value`, up to
+  # the next top-level key. Comments are stripped so prose naming a bad key
+  # (this file's own explanation, for instance) is not mistaken for one.
+  keys=$(awk '/^permissions:/{f=1;next} /^[a-zA-Z]/{f=0} f' "$wf" \
+         | sed 's/#.*$//' | sed -n 's/^[[:space:]]*\([a-z-]*\)[[:space:]]*:.*/\1/p')
+  for k in $keys; do
+    case "$PERM_OK" in
+      *" $k "*) : ;;
+      *) bad "$(basename "$wf"): '$k' is NOT a GITHUB_TOKEN permission -- the workflow will not run at all"
+         perm_bad=$((perm_bad+1)) ;;
+    esac
+  done
+done
+[ "$perm_bad" -eq 0 ] && ok "every permissions key in every workflow is one GITHUB_TOKEN has"
+
+# CONTROLS: the rule must reject the key that actually broke the repo, and must
+# not reject the ordinary ones, or it would forbid correct workflows.
+case "$PERM_OK" in *" administration "*) bad "CONTROL DEAD: 'administration' is in the allowed set; the rule cannot catch the defect that motivated it" ;;
+                   *) ok "CONTROL: 'administration' IS rejected -- the exact key that ran zero jobs" ;; esac
+case "$PERM_OK" in *" contents "*) ok "CONTROL: 'contents' is accepted -- the rule does not forbid correct workflows" ;;
+                   *) bad "CONTROL DEAD: 'contents' rejected; the allow-list is wrong" ;; esac
+
 # --- 2. does CI actually run every checker? ---------------------------------
 echo
 echo "-- drift: every checker must be wired into a workflow --"

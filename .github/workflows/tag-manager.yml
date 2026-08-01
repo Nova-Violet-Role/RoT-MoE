@@ -35,14 +35,21 @@ on:
   workflow_dispatch:
 
 permissions:
+  # `contents: write` only, and that is not an oversight.
+  #
+  # MEASURED 2026-08-01, twice. First: `PUT /repos/{owner}/{repo}/topics` with
+  # this token returned `gh: Resource not accessible by integration (HTTP 403)`.
+  # Then `administration: write` was added to fix it -- and the run failed with
+  # ZERO JOBS, because `administration` IS NOT A VALID GITHUB_TOKEN PERMISSION.
+  # The key is valid YAML and an invalid workflow, so GitHub refused the file
+  # outright rather than reporting a bad key.
+  #
+  # The conclusion is stronger than the first failure suggested: this token
+  # CANNOT be granted topic-write at all. Writing topics from a workflow needs
+  # a PAT. That is why the step below verifies before it repairs -- not as a
+  # convenience, but because a green-on-no-drift run is the only honest
+  # outcome available to a token that is not permitted to write.
   contents: write
-  # `administration: write` is what PUT /repos/{owner}/{repo}/topics requires.
-  # MEASURED 2026-08-01: with `contents: write` alone the step died on
-  # `gh: Resource not accessible by integration (HTTP 403)`. Granting it here
-  # may still be refused when an org policy restricts GITHUB_TOKEN, which is
-  # why the step below VERIFIES before it repairs and does not treat a missing
-  # permission as drift.
-  administration: write
 
 concurrency:
   group: tag-manager

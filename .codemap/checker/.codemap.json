@@ -501,18 +501,18 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "f605a59e2b87",
-      "indexed_at": "2026-08-01T06:03:55.247424+00:00",
+      "hash": "6ae81e697254",
+      "indexed_at": "2026-08-01T07:00:10.313643+00:00",
       "language": "shell",
-      "lines": 493,
-      "mtime_ns": 1785563749820739000,
-      "size": 23993,
+      "lines": 533,
+      "mtime_ns": 1785567178156575200,
+      "size": 26443,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
           "lines": [
-            77,
-            89
+            117,
+            129
           ],
           "name": "except_reason",
           "type": "function"
@@ -520,16 +520,16 @@
         {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            110,
-            115
+            150,
+            155
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            116,
-            125
+            156,
+            165
           ],
           "name": "contains_line",
           "type": "function"
@@ -537,8 +537,8 @@
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            171,
-            178
+            211,
+            218
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -546,8 +546,8 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            235,
-            244
+            275,
+            284
           ],
           "name": "gate_except_reason",
           "type": "function"
@@ -555,16 +555,16 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            311,
-            315
+            351,
+            355
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            439,
-            454
+            479,
+            494
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -572,6 +572,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T06:31:57.248877+00:00",
+  "generated_at": "2026-08-01T07:00:10.313741+00:00",
   "version": "1.0"
 }
