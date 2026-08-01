@@ -42,7 +42,30 @@ $Here      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Ws        = Get-EnvOr 'ROTMOE_LEAN_WORKSPACE' (Join-Path $Here '../lean')
 $ProofsDir = Join-Path $Ws 'Proofs'
 $WatchRepo = Get-EnvOr 'ROTMOE_WATCH_REPO' '.'
-$StateDir  = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path $env:USERPROFILE '.local/state/rot-moe')
+# HOME, ON EVERY PLATFORM POWERSHELL RUNS ON.
+#
+# MEASURED ON ubuntu-latest, 2026-08-01: this line read
+#   Join-Path $env:USERPROFILE '.local/state/rot-moe'
+# and USERPROFILE does not exist outside Windows. `Join-Path` REFUSES a null
+# Path -- "Cannot bind argument to parameter 'Path' because it is null" -- and
+# the script died at CONFIG time, before parsing an argument. Every one of the
+# 23 corpus rows reported "the Windows arm exited 1" on Linux, while the POSIX
+# arm (which uses $HOME) was fine. PowerShell Core is cross-platform; a hook
+# that assumes Windows because it is written in PowerShell is the same category
+# of mistake as assuming a shell script means Linux.
+#
+# Reproducible on Windows without a Linux box, which is how it was fixed here:
+#   env -u USERPROFILE pwsh -NoProfile -File hooks/prover-remind.ps1 -Decide ...
+function Get-HomeDir {
+  foreach ($n in 'USERPROFILE', 'HOME') {
+    $v = [Environment]::GetEnvironmentVariable($n)
+    if (-not [string]::IsNullOrWhiteSpace($v)) { return $v }
+  }
+  # Last resort: .NET's own idea of it. Never null, so Join-Path cannot throw.
+  $p = [Environment]::GetFolderPath('UserProfile')
+  if ([string]::IsNullOrWhiteSpace($p)) { return '.' } else { return $p }
+}
+$StateDir  = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path (Get-HomeDir) '.local/state/rot-moe')
 $GoalFile  = Get-EnvOr 'ROTMOE_GOAL_FILE' ''
 $StaleMin  = [int](Get-EnvOr 'ROTMOE_PROOF_STALE_MIN' '45')
 $DebtExt   = (Get-EnvOr 'ROTMOE_DEBT_EXT' 'rs c h cpp hpp go ts js py java kt swift') -split '\s+'

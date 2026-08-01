@@ -35,7 +35,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Ws   = if ($env:ROTMOE_LEAN_WORKSPACE) { $env:ROTMOE_LEAN_WORKSPACE } else { Join-Path $Here 'lean' }
-$ElanRoot = if ($env:ELAN_HOME) { $env:ELAN_HOME } else { Join-Path $env:USERPROFILE '.elan' }
+# USERPROFILE does not exist outside Windows, and with $ErrorActionPreference
+# set to 'Stop' above, `Join-Path` on a null Path ENDS THE SCRIPT. Found by
+# checker/portability.sh's source scan on 2026-08-01, immediately after the
+# identical defect in prover-remind.ps1 was fixed -- the scan exists precisely
+# because a runtime probe only covers the paths it happens to execute, and
+# nothing here had ever executed SETUP_LEAN.ps1 on a machine without Windows
+# variables. elan installs to ~/.elan on Linux and macOS just as it does on
+# Windows, so the fallback chain is the fix, not a special case.
+$HomeDir = @($env:USERPROFILE, $env:HOME, [Environment]::GetFolderPath('UserProfile')) |
+           Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1
+if (-not $HomeDir) { $HomeDir = '.' }
+$ElanRoot = if ($env:ELAN_HOME) { $env:ELAN_HOME } else { Join-Path $HomeDir '.elan' }
 
 # --- what is already here (measured, never assumed) --------------------------
 $haveElan  = [bool](Get-Command elan -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $ElanRoot 'bin/elan.exe'))

@@ -285,12 +285,12 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "eb6fe20510e9",
-      "indexed_at": "2026-08-01T03:45:29.266413+00:00",
+      "hash": "098c6dd6014f",
+      "indexed_at": "2026-08-01T04:11:43.027453+00:00",
       "language": "shell",
-      "lines": 141,
-      "mtime_ns": 1785554715435485600,
-      "size": 6750,
+      "lines": 230,
+      "mtime_ns": 1785556647481112900,
+      "size": 11450,
       "symbols": []
     },
     "preflight.sh": {
@@ -511,6 +511,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T03:45:29.266499+00:00",
+  "generated_at": "2026-08-01T04:11:43.027530+00:00",
   "version": "1.0"
 }

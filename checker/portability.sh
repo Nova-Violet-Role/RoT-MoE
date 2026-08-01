@@ -136,6 +136,95 @@ else
   grep -E "DISAGREES" "$ctl_dir/crlf.log" | head -3 | sed 's/^/        /'
 fi
 
+# ---------------------------------------------------------------------------
+echo
+echo "== 3. the PowerShell arms run where Windows variables do not exist =="
+# ---------------------------------------------------------------------------
+# DEFECT 3, found by the SECOND CI run (ubuntu-latest, 2026-08-01), after the
+# first two were fixed. prover-remind.ps1 built its state directory with
+#   Join-Path $env:USERPROFILE '.local/state/rot-moe'
+# and USERPROFILE does not exist outside Windows. Join-Path REFUSES a null
+# Path, so the script died at CONFIG time, before parsing an argument: all 23
+# corpus rows reported "the Windows arm exited 1". PowerShell Core is
+# cross-platform, and assuming Windows because the file is .ps1 is the same
+# mistake as assuming Linux because a file is .sh.
+#
+# THE INSTRUMENT IS THE POINT: this needs no Linux box. Unsetting the variable
+# on Windows reproduces the exact condition, and that is how it was fixed here.
+if command -v pwsh >/dev/null 2>&1 && command -v env >/dev/null 2>&1; then
+  for arm in hooks/prover-remind.ps1 hooks/rot-router.ps1; do
+    [ -f "$arm" ] || { bad "$arm missing"; continue; }
+    case "$arm" in
+      *prover-remind*) args="-Decide PostToolUse 10 RotGauge - - - 0" ;;
+      *)               args="-Route lake build" ;;
+    esac
+    # shellcheck disable=SC2086
+    env -u USERPROFILE pwsh -NoProfile -File "$arm" $args >/dev/null 2>&1
+    rc1=$?
+    # shellcheck disable=SC2086
+    env -u USERPROFILE -u HOME pwsh -NoProfile -File "$arm" $args >/dev/null 2>&1
+    rc2=$?
+    if [ "$rc1" -le 1 ] && [ "$rc2" -le 1 ]; then
+      ok "$arm survives with USERPROFILE unset (exit $rc1) and with HOME unset too (exit $rc2)"
+    else
+      bad "$arm DIES without Windows env vars: USERPROFILE-unset exit $rc1, both-unset exit $rc2"
+      env -u USERPROFILE pwsh -NoProfile -File "$arm" $args 2>&1 | head -2 | sed 's/^/        /'
+    fi
+  done
+
+  # The output must not merely SURVIVE -- it must be the same answer. A hook
+  # that silently degrades on Linux is a subtler version of the same defect.
+  n1=$(pwsh -NoProfile -File hooks/prover-remind.ps1 -Decide PostToolUse 10 RotGauge a.rs - - 14 2>&1)
+  n2=$(env -u USERPROFILE pwsh -NoProfile -File hooks/prover-remind.ps1 -Decide PostToolUse 10 RotGauge a.rs - - 14 2>&1)
+  if [ "$n1" = "$n2" ]; then
+    ok "the reminder's answer is byte-identical with and without USERPROFILE"
+  else
+    bad "the reminder answers DIFFERENTLY when USERPROFILE is absent -- it degrades silently on Linux"
+  fi
+
+  # CONTROL: the probe must be able to see a null-dereference. Plant the
+  # pre-fix line in a scratch copy and require it to die.
+  #
+  # THE CONTROL WAS DEAD ON ITS FIRST RUN, and the reason is worth recording:
+  # PowerShell's null-Path error is NON-TERMINATING by default, so the scratch
+  # script exited 0 and the control reported that a null dereference is
+  # harmless. It is not -- all three shipped .ps1 files set
+  # `$ErrorActionPreference = 'Stop'` (prover-remind.ps1:32, rot-router.ps1:33,
+  # SETUP_LEAN.ps1:35), which is exactly why the real defect KILLED the script.
+  # A control must reproduce the conditions of the code it stands in for, or it
+  # measures a different program than the one that ships.
+  ctl_ps="$ctl_dir/ctl.ps1"
+  printf '%s\n' 'param([switch]$Decide)' \
+                '$ErrorActionPreference = "Stop"' \
+                '$d = Join-Path $env:ROTMOE_DEFINITELY_UNSET_VAR ".local/state"' \
+                'Write-Output $d' > "$ctl_ps"
+  if env -u USERPROFILE pwsh -NoProfile -File "$ctl_ps" -Decide >/dev/null 2>&1; then
+    bad "CONTROL DEAD: a Join-Path on a null variable did NOT fail -- this probe proves nothing"
+  else
+    ok "CONTROL: Join-Path on an unset variable DOES kill a script here"
+  fi
+else
+  echo "  NOTE  pwsh or env(1) absent -- phase 3 NOT run (a gap, not a pass)"
+fi
+
+# A source-level scan as well, because the runtime probe only covers the code
+# paths those two invocations reach. Windows-only variables must never be
+# dereferenced bare in a shipped .ps1.
+winvars=0
+for arm in hooks/*.ps1 ARM_ROUTER.ps1 DISARM_ROUTER.ps1 SETUP_LEAN.ps1; do
+  [ -f "$arm" ] || continue
+  hits=$(sed 's/#.*$//' "$arm" | grep -nE '\$env:(USERPROFILE|APPDATA|LOCALAPPDATA|HOMEDRIVE|HOMEPATH|ProgramFiles)' || true)
+  if [ -n "$hits" ]; then
+    # A guarded use is fine; a bare one inside Join-Path is the defect.
+    if printf '%s' "$hits" | grep -qE 'Join-Path[[:space:]]+\$env:'; then
+      bad "$arm passes a Windows-only variable straight to Join-Path:"
+      printf '%s\n' "$hits" | head -3 | sed 's/^/        /'
+      winvars=1
+    fi
+  fi
+done
+[ "$winvars" -eq 0 ] && ok "no shipped .ps1 feeds a Windows-only variable directly to Join-Path"
+
 printf '\n== portability: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0
