@@ -121,9 +121,90 @@ if [ -f CITATION.cff ]; then
   fi
 fi
 
+# --- [PROPERTIES]: a schema, not a scoreboard --------------------------------
+# Org custom properties are applied through the API by tag-manager.yml. What
+# can be checked with no token is the STRUCTURE and, more importantly, the rule
+# that keeps them from rotting: A PROPERTY MUST NOT BE A SNAPSHOT THAT EXPIRES.
+#
+# `verify-command = bash checker/gate-all.sh --full` is durable -- an
+# instrument, still true after the hundredth theorem lands. `theorem-count =
+# 100` would be false the day someone proves one more, and the obvious repair
+# would be to stop updating it. This is the same defect the spec warns about in
+# theorems: a contingent fact frozen as if it were an invariant.
+echo
+echo "-- [PROPERTIES]: structure, and no expiring snapshots --"
+props="$(awk '/^\[PROPERTIES\]/{f=1;next} /^\[/{f=0} f && NF && $0 !~ /^#/' .github/tags.txt)"
+if [ -z "$props" ]; then
+  bad "[PROPERTIES] is empty or missing -- the org schema has no source of truth in the repo"
+else
+  n_props=$(printf '%s\n' "$props" | grep -c '=')
+  malformed=$(printf '%s\n' "$props" | grep -vc '^[a-z][a-z-]* = .' || true)
+  if [ "$malformed" -eq 0 ]; then
+    ok "[PROPERTIES] holds $n_props well-formed 'name = value' rows"
+  else
+    bad "$malformed row(s) in [PROPERTIES] are not 'name = value'"
+  fi
+
+  # THE ANTI-SNAPSHOT RULE. A bare integer as a value is the shape that rots.
+  numeric=$(printf '%s\n' "$props" | awk -F' = ' '$2 ~ /^[0-9]+$/ {print $1}')
+  if [ -z "$numeric" ]; then
+    ok "no property holds a bare count -- nothing here expires when the tree grows"
+  else
+    bad "these properties hold a COUNT, which is false the day the tree changes: $(echo "$numeric" | tr '\n' ' ')"
+    echo "        Store the instrument that re-derives it instead (see verify-command)."
+  fi
+
+  # verify-command must name a file that exists, or it is an instruction to
+  # run something that is not there.
+  vc=$(printf '%s\n' "$props" | awk -F' = ' '$1=="verify-command"{print $2}')
+  if [ -z "$vc" ]; then
+    bad "no verify-command property -- a reader has nothing to run"
+  else
+    vf=$(printf '%s' "$vc" | grep -oE 'checker/[a-z-]+\.sh' | head -1)
+    if [ -n "$vf" ] && [ -f "$vf" ]; then
+      ok "verify-command names a checker that exists: $vf"
+    else
+      bad "verify-command points at '$vc' but ${vf:-no checker} is not in the tree"
+    fi
+  fi
+
+  # platforms may only claim what CI actually runs. The workflow matrix is the
+  # evidence; claiming macos while no macos job exists is the overclaim.
+  plats=$(printf '%s\n' "$props" | awk -F' = ' '$1=="platforms"{print $2}' | tr ',' ' ')
+  for p in $plats; do
+    case "$p" in
+      linux)   pat='ubuntu-latest' ;;
+      windows) pat='windows-latest' ;;
+      macos)   pat='macos-latest' ;;
+      *)       bad "unknown platform claim: $p"; continue ;;
+    esac
+    if grep -q "$pat" .github/workflows/ci.yml; then
+      ok "platform '$p' is claimed and CI has a $pat job"
+    else
+      bad "platform '$p' is CLAIMED but no $pat job exists in ci.yml -- that is an overclaim"
+    fi
+  done
+fi
+
 # --- controls ---------------------------------------------------------------
 echo
 echo "-- negative controls --"
+# Controls for the [PROPERTIES] phase. The predicates above run against the
+# real file, so they are re-run here on SYNTHETIC input that is deliberately
+# wrong. Without this, "no property holds a bare count" is indistinguishable
+# from "the awk never matched anything", which is how a dead check hides.
+fake_props="$(printf 'verification = machine-checked-lean4\ntheorem-count = 100\n')"
+if [ -n "$(printf '%s\n' "$fake_props" | awk -F' = ' '$2 ~ /^[0-9]+$/ {print $1}')" ]; then
+  ok "CONTROL: a planted 'theorem-count = 100' IS rejected as an expiring snapshot"
+else
+  bad "CONTROL DEAD: a bare count passes the anti-snapshot rule"
+fi
+if grep -q 'macos-latest' .github/workflows/ci.yml; then
+  ok "CONTROL: ci.yml now HAS a macos job -- the platform claim may be widened"
+else
+  ok "CONTROL: claiming 'macos' would fail, because no macos-latest job exists (checked, not assumed)"
+fi
+
 TCTL="$(mktemp -d "${TMPDIR:-/tmp}/tagctl.XXXXXX")"
 {
   echo "[TOPICS]"

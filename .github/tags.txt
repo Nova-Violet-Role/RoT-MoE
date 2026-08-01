@@ -117,3 +117,40 @@ compiler
 rolling-context
 context-compression
 anthropic
+
+# ===========================================================================
+# TIER 3 -- [PROPERTIES]. GitHub ORG CUSTOM PROPERTIES.
+# ===========================================================================
+#
+# Topics are free-text and crawlable; custom properties are a SCHEMA, defined
+# once at the organisation level and given a value per repository. They are
+# what an org uses to answer "which of our repos are actually verified" without
+# reading forty READMEs.
+#
+# THE RULE THAT MATTERS HERE, and it is the same one that governs every theorem
+# in this repository: A PROPERTY MUST NOT BE A SNAPSHOT THAT EXPIRES.
+#
+#   verify-command = bash checker/gate-all.sh --full     <- durable: an
+#       INSTRUMENT. Still true after the hundredth theorem is added.
+#   theorem-count  = 100                                 <- REJECTED, and this
+#       is why the field does not exist: it is false the day someone proves
+#       one more, and the obvious repair is to stop updating it. A number that
+#       nothing re-derives is a claim, not a fact.
+#
+# `platforms` follows the same discipline in the other direction: it lists
+# linux and windows because CI RAN there and went green (run 30684381090,
+# 2026-08-01), and it omits macos because nothing has ever tested macos. The
+# day a macos job passes, the value moves -- not before.
+#
+# Format: name = value   (multi_select values are comma-separated)
+# Applied and verified by .github/workflows/tag-manager.yml, which needs the
+# API; checker/tags-consistency.sh checks the STRUCTURE locally, with no token.
+
+[PROPERTIES]
+verification = machine-checked-lean4
+project-kind = claude-code-plugin
+licence-model = agpl-3.0-or-eupl-1.2
+maintenance = actively-developed
+org-role = flagship
+verify-command = bash checker/gate-all.sh --full
+platforms = linux,windows
