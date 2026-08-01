@@ -54,6 +54,7 @@ gauge cross (Lean mirror vs hook)|bash checker/gauge-cross.sh
 axiom audit (#print axioms, all theorems)|bash checker/axiom-audit.sh
 mutate the checker|bash checker/mutate-checker.sh
 portability (exec bits, CRLF)|bash checker/portability.sh
+mutation discipline (Lean spec binds the harnesses)|bash checker/mutant-discipline.sh
 benchmark (routing accuracy + cost)|bash checker/bench-router.sh
 hook footprint (no network, Lean optional)|bash checker/hook-footprint.sh
 installer round trip|bash checker/install-roundtrip.sh

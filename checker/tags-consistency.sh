@@ -121,6 +121,38 @@ if [ -f CITATION.cff ]; then
   fi
 fi
 
+# --- 5b. the GENERATOR and this PARSER must agree on the format --------------
+# MEASURED 2026-08-01, from a real workflow run. `tag-manager.yml` emitted
+# CITATION keywords as `  - tag` while the file in the tree carries
+# `  - "tag"`. Two consequences, and the second is the dangerous one:
+#
+#   * every run produced a 42-line diff and tried to commit it, so a job whose
+#     stated rule is "commit only on real drift" would have committed forever;
+#   * phase 5 above parses keywords with `grep -o '"[^"]*"'`, so the moment
+#     that commit landed the gate would have reported "CITATION.cff has no
+#     keywords" -- a red build caused by the generator, on a tree that was
+#     otherwise correct.
+#
+# Nothing compared the writer to the reader. This does: the emit line in the
+# workflow must produce the quoted form this file parses.
+echo
+echo "-- the generator must emit the format this checker parses --"
+emit="$(sed 's/#.*$//' .github/workflows/tag-manager.yml | grep -F 'do echo "  - ' || true)"
+if [ -z "$emit" ]; then
+  bad "could not find the CITATION keyword emit line in tag-manager.yml -- this binding is blind"
+else
+  case "$emit" in
+    *'\"$t\"'*) ok "the generator emits QUOTED keywords, which is what phase 5 parses" ;;
+    *) bad "the generator emits UNQUOTED keywords but phase 5 parses quoted ones -- the next bot commit breaks this gate"
+       printf '        %s\n' "$emit" ;;
+  esac
+fi
+# CONTROL: the same test on the unquoted form must FAIL, or it proves nothing.
+case 'for t in "${TAGS[@]}"; do echo "  - $t"; done' in
+  *'\"$t\"'*) bad "CONTROL DEAD: the unquoted emit line was accepted as quoted" ;;
+  *) ok "CONTROL: the unquoted form IS rejected -- the exact defect that shipped" ;;
+esac
+
 # --- 6. a LANGUAGE tag is a claim about this tree ----------------------------
 # AUDITED 2026-08-01. [SIGNATURE] carried `python`, `c`, `compiler`,
 # `rolling-context` and `context-compression` under the heading "present in the

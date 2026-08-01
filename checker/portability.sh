@@ -120,7 +120,61 @@ fi
 # is VERIFIED, because a checker that corrupts the corpus it tests is a worse
 # defect than the one it looks for.
 BK=$(mktemp); cp "$CORPUS" "$BK"
-sed 's/$/\r/' "$BK" > "$CORPUS"
+# BUILD THE CRLF VARIANT WITH printf, NOT WITH sed.
+#
+# MEASURED 2026-08-01, and this round had been VACUOUS ON WINDOWS since the
+# day it was written. The old line appended a CR at end-of-line with sed. On a
+# Windows checkout core.autocrlf has ALREADY put CRLF in the working tree, and
+# Git Bash sed opens files in TEXT MODE: it strips the CR-LF pair on read and
+# writes it back, so the append changed NOTHING. Byte sizes identical, 1839
+# in and 1839 out -- measured.
+#
+# The consequence is the false green this repository exists to hunt:
+# cross-diff-remind then ran against an UNCHANGED corpus and this phase
+# reported 'both reminder arms agree with the ENTIRE corpus in CRLF' having
+# compared the LF path with itself. The round was real on Linux and macOS,
+# where the corpus is LF so the append does land, and decorative on the one
+# platform whose default checkout creates the very defect it was written to
+# catch.
+#
+# bash printf writes raw bytes with no line-ending translation on any
+# platform, so the variant below is exact by construction. The CR is stripped
+# first, making the conversion idempotent and independent of what the checkout
+# already did.
+: > "$CORPUS"
+while IFS= read -r _line || [ -n "$_line" ]; do
+  _line=${_line%$'\r'}
+  printf '%s\r\n' "$_line" >> "$CORPUS"
+done < "$BK"
+sed_rc=$?
+
+# Assert the BYTES rather than trusting the loop.
+if [ "$(tr -dc '\r' < "$CORPUS" | wc -c | tr -d ' ')" -eq 0 ]; then
+  bad "the CRLF variant contains no CR at all -- the conversion produced nothing"
+fi
+# THE MUTATION MUST BE PROVEN TO HAVE LANDED BEFORE ITS RESULT MEANS ANYTHING.
+# This is `RotMoE.landed` from lean/Proofs/RotMutant.lean, executed: the patch
+# tool exited 0, the product is NOT empty, and it DIFFERS from the original.
+#
+# Without it this round had a live false-green path. If `sed` failed, $CORPUS
+# would be EMPTY, cross-diff-remind would compare two arms over zero rows, find
+# no disagreement, and this phase would report that CRLF input is handled
+# correctly -- having tested nothing at all. `killed_implies_all_three` is the
+# theorem that forbids exactly that, and checker/mutant-discipline.sh is what
+# noticed this site did not obey it.
+# `landed` from lean/Proofs/RotMutant.lean, EXECUTED. The third condition is
+# 'differs from the original' -- and when the checkout was already CRLF the
+# variant legitimately equals it, so the comparison that carries meaning is
+# against the LF form. An LF corpus and a CRLF corpus that are byte-equal
+# would mean the conversion did nothing.
+LFV=$(mktemp); tr -d '\r' < "$BK" > "$LFV"
+if [ "$sed_rc" -ne 0 ] || [ ! -s "$CORPUS" ] || cmp -s "$CORPUS" "$LFV"; then
+  rm -f "$LFV"
+  cp "$BK" "$CORPUS"; rm -f "$BK"
+  bad "CRLF round DISCARDED -- the mutation did not land (sed exit $sed_rc, empty or unchanged corpus). Nothing was tested; this is NOT a pass."
+else
+  rm -f "$LFV"
+  ok "the CRLF variant LANDED (printf-built, non-empty, genuinely differs from the LF form)"
 bash checker/cross-diff-remind.sh > "$ctl_dir/crlf.log" 2>&1
 rc=$?
 cp "$BK" "$CORPUS"; rm -f "$BK"
@@ -134,6 +188,7 @@ if [ "$rc" -eq 0 ]; then
 else
   bad "the arms disagree under a CRLF corpus -- exit $rc"
   grep -E "DISAGREES" "$ctl_dir/crlf.log" | head -3 | sed 's/^/        /'
+fi
 fi
 
 # ---------------------------------------------------------------------------

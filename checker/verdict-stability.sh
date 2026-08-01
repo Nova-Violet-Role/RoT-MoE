@@ -160,6 +160,17 @@ wf_verdict () {   # wf_verdict <file> -> 0 if it obeys the rule, 1 with reasons
   # is deliberately absent -- a checker that cannot tell an invocation from a
   # comment about an invocation punishes the documentation it asked for.
   grep -qE '^[^#]*git commit[^#]*--allow-empty' "$f" && { why+=("passes --allow-empty to git commit, which commits a week that changed nothing"); bad_=1; }
+  # STRENGTHENED 2026-08-01. The rule used to be "commit only on real change";
+  # it is now "DO NOT WRITE AT ALL". `main` is protected by a ruleset with four
+  # required status checks, and the GitHub Actions app cannot hold a
+  # repository-level bypass (HTTP 422, measured), so the bot's push was refused
+  # outright. The workflow publishes the verdict and FAILS when the committed
+  # STATUS.md is stale; a human lands the fix.
+  #
+  # This assertion is strictly stronger than the one above: no push means no
+  # empty commit is even reachable. The --allow-empty check is kept because it
+  # is cheap and would catch a partial revert of this design.
+  grep -qE '^[^#]*git[[:space:]]+push([[:space:]]|$)' "$f" && { why+=("pushes to a PROTECTED branch -- the push will be refused, and a bot must not write to main at all"); bad_=1; }
   # The decisive one: the clock and the SHA must NOT be produced by the step
   # that generates the compared block. Both may appear only in the write step,
   # which runs solely when the verdict already changed. Shell comments are
@@ -185,10 +196,24 @@ fi
 
 # --- CONTROLS: the assertion must REJECT each way of getting this wrong ------
 ctl () {  # ctl <label> <sed-program>
-  local label="$1" prog="$2" C
+  local label="$1" prog="$2" C rc
   C=$(mktemp)
-  sed "$prog" "$WF" > "$C"
-  if cmp -s "$C" "$WF"; then
+  sed "$prog" "$WF" > "$C" 2>/dev/null
+  rc=$?
+  # A FAILED sed IS NOT A KILLED MUTANT. Measured 2026-08-01: a control whose
+  # sed program was malformed ("unterminated `s' command") wrote an EMPTY file.
+  # Empty differs from the original, so the did-not-apply test below passed it
+  # through; the assertion then rejected the empty file for having none of the
+  # structure it requires; and the harness printed PASS. A broken patch was
+  # scored as evidence that the check works.
+  #
+  # That is the same false-green this project hunts, arriving by a route the
+  # earlier fix did not cover: not "the patch did not change anything" but
+  # "the patch destroyed everything". Both must be DISCARDED, and discarded is
+  # a statement about the harness, never about the assertion.
+  if [ "$rc" -ne 0 ] || [ ! -s "$C" ]; then
+    bad "CONTROL '$label' -- sed FAILED (exit $rc) or produced an empty file; the assertion was NOT exercised (discarded, not survived)"
+  elif cmp -s "$C" "$WF"; then
     bad "CONTROL '$label' did not apply -- the assertion was NOT exercised (discarded, not survived)"
   elif wf_verdict "$C" >/dev/null; then
     bad "CONTROL '$label' was ACCEPTED -- the check cannot fail, so its pass means nothing"
@@ -199,7 +224,21 @@ ctl () {  # ctl <label> <sed-program>
 }
 ctl "the old bug: a clock inside the compared step" \
     's|^          if \[ -f STATUS.md \]; then|          echo "$(date -u)" >> /tmp/verdict.new\n          if [ -f STATUS.md ]; then|'
-ctl "--allow-empty restored"           's|git commit -m "ci: re-verified|git commit --allow-empty -m "ci: re-verified|'
+# REPLACED 2026-08-01. This control used to restore `--allow-empty` onto the
+# workflow's `git commit`. That line no longer exists -- verify.yml does not
+# commit at all now -- so the sed matched nothing and the harness reported
+# "did not apply -- discarded, NOT survived", which is precisely the
+# distinction it was built to make and the reason the gate went red instead of
+# quietly passing a control that tested nothing.
+#
+# The replacement mutates the invariant that actually governs the file today:
+# put a `git push` back in, and the assertion must reject it.
+# A ONE-LINE replacement. The sed replacement must not contain a newline
+# escape: BSD sed on macOS does not accept one, and this checker runs on all
+# three platforms. (Writing that escape into this very comment turned it into a
+# literal line break twice while editing, which is the same hazard one level
+# up -- so the sequence is described here rather than spelled.)
+ctl "a git push restored"              's|          exit 1$|          git push|'
 ctl "the markers removed"              's|VERDICT-BEGIN|VERDICT-OPENED|g'
 ctl "compares the whole file again"    's|diff -q /tmp/verdict.old /tmp/verdict.new|git diff --staged --quiet|'
 ctl "the write step no longer gated"   "s|if: steps.decide.outputs.changed == 'yes'|if: always()|g"

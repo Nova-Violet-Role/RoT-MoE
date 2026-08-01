@@ -241,7 +241,7 @@ jobs:
       - name: lake build (exit code read DIRECTLY, never through a pipe)
         working-directory: lean
         run: |
-          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotVacuity
+          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotVacuity Proofs.RotMutant
           echo "lake build exit=$?"
 
       # A green build means it ELABORATED. It does not mean the theorems rest on
@@ -266,6 +266,14 @@ jobs:
       # prove it can fail.
       - name: portability -- exec bits in the index, CRLF-proof hooks
         run: bash checker/portability.sh
+
+      # The Lean spec must GOVERN the shell. lean/Proofs/RotMutant.lean proves
+      # a mutation may only be counted when the patch landed -- tool exit 0,
+      # non-empty result, and genuinely changed. This asserts every mutation
+      # harness in the tree implements that rule, by one of the two recognised
+      # means. It found two live false-green paths the day it was written.
+      - name: mutation discipline -- RotMutant.lean binds every harness
+        run: bash checker/mutant-discipline.sh
 
       - name: benchmark -- routing accuracy on a labelled key, and per-turn cost
         run: bash checker/bench-router.sh
@@ -323,7 +331,7 @@ jobs:
         working-directory: lean
         run: |
           set +e
-          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotVacuity; do
+          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotVacuity Proofs.RotMutant; do
             lake env leanchecker "$m"; rc=$?
             echo "$m -> $rc"
             [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }

@@ -102,6 +102,57 @@ case "$PERM_OK" in *" administration "*) bad "CONTROL DEAD: 'administration' is 
 case "$PERM_OK" in *" contents "*) ok "CONTROL: 'contents' is accepted -- the rule does not forbid correct workflows" ;;
                    *) bad "CONTROL DEAD: 'contents' rejected; the allow-list is wrong" ;; esac
 
+# --- 1c. NOTHING WRITES TO main EXCEPT A HUMAN -------------------------------
+# MEASURED 2026-08-01. Three workflows ended in `git push` to main. The branch
+# then gained a ruleset -- no deletion, no force-push, four required status
+# checks -- and the first bot push was refused:
+#
+#   remote: - 4 of 4 required status checks are expected.
+#   ! [remote rejected] main -> main (push declined due to repository rules)
+#
+# The GitHub Actions app CANNOT be given a repository-level bypass; the API
+# refuses with HTTP 422, "Actor GitHub Actions integration must be part of the
+# ruleset source or owner organization". So the choice was: weaken the
+# protection so a bot can write unreviewed commits to the default branch, or
+# stop the bots writing. Weakening protection to make an alarm go quiet is the
+# move this project treats as a violation, so all three now FAIL on drift and
+# print the diff instead.
+#
+# The coverage is unchanged -- checker/tags-consistency.sh gates the same
+# invariants on every commit rather than three times a week -- and the tree can
+# no longer be modified by something nobody reviewed.
+echo
+echo "-- no workflow may push to the protected branch --"
+push_hits=0
+for wf in .github/workflows/*.yml; do
+  h=$(sed 's/#.*$//' "$wf" | grep -nE '^[[:space:]]*git[[:space:]]+push([[:space:]]|$)' || true)
+  if [ -n "$h" ]; then
+    bad "$(basename "$wf") pushes to the repository -- main is protected and this WILL be refused:"
+    printf '%s\n' "$h" | sed 's/^/        /'
+    push_hits=$((push_hits+1))
+  fi
+done
+[ "$push_hits" -eq 0 ] && ok "no workflow pushes to the repository (all $(ls .github/workflows/*.yml | wc -l | tr -d ' ') report drift instead)"
+
+# CONTROL: plant the pattern in a scratch file and require the same predicate
+# to catch it. Without this, "0 hits" could equally mean the regex is wrong.
+ctl_wf="${TMPDIR:-/tmp}/wfpush.$$.yml"
+printf 'jobs:\n  x:\n    steps:\n      - run: |\n          git push\n' > "$ctl_wf"
+if [ -n "$(sed 's/#.*$//' "$ctl_wf" | grep -nE '^[[:space:]]*git[[:space:]]+push([[:space:]]|$)' || true)" ]; then
+  ok "CONTROL: a planted 'git push' IS detected"
+else
+  bad "CONTROL DEAD: the planted 'git push' was not detected -- the rule is blind"
+fi
+# And it must not fire on prose that merely mentions pushing, or every comment
+# explaining this rule would break the build.
+printf 'jobs:\n  x:\n    steps:\n      - run: echo "this job will not git push anywhere"\n' > "$ctl_wf"
+if [ -z "$(sed 's/#.*$//' "$ctl_wf" | grep -nE '^[[:space:]]*git[[:space:]]+push([[:space:]]|$)' || true)" ]; then
+  ok "CONTROL: a mention of 'git push' inside an echo is NOT flagged -- the rule reads commands, not prose"
+else
+  bad "CONTROL: prose mentioning git push was flagged; the rule is too broad"
+fi
+rm -f "$ctl_wf"
+
 # --- 2. does CI actually run every checker? ---------------------------------
 echo
 echo "-- drift: every checker must be wired into a workflow --"

@@ -147,12 +147,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "d8d88d534fb8",
-      "indexed_at": "2026-08-01T05:44:57.665100+00:00",
+      "hash": "e123750a4546",
+      "indexed_at": "2026-08-01T07:44:40.685248+00:00",
       "language": "shell",
-      "lines": 137,
-      "mtime_ns": 1785562083756179700,
-      "size": 5850,
+      "lines": 138,
+      "mtime_ns": 1785569532705467100,
+      "size": 5936,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -247,6 +247,15 @@
         }
       ]
     },
+    "mutant-discipline.sh": {
+      "hash": "61bfd9e42a15",
+      "indexed_at": "2026-08-01T07:44:40.850144+00:00",
+      "language": "shell",
+      "lines": 178,
+      "mtime_ns": 1785569207397686000,
+      "size": 7951,
+      "symbols": []
+    },
     "mutate-checker.sh": {
       "hash": "22f964eb488f",
       "indexed_at": "2026-07-31T15:55:19.002296+00:00",
@@ -285,12 +294,12 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "5e1d4c7e5bda",
-      "indexed_at": "2026-08-01T06:03:55.088376+00:00",
+      "hash": "61b21df60e99",
+      "indexed_at": "2026-08-01T07:44:41.014488+00:00",
       "language": "shell",
-      "lines": 361,
-      "mtime_ns": 1785563818016787200,
-      "size": 18649,
+      "lines": 416,
+      "mtime_ns": 1785569397430466400,
+      "size": 21579,
       "symbols": []
     },
     "preflight.sh": {
@@ -394,12 +403,12 @@
       ]
     },
     "tags-consistency.sh": {
-      "hash": "5e12fee398ed",
-      "indexed_at": "2026-08-01T06:31:57.248816+00:00",
+      "hash": "46a9105d9078",
+      "indexed_at": "2026-08-01T07:24:17.389633+00:00",
       "language": "shell",
-      "lines": 295,
-      "mtime_ns": 1785565538207486700,
-      "size": 13525,
+      "lines": 327,
+      "mtime_ns": 1785567942365784300,
+      "size": 15248,
       "symbols": [
         {
           "docstring": "Section extraction: a tag line is a bare lowercase token; comments and blanks are skipped. Written as a function so the control below runs the SAME co",
@@ -412,8 +421,8 @@
         },
         {
           "lines": [
-            141,
-            159
+            173,
+            191
           ],
           "name": "check_lang",
           "type": "function"
@@ -456,12 +465,12 @@
       ]
     },
     "verdict-stability.sh": {
-      "hash": "d45b3ddc8ce3",
-      "indexed_at": "2026-08-01T04:40:00.570226+00:00",
+      "hash": "a4216693390c",
+      "indexed_at": "2026-08-01T07:24:17.553098+00:00",
       "language": "shell",
-      "lines": 209,
-      "mtime_ns": 1785558289749318000,
-      "size": 10876,
+      "lines": 248,
+      "mtime_ns": 1785568603266211900,
+      "size": 13553,
       "symbols": [
         {
           "docstring": "--------------------------------------------------------------------------- On a scratch copy. The real tree is never mutated by this checker: a harne",
@@ -484,7 +493,7 @@
           "docstring": "---------------------------------------------------------------------------",
           "lines": [
             144,
-            178
+            189
           ],
           "name": "wf_verdict",
           "type": "function"
@@ -492,8 +501,8 @@
         {
           "docstring": "--- CONTROLS: the assertion must REJECT each way of getting this wrong ------",
           "lines": [
-            187,
-            199
+            198,
+            224
           ],
           "name": "ctl",
           "type": "function"
@@ -501,18 +510,18 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "6ae81e697254",
-      "indexed_at": "2026-08-01T07:00:10.313643+00:00",
+      "hash": "f892fbab753d",
+      "indexed_at": "2026-08-01T07:24:17.716869+00:00",
       "language": "shell",
-      "lines": 533,
-      "mtime_ns": 1785567178156575200,
-      "size": 26443,
+      "lines": 584,
+      "mtime_ns": 1785568108568365700,
+      "size": 29213,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
           "lines": [
-            117,
-            129
+            168,
+            180
           ],
           "name": "except_reason",
           "type": "function"
@@ -520,16 +529,16 @@
         {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            150,
-            155
+            201,
+            206
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            156,
-            165
+            207,
+            216
           ],
           "name": "contains_line",
           "type": "function"
@@ -537,8 +546,8 @@
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            211,
-            218
+            262,
+            269
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -546,8 +555,8 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            275,
-            284
+            326,
+            335
           ],
           "name": "gate_except_reason",
           "type": "function"
@@ -555,16 +564,16 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            351,
-            355
+            402,
+            406
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            479,
-            494
+            530,
+            545
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -572,6 +581,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T07:00:10.313741+00:00",
+  "generated_at": "2026-08-01T07:44:41.014551+00:00",
   "version": "1.0"
 }

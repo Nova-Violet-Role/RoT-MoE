@@ -2,12 +2,12 @@
   "directory": ".github\\workflows",
   "files": {
     "ads-manager.yml": {
-      "hash": "6940eb3bf46e",
-      "indexed_at": "2026-08-01T06:31:56.595060+00:00",
+      "hash": "7c3c5469ea59",
+      "indexed_at": "2026-08-01T07:24:16.739333+00:00",
       "language": "yaml",
-      "lines": 162,
-      "mtime_ns": 1785565114778647800,
-      "size": 7536,
+      "lines": 167,
+      "mtime_ns": 1785568088955933100,
+      "size": 7971,
       "symbols": [
         {
           "docstring": "Ads Manager",
@@ -232,24 +232,24 @@
                     {
                       "lines": [
                         142,
-                        150
+                        155
                       ],
                       "name": "run",
                       "type": "multiline"
                     },
                     {
-                      "docstring": "Commit only on real drift",
+                      "docstring": "Fail if PROMO.md has drifted (never commit it)",
                       "lines": [
-                        151,
-                        151
+                        156,
+                        156
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        152,
-                        163
+                        157,
+                        168
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -257,7 +257,7 @@
                   ],
                   "lines": [
                     42,
-                    163
+                    168
                   ],
                   "name": "steps",
                   "type": "list"
@@ -265,7 +265,7 @@
               ],
               "lines": [
                 40,
-                163
+                168
               ],
               "name": "copy",
               "type": "section"
@@ -273,7 +273,7 @@
           ],
           "lines": [
             39,
-            163
+            168
           ],
           "name": "jobs",
           "type": "section"
@@ -281,12 +281,12 @@
       ]
     },
     "ci.yml": {
-      "hash": "18bbd030d7a4",
-      "indexed_at": "2026-08-01T06:31:56.756260+00:00",
+      "hash": "85bdbbca9e22",
+      "indexed_at": "2026-08-01T07:44:40.209421+00:00",
       "language": "yaml",
-      "lines": 348,
-      "mtime_ns": 1785565114778647800,
-      "size": 15820,
+      "lines": 356,
+      "mtime_ns": 1785569547321467600,
+      "size": 16361,
       "symbols": [
         {
           "docstring": "CI",
@@ -1223,7 +1223,25 @@
                       "docstring": "bash checker/portability.sh",
                       "lines": [
                         268,
-                        269
+                        274
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "mutation discipline -- RotMutant.lean binds every harness",
+                      "lines": [
+                        275,
+                        275
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/mutant-discipline.sh",
+                      "lines": [
+                        276,
+                        277
                       ],
                       "name": "run",
                       "type": "key"
@@ -1231,8 +1249,8 @@
                     {
                       "docstring": "benchmark -- routing accuracy on a labelled key, and per-turn cost",
                       "lines": [
-                        270,
-                        270
+                        278,
+                        278
                       ],
                       "name": "name",
                       "type": "item"
@@ -1240,8 +1258,8 @@
                     {
                       "docstring": "bash checker/bench-router.sh",
                       "lines": [
-                        271,
-                        272
+                        279,
+                        280
                       ],
                       "name": "run",
                       "type": "key"
@@ -1249,8 +1267,8 @@
                     {
                       "docstring": "hook footprint -- no network, no lake, Lean stays optional",
                       "lines": [
-                        273,
-                        273
+                        281,
+                        281
                       ],
                       "name": "name",
                       "type": "item"
@@ -1258,8 +1276,8 @@
                     {
                       "docstring": "bash checker/hook-footprint.sh",
                       "lines": [
-                        274,
-                        275
+                        282,
+                        283
                       ],
                       "name": "run",
                       "type": "key"
@@ -1267,8 +1285,8 @@
                     {
                       "docstring": "axiom audit -- #print axioms on every theorem, zero sorryAx",
                       "lines": [
-                        276,
-                        276
+                        284,
+                        284
                       ],
                       "name": "name",
                       "type": "item"
@@ -1276,8 +1294,8 @@
                     {
                       "docstring": "LEAN_ROOT=\"$GITHUB_WORKSPACE/lean\" bash checker/axiom-audit.sh",
                       "lines": [
-                        277,
-                        281
+                        285,
+                        289
                       ],
                       "name": "run",
                       "type": "key"
@@ -1285,8 +1303,8 @@
                     {
                       "docstring": "non-vacuity audit -- every guarded theorem has a witness",
                       "lines": [
-                        282,
-                        282
+                        290,
+                        290
                       ],
                       "name": "name",
                       "type": "item"
@@ -1294,8 +1312,8 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        283,
-                        283
+                        291,
+                        291
                       ],
                       "name": "working-directory",
                       "type": "key"
@@ -1303,8 +1321,8 @@
                     {
                       "docstring": "lake build Proofs.RotVacuity",
                       "lines": [
-                        284,
-                        285
+                        292,
+                        293
                       ],
                       "name": "run",
                       "type": "key"
@@ -1312,8 +1330,8 @@
                     {
                       "docstring": "non-vacuity NEGATIVE CONTROL -- the audit must be able to fail",
                       "lines": [
-                        286,
-                        286
+                        294,
+                        294
                       ],
                       "name": "name",
                       "type": "item"
@@ -1321,76 +1339,22 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        287,
-                        287
+                        295,
+                        295
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        288,
-                        303
+                        296,
+                        311
                       ],
                       "name": "run",
                       "type": "multiline"
                     },
                     {
                       "docstring": "generalization probe -- decorative vs load-bearing",
-                      "lines": [
-                        304,
-                        304
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        305,
-                        305
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "bash mutate/generalization_probe.sh",
-                      "lines": [
-                        306,
-                        307
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "decorative-vs-load-bearing isolation",
-                      "lines": [
-                        308,
-                        308
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        309,
-                        309
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "lake env lean mutate/decorative_isolation.lean",
-                      "lines": [
-                        310,
-                        311
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "forbid native_decide",
                       "lines": [
                         312,
                         312
@@ -1408,9 +1372,63 @@
                       "type": "key"
                     },
                     {
+                      "docstring": "bash mutate/generalization_probe.sh",
                       "lines": [
                         314,
+                        315
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "decorative-vs-load-bearing isolation",
+                      "lines": [
+                        316,
+                        316
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        317,
+                        317
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake env lean mutate/decorative_isolation.lean",
+                      "lines": [
+                        318,
+                        319
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "forbid native_decide",
+                      "lines": [
+                        320,
+                        320
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        321,
                         321
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        322,
+                        329
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1418,8 +1436,8 @@
                     {
                       "docstring": "leanchecker -- kernel re-verification, with its negative control",
                       "lines": [
-                        322,
-                        322
+                        330,
+                        330
                       ],
                       "name": "name",
                       "type": "item"
@@ -1427,16 +1445,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        323,
-                        323
+                        331,
+                        331
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        324,
-                        336
+                        332,
+                        344
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1444,8 +1462,8 @@
                     {
                       "docstring": "mutation suites -- theorems must DIE when the model breaks",
                       "lines": [
-                        337,
-                        337
+                        345,
+                        345
                       ],
                       "name": "name",
                       "type": "item"
@@ -1453,16 +1471,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        338,
-                        338
+                        346,
+                        346
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        339,
-                        349
+                        347,
+                        357
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1470,7 +1488,7 @@
                   ],
                   "lines": [
                     223,
-                    349
+                    357
                   ],
                   "name": "steps",
                   "type": "list"
@@ -1478,7 +1496,7 @@
               ],
               "lines": [
                 220,
-                349
+                357
               ],
               "name": "lean",
               "type": "section"
@@ -1486,7 +1504,7 @@
           ],
           "lines": [
             48,
-            349
+            357
           ],
           "name": "jobs",
           "type": "section"
@@ -1494,12 +1512,12 @@
       ]
     },
     "tag-manager.yml": {
-      "hash": "b3891d8a242b",
-      "indexed_at": "2026-08-01T07:00:10.121712+00:00",
+      "hash": "a6df55bbd9f0",
+      "indexed_at": "2026-08-01T07:24:16.901456+00:00",
       "language": "yaml",
-      "lines": 284,
-      "mtime_ns": 1785567150267672700,
-      "size": 14067,
+      "lines": 317,
+      "mtime_ns": 1785568023529695300,
+      "size": 16192,
       "symbols": [
         {
           "docstring": "Meta Hashtag Manager",
@@ -1716,7 +1734,7 @@
                     {
                       "lines": [
                         164,
-                        240
+                        248
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1724,8 +1742,8 @@
                     {
                       "docstring": "Sync repo topics (verify, then repair)",
                       "lines": [
-                        241,
-                        241
+                        249,
+                        249
                       ],
                       "name": "name",
                       "type": "item"
@@ -1735,41 +1753,41 @@
                         {
                           "docstring": "${{ secrets.GITHUB_TOKEN }}",
                           "lines": [
-                            243,
-                            243
+                            251,
+                            251
                           ],
                           "name": "GH_TOKEN",
                           "type": "key"
                         }
                       ],
                       "lines": [
-                        242,
-                        243
+                        250,
+                        251
                       ],
                       "name": "env",
                       "type": "section"
                     },
                     {
                       "lines": [
-                        244,
-                        272
+                        252,
+                        303
                       ],
                       "name": "run",
                       "type": "multiline"
                     },
                     {
-                      "docstring": "Commit only on real drift",
+                      "docstring": "Fail if the derived copies have drifted (never commit them)",
                       "lines": [
-                        273,
-                        273
+                        304,
+                        304
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        274,
-                        285
+                        305,
+                        318
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1777,7 +1795,7 @@
                   ],
                   "lines": [
                     61,
-                    285
+                    318
                   ],
                   "name": "steps",
                   "type": "list"
@@ -1785,7 +1803,7 @@
               ],
               "lines": [
                 59,
-                285
+                318
               ],
               "name": "sync",
               "type": "section"
@@ -1793,7 +1811,7 @@
           ],
           "lines": [
             58,
-            285
+            318
           ],
           "name": "jobs",
           "type": "section"
@@ -1801,12 +1819,12 @@
       ]
     },
     "verify.yml": {
-      "hash": "52df14130099",
-      "indexed_at": "2026-08-01T07:00:11.384158+00:00",
+      "hash": "557d037cc23a",
+      "indexed_at": "2026-08-01T07:24:17.063266+00:00",
       "language": "yaml",
-      "lines": 143,
-      "mtime_ns": 1785567230219820800,
-      "size": 6502,
+      "lines": 169,
+      "mtime_ns": 1785568049138161400,
+      "size": 7752,
       "symbols": [
         {
           "docstring": "verify",
@@ -2026,16 +2044,16 @@
                     {
                       "lines": [
                         101,
-                        127
+                        147
                       ],
                       "name": "run",
                       "type": "multiline"
                     },
                     {
-                      "docstring": "Commit ONLY if the verdict changed",
+                      "docstring": "Publish the verdict, and FAIL if the committed one is stale",
                       "lines": [
-                        128,
-                        128
+                        148,
+                        148
                       ],
                       "name": "name",
                       "type": "item"
@@ -2043,16 +2061,16 @@
                     {
                       "docstring": "steps.decide.outputs.changed == 'yes'",
                       "lines": [
-                        129,
-                        129
+                        149,
+                        149
                       ],
                       "name": "if",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        130,
-                        144
+                        150,
+                        170
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2060,7 +2078,7 @@
                   ],
                   "lines": [
                     54,
-                    144
+                    170
                   ],
                   "name": "steps",
                   "type": "list"
@@ -2068,7 +2086,7 @@
               ],
               "lines": [
                 50,
-                144
+                170
               ],
               "name": "publish",
               "type": "section"
@@ -2076,7 +2094,7 @@
           ],
           "lines": [
             45,
-            144
+            170
           ],
           "name": "jobs",
           "type": "section"
@@ -2084,6 +2102,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T07:00:11.518928+00:00",
+  "generated_at": "2026-08-01T07:44:40.209600+00:00",
   "version": "1.0"
 }

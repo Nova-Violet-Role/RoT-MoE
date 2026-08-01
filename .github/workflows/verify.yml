@@ -125,19 +125,45 @@ jobs:
           } > STATUS.md
           cat STATUS.md
 
-      - name: Commit ONLY if the verdict changed
+      # REPORT, DO NOT PUSH. Rewritten 2026-08-01, the same day the sibling
+      # workflow's push was refused by the branch ruleset:
+      #
+      #   remote: - 4 of 4 required status checks are expected.
+      #   ! [remote rejected] main -> main
+      #
+      # `main` now forbids deletion and force-push and requires four status
+      # checks, and the GitHub Actions app cannot hold a repository-level
+      # bypass (HTTP 422: "must be part of the ruleset source or owner
+      # organization"). This step would have failed on its next Monday run.
+      #
+      # It is fixed by REMOVING the write, not by weakening the protection.
+      # Nothing writes to main except a human. The verdict is published to the
+      # run summary -- readable without a checkout -- and the job FAILS when
+      # the committed STATUS.md no longer matches the measurements, so a stale
+      # verdict is loud instead of silently repaired by a bot.
+      #
+      # The old rule ("commit only on real change, never --allow-empty")
+      # survives intact in its stronger form: a commit still only happens on
+      # real change, and now a PERSON makes it.
+      - name: Publish the verdict, and FAIL if the committed one is stale
         if: steps.decide.outputs.changed == 'yes'
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add STATUS.md
-          # --allow-empty is DELIBERATELY ABSENT. No change, no commit -- and
-          # the guard is now real, because the staged file no longer carries a
-          # clock that guarantees a difference.
-          if git diff --staged --quiet; then
-            echo "staged nothing -- NOTHING COMMITTED"
-          else
-            git commit -m "ci: re-verified against $(cat lean/lean-toolchain)"
-            git push
-            echo "verdict CHANGED -- committed"
-          fi
+          set -uo pipefail
+          {
+            echo "## The verdict CHANGED"
+            echo
+            echo 'STATUS.md in the tree no longer matches the measurements.'
+            echo 'This job does not push to a protected branch -- regenerate and commit it:'
+            echo
+            echo '```sh'
+            echo 'bash checker/status-verdict.sh'
+            echo '```'
+            echo
+            echo '### measured now'
+            echo '```'
+            cat /tmp/verdict.new
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::STATUS.md is stale -- the verdict changed and no bot will commit it for you."
+          diff -u /tmp/verdict.old /tmp/verdict.new || true
+          exit 1

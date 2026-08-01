@@ -210,7 +210,15 @@ jobs:
           #    OpenAIRE index these and impose no 20-cap either.
           {
             echo "keywords:"
-            for t in "${TAGS[@]}"; do echo "  - $t"; done
+            # QUOTED, and that is load-bearing. MEASURED 2026-08-01: the tree
+            # carries `  - "tag"` while this line emitted `  - tag`, so every
+            # run produced a 42-line diff and tried to commit it -- and
+            # checker/tags-consistency.sh parses keywords with
+            # `grep -o '"[^"]*"'`, which would have found ZERO keywords in the
+            # rewritten file and failed the gate with "CITATION.cff has no
+            # keywords". The generator and the parser must agree on the format;
+            # tags-consistency.sh phase 5b now asserts that they do.
+            for t in "${TAGS[@]}"; do echo "  - \"$t\""; done
           } > /tmp/kw.yaml
           awk '
             /^keywords:/      { skip=1; while ((getline line < "/tmp/kw.yaml") > 0) print line; next }
@@ -270,15 +278,40 @@ jobs:
             exit 1
           fi
 
-      - name: Commit only on real drift
+      # REPORT THE DRIFT; DO NOT COMMIT IT. Rewritten 2026-08-01 after the
+      # push was refused:
+      #
+      #   remote: - 4 of 4 required status checks are expected.
+      #   ! [remote rejected] main -> main (push declined due to repository
+      #     rule violations)
+      #
+      # `main` is now protected by a ruleset: no deletion, no force-push, and
+      # four required status checks. The GitHub Actions app CANNOT be granted a
+      # bypass at repository level -- the API refuses it with "Actor GitHub
+      # Actions integration must be part of the ruleset source or owner
+      # organization" (HTTP 422, measured).
+      #
+      # The constraint forced a better design than the one it broke. A bot
+      # pushing unreviewed commits to a protected branch is precisely what the
+      # protection exists to prevent, and weakening the ruleset to let one
+      # through would have been closing an alarm by disarming it.
+      #
+      # NOTHING WRITES TO main EXCEPT A HUMAN. This step now FAILS on drift and
+      # prints the diff, so the fix lands in a commit somebody signed. It costs
+      # nothing in coverage: checker/tags-consistency.sh gates the very same
+      # invariant locally and in CI, on every commit rather than three times a
+      # week.
+      - name: Fail if the derived copies have drifted (never commit them)
         run: |
-          set -euo pipefail
-          git config user.name  "Meta Hashtag Manager"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md CITATION.cff
-          if git diff --staged --quiet; then
-            echo "already in sync -- nothing to commit, and nothing to fake"
-          else
-            git commit -m "tags: re-derive signature block and keywords from tags.txt"
-            git push
+          set -uo pipefail
+          if git diff --quiet -- README.md CITATION.cff; then
+            echo "README.md and CITATION.cff already match .github/tags.txt."
+            echo "(A no-op is the correct outcome. Nothing is committed, and nothing is faked.)"
+            exit 0
           fi
+          echo "::error::README.md / CITATION.cff have DRIFTED from .github/tags.txt."
+          echo "::error::Run the same derivation locally and commit it yourself --"
+          echo "::error::this job will not push to a protected branch."
+          git --no-pager diff --stat -- README.md CITATION.cff
+          git --no-pager diff -- README.md CITATION.cff | head -80
+          exit 1

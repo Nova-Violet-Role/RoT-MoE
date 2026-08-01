@@ -148,15 +148,20 @@ jobs:
           fi
           echo "control detected the false claim as required"
 
-      - name: Commit only on real drift
+      # REPORT, DO NOT PUSH -- see tag-manager.yml for the measurement. `main`
+      # is protected (no deletion, no force-push, four required checks) and the
+      # GitHub Actions app cannot hold a repository-level bypass. A bot pushing
+      # unreviewed commits is what the protection exists to stop; the fix is to
+      # remove the write, never to weaken the rule.
+      - name: Fail if PROMO.md has drifted (never commit it)
         run: |
-          set -euo pipefail
-          git config user.name  "Ads Manager"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add PROMO.md
-          if git diff --staged --quiet; then
-            echo "copy unchanged -- nothing to commit"
-          else
-            git commit -m "promo: regenerate from measured numbers (${{ steps.gt.outputs.thms }} theorems)"
-            git push
+          set -uo pipefail
+          if git diff --quiet -- PROMO.md; then
+            echo "copy unchanged -- nothing to commit, and nothing to fake"
+            exit 0
           fi
+          echo "::error::PROMO.md no longer matches the measured numbers (${{ steps.gt.outputs.thms }} theorems)."
+          echo "::error::Regenerate it locally and commit it yourself -- this job will not push to a protected branch."
+          git --no-pager diff -- PROMO.md | head -60
+          exit 1
+
