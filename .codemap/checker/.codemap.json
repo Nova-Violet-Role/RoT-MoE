@@ -2,18 +2,18 @@
   "directory": "checker",
   "files": {
     "axiom-audit.sh": {
-      "hash": "ddff888fa2e3",
-      "indexed_at": "2026-08-01T04:40:00.091636+00:00",
+      "hash": "fa3cf8695145",
+      "indexed_at": "2026-08-01T06:03:54.768159+00:00",
       "language": "shell",
-      "lines": 264,
-      "mtime_ns": 1785558289713318700,
-      "size": 12055,
+      "lines": 267,
+      "mtime_ns": 1785563774569804000,
+      "size": 12243,
       "symbols": [
         {
           "docstring": "--- theorem names, from the SOURCE, comment- and namespace-aware ------------ Lean block comments NEST, so a boolean flag is wrong. Doc comments carry",
           "lines": [
             74,
-            265
+            268
           ],
           "name": "names_of",
           "type": "function"
@@ -22,15 +22,15 @@
           "docstring": "--- the audit itself -------------------------------------------------------",
           "lines": [
             141,
-            191
+            194
           ],
           "name": "audit_module",
           "type": "function"
         },
         {
           "lines": [
-            227,
-            231
+            230,
+            234
           ],
           "name": "cleanup_ctl",
           "type": "function"
@@ -156,12 +156,12 @@
       "symbols": []
     },
     "gauge-cross.sh": {
-      "hash": "c48e9c843aa2",
-      "indexed_at": "2026-07-31T17:48:13.855539+00:00",
+      "hash": "01a41dc45527",
+      "indexed_at": "2026-08-01T06:03:54.925815+00:00",
       "language": "shell",
-      "lines": 182,
-      "mtime_ns": 1785519382553039500,
-      "size": 8110,
+      "lines": 184,
+      "mtime_ns": 1785563774569804000,
+      "size": 8224,
       "symbols": [
         {
           "lines": [
@@ -285,12 +285,12 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "825a2c471dce",
-      "indexed_at": "2026-08-01T04:40:00.409650+00:00",
+      "hash": "5e1d4c7e5bda",
+      "indexed_at": "2026-08-01T06:03:55.088376+00:00",
       "language": "shell",
-      "lines": 294,
-      "mtime_ns": 1785558416500001800,
-      "size": 15015,
+      "lines": 361,
+      "mtime_ns": 1785563818016787200,
+      "size": 18649,
       "symbols": []
     },
     "preflight.sh": {
@@ -493,26 +493,35 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "4575452cd9b6",
-      "indexed_at": "2026-08-01T04:40:00.729142+00:00",
+      "hash": "f605a59e2b87",
+      "indexed_at": "2026-08-01T06:03:55.247424+00:00",
       "language": "shell",
-      "lines": 474,
-      "mtime_ns": 1785558241423273900,
-      "size": 23050,
+      "lines": 493,
+      "mtime_ns": 1785563749820739000,
+      "size": 23993,
       "symbols": [
+        {
+          "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
+          "lines": [
+            77,
+            89
+          ],
+          "name": "except_reason",
+          "type": "function"
+        },
         {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            99,
-            104
+            110,
+            115
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            105,
-            114
+            116,
+            125
           ],
           "name": "contains_line",
           "type": "function"
@@ -520,16 +529,34 @@
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            160,
-            167
+            171,
+            178
           ],
           "name": "hook_verdict",
           "type": "function"
         },
         {
+          "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            420,
-            435
+            235,
+            244
+          ],
+          "name": "gate_except_reason",
+          "type": "function"
+        },
+        {
+          "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
+          "lines": [
+            311,
+            315
+          ],
+          "name": "mut_except_reason",
+          "type": "function"
+        },
+        {
+          "lines": [
+            439,
+            454
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -537,6 +564,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T05:44:57.824891+00:00",
+  "generated_at": "2026-08-01T06:03:55.247489+00:00",
   "version": "1.0"
 }

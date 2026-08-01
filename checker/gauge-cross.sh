@@ -134,7 +134,9 @@ if [ "$LEAN_RC" -ne 0 ]; then
 fi
 
 # Lean prints one Float per #eval, in order.
-mapfile -t LEANV < <(grep -oE '^-?[0-9]+\.[0-9]+' "$SCRATCH/lean.out")
+# NOT `mapfile`: bash 4.0+ only, and macOS ships bash 3.2.57 as /bin/bash.
+LEANV=()
+while IFS= read -r _v; do LEANV+=("$_v"); done < <(grep -oE '^-?[0-9]+\.[0-9]+' "$SCRATCH/lean.out")
 
 i=0
 while read -r vec br M C T; do

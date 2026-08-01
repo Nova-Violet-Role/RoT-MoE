@@ -289,6 +289,73 @@ else
   echo "  NOTE  could not build a large test string -- control 2 not run"
 fi
 
+# ---------------------------------------------------------------------------
+echo
+echo "== 5. no bash-4-only construct (macOS ships bash 3.2.57) =="
+# ---------------------------------------------------------------------------
+# MEASURED on macos-latest, 2026-08-01, the first time a macOS runner ever ran
+# this repository: `checker/workflow-lint.sh` died at
+#
+#     checker/workflow-lint.sh: line 69: declare: -A: invalid option
+#     checker/workflow-lint.sh: line 70: preflight.sh: syntax error:
+#         invalid arithmetic operator (error token is ".sh")
+#
+# Apple froze /bin/bash at 3.2.57 (2007), the last GPLv2 release, and has never
+# shipped a newer one. `declare -A` arrived in bash 4.0 (2009); so did
+# `mapfile`/`readarray` and the `${v^^}` / `${v,,}` case operators. bash 3.2
+# does not merely reject an associative-array subscript, it REINTERPRETS it as
+# arithmetic, so `EXCEPT[preflight.sh]=` becomes a syntax error about an
+# operator -- a message that names nothing to do with the real cause.
+#
+# WHY A STATIC SCAN AND NOT A RUN: this machine has no bash 3.2 to run under,
+# and neither does the ubuntu runner. Only the macOS job can execute the real
+# thing, and it does. This phase makes the failure reproducible EVERYWHERE and
+# BEFORE the push, which is the difference between a rule and a postmortem.
+#
+# The scan strips comments first -- every fix above documents the banned
+# construct by name, and a rule that flags its own explanation is unusable.
+B4_RE='(declare|local|typeset)[[:space:]]+-[A-Za-z]*A[A-Za-z]*[[:space:]]|(mapfile|readarray)[[:space:]]|\$\{[A-Za-z_][A-Za-z0-9_]*(\^\^|,,)'
+b4_hits=0
+for f in checker/*.sh hooks/*.sh .githooks/* *.sh; do
+  [ -f "$f" ] || continue
+  case "$f" in */portability.sh) continue ;; esac   # this file names them all
+  h=$(grep -v 'BASH4-ALLOW' "$f" | sed 's/#.*$//' | grep -nE "$B4_RE" || true)
+  if [ -n "$h" ]; then
+    bad "$f uses a bash-4-only construct -- macOS /bin/bash is 3.2.57:"
+    printf '%s\n' "$h" | sed 's/^/        /' | head -4
+    b4_hits=$((b4_hits+1))
+  fi
+done
+[ "$b4_hits" -eq 0 ] && ok "no bash-4-only construct in any shipped script ($(ls checker/*.sh hooks/*.sh 2>/dev/null | wc -l | tr -d ' ') files scanned)"
+
+# --- controls ---------------------------------------------------------------
+# Three separate constructs, because one regex alternative passing says nothing
+# about the other two -- and each of the three is a defect that has really
+# shipped in this repo (declare -A and mapfile both did, today).
+ctl4="${TMPDIR:-/tmp}/b4ctl.$$.sh"
+b4_ctl_ok=0; b4_ctl_n=0
+for probe in 'declare -A M' 'mapfile -t xs < <(echo hi)' 'echo "${name^^}"'; do
+  printf '#!/usr/bin/env bash\n%s\n' "$probe" > "$ctl4"
+  b4_ctl_n=$((b4_ctl_n+1))
+  hit=$(sed 's/#.*$//' "$ctl4" | grep -nE "$B4_RE" || true)
+  if [ -n "$hit" ]; then b4_ctl_ok=$((b4_ctl_ok+1)); fi
+done
+rm -f "$ctl4"
+if [ "$b4_ctl_ok" -eq "$b4_ctl_n" ]; then
+  ok "CONTROL: all $b4_ctl_n planted bash-4 constructs ARE detected (declare -A, mapfile, \${v^^})"
+else
+  bad "CONTROL DEAD: only $b4_ctl_ok of $b4_ctl_n planted bash-4 constructs were caught -- the scan is partly blind"
+fi
+# And the converse: an ordinary INDEXED array must NOT be flagged. Without this
+# the rule could be a blanket ban on the word `declare` and still look green.
+printf '#!/usr/bin/env bash\ndeclare -a xs\nxs+=(one)\n' > "$ctl4"
+if [ -z "$(sed 's/#.*$//' "$ctl4" | grep -nE "$B4_RE" || true)" ]; then
+  ok "CONTROL: a plain indexed array (declare -a) is NOT flagged -- the rule is specific"
+else
+  bad "CONTROL: declare -a was flagged; the rule is too broad and would ban portable code"
+fi
+rm -f "$ctl4"
+
 printf '\n== portability: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

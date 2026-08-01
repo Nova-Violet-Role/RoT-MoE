@@ -66,16 +66,27 @@ fi
 echo
 echo "-- drift: every checker must be wired into a workflow --"
 # Deliberate exceptions, each with a reason. An empty reason is not allowed.
-declare -A EXCEPT
-EXCEPT[preflight.sh]="informational; run as the first CI step but not a gate"
-EXCEPT[workflow-lint.sh]="would recurse; run from CI as its own step below"
+#
+# NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Apple
+# froze it at the last GPLv2 release -- and `declare -A` arrived in bash 4.0.
+# MEASURED on macos-latest 2026-08-01: this file died at
+# `declare: -A: invalid option`, then `preflight.sh: syntax error: invalid
+# arithmetic operator`, because bash 3.2 read EXCEPT[preflight.sh]="..." as an
+# arithmetic subscript on an ordinary array. The whole macOS job stopped here.
+# A `case` lookup is portable to every bash in the wild and reads no worse.
+except_reason () {   # except_reason <basename> -> prints reason, or nothing
+  case "$1" in
+    preflight.sh)      printf '%s' "informational; run as the first CI step but not a gate" ;;
+    workflow-lint.sh)  printf '%s' "would recurse; run from CI as its own step below" ;;
 # gate-all is an AGGREGATOR for local use and the pre-commit hook. Running it in
 # CI would re-run every gate a second time inside one step, and a failure would
 # report as "gate-all failed" instead of naming the check that broke. Per-step
 # granularity is worth more in CI than a single roll-up. It is exercised on
 # every local commit via .githooks/pre-commit, and the phase below asserts that
 # every gate it lists is a real, present checker -- so it cannot silently rot.
-EXCEPT[gate-all.sh]="aggregator for the pre-commit hook; CI runs each gate as its own named step"
+    gate-all.sh)       printf '%s' "aggregator for the pre-commit hook; CI runs each gate as its own named step" ;;
+  esac
+}
 
 # NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.
 #
@@ -118,8 +129,8 @@ for c in checker/*.sh; do
   base="$(basename "$c")"
   if contains "$WF_TEXT" "$base"; then
     ok "wired into a workflow: $base"
-  elif [ -n "${EXCEPT[$base]:-}" ]; then
-    echo "  NOTE  exempt: $base -- ${EXCEPT[$base]}"
+  elif [ -n "$(except_reason "$base")" ]; then
+    echo "  NOTE  exempt: $base -- $(except_reason "$base")"
   else
     bad "NOT RUN BY ANY WORKFLOW: $base"
     echo "        The repo looks more verified than it is. Wire it up, or add it"
@@ -220,13 +231,17 @@ if [ -f checker/gate-all.sh ]; then
   #
   # Exemptions are allowed, and each one states its reason, because a silent
   # exemption is how a coverage rule becomes a formality.
-  declare -A GATE_EXCEPT
-  GATE_EXCEPT[gate-all.sh]="it is the aggregator; it cannot list itself as a gate"
-  GATE_EXCEPT[preflight.sh]="bootstrap probe for a fresh clone -- it runs BEFORE the gates exist, and gate-all would re-run its work"
-  # A GENERATOR, not a gate: it prints the verdict block and has no pass/fail of
-  # its own. It is exempt only because two gates EXECUTE it, and that claim is
-  # verified immediately below rather than believed.
-  GATE_EXCEPT[status-verdict.sh]="generator, not a gate -- it is EXERCISED by verdict-stability.sh and verdict-schedule-sim.sh, both of which are gates"
+  # `case`, not `declare -A`: bash 3.2 on macOS has no associative arrays.
+  gate_except_reason () {
+    case "$1" in
+      gate-all.sh)  printf '%s' "it is the aggregator; it cannot list itself as a gate" ;;
+      preflight.sh) printf '%s' "bootstrap probe for a fresh clone -- it runs BEFORE the gates exist, and gate-all would re-run its work" ;;
+      # A GENERATOR, not a gate: it prints the verdict block and has no pass/fail
+      # of its own. It is exempt only because two gates EXECUTE it, and that
+      # claim is verified immediately below rather than believed.
+      status-verdict.sh) printf '%s' "generator, not a gate -- it is EXERCISED by verdict-stability.sh and verdict-schedule-sim.sh, both of which are gates" ;;
+    esac
+  }
 
   gate_listed="$(grep -oE 'checker/[a-z-]+\.sh' checker/gate-all.sh | sed 's|checker/||' | sort -u)"
   uncovered=0
@@ -234,8 +249,8 @@ if [ -f checker/gate-all.sh ]; then
     b="$(basename "$c")"
     if contains_line "$gate_listed" "$b"; then
       continue
-    elif [ -n "${GATE_EXCEPT[$b]:-}" ]; then
-      echo "  NOTE  not a gate: $b -- ${GATE_EXCEPT[$b]}"
+    elif [ -n "$(gate_except_reason "$b")" ]; then
+      echo "  NOTE  not a gate: $b -- $(gate_except_reason "$b")"
     else
       bad "$b is never run by gate-all -- the local commit gate is WEAKER than CI"
       uncovered=$((uncovered+1))
@@ -292,15 +307,19 @@ done
 # spot this phase exists to close.
 # Helpers under lean/mutate that are not independently runnable get an
 # exemption WITH a reason and WITH the evidence for it -- never a bare skip.
-declare -A MUT_EXCEPT
-MUT_EXCEPT[attribute_mut.sh]="forensic re-reader for stored mutation logs; its function (anchoring attribution on ^error:) is now inline in all five harnesses, asserted below"
+# `case`, not `declare -A`: bash 3.2 on macOS has no associative arrays.
+mut_except_reason () {
+  case "$1" in
+    attribute_mut.sh) printf '%s' "forensic re-reader for stored mutation logs; its function (anchoring attribution on ^error:) is now inline in all five harnesses, asserted below" ;;
+  esac
+}
 
 for s in lean/mutate/*.sh; do
   base="$(basename "$s")"
   if contains "$WF_TEXT" "$base"; then
     ok "CI runs $base"
-  elif [ -n "${MUT_EXCEPT[$base]:-}" ]; then
-    echo "  NOTE  exempt: $base -- ${MUT_EXCEPT[$base]}"
+  elif [ -n "$(mut_except_reason "$base")" ]; then
+    echo "  NOTE  exempt: $base -- $(mut_except_reason "$base")"
   else
     bad "CI NEVER RUNS $base -- those theorems are unmutated in CI"
   fi

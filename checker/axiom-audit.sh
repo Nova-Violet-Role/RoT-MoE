@@ -141,7 +141,10 @@ echo "== axiom audit over ${#modules[@]} modules shipped by this repo (list read
 audit_module () {  # audit_module <name> -> 0 clean, 1 dirty/incomplete
   local m="$1" src="$LEAN_ROOT/Proofs/$m.lean" probe out rc
   local -a ns
-  mapfile -t ns < <(names_of "$src")
+  # NOT `mapfile`: it is bash 4.0+, and macOS ships bash 3.2.57 as /bin/bash.
+  # A read loop is portable to every bash and behaves identically here.
+  ns=()
+  while IFS= read -r _n; do ns+=("$_n"); done < <(names_of "$src")
   probe="$LEAN_ROOT/.axiom_probe_$m.lean"
   {
     printf 'import Proofs.%s\n' "$m"
