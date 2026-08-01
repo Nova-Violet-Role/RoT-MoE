@@ -147,12 +147,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "f45d2efe5218",
-      "indexed_at": "2026-08-01T03:45:27.486806+00:00",
+      "hash": "d8d88d534fb8",
+      "indexed_at": "2026-08-01T05:44:57.665100+00:00",
       "language": "shell",
-      "lines": 136,
-      "mtime_ns": 1785554760252651100,
-      "size": 5773,
+      "lines": 137,
+      "mtime_ns": 1785562083756179700,
+      "size": 5850,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -310,6 +310,15 @@
           "type": "function"
         }
       ]
+    },
+    "release-consistency.sh": {
+      "hash": "0657c893276e",
+      "indexed_at": "2026-08-01T05:44:57.824838+00:00",
+      "language": "shell",
+      "lines": 121,
+      "mtime_ns": 1785562724311035100,
+      "size": 5227,
+      "symbols": []
     },
     "repo-complete.sh": {
       "hash": "d8acc0629f28",
@@ -528,6 +537,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T05:02:05.346422+00:00",
+  "generated_at": "2026-08-01T05:44:57.824891+00:00",
   "version": "1.0"
 }

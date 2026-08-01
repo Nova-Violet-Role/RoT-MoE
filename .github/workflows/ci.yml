@@ -51,9 +51,9 @@ jobs:
     name: checkers (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false          # a Windows failure must not hide a Linux one
+      fail-fast: false          # one platform failing must not hide the other two
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -130,6 +130,10 @@ jobs:
       # tag-manager.yml owns the invariants that need the API (the evidence
       # scan). These are the ones that need nothing at all, so they run on
       # every commit and, crucially, on a machine with no remote.
+      - name: release consistency -- version, tag and date cannot disagree
+        shell: bash
+        run: bash checker/release-consistency.sh
+
       - name: tag consistency -- tags.txt, README and CITATION cannot drift
         shell: bash
         run: bash checker/tags-consistency.sh

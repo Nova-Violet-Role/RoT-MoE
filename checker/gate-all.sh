@@ -47,6 +47,7 @@ cross-diff (both router arms)|bash checker/cross-diff.sh
 cross-diff (both reminder arms)|bash checker/cross-diff-remind.sh
 install-document lint|bash checker/claude-md-lint.sh
 licence bridge (NOTICE vs disk)|bash checker/license-bridge.sh
+release consistency (version, tag, date)|bash checker/release-consistency.sh
 tag consistency (local half of R18)|bash checker/tags-consistency.sh
 verdict stability (the scheduled commit rule)|bash checker/verdict-stability.sh
 gauge cross (Lean mirror vs hook)|bash checker/gauge-cross.sh
