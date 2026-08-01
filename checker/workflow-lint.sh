@@ -77,10 +77,46 @@ EXCEPT[workflow-lint.sh]="would recurse; run from CI as its own step below"
 # every gate it lists is a real, present checker -- so it cannot silently rot.
 EXCEPT[gate-all.sh]="aggregator for the pre-commit hook; CI runs each gate as its own named step"
 
+# NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.
+#
+# MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a
+# string into `grep -q` (the pattern is spelled out in the commit message
+# rather than here, because a blanket rewrite of this file's call sites also
+# rewrote this very comment -- a literal instance of the hazard that replacing
+# a short form corrupts a superset of what you meant),
+# and the runner reported EIGHT WIRED CHECKERS as NOT RUN BY ANY WORKFLOW, each
+# with `printf: write error: Broken pipe` beside it. `grep -q` exits the instant
+# it matches; printf is still writing, takes EPIPE and exits non-zero; the job's
+# shell is `bash -e -o pipefail`, so pipefail fails the PIPELINE -- and a
+# successful match is scored as a miss. The lint then declared the repository
+# less verified than it is, which is the exact inversion of its purpose.
+#
+# It never fired on Git Bash: the string fits the pipe buffer before grep can
+# exit, so printf never sees the broken pipe. A test whose outcome depends on
+# the platform's pipe buffer size is the worst kind of green there is.
+#
+# `case` answers the same question with no process, no pipe and no race.
+contains () {   # contains <haystack> <needle>  -> 0 if present
+  case "$1" in
+    *"$2"*) return 0 ;;
+    *)      return 1 ;;
+  esac
+}
+contains_line () {   # contains_line <haystack> <exact line>  -> 0 if present
+  case "
+$1
+" in
+    *"
+$2
+"*) return 0 ;;
+    *)  return 1 ;;
+  esac
+}
+
 WF_TEXT="$(cat .github/workflows/*.yml)"
 for c in checker/*.sh; do
   base="$(basename "$c")"
-  if printf '%s' "$WF_TEXT" | grep -qF "$base"; then
+  if contains "$WF_TEXT" "$base"; then
     ok "wired into a workflow: $base"
   elif [ -n "${EXCEPT[$base]:-}" ]; then
     echo "  NOTE  exempt: $base -- ${EXCEPT[$base]}"
@@ -196,7 +232,7 @@ if [ -f checker/gate-all.sh ]; then
   uncovered=0
   for c in checker/*.sh; do
     b="$(basename "$c")"
-    if printf '%s\n' "$gate_listed" | grep -qx "$b"; then
+    if contains_line "$gate_listed" "$b"; then
       continue
     elif [ -n "${GATE_EXCEPT[$b]:-}" ]; then
       echo "  NOTE  not a gate: $b -- ${GATE_EXCEPT[$b]}"
@@ -216,7 +252,7 @@ if [ -f checker/gate-all.sh ]; then
   for g in checker/verdict-stability.sh checker/verdict-schedule-sim.sh; do
     gb="$(basename "$g")"
     if [ -f "$g" ] && grep -q 'status-verdict\.sh' "$g" \
-       && printf '%s\n' "$gate_listed" | grep -qx "$gb"; then
+       && contains_line "$gate_listed" "$gb"; then
       exercisers=$((exercisers+1))
     fi
   done
@@ -231,7 +267,7 @@ if [ -f checker/gate-all.sh ]; then
   # directory -- a control that runs somewhere else tests somewhere else.
   PL="checker/zz-planted-control.sh"
   printf '#!/usr/bin/env bash\nexit 0\n' > "$PL"
-  if printf '%s\n' "$gate_listed" | grep -qx "zz-planted-control.sh"; then
+  if contains_line "$gate_listed" "zz-planted-control.sh"; then
     bad "CONTROL DEAD: a checker that was never added to gate-all appears to be listed"
   else
     ok "CONTROL: a checker absent from gate-all IS detectable (planted, then removed)"
@@ -246,7 +282,7 @@ echo
 echo "-- drift: every Lean module and mutation suite must be in CI --"
 for m in lean/Proofs/*.lean; do
   mod="$(basename "$m" .lean)"
-  printf '%s' "$WF_TEXT" | grep -qF "Proofs.$mod" \
+  contains "$WF_TEXT" "Proofs.$mod" \
     && ok "CI builds Proofs.$mod" \
     || bad "CI NEVER BUILDS Proofs.$mod -- it is unverified in CI"
 done
@@ -261,7 +297,7 @@ MUT_EXCEPT[attribute_mut.sh]="forensic re-reader for stored mutation logs; its f
 
 for s in lean/mutate/*.sh; do
   base="$(basename "$s")"
-  if printf '%s' "$WF_TEXT" | grep -qF "$base"; then
+  if contains "$WF_TEXT" "$base"; then
     ok "CI runs $base"
   elif [ -n "${MUT_EXCEPT[$base]:-}" ]; then
     echo "  NOTE  exempt: $base -- ${MUT_EXCEPT[$base]}"

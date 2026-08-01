@@ -204,7 +204,7 @@ jobs:
           exit 9
 YAML
 pcmd="$(extract_steps "$CTLWF" | { IFS=$'' read -r -d $'' _n _w _c; printf '%s' "$_c"; })"
-if printf '%s' "$pcmd" | grep -q 'exit 9'; then
+if grep -q 'exit 9' <<< "$pcmd"; then
   ok "CONTROL: the extractor reads a planted step's command back"
 else
   bad "CONTROL DEAD: the extractor did not recover a planted step (got: '$pcmd')"

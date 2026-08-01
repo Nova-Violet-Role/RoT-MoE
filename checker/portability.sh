@@ -216,7 +216,11 @@ for arm in hooks/*.ps1 ARM_ROUTER.ps1 DISARM_ROUTER.ps1 SETUP_LEAN.ps1; do
   hits=$(sed 's/#.*$//' "$arm" | grep -nE '\$env:(USERPROFILE|APPDATA|LOCALAPPDATA|HOMEDRIVE|HOMEPATH|ProgramFiles)' || true)
   if [ -n "$hits" ]; then
     # A guarded use is fine; a bare one inside Join-Path is the defect.
-    if printf '%s' "$hits" | grep -qE 'Join-Path[[:space:]]+\$env:'; then
+    # `[$]` rather than `\$`: two rounds of sed rewriting this line ate the
+    # backslash, leaving `$env:` -- where ERE reads `$` as end-of-line and the
+    # scan silently matches nothing. A bracket expression cannot be de-escaped
+    # by accident, so the pattern survives the next person's `sed -i`.
+    if grep -qE 'Join-Path[[:space:]]+[$]env:' <<< "$hits"; then
       bad "$arm passes a Windows-only variable straight to Join-Path:"
       printf '%s\n' "$hits" | head -3 | sed 's/^/        /'
       winvars=1
@@ -224,6 +228,66 @@ for arm in hooks/*.ps1 ARM_ROUTER.ps1 DISARM_ROUTER.ps1 SETUP_LEAN.ps1; do
   fi
 done
 [ "$winvars" -eq 0 ] && ok "no shipped .ps1 feeds a Windows-only variable directly to Join-Path"
+
+# ---------------------------------------------------------------------------
+echo
+echo "== 4. no pipe into an early-exiting consumer =="
+# ---------------------------------------------------------------------------
+# DEFECT 4, found by the THIRD CI run (ubuntu-latest, 2026-08-01).
+# checker/workflow-lint.sh did `printf '%s' "$BIG" | grep -qF "$needle"` and
+# reported EIGHT WIRED CHECKERS as NOT RUN BY ANY WORKFLOW, each accompanied by
+# `printf: write error: Broken pipe`. grep -q exits on first match, printf takes
+# EPIPE, and `set -o pipefail` turns that into a failed pipeline -- so a MATCH
+# was scored as a MISS and the lint declared the repository less verified than
+# it is. The inversion of its purpose.
+#
+# It cannot reproduce on Git Bash: the string fits the pipe buffer before grep
+# can exit. That is the whole danger -- the outcome depends on the platform's
+# pipe buffer size, so the same code is green here and red there, and neither
+# result is trustworthy. `case` or a here-string removes the pipe entirely.
+sigpipe=0
+for f in checker/*.sh hooks/*.sh; do
+  [ -f "$f" ] || continue
+  # Lines carrying the pragma are the CONTROLS below, which must contain the
+  # forbidden pattern in order to prove the scan can see it. Excluded by an
+  # explicit marker rather than by loosening the pattern -- the same lesson as
+  # hook-footprint.sh, where a checker that fires on a line DOCUMENTING the rule
+  # gets deleted by the next person who trips over it.
+  hits=$(grep -v 'SIGPIPE-ALLOW' "$f" | sed 's/#.*$//' | grep -nE '(printf|echo|cat)[^|]*\|[[:space:]]*grep[[:space:]]+-[A-Za-z]*q' || true)
+  if [ -n "$hits" ]; then
+    bad "$f pipes into grep -q -- SIGPIPE + pipefail makes this platform-dependent:"
+    printf '%s\n' "$hits" | head -3 | sed 's/^/        /'
+    sigpipe=1
+  fi
+done
+[ "$sigpipe" -eq 0 ] && ok "no shipped script pipes a string into an early-exiting grep"
+
+# CONTROL 1: the scan must see the pattern.
+ctl_sh="$ctl_dir/sigpipe.sh"
+printf '%s\n' '#!/usr/bin/env bash' 'printf "%s" "$X" | grep -q needle' > "$ctl_sh"
+if sed 's/#.*$//' "$ctl_sh" | grep -qE '(printf|echo|cat)[^|]*\|[[:space:]]*grep[[:space:]]+-[A-Za-z]*q'; then  # SIGPIPE-ALLOW
+  ok "CONTROL: a planted printf|grep -q IS detected"  # SIGPIPE-ALLOW
+else
+  bad "CONTROL DEAD: the scan cannot see the pattern it forbids"
+fi
+
+# CONTROL 2 -- the one that proves the DEFECT is real, not just the pattern.
+# Force the race with a string far larger than any pipe buffer and require the
+# pipeline to fail under pipefail. If this ever stops failing, the rule above
+# has become superstition and should be re-argued rather than kept on faith.
+big=$(head -c 400000 /dev/zero 2>/dev/null | tr '\0' 'a' 2>/dev/null)
+if [ -n "$big" ]; then
+  ( set -o pipefail; printf 'needle%s' "$big" | grep -q needle ) 2>/dev/null  # SIGPIPE-ALLOW
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    ok "CONTROL: with a 400 KB string the pipeline really does fail under pipefail (exit $rc) -- the defect is real here too"
+  else
+    echo "  NOTE  the race did not reproduce on this platform's buffer (it did on ubuntu-latest);"
+    echo "        the rule stands on the CI measurement, not on this machine's pipe size."
+  fi
+else
+  echo "  NOTE  could not build a large test string -- control 2 not run"
+fi
 
 printf '\n== portability: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

@@ -168,7 +168,7 @@ wf_verdict () {   # wf_verdict <file> -> 0 if it obeys the rule, 1 with reasons
   local step
   step=$(awk '/Decide whether the VERDICT changed/{f=1} f && /^      - name:/ && !/Decide whether/{f=0} f' "$f" \
          | grep -vE '^[[:space:]]*#')
-  if printf '%s' "$step" | grep -qE "date -u|GITHUB_SHA"; then
+  if grep -qE "date -u|GITHUB_SHA" <<< "$step"; then
     why+=("the compare step itself emits a timestamp or a commit id -- the comparison can never be equal"); bad_=1
   fi
   # And the guarded steps must actually be guarded.

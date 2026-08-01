@@ -172,7 +172,7 @@ audit_module () {  # audit_module <name> -> 0 clean, 1 dirty/incomplete
     bad "$m: ${#ns[@]} theorems extracted but $answered answered -- the sweep is INCOMPLETE"
     return 1
   fi
-  if printf '%s\n' "$out" | grep -q 'sorryAx'; then
+  if grep -q 'sorryAx' <<< "$out"; then
     bad "$m: rests on sorryAx --"
     printf '%s\n' "$out" | grep 'sorryAx' | sed 's/^/        /'
     return 1

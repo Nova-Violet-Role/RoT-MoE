@@ -2,12 +2,12 @@
   "directory": "checker",
   "files": {
     "axiom-audit.sh": {
-      "hash": "0e4d89c9c4e6",
-      "indexed_at": "2026-08-01T01:30:36.127318+00:00",
+      "hash": "ddff888fa2e3",
+      "indexed_at": "2026-08-01T04:40:00.091636+00:00",
       "language": "shell",
       "lines": 264,
-      "mtime_ns": 1785547181321613700,
-      "size": 12067,
+      "mtime_ns": 1785558289713318700,
+      "size": 12055,
       "symbols": [
         {
           "docstring": "--- theorem names, from the SOURCE, comment- and namespace-aware ------------ Lean block comments NEST, so a boolean flag is wrong. Doc comments carry",
@@ -56,12 +56,12 @@
       ]
     },
     "ci-dryrun.sh": {
-      "hash": "e93722286006",
-      "indexed_at": "2026-07-31T19:17:28.359675+00:00",
+      "hash": "3aed2912fc0b",
+      "indexed_at": "2026-08-01T04:40:00.253848+00:00",
       "language": "shell",
       "lines": 226,
-      "mtime_ns": 1785524633227387800,
-      "size": 11090,
+      "mtime_ns": 1785558289725319100,
+      "size": 11080,
       "symbols": [
         {
           "docstring": "--- 1. extract the steps --------------------------------------------------- Line-oriented on purpose. A YAML library would be more correct in general",
@@ -285,12 +285,12 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "098c6dd6014f",
-      "indexed_at": "2026-08-01T04:11:43.027453+00:00",
+      "hash": "825a2c471dce",
+      "indexed_at": "2026-08-01T04:40:00.409650+00:00",
       "language": "shell",
-      "lines": 230,
-      "mtime_ns": 1785556647481112900,
-      "size": 11450,
+      "lines": 294,
+      "mtime_ns": 1785558416500001800,
+      "size": 15015,
       "symbols": []
     },
     "preflight.sh": {
@@ -439,12 +439,12 @@
       ]
     },
     "verdict-stability.sh": {
-      "hash": "4294d865877b",
-      "indexed_at": "2026-08-01T01:04:17.605106+00:00",
+      "hash": "d45b3ddc8ce3",
+      "indexed_at": "2026-08-01T04:40:00.570226+00:00",
       "language": "shell",
       "lines": 209,
-      "mtime_ns": 1785544767677817700,
-      "size": 10886,
+      "mtime_ns": 1785558289749318000,
+      "size": 10876,
       "symbols": [
         {
           "docstring": "--------------------------------------------------------------------------- On a scratch copy. The real tree is never mutated by this checker: a harne",
@@ -484,26 +484,43 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "cb19ba3d6948",
-      "indexed_at": "2026-08-01T01:04:17.773052+00:00",
+      "hash": "4575452cd9b6",
+      "indexed_at": "2026-08-01T04:40:00.729142+00:00",
       "language": "shell",
-      "lines": 438,
-      "mtime_ns": 1785545670486314500,
-      "size": 21646,
+      "lines": 474,
+      "mtime_ns": 1785558241423273900,
+      "size": 23050,
       "symbols": [
+        {
+          "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
+          "lines": [
+            99,
+            104
+          ],
+          "name": "contains",
+          "type": "function"
+        },
+        {
+          "lines": [
+            105,
+            114
+          ],
+          "name": "contains_line",
+          "type": "function"
+        },
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            124,
-            131
+            160,
+            167
           ],
           "name": "hook_verdict",
           "type": "function"
         },
         {
           "lines": [
-            384,
-            399
+            420,
+            435
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -511,6 +528,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T04:11:43.027530+00:00",
+  "generated_at": "2026-08-01T04:40:00.729207+00:00",
   "version": "1.0"
 }
