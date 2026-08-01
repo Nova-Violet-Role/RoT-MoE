@@ -331,6 +331,15 @@ jobs:
       - name: axiom audit -- #print axioms on every theorem, zero sorryAx
         run: LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/axiom-audit.sh
 
+      # Classifies what a READER must trust, which the audit above does not ask:
+      # KERNEL (the kernel checked it) vs COMPILER (native_decide -- executed,
+      # not proved) vs BROKEN (sorryAx). This is the only gate that can catch a
+      # native_decide theorem, because `leanchecker` exits 0 on one -- measured.
+      # A declared axiom is trusted by definition, so the kernel re-check agrees
+      # with the elaborator and stays silent.
+      - name: axiom class -- KERNEL vs COMPILER vs BROKEN
+        run: bash checker/axiom-class.sh
+
       # A theorem with contradictory hypotheses is TRUE, builds green, has clean
       # axioms and survives leanchecker -- and says nothing. This is the only
       # gate here that asks whether the hypotheses can ever HOLD.

@@ -595,18 +595,18 @@
       ]
     },
     "RELEASE.md": {
-      "hash": "95d3e2c87882",
-      "indexed_at": "2026-08-01T19:13:58.728241+00:00",
+      "hash": "3dbcdb448f33",
+      "indexed_at": "2026-08-01T20:02:15.280727+00:00",
       "language": "markdown",
-      "lines": 253,
-      "mtime_ns": 1785610436784301800,
-      "size": 12975,
+      "lines": 280,
+      "mtime_ns": 1785612405994551000,
+      "size": 14685,
       "symbols": [
         {
-          "docstring": "**Take `v0.1.0` \u2014 Core.** It is the plugin. It routes, it gauges, it reminds, and it never touches the network. If you are here to *use* RoT MoE, that",
+          "docstring": "**The three numbers are not a roadmap.** Nothing here is \"coming later\" \u2014 all three are built from one tree, in one run, by `checker/release-package.s",
           "lines": [
-            28,
-            61
+            29,
+            83
           ],
           "name": "\ud83c\udfaf Which one do I want?",
           "type": "section"
@@ -614,35 +614,35 @@
         {
           "docstring": "**`rot-moe-0.1.0-core.zip`**",
           "lines": [
-            62,
-            80
+            84,
+            102
           ],
-          "name": "\ud83d\udce6 Core \u2014 shipped from **v0.1.0**",
+          "name": "\ud83d\udce6 `v0.1.0` \u2014 Pure Router",
           "type": "section"
         },
         {
-          "docstring": "**`rot-moe-0.1.0-lean.zip`**",
+          "docstring": "**`rot-moe-0.1.1-lean.zip`**",
           "lines": [
-            81,
-            107
+            103,
+            129
           ],
-          "name": "\ud83d\udd2c Core + Lean \u2014 shipped from **v0.1.1**",
+          "name": "\ud83d\udd2c `v0.1.1` \u2014 Router + Lean 4",
           "type": "section"
         },
         {
-          "docstring": "**`rot-moe-<ver>-unsealed.zip`**",
+          "docstring": "**`rot-moe-0.1.2-unsealed.zip`**",
           "lines": [
-            108,
-            158
+            130,
+            185
           ],
-          "name": "\u2697\ufe0f Unsealed \u2014 planned for **v0.1.2**",
+          "name": "\u2697\ufe0f `v0.1.2` \u2014 Router + Lean + Extra",
           "type": "section"
         },
         {
           "docstring": "Stated as a list because it is easier to check than a paragraph:",
           "lines": [
-            159,
-            176
+            186,
+            203
           ],
           "name": "\ud83d\udee1\ufe0f What neither version does",
           "type": "section"
@@ -650,8 +650,8 @@
         {
           "docstring": "<div align=\"center\">",
           "lines": [
-            177,
-            230
+            204,
+            257
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -659,8 +659,8 @@
         {
           "docstring": "Every claim on this page is an assertion in a script you can run:",
           "lines": [
-            231,
-            254
+            258,
+            281
           ],
           "name": "\ud83d\udd0d Verify the download itself",
           "type": "section"
@@ -768,8 +768,72 @@
           "type": "function"
         }
       ]
+    },
+    "UNSEALED.md": {
+      "hash": "92716f4969eb",
+      "indexed_at": "2026-08-01T20:02:15.460901+00:00",
+      "language": "markdown",
+      "lines": 128,
+      "mtime_ns": 1785612032760886200,
+      "size": 5050,
+      "symbols": [
+        {
+          "docstring": "`v0.1.1` gives you the toolchain with our discipline enforced. `v0.1.2` gives you the toolchain with **the discipline in your hands**, plus the instru",
+          "lines": [
+            15,
+            22
+          ],
+          "name": "The one-line version",
+          "type": "section"
+        },
+        {
+          "docstring": "`native_decide`.",
+          "lines": [
+            23,
+            43
+          ],
+          "name": "What is unsealed",
+          "type": "section"
+        },
+        {
+          "docstring": "Same statement, four tactics, on the pinned toolchain:",
+          "lines": [
+            44,
+            70
+          ],
+          "name": "Why it was sealed \u2014 the measurement, not the opinion",
+          "type": "section"
+        },
+        {
+          "docstring": "Sorts every theorem into exactly one class, and says what a reader must trust:",
+          "lines": [
+            71,
+            109
+          ],
+          "name": "The tool: `checker/axiom-class.sh`",
+          "type": "section"
+        },
+        {
+          "docstring": "`bv_decide` runs the CaDiCaL solver bundled with your toolchain and then has the **kernel recheck the certificate it produces**. On bitvector goals yo",
+          "lines": [
+            110,
+            121
+          ],
+          "name": "The honest alternative, and why you may not need to unseal at all",
+          "type": "section"
+        },
+        {
+          "docstring": "* The 139 theorems in this repository stay `native_decide`-free. Unsealing applies to **your** work, not ours. * Every gate still runs. `ROTMOE_ALLOW_",
+          "lines": [
+            122,
+            129
+          ],
+          "name": "What does NOT change",
+          "type": "section"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-01T19:13:58.728308+00:00",
+  "generated_at": "2026-08-01T20:02:15.460965+00:00",
   "version": "1.0"
 }

@@ -281,12 +281,12 @@
       ]
     },
     "ci.yml": {
-      "hash": "83c0534528fa",
-      "indexed_at": "2026-08-01T19:13:58.397543+00:00",
+      "hash": "2d87420c8e37",
+      "indexed_at": "2026-08-01T20:02:14.391202+00:00",
       "language": "yaml",
-      "lines": 403,
-      "mtime_ns": 1785610376162658400,
-      "size": 19180,
+      "lines": 412,
+      "mtime_ns": 1785612439692697700,
+      "size": 19728,
       "symbols": [
         {
           "docstring": "CI",
@@ -1394,7 +1394,25 @@
                       "docstring": "LEAN_ROOT=\"$GITHUB_WORKSPACE/lean\" bash checker/axiom-audit.sh",
                       "lines": [
                         332,
-                        336
+                        339
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "axiom class -- KERNEL vs COMPILER vs BROKEN",
+                      "lines": [
+                        340,
+                        340
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/axiom-class.sh",
+                      "lines": [
+                        341,
+                        345
                       ],
                       "name": "run",
                       "type": "key"
@@ -1402,8 +1420,8 @@
                     {
                       "docstring": "non-vacuity audit -- every guarded theorem has a witness",
                       "lines": [
-                        337,
-                        337
+                        346,
+                        346
                       ],
                       "name": "name",
                       "type": "item"
@@ -1411,8 +1429,8 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        338,
-                        338
+                        347,
+                        347
                       ],
                       "name": "working-directory",
                       "type": "key"
@@ -1420,8 +1438,8 @@
                     {
                       "docstring": "lake build Proofs.RotVacuity",
                       "lines": [
-                        339,
-                        340
+                        348,
+                        349
                       ],
                       "name": "run",
                       "type": "key"
@@ -1429,8 +1447,8 @@
                     {
                       "docstring": "non-vacuity NEGATIVE CONTROL -- the audit must be able to fail",
                       "lines": [
-                        341,
-                        341
+                        350,
+                        350
                       ],
                       "name": "name",
                       "type": "item"
@@ -1438,16 +1456,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        342,
-                        342
+                        351,
+                        351
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        343,
-                        358
+                        352,
+                        367
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1455,8 +1473,8 @@
                     {
                       "docstring": "generalization probe -- decorative vs load-bearing",
                       "lines": [
-                        359,
-                        359
+                        368,
+                        368
                       ],
                       "name": "name",
                       "type": "item"
@@ -1464,8 +1482,8 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        360,
-                        360
+                        369,
+                        369
                       ],
                       "name": "working-directory",
                       "type": "key"
@@ -1473,8 +1491,8 @@
                     {
                       "docstring": "bash mutate/generalization_probe.sh",
                       "lines": [
-                        361,
-                        362
+                        370,
+                        371
                       ],
                       "name": "run",
                       "type": "key"
@@ -1482,8 +1500,8 @@
                     {
                       "docstring": "decorative-vs-load-bearing isolation",
                       "lines": [
-                        363,
-                        363
+                        372,
+                        372
                       ],
                       "name": "name",
                       "type": "item"
@@ -1491,8 +1509,8 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        364,
-                        364
+                        373,
+                        373
                       ],
                       "name": "working-directory",
                       "type": "key"
@@ -1500,8 +1518,8 @@
                     {
                       "docstring": "lake env lean mutate/decorative_isolation.lean",
                       "lines": [
-                        365,
-                        366
+                        374,
+                        375
                       ],
                       "name": "run",
                       "type": "key"
@@ -1509,8 +1527,8 @@
                     {
                       "docstring": "forbid native_decide",
                       "lines": [
-                        367,
-                        367
+                        376,
+                        376
                       ],
                       "name": "name",
                       "type": "item"
@@ -1518,16 +1536,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        368,
-                        368
+                        377,
+                        377
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        369,
-                        376
+                        378,
+                        385
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1535,8 +1553,8 @@
                     {
                       "docstring": "leanchecker -- kernel re-verification, with its negative control",
                       "lines": [
-                        377,
-                        377
+                        386,
+                        386
                       ],
                       "name": "name",
                       "type": "item"
@@ -1544,16 +1562,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        378,
-                        378
+                        387,
+                        387
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        379,
-                        391
+                        388,
+                        400
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1561,8 +1579,8 @@
                     {
                       "docstring": "mutation suites -- theorems must DIE when the model breaks",
                       "lines": [
-                        392,
-                        392
+                        401,
+                        401
                       ],
                       "name": "name",
                       "type": "item"
@@ -1570,16 +1588,16 @@
                     {
                       "docstring": "lean",
                       "lines": [
-                        393,
-                        393
+                        402,
+                        402
                       ],
                       "name": "working-directory",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        394,
-                        404
+                        403,
+                        413
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1587,7 +1605,7 @@
                   ],
                   "lines": [
                     247,
-                    404
+                    413
                   ],
                   "name": "steps",
                   "type": "list"
@@ -1595,7 +1613,7 @@
               ],
               "lines": [
                 244,
-                404
+                413
               ],
               "name": "lean",
               "type": "section"
@@ -1603,7 +1621,7 @@
           ],
           "lines": [
             54,
-            404
+            413
           ],
           "name": "jobs",
           "type": "section"
@@ -2201,6 +2219,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T19:13:58.397719+00:00",
+  "generated_at": "2026-08-01T20:02:14.391425+00:00",
   "version": "1.0"
 }

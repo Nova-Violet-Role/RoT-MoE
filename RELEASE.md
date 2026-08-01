@@ -10,14 +10,15 @@
 
 **Nine lenses, one mind — and a kernel that checks the arithmetic**
 
-*Two downloads. Same plugin. The difference is whether your machine fetches Lean.*
+*Three variants, shipped together. The version number **is** the variant.*
 
 [![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/saimonokuma)
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
-[![Core](https://img.shields.io/badge/v0.1.0-Core-0969da?style=flat-square)](#-v010--core)
-[![Core + Lean](https://img.shields.io/badge/v0.1.1-Core%20%2B%20Lean-1a7f37?style=flat-square)](#-v011--core--lean)
+[![Pure Router](https://img.shields.io/badge/v0.1.0-Pure%20Router-0969da?style=flat-square)](#-v010--pure-router)
+[![Router + Lean](https://img.shields.io/badge/v0.1.1-Router%20%2B%20Lean%204-1a7f37?style=flat-square)](#-v011--router--lean-4)
+[![Unsealed](https://img.shields.io/badge/v0.1.2-Router%20%2B%20Lean%20%2B%20Extra-8250df?style=flat-square)](#-v012--router--lean--extra)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
 [![Theorems](https://img.shields.io/badge/theorems-139-2C3E50?style=flat-square)](#)
 
@@ -27,11 +28,24 @@
 
 ## 🎯 Which one do I want?
 
-**Take `v0.1.0` — Core.** It is the plugin. It routes, it gauges, it reminds, and
-it never touches the network. If you are here to *use* RoT MoE, that is the
-whole product and you are done in a minute.
+**The three numbers are not a roadmap.** Nothing here is "coming later" — all
+three are built from one tree, in one run, by `checker/release-package.sh`, and
+released together. The version you pick is the variant you want:
 
-**Take `v0.1.1` — Core + Lean** if you want **the machine that makes the
+| version | variant | you get |
+|---|---|---|
+| **`v0.1.0`** | **Pure Router** | the plugin, alone. No Lean, no fetcher, **no network at all** |
+| **`v0.1.1`** | **Router + Lean 4** | the above **plus the full Lean 4 toolchain** — the workshop these proofs were built in |
+| **`v0.1.2`** | **Router + Lean + Extra** | the above **plus `native_decide` unsealed**, and the instrument that keeps that honest |
+
+Each is a strict superset of the one before it, and that is **asserted against
+the archives** — a file that vanished from a larger tier fails the build.
+
+**Take `v0.1.0` — Pure Router.** It is the plugin. It routes, it gauges, it
+reminds, and it never touches the network. If you are here to *use* RoT MoE,
+that is the whole product and you are done in a minute.
+
+**Take `v0.1.1` — Router + Lean 4** if you want **the machine that makes the
 theorems**, not just the theorems.
 
 Re-checking our 139 proofs is the *smallest* thing it does — it is the demo, not
@@ -53,13 +67,21 @@ something you can **argue with**:
   — build → `#print axioms` → `leanchecker`, then mutate it and prove the theorem
   dies — arrives as working, running scripts you can point at your own code.
 
-> Both contain the identical router, the identical gauge, the identical hooks.
-> `v0.1.0` is the product. **`v0.1.1` is the product plus the workshop it was
-> built in.**
+**Take `v0.1.2` — Router + Lean + Extra** if you want the discipline in *your*
+hands rather than enforced on you. It unseals `native_decide` for your own
+proofs and ships `checker/axiom-class.sh`, which sorts every theorem into
+**KERNEL** (the kernel checked it), **COMPILER** (it was *executed*, not proved)
+or **BROKEN** (`sorryAx`). Full detail in `UNSEALED.md`, which ships only in
+this variant.
+
+> All three contain the identical router, the identical gauge, the identical
+> hooks. `v0.1.0` is the product. **`v0.1.1` is the product plus the workshop it
+> was built in. `v0.1.2` hands you the keys to the workshop's locked drawer, and
+> a torch to check what you took out of it.**
 
 ---
 
-## 📦 Core — shipped from **v0.1.0**
+## 📦 `v0.1.0` — Pure Router
 
 **`rot-moe-0.1.0-core.zip`**
 
@@ -78,14 +100,14 @@ licences · `CLAUDE.md` · `README.md`
 
 ---
 
-## 🔬 Core + Lean — shipped from **v0.1.1**
+## 🔬 `v0.1.1` — Router + Lean 4
 
-**`rot-moe-0.1.0-lean.zip`**
+**`rot-moe-0.1.1-lean.zip`**
 
-> The asset always carries the **tree version it was built from**, so a file
-> name never disagrees with the manifest inside it. `v0.1.0` publishes the Core
-> asset alone; `v0.1.1` publishes both. `checker/release-package.sh` asserts
-> this page names every asset it actually produced.
+> Every asset carries **its own variant's version**, inside the manifest as well
+> as in the file name — asserted, so an archive can never contradict its own
+> name. `checker/release-package.sh` also asserts that this page names every
+> asset it actually produced.
 
 | | |
 |---|---|
@@ -105,9 +127,9 @@ licences · `CLAUDE.md` · `README.md`
 
 ---
 
-## ⚗️ Unsealed — planned for **v0.1.2**
+## ⚗️ `v0.1.2` — Router + Lean + Extra
 
-**`rot-moe-<ver>-unsealed.zip`**
+**`rot-moe-0.1.2-unsealed.zip`**
 
 First, a correction, because the shape of this tier was proposed on a premise
 that measurement did not support:
@@ -147,7 +169,12 @@ people:
 | ⚠️ **Con** | **A `native_decide` theorem is not proved, it is executed.** You are trusting the compiler, the runtime and your own CPU, none of which the kernel inspects |
 | ⚠️ **Con** | `leanchecker` gives you a **false sense of coverage** here: exit 0 means the proof terms are valid, not that a computation was checked |
 | ⚠️ **Con** | The 139 theorems in this repository **stay `native_decide`-free**. Unsealing applies to your work, not ours — the headline count would otherwise stop meaning what it says |
-| ⚠️ **Con** | Nothing new is downloaded. If you want this power today, `v0.1.1` already has the binaries; `v0.1.2` only changes what the gates *permit* |
+| ⚠️ **Con** | Nothing new is downloaded. `v0.1.1` already has the binaries; `v0.1.2` changes what the gates *permit* and hands you the instrument — it does not add a compiler |
+
+**Contains:** everything in `v0.1.1` **plus** `UNSEALED.md` — the page that names
+the trade in full, and the only file that distinguishes this variant.
+
+Measured on this corpus by the tool itself: **139 KERNEL, 0 COMPILER, 0 BROKEN.**
 
 **Why we prevented it in the first place, in one line:** a theorem's worth is
 what a reader must trust to believe it, and `native_decide` silently moves that

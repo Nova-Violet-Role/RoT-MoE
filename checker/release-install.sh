@@ -42,9 +42,19 @@ skip() { printf '  SKIP  %s\n' "$*"; }
 command -v unzip >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 3; }
 
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
+
+# THE VERSION IS THE VARIANT, so an asset's name cannot be derived from the
+# tree's own version -- that produced `rot-moe-0.1.2-core.zip`, a file that has
+# never existed. This map is the same one checker/release-package.sh builds
+# from; the two must stay in step, which the assertion below enforces rather
+# than trusting.
+VARIANTS="core:0.1.0 lean:0.1.1 unsealed:0.1.2"
+version_of () { for vp in $VARIANTS; do [ "${vp%%:*}" = "$1" ] && { printf '%s' "${vp#*:}"; return; }; done; }
+
 VER=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json | head -1)
-CORE="$REL/rot-moe-$VER-core.zip"
-LEAN="$REL/rot-moe-$VER-lean.zip"
+CORE="$REL/rot-moe-$(version_of core)-core.zip"
+LEAN="$REL/rot-moe-$(version_of lean)-lean.zip"
+UNSEALED="$REL/rot-moe-$(version_of unsealed)-unsealed.zip"
 
 if [ ! -s "$CORE" ]; then
   echo "REFUSE: $CORE not built. Run checker/release-package.sh first."
@@ -286,6 +296,46 @@ if [ -f "$CFG/settings.json" ]; then
   ok "CONTROL: every write landed in the scratch config at $CFG"
 else
   bad "CONTROL: the scratch settings file does not exist -- what was being edited?"
+fi
+
+# --- the UNSEALED variant, installed the same way a stranger meets it --------
+# 0.1.2's whole claim is that it ships an instrument the tier below does not.
+# That is checked HERE, from the unpacked archive, because a file present in the
+# repository proves nothing about a file present in the download.
+if [ -s "$UNSEALED" ]; then
+  UW="$WORK/unsealed"; mkdir -p "$UW"
+  if unzip -q "$UNSEALED" -d "$UW" 2>/dev/null; then
+    u=0
+    [ -f "$UW/UNSEALED.md" ]              || { bad "UNSEALED artifact has no UNSEALED.md"; u=1; }
+    [ -f "$UW/checker/axiom-class.sh" ]   || { bad "UNSEALED artifact has no axiom classifier"; u=1; }
+    [ "$u" -eq 0 ] && ok "UNSEALED unpacks with both the page and the classifier a stranger was promised"
+
+    # The classifier must RUN from the unpacked artifact, where there is no git
+    # and no build tree. Without a toolchain it must SKIP (3) or REFUSE (2) --
+    # never exit 0, because a silent pass would be indistinguishable from a
+    # clean corpus it never read.
+    ( cd "$UW" && timeout 600 bash checker/axiom-class.sh >/dev/null 2>&1 )
+    arc=$?
+    case "$arc" in
+      0) ok "the classifier ran from the unpacked artifact and passed (exit 0)" ;;
+      2|3) ok "the classifier declined honestly from the artifact (exit $arc = refuse/skip, never a silent pass)" ;;
+      *) bad "the classifier exited $arc from the unpacked artifact" ;;
+    esac
+  else
+    bad "the UNSEALED artifact did not unpack"
+  fi
+else
+  note "no unsealed artifact present -- skipping its assertions"
+fi
+
+# The three variants must be DISTINCT files. If two ever coincided, the tiers
+# would be a naming convention rather than a difference.
+if [ -s "$CORE" ] && [ -s "$LEAN" ] && [ -s "$UNSEALED" ]; then
+  if cmp -s "$CORE" "$LEAN" || cmp -s "$LEAN" "$UNSEALED" || cmp -s "$CORE" "$UNSEALED"; then
+    bad "two variants are byte-identical -- the version numbers promise a difference that is not there"
+  else
+    ok "all three variants are distinct archives"
+  fi
 fi
 
 printf '\n== release install: %d passed, %d failed\n' "$PASS" "$FAIL"
