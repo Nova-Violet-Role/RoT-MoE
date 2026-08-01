@@ -68,6 +68,30 @@ it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
 break each definition on purpose and require the theorems to die.
 
+### 🤝 It **improves** Claude Code — it does not replace it
+
+This is worth saying plainly, because a plugin that names nine lenses can sound
+like it wants to take the wheel. It does not.
+
+* **Your agent stays your agent.** The router adds *one line* before a turn —
+  a named lane and a gauge reading. It changes no tool, intercepts no command,
+  and decides nothing. Claude Code does the work exactly as it always did.
+* **Nothing is imposed.** Every lens is a *lens*, not a rule. The engine
+  (`engine/rot-lean.md`) is a document the model may read; the only mechanical
+  effect in your session is the hook line.
+* **It undoes itself.** `DISARM_ROUTER` removes the entry, and on a settings
+  file in the form Claude Code itself writes, the install/uninstall round trip
+  is **byte-identical** — asserted by `checker/install-roundtrip.sh`, not hoped.
+* **No network, ever.** The shipped hooks make no HTTP call of any kind. No
+  telemetry, no phone-home, nothing leaves your machine.
+* **No Lean required.** The proofs are *ours*, run in our CI. You can install
+  the plugin with no Lean toolchain at all and never notice it exists;
+  `SETUP_LEAN` is opt-in and asks first.
+
+The last three are not promises in prose: `checker/hook-footprint.sh` fails the
+build if a shipped hook ever gains a network call or invokes `lake`, and it
+plants both of those to prove it can fail.
+
 ---
 
 ## 🧠 What "RoT" means, and how it sits next to CoT and ToT

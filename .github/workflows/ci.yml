@@ -260,6 +260,9 @@ jobs:
       # `#print axioms` each, requires every name to be answered, cross-checks
       # its count against checker/count-theorems.sh, and plants a `sorry` to
       # prove it can fail.
+      - name: hook footprint -- no network, no lake, Lean stays optional
+        run: bash checker/hook-footprint.sh
+
       - name: axiom audit -- #print axioms on every theorem, zero sorryAx
         run: LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/axiom-audit.sh
 

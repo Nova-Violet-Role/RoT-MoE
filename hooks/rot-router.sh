@@ -193,14 +193,30 @@ hook_mode () {
 [ $# -eq 0 ] && hook_mode
 
 MODE=""; VEC=""; BREADTH=0; M=1.05; C=1.0; T=1.0; PROMPT=""
+
+# A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN.
+# Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was
+# killed at 120 s. Not a stdin block, as it first appeared -- an INFINITE LOOP.
+# With `$# = 1`, `shift 2` fails and shifts nothing, `$1` is still `--vector`,
+# and the `while` re-enters the same branch forever. Every option below had the
+# same shape. This is the R20 defect's family: an argument path that no test
+# exercised because the hook is normally called with no arguments at all.
+need_value () {   # need_value <flag> <count-remaining>
+  if [ "$2" -lt 2 ]; then
+    echo "rot-router.sh: $1 requires a value" >&2
+    echo "usage: rot-router.sh --vector a1,..,a9 --breadth N [--M x --C y --T z]" >&2
+    echo "       rot-router.sh --route \"prompt text\"" >&2
+    exit 2
+  fi
+}
 while [ $# -gt 0 ]; do
   case "$1" in
-    --vector)  MODE=gauge; VEC="$2";     shift 2 ;;
-    --breadth) BREADTH="$2";             shift 2 ;;
-    --M)       M="$2";                   shift 2 ;;
-    --C)       C="$2";                   shift 2 ;;
-    --T)       T="$2";                   shift 2 ;;
-    --route)   MODE=route; PROMPT="$2";  shift 2 ;;
+    --vector)  need_value "$1" $#; MODE=gauge; VEC="$2";     shift 2 ;;
+    --breadth) need_value "$1" $#; BREADTH="$2";             shift 2 ;;
+    --M)       need_value "$1" $#; M="$2";                   shift 2 ;;
+    --C)       need_value "$1" $#; C="$2";                   shift 2 ;;
+    --T)       need_value "$1" $#; T="$2";                   shift 2 ;;
+    --route)   need_value "$1" $#; MODE=route; PROMPT="$2";  shift 2 ;;
     --version) echo "rot-router.sh 1.0.0"; exit 0 ;;
     *) echo "usage: rot-router.sh --vector a1,..,a9 --breadth N [--M x --C y --T z]" >&2
        echo "       rot-router.sh --route \"prompt text\"" >&2

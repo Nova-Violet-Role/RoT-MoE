@@ -129,12 +129,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "01cf876987eb",
-      "indexed_at": "2026-08-01T01:30:36.284480+00:00",
+      "hash": "e80ed33e54f7",
+      "indexed_at": "2026-08-01T02:46:55.201344+00:00",
       "language": "shell",
-      "lines": 133,
-      "mtime_ns": 1785547269578842000,
-      "size": 5576,
+      "lines": 134,
+      "mtime_ns": 1785551722113826800,
+      "size": 5650,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -151,6 +151,25 @@
             109
           ],
           "name": "shell_gauge",
+          "type": "function"
+        }
+      ]
+    },
+    "hook-footprint.sh": {
+      "hash": "476b5633a596",
+      "indexed_at": "2026-08-01T02:46:55.434652+00:00",
+      "language": "shell",
+      "lines": 181,
+      "mtime_ns": 1785551709843373800,
+      "size": 8783,
+      "symbols": [
+        {
+          "docstring": "Strip comments so a hook may DOCUMENT what it does not do.",
+          "lines": [
+            50,
+            55
+          ],
+          "name": "code_of",
           "type": "function"
         }
       ]
@@ -465,6 +484,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T01:59:49.216244+00:00",
+  "generated_at": "2026-08-01T02:46:55.434714+00:00",
   "version": "1.0"
 }
