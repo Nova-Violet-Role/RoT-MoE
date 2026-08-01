@@ -147,12 +147,12 @@
       "symbols": []
     },
     "deferred-closure.sh": {
-      "hash": "df04b95f363d",
-      "indexed_at": "2026-08-01T09:54:12.055307+00:00",
+      "hash": "ac69d139877e",
+      "indexed_at": "2026-08-01T10:11:15.054982+00:00",
       "language": "shell",
-      "lines": 202,
-      "mtime_ns": 1785577250181106300,
-      "size": 10137,
+      "lines": 258,
+      "mtime_ns": 1785578626043742000,
+      "size": 13131,
       "symbols": []
     },
     "gate-all.sh": {
@@ -589,6 +589,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T09:54:12.222898+00:00",
+  "generated_at": "2026-08-01T10:11:15.055047+00:00",
   "version": "1.0"
 }

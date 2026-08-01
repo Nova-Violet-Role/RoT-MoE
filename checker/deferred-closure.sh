@@ -98,8 +98,25 @@ if [ -z "$RID" ] || [ -z "$CONC" ]; then
 fi
 ok "newest completed CI run identified: id $RID, conclusion '$CONC', sha ${SHA:0:7}"
 
+# A RED PREDECESSOR IS A SKIP, NOT A FAILURE -- otherwise this gate LATCHES.
+#
+# Each run reads the newest COMPLETED run, which is the one before it. If a red
+# run made this gate fail, then run N red => run N+1 red => run N+2 red, with
+# every step in every one of them passing. The repository could never return to
+# green, and the obvious escape would be to delete the gate.
+#
+# The redness of run N is already reported by run N. Repeating it here adds no
+# information and costs the ability to recover. What is true is narrower and is
+# what gets said: the deferred steps CANNOT BE CLOSED from a run that did not
+# finish, and an unclosed obligation is a SKIP, which this repository never
+# counts as a pass.
 if [ "$CONC" != "success" ]; then
-  bad "the newest completed CI run concluded '$CONC' -- the deferred steps cannot be closed by a red run"
+  skip "the newest completed CI run (${SHA:0:7}) concluded '$CONC' -- deferred steps cannot be closed from a red run"
+  echo "  NOTE  SKIP IS NOT A PASS. Fix that run, then this gate closes them."
+  printf '
+== deferred closure: %d passed, %d failed (INCOMPLETE)
+' "$PASS" "$FAIL"
+  exit 3
 fi
 
 # --- 2. the log archive -------------------------------------------------------
@@ -117,7 +134,38 @@ else
   ok "log archive extracted: $NLOG step log(s) from run $RID"
 fi
 
-# --- 3. EVERY step declared in ci.yml must have a log ------------------------
+# --- 3. EVERY step declared in THAT RUN'S ci.yml must have a log -------------
+#
+# THE SPEC MUST NOT FORBID A CORRECT FUTURE. The first version compared the
+# step list in the WORKING TREE against the logs of the PREVIOUS run, so adding
+# a step -- an entirely correct change -- made this gate red until that step had
+# run once. It failed on the very commit that introduced it (run 30694656394,
+# "no runner log for step: deferred closure"), which is the self-referential
+# form of the defect.
+#
+# The obvious repair, dropping the step-coverage check, would have destroyed the
+# only assertion here that catches a step silently not running. The right
+# subject is the workflow AS IT EXISTED AT THAT RUN'S COMMIT: every step
+# declared THEN must have produced a log THEN. Adding a step today is then
+# neither a pass nor a failure -- it is simply not yet in scope, and the next
+# run brings it in.
+WFSNAP="$WORK/ci.at-run.yml"
+if git cat-file -e "$SHA:$WF" 2>/dev/null; then
+  git show "$SHA:$WF" > "$WFSNAP" 2>/dev/null
+else
+  # The sha may not be local (a shallow CI checkout, or a fresh clone). Ask for
+  # the file at that ref instead of falling back to the working tree, which is
+  # what created the defect above.
+  curl -sS -H "Authorization: Bearer $TOK" -H "Accept: application/vnd.github.raw"        "$API/contents/$WF?ref=$SHA" -o "$WFSNAP" 2>/dev/null
+fi
+if [ ! -s "$WFSNAP" ] || ! grep -q '^      - name: ' "$WFSNAP"; then
+  skip "could not read $WF as of ${SHA:0:7} -- refusing to compare against a different revision"
+  printf '
+== deferred closure: %d passed, %d failed (INCOMPLETE)
+' "$PASS" "$FAIL"
+  exit 3
+fi
+ok "read $WF as it was at ${SHA:0:7} -- the step list is compared against its own run"
 # This is the closure. A step that never ran leaves no log, and a step renamed
 # without being run leaves the old name behind -- both show up here.
 missing=0; checked=0
@@ -137,7 +185,7 @@ while IFS= read -r name; do
     bad "no runner log for step: $name"
     missing=$((missing+1))
   fi
-done < <(sed -n 's/^      - name: //p' "$WF")
+done < <(sed -n 's/^      - name: //p' "$WFSNAP")
 if [ "$checked" -eq 0 ]; then
   bad "no step names parsed out of $WF -- this closure would be vacuous"
 elif [ "$missing" -eq 0 ]; then
@@ -145,10 +193,18 @@ elif [ "$missing" -eq 0 ]; then
 fi
 
 # --- 4. the archive must be CLEAN --------------------------------------------
-nerr=$(grep -rl '##\[error\]'   "$WORK/x" 2>/dev/null | grep -c . || true)
-nwarn=$(grep -rl '##\[warning\]' "$WORK/x" 2>/dev/null | grep -c . || true)
-[ "$nerr"  -eq 0 ] && ok "zero ##[error] annotations across the whole run"   || bad "$nerr log(s) carry ##[error]"
-[ "$nwarn" -eq 0 ] && ok "zero ##[warning] annotations across the whole run" || bad "$nwarn log(s) carry ##[warning] (a deprecated action or a runner notice)"
+# The needles are BUILT, never written literally. A line containing the raw
+# token is interpreted BY THE RUNNER as a workflow command: both success lines
+# below were swallowed as annotations in run 30694656394 and never appeared in
+# the log, while still counting toward the totals -- a checker that silently
+# eats its own output. Measured, and the reason for the concatenation.
+HASH='##'
+ERRTOK="${HASH}[error]"
+WARNTOK="${HASH}[warning]"
+nerr=$(grep -rlF "$ERRTOK"  "$WORK/x" 2>/dev/null | grep -c . || true)
+nwarn=$(grep -rlF "$WARNTOK" "$WORK/x" 2>/dev/null | grep -c . || true)
+[ "${nerr:-1}" -eq 0 ]  && ok "zero error annotations across the whole run"   || bad "$nerr log(s) carry an error annotation"
+[ "${nwarn:-1}" -eq 0 ] && ok "zero warning annotations across the whole run" || bad "$nwarn log(s) carry a warning annotation (a deprecated action or a runner notice)"
 
 # --- 5. the deferred steps specifically ---------------------------------------
 # Named by the EVIDENCE they must produce, not by step title, so a rename does
