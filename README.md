@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **123
+lens activities off disk, computes an `R/s+` gauge from them, and **139
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -574,7 +574,20 @@ ensemble it actually has.
 
 This is the question worth asking, so it gets a straight answer instead of an
 enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the
-**structure**. Nothing proves the *thinking*.
+**structure**; `lean/Proofs/RotAbility.lean` (16 theorems) proves each lens is
+**load-bearing** and pins what is *not* provable so it cannot drift into a claim.
+Nothing proves the *thinking*.
+
+The strongest single result is `every_lens_is_load_bearing`: for each of the
+nine, the ensemble with that lens removed weighs **strictly less** than the full
+ensemble. That is nine separate inequalities over ℚ, not one statement about a
+list length — a lens whose removal changed nothing would be listed, weighted,
+documented, and inert, and this is what rules that out.
+
+The second is `no_ability_overclaims`, which is a theorem *about the
+documentation*: the three interpretive abilities are recorded as `notModelled`,
+and marking any of them `proved` fails the build. Mutation-tested — flipping
+Carnage's chaos to `proved` killed it (5 error lines).
 
 | Claim about the nine | Status | Instrument |
 |---|---|---|
@@ -587,6 +600,13 @@ enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the
 | every μ is inside the documented 0.80–1.35 band | **PROVED** | `forgeMu_in_band` |
 | in `FORGE`, 🧭 Claude is strictly heaviest, ⚪ Anti-Venom second | **PROVED** | `claude_leads_forge`, `antivenom_second` |
 | the expressive lenses are damped on a proving head | **PROVED** | `expressive_damped_in_forge` |
+| **removing ANY one lens strictly changes the ensemble** | **PROVED** ×9 | `every_lens_is_load_bearing` |
+| every lens contributes strictly positive weight | **PROVED** | `contribution_pos` |
+| no single lens carries half the ensemble | **PROVED** | `no_lens_dominates` |
+| the FORGE lead outweighs each of the other eight | **PROVED** | `forge_lead_contributes_most` |
+| nine abilities, one per lens, none shared | **PROVED** | `abilityOf_injective`, `one_ability_per_lens` |
+| 🧭 Claude's ability has **no name in any codex** | **PROVED** | `claudeAbilityIsUnnamed`, `exactly_one_ability_is_unnamed` |
+| the documentation does not mark opinions as proved | **PROVED** | `no_ability_overclaims`, `evidence_split` (6 proved / 3 not modelled) |
 | routing accuracy on a labelled key | **MEASURED** (18/18) | `checker/bench-router.sh` |
 | per-turn cost | **MEASURED**, bounded | `bench-router.sh` §2 |
 | 🩸 Carnage genuinely produces *useful* chaos | **NOT MODELLED** | no instrument exists — saying otherwise would be a lie |
