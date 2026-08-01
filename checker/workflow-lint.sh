@@ -537,7 +537,12 @@ setup_verdict () {   # setup_verdict <file> -> prints defects, empty = clean
   grep -qE 'DRY RUN|DryRun|--dry-run' "$f" || v="$v NO_DRYRUN"
   # Never elevate. A setup script that needs root is the wrong design, and this
   # is the cheapest possible place to notice.
-  grep -qE '(^|[^[:alnum:]_#])sudo ' "$f" && v="$v USES_SUDO"
+  # Strip comments AND the inside of say/echo/printf strings before looking for
+  # sudo. The word appears legitimately in a message that PROMISES not to use it
+  # -- "This installer never asks for sudo" -- and flagging that is the same
+  # class of false positive as flagging `git push` inside an echo, which phase
+  # 1c already handles this way. What must still be caught is sudo INVOKED.
+  sed 's/#.*$//' "$f" | sed 's/\(say\|echo\|printf\).*$//' | grep -qE '(^|[^[:alnum:]_])sudo ' && v="$v USES_SUDO"
   # The toolchain must be PINNED. A floating "latest" makes the proofs
   # unreproducible and would silently move under the reader.
   grep -q 'lean-toolchain' "$f" || v="$v NOT_PINNED"

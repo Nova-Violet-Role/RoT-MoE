@@ -147,12 +147,12 @@
       "symbols": []
     },
     "deferred-closure.sh": {
-      "hash": "ac69d139877e",
-      "indexed_at": "2026-08-01T10:11:15.054982+00:00",
+      "hash": "bfa768f897ea",
+      "indexed_at": "2026-08-01T12:13:38.004567+00:00",
       "language": "shell",
-      "lines": 258,
-      "mtime_ns": 1785578626043742000,
-      "size": 13131,
+      "lines": 299,
+      "mtime_ns": 1785585093752076200,
+      "size": 15916,
       "symbols": []
     },
     "gate-all.sh": {
@@ -518,12 +518,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "f892fbab753d",
-      "indexed_at": "2026-08-01T07:24:17.716869+00:00",
+      "hash": "c4aff6433377",
+      "indexed_at": "2026-08-01T12:13:38.170105+00:00",
       "language": "shell",
-      "lines": 584,
-      "mtime_ns": 1785568108568365700,
-      "size": 29213,
+      "lines": 589,
+      "mtime_ns": 1785585242062077300,
+      "size": 29659,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -581,7 +581,7 @@
         {
           "lines": [
             530,
-            545
+            550
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -589,6 +589,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T11:33:10.880854+00:00",
+  "generated_at": "2026-08-01T12:13:38.170188+00:00",
   "version": "1.0"
 }

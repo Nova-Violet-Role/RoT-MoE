@@ -29,7 +29,9 @@
 param(
   [switch] $Yes,
   [switch] $DryRun,
-  [switch] $Uninstall
+  [switch] $Uninstall,
+  [switch] $AskRoot,
+  [string] $Root = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -48,8 +50,80 @@ $HomeDir = @($env:USERPROFILE, $env:HOME, [Environment]::GetFolderPath('UserProf
 if (-not $HomeDir) { $HomeDir = '.' }
 $ElanRoot = if ($env:ELAN_HOME) { $env:ELAN_HOME } else { Join-Path $HomeDir '.elan' }
 
+# --- WHERE does the toolchain go? --------------------------------------------
+# Mirrors SETUP_LEAN.sh exactly; checker/cross-diff.sh is what keeps them equal.
+# A toolchain is ~500 MB and a mathlib cache adds several GB, so the installer
+# ASKS for a filesystem ROOT (C:/, D:/, /) and puts elan in <root>/.elan by
+# exporting ELAN_HOME -- the officially supported relocation, no registry edit.
+function Resolve-Root([string] $r) {
+  # Trim a trailing separator run, then put ONE back for a bare drive letter:
+  # 'D:' is NOT a directory to Test-Path while 'D:/' is. The shell arm had this
+  # exact bug and its control caught it, so the same shape is handled here
+  # rather than rediscovered on a user's machine.
+  $x = $r -replace '[\\/]+$', ''
+  if ($x -match '^[A-Za-z]:$') { return "$x\" }
+  if ([string]::IsNullOrEmpty($x)) { return [System.IO.Path]::DirectorySeparatorChar.ToString() }
+  return $x
+}
+function Assert-Root([string] $r) {
+  # ONE validator for both the flag and the prompt. Guarding only the branch a
+  # human watches, while the machine-driven --Root path skips the check, reads
+  # as safety and is not.
+  if (-not (Test-Path -LiteralPath $r -PathType Container)) {
+    Write-Output "REFUSE: '$r' is not an existing directory. NOTHING was installed."
+    Write-Output "        Create it first, or omit -Root to use the default."
+    exit 2
+  }
+  try {
+    $probe = Join-Path $r ('.rotmoe-write-probe-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $probe -ErrorAction Stop | Out-Null
+    Remove-Item -LiteralPath $probe -Force -ErrorAction SilentlyContinue
+  } catch {
+    Write-Output "REFUSE: '$r' is not writable by this user. NOTHING was installed."
+    Write-Output "        This installer never elevates -- pick a root you own."
+    exit 2
+  }
+}
+function Join-ElanDir([string] $r) {
+  if ($r.EndsWith('\') -or $r.EndsWith('/')) { return ($r + '.elan') }
+  return (Join-Path $r '.elan')
+}
+
+if ($Root -ne '') {
+  $R = Resolve-Root $Root
+  Assert-Root $R
+  $ElanRoot = Join-ElanDir $R
+  $env:ELAN_HOME = $ElanRoot
+} elseif ($AskRoot -and -not $Yes) {
+  Write-Output ''
+  Write-Output '== where should the Lean toolchain live? =='
+  Write-Output '   A toolchain is ~500 MB; a mathlib cache adds several GB more.'
+  Write-Output '   Give a filesystem ROOT and elan goes into <root>/.elan:'
+  Write-Output ''
+  Write-Output '     C:/       ->  C:/.elan        (Windows system drive)'
+  Write-Output '     D:/       ->  D:/.elan        (a second drive with room)'
+  Write-Output '     /         ->  /.elan          (Unix root; needs write access)'
+  Write-Output '     <empty>   ->  keep the default below'
+  Write-Output ''
+  $answer = Read-Host "install root [default: keep $ElanRoot]"
+  if (-not [string]::IsNullOrWhiteSpace($answer)) {
+    $R = Resolve-Root $answer
+    Assert-Root $R
+    $ElanRoot = Join-ElanDir $R
+    $env:ELAN_HOME = $ElanRoot
+  }
+}
+
 # --- what is already here (measured, never assumed) --------------------------
-$haveElan  = [bool](Get-Command elan -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $ElanRoot 'bin/elan.exe'))
+# Two DIFFERENT questions, kept apart: is SOME elan callable, and is there one
+# at the root we are about to install into. Conflating them prints
+# "elan present: yes (D:/.elan)" for an elan that lives somewhere else.
+$haveElanPath = [bool](Get-Command elan -ErrorAction SilentlyContinue)
+$haveElanRoot = Test-Path (Join-Path $ElanRoot 'bin/elan.exe')
+$elanWhere = if ($haveElanRoot) { "installed at $ElanRoot" }
+             elseif ($haveElanPath) { "on PATH, NOT at $ElanRoot" }
+             else { "absent; would go to $ElanRoot" }
+$haveElan  = $haveElanPath -or $haveElanRoot
 $haveLake  = [bool](Get-Command lake -ErrorAction SilentlyContinue)
 $pinned    = 'unknown'
 $tcFile    = Join-Path $Ws 'lean-toolchain'
@@ -59,7 +133,7 @@ $haveCache = Test-Path -LiteralPath (Join-Path $Ws '.lake/packages/mathlib')
 Write-Output '== RoT MoE :: optional Lean toolchain setup =='
 Write-Output "  workspace        : $Ws"
 Write-Output "  pinned toolchain : $pinned   (from lean-toolchain, never 'latest')"
-Write-Output "  elan present     : $(if ($haveElan) {'yes'} else {'NO'})   ($ElanRoot)"
+Write-Output "  elan present     : $(if ($haveElan) {'yes'} else {'NO'})   ($elanWhere)"
 Write-Output "  lake on PATH     : $(if ($haveLake) {'yes'} else {'NO'})"
 Write-Output "  mathlib present  : $(if ($haveCache) {'yes'} else {'NO'})"
 Write-Output ''

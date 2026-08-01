@@ -660,15 +660,43 @@
       ]
     },
     "SETUP_LEAN.sh": {
-      "hash": "4660acfb5ab6",
-      "indexed_at": "2026-07-31T15:55:20.623337+00:00",
+      "hash": "15b134808f35",
+      "indexed_at": "2026-08-01T12:13:38.335823+00:00",
       "language": "shell",
-      "lines": 197,
-      "mtime_ns": 1785511922311387800,
-      "size": 8818,
-      "symbols": []
+      "lines": 291,
+      "mtime_ns": 1785584241112683300,
+      "size": 13288,
+      "symbols": [
+        {
+          "docstring": "--- WHERE does the toolchain go? ------------------------------------------- A Lean toolchain plus a mathlib cache is measured in GIGABYTES, and the d",
+          "lines": [
+            91,
+            104
+          ],
+          "name": "resolve_root",
+          "type": "function"
+        },
+        {
+          "docstring": "Join a root to \".elan\" without producing \"D://.elan\". resolve_root leaves a trailing slash on exactly the roots that need one (\"D:/\", \"/\"), so the joi",
+          "lines": [
+            109,
+            114
+          ],
+          "name": "elan_dir",
+          "type": "function"
+        },
+        {
+          "docstring": "One validator, used by BOTH the flag and the prompt. Written once on purpose: the first draft of this validated only the interactive answer, so --root",
+          "lines": [
+            122,
+            133
+          ],
+          "name": "check_root",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-01T11:33:11.054687+00:00",
+  "generated_at": "2026-08-01T12:13:38.335893+00:00",
   "version": "1.0"
 }

@@ -57,12 +57,14 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 WS="${ROTMOE_LEAN_WORKSPACE:-$HERE/lean}"
 ELAN_ROOT="${ELAN_HOME:-$HOME/.elan}"
 
-YES=0; DRY=0; UNINSTALL=0
+YES=0; DRY=0; UNINSTALL=0; ASK_ROOT=0; ROOT_ARG=""
 for a in "$@"; do
   case "$a" in
     --yes|-y)     YES=1 ;;
     --dry-run|-n) DRY=1 ;;
     --uninstall)  UNINSTALL=1 ;;
+    --ask-root)   ASK_ROOT=1 ;;
+    --root=*)     ROOT_ARG="${a#--root=}" ;;
     --help|-h)
       sed -n '6,55p' "$0" | sed 's/^# \{0,1\}//'
       exit 0 ;;
@@ -72,11 +74,103 @@ done
 
 say () { printf '%s\n' "$*"; }
 
+# --- WHERE does the toolchain go? -------------------------------------------
+# A Lean toolchain plus a mathlib cache is measured in GIGABYTES, and the
+# default ($HOME/.elan) lands on the system drive whether or not that drive has
+# the room. So the installer ASKS, instead of discovering the problem at 90%.
+#
+# The answer is a filesystem ROOT -- C:/ or D:/ on Windows, / or /mnt/data on a
+# Unix box -- and elan is placed in <root>/.elan. ELAN_HOME is then exported for
+# the rest of the run, which is the officially supported way to relocate elan:
+# no symlink, no registry edit, nothing left behind but a directory you named.
+#
+# --root=<path> answers it non-interactively, which is what CI and the plugin
+# installer use. --ask-root forces the question even when ELAN_HOME is set.
+# Neither is the default: an installer that interrogates a non-interactive shell
+# hangs a pipeline, so the question is asked only when a terminal is attached.
+resolve_root () {
+  # Collapse a trailing slash run, then put ONE back if what remains is a bare
+  # Windows drive letter. This is not pedantry: `[ -d "D:" ]` is FALSE in Git
+  # Bash while `[ -d "D:/" ]` is true, so the first version of this function
+  # stripped "D:/" to "D:" and the installer refused a drive that exists. The
+  # control caught it, which is the only reason it is not shipping.
+  _r="$1"
+  _r="$(printf '%s' "$_r" | sed 's#//*$##')"      # "C://", "C:/"  -> "C:"
+  case "$_r" in
+    [A-Za-z]:) _r="$_r/" ;;                      # ...and "C:" -> "C:/"
+    "")        _r="/" ;;                         # "/" collapses to "" -> "/"
+  esac
+  printf '%s' "$_r"
+}
+
+# Join a root to ".elan" without producing "D://.elan". resolve_root leaves a
+# trailing slash on exactly the roots that need one ("D:/", "/"), so the join
+# has to notice rather than always inserting a separator.
+elan_dir () {
+  case "$1" in
+    */) printf '%s.elan' "$1" ;;
+    *)  printf '%s/.elan' "$1" ;;
+  esac
+}
+
+# One validator, used by BOTH the flag and the prompt. Written once on purpose:
+# the first draft of this validated only the interactive answer, so --root= -- the
+# path the plugin installer actually uses, non-interactively -- would happily
+# accept a typo and place a multi-gigabyte toolchain somewhere nobody asked for.
+# A check that guards the branch a human watches, and not the branch a machine
+# takes, is worse than no check: it reads as safety and is not.
+check_root () {   # check_root <resolved-root> ; echoes nothing, exits 2 on refusal
+  if [ ! -d "$1" ]; then
+    say "REFUSE: '$1' is not an existing directory. NOTHING was installed."
+    say "        Create it first, or omit --root to use the default."
+    exit 2
+  fi
+  if [ ! -w "$1" ]; then
+    say "REFUSE: '$1' is not writable by this user. NOTHING was installed."
+    say "        This installer never asks for sudo -- pick a root you own."
+    exit 2
+  fi
+}
+
+if [ -n "$ROOT_ARG" ]; then
+  R="$(resolve_root "$ROOT_ARG")"
+  check_root "$R"
+  ELAN_ROOT="$(elan_dir "$R")"
+  export ELAN_HOME="$ELAN_ROOT"
+elif [ "$ASK_ROOT" -eq 1 ] && [ "$YES" -eq 0 ] && [ -t 0 ]; then
+  say ""
+  say "== where should the Lean toolchain live? =="
+  say "   A toolchain is ~500 MB; a mathlib cache adds several GB more."
+  say "   Give a filesystem ROOT and elan goes into <root>/.elan:"
+  say ""
+  say "     C:/       ->  C:/.elan        (Windows system drive)"
+  say "     D:/       ->  D:/.elan        (a second drive with room)"
+  say "     /         ->  /.elan          (Unix root; needs write access)"
+  say "     <empty>   ->  keep the default below"
+  say ""
+  printf 'install root [default: keep %s]: ' "$ELAN_ROOT"
+  read -r answer || answer=""
+  if [ -n "$answer" ]; then
+    R="$(resolve_root "$answer")"
+    check_root "$R"
+    ELAN_ROOT="$(elan_dir "$R")"
+    export ELAN_HOME="$ELAN_ROOT"
+  fi
+fi
+
 # --- what is already here ----------------------------------------------------
 # Measured, never assumed. An installer that reinstalls what is present is how
 # a second 7.2 GB mathlib appears on a disk nobody checked.
-have_elan=0;  command -v elan >/dev/null 2>&1 && have_elan=1
-[ -x "$ELAN_ROOT/bin/elan" ] && have_elan=1
+# Two DIFFERENT questions, kept apart because conflating them misreports:
+#   on PATH  -> some elan is callable, wherever it lives
+#   at root  -> an elan exists in the root we are about to install into
+have_elan_path=0; command -v elan >/dev/null 2>&1 && have_elan_path=1
+have_elan_root=0; [ -x "$ELAN_ROOT/bin/elan" ] && have_elan_root=1
+have_elan=0; [ $have_elan_path -eq 1 ] || [ $have_elan_root -eq 1 ] && have_elan=1
+if [ $have_elan_root -eq 1 ]; then   elan_where="installed at $ELAN_ROOT"
+elif [ $have_elan_path -eq 1 ]; then elan_where="on PATH, NOT at $ELAN_ROOT"
+else                                 elan_where="absent; would go to $ELAN_ROOT"
+fi
 have_lake=0;  command -v lake >/dev/null 2>&1 && have_lake=1
 PINNED="unknown"
 [ -f "$WS/lean-toolchain" ] && PINNED="$(tr -d '\r\n' < "$WS/lean-toolchain")"
@@ -85,7 +179,7 @@ have_cache=0; [ -d "$WS/.lake/packages/mathlib" ] && have_cache=1
 say "== RoT MoE :: optional Lean toolchain setup =="
 say "  workspace        : $WS"
 say "  pinned toolchain : $PINNED   (from lean-toolchain, never 'latest')"
-say "  elan present     : $( [ $have_elan -eq 1 ] && echo yes || echo NO )   ($ELAN_ROOT)"
+say "  elan present     : $( [ $have_elan -eq 1 ] && echo yes || echo NO )   ($elan_where)"
 say "  lake on PATH     : $( [ $have_lake -eq 1 ] && echo yes || echo NO )"
 say "  mathlib present  : $( [ $have_cache -eq 1 ] && echo yes || echo NO )"
 say ""

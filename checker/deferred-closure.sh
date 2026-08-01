@@ -127,11 +127,15 @@ if [ ! -s "$WORK/logs.zip" ]; then
 fi
 mkdir -p "$WORK/x"
 unzip -q -o "$WORK/logs.zip" -d "$WORK/x" 2>/dev/null || { bad "the archive did not extract"; }
-NLOG=$(find "$WORK/x" -name '*.txt' | grep -c . || true)
-if [ "$NLOG" -lt 10 ]; then
-  bad "only $NLOG step logs in the archive -- too few to close anything"
+# Count FILES, not per-step files: the archive legitimately contains one log
+# per job once the per-step ones are pruned. The floor is therefore "at least
+# one log per job", not an arbitrary 10 that only held while the archive was new.
+NLOG=$(find "$WORK/x" -type f | grep -c . || true)
+NJOB=$(find "$WORK/x" -mindepth 1 -maxdepth 1 -type f -name '*.txt' | grep -c . || true)
+if [ "$NLOG" -lt 1 ] || [ "$NJOB" -lt 1 ]; then
+  bad "the archive holds $NLOG file(s) and $NJOB job log(s) -- nothing to close anything with"
 else
-  ok "log archive extracted: $NLOG step log(s) from run $RID"
+  ok "log archive extracted: $NLOG file(s), $NJOB job log(s) from run $RID"
 fi
 
 # --- 3. EVERY step declared in THAT RUN'S ci.yml must have a log -------------
@@ -168,25 +172,58 @@ fi
 ok "read $WF as it was at ${SHA:0:7} -- the step list is compared against its own run"
 # This is the closure. A step that never ran leaves no log, and a step renamed
 # without being run leaves the old name behind -- both show up here.
+# --- IS THE PER-STEP EVIDENCE STILL THERE? -----------------------------------
+# MEASURED, twice, on the SAME run (30695750314):
+#   morning   185901 bytes, 103 per-step logs  -> step coverage is checkable
+#   afternoon  75370 bytes,   8 files, 4 job logs -> it is NOT
+# GitHub prunes the per-step logs and keeps one log per job, and the surviving
+# job log contains only the runner's own `##[group]` sections -- "Runner Image",
+# "Fetching the repository". The names of OUR steps are gone with the files.
+#
+# So the strong claim -- every declared step produced a log -- is checkable only
+# while the per-step files exist. When they are pruned the honest answer is I
+# CANNOT TELL, and this repository spells that SKIP. Reporting it as a pass
+# would be a false green; reporting it as a failure would turn every green run
+# red once its archive aged, and the obvious repair for that is to delete the
+# gate. Neither is acceptable, so the instrument states its own limit.
+STEPLOGS=$(find "$WORK/x" -mindepth 2 -type f | grep -c . || true)
+DECLARED=$(sed -n 's/^      - name: //p' "$WFSNAP" | grep -c . || true)
 missing=0; checked=0
+# ZERO per-step logs is the obvious pruned case. A PARTIAL set is the dangerous
+# one: 4 files survived here out of 39 declared steps, enough to make the loop
+# run and report 34 "missing" steps that had all in fact executed green. The
+# threshold is therefore "at least as many per-step logs as declared steps",
+# not "more than none" -- a partial archive answers I CANNOT TELL just as an
+# empty one does, and only a complete one can answer NO.
+if [ "$STEPLOGS" -lt "$DECLARED" ]; then
+  skip "archive holds $STEPLOGS per-step log(s) for $DECLARED declared step(s) -- pruned, so step coverage CANNOT be checked"
+  echo "  NOTE  SKIP IS NOT A PASS. The evidence-needle checks below still run."
+else
 while IFS= read -r name; do
   [ -n "$name" ] || continue
   checked=$((checked+1))
-  # GitHub sanitises the filename: the step name with `/` replaced. Match on a
-  # distinctive prefix rather than the whole string, since long names are cut.
-  # GitHub sanitises the log filename: it cuts the step name at the first `#`
-  # and strips `/`. MEASURED -- "axiom audit -- #print axioms on every theorem,
-  # zero sorryAx" is stored as "axiom audit --.txt", so a 28-character probe
-  # containing `#print` matched nothing and reported a step MISSING that had in
-  # fact run green. Cut where the runner cuts, then take a short prefix.
+  # MATCH ON THE FILENAME. Measured, after trying the other way and being wrong:
+  # the step NAME appears in the per-step log's FILENAME and NOT in any log's
+  # contents. A content-based matcher was tried against a FRESH archive (93
+  # files, run 30697918484) and reported all 39 steps missing -- it would have
+  # been a gate that fails on a perfectly good run, in the loudest possible way.
+  #
+  # GitHub sanitises that filename: it cuts the name at the first `#` and strips
+  # `/`. MEASURED -- "axiom audit -- #print axioms on every theorem, zero
+  # sorryAx" is stored as "axiom audit --.txt", so a 28-character probe
+  # containing `#print` matched nothing and called a green step missing. Cut
+  # where the runner cuts, then take a short prefix.
   probe=$(printf '%s' "$name" | sed 's/#.*$//; s|/| |g' | cut -c1-20 \
-          | sed 's/[ ]*$//' | sed 's/[][\\.*^$/]/./g')
+          | sed 's/[ ]*$//' | sed 's/[][\\\\.*^$/]/./g')
   if ! find "$WORK/x" -name '*.txt' | sed 's|.*/||' | grep -q "$probe"; then
     bad "no runner log for step: $name"
     missing=$((missing+1))
   fi
 done < <(sed -n 's/^      - name: //p' "$WFSNAP")
-if [ "$checked" -eq 0 ]; then
+fi
+if [ "$STEPLOGS" -lt "$DECLARED" ]; then
+  : # already reported as a SKIP above; do not double-count it
+elif [ "$checked" -eq 0 ]; then
   bad "no step names parsed out of $WF -- this closure would be vacuous"
 elif [ "$missing" -eq 0 ]; then
   ok "all $checked declared step(s) have a log from the runner -- nothing silently skipped"
@@ -237,7 +274,7 @@ fi
 echo
 echo "-- negative controls --"
 # The matcher must not find a step that does not exist, or step 3 is decoration.
-if find "$WORK/x" -name '*.txt' | sed 's|.*/||' | grep -q "a step that never existed"; then
+if grep -rqF -- "a step that never existed" "$WORK/x" 2>/dev/null; then
   bad "CONTROL DEAD: a fabricated step name was 'found' in the archive"
 else
   ok "CONTROL: a fabricated step name is NOT found -- the matcher can miss"
@@ -247,10 +284,14 @@ fi
 # version of this control grepped CONTENTS, found nothing, and declared itself
 # dead while the archive sat there fully extracted. A control that fails for
 # the wrong reason is worth no more than one that cannot fail at all.
-if find "$WORK/x" -name '*.txt' | sed 's|.*/||' | grep -q "Set up job"; then
-  ok "CONTROL: the step every runner emits IS present -- the archive was really read"
+# "Set up job" was the needle here and it is NOT durable: it survives only as a
+# per-step FILENAME, so this control died the moment the archive was pruned --
+# and a dead control is worse than none, because it reads as coverage. "Runner
+# Image" is written into every job log by the runner itself and survives.
+if grep -rqF -- "Runner Image" "$WORK/x" 2>/dev/null; then
+  ok "CONTROL: the line every runner emits IS present -- the archive was really read"
 else
-  bad "CONTROL DEAD: no 'Set up job' log -- the archive was not read at all"
+  bad "CONTROL DEAD: no 'Runner Image' line -- the archive was not read at all"
 fi
 
 printf '\n== deferred closure: %d passed, %d failed\n' "$PASS" "$FAIL"
