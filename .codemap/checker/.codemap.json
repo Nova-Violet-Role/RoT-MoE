@@ -56,12 +56,12 @@
       ]
     },
     "ci-dryrun.sh": {
-      "hash": "3aed2912fc0b",
-      "indexed_at": "2026-08-01T04:40:00.253848+00:00",
+      "hash": "2d8f427072d2",
+      "indexed_at": "2026-08-01T09:25:50.166541+00:00",
       "language": "shell",
-      "lines": 226,
-      "mtime_ns": 1785558289725319100,
-      "size": 11080,
+      "lines": 266,
+      "mtime_ns": 1785575467363003700,
+      "size": 13488,
       "symbols": [
         {
           "docstring": "--- 1. extract the steps --------------------------------------------------- Line-oriented on purpose. A YAML library would be more correct in general",
@@ -84,7 +84,7 @@
           "docstring": "Runner-only classification. Each pattern names something this machine cannot provide or must not fetch.",
           "lines": [
             88,
-            96
+            109
           ],
           "name": "runner_only",
           "type": "function"
@@ -430,12 +430,12 @@
       ]
     },
     "verdict-schedule-sim.sh": {
-      "hash": "22fd22bf55da",
-      "indexed_at": "2026-08-01T01:04:17.437396+00:00",
+      "hash": "ef4fc0c923f7",
+      "indexed_at": "2026-08-01T08:18:54.790457+00:00",
       "language": "shell",
-      "lines": 252,
-      "mtime_ns": 1785545707334481000,
-      "size": 11682,
+      "lines": 293,
+      "mtime_ns": 1785570652894307800,
+      "size": 14243,
       "symbols": [
         {
           "lines": [
@@ -446,18 +446,17 @@
           "type": "function"
         },
         {
-          "docstring": "--------------------------------------------------------------------------- 3. RUN the extracted steps, honouring `if: steps.decide.outputs.changed`.",
           "lines": [
-            121,
-            253
+            126,
+            294
           ],
           "name": "run_week",
           "type": "function"
         },
         {
           "lines": [
-            220,
-            238
+            261,
+            279
           ],
           "name": "old_week",
           "type": "function"
@@ -581,6 +580,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T07:44:41.014551+00:00",
+  "generated_at": "2026-08-01T09:25:50.166621+00:00",
   "version": "1.0"
 }

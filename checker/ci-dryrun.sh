@@ -89,6 +89,19 @@ runner_only () {   # runner_only <cmd> -> 0 if it must be deferred
   case "$1" in
     *sudo*|*apt-get*|*locale-gen*)            return 0 ;;  # needs root on a disposable box
     *elan*|*"lake exe cache"*|*"lake build"*|*"lake env"*)  return 0 ;;  # would DOWNLOAD
+    # The Lean mutation suites shell out to `lake build` from INSIDE a loop,
+    # so the step command never contains the string above and this function
+    # let it run. Measured 2026-08-01: exit 124 -- it hit the 600s bound
+    # rebuilding modules for eight suites. Deferring it is honest (the
+    # summary prints DEFERRED IS NOT PASSED and the lean job runs it for
+    # real); letting it time out reported a FAILURE that was a local budget,
+    # not a defect in the step.
+    # The step runs with `working-directory: lean`, so its command reads
+    # `mutate/mutate_rotgauge.sh` -- WITHOUT the `lean/` prefix. The first
+    # pattern written here matched `lean/mutate/` and therefore matched
+    # nothing, and the step timed out again. Match the form that is actually
+    # in the file.
+    *mutate/mutate_*)                         return 0 ;;  # would DOWNLOAD (lake, indirectly)
     *"script -q"*)                            return 0 ;;  # needs a real pty
     *GITHUB_*|*github.workspace*)             return 0 ;;  # runner-provided variables
     *) return 1 ;;
@@ -132,6 +145,33 @@ fi
 # only in this harness. Initialising a repo here reproduces what actions/checkout
 # gives the runner, which is the whole point of the exercise.
 ( cd "$CLONE/repo" && git init -q && git add -A ) >/dev/null 2>&1
+
+# REPRODUCE THE INDEX MODES, or this tree is not what CI checks out.
+#
+# MEASURED 2026-08-01. The step above builds the scratch tree with `git init`
+# + `git add` ON WINDOWS, where the filesystem carries no executable bit -- so
+# every tracked .sh landed as 100644 and checker/portability.sh reported
+# "43 of 43 .sh files are NOT executable". A real CI runner CLONES, and a clone
+# takes its modes from the INDEX, where all 43 are 100755. The dry run was
+# failing a step that passes in CI, on a defect it had manufactured itself.
+#
+# A harness that does not reproduce what it claims to simulate produces false
+# REDS, which cost exactly as much trust as false greens: the obvious repair is
+# to stop believing the instrument. The modes are copied over from the real
+# index instead of being invented by the filesystem.
+while IFS= read -r mode_and_path; do
+  m=${mode_and_path%% *}; f=${mode_and_path#* }
+  [ "$m" = "100755" ] || continue
+  ( cd "$CLONE/repo" && git update-index --chmod=+x -- "$f" ) >/dev/null 2>&1
+done < <(git ls-files -s | awk '$1=="100755"{print $1, $4}')
+
+# Assert the transfer landed rather than trusting it: a silent failure here
+# would put the false red straight back.
+want_x=$(git ls-files -s | awk '$1=="100755"' | wc -l | tr -d " ")
+got_x=$( ( cd "$CLONE/repo" && git ls-files -s ) | awk '$1=="100755"' | wc -l | tr -d " ")
+if [ "$want_x" -ne "$got_x" ]; then
+  bad "the scratch index has $got_x executable entries, the real one has $want_x -- the dry run is not simulating a clone"
+fi
 ok "clean tree materialised: $copied file(s), working tree as it stands, no .lake, no ~/.claude"
 
 # --- 3. run what can be run -------------------------------------------------

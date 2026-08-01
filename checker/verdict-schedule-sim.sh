@@ -118,8 +118,14 @@ ok "scratch tree materialised, bare remote at $BASE_COUNT commit(s) -- no networ
 # ---------------------------------------------------------------------------
 # 3. RUN the extracted steps, honouring `if: steps.decide.outputs.changed`.
 # ---------------------------------------------------------------------------
-run_week () {   # run_week <label> ; echoes "changed=<yes|no>"
+# `c=$(run_week ...)` runs the function in a COMMAND SUBSTITUTION SUBSHELL, so
+# a variable set inside it never reaches the caller -- measured here as
+# "publish_failed: unbound variable". The flag travels through a file instead.
+PF="$WORK/publish_failed"
+publish_failed=no
+run_week () {   # run_week <label> ; echoes "<yes|no>"; records the flag in $PF
   local label="$1" changed="" name cond run
+  printf 'no' > "$PF"
   local GH_OUT="$WORK/gh_output"; : > "$GH_OUT"
   while IFS= read -r -d $'\036' rec; do
     name=${rec%%$'\037'*}; rec=${rec#*$'\037'}
@@ -140,13 +146,34 @@ run_week () {   # run_week <label> ; echoes "changed=<yes|no>"
       cd "$TREE"
       export GITHUB_OUTPUT="$GH_OUT"
       export GITHUB_SHA="0000000000000000000000000000000000000000"
+      # The publish step appends the verdict here. Unset, the redirection
+      # fails and the step dies 127 for a reason unrelated to the property
+      # under test -- measured while writing this.
+      export GITHUB_STEP_SUMMARY="$WORK/step_summary.md"
       bash -c "$run" >"$WORK/step.out" 2>&1
     ) </dev/null
     local rc=$?
+    # THE PUBLISH STEP IS NOW *SUPPOSED* TO FAIL WHEN THE VERDICT MOVED.
+    # Rewritten 2026-08-01 together with the workflow it replays. verify.yml no
+    # longer commits: main is protected, the GitHub Actions app cannot hold a
+    # repository-level bypass (HTTP 422, measured), and the bot's push was
+    # refused outright. The job publishes the verdict to the run summary and
+    # EXITS NON-ZERO so that a human lands the change.
+    #
+    # The property under test is unchanged, and it is the one that matters: a
+    # week in which nothing moved must be DISTINGUISHABLE from a week in which
+    # something did. Only the observable moved -- from 'did a commit land' to
+    # 'did the run go red' -- and now ZERO commits must land in either case.
     if [ $rc -ne 0 ]; then
-      printf '    [%s] step FAILED (rc=%d): %s\n' "$label" "$rc" "$name" >&2
-      sed 's/^/          /' "$WORK/step.out" | head -15 >&2
-      return 1
+      case "$name" in
+        *[Ff]ail*|*stale*|*Publish*)
+          printf '    [%s] publish step exited %d AS DESIGNED (verdict moved, nothing pushed)\n' "$label" "$rc" >&2
+          printf 'yes' > "$PF" ;;
+        *)
+          printf '    [%s] step FAILED (rc=%d): %s\n' "$label" "$rc" "$name" >&2
+          sed 's/^/          /' "$WORK/step.out" | head -15 >&2
+          return 1 ;;
+      esac
     fi
     # A step that prints `fatal:` and still exits 0 is the shape that hid the
     # failed push: the workflow's commit block has no `set -e`, so git's error
@@ -168,39 +195,53 @@ commits_now () { git -C "$BARE" rev-list --count refs/heads/main 2>/dev/null || 
 
 head_ "WEEK 1 -- no STATUS.md yet: the verdict is new"
 before=$(commits_now); c1=$(run_week week1); rc=$?
+publish_failed=$(cat "$PF" 2>/dev/null || echo no)
 after=$(commits_now)
 if [ $rc -ne 0 ]; then bad "week 1 did not complete (rc=$rc)"
-elif [ "$c1" = "yes" ] && [ "$after" -eq $((before + 1)) ]; then
-  ok "verdict CHANGED and exactly 1 commit landed ($before -> $after)"
+elif [ "$c1" = "yes" ] && [ "$publish_failed" = "yes" ] && [ "$after" -eq "$before" ]; then
+  ok "verdict CHANGED, the run went RED, and NOTHING was pushed (still $after commits)"
 else
-  bad "expected changed=yes and +1 commit; got changed=$c1, $before -> $after"
+  bad "expected changed=yes, a red publish step and zero commits; got changed=$c1, publish_failed=$publish_failed, $before -> $after"
 fi
 
 head_ "WEEK 2 -- nothing moved: the run MUST say nothing"
 before=$(commits_now); c2=$(run_week week2); rc=$?
+publish_failed=$(cat "$PF" 2>/dev/null || echo no)
 after=$(commits_now)
 if [ $rc -ne 0 ]; then bad "week 2 did not complete (rc=$rc)"
-elif [ "$c2" = "no" ] && [ "$after" -eq "$before" ]; then
-  ok "verdict UNCHANGED and ZERO commits landed (still $after) -- the silent week is visible"
+elif [ "$c2" = "no" ] && [ "$publish_failed" = "no" ] && [ "$after" -eq "$before" ]; then
+  ok "verdict UNCHANGED: the run stayed GREEN and silent, zero commits (still $after)"
 else
-  bad "A SILENT WEEK STILL COMMITTED: changed=$c2, $before -> $after (this is the green-square failure mode)"
+  bad "A SILENT WEEK WAS NOT SILENT: changed=$c2, publish_failed=$publish_failed, $before -> $after (the green-square failure mode)"
 fi
 
 head_ "WEEK 3 -- one new theorem: the verdict must move again"
 printf '\ntheorem sim_planted_thm : True := trivial\n' >> "$TREE/lean/Proofs/RotPath.lean"
 ( cd "$TREE" && git add -A >/dev/null 2>&1 && git commit -qm "sim: a real change" >/dev/null 2>&1 )
 before=$(commits_now); c3=$(run_week week3); rc=$?
+publish_failed=$(cat "$PF" 2>/dev/null || echo no)
 after=$(commits_now)
 if [ $rc -ne 0 ]; then bad "week 3 did not complete (rc=$rc)"
-elif [ "$c3" = "yes" ] && [ "$after" -ge $((before + 1)) ]; then
-  ok "verdict CHANGED after a real edit and it was committed ($before -> $after)"
+elif [ "$c3" = "yes" ] && [ "$publish_failed" = "yes" ] && [ "$after" -eq "$before" ]; then
+  ok "a real edit moved the verdict, the run went RED, and still nothing was pushed"
 else
-  bad "a real change did NOT move the verdict: changed=$c3, $before -> $after"
+  bad "a real change did NOT move the verdict: changed=$c3, publish_failed=$publish_failed, $before -> $after"
 fi
-if git -C "$BARE" show refs/heads/main:STATUS.md 2>/dev/null | grep -q 'VERDICT-BEGIN'; then
-  ok "the committed STATUS.md carries the VERDICT block"
+# THE INVARIANT ACROSS ALL THREE WEEKS: the remote never gains a commit. That
+# is the whole point of the redesign -- nothing writes to a protected branch
+# except a human -- so it is asserted directly rather than inferred from the
+# three weeks above.
+if [ "$(commits_now)" -eq "$BASE_COUNT" ]; then
+  ok "after three simulated weeks the remote is STILL at $BASE_COUNT commit(s) -- no bot ever wrote to main"
 else
-  bad "the committed STATUS.md has no VERDICT block"
+  bad "the remote moved from $BASE_COUNT to $(commits_now) -- a bot pushed to a protected branch"
+fi
+# The generated STATUS.md must still carry the verdict block. It is read from
+# the WORKING TREE now, because no commit carries it any more.
+if grep -q 'VERDICT-BEGIN' "$TREE/STATUS.md" 2>/dev/null; then
+  ok "the generated STATUS.md carries the VERDICT block"
+else
+  bad "the generated STATUS.md has no VERDICT block"
 fi
 
 # ---------------------------------------------------------------------------
