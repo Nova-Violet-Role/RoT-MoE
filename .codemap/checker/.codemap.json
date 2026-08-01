@@ -146,13 +146,22 @@
       "size": 6474,
       "symbols": []
     },
-    "gate-all.sh": {
-      "hash": "e123750a4546",
-      "indexed_at": "2026-08-01T07:44:40.685248+00:00",
+    "deferred-closure.sh": {
+      "hash": "df04b95f363d",
+      "indexed_at": "2026-08-01T09:54:12.055307+00:00",
       "language": "shell",
-      "lines": 138,
-      "mtime_ns": 1785569532705467100,
-      "size": 5936,
+      "lines": 202,
+      "mtime_ns": 1785577250181106300,
+      "size": 10137,
+      "symbols": []
+    },
+    "gate-all.sh": {
+      "hash": "322dc1e4276c",
+      "indexed_at": "2026-08-01T09:54:12.222838+00:00",
+      "language": "shell",
+      "lines": 139,
+      "mtime_ns": 1785577296179105700,
+      "size": 6030,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -580,6 +589,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T09:25:50.166621+00:00",
+  "generated_at": "2026-08-01T09:54:12.222898+00:00",
   "version": "1.0"
 }

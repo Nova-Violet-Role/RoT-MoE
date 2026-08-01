@@ -40,6 +40,12 @@ on:
 
 permissions:
   contents: read
+  # `actions: read` lets checker/deferred-closure.sh read the log archive of
+  # the PREVIOUS completed run. It is the least privilege that closes the
+  # half of the CI step list ci-dryrun.sh must defer -- toolchain installs,
+  # the mathlib cache, the real lake build, the kernel re-check. Without it
+  # that gate SKIPs, and a SKIP is never counted as a pass here.
+  actions: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -274,6 +280,23 @@ jobs:
       # means. It found two live false-green paths the day it was written.
       - name: mutation discipline -- RotMutant.lean binds every harness
         run: bash checker/mutant-discipline.sh
+
+      # The other end of ci-dryrun.sh. That gate runs what it can of this
+      # step list in a clean tree and DEFERS anything needing a toolchain, a
+      # download, root or a pty -- printing "DEFERRED IS NOT PASSED", which is
+      # honest and leaves a gap. This closes the gap from the runner side: it
+      # reads the log archive of the last completed run and requires every
+      # declared step to have produced a log, with zero ##[error] and zero
+      # ##[warning] anywhere in it.
+      - name: deferred closure -- the runner ran what the dry run could not
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash checker/deferred-closure.sh; rc=$?
+          # 3 is SKIP (no token, no completed run yet, or logs expired) and is
+          # NOT a pass -- it is reported and tolerated; 1 is a real failure.
+          if [ "$rc" -eq 3 ]; then echo "::notice::deferred closure SKIPPED -- not a pass"; exit 0; fi
+          exit "$rc"
 
       - name: benchmark -- routing accuracy on a labelled key, and per-turn cost
         run: bash checker/bench-router.sh
