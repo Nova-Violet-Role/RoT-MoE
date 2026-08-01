@@ -40,7 +40,7 @@ jobs:
   copy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Ground truth is counted from the sources, never from memory and never
       # from the previous run of this file.

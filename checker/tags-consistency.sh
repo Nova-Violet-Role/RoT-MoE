@@ -121,6 +121,68 @@ if [ -f CITATION.cff ]; then
   fi
 fi
 
+# --- 6. a LANGUAGE tag is a claim about this tree ----------------------------
+# AUDITED 2026-08-01. [SIGNATURE] carried `python`, `c`, `compiler`,
+# `rolling-context` and `context-compression` under the heading "present in the
+# org / owner accounts". That heading is the whole defect: a topic is a claim
+# about the REPOSITORY THAT CARRIES IT, not about its author's other work.
+# Measured then: zero .py and zero .c files tracked here, and the two
+# context-* tags belong to the sibling repo. Someone searching `topic:python`
+# would have landed on a repository containing no Python.
+#
+# The rule is deliberately NARROW: only tags that name a language are checked,
+# because "does this repo ship Python" is decidable from `git ls-files` while
+# "is this repo about routing" is not. Abstract tags (moe, router, sigmoid) are
+# OUT OF SCOPE and this checker says so rather than pretending to judge them.
+# A narrow rule that really fires beats a broad one that cannot.
+echo
+echo "-- a language tag must be backed by files of that language --"
+lang_bad=0
+check_lang () {   # check_lang <tag> <glob> [glob...]
+  tag="$1"; shift
+  # Membership without a pipe: portability.sh bans `printf | grep -q` repo-wide
+  # (SIGPIPE under pipefail scores a match as a miss) and it caught this line
+  # the moment the phase was added. `case` on a newline-delimited set is exact.
+  case "
+$SIGNATURE
+" in *"
+$tag
+"*) : ;; *) return 0 ;; esac                                  # not claimed: nothing to check
+  n=0
+  for g in "$@"; do n=$((n + $(git ls-files -- "$g" 2>/dev/null | grep -c . || true))); done
+  if [ "$n" -gt 0 ]; then
+    ok "tag '$tag' is backed by $n tracked file(s)"
+  else
+    bad "tag '$tag' claims a language this repo does not ship (0 files match: $*)"
+    lang_bad=$((lang_bad+1))
+  fi
+}
+check_lang python     '*.py'
+check_lang c          '*.c' '*.h'
+check_lang rust       '*.rs'
+check_lang typescript '*.ts'
+check_lang javascript '*.js'
+check_lang bash       '*.sh'
+check_lang powershell '*.ps1'
+check_lang lean4      '*.lean'
+check_lang yaml       '*.yml' '*.yaml'
+
+# CONTROL: the predicate must be able to fail. Ask it about a language nobody
+# ships here, with the claim forced on, and require a rejection.
+ctl_n=$(git ls-files -- '*.rs' '*.hs' '*.f90' 2>/dev/null | grep -c . || true)
+if [ "$ctl_n" -eq 0 ]; then
+  ok "CONTROL: the file census really is empty for an unshipped language (rust/haskell/fortran) -- so a false claim WOULD be caught"
+else
+  bad "CONTROL DEAD: the census found files for a language this repo does not ship; the rule cannot be trusted"
+fi
+# CONTROL 2: and it must not fire on a language that IS shipped, or every tag
+# would look false and the rule would be noise.
+if [ "$(git ls-files -- '*.sh' | grep -c .)" -gt 0 ]; then
+  ok "CONTROL: the census DOES find the languages this repo ships (.sh) -- the rule is not blind"
+else
+  bad "CONTROL DEAD: the census found no .sh files in a repo made of shell"
+fi
+
 # --- [PROPERTIES]: a schema, not a scoreboard --------------------------------
 # Org custom properties are applied through the API by tag-manager.yml. What
 # can be checked with no token is the STRUCTURE and, more importantly, the rule

@@ -2,11 +2,11 @@
   "directory": ".github\\workflows",
   "files": {
     "ads-manager.yml": {
-      "hash": "93ae396db8a5",
-      "indexed_at": "2026-07-31T12:50:31.760151+00:00",
+      "hash": "6940eb3bf46e",
+      "indexed_at": "2026-08-01T06:31:56.595060+00:00",
       "language": "yaml",
       "lines": 162,
-      "mtime_ns": 1785502056116026100,
+      "mtime_ns": 1785565114778647800,
       "size": 7536,
       "symbols": [
         {
@@ -118,7 +118,7 @@
                 {
                   "children": [
                     {
-                      "docstring": "actions/checkout@v4",
+                      "docstring": "actions/checkout@v7",
                       "lines": [
                         43,
                         46
@@ -281,11 +281,11 @@
       ]
     },
     "ci.yml": {
-      "hash": "8d3685f8f20b",
-      "indexed_at": "2026-08-01T05:44:57.503886+00:00",
+      "hash": "18bbd030d7a4",
+      "indexed_at": "2026-08-01T06:31:56.756260+00:00",
       "language": "yaml",
       "lines": 348,
-      "mtime_ns": 1785562083785663100,
+      "mtime_ns": 1785565114778647800,
       "size": 15820,
       "symbols": [
         {
@@ -460,7 +460,7 @@
                 {
                   "children": [
                     {
-                      "docstring": "actions/checkout@v4",
+                      "docstring": "actions/checkout@v7",
                       "lines": [
                         58,
                         59
@@ -1105,7 +1105,7 @@
                 {
                   "children": [
                     {
-                      "docstring": "actions/checkout@v4",
+                      "docstring": "actions/checkout@v7",
                       "lines": [
                         224,
                         225
@@ -1494,12 +1494,12 @@
       ]
     },
     "tag-manager.yml": {
-      "hash": "3db42ba9d167",
-      "indexed_at": "2026-07-31T11:35:25.326676+00:00",
+      "hash": "9fe86db09c99",
+      "indexed_at": "2026-08-01T06:31:56.919235+00:00",
       "language": "yaml",
-      "lines": 215,
-      "mtime_ns": 1785494835449958400,
-      "size": 9537,
+      "lines": 232,
+      "mtime_ns": 1785565164399626300,
+      "size": 10972,
       "symbols": [
         {
           "docstring": "Meta Hashtag Manager",
@@ -1628,7 +1628,7 @@
                 {
                   "children": [
                     {
-                      "docstring": "actions/checkout@v4",
+                      "docstring": "actions/checkout@v7",
                       "lines": [
                         48,
                         55
@@ -1648,43 +1648,24 @@
                     {
                       "lines": [
                         57,
-                        95
+                        101
                       ],
                       "name": "run",
                       "type": "multiline"
                     },
                     {
-                      "docstring": "Evidence check against both accounts",
+                      "docstring": "Evidence check against THIS tree",
                       "lines": [
-                        96,
-                        96
+                        102,
+                        102
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
-                      "children": [
-                        {
-                          "docstring": "${{ secrets.GITHUB_TOKEN }}",
-                          "lines": [
-                            98,
-                            98
-                          ],
-                          "name": "GH_TOKEN",
-                          "type": "key"
-                        }
-                      ],
                       "lines": [
-                        97,
-                        98
-                      ],
-                      "name": "env",
-                      "type": "section"
-                    },
-                    {
-                      "lines": [
-                        99,
-                        129
+                        103,
+                        125
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1692,16 +1673,16 @@
                     {
                       "docstring": "Evidence check negative control",
                       "lines": [
-                        130,
-                        130
+                        126,
+                        126
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        131,
-                        142
+                        127,
+                        138
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1709,16 +1690,16 @@
                     {
                       "docstring": "Validator negative control",
                       "lines": [
-                        143,
-                        143
+                        139,
+                        139
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        144,
-                        152
+                        140,
+                        148
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1726,16 +1707,16 @@
                     {
                       "docstring": "Derive every copy from tags.txt",
                       "lines": [
-                        153,
-                        153
+                        149,
+                        149
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        154,
-                        192
+                        150,
+                        209
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1743,8 +1724,8 @@
                     {
                       "docstring": "Push repo topics",
                       "lines": [
-                        193,
-                        193
+                        210,
+                        210
                       ],
                       "name": "name",
                       "type": "item"
@@ -1754,24 +1735,24 @@
                         {
                           "docstring": "${{ secrets.GITHUB_TOKEN }}",
                           "lines": [
-                            195,
-                            195
+                            212,
+                            212
                           ],
                           "name": "GH_TOKEN",
                           "type": "key"
                         }
                       ],
                       "lines": [
-                        194,
-                        195
+                        211,
+                        212
                       ],
                       "name": "env",
                       "type": "section"
                     },
                     {
                       "lines": [
-                        196,
-                        203
+                        213,
+                        220
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1779,16 +1760,16 @@
                     {
                       "docstring": "Commit only on real drift",
                       "lines": [
-                        204,
-                        204
+                        221,
+                        221
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        205,
-                        216
+                        222,
+                        233
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1796,7 +1777,7 @@
                   ],
                   "lines": [
                     47,
-                    216
+                    233
                   ],
                   "name": "steps",
                   "type": "list"
@@ -1804,7 +1785,7 @@
               ],
               "lines": [
                 45,
-                216
+                233
               ],
               "name": "sync",
               "type": "section"
@@ -1812,7 +1793,7 @@
           ],
           "lines": [
             44,
-            216
+            233
           ],
           "name": "jobs",
           "type": "section"
@@ -1820,11 +1801,11 @@
       ]
     },
     "verify.yml": {
-      "hash": "071be64341a5",
-      "indexed_at": "2026-08-01T01:04:16.930580+00:00",
+      "hash": "52df14130099",
+      "indexed_at": "2026-08-01T06:31:57.085202+00:00",
       "language": "yaml",
       "lines": 143,
-      "mtime_ns": 1785544641515754100,
+      "mtime_ns": 1785565114778647800,
       "size": 6502,
       "symbols": [
         {
@@ -1973,7 +1954,7 @@
                 {
                   "children": [
                     {
-                      "docstring": "actions/checkout@v4",
+                      "docstring": "actions/checkout@v7",
                       "lines": [
                         55,
                         63
@@ -2103,6 +2084,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T05:44:57.504060+00:00",
+  "generated_at": "2026-08-01T06:31:57.085295+00:00",
   "version": "1.0"
 }

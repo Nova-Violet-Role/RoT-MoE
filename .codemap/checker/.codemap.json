@@ -394,12 +394,12 @@
       ]
     },
     "tags-consistency.sh": {
-      "hash": "0f28efe8b625",
-      "indexed_at": "2026-08-01T05:02:05.346339+00:00",
+      "hash": "5e12fee398ed",
+      "indexed_at": "2026-08-01T06:31:57.248816+00:00",
       "language": "shell",
-      "lines": 233,
-      "mtime_ns": 1785559845869852900,
-      "size": 10579,
+      "lines": 295,
+      "mtime_ns": 1785565538207486700,
+      "size": 13525,
       "symbols": [
         {
           "docstring": "Section extraction: a tag line is a bare lowercase token; comments and blanks are skipped. Written as a function so the control below runs the SAME co",
@@ -408,6 +408,14 @@
             61
           ],
           "name": "section",
+          "type": "function"
+        },
+        {
+          "lines": [
+            141,
+            159
+          ],
+          "name": "check_lang",
           "type": "function"
         }
       ]
@@ -564,6 +572,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T06:03:55.247489+00:00",
+  "generated_at": "2026-08-01T06:31:57.248877+00:00",
   "version": "1.0"
 }

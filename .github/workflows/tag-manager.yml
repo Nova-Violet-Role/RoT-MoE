@@ -45,7 +45,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # --- validate the source of truth BEFORE deriving anything from it -----
       # An invalid tag set must fail loudly here rather than be pushed to the
@@ -87,28 +87,24 @@ jobs:
           fi
           exit "$fail"
 
-      # --- EVERY TAG MUST BE TRUE ------------------------------------------
-      # This is what makes an unlimited tier safe. A tag naming a language or a
-      # subject present in NEITHER account nor this tree is a fabrication, and
-      # fabricated tags are the thing that earns the negative comment. Evidence
-      # is: the local tree, or a language/description/topic of any repo under
-      # Saimonokuma or Nova-Violet-Role.
-      - name: Evidence check against both accounts
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # --- EVERY TAG MUST BE TRUE OF *THIS* REPOSITORY ----------------------
+      # CORRECTED 2026-08-01, and the old version of this step is the reason the
+      # correction was needed. It accepted "present in EITHER ACCOUNT" as
+      # evidence -- so `python`, `c`, `compiler`, `rolling-context` and
+      # `context-compression` passed it, because the owner writes Python and C
+      # elsewhere, and they shipped on a repository that contains none of them.
+      #
+      # A topic is a claim about the repository that CARRIES it, never about its
+      # author's other work. The account scan is gone: evidence is this tree,
+      # its README and its plugin manifest. The authority on language tags is
+      # checker/tags-consistency.sh phase 6, which is a GATE and decides
+      # `git ls-files '*.py'` rather than warning about it.
+      - name: Evidence check against THIS tree
         run: |
           set -euo pipefail
           : > /tmp/evidence.txt
-          for owner in Saimonokuma Nova-Violet-Role; do
-            gh api "users/$owner/repos?per_page=100" \
-              --jq '.[] | [.name, .language, .description, (.topics // [] | join(" "))] | @tsv' \
-              >> /tmp/evidence.txt 2>/dev/null || \
-            gh api "orgs/$owner/repos?per_page=100" \
-              --jq '.[] | [.name, .language, .description, (.topics // [] | join(" "))] | @tsv' \
-              >> /tmp/evidence.txt 2>/dev/null || true
-          done
-          # local tree is evidence too
           git ls-files >> /tmp/evidence.txt
+          cat README.md .claude-plugin/plugin.json >> /tmp/evidence.txt 2>/dev/null || true
           tr 'A-Z' 'a-z' < /tmp/evidence.txt > /tmp/ev.lc
 
           missing=0
@@ -159,13 +155,34 @@ jobs:
           #    display:none -- measured: <meta> is deleted by GitHub's
           #    sanitizer and display:none renders visible anyway. This block
           #    carries the FULL signature list, not the 20 topics.
+          # RENDERING, fixed 2026-08-01. The previous form emitted a bare
+          # `**Topics** ·` followed by forty-odd `#CamelCase` words separated by
+          # spaces. Markdown joins those source lines into ONE paragraph, so the
+          # foot of the README became an unbroken wall of hashtags -- and since
+          # `#word` is not a CommonMark heading and not a GitHub cross-reference,
+          # it is not even clickable. Forty-two words of grey noise under the
+          # licence block, which is what "not rendering good" meant.
+          #
+          # Now: a <details> element, collapsed by default, with each tag as an
+          # inline code chip. GitHub renders those as discrete pills; the wall
+          # costs one line until someone opens it. The `#Name` spelling is kept
+          # INSIDE the backticks because checker/tags-consistency.sh extracts
+          # the block with `grep -o '#[A-Za-z0-9]*'` and diffs it against
+          # tags.txt as a set -- changing the spelling would break that gate,
+          # and a cosmetic change must not cost a real check.
+          #
+          # Topics are repo METADATA and GitHub already renders them at the top
+          # of the page; this block exists for the unlimited tier, which the
+          # 20-topic cap cannot carry. It is a supplement, not the primary
+          # surface, and it now looks like one.
           {
             echo "<!-- TAGS:BEGIN generated from .github/tags.txt [SIGNATURE] -- do not hand-edit -->"
-            printf '**Topics** ·\n'
+            printf '<details>\n'
+            printf '<summary><b>Topics</b> — %d tags, generated from <code>.github/tags.txt</code></summary>\n\n' "${#TAGS[@]}"
             for t in "${TAGS[@]}"; do
-              printf '#%s ' "$(printf '%s' "$t" | sed -E 's/(^|-)([a-z])/\U\2/g')"
+              printf '`#%s` ' "$(printf '%s' "$t" | sed -E 's/(^|-)([a-z])/\U\2/g')"
             done
-            printf '\n'
+            printf '\n\n</details>\n'
             echo "<!-- TAGS:END -->"
           } > /tmp/sig.md
 

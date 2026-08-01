@@ -696,13 +696,10 @@ stands on.
 ---
 
 <!-- TAGS:BEGIN generated from .github/tags.txt [SIGNATURE] -- do not hand-edit -->
-**Topics** ·
-#MixtureOfExperts #Moe #Router #Lean4 #FormalVerification #TheoremProving
-#Mathlib #MachineChecked #ProofEngineering #ClaudeCode #ClaudeCodePlugin
-#AiAgents #AgenticWorkflow #LlmTooling #PromptEngineering #Hooks #Powershell
-#Bash #Agpl #Eupl #DependentTypes #ProofAssistant #KernelVerified
-#MutationTesting #Leanchecker #Sigmoid #EnsembleMethods #ExpertRouting #Plugin
-#CliTool #DeveloperTools #StaticAnalysis #Specification #VerifiedSoftware
-#Copyleft #ReuseCompliance #Spdx #DualLicensed #FreeSoftware #OpenSource
-#NonProfit #Python #C #Compiler #RollingContext #ContextCompression #Anthropic
+<details>
+<summary><b>Topics</b> — 42 tags, generated from <code>.github/tags.txt</code></summary>
+
+`#MixtureOfExperts` `#Moe` `#Router` `#Lean4` `#FormalVerification` `#TheoremProving` `#Mathlib` `#MachineChecked` `#ProofEngineering` `#ClaudeCode` `#ClaudeCodePlugin` `#AiAgents` `#AgenticWorkflow` `#LlmTooling` `#PromptEngineering` `#Hooks` `#Powershell` `#Bash` `#Agpl` `#Eupl` `#DependentTypes` `#ProofAssistant` `#KernelVerified` `#MutationTesting` `#Leanchecker` `#Sigmoid` `#EnsembleMethods` `#ExpertRouting` `#Plugin` `#CliTool` `#DeveloperTools` `#StaticAnalysis` `#Specification` `#VerifiedSoftware` `#Copyleft` `#ReuseCompliance` `#Spdx` `#DualLicensed` `#FreeSoftware` `#OpenSource` `#NonProfit` `#Anthropic` 
+
+</details>
 <!-- TAGS:END -->

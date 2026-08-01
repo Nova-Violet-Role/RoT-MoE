@@ -318,12 +318,12 @@
       ]
     },
     "README.md": {
-      "hash": "34c15aa4d4ad",
-      "indexed_at": "2026-08-01T03:01:03.867378+00:00",
+      "hash": "72165aa45e85",
+      "indexed_at": "2026-08-01T06:31:57.408073+00:00",
       "language": "markdown",
-      "lines": 708,
-      "mtime_ns": 1785552574096043400,
-      "size": 38900,
+      "lines": 705,
+      "mtime_ns": 1785565052613071000,
+      "size": 39028,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -520,7 +520,7 @@
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
                 682,
-                709
+                706
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -529,7 +529,7 @@
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
             659,
-            709
+            706
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -611,6 +611,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-01T03:01:03.867461+00:00",
+  "generated_at": "2026-08-01T06:31:57.408160+00:00",
   "version": "1.0"
 }

@@ -30,12 +30,24 @@
 # why "unlimited" is safe here: the generator cannot invent a tag, so a longer
 # list is a more complete description rather than a bigger lie.
 #
-# Measured 2026-07-31 via the public API:
-#   Saimonokuma       Chaos-SymbioseOS (C) - GHC-COMPILER-PYTHON (Python)
-#                     MultiLinkExtractor- - skills (Python)
-#   Nova-Violet-Role  .github - claude-rolling-context-Lean-4- (Python)
-# Tier 2 draws from these plus this repo's own tree. A tag naming a language or
-# a subject that appears in NEITHER account is a defect and fails the job.
+# CORRECTED 2026-08-01 -- THE RULE ABOVE WAS THE DEFECT.
+#
+# It used to read: "Tier 2 draws from the two ACCOUNTS plus this repo's tree. A
+# tag naming a language or a subject that appears in NEITHER ACCOUNT is a defect."
+# Scoping the evidence to the OWNER's accounts is what put `python`, `c`,
+# `compiler`, `rolling-context` and `context-compression` on this repository:
+# all five are true of Saimonokuma's other work (Chaos-SymbioseOS is C,
+# GHC-COMPILER-PYTHON is Python, claude-rolling-context-Lean-4- is the rolling
+# context) and every one of them is FALSE HERE.
+#
+# A topic is a claim about the REPOSITORY THAT CARRIES IT. Nobody searching
+# `topic:python` wants a repo whose author writes Python elsewhere; they want
+# Python. The account scan may SUGGEST candidates, it may never JUSTIFY one.
+#
+# THE RULE, corrected: every tag in either tier must be true of THIS TREE, and
+# for any tag naming a language that is decidable -- `git ls-files` must find
+# files of it. checker/tags-consistency.sh phase 6 decides exactly that, with
+# two controls, and it is a gate.
 # ---------------------------------------------------------------------------
 
 [TOPICS]
@@ -110,12 +122,27 @@ dual-licensed
 free-software
 open-source
 non-profit
-# -- present in the org / owner accounts, measured via the API 2026-07-31
-python
-c
-compiler
-rolling-context
-context-compression
+# -- true of THIS repository, not of its neighbours
+#
+# AUDITED 2026-08-01, and five tags were CUT here: python, c, compiler,
+# rolling-context, context-compression. They arrived under the heading
+# "present in the org / owner accounts", which is a true statement about the
+# OWNER and a false one about this repo -- and a topic is a claim about the
+# repository that carries it, never about its author's other work.
+#
+# The measurement that condemned them: `git ls-files` finds ZERO .py and ZERO
+# .c/.h files here; the only mentions of Python and C in README.md are line
+# 375, listing extensions the proof-debt hook can WATCH in someone else's
+# project. `rolling-context` and `context-compression` are the subject of the
+# sibling repo claude-rolling-context-Lean-4-, and appeared nowhere in this
+# tree except the generated hashtag line itself. Somebody searching
+# `topic:python` would have found a repository with no Python in it.
+#
+# `anthropic` stays: this repo is a plugin for Claude Code, which is
+# Anthropic's product. That is a fact about this tree, not about a neighbour.
+#
+# The rule is now enforced by tags-consistency.sh phase 6: a tag that names a
+# LANGUAGE must be backed by files of that language in `git ls-files`.
 anthropic
 
 # ===========================================================================
@@ -138,9 +165,19 @@ anthropic
 #       nothing re-derives is a claim, not a fact.
 #
 # `platforms` follows the same discipline in the other direction: it lists
-# linux and windows because CI RAN there and went green (run 30684381090,
-# 2026-08-01), and it omits macos because nothing has ever tested macos. The
-# day a macos job passes, the value moves -- not before.
+# only what a runner has actually proved.
+#
+# HISTORY, kept because it is the whole argument for the rule. On 2026-08-01
+# this read `linux,windows` and omitted macos, with the note "the day a macos
+# job passes, the value moves -- not before". A macos-latest job was then added
+# and FAILED inside two minutes: macOS ships bash 3.2.57 from 2007, and three
+# checkers used `declare -A` and `mapfile`, both bash 4.0. Had the property
+# been widened on the strength of "it should work", it would have been false
+# for exactly as long as nobody looked.
+#
+# It is now `linux,windows,macos` because run 30687024111 went green on all
+# three runners -- the value moved WITH the evidence, in the same edit, which
+# is the only order that keeps a property honest.
 #
 # Format: name = value   (multi_select values are comma-separated)
 # Applied and verified by .github/workflows/tag-manager.yml, which needs the
@@ -153,4 +190,4 @@ licence-model = agpl-3.0-or-eupl-1.2
 maintenance = actively-developed
 org-role = flagship
 verify-command = bash checker/gate-all.sh --full
-platforms = linux,windows
+platforms = linux,windows,macos
