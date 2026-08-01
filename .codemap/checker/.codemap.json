@@ -1,6 +1,42 @@
 {
   "directory": "checker",
   "files": {
+    "axiom-audit.sh": {
+      "hash": "0e4d89c9c4e6",
+      "indexed_at": "2026-08-01T01:30:36.127318+00:00",
+      "language": "shell",
+      "lines": 264,
+      "mtime_ns": 1785547181321613700,
+      "size": 12067,
+      "symbols": [
+        {
+          "docstring": "--- theorem names, from the SOURCE, comment- and namespace-aware ------------ Lean block comments NEST, so a boolean flag is wrong. Doc comments carry",
+          "lines": [
+            74,
+            265
+          ],
+          "name": "names_of",
+          "type": "function"
+        },
+        {
+          "docstring": "--- the audit itself -------------------------------------------------------",
+          "lines": [
+            141,
+            191
+          ],
+          "name": "audit_module",
+          "type": "function"
+        },
+        {
+          "lines": [
+            227,
+            231
+          ],
+          "name": "cleanup_ctl",
+          "type": "function"
+        }
+      ]
+    },
     "ci-dryrun.sh": {
       "hash": "e93722286006",
       "indexed_at": "2026-07-31T19:17:28.359675+00:00",
@@ -93,12 +129,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "51f271926263",
-      "indexed_at": "2026-08-01T01:04:17.101431+00:00",
+      "hash": "01cf876987eb",
+      "indexed_at": "2026-08-01T01:30:36.284480+00:00",
       "language": "shell",
-      "lines": 132,
-      "mtime_ns": 1785545189115211800,
-      "size": 5506,
+      "lines": 133,
+      "mtime_ns": 1785547269578842000,
+      "size": 5576,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -429,6 +465,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T01:04:17.773114+00:00",
+  "generated_at": "2026-08-01T01:30:36.284538+00:00",
   "version": "1.0"
 }

@@ -50,6 +50,7 @@ licence bridge (NOTICE vs disk)|bash checker/license-bridge.sh
 tag consistency (local half of R18)|bash checker/tags-consistency.sh
 verdict stability (the scheduled commit rule)|bash checker/verdict-stability.sh
 gauge cross (Lean mirror vs hook)|bash checker/gauge-cross.sh
+axiom audit (#print axioms, all theorems)|bash checker/axiom-audit.sh
 mutate the checker|bash checker/mutate-checker.sh
 installer round trip|bash checker/install-roundtrip.sh
 "
