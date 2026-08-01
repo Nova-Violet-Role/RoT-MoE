@@ -177,6 +177,100 @@ else
   note "This phase is SKIPPED and a skip is NEVER a pass."
 fi
 
+# ---------------------------------------------------------------------------
+echo
+echo "== 4. THE README DIAGRAM -- it must report THIS run, not a memory of one"
+# ---------------------------------------------------------------------------
+# A benchmark diagram in a README is decoration until something FAILS when it
+# drifts. The numbers below are the ones phase 1 just COMPUTED, not constants
+# retyped here: if the key grows a lane or a case, this phase demands the README
+# move in the same edit.
+#
+# Deliberately NOT checked: the latency figure. It varies run to run (133.2 ms
+# and 138.0 ms, measured minutes apart on one machine), so pinning it would turn
+# a CORRECT README red -- the exact defect this project calls a spec that
+# forbids a correct future. The README states the BOUND; the BOUND is bound.
+RM="README.md"
+if [ ! -f "$RM" ]; then
+  bad "README.md not found -- the diagram cannot be bound to the benchmark"
+else
+  rm_fail=0
+  grep -q "[*][*]$hit/$total[*][*]" "$RM" || { rm_fail=1; note "README does not carry the score $hit/$total"; }
+  grep -q "$lanes lanes" "$RM"       || { rm_fail=1; note "README does not carry the lane count $lanes"; }
+  grep -q "500 ms" "$RM"             || { rm_fail=1; note "README does not state the 500 ms bound this gate enforces"; }
+  grep -q '```mermaid' "$RM"       || { rm_fail=1; note "README has no mermaid diagram block"; }
+  grep -q "CLAIM" "$RM"              || { rm_fail=1; note "README does not separate CLAIM from MEASURED"; }
+  if [ "$rm_fail" -eq 0 ]; then
+    ok "the README diagram carries THIS run's numbers ($hit/$total, $lanes lanes, 500 ms bound)"
+  else
+    bad "the README benchmark diagram has drifted from the benchmark -- move them together"
+  fi
+
+  # -- controls: the phase must be able to fail, and must not always fail --
+  probe="$(mktemp)"
+  sed "s|[*][*]$hit/$total[*][*]|**999/999**|" "$RM" > "$probe"; src=$?
+  if [ "$src" -ne 0 ] || [ ! -s "$probe" ]; then
+    bad "CONTROL DID NOT APPLY: sed exit $src / empty mutant -- discarded, NOT survived"
+  elif cmp -s "$probe" "$RM"; then
+    bad "CONTROL DID NOT APPLY: the mutated copy is identical -- discarded, NOT survived"
+  elif grep -q "[*][*]$hit/$total[*][*]" "$probe"; then
+    bad "CONTROL: a README with the wrong score was still accepted"
+  else
+    ok "CONTROL: a README whose case total is wrong IS rejected -- the check can fail"
+  fi
+  rm -f "$probe"
+
+  # -- 4b. the lane -> lens rows must match the ROUTER SOURCE ----------------
+  # The README names a lens beside every lane. That is a claim about this code,
+  # so it is read out of hooks/rot-router.sh rather than trusted: rename a lens
+  # in the router and the README goes red in the same run.
+  lens_fail=0; lens_rows=0
+  while read -r lane lens; do
+    [ -z "${lane:-}" ] && continue
+    lens_rows=$((lens_rows+1))
+    # the README row for this lane must mention its lens (Violet -> Violet_Noir
+    # etc, so the router token must appear as a prefix of the README's name)
+    # Compare IDENTITY, not punctuation: the README renders "Anti-Venom" and
+    # "Violet_Noir" for readability while the router token is "AntiVenom" and
+    # "Violet". Stripping non-alphanumerics from the README row and requiring
+    # the router token as a substring checks the thing that matters -- that the
+    # named lens IS the one the code routes to -- without freezing a house
+    # style that a future edit is entitled to change.
+    if ! grep -E "\`$lane\`" "$RM" | tr -cd '[:alnum:]' | grep -qi "$lens"; then
+      lens_fail=1; note "README lane $lane does not name its router lens $lens"
+    fi
+  done <<INNER
+$(sed -n '70,78p' "$ROUTER" | sed -n 's/.*echo "\([A-Z]*\) \([A-Za-z]*\)".*/\1 \2/p')
+INNER
+  # -- control: rename a lens in a COPY of the README and it must be caught.
+  # Without this, "9 rows match" could mean the matcher accepts anything.
+  lprobe="$(mktemp)"
+  sed 's/[*][*]Claude[*][*]/**Fabricated**/' "$RM" > "$lprobe"; lrc=$?
+  if [ "$lrc" -ne 0 ] || [ ! -s "$lprobe" ]; then
+    bad "CONTROL DID NOT APPLY: sed exit $lrc / empty mutant -- discarded, NOT survived"
+  elif cmp -s "$lprobe" "$RM"; then
+    bad "CONTROL DID NOT APPLY: the lens rename changed nothing -- discarded, NOT survived"
+  elif grep -E '\`FORGE\`' "$lprobe" | tr -cd '[:alnum:]' | grep -qi 'Claude'; then
+    bad "CONTROL: a README whose FORGE lens was renamed still passed -- the matcher is blind"
+  else
+    ok "CONTROL: a renamed lens IS caught -- the lane->lens check can fail"
+  fi
+  rm -f "$lprobe"
+
+  if [ "$lens_rows" -lt 9 ]; then
+    bad "only $lens_rows lane->lens pair(s) parsed from $ROUTER -- the probe broke, not the README"
+  elif [ "$lens_fail" -eq 0 ]; then
+    ok "all $lens_rows lane->lens rows in the README match $ROUTER"
+  else
+    bad "the README lane->lens table has drifted from $ROUTER"
+  fi
+  if grep -q "[*][*]$hit/$total[*][*]" "$RM"; then
+    ok "CONTROL: the real README passes that same predicate -- it is not always-fail"
+  else
+    bad "CONTROL: the predicate rejects the real README -- always-fail proves nothing"
+  fi
+fi
+
 printf '\n== benchmark: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

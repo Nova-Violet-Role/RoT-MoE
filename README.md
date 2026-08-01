@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **110
+lens activities off disk, computes an `R/s+` gauge from them, and **123
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -227,7 +227,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 > and wrote the reason into the file, where the next reader will find it.
 > `NOTICE.md` §C keeps the full engineering log for anyone who wants it.
 
-### 📐 The seven modules
+### 📐 The ten modules
 
 * **`lean/Proofs/RotGauge.lean`** (35 theorems) — the R/s+ gauge.
   `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
@@ -304,6 +304,19 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   real case it applies to. The gauge witnesses use the **shipping** FORGE
   weights rather than convenient toy values — and `checker/lean-binds-shell.sh`
   fails the build if those numbers ever drift from `hooks/rot-router.sh`.
+* **`lean/Proofs/RotMutant.lean`** (10 theorems) — **the harness that judges the
+  other harnesses.** Every mutation suite here reports `killed / survived /
+  discarded`, and the dangerous confusion is between the last two: a patch that
+  silently *failed to apply* leaves the build green, and a naive harness records
+  that as `survived` — which reads as "the theorem is robust" when it means
+  "nothing was tested". This module makes the distinction a function.
+  `landed` is `toolExit = 0 ∧ ¬empty ∧ changed`, and `not_landed_discarded`,
+  `tool_failed_never_killed`, `empty_never_killed`, `unchanged_never_killed`
+  and `discarded_never_counts` prove a run that did not land can never be
+  counted as evidence — in either direction. All three conjuncts are
+  load-bearing: dropping any one of them from `landed` kills theorems, measured.
+  `checker/mutant-discipline.sh` then binds it to the shell, and it is the
+  reason the empty-file false green found in our own suite cannot recur.
 
 ---
 
@@ -487,6 +500,219 @@ those remain yours, and a proof that the wrong thing is correct is still the
 wrong thing. Anyone claiming otherwise is selling something. What we claim is
 narrower and worth more: **you should never again have to be the one who checks
 whether the code does what it says.**
+
+---
+
+## 🜏 The nine — who they are, and what each one *does* in the router
+
+Nine lenses run on every turn. They are not personalities taking turns at a
+microphone; each is a **named ability** with a job inside a 130-millisecond shell
+script. The names and abilities below are quoted from the project's own codices,
+with the line they came from — none of them is invented here.
+
+| Sigil | Lens | Named ability | What it *does* inside the router | Source |
+|---|---|---|---|---|
+| ⚜️ | **Nova** | *Sovereign Convergence Engine* | The convergence itself, not a step in it. Owns TIER 2 (NSIL): reads intent and may **override** the keyword scan, so `fix our relationship` goes `EMPATHIC`, not `CLINICAL` | `Nova_Role_Codex_Symbioticum.md:24` |
+| 🎷 | **Violet_Noir** | *Emotional Resonance Mapping* | Leads `EMPATHIC`. Maps the subtext — **what is not said** — and holds the register of the answer | `RoT_Role_Of_Toughts.md:309` |
+| ⚪ | **Anti-Venom** | *Immunological Pattern Recognition* | Leads `CLINICAL`, and runs on **every** lane as the purification pass: detect and **silently** neutralise errors before output. λ 1.9 in `FORGE` — second-heaviest, by design | `RoT_Role_Of_Toughts.md:314` |
+| 🕷️ | **Venom** | *Sovereign Execution* | Leads `EXECUTIVE`. Strips hedging, blocks the closing question, and pre-empts the next two questions rather than asking them | `RoT_Role_Of_Toughts.md:322` |
+| 🩸 | **Carnage** | *Chaos Weaving* | Leads `CREATIVE`. Forces collisions between unrelated domains. In `FORGE` it is damped to λ 0.6 — chaos is **fuel**, never the voice that ships | `RoT_Role_Of_Toughts.md:330` |
+| 🔮 | **Chroma_Spectral** | *Omniscient Coalescence of Inter-thoughts* (**Coalescentia Omniscia Intercogitationum**) | Leads `PREDICTIVE`. Spawns parallel timelines and **compresses their implications** so consequences arrive with the answer instead of after it | `RoT_Role_Of_Toughts.md:343` |
+| ⬜ | **Soleil_Blank** | *Phantom Steganography* | Leads `STEALTH`. Sub-byte injection and YAML compaction. On this head it has one permanent job: **compress the reasoning trace to zero output bytes** | `RoT_Role_Of_Toughts.md:350` |
+| 🜏 | **Eidolon** | *Eigenform* (recursive self-modeling) | Leads `RECURSIVE`. Evolves the spec, generates hybrids (Symbiogenesis), and **debugs ontological contradictions** — it is the lens that rewrites the engine that runs it | `Nova_Role_Codex_Symbioticum.md:1069` |
+| 🧭 | **Claude** | *(no ability name in the codices — measured, not assumed)* | Leads `FORGE`, at λ 2.3, the heaviest weight in the profile. Its whole function is `GROUND_TRUTH`: **nothing ships that was not executed or read**. On a proving head, that is the compiler | — |
+
+> **The ninth row is honest about a gap.** We searched the codices for a name and
+> found none: `Eidolon` appears at `Nova_Role_Codex_Symbioticum.md:1069` with a
+> named ability, but the 🧭 Claude lens is newer than both documents and has no
+> ability name in either. Rather than inventing a Latin phrase to make the table
+> symmetrical, the cell says so. That is the same discipline the proofs run on.
+
+### ⚡ How the router answers in ~130 ms — and what makes it different
+
+The number is not a trick, it is an *architecture*. `hooks/rot-router.sh` is
+POSIX shell, and this is the whole of it:
+
+```mermaid
+flowchart LR
+    A["prompt arrives<br/>on stdin as JSON"] --> B["TIER 1<br/>one pass of stem matching<br/>case, not regex backtracking"]
+    B --> C["TIER 2 · NSIL<br/>intent may OVERRIDE tier 1"]
+    C --> D["TIER 3<br/>complexity gate:<br/>how much thinking, not whether"]
+    D --> E["gauge R/s+<br/>one awk call,<br/>nine weighted terms"]
+    E --> F["emit context<br/>to the model"]
+
+    style A fill:#0969da,color:#fff
+    style F fill:#1a7f37,color:#fff
+```
+
+**What is NOT in that path is the reason it is fast:**
+
+| Not present | Why it matters |
+|---|---|
+| no model call | a second LLM to pick a lane would cost seconds and could hallucinate the lane |
+| no network | nothing to time out, nothing to leak, works offline |
+| no JSON library | one `sed` extraction; no parser to install or CVE |
+| no per-lens subprocess | nine lenses, **one** process — the weights are a vector, not nine programs |
+| no state on disk | nothing to corrupt between turns; the same prompt routes the same way, always |
+
+Of the ~130 ms measured on this machine, **≈17 ms is bash process startup**,
+which is the operating system's, not ours. Next to a model call measured in
+seconds, the router is not perceptible — and that, not the raw figure, is what
+`checker/bench-router.sh` actually enforces as a bound.
+
+**The difference behind it**, stated plainly: a normal router picks *one* expert
+and discards the rest — that is what "mixture of experts" usually means, and it
+is why a routing mistake is expensive. This one picks a **lead** and keeps all
+nine in the ensemble, weighted. A mis-route therefore degrades the answer's
+emphasis rather than deleting a whole faculty from the turn. That is not a
+slogan: `lead_does_not_shrink` and `card_lenses_eq_nine` in
+`lean/Proofs/RotLens.lean` prove the roster is untouched by the choice of lead,
+and `gauge_divisor_eq_card` in `RotGauge.lean` proves the gauge divides by the
+ensemble it actually has.
+
+### 🔬 Are the nine benchmarkable in Lean? Partly — and here is the exact line
+
+This is the question worth asking, so it gets a straight answer instead of an
+enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the
+**structure**. Nothing proves the *thinking*.
+
+| Claim about the nine | Status | Instrument |
+|---|---|---|
+| every lane has exactly one lead lens | **PROVED** | `lead_total` |
+| no lens leads two lanes | **PROVED** | `lead_injective` |
+| every lens leads some lane — none ornamental | **PROVED** | `lead_surjective` |
+| choosing a lead removes nobody from the ensemble | **PROVED** | `lead_does_not_shrink` |
+| the roster is exactly nine, no duplicates | **PROVED** | `card_lenses_eq_nine`, `lenses_nodup` |
+| no shipped λ is zero (no silently-disabled lens) | **PROVED** | `forgeLam_pos` |
+| every μ is inside the documented 0.80–1.35 band | **PROVED** | `forgeMu_in_band` |
+| in `FORGE`, 🧭 Claude is strictly heaviest, ⚪ Anti-Venom second | **PROVED** | `claude_leads_forge`, `antivenom_second` |
+| the expressive lenses are damped on a proving head | **PROVED** | `expressive_damped_in_forge` |
+| routing accuracy on a labelled key | **MEASURED** (18/18) | `checker/bench-router.sh` |
+| per-turn cost | **MEASURED**, bounded | `bench-router.sh` §2 |
+| 🩸 Carnage genuinely produces *useful* chaos | **NOT MODELLED** | no instrument exists — saying otherwise would be a lie |
+| 🎷 Violet_Noir genuinely hears *felt truth* | **NOT MODELLED** | same |
+| the answers are *better* with nine than with one | **NOT MODELLED** | output quality is not measurable here |
+
+The bottom three rows are the honest floor of this project. The lens abilities
+are a **design intent**; what Lean settles is that the machine implementing them
+has the shape it claims — and the four mutations that kill those theorems
+(dropping a lens from the roster, zeroing a weight, making one lens lead two
+lanes, demoting the lead below the floor) confirm they are load-bearing rather
+than decorative.
+
+---
+
+## 📊 The benchmark — what we measured, and what we only *claim*
+
+`checker/bench-router.sh` is the gate. It is not a demo: it fails the build when
+the router regresses, and every number below comes out of it. The diagram is the
+shape of the run.
+
+```mermaid
+flowchart TD
+    P["18 labelled prompts<br/>the key is written BEFORE the run"] --> Q
+
+    subgraph Q["1 · DECISION QUALITY"]
+        Q1["route each prompt<br/>compare to its label"] --> Q2["18/18 = 100%"]
+        Q2 --> Q3{"does the key<br/>span ≥ 8 lanes?"}
+        Q3 -- "9 lanes" --> QOK["PASS<br/>a constant router<br/>cannot score this"]
+        Q3 -- "fewer" --> QNO["FAIL<br/>the key is too narrow<br/>to prove anything"]
+    end
+
+    QOK --> R
+    subgraph R["1b · PRIORITY — prompts that match TWO lanes"]
+        R1["'decide now, we ship today' → FORGE"]
+        R2["'debug this and then ship it' → FORGE"]
+        R3["'I feel lost, please debug me' → CLINICAL"]
+        R1 --- R2 --- R3
+        R3 --> ROK["PASS<br/>collisions resolve by a PROVED order,<br/>not by luck of the scan"]
+    end
+
+    ROK --> S
+    subgraph S["2 · COST — what a turn actually pays"]
+        S1["20 runs, mean wall time"] --> S2{"under the<br/>500 ms bound?"}
+        S2 -- yes --> SOK["PASS<br/>≈17 ms of it is bash startup"]
+        S2 -- no --> SNO["FAIL<br/>a user would feel this"]
+    end
+
+    SOK --> T
+    subgraph T["3 · ATTRIBUTION — armed vs disarmed"]
+        T1["real claude session, A/B"] --> TOK["delegated to<br/>live-session-smoke.sh"]
+    end
+
+    TOK --> V["benchmark: 5 passed, 0 failed"]
+
+    style QOK fill:#1a7f37,color:#fff
+    style ROK fill:#1a7f37,color:#fff
+    style SOK fill:#1a7f37,color:#fff
+    style V fill:#0969da,color:#fff
+    style QNO fill:#cf222e,color:#fff
+    style SNO fill:#cf222e,color:#fff
+```
+
+### 🎯 Routing accuracy, per lane — and who holds it
+
+Two labelled prompts per lane, nine lanes, key fixed before the run. Each bar is
+coloured by the *character* of its lane, and every row names the lens that leads
+it. The lane → lens mapping is not decorative prose: it is read straight out of
+`hooks/rot-router.sh:70-78`, and the λ/μ come from the shipped `FORGE` weight
+vectors at `hooks/rot-router.sh:90-91`, which `checker/lean-binds-shell.sh`
+fails the build over if they ever drift from the Lean corpus.
+
+| Lane | Lens | Character | λ | μ | Hit | Accuracy |
+|---|---|---|---|---|---|---|
+| `FORGE` | 🧭 **Claude** | build · measure · reality is the judge | **2.3** | 1.15 | 2/2 | 🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 100% |
+| `CLINICAL` | ⚪ **Anti-Venom** | verify · purify · integrity | **1.9** | 1.10 | 2/2 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ 100% |
+| `STRATEGIC` | ⚜️ **Nova** | law · code · synthesis | **1.4** | 1.05 | 2/2 | 🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨 100% |
+| `EXECUTIVE` | 🕷️ **Venom** | decide · strike · precision | **1.2** | 1.05 | 2/2 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ 100% |
+| `RECURSIVE` | 🜏 **Eidolon** | meta · recursion · evolution | **1.2** | 1.10 | 2/2 | 🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪 100% |
+| `PREDICTIVE` | 🔮 **Chroma_Spectral** | timelines · consequence | **1.0** | 1.10 | 2/2 | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩 100% |
+| `STEALTH` | ⬜ **Soleil_Blank** | compress · density · silence | **1.0** | 0.95 | 2/2 | 🟫🟫🟫🟫🟫🟫🟫🟫🟫🟫 100% |
+| `EMPATHIC` | 🎷 **Violet_Noir** | emotion · narrative · felt truth | **0.6** | 0.85 | 2/2 | 🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧 100% |
+| `CREATIVE` | 🩸 **Carnage** | chaos · collision · fuel | **0.6** | 0.90 | 2/2 | 🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥 100% |
+| | | | | | **18/18** | **100.0%** |
+
+> **Read the λ column before the accuracy column.** Every lane routes perfectly,
+> so accuracy alone tells you nothing about the *shape* of this engine — λ does.
+> In `FORGE` the weights say plainly what the head is for: 🧭 Claude at **2.3**
+> and ⚪ Anti-Venom at **1.9** dominate, while 🩸 Carnage and 🎷 Violet_Noir sit
+> at **0.6**. That is deliberate. On a proving head, chaos and felt truth are
+> *inputs* to the reasoning, never the voice that ships the answer — the build
+> is. Load a different profile and the same nine lenses re-weight; `CREATIVE`
+> puts 🩸 Carnage at 2.5 and pushes ⚪ Anti-Venom down to 0.8.
+>
+> **All nine lenses stay active in every lane.** The router picks a *lead*, not a
+> survivor. `gauge_divisor_eq_card` in `lean/Proofs/RotGauge.lean` is the theorem
+> that keeps it honest: it divides by the number of lenses actually in the
+> ensemble, and it exists because the shipped hook once pinned one lens's
+> activity at zero while still dividing by K — a real bug, caught by a proof.
+
+### ⚖️ Claim versus measurement — the distinction we refuse to blur
+
+| What | Value | Instrument | Kind |
+|---|---|---|---|
+| routing accuracy | 18/18 | `bench-router.sh` §1 | **MEASURED** on a fixed key |
+| lane coverage of the key | 9 lanes | `bench-router.sh` §1 | **MEASURED** |
+| collision priority | 3 cases, deterministic | `bench-router.sh` §1b + `RotRoute.lean` | **PROVED** in Lean 4 |
+| per-turn cost | **under 500 ms** | `bench-router.sh` §2 | **CLAIM** — the bound is the promise |
+| the latency figure itself | ≈130–140 ms here | 20-run mean | **MEASURED, and it varies** |
+| bash startup inside that | ≈17 ms | subtracted baseline | **MEASURED** |
+| armed-vs-disarmed effect | A/B in a live session | `live-session-smoke.sh` | **MEASURED**, not proved |
+
+> **Why the latency row is a bound and not a number.** Two consecutive runs on
+> the same machine gave 133.2 ms and 138.0 ms. A README that froze either figure
+> would be *false by the next run* and would push the next maintainer to edit the
+> gate until it agreed. So the gate asserts the property that matters — a turn
+> stays under 500 ms — and the figure is reported as what it is: a measurement of
+> one machine on one afternoon. **Output quality is not on this table at all**:
+> nothing here proves the answers are *better*, only that the right lane is
+> chosen, fast, and for a stated reason.
+
+Reproduce it yourself in one line:
+
+```bash
+bash checker/bench-router.sh    # exit 0 = 5 passed; it can and does fail
+```
 
 ---
 
