@@ -45,7 +45,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # --- validate the source of truth BEFORE deriving anything from it -----
       # An invalid tag set must fail loudly here rather than be pushed to the

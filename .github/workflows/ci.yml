@@ -55,7 +55,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: preflight -- what is available here
         shell: bash
@@ -221,7 +221,7 @@ jobs:
     name: lean -- build, axioms, kernel re-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: install elan (toolchain pinned by lean/lean-toolchain)
         run: |
