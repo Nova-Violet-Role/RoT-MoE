@@ -292,7 +292,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          bash checker/deferred-closure.sh; rc=$?
+          # GitHub runs this block as `bash -e {0}`, so a non-zero exit ABORTS
+          # THE STEP BEFORE `rc=$?` is ever read. Measured in run 30695224024:
+          # the gate exited 3 (SKIP), the step died on the spot, and the SKIP
+          # branch below -- written precisely to tolerate it -- never ran. An
+          # `if` makes the exit status part of a compound command, which `-e`
+          # does not act on.
+          if bash checker/deferred-closure.sh; then rc=0; else rc=$?; fi
           # 3 is SKIP (no token, no completed run yet, or logs expired) and is
           # NOT a pass -- it is reported and tolerated; 1 is a real failure.
           if [ "$rc" -eq 3 ]; then echo "::notice::deferred closure SKIPPED -- not a pass"; exit 0; fi
