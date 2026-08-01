@@ -199,11 +199,77 @@ if [ -f README.md ]; then
   [ "$permod" -gt 0 ] && [ "$permod_wrong" -eq 0 ] && ok "all $permod per-module count(s) match source"
 fi
 
+# --- MUTANT-COUNT CLAIMS ----------------------------------------------------
+# "62 applied, 62 killed, 0 survived, 0 discarded" is the single strongest
+# sentence in the README, and until now NOTHING re-derived it. Re-running the
+# suites is the honest measurement and it costs upward of fifteen minutes, so
+# CI owns that; what belongs here is the half that is free and that actually
+# went stale: HOW MANY MUTANTS ARE DECLARED. Every mutant is one `run_mut` or
+# `run_mut_nth` call, countable without building anything, and the claim moved
+# by hand from 55 to 62 in the same edit that added a suite -- by hand is
+# exactly the process this repository does not trust.
+#
+# What this does NOT establish: that they all still KILL. A count is coverage,
+# not a result, and saying so here is cheaper than a reader assuming otherwise.
+declared_mut=0
+for s in lean/mutate/mutate_rot*.sh; do
+  [ -f "$s" ] || continue
+  # An INVOCATION carries a mutant ID (`run_mut V01 ...`); the two function
+  # DEFINITIONS at the top of each suite do not. The first version matched
+  # `^run_mut ` and counted the definitions too -- 72 declared against 62
+  # measured, which is a checker that would have made a correct README look
+  # wrong and invited someone to "fix" a true number. Requiring the ID is what
+  # makes this a count of mutants rather than a count of lines.
+  n=$(grep -cE '^run_mut(_nth)? [A-Z][A-Za-z0-9]*[0-9] ' "$s" 2>/dev/null); n=${n:-0}
+  declared_mut=$((declared_mut + n))
+done
+if [ "$declared_mut" -gt 0 ]; then
+  mut_claims=0; mut_wrong=0
+  while IFS= read -r -d '' f; do
+    [ -f "$f" ] || continue
+    claim_exempt "$f" && continue
+    grep -Iq . "$f" 2>/dev/null || continue
+    while read -r n k; do
+      mut_claims=$((mut_claims+1))
+      if [ "$n" != "$declared_mut" ] || [ "$k" != "$declared_mut" ]; then
+        bad "$f claims $n applied / $k killed; the suites declare $declared_mut mutants"
+        mut_wrong=$((mut_wrong+1))
+      fi
+    done < <(tr '\n' ' ' < "$f" | tr -s ' ' | sed 's/\*\*//g' \
+             | grep -oE '[0-9]+ applied, [0-9]+ killed' \
+             | awk '{print $1, $3}')
+  done < <(git ls-files -z)
+  if [ "$mut_claims" -eq 0 ]; then
+    bad "no mutant-count claim found in the prose -- this check is vacuous"
+  elif [ "$mut_wrong" -eq 0 ]; then
+    ok "all $mut_claims mutant-count claim(s) match the $declared_mut mutants the suites declare"
+  fi
+fi
+
 # --- 3. the control ---------------------------------------------------------
 # An instrument that has never been seen to fail proves nothing.
 echo
 echo "-- negative control --"
 CTL="$(mktemp -d "${TMPDIR:-/tmp}/repocomp.XXXXXX")"
+
+# The mutant-count check gets its own control: a false claim must be extracted
+# and rejected, and a TRUE one must be accepted -- a check that rejects
+# everything would pass the first half and be useless.
+printf 'the suites report **99999 applied, 99999 killed**, 0 survived.\n' > "$CTL/mut.md"
+mc=$(tr '\n' ' ' < "$CTL/mut.md" | sed 's/\*\*//g' | grep -oE '[0-9]+ applied, [0-9]+ killed' | awk '{print $1, $3}')
+if [ "$mc" = "99999 99999" ] && [ "99999" != "$declared_mut" ]; then
+  ok "CONTROL: a false mutant count (99999 applied/killed) is extracted and would be rejected"
+else
+  bad "CONTROL DEAD: the mutant-count extractor did not see a planted false claim (got '$mc')"
+fi
+printf 'the suites report %d applied, %d killed.\n' "$declared_mut" "$declared_mut" > "$CTL/mutok.md"
+mc2=$(tr '\n' ' ' < "$CTL/mutok.md" | grep -oE '[0-9]+ applied, [0-9]+ killed' | awk '{print $1, $3}')
+if [ "$mc2" = "$declared_mut $declared_mut" ]; then
+  ok "CONTROL: a TRUE mutant count is accepted -- the check does not simply reject everything"
+else
+  bad "CONTROL: a true mutant count was not extracted (got '$mc2')"
+fi
+
 printf 'This project has 99999 machine-checked theorems.\n' > "$CTL/fake.md"
 # Run the SAME function the sweep runs, not a re-typed grep. A control that
 # exercises a copy of the logic tests the copy.
