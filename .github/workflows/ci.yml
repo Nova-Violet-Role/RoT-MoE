@@ -134,6 +134,21 @@ jobs:
         shell: bash
         run: bash checker/tags-consistency.sh
 
+      # verify.yml commits STATUS.md "only when the verdict changed". Until
+      # 2026-08-01 it wrote `date -u` and ${GITHUB_SHA} INTO the file it then
+      # compared, so the silent branch was unreachable and the weekly job would
+      # have committed forever -- the green-square behaviour its own comment
+      # forbids. These two hold the fixed design: the first structurally, the
+      # second by RUNNING verify.yml's own `run:` blocks for three weeks
+      # against a scratch bare remote and counting the commits that land.
+      - name: verdict stability -- the scheduled commit rule can say nothing
+        shell: bash
+        run: bash checker/verdict-stability.sh
+
+      - name: scheduled verdict, three weeks with a real (local) remote
+        shell: bash
+        run: bash checker/verdict-schedule-sim.sh
+
       # The Float mirror in RotGauge.lean carries "-- hook reported 0.49"
       # comments. Those were hand-written claims of agreement that nothing
       # re-measured. This runs BOTH arms and diffs them; it SKIPS (exit 3),
@@ -222,7 +237,7 @@ jobs:
       - name: lake build (exit code read DIRECTLY, never through a pipe)
         working-directory: lean
         run: |
-          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVacuity
+          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotVacuity
           echo "lake build exit=$?"
 
       # A green build means it ELABORATED. It does not mean the theorems rest on
@@ -287,7 +302,7 @@ jobs:
         working-directory: lean
         run: |
           set +e
-          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVacuity; do
+          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotVacuity; do
             lake env leanchecker "$m"; rc=$?
             echo "$m -> $rc"
             [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }
@@ -308,4 +323,5 @@ jobs:
           bash mutate/mutate_rotpath.sh
           bash mutate/mutate_rotremind.sh
           bash mutate/mutate_rotacquire.sh
+          bash mutate/mutate_rotverdict.sh
           bash mutate/mutate_rotvacuity.sh

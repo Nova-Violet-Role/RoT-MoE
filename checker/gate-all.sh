@@ -48,6 +48,7 @@ cross-diff (both reminder arms)|bash checker/cross-diff-remind.sh
 install-document lint|bash checker/claude-md-lint.sh
 licence bridge (NOTICE vs disk)|bash checker/license-bridge.sh
 tag consistency (local half of R18)|bash checker/tags-consistency.sh
+verdict stability (the scheduled commit rule)|bash checker/verdict-stability.sh
 gauge cross (Lean mirror vs hook)|bash checker/gauge-cross.sh
 mutate the checker|bash checker/mutate-checker.sh
 installer round trip|bash checker/install-roundtrip.sh
@@ -56,6 +57,7 @@ installer round trip|bash checker/install-roundtrip.sh
 if [ "$FULL" -eq 1 ]; then
   GATES="$GATES
 ci dry run (the CI step list, clean clone)|bash checker/ci-dryrun.sh
+scheduled verdict, three weeks with a remote|bash checker/verdict-schedule-sim.sh
 plugin + fresh-user install|bash checker/plugin-install.sh
 live-session smoke|bash checker/live-session-smoke.sh
 "

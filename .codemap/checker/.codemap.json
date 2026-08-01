@@ -93,12 +93,12 @@
       "symbols": []
     },
     "gate-all.sh": {
-      "hash": "77dcc5347c21",
-      "indexed_at": "2026-07-31T19:17:28.518827+00:00",
+      "hash": "51f271926263",
+      "indexed_at": "2026-08-01T01:04:17.101431+00:00",
       "language": "shell",
-      "lines": 130,
-      "mtime_ns": 1785522089614796100,
-      "size": 5344,
+      "lines": 132,
+      "mtime_ns": 1785545189115211800,
+      "size": 5506,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -283,6 +283,25 @@
         }
       ]
     },
+    "status-verdict.sh": {
+      "hash": "633b42aa5489",
+      "indexed_at": "2026-08-01T01:04:17.270367+00:00",
+      "language": "shell",
+      "lines": 115,
+      "mtime_ns": 1785544595722115100,
+      "size": 4794,
+      "symbols": [
+        {
+          "docstring": "`sorry` and `native_decide` are COUNTED, not asserted. A line saying \"none\" that nothing recounts is the kind of claim this repository exists to refus",
+          "lines": [
+            78,
+            101
+          ],
+          "name": "count_token",
+          "type": "function"
+        }
+      ]
+    },
     "tags-consistency.sh": {
       "hash": "1fc709ef77b9",
       "indexed_at": "2026-07-31T16:59:14.166277+00:00",
@@ -302,13 +321,93 @@
         }
       ]
     },
-    "workflow-lint.sh": {
-      "hash": "23787d19767d",
-      "indexed_at": "2026-07-31T19:17:28.673532+00:00",
+    "verdict-schedule-sim.sh": {
+      "hash": "22fd22bf55da",
+      "indexed_at": "2026-08-01T01:04:17.437396+00:00",
       "language": "shell",
-      "lines": 415,
-      "mtime_ns": 1785522042843996500,
-      "size": 20352,
+      "lines": 252,
+      "mtime_ns": 1785545707334481000,
+      "size": 11682,
+      "symbols": [
+        {
+          "lines": [
+            56,
+            59
+          ],
+          "name": "flush",
+          "type": "function"
+        },
+        {
+          "docstring": "--------------------------------------------------------------------------- 3. RUN the extracted steps, honouring `if: steps.decide.outputs.changed`.",
+          "lines": [
+            121,
+            253
+          ],
+          "name": "run_week",
+          "type": "function"
+        },
+        {
+          "lines": [
+            220,
+            238
+          ],
+          "name": "old_week",
+          "type": "function"
+        }
+      ]
+    },
+    "verdict-stability.sh": {
+      "hash": "4294d865877b",
+      "indexed_at": "2026-08-01T01:04:17.605106+00:00",
+      "language": "shell",
+      "lines": 209,
+      "mtime_ns": 1785544767677817700,
+      "size": 10886,
+      "symbols": [
+        {
+          "docstring": "--------------------------------------------------------------------------- On a scratch copy. The real tree is never mutated by this checker: a harne",
+          "lines": [
+            80,
+            89
+          ],
+          "name": "mk_scratch",
+          "type": "function"
+        },
+        {
+          "lines": [
+            91,
+            103
+          ],
+          "name": "probe",
+          "type": "function"
+        },
+        {
+          "docstring": "---------------------------------------------------------------------------",
+          "lines": [
+            144,
+            178
+          ],
+          "name": "wf_verdict",
+          "type": "function"
+        },
+        {
+          "docstring": "--- CONTROLS: the assertion must REJECT each way of getting this wrong ------",
+          "lines": [
+            187,
+            199
+          ],
+          "name": "ctl",
+          "type": "function"
+        }
+      ]
+    },
+    "workflow-lint.sh": {
+      "hash": "cb19ba3d6948",
+      "indexed_at": "2026-08-01T01:04:17.773052+00:00",
+      "language": "shell",
+      "lines": 438,
+      "mtime_ns": 1785545670486314500,
+      "size": 21646,
       "symbols": [
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
@@ -321,8 +420,8 @@
         },
         {
           "lines": [
-            361,
-            376
+            384,
+            399
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -330,6 +429,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T19:17:28.673590+00:00",
+  "generated_at": "2026-08-01T01:04:17.773114+00:00",
   "version": "1.0"
 }

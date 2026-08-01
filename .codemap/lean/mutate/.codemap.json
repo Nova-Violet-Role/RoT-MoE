@@ -203,8 +203,34 @@
           "type": "function"
         }
       ]
+    },
+    "mutate_rotverdict.sh": {
+      "hash": "6e4937b59229",
+      "indexed_at": "2026-08-01T01:04:17.945152+00:00",
+      "language": "shell",
+      "lines": 236,
+      "mtime_ns": 1785545140076495300,
+      "size": 11891,
+      "symbols": [
+        {
+          "lines": [
+            112,
+            140
+          ],
+          "name": "run_mut",
+          "type": "function"
+        },
+        {
+          "lines": [
+            142,
+            191
+          ],
+          "name": "run_mut_nth",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-07-31T19:33:48.633898+00:00",
+  "generated_at": "2026-08-01T01:04:17.945215+00:00",
   "version": "1.0"
 }

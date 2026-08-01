@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **89
+lens activities off disk, computes an `R/s+` gauge from them, and **100
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -182,7 +182,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **55 applied, 55 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **62 applied, 62 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -256,6 +256,21 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   made a real workspace look never-built, and
   `old_guard_false_skips_after_target_deleted` exhibits exactly that workspace
   rather than describing it.
+* **`lean/Proofs/RotVerdict.lean`** (11 theorems) — **the weekly status report
+  must be able to say nothing.** Our scheduled workflow publishes `STATUS.md`
+  and commits it *only when the verdict changed*, so a quiet week is visible as
+  a quiet week rather than hidden by a timestamp bump. The rule was written in
+  the comments and defeated by the payload: the file being compared carried the
+  run's own clock and commit id, so "nothing changed" was unreachable and the
+  bot would have committed every week forever. `silent_week_is_silent` is
+  quantified over **every** clock and **every** commit id, which is exactly what
+  the old design made false, and `decision_ignores_clock_and_sha` states the
+  invariant over the variables that move instead of the values that hold today.
+  `quiet_forever` and `published_exactly_once` reach where measurement cannot:
+  a checker runs three weeks against a scratch remote, these cover all *k*. The
+  old design is reconstructed alongside so `designs_disagree` and
+  `old_commits_every_week` can prove the fix was not cosmetic — fifty-two empty
+  commits a year, executed as a `#guard`, not asserted.
 * **`lean/Proofs/RotVacuity.lean`** (0 theorems — deliberately; the content is `example`s)
   — the audit that catches what every other gate certifies. A theorem with
   contradictory hypotheses is *true*, builds green, has clean axioms and passes

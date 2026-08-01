@@ -187,6 +187,10 @@ if [ -f checker/gate-all.sh ]; then
   declare -A GATE_EXCEPT
   GATE_EXCEPT[gate-all.sh]="it is the aggregator; it cannot list itself as a gate"
   GATE_EXCEPT[preflight.sh]="bootstrap probe for a fresh clone -- it runs BEFORE the gates exist, and gate-all would re-run its work"
+  # A GENERATOR, not a gate: it prints the verdict block and has no pass/fail of
+  # its own. It is exempt only because two gates EXECUTE it, and that claim is
+  # verified immediately below rather than believed.
+  GATE_EXCEPT[status-verdict.sh]="generator, not a gate -- it is EXERCISED by verdict-stability.sh and verdict-schedule-sim.sh, both of which are gates"
 
   gate_listed="$(grep -oE 'checker/[a-z-]+\.sh' checker/gate-all.sh | sed 's|checker/||' | sort -u)"
   uncovered=0
@@ -202,6 +206,25 @@ if [ -f checker/gate-all.sh ]; then
     fi
   done
   [ "$uncovered" -eq 0 ] && ok "every checker is either a gate or exempt with a stated reason"
+
+  # The exemption above RESTS ON A CLAIM -- "two gates execute it". An exemption
+  # justified by a sentence nobody rechecks is how a coverage rule rots: the
+  # gates could stop calling it tomorrow and the reason would still read well.
+  # So check the claim, and require the exercising scripts to be gates
+  # themselves, since being run by a non-gate would be no coverage at all.
+  exercisers=0
+  for g in checker/verdict-stability.sh checker/verdict-schedule-sim.sh; do
+    gb="$(basename "$g")"
+    if [ -f "$g" ] && grep -q 'status-verdict\.sh' "$g" \
+       && printf '%s\n' "$gate_listed" | grep -qx "$gb"; then
+      exercisers=$((exercisers+1))
+    fi
+  done
+  if [ "$exercisers" -ge 2 ]; then
+    ok "the status-verdict.sh exemption is EARNED: $exercisers gates execute it"
+  else
+    bad "status-verdict.sh is exempt on the claim that gates exercise it, but only $exercisers do -- the exemption is now a hole"
+  fi
 
   # CONTROL: a planted checker that nobody wired in must be seen. Written to the
   # real directory and removed immediately, because the check reads the
