@@ -198,21 +198,21 @@
       "symbols": []
     },
     "deferred-closure.sh": {
-      "hash": "54b244e2b2ea",
-      "indexed_at": "2026-08-02T12:45:28.417028+00:00",
+      "hash": "144332f8cc42",
+      "indexed_at": "2026-08-02T19:55:39.611018+00:00",
       "language": "shell",
-      "lines": 328,
-      "mtime_ns": 1785671829754483300,
-      "size": 17971,
+      "lines": 369,
+      "mtime_ns": 1785699185253211200,
+      "size": 20535,
       "symbols": []
     },
     "dorks.sh": {
-      "hash": "70d713094170",
-      "indexed_at": "2026-08-02T13:45:21.971282+00:00",
+      "hash": "4e1ec56c281a",
+      "indexed_at": "2026-08-02T19:55:39.791968+00:00",
       "language": "shell",
-      "lines": 215,
-      "mtime_ns": 1785676518081836500,
-      "size": 9829,
+      "lines": 240,
+      "mtime_ns": 1785699300242211900,
+      "size": 11411,
       "symbols": [
         {
           "docstring": "--- the source of truth, exactly as tag-manager.yml reads it ---------------- Same awk section extractor, same comment/blank stripping. If these two e",
@@ -756,12 +756,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "b50e44446f95",
-      "indexed_at": "2026-08-02T10:09:32.194656+00:00",
+      "hash": "d79931f9fac2",
+      "indexed_at": "2026-08-02T19:55:39.975068+00:00",
       "language": "shell",
-      "lines": 768,
-      "mtime_ns": 1785664772125709600,
-      "size": 38303,
+      "lines": 840,
+      "mtime_ns": 1785699955075255100,
+      "size": 42508,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -844,6 +844,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T13:45:22.135884+00:00",
+  "generated_at": "2026-08-02T19:55:39.975162+00:00",
   "version": "1.0"
 }

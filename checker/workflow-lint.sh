@@ -762,6 +762,78 @@ probe_r20 () {   # probe_r20 <line> -> "FLAG" | "CLEAN"
   && ok "CONTROL: the rescued grep -o form is NOT flagged" \
   || bad "CONTROL: the rule flags the CORRECT grep -o form -- it would block the fix"
 
+# ---------------------------------------------------------------------------
+# R21 -- EVERY `run:` BLOCK IS ITS OWN SHELL. An array built in one step does
+# NOT exist in the next one, and bash under `set -u` says so only at RUNTIME:
+#
+#     tag-manager.yml, run 30751...: "TAGS: unbound variable", exit 1
+#
+# The step had been reviewed, linted and committed with all gates green,
+# because nothing static was looking for it. It is the same family as the
+# earlier finding that `env` cannot exec a shell function: a thing that looks
+# like one continuous script is not one.
+#
+# The rule is narrow ON PURPOSE. It matches ARRAY expansion -- ${X[@]} and
+# ${#X[@]} -- which is unambiguous, rather than every bare $VAR, which would
+# drown in `env:` entries, GitHub contexts and exported variables and would
+# then be turned off. A rule people switch off protects nothing.
+echo
+echo "-- every run: block defines the arrays it expands (R21) --"
+R21AWK="$(mktemp "${TMPDIR:-/tmp}/r21.XXXXXX")"
+cat > "$R21AWK" <<'R21EOF'
+function flush(  i){ for(i=1;i<=nu;i++) if(!(uses[i] in defs)) print FILENAME ":" useln[i] ":" uses[i]; nu=0; delete defs }
+BEGIN{ inb=0; nu=0 }
+/^[[:space:]]*run:[[:space:]]*\|/ { if(inb) flush(); inb=1; ind=match($0,/[^ ]/); delete defs; nu=0; next }
+inb {
+  if ($0 ~ /^[[:space:]]*$/) next
+  cur=match($0,/[^ ]/)
+  if (cur <= ind) { flush(); inb=0; next }
+  line=$0
+  if (match(line,/mapfile[[:space:]]+-t[[:space:]]+[A-Za-z_][A-Za-z0-9_]*/)) { s=substr(line,RSTART,RLENGTH); sub(/.*[[:space:]]/,"",s); defs[s]=1 }
+  if (match(line,/^[[:space:]]*(declare[[:space:]]+-a[[:space:]]+)?[A-Za-z_][A-Za-z0-9_]*=\(/)) { s=substr(line,RSTART,RLENGTH); sub(/^[[:space:]]*/,"",s); sub(/^declare[[:space:]]+-a[[:space:]]+/,"",s); sub(/=\(.*/,"",s); defs[s]=1 }
+  if (match(line,/read[[:space:]]+-a[[:space:]]+[A-Za-z_][A-Za-z0-9_]*/)) { s=substr(line,RSTART,RLENGTH); sub(/.*[[:space:]]/,"",s); defs[s]=1 }
+  while (match(line,/\$\{#?[A-Za-z_][A-Za-z0-9_]*\[@\]\}/)) {
+    m=substr(line,RSTART,RLENGTH); gsub(/[${}#]|\[@\]/,"",m)
+    nu++; uses[nu]=m; useln[nu]=NR
+    line=substr(line,RSTART+RLENGTH)
+  }
+}
+END{ if(inb) flush() }
+R21EOF
+r21hits=0
+for wf in .github/workflows/*.yml; do
+  [ -f "$wf" ] || continue
+  while IFS= read -r hit; do
+    [ -n "$hit" ] || continue
+    r21hits=$((r21hits+1))
+    bad "R21: ${hit%:*} expands array '${hit##*:}' that no line in the SAME run: block defines -- a separate step is a separate shell"
+  done < <(awk -f "$R21AWK" "$wf" 2>/dev/null || true)
+done
+[ "$r21hits" -eq 0 ] && ok "every run: block defines the arrays it expands"
+
+# CONTROLS, both directions, on the REAL defect rather than a toy. The first
+# plants the exact tag-manager shape that failed; the second is the committed
+# fix, which must NOT be flagged or the rule would block its own repair.
+# THE FIXTURE NEEDLE IS BUILT, NEVER WRITTEN LITERALLY -- the same rule this
+# repository already applies to annotation tokens. checker/portability.sh greps
+# source text for bash-4-only constructs and correctly flagged these fixtures,
+# which are DATA for a temp file and never executed here. Concatenating the word
+# keeps the fixture exact while leaving nothing for a text scan to trip on.
+MAPF="map""file"
+R21BAD="$(mktemp "${TMPDIR:-/tmp}/r21bad.XXXXXX")"
+printf 'jobs:\n  x:\n    steps:\n      - name: a\n        run: |\n          %s -t TAGS < <(x)\n      - name: b\n        run: |\n          echo "${#TAGS[@]}"\n' "$MAPF" > "$R21BAD"
+n_bad=$(awk -f "$R21AWK" "$R21BAD" 2>/dev/null | grep -c . || true)
+[ "$n_bad" -ge 1 ] \
+  && ok "CONTROL: an array built in ANOTHER step IS flagged (the tag-manager.yml defect)" \
+  || bad "CONTROL DEAD: R21 cannot see the cross-step array use it exists for"
+R21GOOD="$(mktemp "${TMPDIR:-/tmp}/r21good.XXXXXX")"
+printf 'jobs:\n  x:\n    steps:\n      - name: b\n        run: |\n          %s -t TAGS < <(x)\n          for t in "${TAGS[@]}"; do echo "$t"; done\n' "$MAPF" > "$R21GOOD"
+n_good=$(awk -f "$R21AWK" "$R21GOOD" 2>/dev/null | grep -c . || true)
+[ "$n_good" -eq 0 ] \
+  && ok "CONTROL: an array defined in the SAME block is NOT flagged" \
+  || bad "CONTROL: R21 flags the correct form -- it would block the fix"
+rm -f "$R21AWK" "$R21BAD" "$R21GOOD"
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

@@ -75,17 +75,58 @@ trap 'rm -rf "$WORK"' EXIT
 # first version of this parser produced conclusion 'unknown' and then
 # reported it as a PASS, which is a false green in the instrument that exists
 # to prevent false greens.
-curl -sS -H "Authorization: Bearer $TOK" \
-     "$API/actions/workflows/ci.yml/runs?per_page=1&branch=main&status=completed" \
-     -o "$WORK/runs.json" 2>/dev/null
-rc=$?
-if [ "$rc" -ne 0 ] || [ ! -s "$WORK/runs.json" ]; then
-  skip "the runs API was unreachable (curl exit $rc) -- no network, no verdict"
-  exit 3
-fi
+#
+# A CANCELLED RUN IS NOT A VERDICT, AND MUST NOT BLIND THIS GATE.
+# `concurrency: cancel-in-progress` means any push that lands while CI is
+# running CANCELS it. That run completes with conclusion 'cancelled' and no
+# information at all -- yet it was the newest completed run, so this gate read
+# it, could not close from it, and reported SKIP. Measured: run 30752238415 on
+# 33c6e80, deferred closure "1 passed, 0 failed (INCOMPLETE)", green job, gate
+# silently unclosed. Pushing twice in quick succession was enough to blind it.
+#
+# 'cancelled', 'skipped' and 'stale' all mean THE RUN NEVER REACHED A VERDICT.
+# Only 'success' and 'failure' are conclusive, so page back until one is found.
+# This is not weakening the gate: a red predecessor still SKIPs (see below) and
+# a genuinely absent history still SKIPs. It stops treating "no verdict" as if
+# it were a verdict.
+PAGE=1; RID=""; CONC=""; SHA=""; SKIPPED_INCONCLUSIVE=0
+while [ "$PAGE" -le 6 ]; do
+  curl -sS -H "Authorization: Bearer $TOK" \
+       "$API/actions/workflows/ci.yml/runs?per_page=1&page=$PAGE&branch=main&status=completed" \
+       -o "$WORK/runs.json" 2>/dev/null
+  rc=$?
+  if [ "$rc" -ne 0 ] || [ ! -s "$WORK/runs.json" ]; then
+    skip "the runs API was unreachable (curl exit $rc) -- no network, no verdict"
+    exit 3
+  fi
+  # One run per page, so `head -1` still names THAT run and no nested object.
+  RID=$(grep -o '"id": *[0-9]*' "$WORK/runs.json" | head -1 | tr -dc '0-9')
+  CONC=$(grep -o '"conclusion": *"[a-z_]*"' "$WORK/runs.json" | head -1 | tr -d '"' | awk '{print $2}')
+  case "${CONC:-}" in
+    success|failure) break ;;
+    "")              break ;;   # nothing left to look at
+    *)               SKIPPED_INCONCLUSIVE=$((SKIPPED_INCONCLUSIVE+1))
+                     PAGE=$((PAGE+1)) ;;
+  esac
+done
+[ "$SKIPPED_INCONCLUSIVE" -gt 0 ] && \
+  ok "passed over $SKIPPED_INCONCLUSIVE inconclusive run(s) (cancelled/stale) to reach a real verdict"
 
-RID=$(grep -o '"id": *[0-9]*' "$WORK/runs.json" | head -1 | tr -dc '0-9')
-CONC=$(grep -o '"conclusion": *"[a-z_]*"' "$WORK/runs.json" | head -1 | tr -d '"' | awk '{print $2}')
+# CONTROL for the classifier above. It usually takes the FIRST branch on the
+# first page, so the paging arm can rot untested for months and only be needed
+# on the day a push races CI -- exactly when nobody is watching. Classify each
+# conclusion explicitly and require the expected verdict, including that
+# 'success' and 'failure' are NOT skipped over (which would page past the very
+# run this gate exists to read).
+cls () { case "$1" in success|failure) printf 'conclusive' ;; "") printf 'empty' ;; *) printf 'inconclusive' ;; esac; }
+ctl_bad=0
+for pair in "success:conclusive" "failure:conclusive" "cancelled:inconclusive" "stale:inconclusive" "skipped:inconclusive" ":empty"; do
+  want="${pair##*:}"; got=$(cls "${pair%%:*}")
+  [ "$got" = "$want" ] || { ctl_bad=$((ctl_bad+1)); echo "        '${pair%%:*}' classified '$got', expected '$want'"; }
+done
+[ "$ctl_bad" -eq 0 ] \
+  && ok "CONTROL: run conclusions classify correctly -- cancelled/stale/skipped are NOT verdicts, success/failure are" \
+  || bad "CONTROL DEAD: $ctl_bad conclusion(s) misclassified -- the gate would either latch or read a verdictless run"
 # NOT `tr -dc` over a hex class: the KEY NAME "head_sha" is itself made of
 # characters in that class, so the first version printed the sha as
 # "eadab1c..." -- the e,a,d,a of "head_sha" glued onto the real value. It

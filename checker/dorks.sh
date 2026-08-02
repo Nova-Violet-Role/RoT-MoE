@@ -211,5 +211,30 @@ else
   bad "CONTROL SKIPPED: could not construct a non-coprime stride for n=$np -- SKIP IS NOT A PASS"
 fi
 
+# (7) ARCHIVAL COPIES MUST NOT ROTATE. This binds the spec to the workflow that
+#     implements it. CITATION.cff is ingested by Zenodo and OpenAIRE and is what
+#     people cite; rotating its keyword order churns it daily for zero discovery
+#     benefit, because nothing renders that list to a reader. Measured: feeding
+#     the rotated array there turned the drift gate red on 3951c2a.
+#
+#     The README block is the opposite case and must NOT be pinned to file
+#     order, or the rotation this whole file exists for would be dead. Both
+#     directions are asserted, so neither can be flipped without a failure.
+WF=".github/workflows/tag-manager.yml"
+if [ ! -f "$WF" ]; then
+  bad "$WF is missing -- the rotation has no consumer and this checker guards nothing"
+else
+  cit_line=$(grep -n 'for t in .*; do echo "  - ' "$WF" | head -1)
+  case "$cit_line" in
+    *'TAGS_FILE[@]'*) ok "CONTROL: CITATION.cff keywords are emitted from the FILE order, not the rotation" ;;
+    "")               bad "could not find the CITATION.cff keyword loop in $WF -- this check went vacuous" ;;
+    *)                bad "the CITATION.cff keyword loop does not use TAGS_FILE -- archival metadata would rotate daily: $(printf '%s' "$cit_line" | cut -c1-90)" ;;
+  esac
+  rdm=$(grep -c 'printf .`#%s` .*"\${TAGS\[@\]}"\|for t in "\${TAGS\[@\]}"' "$WF" || true)
+  [ "$rdm" -ge 1 ] \
+    && ok "the README/release block still renders from the ROTATED array -- the rotation is reaching a real surface" \
+    || bad "no rendered surface uses the rotated array -- the rotation would be dead code"
+fi
+
 printf '\n== dorks: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] && { echo "  dorks: PASS"; exit 0; } || { echo "  dorks: FAIL"; exit 1; }
