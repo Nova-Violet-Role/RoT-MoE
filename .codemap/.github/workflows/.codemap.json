@@ -1710,12 +1710,12 @@
       ]
     },
     "tag-manager.yml": {
-      "hash": "75ed78ca5d67",
-      "indexed_at": "2026-08-02T14:30:02.292157+00:00",
+      "hash": "95aaec65251c",
+      "indexed_at": "2026-08-02T14:40:56.145321+00:00",
       "language": "yaml",
-      "lines": 457,
-      "mtime_ns": 1785680402497154900,
-      "size": 24687,
+      "lines": 474,
+      "mtime_ns": 1785681094032661300,
+      "size": 25848,
       "symbols": [
         {
           "docstring": "Meta Hashtag Manager",
@@ -2004,7 +2004,7 @@
                     {
                       "lines": [
                         341,
-                        412
+                        429
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2012,16 +2012,16 @@
                     {
                       "docstring": "Fail if the derived copies have drifted (never commit them)",
                       "lines": [
-                        413,
-                        413
+                        430,
+                        430
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        414,
-                        458
+                        431,
+                        475
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2029,7 +2029,7 @@
                   ],
                   "lines": [
                     61,
-                    458
+                    475
                   ],
                   "name": "steps",
                   "type": "list"
@@ -2037,7 +2037,7 @@
               ],
               "lines": [
                 59,
-                458
+                475
               ],
               "name": "sync",
               "type": "section"
@@ -2045,7 +2045,7 @@
           ],
           "lines": [
             58,
-            458
+            475
           ],
           "name": "jobs",
           "type": "section"
@@ -2345,6 +2345,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T14:30:02.292261+00:00",
+  "generated_at": "2026-08-02T14:40:56.145439+00:00",
   "version": "1.0"
 }

@@ -340,6 +340,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -uo pipefail
+          # EACH `run:` BLOCK IS ITS OWN SHELL. The TAGS array built by the derive
+          # step does not exist here -- measured, `TAGS: unbound variable`, run
+          # 30751... on 33c6e80. It is re-derived rather than passed along, and
+          # this is precisely where the seeded rotation earns its keep: the same
+          # UTC day yields the same order in a different process, so the release
+          # notes and the README agree by construction. `shuf` would have handed
+          # this step a DIFFERENT order and nothing would have noticed.
+          mapfile -t TAGS < <(bash checker/dorks.sh --order)
+          if [ "${#TAGS[@]}" -eq 0 ]; then
+            echo "::error::no tags derived -- refusing to publish an empty block"; exit 1
+          fi
           # Render today's block once, from the SAME rotated array the README uses.
           {
             echo "<!-- TAGS:BEGIN generated from .github/tags.txt [SIGNATURE] -- do not hand-edit -->"
@@ -356,6 +367,12 @@ jobs:
           # validated source as a SET; a rotation may reorder it and nothing else.
           grep -oE '#[A-Za-z0-9]+' /tmp/relblock.md | tr -d '#' \
             | sed -E 's/([a-z0-9])([A-Z])/\1-\2/g' | tr 'A-Z' 'a-z' | sort > /tmp/relset.txt
+          # /tmp/signature.txt is written by the validate step earlier in THIS job.
+          # Named explicitly so a missing file reads as a broken pipeline rather
+          # than as an empty set that happens to compare unequal.
+          if [ ! -s /tmp/signature.txt ]; then
+            echo "::error::/tmp/signature.txt missing or empty -- the validate step did not run"; exit 1
+          fi
           sort /tmp/signature.txt > /tmp/wantset.txt
           if ! diff -q /tmp/relset.txt /tmp/wantset.txt >/dev/null 2>&1; then
             echo "::error::the rendered release block is not the validated tag set -- refusing to publish it"
