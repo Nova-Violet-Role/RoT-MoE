@@ -20,6 +20,118 @@
         }
       ]
     },
+    "CHANGELOG.md": {
+      "hash": "a220c3de3772",
+      "indexed_at": "2026-08-02T04:29:16.589775+00:00",
+      "language": "markdown",
+      "lines": 121,
+      "mtime_ns": 1785644262816967800,
+      "size": 5824,
+      "symbols": [
+        {
+          "docstring": "`0.1.0`, `0.1.1` and `0.1.2` are **released together, on the same commit**. The version *is* the variant. Nothing in `0.1.1` supersedes `0.1.0`; it ad",
+          "lines": [
+            11,
+            26
+          ],
+          "name": "The three numbers are not a roadmap",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "- `UNSEALED.md` \u2014 the only document that distinguishes this variant. Records the measurement that corrected the original premise, the four-tactic axio",
+              "lines": [
+                29,
+                36
+              ],
+              "name": "Added",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The premise for this variant was that `native_decide` could be reached through `leantar` and `leanir` without `clang`/`lld`/`llvm-ar`. That was **disp",
+              "lines": [
+                37,
+                59
+              ],
+              "name": "Measured, not assumed",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            27,
+            59
+          ],
+          "name": "[0.1.2] \u2014 2026-08-01 \u2014 Router + Lean + Extra",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "- The full Lean 4 shelf: bounded installer against official hosts only, the proof corpus, and the discipline as runnable scripts. - `lean/Proofs/RotAb",
+              "lines": [
+                62,
+                68
+              ],
+              "name": "Added",
+              "type": "subsection"
+            },
+            {
+              "docstring": "It is not \"the same product with proofs attached\". `0.1.0` is the product; `0.1.1` is the product **plus the workshop it was built in** \u2014 reshape the",
+              "lines": [
+                69,
+                76
+              ],
+              "name": "Note on what this variant is for",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            60,
+            76
+          ],
+          "name": "[0.1.1] \u2014 2026-08-01 \u2014 Router + Lean 4",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "- The nine-lane router as a `UserPromptSubmit` hook, both arms (`sh` and PowerShell), cross-diffed byte for byte. - `ARM_ROUTER` / `DISARM_ROUTER` ins",
+              "lines": [
+                79,
+                84
+              ],
+              "name": "Added",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **The installer armed the wrong directory.** All four installer arms honoured `CLAUDE_DIR` but ignored `CLAUDE_CONFIG_DIR`, which is what Claude Cod",
+              "lines": [
+                85,
+                95
+              ],
+              "name": "Fixed",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            77,
+            95
+          ],
+          "name": "[0.1.0] \u2014 2026-08-01 \u2014 Pure Router",
+          "type": "section"
+        },
+        {
+          "docstring": "Every claim below has a named instrument. Nothing here is asserted from reading.",
+          "lines": [
+            96,
+            122
+          ],
+          "name": "Verification shipped with these releases",
+          "type": "section"
+        }
+      ]
+    },
     "CLAUDE.md": {
       "hash": "2bd4eba20f9b",
       "indexed_at": "2026-07-31T15:55:19.488664+00:00",
@@ -834,6 +946,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T20:02:15.460965+00:00",
+  "generated_at": "2026-08-02T04:29:16.589841+00:00",
   "version": "1.0"
 }
