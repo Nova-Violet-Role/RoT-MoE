@@ -325,6 +325,91 @@ jobs:
       # nothing in coverage: checker/tags-consistency.sh gates the very same
       # invariant locally and in CI, on every commit rather than three times a
       # week.
+      # THE PUBLISHED RELEASE NOTES ARE A SURFACE TOO -- AND THE ONE MOST PEOPLE
+      # LAND ON FIRST. They were static since the day they were published.
+      #
+      # WHAT THIS DELIBERATELY DOES NOT DO: rewrite the README.md *inside* the
+      # zip assets. Those archives are hash-pinned; `checker/release-package.sh`
+      # asserts their contents and their SHA256 is what makes a download
+      # verifiable. Regenerating them daily would invalidate every published
+      # checksum to change a paragraph nobody reads from inside a zip -- trading
+      # a real guarantee for cosmetic freshness. Release NOTES are mutable
+      # metadata by design; release ASSETS are evidence. Only the notes rotate.
+      - name: Refresh the tag block in every published release note
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          # Render today's block once, from the SAME rotated array the README uses.
+          {
+            echo "<!-- TAGS:BEGIN generated from .github/tags.txt [SIGNATURE] -- do not hand-edit -->"
+            printf '<details>\n'
+            printf '<summary><b>Topics</b> — %d tags, generated from <code>.github/tags.txt</code></summary>\n\n' "${#TAGS[@]}"
+            for t in "${TAGS[@]}"; do
+              printf '`#%s` ' "$(printf '%s' "$t" | sed -E 's/(^|-)([a-z])/\U\2/g')"
+            done
+            printf '\n\n</details>\n'
+            echo "<!-- TAGS:END -->"
+          } > /tmp/relblock.md
+
+          # REFUSE BEFORE PUBLISHING, not after. The block is checked against the
+          # validated source as a SET; a rotation may reorder it and nothing else.
+          grep -oE '#[A-Za-z0-9]+' /tmp/relblock.md | tr -d '#' \
+            | sed -E 's/([a-z0-9])([A-Z])/\1-\2/g' | tr 'A-Z' 'a-z' | sort > /tmp/relset.txt
+          sort /tmp/signature.txt > /tmp/wantset.txt
+          if ! diff -q /tmp/relset.txt /tmp/wantset.txt >/dev/null 2>&1; then
+            echo "::error::the rendered release block is not the validated tag set -- refusing to publish it"
+            diff /tmp/wantset.txt /tmp/relset.txt | head -10
+            exit 1
+          fi
+          echo "release block verified against [SIGNATURE]: $(wc -l < /tmp/relset.txt) tags"
+
+          # CONTROL: the check above must be able to refuse. Plant a block with one
+          # tag removed and require the same comparison to reject it. Without this
+          # the verification is an assertion nobody has ever seen fail.
+          head -n -1 /tmp/relset.txt > /tmp/relset.bad
+          if diff -q /tmp/relset.bad /tmp/wantset.txt >/dev/null 2>&1; then
+            echo "::error::CONTROL DEAD: a block missing a tag compared EQUAL -- the check proves nothing"
+            exit 1
+          fi
+          echo "CONTROL: a block missing one tag is rejected by the same comparison"
+
+          ids=$(gh api "repos/${GITHUB_REPOSITORY}/releases" --jq '.[].id' 2>/dev/null || true)
+          if [ -z "$ids" ]; then
+            echo "no published releases -- nothing to refresh (not a failure)"
+            exit 0
+          fi
+          changed=0; same=0
+          for id in $ids; do
+            gh api "repos/${GITHUB_REPOSITORY}/releases/$id" --jq '.body' > /tmp/body.old 2>/dev/null || continue
+            tag=$(gh api "repos/${GITHUB_REPOSITORY}/releases/$id" --jq '.tag_name' 2>/dev/null)
+            markers=$(grep -c 'TAGS:BEGIN' /tmp/body.old || true)
+            case "$markers" in
+              0)
+                # First refresh: append the block once, after a separator.
+                { cat /tmp/body.old; printf '\n\n---\n\n'; cat /tmp/relblock.md; } > /tmp/body.new ;;
+              *)
+                # Replace between the markers, leaving every other byte untouched.
+                awk '
+                  /TAGS:BEGIN/ { inblk=1; while ((getline l < "/tmp/relblock.md") > 0) print l; next }
+                  /TAGS:END/   { if (inblk) { inblk=0; next } }
+                  !inblk
+                ' /tmp/body.old > /tmp/body.new ;;
+            esac
+            if cmp -s /tmp/body.old /tmp/body.new; then
+              same=$((same+1)); echo "  $tag: already current"
+              continue
+            fi
+            if gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/$id" \
+                 -f body="$(cat /tmp/body.new)" --silent 2>/dev/null; then
+              changed=$((changed+1)); echo "  $tag: tag block refreshed"
+            else
+              echo "::error::could not update the release note for $tag"
+              exit 1
+            fi
+          done
+          echo "release notes: $changed refreshed, $same already current"
+
       - name: Fail if the derived copies have drifted (never commit them)
         run: |
           set -uo pipefail
