@@ -224,6 +224,50 @@ jobs:
             echo "::error::README claims a proof about output QUALITY -- Lean cannot support that"
             fail=1
           fi
+
+          # THE MARKETPLACE LISTING IS THE MOST PUBLIC CLAIM IN THE REPO AND WAS AUDITED
+          # BY NOTHING. `.claude-plugin/marketplace.json` hardcodes the theorem count in
+          # its description, and that string is what a stranger reads on the plugin hub
+          # before they read anything else. `grep -rln marketplace.json checker/ .github/`
+          # returned EMPTY -- no gate touched it. A number nobody recounts is a number
+          # that goes stale the next time a theorem lands.
+          MKT=.claude-plugin/marketplace.json
+          if [ ! -f "$MKT" ]; then
+            echo "::error::$MKT is missing -- the plugin hub resolves it from the default branch"
+            fail=1
+          else
+            # Refuse a listing that is not machine-readable BEFORE trusting any claim in it.
+            if ! node -e "JSON.parse(require('fs').readFileSync('$MKT','utf8'))" 2>/dev/null; then
+              echo "::error::$MKT is not valid JSON -- the hub cannot ingest it"
+              fail=1
+            fi
+            mkt_claims=$(grep -oE '[0-9]+ machine-checked theorems' "$MKT" | grep -oE '^[0-9]+' || true)
+            if [ -z "$mkt_claims" ]; then
+              echo "::error::$MKT states no theorem count -- the audit would be vacuous, state it or drop the claim"
+              fail=1
+            else
+              for c in $mkt_claims; do
+                if [ "$c" -ne "${{ steps.gt.outputs.thms }}" ]; then
+                  echo "::error::$MKT advertises $c machine-checked theorems; sources have ${{ steps.gt.outputs.thms }}"
+                  fail=1
+                fi
+              done
+            fi
+            # The same two proof-critical claims the README carries, on the public listing.
+            for row in sorry native_decide; do
+              case "$row" in
+                sorry)         want="${{ steps.gt.outputs.sorry }}" ;;
+                native_decide) want="${{ steps.gt.outputs.native }}" ;;
+              esac
+              hit=$(grep -c "zero $row" "$MKT" || true)
+              case "$hit:$want" in
+                0:0) : ;;                       # claim absent, nothing to check
+                *:0) : ;;                       # claim present and TRUE
+                *)   echo "::error::$MKT advertises 'zero $row' but ground truth counts $want"
+                     fail=1 ;;
+              esac
+            done
+          fi
           exit "$fail"
 
       - name: Audit negative control
