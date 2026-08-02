@@ -192,7 +192,7 @@ jobs:
           # WAS: take the FIRST '<n> theorems' match in README.md and compare it to the repo
           # TOTAL. That is a scope error, and it fired on a correct README: the first match is
           # `lean/Proofs/RotGauge.lean` (35 theorems) -- a PER-MODULE count -- which was then
-          # compared against the 139 total. Measured: run 30742048586.
+          # compared against the 144 total. Measured: run 30742048586.
           #
           # The README was right and the audit was wrong. Deleting the check was the tempting
           # repair; instead it is now strictly STRONGER -- every per-module claim is recounted

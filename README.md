@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **139
+lens activities off disk, computes an `R/s+` gauge from them, and **144
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -295,6 +295,14 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   old design is reconstructed alongside so `designs_disagree` and
   `old_commits_every_week` can prove the fix was not cosmetic — fifty-two empty
   commits a year, executed as a `#guard`, not asserted.
+* **`lean/Proofs/RotDorks.lean`** (5 theorems) — the tag rotation that keeps
+  the published hashtag block fresh. It proves the rotation is a **bijection**:
+  `i -> (i*stride + offset) mod n` is injective whenever `gcd(stride, n) = 1`,
+  so the set of tags in `README.md` is preserved for **every** seed rather than
+  for the thirteen `checker/dorks.sh` samples. `stride_must_be_coprime` exhibits
+  a stride that collapses distinct tags, which is why the hypothesis is real and
+  why the script computes a coprime stride instead of hard-coding one that
+  happens to suit 42 tags today.
 * **`lean/Proofs/RotVacuity.lean`** (0 theorems — deliberately; the content is `example`s)
   — the audit that catches what every other gate certifies. A theorem with
   contradictory hypotheses is *true*, builds green, has clean axioms and passes

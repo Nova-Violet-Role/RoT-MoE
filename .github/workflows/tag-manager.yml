@@ -163,7 +163,21 @@ jobs:
       - name: Derive every copy from tags.txt
         run: |
           set -euo pipefail
-          mapfile -t TAGS < /tmp/signature.txt   # UNLIMITED tier
+          # ROTATED, not re-emitted in file order. checker/dorks.sh applies
+          # i -> (i*stride + offset) mod n with gcd(stride,n)=1, seeded by the
+          # UTC day, so the block differs from day to day while the SET is
+          # bit-for-bit the one validated above. A bijection cannot drop or
+          # duplicate a tag, which is why this is arithmetic and not `shuf`:
+          # a shuffle is unreproducible, so no drift check could tell a
+          # legitimate rotation from a corrupted block.
+          mapfile -t TAGS < <(bash checker/dorks.sh --order)   # UNLIMITED tier, rotated
+          # The rotation must never change WHAT is published. Assert it here,
+          # against the file the validator already checked, before rendering.
+          if [ "$(printf '%s\n' "${TAGS[@]}" | sort)" != "$(sort /tmp/signature.txt)" ]; then
+            echo "::error::the rotated order is not a permutation of [SIGNATURE] -- refusing to publish"
+            exit 1
+          fi
+          echo "rotation seed: $(bash checker/dorks.sh --seed)   tags: ${#TAGS[@]}"
 
           # 1. README signature block. Visible text, never <meta>, never
           #    display:none -- measured: <meta> is deleted by GitHub's
@@ -304,11 +318,42 @@ jobs:
       - name: Fail if the derived copies have drifted (never commit them)
         run: |
           set -uo pipefail
-          if git diff --quiet -- README.md CITATION.cff; then
-            echo "README.md and CITATION.cff already match .github/tags.txt."
+          # THE ORDER ROTATES DAILY; THE SET MUST NOT MOVE. A byte-equality test
+          # here would freeze a contingent fact -- the order that happened to be
+          # committed -- and would go red every single day on a correct rotation.
+          # The tempting repair would be to delete this gate, which would throw
+          # away the only check that catches a hand-edited tag. So the gate is
+          # restated over the property that must actually hold:
+          #
+          #   * everything OUTSIDE the generated block: byte-identical, as before
+          #   * inside the block: the SET of tags must be unchanged
+          #
+          # A tag added, removed or misspelled by hand still fails. A rotation
+          # does not. checker/dorks.sh proves the rotation is a bijection over
+          # 13 seeds, with a non-coprime-stride control that collapses 42 tags
+          # to 7 to show the set check has something to catch.
+          strip_block () { sed '/<!-- TAGS:BEGIN/,/<!-- TAGS:END -->/d' "$1"; }
+          tagset ()      { sed -n '/<!-- TAGS:BEGIN/,/<!-- TAGS:END -->/p' "$1" | grep -oE '#[A-Za-z0-9]+' | sort; }
+          git show HEAD:README.md > /tmp/readme.head 2>/dev/null || : > /tmp/readme.head
+          rest_drift=0; set_drift=0
+          if ! diff -q <(strip_block /tmp/readme.head) <(strip_block README.md) >/dev/null 2>&1; then
+            rest_drift=1
+          fi
+          if [ "$(tagset /tmp/readme.head)" != "$(tagset README.md)" ]; then
+            set_drift=1
+          fi
+          if [ "$rest_drift" -eq 0 ] && [ "$set_drift" -eq 0 ] && git diff --quiet -- CITATION.cff; then
+            if git diff --quiet -- README.md; then
+              echo "README.md and CITATION.cff already match .github/tags.txt (order unchanged today)."
+            else
+              echo "README.md differs ONLY by the rotated tag order; the tag set and the rest of the"
+              echo "file are identical. That is the intended daily refresh, not drift."
+            fi
             echo "(A no-op is the correct outcome. Nothing is committed, and nothing is faked.)"
             exit 0
           fi
+          [ "$rest_drift" -eq 1 ] && echo "::error::README.md changed OUTSIDE the generated tag block."
+          [ "$set_drift"  -eq 1 ] && echo "::error::the SET of tags in README.md changed -- not a rotation."
           echo "::error::README.md / CITATION.cff have DRIFTED from .github/tags.txt."
           echo "::error::Run the same derivation locally and commit it yourself --"
           echo "::error::this job will not push to a protected branch."

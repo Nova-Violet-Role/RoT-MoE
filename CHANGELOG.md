@@ -101,7 +101,7 @@ Every claim below has a named instrument. Nothing here is asserted from reading.
 |---|---|---|
 | the Lean corpus elaborates | `lake build` (exit code read directly) | exit 0, **zero `sorry`** |
 | the proof terms are valid | `lake env leanchecker <Module>` | exit 0; control exit 1 |
-| nothing rests on the compiler | `checker/axiom-class.sh` | 139 KERNEL, 0 COMPILER, 0 BROKEN |
+| nothing rests on the compiler | `checker/axiom-class.sh` | 144 KERNEL, 0 COMPILER, 0 BROKEN |
 | the archives are well-formed | `checker/release-package.sh` | each tier a strict superset of the one below |
 | the artifact installs | `checker/release-install.sh` | unpacked, armed, round trip byte-identical |
 | the router **routes** from each archive | `checker/release-session.sh` | 27 lane-sessions, 3 archives × 9 lanes |

@@ -2,11 +2,11 @@
   "directory": ".github\\workflows",
   "files": {
     "ads-manager.yml": {
-      "hash": "b54db9c11d00",
-      "indexed_at": "2026-08-02T11:27:02.629738+00:00",
+      "hash": "8fdd9b85a03f",
+      "indexed_at": "2026-08-02T13:45:21.317245+00:00",
       "language": "yaml",
       "lines": 322,
-      "mtime_ns": 1785669455798148300,
+      "mtime_ns": 1785677066246345300,
       "size": 17792,
       "symbols": [
         {
@@ -292,12 +292,12 @@
       ]
     },
     "ci.yml": {
-      "hash": "30eccfdf7264",
-      "indexed_at": "2026-08-02T12:45:28.061010+00:00",
+      "hash": "32448aa744c9",
+      "indexed_at": "2026-08-02T13:45:21.479036+00:00",
       "language": "yaml",
       "lines": 544,
-      "mtime_ns": 1785671829754483300,
-      "size": 27839,
+      "mtime_ns": 1785677805172037100,
+      "size": 27871,
       "symbols": [
         {
           "docstring": "CI",
@@ -1710,12 +1710,12 @@
       ]
     },
     "tag-manager.yml": {
-      "hash": "a6df55bbd9f0",
-      "indexed_at": "2026-08-01T07:24:16.901456+00:00",
+      "hash": "7b1f7bc71237",
+      "indexed_at": "2026-08-02T13:45:21.640680+00:00",
       "language": "yaml",
-      "lines": 317,
-      "mtime_ns": 1785568023529695300,
-      "size": 16192,
+      "lines": 362,
+      "mtime_ns": 1785676584533837100,
+      "size": 19269,
       "symbols": [
         {
           "docstring": "Meta Hashtag Manager",
@@ -1932,7 +1932,7 @@
                     {
                       "lines": [
                         164,
-                        248
+                        262
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1940,8 +1940,8 @@
                     {
                       "docstring": "Sync repo topics (verify, then repair)",
                       "lines": [
-                        249,
-                        249
+                        263,
+                        263
                       ],
                       "name": "name",
                       "type": "item"
@@ -1951,24 +1951,24 @@
                         {
                           "docstring": "${{ secrets.GITHUB_TOKEN }}",
                           "lines": [
-                            251,
-                            251
+                            265,
+                            265
                           ],
                           "name": "GH_TOKEN",
                           "type": "key"
                         }
                       ],
                       "lines": [
-                        250,
-                        251
+                        264,
+                        265
                       ],
                       "name": "env",
                       "type": "section"
                     },
                     {
                       "lines": [
-                        252,
-                        303
+                        266,
+                        317
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1976,16 +1976,16 @@
                     {
                       "docstring": "Fail if the derived copies have drifted (never commit them)",
                       "lines": [
-                        304,
-                        304
+                        318,
+                        318
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        305,
-                        318
+                        319,
+                        363
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1993,7 +1993,7 @@
                   ],
                   "lines": [
                     61,
-                    318
+                    363
                   ],
                   "name": "steps",
                   "type": "list"
@@ -2001,7 +2001,7 @@
               ],
               "lines": [
                 59,
-                318
+                363
               ],
               "name": "sync",
               "type": "section"
@@ -2009,7 +2009,7 @@
           ],
           "lines": [
             58,
-            318
+            363
           ],
           "name": "jobs",
           "type": "section"
@@ -2309,6 +2309,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T12:45:28.061233+00:00",
+  "generated_at": "2026-08-02T13:45:21.640782+00:00",
   "version": "1.0"
 }

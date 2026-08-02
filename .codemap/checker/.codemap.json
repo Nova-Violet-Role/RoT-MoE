@@ -206,13 +206,58 @@
       "size": 17971,
       "symbols": []
     },
-    "gate-all.sh": {
-      "hash": "288b7f967214",
-      "indexed_at": "2026-08-01T21:53:10.144276+00:00",
+    "dorks.sh": {
+      "hash": "70d713094170",
+      "indexed_at": "2026-08-02T13:45:21.971282+00:00",
       "language": "shell",
-      "lines": 144,
-      "mtime_ns": 1785618302007352900,
-      "size": 6444,
+      "lines": 215,
+      "mtime_ns": 1785676518081836500,
+      "size": 9829,
+      "symbols": [
+        {
+          "docstring": "--- the source of truth, exactly as tag-manager.yml reads it ---------------- Same awk section extractor, same comment/blank stripping. If these two e",
+          "lines": [
+            63,
+            65
+          ],
+          "name": "section",
+          "type": "function"
+        },
+        {
+          "docstring": "--- the seed ---------------------------------------------------------------- Days since epoch, UTC. An integer that advances exactly once per day. RO",
+          "lines": [
+            71,
+            76
+          ],
+          "name": "today_seed",
+          "type": "function"
+        },
+        {
+          "docstring": "--- the permutation --------------------------------------------------------- stride: the first integer at or above a seed-derived start that is copri",
+          "lines": [
+            87,
+            107
+          ],
+          "name": "rotate",
+          "type": "function"
+        },
+        {
+          "lines": [
+            109,
+            115
+          ],
+          "name": "emit_order",
+          "type": "function"
+        }
+      ]
+    },
+    "gate-all.sh": {
+      "hash": "2dd64ce2f1eb",
+      "indexed_at": "2026-08-02T13:45:22.135821+00:00",
+      "language": "shell",
+      "lines": 145,
+      "mtime_ns": 1785676615390836900,
+      "size": 6518,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -799,6 +844,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T12:45:28.417105+00:00",
+  "generated_at": "2026-08-02T13:45:22.135884+00:00",
   "version": "1.0"
 }
