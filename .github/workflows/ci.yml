@@ -419,6 +419,9 @@ jobs:
       - name: portability -- exec bits in the index, CRLF-proof hooks
         run: bash checker/portability.sh
 
+      - name: hook contract -- run the command strings hooks.json registers
+        run: bash checker/hook-contract.sh
+
       # The Lean spec must GOVERN the shell. lean/Proofs/RotMutant.lean proves
       # a mutation may only be counted when the patch landed -- tool exit 0,
       # non-empty result, and genuinely changed. This asserts every mutation

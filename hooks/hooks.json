@@ -1,4 +1,5 @@
 {
+  "_comment": "HOOK MODE ONLY -- no arguments. Claude Code delivers the event payload as JSON on STDIN and does NOT expand ${CLAUDE_USER_PROMPT}; that variable does not exist. The earlier registration passed -Route \"${CLAUDE_USER_PROMPT}\", so the script received an empty route, fell through to waiting on stdin, and HUNG until the harness killed it (measured: exit 124, zero bytes, 'Hook UserPromptSubmit success:' with nothing after the colon). Because it was killed rather than failing, the '|| bash' fallback never ran. Both scripts read the payload themselves and are measured working this way: exit 0, 'RoT MoE :: TIER 1 -> FORGE Claude'. checker/hook-contract.sh executes THESE EXACT command strings and requires real output, so this file can no longer be wrong while every gate is green.",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -6,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" -Route \"${CLAUDE_USER_PROMPT}\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\" --route \"${CLAUDE_USER_PROMPT}\""
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\""
           },
           {
             "type": "command",
@@ -21,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" -Vector 0,0,0,0,0,0,0,0,0 -Breadth 0 || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\" --vector 0,0,0,0,0,0,0,0,0 --breadth 0"
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\""
           },
           {
             "type": "command",

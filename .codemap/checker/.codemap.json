@@ -252,12 +252,12 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "2dd64ce2f1eb",
-      "indexed_at": "2026-08-02T13:45:22.135821+00:00",
+      "hash": "910bfadc06e8",
+      "indexed_at": "2026-08-02T20:25:52.796140+00:00",
       "language": "shell",
-      "lines": 145,
-      "mtime_ns": 1785676615390836900,
-      "size": 6518,
+      "lines": 146,
+      "mtime_ns": 1785701256483222300,
+      "size": 6594,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -274,6 +274,24 @@
             109
           ],
           "name": "shell_gauge",
+          "type": "function"
+        }
+      ]
+    },
+    "hook-contract.sh": {
+      "hash": "554c303cadf7",
+      "indexed_at": "2026-08-02T20:25:52.967893+00:00",
+      "language": "shell",
+      "lines": 134,
+      "mtime_ns": 1785701843101221100,
+      "size": 6912,
+      "symbols": [
+        {
+          "lines": [
+            78,
+            85
+          ],
+          "name": "run_hook",
           "type": "function"
         }
       ]
@@ -844,6 +862,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T19:55:39.975162+00:00",
+  "generated_at": "2026-08-02T20:25:52.967959+00:00",
   "version": "1.0"
 }
