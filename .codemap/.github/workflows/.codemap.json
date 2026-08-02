@@ -2,12 +2,12 @@
   "directory": ".github\\workflows",
   "files": {
     "ads-manager.yml": {
-      "hash": "6203d59777a5",
-      "indexed_at": "2026-08-02T09:14:42.630066+00:00",
+      "hash": "c9b1ea81faa4",
+      "indexed_at": "2026-08-02T09:34:36.114855+00:00",
       "language": "yaml",
-      "lines": 220,
-      "mtime_ns": 1785661545120882500,
-      "size": 11326,
+      "lines": 229,
+      "mtime_ns": 1785662747166753500,
+      "size": 12087,
       "symbols": [
         {
           "docstring": "Ads Manager",
@@ -198,7 +198,7 @@
                     {
                       "lines": [
                         149,
-                        178
+                        187
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -206,16 +206,16 @@
                     {
                       "docstring": "Audit README claims against ground truth",
                       "lines": [
-                        179,
-                        179
+                        188,
+                        188
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        180,
-                        193
+                        189,
+                        202
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -223,16 +223,16 @@
                     {
                       "docstring": "Audit negative control",
                       "lines": [
-                        194,
-                        194
+                        203,
+                        203
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        195,
-                        208
+                        204,
+                        217
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -240,16 +240,16 @@
                     {
                       "docstring": "Fail if PROMO.md has drifted (never commit it)",
                       "lines": [
-                        209,
-                        209
+                        218,
+                        218
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        210,
-                        221
+                        219,
+                        230
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -257,7 +257,7 @@
                   ],
                   "lines": [
                     42,
-                    221
+                    230
                   ],
                   "name": "steps",
                   "type": "list"
@@ -265,7 +265,7 @@
               ],
               "lines": [
                 40,
-                221
+                230
               ],
               "name": "copy",
               "type": "section"
@@ -273,7 +273,7 @@
           ],
           "lines": [
             39,
-            221
+            230
           ],
           "name": "jobs",
           "type": "section"
@@ -2298,6 +2298,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T09:14:42.630166+00:00",
+  "generated_at": "2026-08-02T09:34:36.114981+00:00",
   "version": "1.0"
 }
