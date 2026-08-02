@@ -101,10 +101,28 @@ while IFS= read -r rec; do
   ev="${rec%%$(printf '\x1f')*}"; cmd="${rec#*$(printf '\x1f')}"
   rc=0; out="$(run_hook "$cmd")" || rc=$?
   short="$(printf '%s' "$cmd" | sed 's/.*hooks\///; s/".*//' | cut -c1-24)"
+  # SILENCE IS NOT FAILURE FOR EVERY HOOK, and the first version of this loop got
+  # that wrong. It required output from EVERY registered command, which failed on
+  # the Linux runner (CI #45) because prover-remind.sh is DESIGNED to say nothing
+  # when there is nothing to report -- hooks/prover-remind.sh:120-125 returns
+  # early when no debt, no stale proof, no kernel rejection and no sorry. On a
+  # clean checkout that is the CORRECT answer, and my gate called it a defect.
+  #
+  # That is a spec freezing a contingent fact: locally the reminder happened to
+  # have something to say, so "it speaks" looked like an invariant. The tempting
+  # repair is to delete the check; the right one is to demand what must actually
+  # hold. The ROUTER always routes, so it must always speak. The reminder speaks
+  # conditionally, so it must merely not hang and not crash.
+  case "$cmd" in
+    *rot-router*) must_speak=1 ;;
+    *)            must_speak=0 ;;
+  esac
   if [ "$rc" -eq 124 ]; then
-    bad "$ev/$short HUNG (exit 124) -- exactly the shipped defect"
+    bad "$ev/$short HUNG (exit 124) -- a hook that never returns injects nothing"
+  elif [ "$must_speak" -eq 1 ] && [ -z "$out" ]; then
+    bad "$ev/$short is a ROUTER command and produced NO output -- routing cannot be conditional"
   elif [ -z "$out" ]; then
-    bad "$ev/$short produced NO output -- the harness would inject nothing"
+    ok "$ev/$short returned silently (allowed: it speaks only when it has something to report)"
   else
     ok "$ev/$short answered: $(printf '%s' "$out" | head -1 | cut -c1-58)"
   fi
@@ -144,13 +162,23 @@ fi
 # --- the scripts themselves still work in hook mode --------------------------
 # Separates "the registration is wrong" from "the router is broken". When this
 # passes and the block above fails, the defect is in hooks.json, not the logic.
-for s in hooks/rot-router.sh hooks/prover-remind.sh; do
-  [ -f "$s" ] || { bad "$s missing"; continue; }
-  rc=0; out="$(printf '%s' "$PAYLOAD" | { [ "$have_timeout" -eq 1 ] && timeout 25 bash "$s" 2>/dev/null || bash "$s" 2>/dev/null; })" || rc=$?
-  [ -n "$out" ] && [ "$rc" -ne 124 ] \
-    && ok "$(basename "$s") answers in hook mode (stdin payload, no arguments)" \
-    || bad "$(basename "$s") produced nothing in hook mode (exit $rc)"
-done
+rc=0; out="$(printf '%s' "$PAYLOAD" | { [ "$have_timeout" -eq 1 ] && timeout 25 bash hooks/rot-router.sh 2>/dev/null || bash hooks/rot-router.sh 2>/dev/null; })" || rc=$?
+[ -n "$out" ] && [ "$rc" -ne 124 ] \
+  && ok "rot-router.sh answers in hook mode (stdin payload, no arguments)" \
+  || bad "rot-router.sh produced nothing in hook mode (exit $rc) -- routing must be unconditional"
+
+# CONTROL FOR THE ALLOWED SILENCE. "Silence is permitted" would otherwise hide a
+# reminder that is silent because it is BROKEN. Point it at a workspace with no
+# proofs -- a condition its own logic treats as report-worthy
+# (hooks/prover-remind.sh:151) -- and it must speak. Silence then is a decision,
+# not a failure, and this gate can tell the two apart.
+rc=0
+out="$(printf '%s' "$PAYLOAD" | { [ "$have_timeout" -eq 1 ] \
+      && ROTMOE_LEAN_WORKSPACE="/nonexistent-workspace-$$" timeout 25 bash hooks/prover-remind.sh 2>/dev/null \
+      || ROTMOE_LEAN_WORKSPACE="/nonexistent-workspace-$$" bash hooks/prover-remind.sh 2>/dev/null; })" || rc=$?
+[ -n "$out" ] && [ "$rc" -ne 124 ] \
+  && ok "CONTROL: prover-remind.sh SPEAKS when given a workspace with no proofs -- its silence elsewhere is a decision, not a breakage" \
+  || bad "CONTROL DEAD: prover-remind.sh stayed silent even with no proofs to find (exit $rc) -- silence cannot be distinguished from breakage"
 
 rm -f "$CMDS"
 printf '\n== hook-contract: %d passed, %d failed\n' "$PASS" "$FAIL"
