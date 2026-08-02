@@ -6,25 +6,36 @@
 # hook-contract.sh -- EXECUTE THE COMMAND STRINGS hooks/hooks.json REGISTERS,
 # with the payload Claude Code really delivers, and require real output.
 #
-# WHY THIS EXISTS. The plugin shipped a hooks.json that registered
+# WHY THIS EXISTS -- and the first version of this comment was WRONG, which is
+# itself the reason the file is worth reading.
 #
-#     pwsh -NoProfile -File "...rot-router.ps1" -Route "${CLAUDE_USER_PROMPT}"
+# I claimed the plugin had shipped with a dead router: that hooks.json passed
+# -Route with the CLAUDE_USER_PROMPT placeholder, that the harness never expands
+# it, and that the hook therefore hung and returned nothing. That claim was
+# false. MEASURED against commit 59b2620 in a real marketplace install: three
+# prompts routed to FORGE Claude, EMPATHIC Violet and CLINICAL AntiVenom. The
+# placeholder IS expanded and the shipped plugin routed correctly.
 #
-# and Claude Code DOES NOT EXPAND ${CLAUDE_USER_PROMPT} -- the variable does not
-# exist. The script got an empty route, fell through to waiting on stdin, and
-# hung until the harness killed it. Measured in a real session: exit 124, zero
-# bytes, debug log line "Hook UserPromptSubmit (UserPromptSubmit) success:" with
-# nothing after the colon. Killed rather than failed, so the "|| bash" fallback
-# never ran either. The router was DEAD for every marketplace install.
+# The error was in how I read the evidence. The harness debug log prints
 #
-# Every gate was green while that was true, because every check tested a PROXY:
+#     [DEBUG] Hook UserPromptSubmit (UserPromptSubmit) success:
+#     RoT MoE :: TIER 1 -> FORGE Claude
+#
+# -- the hook's output is on the NEXT line. Grepping the matching line alone
+# shows an empty result, and I read "empty output" from a log that contained the
+# marker. A one-line grep is not a reading of a multi-line record.
+#
+# SO WHAT DOES THIS CHECKER ACTUALLY BUY? The gap it closes is real even though
+# the defect I imagined was not: nothing in this repository ever executed the
+# command strings hooks.json registers. Every check tested a PROXY --
 #   - hooks.json is valid JSON               -> it was
 #   - it declares three events               -> it did
 #   - `claude plugin details` lists Hooks (3)-> it does
 #   - the router routes 10/10 lanes          -> it does, when called directly
-# Not one of them ran the string that hooks.json actually registers. That is the
-# whole lesson: a plugin is not what its manifest says, it is what the harness
-# executes. This checker closes the gap by being the only thing that runs it.
+# A plugin is not what its manifest declares, it is what the harness executes,
+# and until now nothing ran that. This checker does, so a registration that
+# genuinely produces nothing -- a wrong path, a hang, a quoting error -- now
+# fails a gate instead of shipping.
 #
 # Exit: 0 pass, 1 fail, 2 refuse, 3 skip (never a pass).
 set -uo pipefail
@@ -106,16 +117,29 @@ done < "$CMDS"
   && ok "the router marker 'RoT MoE :: TIER' reached stdout from a registered command ($routers of $n)" \
   || bad "NO registered command emitted the router marker -- the router is not wired to any event"
 
-# --- NEGATIVE CONTROL -------------------------------------------------------
-# The shipped-broken form must be caught by the same runner. Without this, a
-# checker that only ever sees the fixed file proves nothing about its own
-# ability to detect the bug it was written for.
-BROKEN="pwsh -NoProfile -File \"$PLUG/hooks/rot-router.ps1\" -Route \"\" < /dev/null || bash \"$PLUG/hooks/rot-router.sh\" --route \"\""
-rc=0; out="$(printf '%s' "$PAYLOAD" | { [ "$have_timeout" -eq 1 ] && timeout 25 bash -c "$BROKEN" 2>/dev/null || bash -c "$BROKEN" 2>/dev/null; })" || rc=$?
-case "$out" in
-  *"RoT MoE :: TIER"*) bad "CONTROL DEAD: the broken -Route form still emitted the marker -- this checker cannot tell the shapes apart" ;;
-  *)                   ok "CONTROL: the shipped -Route form does NOT produce the marker (that is the bug, reproduced here on purpose)" ;;
-esac
+# --- NEGATIVE CONTROLS ------------------------------------------------------
+# The first version of this control ran the old -Route form with an EMPTY route
+# and concluded "the shipped form produces no marker". That was testing a shape
+# the harness never creates -- the placeholder is expanded to the real prompt --
+# so it confirmed a defect that did not exist. A control aimed at a fictional
+# failure is worse than none: it manufactures evidence for a wrong story.
+#
+# These two are aimed at failures that can actually happen to a registration.
+BROKEN_PATH="bash \"$PLUG/hooks/no-such-hook-$$.sh\""
+rc=0; out="$(printf '%s' "$PAYLOAD" | { [ "$have_timeout" -eq 1 ] && timeout 25 bash -c "$BROKEN_PATH" 2>/dev/null || bash -c "$BROKEN_PATH" 2>/dev/null; })" || rc=$?
+[ -z "$out" ] \
+  && ok "CONTROL: a command pointing at a missing script yields NO output -- the empty-output arm can fire" \
+  || bad "CONTROL DEAD: a missing script still produced output ($out)"
+
+if [ "$have_timeout" -eq 1 ]; then
+  rc=0; out="$(printf '%s' "$PAYLOAD" | timeout 3 bash -c "sleep 30" 2>/dev/null)" || rc=$?
+  [ "$rc" -eq 124 ] \
+    && ok "CONTROL: a hanging command is observed as exit 124 -- the hang arm can fire" \
+    || bad "CONTROL DEAD: a 30s sleep bounded at 3s reported exit $rc, not 124"
+else
+  skip_note=1
+  printf '  SKIP  no timeout(1): the hang arm cannot be controlled on this host\n'
+fi
 
 # --- the scripts themselves still work in hook mode --------------------------
 # Separates "the registration is wrong" from "the router is broken". When this

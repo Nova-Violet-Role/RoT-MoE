@@ -252,12 +252,12 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "910bfadc06e8",
-      "indexed_at": "2026-08-02T20:25:52.796140+00:00",
+      "hash": "228c95f174da",
+      "indexed_at": "2026-08-02T21:06:23.589429+00:00",
       "language": "shell",
-      "lines": 146,
-      "mtime_ns": 1785701256483222300,
-      "size": 6594,
+      "lines": 147,
+      "mtime_ns": 1785703043335573900,
+      "size": 6694,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -279,17 +279,17 @@
       ]
     },
     "hook-contract.sh": {
-      "hash": "554c303cadf7",
-      "indexed_at": "2026-08-02T20:25:52.967893+00:00",
+      "hash": "19d144bfd2f1",
+      "indexed_at": "2026-08-02T21:06:23.769087+00:00",
       "language": "shell",
-      "lines": 134,
-      "mtime_ns": 1785701843101221100,
-      "size": 6912,
+      "lines": 158,
+      "mtime_ns": 1785702958113955000,
+      "size": 7990,
       "symbols": [
         {
           "lines": [
-            78,
-            85
+            89,
+            96
           ],
           "name": "run_hook",
           "type": "function"
@@ -377,6 +377,15 @@
           "type": "function"
         }
       ]
+    },
+    "marketplace-session.sh": {
+      "hash": "36fef66a7100",
+      "indexed_at": "2026-08-02T21:06:23.948617+00:00",
+      "language": "shell",
+      "lines": 99,
+      "mtime_ns": 1785703609871140200,
+      "size": 5133,
+      "symbols": []
     },
     "mutant-discipline.sh": {
       "hash": "61bfd9e42a15",
@@ -862,6 +871,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T20:25:52.967959+00:00",
+  "generated_at": "2026-08-02T21:06:23.948695+00:00",
   "version": "1.0"
 }

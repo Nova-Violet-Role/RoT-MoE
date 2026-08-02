@@ -421,6 +421,15 @@ jobs:
 
       - name: hook contract -- run the command strings hooks.json registers
         run: bash checker/hook-contract.sh
+      # Runs the marketplace install + a real session. CI HAS NO CREDENTIALS, so
+      # this exits 3 = SKIP here and is reported as such -- a skip is never a pass.
+      # It is enforced locally by gate-all --full, where auth exists. Registered
+      # in CI anyway so the checker cannot drift into being run by nothing.
+      - name: marketplace session -- install as a stranger (SKIPs without auth)
+        run: |
+          rc=0; bash checker/marketplace-session.sh || rc=$?
+          if [ "$rc" -eq 3 ]; then echo "SKIP (3): no credentials on the runner -- never counted as a pass"; exit 0; fi
+          exit "$rc"
 
       # The Lean spec must GOVERN the shell. lean/Proofs/RotMutant.lean proves
       # a mutation may only be counted when the patch landed -- tool exit 0,
