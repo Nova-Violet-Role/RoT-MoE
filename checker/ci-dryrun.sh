@@ -84,11 +84,21 @@ extract_steps () {   # extract_steps <workflow> -> "NAME\x1fWORKDIR\x1fCMD" per 
       # exited 2 on a syntax error, and the harness reported "this CI step would
       # FAIL on a clean clone". A harness that truncates its input INVENTS
       # failures, and an invented failure costs the same hour as a real one.
-      if (name != "" && cmd != "") printf "%s\x1f%s\x1f%s\x1e", name, wd, cmd
-      name = ""; cmd = ""; wd = ""
+      if (name != "" && cmd != "") printf "%s\x1f%s\x1f%s\x1f%s\x1e", name, wd, sh, cmd
+      name = ""; cmd = ""; wd = ""; sh = ""
     }
     /^      - name: /            { flush(); name = substr($0, 15); next }
     /^        working-directory: / { wd = substr($0, 28); next }
+    # THE DECLARED SHELL IS PART OF THE STEP. Without it every step ran under
+    # bash -c, so a pwsh step had its PowerShell body parsed as bash and died on
+    # a syntax error at the opening brace. That is not the step failing, it is
+    # the harness running it wrong -- and it reported the invented failure in the
+    # same words as a real one, the exact confusion the comment above warns of.
+    # NOTE: this awk program is single-quoted, so no apostrophe may appear in
+    # these comments. Quoting the shell error verbatim here ended the quote and
+    # broke the whole script -- measured, bash reported a syntax error on this
+    # very line.
+    /^        shell: /           { sh = substr($0, 16); next }
     /^        run: \|/           { inblock = 1; cmd = ""; next }
     /^        run: /             { cmd = substr($0, 14); inblock = 0; next }
     inblock {
@@ -193,9 +203,28 @@ ok "clean tree materialised: $copied file(s), working tree as it stands, no .lak
 
 # --- 3. run what can be run -------------------------------------------------
 ran=0; deferred=0; broke=0
-while IFS=$'\x1f' read -r -d $'\x1e' name wd cmd; do
+while IFS=$'\x1f' read -r -d $'\x1e' name wd sh cmd; do
   [ -z "${name:-}" ] && continue
   [ -z "${cmd:-}" ]  && continue
+  # HONOUR THE DECLARED SHELL, or DEFER -- never run a body under the wrong one.
+  # `shell: pwsh` steps exist in ci.yml (the Windows zip provisioning), and
+  # running their PowerShell under bash produced a syntax error reported as
+  # "CI step would FAIL on a clean clone". Measured at 61fc0ec in a clean
+  # worktree, so it predates today's edits: 4 passed, 1 failed, every time.
+  RUNNER_SH="bash"
+  case "${sh:-}" in
+    ""|bash|sh) RUNNER_SH="bash" ;;
+    pwsh|powershell)
+      if command -v pwsh >/dev/null 2>&1; then
+        RUNNER_SH="pwsh"
+      else
+        printf '  DEFER %-52s -- declares shell: %s and pwsh is absent here\n' "$name" "$sh"
+        deferred=$((deferred+1)); continue
+      fi ;;
+    *)
+      printf '  DEFER %-52s -- declares an unsupported shell: %s\n' "$name" "$sh"
+      deferred=$((deferred+1)); continue ;;
+  esac
   if runner_only "$cmd"; then
     reason="needs the runner"
     case "$cmd" in
@@ -218,7 +247,11 @@ while IFS=$'\x1f' read -r -d $'\x1e' name wd cmd; do
   # RECORDS: the run stopped silently after 16 of 31 steps and still printed
   # PASS. A harness that consumes its own worklist reports a green for the steps
   # it never reached, which is the false green this repository exists to refuse.
-  ( cd "$CLONE/repo/${wd:-.}" && run_bounded 600 bash -c "$cmd" ) </dev/null > "$CLONE/step.$ran.log" 2>&1
+  if [ "$RUNNER_SH" = "pwsh" ]; then
+    ( cd "$CLONE/repo/${wd:-.}" && run_bounded 600 pwsh -NoProfile -Command "$cmd" ) </dev/null > "$CLONE/step.$ran.log" 2>&1
+  else
+    ( cd "$CLONE/repo/${wd:-.}" && run_bounded 600 bash -c "$cmd" ) </dev/null > "$CLONE/step.$ran.log" 2>&1
+  fi
   rc=$?
   if [ "$rc" -eq 0 ]; then
     printf '  ok    %-52s exit 0\n' "$name"
@@ -260,12 +293,34 @@ jobs:
         run: |
           exit 9
 YAML
-pcmd="$(extract_steps "$CTLWF" | { IFS=$'' read -r -d $'' _n _w _c; printf '%s' "$_c"; })"
+pcmd="$(extract_steps "$CTLWF" | { IFS=$'' read -r -d $'' _n _w _s _c; printf '%s' "$_c"; })"
 if grep -q 'exit 9' <<< "$pcmd"; then
   ok "CONTROL: the extractor reads a planted step's command back"
 else
   bad "CONTROL DEAD: the extractor did not recover a planted step (got: '$pcmd')"
 fi
+# (a2) THE SHELL FIELD MUST BE RECOVERED TOO. It is what decides which
+# interpreter runs the body, and a capture that silently returned empty would
+# send every step back to bash -- reinstating the defect this control exists for,
+# invisibly, because bash is also the correct answer for most steps.
+pshell="$(extract_steps "$CTLWF" | { IFS=$'\x1f' read -r -d $'\x1e' _n _w _s _c; printf '%s' "$_s"; })"
+[ "$pshell" = "bash" ] \
+  && ok "CONTROL: the extractor recovers the declared shell (bash)" \
+  || bad "CONTROL DEAD: the declared shell was not recovered (got: '$pshell')"
+CTLWF2="$CLONE/ctl2.yml"
+cat > "$CTLWF2" <<'YAML'
+jobs:
+  x:
+    steps:
+      - name: planted pwsh step
+        shell: pwsh
+        run: |
+          exit 9
+YAML
+pshell2="$(extract_steps "$CTLWF2" | { IFS=$'\x1f' read -r -d $'\x1e' _n _w _s _c; printf '%s' "$_s"; })"
+[ "$pshell2" = "pwsh" ] \
+  && ok "CONTROL: a non-bash shell is recovered as itself (pwsh), not defaulted away" \
+  || bad "CONTROL DEAD: a pwsh step was recovered as '$pshell2' -- it would run under the wrong interpreter"
 # (b) a failing step must be reported as a failure, not swallowed
 ( cd "$CLONE/repo" && bash -c "$pcmd" ) >/dev/null 2>&1
 prc=$?

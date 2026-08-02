@@ -238,10 +238,39 @@ fi
 HASH='##'
 ERRTOK="${HASH}[error]"
 WARNTOK="${HASH}[warning]"
-nerr=$(grep -rlF "$ERRTOK"  "$WORK/x" 2>/dev/null | grep -c . || true)
-nwarn=$(grep -rlF "$WARNTOK" "$WORK/x" 2>/dev/null | grep -c . || true)
+# ANCHORED, not a substring search. A real annotation is EMITTED by the runner and
+# sits immediately after the line's timestamp:
+#     2026-08-02T09:15:12.3432110Z <token>The following taps are not trusted:
+# A line that merely MENTIONS the token -- a comment in a workflow, echoed back when
+# the runner prints the step's script -- has other text in between:
+#     2026-08-02T11:02:41.2924990Z <ansi># notice as a GITHUB ANNOTATION (<token>) ...
+# The old -F search could not tell those apart, so documenting an annotation created
+# one. Measured: run 30744934931 reported 2 warning logs that were a COMMENT I had
+# written in ci.yml, and the previous run's 2 were a real Homebrew notice. Both
+# counted the same. An alarm that fires on its own documentation trains you to ignore it.
+#
+# Verified against both archives before the change: real notices 2 -> 2 (the alarm
+# still fires) and mention-only 2 -> 0 (the false positive is gone).
+ERRPAT="^[^ ]*Z +${HASH}\[error\]"
+WARNPAT="^[^ ]*Z +${HASH}\[warning\]"
+nerr=$(grep -rlE "$ERRPAT"  "$WORK/x" 2>/dev/null | grep -c . || true)
+nwarn=$(grep -rlE "$WARNPAT" "$WORK/x" 2>/dev/null | grep -c . || true)
 [ "${nerr:-1}" -eq 0 ]  && ok "zero error annotations across the whole run"   || bad "$nerr log(s) carry an error annotation"
 [ "${nwarn:-1}" -eq 0 ] && ok "zero warning annotations across the whole run" || bad "$nwarn log(s) carry a warning annotation (a deprecated action or a runner notice)"
+
+# CONTROL, both directions, on planted lines. Tightening a matcher can silence it
+# outright, and a silent matcher looks exactly like a clean repository.
+CTLDIR="$WORK/anno-control"; mkdir -p "$CTLDIR"
+printf '2026-08-02T09:15:12.3432110Z %s[warning]The following taps are not trusted:\n' "$HASH" > "$CTLDIR/real.txt"
+printf '2026-08-02T11:02:41.2924990Z # notice as a GITHUB ANNOTATION (%s[warning]) in a comment\n' "$HASH" > "$CTLDIR/mention.txt"
+c_real=$(grep -lE "$WARNPAT" "$CTLDIR/real.txt"    2>/dev/null | grep -c . || true)
+c_ment=$(grep -lE "$WARNPAT" "$CTLDIR/mention.txt" 2>/dev/null | grep -c . || true)
+[ "$c_real" -eq 1 ] \
+  && ok "CONTROL: an EMITTED warning annotation is still detected -- the matcher can fire" \
+  || bad "CONTROL DEAD: the anchored matcher no longer sees a real warning annotation"
+[ "$c_ment" -eq 0 ] \
+  && ok "CONTROL: a MENTION of the token in a comment is NOT counted -- documenting is not emitting" \
+  || bad "CONTROL: the matcher still counts a mention -- it would fire on its own documentation"
 
 # --- 5. the deferred steps specifically ---------------------------------------
 # Named by the EVIDENCE they must produce, not by step title, so a rename does

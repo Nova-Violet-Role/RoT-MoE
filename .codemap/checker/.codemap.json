@@ -99,12 +99,12 @@
       ]
     },
     "ci-dryrun.sh": {
-      "hash": "c89ce1ceea86",
-      "indexed_at": "2026-08-02T05:52:47.243790+00:00",
+      "hash": "a21fe92fe167",
+      "indexed_at": "2026-08-02T12:45:28.240939+00:00",
       "language": "shell",
-      "lines": 283,
-      "mtime_ns": 1785648900402656200,
-      "size": 14452,
+      "lines": 338,
+      "mtime_ns": 1785673655718969900,
+      "size": 17289,
       "symbols": [
         {
           "lines": [
@@ -118,7 +118,7 @@
           "docstring": "--- 1. extract the steps --------------------------------------------------- Line-oriented on purpose. A YAML library would be more correct in general",
           "lines": [
             67,
-            101
+            111
           ],
           "name": "extract_steps",
           "type": "function"
@@ -134,8 +134,8 @@
         {
           "docstring": "Runner-only classification. Each pattern names something this machine cannot provide or must not fetch.",
           "lines": [
-            105,
-            126
+            115,
+            136
           ],
           "name": "runner_only",
           "type": "function"
@@ -198,12 +198,12 @@
       "symbols": []
     },
     "deferred-closure.sh": {
-      "hash": "bfa768f897ea",
-      "indexed_at": "2026-08-01T12:13:38.004567+00:00",
+      "hash": "54b244e2b2ea",
+      "indexed_at": "2026-08-02T12:45:28.417028+00:00",
       "language": "shell",
-      "lines": 299,
-      "mtime_ns": 1785585093752076200,
-      "size": 15916,
+      "lines": 328,
+      "mtime_ns": 1785671829754483300,
+      "size": 17971,
       "symbols": []
     },
     "gate-all.sh": {
@@ -799,6 +799,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T10:09:32.194753+00:00",
+  "generated_at": "2026-08-02T12:45:28.417105+00:00",
   "version": "1.0"
 }

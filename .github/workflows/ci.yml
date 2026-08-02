@@ -157,7 +157,7 @@ jobs:
         shell: bash
         run: |
           # WAS: `brew install coreutils`. It works, but Homebrew emits its tap-trust
-          # notice as a GITHUB ANNOTATION (##[warning]) on this runner image, and the
+          # notice as a GITHUB WARNING ANNOTATION on this runner image, and the
           # deferred-closure gate requires ZERO warning annotations across the run. That
           # gate is right and I am not weakening it: it is what catches a deprecated
           # action. Measured: run 30741381885 carried exactly 2 warning logs, both this.
@@ -432,8 +432,12 @@ jobs:
       # download, root or a pty -- printing "DEFERRED IS NOT PASSED", which is
       # honest and leaves a gap. This closes the gap from the runner side: it
       # reads the log archive of the last completed run and requires every
-      # declared step to have produced a log, with zero ##[error] and zero
-      # ##[warning] anywhere in it.
+      # declared step to have produced a log, with zero error and zero warning
+      # annotations EMITTED in it. "Emitted" is load-bearing: the check is
+      # anchored to the start of a log line, so a step that merely MENTIONS an
+      # annotation token in a comment is not counted. This comment is outside
+      # any `run:` block and is never echoed to the log; one inside a `run:`
+      # block IS echoed, and the unanchored check used to count it.
       - name: deferred closure -- the runner ran what the dry run could not
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
