@@ -58,8 +58,37 @@ jobs:
           # job's whole purpose is to fail the build when a number is wrong.
           bash checker/count-theorems.sh --selftest
           THMS=$(bash checker/count-theorems.sh lean/Proofs/*.lean)
-          SORRY=$(grep -rc 'sorry' lean/Proofs/*.lean | awk -F: '{s+=$2} END{print s+0}')
-          NATIVE=$(grep -rc 'native_decide' lean/Proofs/*.lean | awk -F: '{s+=$2} END{print s+0}')
+          # `|| true` IS LOAD-BEARING, and the reason is the whole bug this job
+          # had. `grep -c` prints its zero counts AND EXITS 1 when nothing
+          # matched. With `set -o pipefail` on line 50 that status propagates
+          # through the pipe, `set -e` kills the step, and the job fails.
+          #
+          # Measured 2026-08-02 by dispatching this workflow by hand: it had
+          # NEVER run (created Sat 01 Aug, first Monday cron was 03 Aug), and
+          # the first run died right here.
+          #
+          # The direction is what makes it serious. It failed BECAUSE the corpus
+          # is clean -- zero native_decide, so zero matches, so exit 1. Add one
+          # native_decide and grep would exit 0 and the step would sail past.
+          # An alarm that fires on correctness and goes quiet on the defect is
+          # worse than no alarm; the two steps below read these very numbers to
+          # refuse to advertise an unproved repo.
+          #
+          # SECOND BUG, same step, same direction. Even once the status was
+          # rescued, `grep -rc sorry` reported **3** on a corpus with ZERO real
+          # holes. The hits were a doc comment, a line of prose, and the THEOREM
+          # NAME `sorry_always_speaks` -- `_` is not a word boundary for a naive
+          # pattern. The step below refuses to advertise when sorry != 0, so the
+          # job would have failed for being CLEAN.
+          #
+          # checker/status-verdict.sh already solved this: it strips NESTING
+          # Lean block comments, drops line comments, and requires the token to
+          # be bounded by non-identifier characters. That fix lived in a shell
+          # function nobody outside the file could call, so it was rewritten
+          # here badly. It is now exposed as `--count`, and this job uses it.
+          # One counter, one selftest, two callers.
+          SORRY=$(bash checker/status-verdict.sh --count sorry)
+          NATIVE=$(bash checker/status-verdict.sh --count native_decide)
           MODULES=$(ls lean/Proofs/*.lean | wc -l)
           TOOLCHAIN=$(cat lean/lean-toolchain)
           {

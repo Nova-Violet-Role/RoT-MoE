@@ -37,6 +37,23 @@ on:
 
 permissions:
   contents: write        # only to commit STATUS.md when the verdict CHANGES
+  # `actions: read` is NOT for this workflow -- it is for the one it CALLS.
+  #
+  # MEASURED 2026-08-02: this workflow had NEVER run. Dispatched by hand, it
+  # came back `startup_failure` with no jobs, no logs and no check run -- the
+  # run is rejected before anything starts, so there is nothing to read.
+  #
+  # The cause: `jobs.gates` calls ./.github/workflows/ci.yml, and ci.yml
+  # declares `permissions: contents: read, actions: read`. A CALLED workflow's
+  # permissions may never exceed its CALLER's. This block granted `contents`
+  # only, so the `actions: read` that ci.yml needs -- for
+  # checker/deferred-closure.sh to read the previous run's log archive -- was
+  # not grantable, and the whole run was refused at parse time.
+  #
+  # This would have failed silently every Monday at 06:00 UTC. It was never
+  # noticed because a scheduled workflow that never starts produces no failure
+  # notification and no red tick on any commit -- it simply does not appear.
+  actions: read
 
 concurrency:
   group: verify

@@ -102,6 +102,28 @@ count_token () {   # count_token <token> -> number of FILES with a real occurren
 SORRY=$(count_token sorry)
 NATIVE=$(count_token native_decide)
 
+# --- expose the counter, so nobody has to rewrite it -------------------------
+# `--count <token>` prints ONE number and exits. It exists because
+# .github/workflows/ads-manager.yml had reimplemented this with
+#     grep -rc 'sorry' lean/Proofs/*.lean | awk ...
+# and that naive counter reported sorry=3 on a corpus with ZERO real holes --
+# a doc comment, a line of prose, and the THEOREM NAME `sorry_always_speaks`.
+# The next step in that job refuses to advertise when sorry != 0, so the job
+# would have failed for being CLEAN. Exactly the failure documented 40 lines
+# above, reintroduced in a second place because the fix lived in a function
+# nobody outside this file could call.
+#
+# One counter, one selftest, two callers. Adding a third caller must not mean
+# writing the awk a third time.
+if [ "${1:-}" = "--count" ]; then
+  case "${2:-}" in
+    sorry)         printf '%s\n' "$SORRY" ;;
+    native_decide) printf '%s\n' "$NATIVE" ;;
+    *) echo "usage: $0 --count sorry|native_decide" >&2; exit 2 ;;
+  esac
+  exit 0
+fi
+
 cat <<EOF
 | field | value |
 |---|---|

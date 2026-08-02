@@ -587,6 +587,169 @@ else
 fi
 rm -rf "$SCTL"
 
+# =============================================================================
+# R19 -- A CALLER MUST GRANT EVERY PERMISSION THE WORKFLOW IT CALLS REQUESTS.
+#
+# Both rules below exist because this linter scored 90 passed / 0 failed while
+# TWO scheduled workflows were broken. It was measuring the wrong things
+# confidently, which is the failure mode this repository is built to refuse.
+#
+# MEASURED 2026-08-02: verify.yml had NEVER run. Dispatched by hand it returned
+# `startup_failure` -- no jobs, no logs, no check run, nothing to read. Its
+# `gates` job calls ci.yml, ci.yml declares `permissions: contents: read,
+# actions: read`, and verify.yml granted `contents` only. A called workflow's
+# permissions may never exceed its caller's, so the run was refused at parse
+# time, every Monday, invisibly.
+#
+# INVISIBLY is the important word: a scheduled run that never starts produces
+# no notification and no red tick anywhere. Only asking for it by hand found it.
+# =============================================================================
+echo
+echo "-- a caller grants every permission its called workflow requests (R19) --"
+
+perms_of () {   # perms_of <file> -> "key:value" lines from the TOP-LEVEL permissions block
+  awk '
+    /^permissions:[[:space:]]*$/ { inp = 1; next }
+    inp && /^[^[:space:]#]/      { inp = 0 }
+    inp && /^[[:space:]]+[a-z-]+:[[:space:]]*[a-z-]+/ {
+      line = $0
+      sub(/#.*$/, "", line)
+      gsub(/[[:space:]]/, "", line)
+      if (line != "") print line
+    }
+  ' "$1"
+}
+
+r19_bad=0
+for caller in .github/workflows/*.yml; do
+  # Find every local reusable workflow this file calls.
+  callees=$(sed 's/#.*$//' "$caller" \
+            | sed -n 's|^[[:space:]]*uses:[[:space:]]*\./\(\.github/workflows/[A-Za-z0-9_.-]*\.yml\).*|\1|p' \
+            | sort -u)
+  [ -n "$callees" ] || continue
+  for callee in $callees; do
+    if [ ! -f "$callee" ]; then
+      bad "R19: $(basename "$caller") calls $callee, which does not exist"
+      r19_bad=1
+      continue
+    fi
+    # The callee must be callable at all.
+    # NO `| grep -q`. checker/portability.sh forbids that shape repo-wide --
+    # grep -q exits early, SIGPIPEs the writer, and under `set -o pipefail` the
+    # status then depends on the platform's pipe buffer. I wrote this rule
+    # violating it and the repo's own gate went red on me, which is the gate
+    # working. Capture, then match.
+    callee_src=$(sed 's/#.*$//' "$callee")
+    case "$callee_src" in
+      *workflow_call*) : ;;
+      *) bad "R19: $(basename "$caller") calls $(basename "$callee"), which lacks 'workflow_call'"
+         r19_bad=1 ;;
+    esac
+    caller_perms=$(perms_of "$caller")
+    for want in $(perms_of "$callee"); do
+      key="${want%%:*}"
+      case "
+$caller_perms" in
+        *"
+$key:"*) granted=1 ;;
+        *) granted=0 ;;
+      esac
+      if [ "$granted" -eq 0 ]; then
+        bad "R19: $(basename "$callee") requests '$key' but $(basename "$caller") never grants it -- the run is refused at STARTUP, with no log"
+        r19_bad=1
+      fi
+    done
+  done
+done
+[ "$r19_bad" -eq 0 ] && ok "every reusable-workflow caller grants what its callee requests"
+
+# CONTROL: the rule must be able to fire. Planted in a scratch pair, not in the
+# real tree -- a control that edits the files it is checking cannot be trusted.
+RCTL="$(mktemp -d "${TMPDIR:-/tmp}/rotmoe-r19.XXXXXX")"
+mkdir -p "$RCTL/.github/workflows"
+printf 'name: callee\non:\n  workflow_call:\npermissions:\n  contents: read\n  actions: read\njobs:\n  a:\n    runs-on: ubuntu-latest\n' > "$RCTL/.github/workflows/callee.yml"
+printf 'name: caller\non:\n  workflow_dispatch:\npermissions:\n  contents: write\njobs:\n  g:\n    uses: ./.github/workflows/callee.yml\n' > "$RCTL/.github/workflows/caller.yml"
+missing=0
+for want in $(perms_of "$RCTL/.github/workflows/callee.yml"); do
+  key="${want%%:*}"
+  cp_=$(perms_of "$RCTL/.github/workflows/caller.yml")
+  case "
+$cp_" in *"
+$key:"*) : ;; *) missing=1 ;; esac
+done
+if [ "$missing" -eq 1 ]; then
+  ok "CONTROL: a caller missing 'actions' IS detected (the exact verify.yml defect)"
+else
+  bad "CONTROL DEAD: the R19 detector cannot see a missing permission"
+fi
+# And the repaired shape must NOT be flagged, or the rule would forbid a
+# correct future rather than a broken one.
+printf 'name: caller\non:\n  workflow_dispatch:\npermissions:\n  contents: write\n  actions: read\njobs:\n  g:\n    uses: ./.github/workflows/callee.yml\n' > "$RCTL/.github/workflows/caller.yml"
+missing=0
+for want in $(perms_of "$RCTL/.github/workflows/callee.yml"); do
+  key="${want%%:*}"
+  cp_=$(perms_of "$RCTL/.github/workflows/caller.yml")
+  case "
+$cp_" in *"
+$key:"*) : ;; *) missing=1 ;; esac
+done
+[ "$missing" -eq 0 ] && ok "CONTROL: the repaired caller is NOT flagged" \
+                     || bad "CONTROL: the rule flags a CORRECT caller -- it would block a valid fix"
+rm -rf "$RCTL"
+
+# =============================================================================
+# R20 -- `grep -c` INSIDE A PIPELINE UNDER `pipefail` KILLS THE STEP WHEN THE
+#        REPOSITORY IS CLEAN.
+#
+# MEASURED the same day, in ads-manager.yml, which had also never run:
+#     set -euo pipefail
+#     NATIVE=$(grep -rc 'native_decide' lean/Proofs/*.lean | awk '...')
+# `grep -c` prints its zero counts AND EXITS 1 when nothing matched. pipefail
+# propagates that, `set -e` kills the step. It failed BECAUSE the corpus has no
+# native_decide -- and would have passed the moment someone added one.
+#
+# An alarm that fires on correctness and falls silent on the defect is worse
+# than no alarm at all.
+# =============================================================================
+echo
+echo "-- no 'grep -c' piped under pipefail without a status rescue (R20) --"
+r20_bad=0
+for wf in .github/workflows/*.yml; do
+  wf_src=$(sed 's/#.*$//' "$wf")
+  case "$wf_src" in *pipefail*) : ;; *) continue ;; esac
+  while IFS= read -r hit; do
+    # A heredoc ALWAYS delivers one line, so an empty command substitution
+    # arrives as a single empty string. Without this guard the rule reported a
+    # violation for every workflow that had none -- flagged three clean files on
+    # its first run, with a blank line number and blank text as the evidence.
+    [ -n "$hit" ] || continue
+    ln="${hit%%:*}"; txt="${hit#*:}"
+    case "$txt" in
+      *"|| true"*|*"|| echo"*|*"|| :"*) : ;;   # status explicitly rescued
+      *) bad "R20: $(basename "$wf"):$ln  grep -c pipes under pipefail with no rescue -- fails when nothing matches: $(printf '%s' "$txt" | sed 's/^[[:space:]]*//' | cut -c1-70)"
+         r20_bad=1 ;;
+    esac
+  done <<EOF
+$(sed 's/#.*$//' "$wf" | grep -nE 'grep -[A-Za-z]*c[A-Za-z]* [^|]*\|')
+EOF
+done
+[ "$r20_bad" -eq 0 ] && ok "no unrescued 'grep -c' pipeline in any workflow that sets pipefail"
+
+# CONTROL: both directions, on planted text.
+probe_r20 () {   # probe_r20 <line> -> "FLAG" | "CLEAN"
+  case "$1" in
+    *"|| true"*|*"|| echo"*|*"|| :"*) echo CLEAN ;;
+    *grep\ -*c*\|*) echo FLAG ;;
+    *) echo CLEAN ;;
+  esac
+}
+[ "$(probe_r20 "N=\$(grep -rc 'x' f | awk '{s+=\$2}')")" = "FLAG" ] \
+  && ok "CONTROL: an unrescued grep -c pipeline IS flagged (the ads-manager.yml defect)" \
+  || bad "CONTROL DEAD: the R20 detector cannot see an unrescued grep -c"
+[ "$(probe_r20 "N=\$(grep -rc 'x' f | awk '{s+=\$2}' || true)")" = "CLEAN" ] \
+  && ok "CONTROL: the rescued form is NOT flagged" \
+  || bad "CONTROL: the rule flags the CORRECT form -- it would block the fix"
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

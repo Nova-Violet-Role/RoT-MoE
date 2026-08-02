@@ -586,12 +586,12 @@
       ]
     },
     "status-verdict.sh": {
-      "hash": "633b42aa5489",
-      "indexed_at": "2026-08-01T01:04:17.270367+00:00",
+      "hash": "2c3eb9cf7b92",
+      "indexed_at": "2026-08-02T07:49:36.220408+00:00",
       "language": "shell",
-      "lines": 115,
-      "mtime_ns": 1785544595722115100,
-      "size": 4794,
+      "lines": 137,
+      "mtime_ns": 1785654536099758700,
+      "size": 5825,
       "symbols": [
         {
           "docstring": "`sorry` and `native_decide` are COUNTED, not asserted. A line saying \"none\" that nothing recounts is the kind of claim this repository exists to refus",
@@ -711,12 +711,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "c9cb6e988931",
-      "indexed_at": "2026-08-02T05:05:29.908703+00:00",
+      "hash": "1565bd5aba3a",
+      "indexed_at": "2026-08-02T07:49:36.397861+00:00",
       "language": "shell",
-      "lines": 593,
-      "mtime_ns": 1785645897666862400,
-      "size": 29966,
+      "lines": 756,
+      "mtime_ns": 1785656410609215000,
+      "size": 37406,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -778,10 +778,27 @@
           ],
           "name": "setup_verdict",
           "type": "function"
+        },
+        {
+          "lines": [
+            610,
+            621
+          ],
+          "name": "perms_of",
+          "type": "function"
+        },
+        {
+          "docstring": "CONTROL: both directions, on planted text.",
+          "lines": [
+            739,
+            745
+          ],
+          "name": "probe_r20",
+          "type": "function"
         }
       ]
     }
   },
-  "generated_at": "2026-08-02T07:02:50.936345+00:00",
+  "generated_at": "2026-08-02T07:49:36.397958+00:00",
   "version": "1.0"
 }

@@ -2,12 +2,12 @@
   "directory": ".github\\workflows",
   "files": {
     "ads-manager.yml": {
-      "hash": "7c3c5469ea59",
-      "indexed_at": "2026-08-01T07:24:16.739333+00:00",
+      "hash": "f8b97310a2f2",
+      "indexed_at": "2026-08-02T07:49:35.863005+00:00",
       "language": "yaml",
-      "lines": 167,
-      "mtime_ns": 1785568088955933100,
-      "size": 7971,
+      "lines": 196,
+      "mtime_ns": 1785654557011758500,
+      "size": 9813,
       "symbols": [
         {
           "docstring": "Ads Manager",
@@ -147,7 +147,7 @@
                     {
                       "lines": [
                         49,
-                        75
+                        104
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -155,16 +155,16 @@
                     {
                       "docstring": "Refuse to advertise an unproved repo",
                       "lines": [
-                        76,
-                        76
+                        105,
+                        105
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        77,
-                        85
+                        106,
+                        114
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -172,16 +172,16 @@
                     {
                       "docstring": "Require a STATUS.md from a real verify run",
                       "lines": [
-                        86,
-                        86
+                        115,
+                        115
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        87,
-                        94
+                        116,
+                        123
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -189,16 +189,16 @@
                     {
                       "docstring": "Write PROMO.md from measured numbers only",
                       "lines": [
-                        95,
-                        95
+                        124,
+                        124
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        96,
-                        125
+                        125,
+                        154
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -206,16 +206,16 @@
                     {
                       "docstring": "Audit README claims against ground truth",
                       "lines": [
-                        126,
-                        126
+                        155,
+                        155
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        127,
-                        140
+                        156,
+                        169
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -223,16 +223,16 @@
                     {
                       "docstring": "Audit negative control",
                       "lines": [
-                        141,
-                        141
+                        170,
+                        170
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        142,
-                        155
+                        171,
+                        184
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -240,16 +240,16 @@
                     {
                       "docstring": "Fail if PROMO.md has drifted (never commit it)",
                       "lines": [
-                        156,
-                        156
+                        185,
+                        185
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        157,
-                        168
+                        186,
+                        197
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -257,7 +257,7 @@
                   ],
                   "lines": [
                     42,
-                    168
+                    197
                   ],
                   "name": "steps",
                   "type": "list"
@@ -265,7 +265,7 @@
               ],
               "lines": [
                 40,
-                168
+                197
               ],
               "name": "copy",
               "type": "section"
@@ -273,7 +273,7 @@
           ],
           "lines": [
             39,
-            168
+            197
           ],
           "name": "jobs",
           "type": "section"
@@ -2006,12 +2006,12 @@
       ]
     },
     "verify.yml": {
-      "hash": "557d037cc23a",
-      "indexed_at": "2026-08-01T07:24:17.063266+00:00",
+      "hash": "417687236a51",
+      "indexed_at": "2026-08-02T07:49:36.041746+00:00",
       "language": "yaml",
-      "lines": 169,
-      "mtime_ns": 1785568049138161400,
-      "size": 7752,
+      "lines": 186,
+      "mtime_ns": 1785656462640215600,
+      "size": 8745,
       "symbols": [
         {
           "docstring": "verify",
@@ -2065,15 +2065,24 @@
               "docstring": "write        # only to commit STATUS.md when the verdict CHANGES",
               "lines": [
                 39,
-                40
+                55
               ],
               "name": "contents",
+              "type": "key"
+            },
+            {
+              "docstring": "read",
+              "lines": [
+                56,
+                57
+              ],
+              "name": "actions",
               "type": "key"
             }
           ],
           "lines": [
             38,
-            40
+            57
           ],
           "name": "permissions",
           "type": "section"
@@ -2083,8 +2092,8 @@
             {
               "docstring": "verify",
               "lines": [
-                42,
-                42
+                59,
+                59
               ],
               "name": "group",
               "type": "key"
@@ -2092,16 +2101,16 @@
             {
               "docstring": "false",
               "lines": [
-                43,
-                44
+                60,
+                61
               ],
               "name": "cancel-in-progress",
               "type": "key"
             }
           ],
           "lines": [
-            41,
-            44
+            58,
+            61
           ],
           "name": "concurrency",
           "type": "section"
@@ -2113,16 +2122,16 @@
                 {
                   "docstring": "./.github/workflows/ci.yml",
                   "lines": [
-                    48,
-                    49
+                    65,
+                    66
                   ],
                   "name": "uses",
                   "type": "key"
                 }
               ],
               "lines": [
-                47,
-                49
+                64,
+                66
               ],
               "name": "gates",
               "type": "section"
@@ -2132,8 +2141,8 @@
                 {
                   "docstring": "publish the verdict",
                   "lines": [
-                    51,
-                    51
+                    68,
+                    68
                   ],
                   "name": "name",
                   "type": "key"
@@ -2141,8 +2150,8 @@
                 {
                   "docstring": "gates",
                   "lines": [
-                    52,
-                    52
+                    69,
+                    69
                   ],
                   "name": "needs",
                   "type": "key"
@@ -2150,8 +2159,8 @@
                 {
                   "docstring": "ubuntu-latest",
                   "lines": [
-                    53,
-                    53
+                    70,
+                    70
                   ],
                   "name": "runs-on",
                   "type": "key"
@@ -2161,8 +2170,8 @@
                     {
                       "docstring": "actions/checkout@v7",
                       "lines": [
-                        55,
-                        63
+                        72,
+                        80
                       ],
                       "name": "uses",
                       "type": "item"
@@ -2170,16 +2179,16 @@
                     {
                       "docstring": "Generate the verdict (measurements only -- no clock, no SHA)",
                       "lines": [
-                        64,
-                        64
+                        81,
+                        81
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        65,
-                        69
+                        82,
+                        86
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2187,8 +2196,8 @@
                     {
                       "docstring": "Decide whether the VERDICT changed, not whether time passed",
                       "lines": [
-                        70,
-                        70
+                        87,
+                        87
                       ],
                       "name": "name",
                       "type": "item"
@@ -2196,16 +2205,16 @@
                     {
                       "docstring": "decide",
                       "lines": [
-                        71,
-                        71
+                        88,
+                        88
                       ],
                       "name": "id",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        72,
-                        98
+                        89,
+                        115
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2213,8 +2222,8 @@
                     {
                       "docstring": "Write STATUS.md (only when the verdict changed)",
                       "lines": [
-                        99,
-                        99
+                        116,
+                        116
                       ],
                       "name": "name",
                       "type": "item"
@@ -2222,16 +2231,16 @@
                     {
                       "docstring": "steps.decide.outputs.changed == 'yes'",
                       "lines": [
-                        100,
-                        100
+                        117,
+                        117
                       ],
                       "name": "if",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        101,
-                        147
+                        118,
+                        164
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2239,8 +2248,8 @@
                     {
                       "docstring": "Publish the verdict, and FAIL if the committed one is stale",
                       "lines": [
-                        148,
-                        148
+                        165,
+                        165
                       ],
                       "name": "name",
                       "type": "item"
@@ -2248,40 +2257,40 @@
                     {
                       "docstring": "steps.decide.outputs.changed == 'yes'",
                       "lines": [
-                        149,
-                        149
+                        166,
+                        166
                       ],
                       "name": "if",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        150,
-                        170
+                        167,
+                        187
                       ],
                       "name": "run",
                       "type": "multiline"
                     }
                   ],
                   "lines": [
-                    54,
-                    170
+                    71,
+                    187
                   ],
                   "name": "steps",
                   "type": "list"
                 }
               ],
               "lines": [
-                50,
-                170
+                67,
+                187
               ],
               "name": "publish",
               "type": "section"
             }
           ],
           "lines": [
-            45,
-            170
+            62,
+            187
           ],
           "name": "jobs",
           "type": "section"
@@ -2289,6 +2298,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T07:02:50.747043+00:00",
+  "generated_at": "2026-08-02T07:49:36.041848+00:00",
   "version": "1.0"
 }
