@@ -189,9 +189,35 @@ jobs:
         run: |
           set -euo pipefail
           fail=0
-          claimed=$(grep -oE '[0-9]+ theorems' README.md | head -1 | grep -oE '[0-9]+' || true)
-          if [ -n "$claimed" ] && [ "$claimed" -ne "${{ steps.gt.outputs.thms }}" ]; then
-            echo "::error::README claims $claimed theorems; sources have ${{ steps.gt.outputs.thms }}"
+          # WAS: take the FIRST '<n> theorems' match in README.md and compare it to the repo
+          # TOTAL. That is a scope error, and it fired on a correct README: the first match is
+          # `lean/Proofs/RotGauge.lean` (35 theorems) -- a PER-MODULE count -- which was then
+          # compared against the 139 total. Measured: run 30742048586.
+          #
+          # The README was right and the audit was wrong. Deleting the check was the tempting
+          # repair; instead it is now strictly STRONGER -- every per-module claim is recounted
+          # from its own file, so drift in ANY module line fails, not just the first one, and
+          # no scope confusion is possible. The total is then checked as the SUM, which is the
+          # relationship that actually has to hold rather than a snapshot of one number.
+          sum=0
+          while IFS= read -r line; do
+            f=$(printf '%s' "$line" | sed -n 's|.*`lean/Proofs/\([A-Za-z0-9_]*\.lean\)`.*|\1|p')
+            n=$(printf '%s' "$line" | sed -n 's|.*(\([0-9]\{1,\}\) theorems.*|\1|p')
+            [ -n "$f" ] && [ -n "$n" ] || continue
+            if [ ! -f "lean/Proofs/$f" ]; then
+              echo "::error::README documents lean/Proofs/$f which does not exist"; fail=1; continue
+            fi
+            a=$(bash checker/count-theorems.sh "lean/Proofs/$f" 2>/dev/null || echo ERR)
+            if [ "$a" != "$n" ]; then
+              echo "::error::README says lean/Proofs/$f has $n theorems; it has $a"; fail=1
+            fi
+            sum=$((sum + n))
+          done < <(grep -nE '`lean/Proofs/[A-Za-z0-9_]*\.lean`.*\([0-9]+ theorems' README.md || true)
+          if [ "$sum" -eq 0 ]; then
+            echo "::error::no per-module theorem claims found in README -- the audit would be vacuous"
+            fail=1
+          elif [ "$sum" -ne "${{ steps.gt.outputs.thms }}" ]; then
+            echo "::error::README per-module claims sum to $sum; sources have ${{ steps.gt.outputs.thms }}"
             fail=1
           fi
           if grep -qiE 'proves.*(quality|better reasoning|smarter)' README.md; then
