@@ -383,6 +383,56 @@ for f in checker/*.sh hooks/*.sh .githooks/* *.sh; do
 done
 [ "$b4_hits" -eq 0 ] && ok "no bash-4-only construct in any shipped script ($(ls checker/*.sh hooks/*.sh 2>/dev/null | wc -l | tr -d ' ') files scanned)"
 
+# ---------------------------------------------------------------------------
+echo
+echo "== 6. no GNU-only \\| alternation inside sed (BSD sed ignores it) =="
+# ---------------------------------------------------------------------------
+# MEASURED on macos-latest, run #20: TWO gates failed, and both blamed the wrong
+# file.
+#
+#   checker/repo-complete.sh -> "checker/repo-complete.sh invokes a Python
+#       interpreter". It does not. Its strip line used
+#       sed 's/...\(say\|echo\|printf\|ok\|bad\).*$//', BSD sed left the text
+#       untouched, and the control's OWN message -- "(python3 -c, | python -,
+#       $(uv run), py -3)" -- was then read as an invocation.
+#
+#   checker/workflow-lint.sh -> "SETUP_LEAN.sh defects: USES_SUDO". It uses no
+#       sudo. The surviving line was say "This installer never asks for sudo".
+#       The gate failed on the sentence promising the opposite.
+#
+# `\|` inside a Basic Regular Expression is a GNU EXTENSION. GNU sed honours it;
+# BSD sed (macOS) treats \| as a literal pipe, so the substitution matches
+# nothing and silently does NOTHING. That is the dangerous half: a strip that
+# fails OPEN leaves more text than intended, and every detector downstream then
+# fires on prose it was supposed to have removed. Ubuntu is green, macOS is red,
+# and the error message points at the file being read rather than the reader.
+#
+# THE FIX IS ONE FLAG: `sed -E` takes an ERE, where (a|b) is standard and both
+# BSD and GNU agree. There is no portability argument for the BRE form.
+#
+# DELIBERATELY NOT FLAGGED: `grep` with \| . Measured in the same run --
+# checker/hook-footprint.sh:92 and checker/license-bridge.sh:71 both depend on
+# BRE alternation in grep and both PASSED on macOS, so BSD grep does accept it.
+# Banning grep here would be a rule invented from doctrine rather than from a
+# failure, and it would flag working code. sed and grep differ; the scan says
+# only what was measured.
+sed_hits=0
+for f in checker/*.sh hooks/*.sh .githooks/* *.sh; do
+  [ -f "$f" ] || continue
+  case "$f" in */portability.sh) continue ;; esac   # this file quotes the form
+  # A line is a hit when it invokes sed WITHOUT -E/-r and still carries \| .
+  h=$(sed 's/#.*$//' "$f" \
+      | grep -n 'sed' \
+      | grep -F '\|' \
+      | grep -vE 'sed[[:space:]]+-[A-Za-z]*[Er]' || true)
+  if [ -n "$h" ]; then
+    bad "$f uses \\| inside a BRE sed -- BSD sed ignores it, the strip fails OPEN:"
+    printf '%s\n' "$h" | sed 's/^/        /' | head -4
+    sed_hits=$((sed_hits+1))
+  fi
+done
+[ "$sed_hits" -eq 0 ] && ok "no sed uses GNU-only \\| alternation (use sed -E with (a|b))"
+
 # --- controls ---------------------------------------------------------------
 # Three separate constructs, because one regex alternative passing says nothing
 # about the other two -- and each of the three is a defect that has really
@@ -410,6 +460,31 @@ else
   bad "CONTROL: declare -a was flagged; the rule is too broad and would ban portable code"
 fi
 rm -f "$ctl4"
+
+# --- controls for phase 6 ----------------------------------------------------
+# The scan must FIRE on the exact form that broke macOS, and must NOT fire on
+# the portable replacement -- otherwise the "fix" would still be flagged and the
+# rule would push people back to the broken form.
+s6_scan () {   # same expression as the sweep; a control that tests a different
+               # pipeline from the one it vouches for is not a control.
+  sed 's/#.*$//' "$1" | grep -n 'sed' | grep -F '\|' \
+    | grep -vE 'sed[[:space:]]+-[A-Za-z]*[Er]' || true
+}
+ctl5="$(mktemp "${TMPDIR:-/tmp}/rotmoe-s6a.XXXXXX")"
+printf '#!/bin/sh\nsed %s s/x/y/ f\n' "'" > "$ctl5"
+printf '#!/bin/sh\nsed "s/\\(say\\|echo\\).*$//" f\n' > "$ctl5"
+if [ -n "$(s6_scan "$ctl5")" ]; then
+  ok "CONTROL: a planted BRE sed with \\| IS flagged"
+else
+  bad "CONTROL DEAD: the phase-6 scan cannot see the exact form that broke macOS"
+fi
+printf '#!/bin/sh\nsed -E "s/(say|echo).*$//" f\n' > "$ctl5"
+if [ -z "$(s6_scan "$ctl5")" ]; then
+  ok "CONTROL: the portable sed -E form is NOT flagged -- the fix stays green"
+else
+  bad "CONTROL: sed -E was flagged; the rule would reject its own remedy"
+fi
+rm -f "$ctl5"
 
 printf '\n== portability: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

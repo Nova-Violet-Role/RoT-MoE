@@ -111,6 +111,33 @@ jobs:
       # install-roundtrip.sh above proves the installer works IN THE REPOSITORY.
       # This proves it works the way a stranger meets it: unzipped somewhere with
       # no git, no checker/, no lean/ beside it.
+      # MEASURED on windows-latest, run #20: `REFUSE: zip absent`, exit 2. The
+      # Windows runner's Git Bash ships `unzip` but NOT `zip`. My own Git Bash
+      # has zip installed, which is exactly why this never appeared locally --
+      # a tool present on the development machine and absent on the runner is
+      # invisible until the runner says so.
+      #
+      # The alternative was to skip packaging on Windows. Rejected: that would
+      # also drop release-install.sh, which needs the archives and is the ONE
+      # test that exercises the installer on the platform where path handling,
+      # CRLF and the PowerShell arm actually differ. Provisioning one tool costs
+      # less than losing that coverage.
+      - name: provide zip on the Windows runner (Git Bash ships unzip only)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (Get-Command zip -ErrorAction SilentlyContinue) {
+            "zip already present"
+          } else {
+            choco install zip -y --no-progress
+          }
+          # Fail loudly here rather than as a REFUSE three steps later.
+          if (-not (Get-Command zip -ErrorAction SilentlyContinue)) {
+            Write-Error "zip is still absent after install -- packaging cannot run"
+            exit 1
+          }
+          zip -v | Select-Object -First 2
+
       - name: release artifacts build, and assert their own contents
         shell: bash
         run: bash checker/release-package.sh
@@ -222,32 +249,26 @@ jobs:
           [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
           exit $rc
 
-      # The variant matrix in a REAL session. live-session-smoke above proves the
-      # repository packet fires once; this proves all three SHIPPED ARCHIVES fire
-      # on every lane -- a different artifact and a different question. It needs
-      # the zips, so it runs after the packager, and it needs API credentials, so
-      # it SKIPS (3) rather than failing on a runner that has none.
-      - name: release session (every variant, every lane, real CLI)
-        shell: bash
-        run: |
-          set +e
-          bash checker/release-package.sh || { echo "packaging failed -- cannot session-test"; exit 1; }
-          bash checker/release-session.sh; rc=$?
-          [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
-          exit $rc
-
-      # The sustained conversation. Needs a CLONED CREDENTIAL to hold a real
-      # session, which a public runner does not have -- so it SKIPS (3) there
-      # rather than passing. That is deliberate: the gate above proves routing
-      # without auth, this one proves CONVERSATION and can only run where a
-      # credential exists. A skip is never counted as a pass.
-      - name: sustained session (cloned auth, real conversation)
-        shell: bash
-        run: |
-          set +e
-          bash checker/release-longsession.sh; rc=$?
-          [ "$rc" -eq 3 ] && { echo "SKIPPED: no CLI or no credential to clone -- NOT a pass"; exit 0; }
-          exit $rc
+      # DELIBERATELY NOT RUN HERE: checker/release-session.sh and
+      # checker/release-longsession.sh.
+      #
+      # I added both as workflow steps and then removed them, because a step that
+      # can NEVER do its job still paints a green check. Both need the `claude`
+      # CLI, and the sustained one additionally needs a credential to clone. A
+      # public GitHub runner has neither and never will, so both would report
+      # "SKIPPED" on every run for the life of the repository -- a permanent
+      # green tick measuring nothing. The exit-3 convention is honest inside the
+      # gate; it is NOT honest as a CI step that is guaranteed to take it.
+      #
+      # They are --full gates in checker/gate-all.sh, which runs where a real
+      # session is possible. That is the only place their green means anything,
+      # and their results are reported by hand with the turn counts.
+      #
+      # SAME PROPERTY, PRE-EXISTING, RECORDED RATHER THAN HIDDEN: the
+      # "plugin + fresh-user install" and "live-session smoke" steps above also
+      # skip on every public runner for the same reason. They are left as they
+      # were -- changing them is a separate decision -- but nobody should read
+      # their green as evidence that a session ran.
 
       # The guard the development machine cannot test. `script` allocates a real
       # pty, so stdin IS a terminal and the router must refuse rather than block.

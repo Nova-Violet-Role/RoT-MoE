@@ -330,13 +330,23 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "61b21df60e99",
-      "indexed_at": "2026-08-01T07:44:41.014488+00:00",
+      "hash": "1d2ae48faf69",
+      "indexed_at": "2026-08-02T05:05:29.344410+00:00",
       "language": "shell",
-      "lines": 416,
-      "mtime_ns": 1785569397430466400,
-      "size": 21579,
-      "symbols": []
+      "lines": 491,
+      "mtime_ns": 1785645955570861200,
+      "size": 25374,
+      "symbols": [
+        {
+          "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
+          "lines": [
+            468,
+            472
+          ],
+          "name": "s6_scan",
+          "type": "function"
+        }
+      ]
     },
     "preflight.sh": {
       "hash": "4883f9ba4d77",
@@ -403,17 +413,17 @@
       ]
     },
     "release-package.sh": {
-      "hash": "f4383e562174",
-      "indexed_at": "2026-08-01T20:02:15.106587+00:00",
+      "hash": "eeb217090446",
+      "indexed_at": "2026-08-02T04:40:20.713312+00:00",
       "language": "shell",
-      "lines": 333,
-      "mtime_ns": 1785612381515337300,
-      "size": 14632,
+      "lines": 361,
+      "mtime_ns": 1785645054062268000,
+      "size": 15876,
       "symbols": [
         {
           "lines": [
-            118,
-            124
+            119,
+            125
           ],
           "name": "paths_for",
           "type": "function"
@@ -421,8 +431,8 @@
         {
           "docstring": "--- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ---------------------- The property that makes the numbering mean something. Checked by set dif",
           "lines": [
-            225,
-            233
+            226,
+            234
           ],
           "name": "superset",
           "type": "function"
@@ -465,12 +475,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "cadd7b94b23e",
-      "indexed_at": "2026-08-01T18:40:24.471699+00:00",
+      "hash": "04629b3d0de5",
+      "indexed_at": "2026-08-02T05:05:29.722904+00:00",
       "language": "shell",
-      "lines": 434,
-      "mtime_ns": 1785608760039511600,
-      "size": 21650,
+      "lines": 441,
+      "mtime_ns": 1785645889921862500,
+      "size": 22153,
       "symbols": [
         {
           "lines": [
@@ -499,8 +509,8 @@
         },
         {
           "lines": [
-            391,
-            398
+            398,
+            405
           ],
           "name": "detects",
           "type": "function"
@@ -652,12 +662,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "c4aff6433377",
-      "indexed_at": "2026-08-01T12:13:38.170105+00:00",
+      "hash": "c9cb6e988931",
+      "indexed_at": "2026-08-02T05:05:29.908703+00:00",
       "language": "shell",
-      "lines": 589,
-      "mtime_ns": 1785585242062077300,
-      "size": 29659,
+      "lines": 593,
+      "mtime_ns": 1785645897666862400,
+      "size": 29966,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -715,7 +725,7 @@
         {
           "lines": [
             530,
-            550
+            554
           ],
           "name": "setup_verdict",
           "type": "function"
@@ -723,6 +733,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T21:53:10.608104+00:00",
+  "generated_at": "2026-08-02T05:05:29.908797+00:00",
   "version": "1.0"
 }

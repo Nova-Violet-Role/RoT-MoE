@@ -542,7 +542,11 @@ setup_verdict () {   # setup_verdict <file> -> prints defects, empty = clean
   # -- "This installer never asks for sudo" -- and flagging that is the same
   # class of false positive as flagging `git push` inside an echo, which phase
   # 1c already handles this way. What must still be caught is sudo INVOKED.
-  sed 's/#.*$//' "$f" | sed 's/\(say\|echo\|printf\).*$//' | grep -qE '(^|[^[:alnum:]_])sudo ' && v="$v USES_SUDO"
+  # `sed -E`: \| alternation in a BRE is a GNU extension that BSD sed ignores.
+  # Measured on the macOS runner -- the strip did nothing, so SETUP_LEAN.sh's own
+  # reassurance, say "This installer never asks for sudo", was read as a sudo
+  # CALL and the gate failed on the sentence promising the opposite.
+  sed 's/#.*$//' "$f" | sed -E 's/(say|echo|printf).*$//' | grep -qE '(^|[^[:alnum:]_])sudo ' && v="$v USES_SUDO"
   # The toolchain must be PINNED. A floating "latest" makes the proofs
   # unreproducible and would silently move under the reader.
   grep -q 'lean-toolchain' "$f" || v="$v NOT_PINNED"

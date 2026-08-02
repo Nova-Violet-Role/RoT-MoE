@@ -372,7 +372,14 @@ for f in $(git ls-files '*.sh' '*.ps1' '*.js' '*.yml' '*.yaml'); do
   # status then depends on the platform's pipe buffer. A `case` glob cannot
   # replace it here -- these two patterns are extended regexes -- so the text
   # goes through a temp file instead.
-  sed 's/#.*$//; s/\/\/.*$//; s/\(say\|echo\|printf\|Write-Output\|note\|ok\|bad\).*$//' "$f" > "$PYTMP"
+  # `sed -E`, NOT a BRE with \( \| \). Measured on the macOS runner: `\|`
+  # alternation inside a BRE is a GNU EXTENSION. BSD sed treats it literally, so
+  # the strip silently does NOTHING and line 407 below -- the control's own
+  # message, "(python3 -c, | python -, $(uv run), py -3)" -- survives and trips
+  # the detector that it exists to describe. Ubuntu passed, macOS failed, and
+  # the checker blamed the file it was reading.
+  # -E is accepted by both BSD and GNU sed, so the alternation is portable.
+  sed -E 's/#.*$//; s/\/\/.*$//; s/(say|echo|printf|Write-Output|note|ok|bad).*$//' "$f" > "$PYTMP"
   if grep -qE "$PYCMD" "$PYTMP" || grep -qE "$PYLAUNCH" "$PYTMP"; then
     bad "$f invokes a Python interpreter"
     py_call=$((py_call+1))
@@ -391,7 +398,7 @@ fi
 detects () {   # $1 = file. Same two expressions, and the same temp-file shape,
                # as the sweep above -- a control that tests a DIFFERENT pipeline
                # from the one it is vouching for is not a control.
-  sed 's/#.*$//; s/\/\/.*$//; s/\(say\|echo\|printf\|Write-Output\|note\|ok\|bad\).*$//' "$1" > "$PYTMP"
+  sed -E 's/#.*$//; s/\/\/.*$//; s/(say|echo|printf|Write-Output|note|ok|bad).*$//' "$1" > "$PYTMP"
   grep -qE "$PYCMD" "$PYTMP" && return 0
   grep -qE "$PYLAUNCH" "$PYTMP" && return 0
   return 1

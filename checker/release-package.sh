@@ -90,6 +90,7 @@ DISARM_ROUTER.sh
 DISARM_ROUTER.ps1
 README.md
 RELEASE.md
+CHANGELOG.md
 NOTICE.md
 LICENSE
 LICENSE-EUPL-1.2
@@ -273,6 +274,33 @@ else
   grep -qiF -- "no network" "$RMD" || { rmd=1; note "$RMD does not carry the no-network claim assertion 1 enforces"; }
   if [ "$rmd" -eq 0 ]; then ok "$RMD names all 3 assets and all 3 variant versions"
   else bad "$RMD has drifted from the artifacts -- move them in the same edit"; fi
+
+  # --- 7b. EVERY ARCHIVE CARRIES ITS OWN CHANGELOG ---------------------------
+  # Measured after the CHANGELOG was written: it shipped in NONE of the three
+  # archives, because CORE_PATHS never listed it. The core zip came back
+  # byte-identical to the pre-CHANGELOG build, which is the tell -- a new
+  # top-level document that changes no artifact was never packaged.
+  #
+  # The assertion is not "the file exists". It is that the SHIPPED copy names
+  # ALL THREE versions, so an archive can never carry a changelog that predates
+  # a variant it was built alongside.
+  cl=0
+  for vp in $VARIANTS; do
+    v="${vp%%:*}"; ver="${vp#*:}"; z="$OUT/rot-moe-$ver-$v.zip"
+    [ -s "$z" ] || continue
+    unzip -p "$z" CHANGELOG.md > "$OUT/.cl.$v" 2>/dev/null
+    if [ ! -s "$OUT/.cl.$v" ]; then
+      cl=1; note "rot-moe-$ver-$v.zip ships NO CHANGELOG.md"
+    else
+      for vp2 in $VARIANTS; do
+        grep -qF -- "${vp2#*:}" "$OUT/.cl.$v" \
+          || { cl=1; note "the CHANGELOG inside $v does not mention ${vp2#*:}"; }
+      done
+    fi
+    rm -f "$OUT/.cl.$v"
+  done
+  [ "$cl" -eq 0 ] && ok "every archive ships a CHANGELOG naming all 3 variant versions" \
+                  || bad "a shipped CHANGELOG is missing or stale"
 
   cz="$OUT/rot-moe-0.1.0-core.zip"
   if [ -s "$cz" ]; then
