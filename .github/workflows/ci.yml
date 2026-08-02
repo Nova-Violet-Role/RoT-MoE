@@ -177,7 +177,16 @@ jobs:
           # and report 124 on timeout exactly as GNU timeout does -- 124 is the value
           # checker/hook-footprint.sh looks for to detect a hang.
           d="$1"; shift
-          "$@" & p=$!
+          # STDIN MUST SURVIVE. bash redirects an asynchronous command's stdin from
+          # /dev/null when job control is off, so `"$@" &` silently starves anything
+          # that reads a prompt -- the router got nothing, produced no route, and the
+          # step burned the full bound before failing. Measured: run on 43b3368, macOS,
+          # four checks each taking exactly 60s. Saving fd 0 and feeding it back
+          # explicitly defeats that redirect.
+          # Verified locally: `echo hello | shim 5 cat` prints nothing without this
+          # line and prints hello with it, while 124/1/0 stay correct.
+          exec 3<&0
+          "$@" <&3 & p=$!
           ( sleep "$d"; kill -9 "$p" 2>/dev/null ) & w=$!
           # The braces+redirect suppress bash's own "Killed" job notice, which would
           # otherwise land in the stderr a caller captures. Measured locally: without
