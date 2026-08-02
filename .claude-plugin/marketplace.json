@@ -1,0 +1,31 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "rot-moe",
+  "description": "RoT MoE - a nine-lens Mixture-of-Experts router with a measured R/s+ divergence gauge, specified in Lean 4 and bound to the shipped hooks by an executable checker. 139 machine-checked theorems, zero sorry, kernel re-verified.",
+  "owner": {
+    "name": "Saimonokuma",
+    "url": "https://github.com/Nova-Violet-Role"
+  },
+  "plugins": [
+    {
+      "name": "rot-moe",
+      "source": "./",
+      "description": "Nine-lens MoE router for Claude Code. One UserPromptSubmit hook picks a lane from your prompt and prints one line before the turn; the model decides everything after that. No network, no API key, no Lean toolchain required. The routing table it uses is the one specified in Lean 4 and re-checked by the kernel.",
+      "author": {
+        "name": "Saimonokuma",
+        "url": "https://github.com/Nova-Violet-Role"
+      },
+      "homepage": "https://github.com/Nova-Violet-Role/RoT-MoE",
+      "category": "productivity",
+      "keywords": [
+        "mixture-of-experts",
+        "router",
+        "lean4",
+        "formal-verification",
+        "hooks",
+        "mutation-testing",
+        "theorem-proving"
+      ]
+    }
+  ]
+}

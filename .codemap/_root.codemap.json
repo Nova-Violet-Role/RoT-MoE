@@ -430,12 +430,12 @@
       ]
     },
     "README.md": {
-      "hash": "d80eac47fcc6",
-      "indexed_at": "2026-08-01T19:13:58.566542+00:00",
+      "hash": "4ef147a52a4e",
+      "indexed_at": "2026-08-02T07:02:51.121880+00:00",
       "language": "markdown",
-      "lines": 951,
-      "mtime_ns": 1785610401644614600,
-      "size": 55147,
+      "lines": 1022,
+      "mtime_ns": 1785653101420646600,
+      "size": 58221,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -516,10 +516,30 @@
         {
           "children": [
             {
+              "children": [
+                {
+                  "docstring": "**For `/plugin install`, there is only one answer, and that is the honest part: you get the router.** All three release variants carry the *same* plug",
+                  "lines": [
+                    390,
+                    442
+                  ],
+                  "name": "Which variant do I install?",
+                  "type": "subsubsection"
+                }
+              ],
+              "docstring": "The repository is its own marketplace, so Claude Code can fetch and wire it for you \u2014 no clone, no `ARM_ROUTER`, no editing your settings:",
+              "lines": [
+                369,
+                442
+              ],
+              "name": "The one-liner: `/plugin install`  \u2190 start here",
+              "type": "subsection"
+            },
+            {
               "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
               "lines": [
-                372,
-                379
+                443,
+                450
               ],
               "name": "\ud83d\udd27 Requirements",
               "type": "subsection"
@@ -527,8 +547,8 @@
             {
               "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
               "lines": [
-                380,
-                392
+                451,
+                463
               ],
               "name": "\u2699\ufe0f Configuration",
               "type": "subsection"
@@ -537,7 +557,7 @@
           "docstring": "**Look before you leap.** This installs a hook that runs on every prompt you submit and before every tool call, by editing `~/.claude/settings.json`.",
           "lines": [
             345,
-            392
+            463
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -547,8 +567,8 @@
             {
               "docstring": "`agents/lean4-prover.md` ships as a **subagent definition** with loadable frontmatter. Point Claude Code at it and you get a specialist whose entire p",
               "lines": [
-                395,
-                438
+                466,
+                509
               ],
               "name": "\ud83e\udd16 The agent: `lean4-prover`",
               "type": "subsection"
@@ -556,8 +576,8 @@
             {
               "docstring": "Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:",
               "lines": [
-                439,
-                457
+                510,
+                528
               ],
               "name": "\ud83d\udf0f The router \u2014 what it delivers",
               "type": "subsection"
@@ -565,16 +585,16 @@
             {
               "docstring": "This is the part worth reading twice.",
               "lines": [
-                458,
-                505
+                529,
+                576
               ],
               "name": "\ud83e\udde0 What Lean 4 actually changes in an agentic loop",
               "type": "subsection"
             }
           ],
           "lines": [
-            393,
-            505
+            464,
+            576
           ],
           "name": "\ud83d\udca1 Tips & Tricks \u2014 getting real work out of it",
           "type": "section"
@@ -584,8 +604,8 @@
             {
               "docstring": "The number is not a trick, it is an *architecture*. `hooks/rot-router.sh` is POSIX shell, and this is the whole of it:",
               "lines": [
-                531,
-                572
+                602,
+                643
               ],
               "name": "\u26a1 How the router answers in ~130 ms \u2014 and what makes it different",
               "type": "subsection"
@@ -593,8 +613,8 @@
             {
               "docstring": "This is the question worth asking, so it gets a straight answer instead of an enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the **",
               "lines": [
-                573,
-                624
+                644,
+                695
               ],
               "name": "\ud83d\udd2c Are the nine benchmarkable in Lean? Partly \u2014 and here is the exact line",
               "type": "subsection"
@@ -602,8 +622,8 @@
           ],
           "docstring": "Nine lenses run on every turn. They are not personalities taking turns at a microphone; each is a **named ability** with a job inside a 130-millisecon",
           "lines": [
-            506,
-            624
+            577,
+            695
           ],
           "name": "\ud83d\udf0f The nine \u2014 who they are, and what each one *does* in the router",
           "type": "section"
@@ -613,8 +633,8 @@
             {
               "docstring": "Two labelled prompts per lane, nine lanes, key fixed before the run. Each bar is coloured by the *character* of its lane, and every row names the lens",
               "lines": [
-                673,
-                709
+                744,
+                780
               ],
               "name": "\ud83c\udfaf Routing accuracy, per lane \u2014 and who holds it",
               "type": "subsection"
@@ -622,8 +642,8 @@
             {
               "docstring": "| What | Value | Instrument | Kind | |---|---|---|---| | routing accuracy | 18/18 | `bench-router.sh` \u00a71 | **MEASURED** on a fixed key | | lane covera",
               "lines": [
-                710,
-                738
+                781,
+                809
               ],
               "name": "\u2696\ufe0f Claim versus measurement \u2014 the distinction we refuse to blur",
               "type": "subsection"
@@ -631,8 +651,8 @@
           ],
           "docstring": "`checker/bench-router.sh` is the gate. It is not a demo: it fails the build when the router regresses, and every number below comes out of it. The dia",
           "lines": [
-            625,
-            738
+            696,
+            809
           ],
           "name": "\ud83d\udcca The benchmark \u2014 what we measured, and what we only *claim*",
           "type": "section"
@@ -640,8 +660,8 @@
         {
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
-            739,
-            801
+            810,
+            872
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -649,8 +669,8 @@
         {
           "docstring": "**This is the section we are proudest of.** Knowing exactly where the guarantee ends is what makes everything before it worth having \u2014 a proof with an",
           "lines": [
-            802,
-            862
+            873,
+            933
           ],
           "name": "\ud83d\uddfa\ufe0f The map: PROVED \u00b7 MEASURED \u00b7 OUT OF SCOPE",
           "type": "section"
@@ -658,8 +678,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            863,
-            877
+            934,
+            948
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -669,8 +689,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                896,
-                904
+                967,
+                975
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -678,8 +698,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            878,
-            904
+            949,
+            975
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -689,8 +709,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                928,
-                952
+                999,
+                1023
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -698,8 +718,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            905,
-            952
+            976,
+            1023
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -946,6 +966,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T04:40:21.244187+00:00",
+  "generated_at": "2026-08-02T07:02:51.122055+00:00",
   "version": "1.0"
 }

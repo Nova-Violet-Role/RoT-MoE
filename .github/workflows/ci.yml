@@ -138,6 +138,34 @@ jobs:
           }
           zip -v | Select-Object -First 2
 
+      # MEASURED on macos-latest, CI #23, from the checker's own "bounded by:"
+      # line: the macOS runner has NEITHER `timeout` NOR `gtimeout`. Windows
+      # prints "bounded by: timeout"; macOS printed
+      #     bounded by: <NONE -- neither timeout nor gtimeout; calls are UNBOUNDED>
+      #
+      # The checkers degrade honestly (they announce it and still run), but one
+      # assertion goes DEAD: checker/hook-footprint.sh detects a hung hook by
+      # exit code 124, which only a bound can produce. Unbounded, a hang would
+      # not be reported -- it would stall the job until the runner's own limit.
+      # A hang test that cannot observe a hang is decoration, so the tool gets
+      # provisioned rather than the assertion quietly weakened.
+      #
+      # coreutils installs it as `gtimeout`, which the run_bounded chain in the
+      # checkers already prefers over nothing.
+      - name: provide gtimeout on the macOS runner (no coreutils by default)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          if command -v gtimeout >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1; then
+            echo "a bound is already available"
+          else
+            brew install coreutils
+          fi
+          # Fail here, loudly, rather than letting a hang check silently rot.
+          command -v gtimeout >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1 \
+            || { echo "no bound available after install -- hang detection would be dead"; exit 1; }
+          (gtimeout --version 2>/dev/null || timeout --version) | head -1
+
       - name: release artifacts build, and assert their own contents
         shell: bash
         run: bash checker/release-package.sh

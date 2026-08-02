@@ -122,6 +122,16 @@ grep -qi 'No Lean required\|no Lean toolchain at all' README.md || { bad "README
 # hangs is worse than one that errors, so every flag must refuse within seconds.
 echo
 echo "-- a flag with no value must refuse quickly --"
+# STATE THE BOUND THIS TEST DEPENDS ON. The 124 branch below can only fire if a
+# bound exists; with none, a hang is not detected, it just stalls. Measured on
+# macos-latest (CI #23): neither timeout nor gtimeout is present there, so this
+# line is the difference between "no hang" and "could not have seen one".
+#
+# It is printed on STDOUT deliberately. The run_bounded warning goes to stderr,
+# and the first call in checker/release-install.sh sits inside a $( ... 2>&1 )
+# capture -- which SWALLOWED it and led me to retract a correct diagnosis. A
+# marker that a command substitution can absorb is not an instrument.
+printf '  ----  bound in use: %s\n' "${TMOBIN:-<NONE -- a hang CANNOT be detected here>}"
 spin=0
 for f in --vector --breadth --M --C --T --route; do
   run_bounded 10 bash hooks/rot-router.sh "$f" </dev/null >/dev/null 2>&1

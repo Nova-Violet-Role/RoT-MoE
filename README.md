@@ -366,6 +366,77 @@ Or install it as a plugin, with no `settings.json` edit at all:
 claude --plugin-dir /path/to/RoT-MoE
 ```
 
+### The one-liner: `/plugin install`  ← start here
+
+The repository is its own marketplace, so Claude Code can fetch and wire it for
+you — no clone, no `ARM_ROUTER`, no editing your settings:
+
+```sh
+claude plugin marketplace add Nova-Violet-Role/RoT-MoE
+claude plugin install rot-moe@rot-moe
+```
+
+or, inside a session, two slash commands:
+
+```
+/plugin marketplace add Nova-Violet-Role/RoT-MoE
+/plugin install rot-moe@rot-moe
+```
+
+Then `/plugin` lists it, `/plugin disable rot-moe` turns it off for a session,
+and `/plugin uninstall rot-moe` removes it. Nothing of yours is edited: the hooks
+live in the plugin, not in your `settings.json`.
+
+#### Which variant do I install?
+
+**For `/plugin install`, there is only one answer, and that is the honest part:
+you get the router.** All three release variants carry the *same* plugin surface
+— same hooks, same agent, same commands — so there is nothing to choose between
+at install time. The variants differ only in material Claude Code does not load.
+
+| you want | do this |
+|---|---|
+| the router, working, in one minute | `/plugin install rot-moe@rot-moe` — nothing else needed |
+| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.1.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
+| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.1.2-unsealed.zip`** |
+| the router alone as a file you can read end to end | download **`rot-moe-0.1.0-core.zip`** |
+
+Every archive verifies against the `SHA256SUMS.txt` published beside it.
+
+A downloaded archive installs without unzipping:
+
+```sh
+claude --plugin-dir rot-moe-0.1.1-lean.zip
+```
+
+Measured for all three archives — each one fires the router on the first prompt:
+
+```
+0.1.0  core      -> MoE :: TIER 1 -> FORGE Claude
+0.1.1  lean      -> MoE :: TIER 1 -> FORGE Claude
+0.1.2  unsealed  -> MoE :: TIER 1 -> FORGE Claude
+```
+
+The hooks come from `hooks/hooks.json` and resolve through
+`${CLAUDE_PLUGIN_ROOT}`, so the router arms itself on install and unarms itself
+on `/plugin uninstall`. Measured end to end against a **scratch config dir**, so
+the live `~/.claude` was never opened:
+
+```
+claude plugin marketplace add   -> Successfully added marketplace: rot-moe
+claude plugin install           -> Successfully installed plugin: rot-moe@rot-moe
+claude plugin details rot-moe   -> Agents (1) lean4-prover · Hooks (3) · ~104 tok always-on
+one prompt, --debug hooks       -> MoE :: TIER 1 -> FORGE Claude
+```
+
+**What this does *not* give you, stated plainly:** `/plugin install` delivers the
+**router** — hooks, the agent, the commands. It does not deliver the Lean corpus,
+the checkers or `SETUP_LEAN`, because those are not plugin components and Claude
+Code never loads them. The three release archives are **download tiers for
+humans**, not three different plugins: their plugin surface is identical. If you
+want the proofs and the verification scripts, take the `0.1.1` or `0.1.2` zip
+from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases).
+
 Both paths are exercised by `checker/plugin-install.sh`, including from a config
 directory with no `settings.json` — the case every first-time user hits.
 
