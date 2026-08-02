@@ -95,6 +95,11 @@ trap cleanup EXIT
 
 echo "== release install :: version $VER =="
 note "scratch: $WORK   (live ~/.claude is never opened)"
+# ALWAYS report the bound, not only when something fails. CI #21 failed here on
+# macOS and #22 passed, and the logs could not say WHY: the fallback chain is
+# timeout -> gtimeout -> unbounded, and all three are silent when they work.
+# Printing the winner turns "it passes now" into a fact about which binary ran.
+note "bounded by: ${TMOBIN:-<NONE -- neither timeout nor gtimeout; calls are UNBOUNDED>}"
 
 # --- 1. unpack, with no repository around it ---------------------------------
 PLUG="$WORK/plugin"

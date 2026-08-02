@@ -408,12 +408,12 @@
       "symbols": []
     },
     "release-install.sh": {
-      "hash": "80f8bcf73e19",
-      "indexed_at": "2026-08-02T05:52:47.612487+00:00",
+      "hash": "d8d1cf8fad4f",
+      "indexed_at": "2026-08-02T06:17:19.994434+00:00",
       "language": "shell",
-      "lines": 394,
-      "mtime_ns": 1785648900224655200,
-      "size": 19862,
+      "lines": 399,
+      "mtime_ns": 1785650831960209400,
+      "size": 20267,
       "symbols": [
         {
           "lines": [
@@ -782,6 +782,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T05:52:47.801517+00:00",
+  "generated_at": "2026-08-02T06:17:19.994522+00:00",
   "version": "1.0"
 }
