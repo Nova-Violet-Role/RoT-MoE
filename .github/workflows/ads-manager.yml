@@ -220,6 +220,37 @@ jobs:
             echo "::error::README per-module claims sum to $sum; sources have ${{ steps.gt.outputs.thms }}"
             fail=1
           fi
+
+          # THE HEADLINE CLAIM WAS UNBOUND -- and it is the sentence everyone reads.
+          # README.md:65 states the total as bold text, and the per-module loop above
+          # never sees it: that loop only matches lines naming a Proofs file. Worse, the
+          # claim WRAPS A LINE BREAK, so a line-oriented grep finds nothing and reports
+          # clean -- which is exactly what happened when this gap was found by hand.
+          # Newlines are collapsed (tr with an octal escape, no backslash-n, which is its
+          # own hazard when a generator writes this file) before matching.
+          flat=$(tr '\012' ' ' < README.md)
+          heads=$(printf '%s' "$flat" | grep -oE '[0-9]+ +machine-checked theorems' | grep -oE '^[0-9]+' || true)
+          if [ -z "$heads" ]; then
+            echo "::error::README states no headline machine-checked theorem count -- reworded or lost; this audit refuses to pass vacuously"
+            fail=1
+          else
+            for h in $heads; do
+              if [ "$h" -ne "${{ steps.gt.outputs.thms }}" ]; then
+                echo "::error::README headline claims $h machine-checked theorems; sources have ${{ steps.gt.outputs.thms }}"
+                fail=1
+              fi
+            done
+            echo "README headline verified against ground truth: $(printf '%s' "$heads" | tr '\012' ' ')"
+          fi
+          # CONTROL: collapsing must be what makes this work. A line-oriented read of the
+          # same file must find NOTHING, or the reasoning above is wrong and the next
+          # person will simplify the code straight back into the blind spot.
+          naive=$(grep -cE '[0-9]+ machine-checked theorems' README.md || true)
+          if [ "$naive" -gt 0 ]; then
+            echo "note: the headline no longer wraps a line break (naive match $naive) -- collapsing is now belt-and-braces"
+          else
+            echo "CONTROL: a line-oriented grep finds 0 headline claims -- collapsing newlines is what makes this check real"
+          fi
           if grep -qiE 'proves.*(quality|better reasoning|smarter)' README.md; then
             echo "::error::README claims a proof about output QUALITY -- Lean cannot support that"
             fail=1
