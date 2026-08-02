@@ -726,20 +726,21 @@ for wf in .github/workflows/*.yml; do
     ln="${hit%%:*}"; txt="${hit#*:}"
     case "$txt" in
       *"|| true"*|*"|| echo"*|*"|| :"*) : ;;   # status explicitly rescued
-      *) bad "R20: $(basename "$wf"):$ln  grep -c pipes under pipefail with no rescue -- fails when nothing matches: $(printf '%s' "$txt" | sed 's/^[[:space:]]*//' | cut -c1-70)"
+      *) bad "R20: $(basename "$wf"):$ln  grep -c/-o pipes under pipefail with no rescue -- fails when nothing matches: $(printf '%s' "$txt" | sed 's/^[[:space:]]*//' | cut -c1-70)"
          r20_bad=1 ;;
     esac
   done <<EOF
-$(sed 's/#.*$//' "$wf" | grep -nE 'grep -[A-Za-z]*c[A-Za-z]* [^|]*\|')
+$(sed 's/#.*$//' "$wf" | grep -nE 'grep -[A-Za-z]*[co][A-Za-z]* [^|]*\|')
 EOF
 done
-[ "$r20_bad" -eq 0 ] && ok "no unrescued 'grep -c' pipeline in any workflow that sets pipefail"
+[ "$r20_bad" -eq 0 ] && ok "no unrescued 'grep -c' or 'grep -o' pipeline in any workflow that sets pipefail"
 
 # CONTROL: both directions, on planted text.
 probe_r20 () {   # probe_r20 <line> -> "FLAG" | "CLEAN"
   case "$1" in
     *"|| true"*|*"|| echo"*|*"|| :"*) echo CLEAN ;;
     *grep\ -*c*\|*) echo FLAG ;;
+    *grep\ -*o*\|*) echo FLAG ;;
     *) echo CLEAN ;;
   esac
 }
@@ -749,6 +750,17 @@ probe_r20 () {   # probe_r20 <line> -> "FLAG" | "CLEAN"
 [ "$(probe_r20 "N=\$(grep -rc 'x' f | awk '{s+=\$2}' || true)")" = "CLEAN" ] \
   && ok "CONTROL: the rescued form is NOT flagged" \
   || bad "CONTROL: the rule flags the CORRECT form -- it would block the fix"
+# `grep -o` was added to this rule AFTER it let a real defect through: ads-manager.yml
+# step 6 died on `MUT=$(grep -oE '...' STATUS.md | head -1)` under pipefail, and R20
+# saw nothing because it only knew about -c. Measured: run 30742048586. A widened rule
+# whose control still only exercises the OLD flag proves nothing about the widening,
+# so -o gets its own pair.
+[ "$(probe_r20 "MUT=\$(grep -oE 'x' STATUS.md | head -1)")" = "FLAG" ] \
+  && ok "CONTROL: an unrescued grep -o pipeline IS flagged (the ads-manager.yml step 6 defect)" \
+  || bad "CONTROL DEAD: the R20 detector cannot see an unrescued grep -o"
+[ "$(probe_r20 "MUT=\$(grep -oE 'x' STATUS.md | head -1 || true)")" = "CLEAN" ] \
+  && ok "CONTROL: the rescued grep -o form is NOT flagged" \
+  || bad "CONTROL: the rule flags the CORRECT grep -o form -- it would block the fix"
 
 echo
 echo "== RESULT =="

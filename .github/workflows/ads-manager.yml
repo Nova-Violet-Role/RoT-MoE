@@ -229,12 +229,35 @@ jobs:
       - name: Audit negative control
         run: |
           set -uo pipefail
-          printf 'this repo has 99999 theorems\n' > /tmp/fake.md
-          c=$(grep -oE '[0-9]+ theorems' /tmp/fake.md | grep -oE '[0-9]+')
-          if [ "$c" -eq "${{ steps.gt.outputs.thms }}" ]; then
-            echo "::error::audit cannot distinguish a false count -- it is decoration"; exit 1
+          # THIS CONTROL WAS STALE. It tested the OLD audit (first '<n> theorems' match
+          # vs the repo total) against a fake file -- logic that no longer exists after
+          # the audit became per-module. A control that exercises a deleted code path is
+          # decoration: it passed while proving nothing about the live rule.
+          #
+          # It now runs the REAL audit loop over a README whose per-module count is wrong
+          # by one, and requires it to refuse. If the audit ever stops detecting drift,
+          # this step fails.
+          sed 's/(35 theorems)/(34 theorems)/' README.md > /tmp/fake-readme.md
+          # Assert the mutation LANDED. A patch that silently fails to apply would leave
+          # this control passing against an unmodified file -- the exact way a mutation
+          # harness lies in the reassuring direction.
+          applied=$(grep -c '(34 theorems)' /tmp/fake-readme.md || true)
+          case "$applied" in
+            0) echo "::error::control mutation did not apply -- this control proves nothing"; exit 1 ;;
+          esac
+          cfail=0; csum=0
+          while IFS= read -r line; do
+            f=$(printf '%s' "$line" | sed -n 's|.*`lean/Proofs/\([A-Za-z0-9_]*\.lean\)`.*|\1|p')
+            n=$(printf '%s' "$line" | sed -n 's|.*(\([0-9]\{1,\}\) theorems.*|\1|p')
+            [ -n "$f" ] && [ -n "$n" ] || continue
+            a=$(bash checker/count-theorems.sh "lean/Proofs/$f" 2>/dev/null || echo ERR)
+            [ "$a" = "$n" ] || cfail=1
+            csum=$((csum + n))
+          done < <(grep -nE '`lean/Proofs/[A-Za-z0-9_]*\.lean`.*\([0-9]+ theorems' /tmp/fake-readme.md || true)
+          if [ "$cfail" -eq 0 ] && [ "$csum" -eq "${{ steps.gt.outputs.thms }}" ]; then
+            echo "::error::the audit accepted a README with a wrong module count -- it is decoration"; exit 1
           fi
-          echo "control detected the false claim as required"
+          echo "control: the audit refused the drifted README (module mismatch=$cfail, sum=$csum vs ${{ steps.gt.outputs.thms }})"
 
       # REPORT, DO NOT PUSH -- see tag-manager.yml for the measurement. `main`
       # is protected (no deletion, no force-push, four required checks) and the

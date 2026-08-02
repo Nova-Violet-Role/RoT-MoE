@@ -711,12 +711,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "1565bd5aba3a",
-      "indexed_at": "2026-08-02T07:49:36.397861+00:00",
+      "hash": "b50e44446f95",
+      "indexed_at": "2026-08-02T10:09:32.194656+00:00",
       "language": "shell",
-      "lines": 756,
-      "mtime_ns": 1785656410609215000,
-      "size": 37406,
+      "lines": 768,
+      "mtime_ns": 1785664772125709600,
+      "size": 38303,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -791,7 +791,7 @@
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
             739,
-            745
+            746
           ],
           "name": "probe_r20",
           "type": "function"
@@ -799,6 +799,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T09:14:42.805251+00:00",
+  "generated_at": "2026-08-02T10:09:32.194753+00:00",
   "version": "1.0"
 }

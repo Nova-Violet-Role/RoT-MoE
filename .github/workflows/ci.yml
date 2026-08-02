@@ -156,15 +156,52 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
+          # WAS: `brew install coreutils`. It works, but Homebrew emits its tap-trust
+          # notice as a GITHUB ANNOTATION (##[warning]) on this runner image, and the
+          # deferred-closure gate requires ZERO warning annotations across the run. That
+          # gate is right and I am not weakening it: it is what catches a deprecated
+          # action. Measured: run 30741381885 carried exactly 2 warning logs, both this.
+          #
+          # Silencing the annotation (unsetting GITHUB_ACTIONS so brew prints plain text)
+          # would have passed the gate while changing nothing real -- that is gaming an
+          # alarm, not fixing a defect. The honest fix is to stop needing Homebrew: all
+          # this step ever wanted was a BOUND, and a bound is ten lines of bash. No
+          # package manager, no network, no third-party output to annotate.
           if command -v gtimeout >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1; then
             echo "a bound is already available"
           else
-            brew install coreutils
+            mkdir -p "$HOME/bin"
+            cat > "$HOME/bin/timeout" <<'SHIM'
+          #!/bin/bash
+          # Minimal GNU-timeout substitute: run the command, kill it after N seconds,
+          # and report 124 on timeout exactly as GNU timeout does -- 124 is the value
+          # checker/hook-footprint.sh looks for to detect a hang.
+          d="$1"; shift
+          "$@" & p=$!
+          ( sleep "$d"; kill -9 "$p" 2>/dev/null ) & w=$!
+          # The braces+redirect suppress bash's own "Killed" job notice, which would
+          # otherwise land in the stderr a caller captures. Measured locally: without
+          # it the timeout case prints a job line; with it stderr is empty.
+          { wait "$p"; rc=$?; } 2>/dev/null
+          kill "$w" 2>/dev/null
+          if [ "$rc" -ge 128 ]; then rc=124; fi
+          exit "$rc"
+          SHIM
+            sed -i '' 's/^          //' "$HOME/bin/timeout" 2>/dev/null || sed -i 's/^          //' "$HOME/bin/timeout"
+            chmod +x "$HOME/bin/timeout"
+            echo "$HOME/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/bin:$PATH"
           fi
           # Fail here, loudly, rather than letting a hang check silently rot.
           command -v gtimeout >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1 \
-            || { echo "no bound available after install -- hang detection would be dead"; exit 1; }
-          (gtimeout --version 2>/dev/null || timeout --version) | head -1
+            || { echo "no bound available -- hang detection would be dead"; exit 1; }
+          # SELF-TEST, both directions -- an unverified shim is worse than no shim.
+          BOUND=$(command -v gtimeout 2>/dev/null || command -v timeout)
+          "$BOUND" 5 true;  rc_fast=$?
+          "$BOUND" 1 sleep 9; rc_slow=$?
+          echo "bound: $BOUND   quick-command rc=$rc_fast   timed-out rc=$rc_slow"
+          [ "$rc_fast" -eq 0 ]   || { echo "bound broke a command that should pass"; exit 1; }
+          [ "$rc_slow" -eq 124 ] || { echo "bound did not report 124 on timeout"; exit 1; }
 
       - name: release artifacts build, and assert their own contents
         shell: bash
