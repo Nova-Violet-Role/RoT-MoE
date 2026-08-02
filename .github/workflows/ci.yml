@@ -197,8 +197,14 @@ jobs:
             || { echo "no bound available -- hang detection would be dead"; exit 1; }
           # SELF-TEST, both directions -- an unverified shim is worse than no shim.
           BOUND=$(command -v gtimeout 2>/dev/null || command -v timeout)
-          "$BOUND" 5 true;  rc_fast=$?
-          "$BOUND" 1 sleep 9; rc_slow=$?
+          # This runner's shell is `bash -e -o pipefail`, so a command that EXITS NON-ZERO
+          # ON PURPOSE aborts the step before its status can be read. The timeout probe is
+          # exactly that: it must return 124, and under -e it killed the step at 124 before
+          # `rc_slow=$?` ever ran. Measured: run on 857c06a, macOS job, exit code 124.
+          # My local check passed because a plain interactive bash has no -e -- the local
+          # instrument did not reproduce the runner's shell, which is the whole defect.
+          rc_fast=0; "$BOUND" 5 true    || rc_fast=$?
+          rc_slow=0; "$BOUND" 1 sleep 9 || rc_slow=$?
           echo "bound: $BOUND   quick-command rc=$rc_fast   timed-out rc=$rc_slow"
           [ "$rc_fast" -eq 0 ]   || { echo "bound broke a command that should pass"; exit 1; }
           [ "$rc_slow" -eq 124 ] || { echo "bound did not report 124 on timeout"; exit 1; }
