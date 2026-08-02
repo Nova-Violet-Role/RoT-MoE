@@ -31,6 +31,23 @@
 # =============================================================================
 
 set -uo pipefail
+
+# --- a bound that does not assume GNU coreutils ------------------------------
+# macOS does NOT ship `timeout` (it is GNU coreutils). A bare `timeout N cmd` is
+# "command not found" there, which returns an EMPTY capture -- and an empty
+# capture reads exactly like a tool that answered nothing. Homebrew installs the
+# same binary as `gtimeout`. If neither exists the call runs UNBOUNDED, and that
+# is announced rather than hidden. Full story: checker/release-install.sh.
+if command -v timeout >/dev/null 2>&1; then TMOBIN=timeout
+elif command -v gtimeout >/dev/null 2>&1; then TMOBIN=gtimeout
+else TMOBIN=""; fi
+run_bounded () {   # run_bounded <seconds> <cmd...>; reads stdin like the command it wraps
+  _secs="$1"; shift
+  if [ -n "$TMOBIN" ]; then "$TMOBIN" "$_secs" "$@"; else
+    [ -n "${_unbounded_warned:-}" ] || { printf "  ----  UNBOUNDED: no timeout/gtimeout on PATH; a hang cannot be detected here\n" >&2; _unbounded_warned=1; }
+    "$@"
+  fi
+}
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
@@ -201,7 +218,7 @@ while IFS=$'\x1f' read -r -d $'\x1e' name wd cmd; do
   # RECORDS: the run stopped silently after 16 of 31 steps and still printed
   # PASS. A harness that consumes its own worklist reports a green for the steps
   # it never reached, which is the false green this repository exists to refuse.
-  ( cd "$CLONE/repo/${wd:-.}" && timeout 600 bash -c "$cmd" ) </dev/null > "$CLONE/step.$ran.log" 2>&1
+  ( cd "$CLONE/repo/${wd:-.}" && run_bounded 600 bash -c "$cmd" ) </dev/null > "$CLONE/step.$ran.log" 2>&1
   rc=$?
   if [ "$rc" -eq 0 ]; then
     printf '  ok    %-52s exit 0\n' "$name"

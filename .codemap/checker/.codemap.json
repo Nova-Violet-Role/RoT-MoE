@@ -38,26 +38,34 @@
       ]
     },
     "axiom-class.sh": {
-      "hash": "0a12e83baec2",
-      "indexed_at": "2026-08-01T20:02:14.572109+00:00",
+      "hash": "295816f85492",
+      "indexed_at": "2026-08-02T05:52:46.877314+00:00",
       "language": "shell",
-      "lines": 299,
-      "mtime_ns": 1785613269377771500,
-      "size": 12935,
+      "lines": 316,
+      "mtime_ns": 1785648900357655700,
+      "size": 13899,
       "symbols": [
+        {
+          "lines": [
+            61,
+            67
+          ],
+          "name": "run_bounded",
+          "type": "function"
+        },
         {
           "docstring": "--- extracting declaration names --------------------------------------------- A `sed` for `^theorem` is the obvious approach and it is WRONG, measure",
           "lines": [
-            98,
-            300
+            115,
+            317
           ],
           "name": "names_in",
           "type": "function"
         },
         {
           "lines": [
-            271,
-            278
+            288,
+            295
           ],
           "name": "classify_line",
           "type": "function"
@@ -65,17 +73,25 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "b9b89559de8f",
-      "indexed_at": "2026-08-01T11:33:10.880784+00:00",
+      "hash": "13b9c31f7b53",
+      "indexed_at": "2026-08-02T05:52:47.062647+00:00",
       "language": "shell",
-      "lines": 276,
-      "mtime_ns": 1785582146483645200,
-      "size": 13544,
+      "lines": 293,
+      "mtime_ns": 1785648900314655100,
+      "size": 14512,
       "symbols": [
         {
           "lines": [
-            114,
-            123
+            40,
+            46
+          ],
+          "name": "run_bounded",
+          "type": "function"
+        },
+        {
+          "lines": [
+            131,
+            140
           ],
           "name": "check_priority",
           "type": "function"
@@ -83,26 +99,34 @@
       ]
     },
     "ci-dryrun.sh": {
-      "hash": "2d8f427072d2",
-      "indexed_at": "2026-08-01T09:25:50.166541+00:00",
+      "hash": "c89ce1ceea86",
+      "indexed_at": "2026-08-02T05:52:47.243790+00:00",
       "language": "shell",
-      "lines": 266,
-      "mtime_ns": 1785575467363003700,
-      "size": 13488,
+      "lines": 283,
+      "mtime_ns": 1785648900402656200,
+      "size": 14452,
       "symbols": [
+        {
+          "lines": [
+            44,
+            50
+          ],
+          "name": "run_bounded",
+          "type": "function"
+        },
         {
           "docstring": "--- 1. extract the steps --------------------------------------------------- Line-oriented on purpose. A YAML library would be more correct in general",
           "lines": [
-            50,
-            84
+            67,
+            101
           ],
           "name": "extract_steps",
           "type": "function"
         },
         {
           "lines": [
-            63,
-            72
+            80,
+            89
           ],
           "name": "flush",
           "type": "function"
@@ -110,8 +134,8 @@
         {
           "docstring": "Runner-only classification. Each pattern names something this machine cannot provide or must not fetch.",
           "lines": [
-            88,
-            109
+            105,
+            126
           ],
           "name": "runner_only",
           "type": "function"
@@ -210,18 +234,26 @@
       ]
     },
     "hook-footprint.sh": {
-      "hash": "476b5633a596",
-      "indexed_at": "2026-08-01T02:46:55.434652+00:00",
+      "hash": "92dd32c651b1",
+      "indexed_at": "2026-08-02T05:52:47.428743+00:00",
       "language": "shell",
-      "lines": 181,
-      "mtime_ns": 1785551709843373800,
-      "size": 8783,
+      "lines": 198,
+      "mtime_ns": 1785648900270655900,
+      "size": 9755,
       "symbols": [
+        {
+          "lines": [
+            49,
+            55
+          ],
+          "name": "run_bounded",
+          "type": "function"
+        },
         {
           "docstring": "Strip comments so a hook may DOCUMENT what it does not do.",
           "lines": [
-            50,
-            55
+            67,
+            72
           ],
           "name": "code_of",
           "type": "function"
@@ -376,13 +408,22 @@
       "symbols": []
     },
     "release-install.sh": {
-      "hash": "5c7b443b8d08",
-      "indexed_at": "2026-08-01T20:02:14.928993+00:00",
+      "hash": "80f8bcf73e19",
+      "indexed_at": "2026-08-02T05:52:47.612487+00:00",
       "language": "shell",
-      "lines": 343,
-      "mtime_ns": 1785612923670747300,
-      "size": 16368,
-      "symbols": []
+      "lines": 394,
+      "mtime_ns": 1785648900224655200,
+      "size": 19862,
+      "symbols": [
+        {
+          "lines": [
+            74,
+            80
+          ],
+          "name": "run_bounded",
+          "type": "function"
+        }
+      ]
     },
     "release-longsession.sh": {
       "hash": "913d907d2926",
@@ -440,17 +481,25 @@
       ]
     },
     "release-session.sh": {
-      "hash": "6d2f18cfa95f",
-      "indexed_at": "2026-08-01T21:53:10.608024+00:00",
+      "hash": "7be454dbb509",
+      "indexed_at": "2026-08-02T05:52:47.801427+00:00",
       "language": "shell",
-      "lines": 251,
-      "mtime_ns": 1785618290936748900,
-      "size": 12392,
+      "lines": 268,
+      "mtime_ns": 1785648900447655800,
+      "size": 13356,
       "symbols": [
         {
           "lines": [
-            79,
-            91
+            59,
+            65
+          ],
+          "name": "run_bounded",
+          "type": "function"
+        },
+        {
+          "lines": [
+            96,
+            108
           ],
           "name": "prompt_for",
           "type": "function"
@@ -458,16 +507,16 @@
         {
           "docstring": "The expected lens is read from THIS ARCHIVE's router, not from a copy here. A hard-coded expectation is a second source of truth that silently rots --",
           "lines": [
-            157,
-            160
+            174,
+            177
           ],
           "name": "lens_for",
           "type": "function"
         },
         {
           "lines": [
-            179,
-            189
+            196,
+            206
           ],
           "name": "run_session",
           "type": "function"
@@ -733,6 +782,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T05:05:29.908797+00:00",
+  "generated_at": "2026-08-02T05:52:47.801517+00:00",
   "version": "1.0"
 }

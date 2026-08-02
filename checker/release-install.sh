@@ -51,6 +51,34 @@ REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 VARIANTS="core:0.1.0 lean:0.1.1 unsealed:0.1.2"
 version_of () { for vp in $VARIANTS; do [ "${vp%%:*}" = "$1" ] && { printf '%s' "${vp#*:}"; return; }; done; }
 
+# --- a bound that does not assume GNU coreutils ------------------------------
+# MEASURED on macos-latest, CI #21: this file died at its own SAFETY INTERLOCK
+# with "--dry-run did not report a config dir". The dry run had not misbehaved --
+# it never ran. macOS does NOT ship `timeout`; it is GNU coreutils, present on
+# Linux and in Git Bash, absent on a stock Mac. The call was literally
+# `timeout 60 bash ./ARM_ROUTER.sh --dry-run` -- spelled with the bare binary --
+# so it was simply "command not found", the capture came back empty, and the interlock
+# correctly refused to arm anything on the strength of nothing.
+#
+# The interlock behaved exactly right -- it failed CLOSED, which is why no live
+# config was ever at risk. What was wrong is that a missing TOOL was reported as
+# a missing ANSWER, and the log printed nothing to distinguish them.
+#
+# Homebrew installs the same binary as `gtimeout`, so try that before giving up.
+# If neither exists the run is UNBOUNDED, and that is announced rather than
+# hidden: a silently unbounded call inside a checker turns a failing test into a
+# hanging one.
+if command -v timeout >/dev/null 2>&1; then TMOBIN=timeout
+elif command -v gtimeout >/dev/null 2>&1; then TMOBIN=gtimeout
+else TMOBIN=""; fi
+run_bounded () {   # run_bounded <seconds> <cmd...>; reads stdin like the command it wraps
+  _secs="$1"; shift
+  if [ -n "$TMOBIN" ]; then "$TMOBIN" "$_secs" "$@"; else
+    [ -n "${_unbounded_warned:-}" ] || { printf "  ----  UNBOUNDED: no timeout/gtimeout on PATH; a hang cannot be detected here\n" >&2; _unbounded_warned=1; }
+    "$@"
+  fi
+}
+
 VER=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json | head -1)
 CORE="$REL/rot-moe-$(version_of core)-core.zip"
 LEAN="$REL/rot-moe-$(version_of lean)-lean.zip"
@@ -108,10 +136,17 @@ cp "$CFG/settings.json" "$WORK/settings.before.json"
 # that can silently reach the live configuration is not a test, it is a hazard,
 # and "I set the variable" is not evidence that the variable was read.
 dry=$( cd "$PLUG" && CLAUDE_CONFIG_DIR="$CFG" CLAUDE_DIR="$CFG" \
-       timeout 60 bash ./ARM_ROUTER.sh --dry-run 2>&1 )
+       run_bounded 60 bash ./ARM_ROUTER.sh --dry-run 2>&1 )
 target=$(printf '%s' "$dry" | sed -n 's/.*config dir[[:space:]]*:[[:space:]]*//p' | head -1)
 if [ -z "$target" ]; then
   bad "INTERLOCK: --dry-run did not report a config dir -- refusing to arm anything"
+  # PRINT WHAT WAS ACTUALLY SEEN. The macOS run failed here and the log carried
+  # no evidence at all, so a missing `timeout` binary looked identical to an
+  # installer that had gone silent. A diagnostic that shows nothing costs a full
+  # CI round trip to distinguish two completely different causes.
+  note "bounded by: ${TMOBIN:-<NONE -- neither timeout nor gtimeout on this platform>}"
+  note "--dry-run produced ${#dry} bytes; first lines:"
+  printf '%s\n' "$dry" | head -6 | sed 's/^/        /'
   printf '\n== release install: %d passed, %d failed\n' "$PASS" "$((FAIL))"
   exit 1
 fi
@@ -168,18 +203,29 @@ if [ -n "$hookpath" ]; then
   # entry aimed at a path that does not exist is the failure this whole file
   # exists to catch, and it is invisible from inside the repository -- where the
   # path happens to resolve for a completely different reason.
-  # `case` instead of a pipe into grep -q: checker/portability.sh forbids that
-  # shape repo-wide because grep -q exits early, SIGPIPEs the writer, and with
-  # `set -o pipefail` the status then depends on the platform's pipe buffer.
-  # This file was written violating its own repository's rule and the gate said so.
-  case "$hookpath" in
-    *"$PLUG"*) true ;;
-    *) false ;;
-  esac
-  if [ $? -eq 0 ]; then
-    ok "the registered hook points inside the unpacked artifact"
+  # DO NOT COMPARE PATH TEXT. Measured on windows-latest, CI #21: the registered
+  # command came back as
+  #     bash "/c/Users/RUNNER~1/AppData/Local/Temp/rotmoe-relinstall.hsLoBS/plugin/hooks/rot-router.sh"
+  # while $PLUG held the LONG form (/c/Users/runneradmin/...). Windows hands out
+  # 8.3 short names, `RUNNER~1` and `runneradmin` are the same directory, and a
+  # substring test can never see that. The gate failed on a hook entry that was
+  # perfectly correct and pointed exactly where it should.
+  #
+  # The right question is not "do these strings overlap" but "is this the SAME
+  # FILE". `test -ef` compares device and inode, so short names, symlinks, and
+  # trailing-slash noise all collapse to the truth. It is POSIX and works on all
+  # three runners.
+  #
+  # The old substring test also could not tell a real path from a plausible one:
+  # a command naming a file that does not exist would have passed it.
+  reg=$(printf '%s' "$hookpath" | sed -n 's/.*bash[[:space:]]*\\*"\([^"\\]*rot-router\.sh\)\\*".*/\1/p' | head -1)
+  [ -n "$reg" ] || reg=$(printf '%s' "$hookpath" | sed -n 's/.*[[:space:]]\([^"[:space:]]*rot-router\.sh\).*/\1/p' | head -1)
+  if [ -n "$reg" ] && [ -f "$reg" ] && [ "$reg" -ef "$PLUG/hooks/rot-router.sh" ]; then
+    ok "the registered hook IS the file inside the unpacked artifact (same inode)"
   else
     bad "the registered hook does not reference the unpacked plugin dir: $hookpath"
+    note "extracted path: '${reg:-<none>}'  exists=$([ -f "$reg" ] && echo yes || echo no)"
+    note "expected same file as: $PLUG/hooks/rot-router.sh"
   fi
   if [ -e "$PLUG/hooks/rot-router.sh" ]; then
     ok "the file the hook names is present in the artifact"
@@ -193,7 +239,7 @@ fi
 # --- 4. the router must RUN from the unpacked tree ----------------------------
 # Not "the file is present" -- executed, with a real prompt, from the artifact.
 out=$(printf '{"prompt":"lake build the theorem and fix the sorry"}' \
-      | timeout 60 bash "$PLUG/hooks/rot-router.sh" 2>"$WORK/router.err")
+      | run_bounded 60 bash "$PLUG/hooks/rot-router.sh" 2>"$WORK/router.err")
 rrc=$?
 if [ "$rrc" -ne 0 ]; then
   bad "the router from the artifact exited $rrc"
@@ -231,7 +277,7 @@ if [ -s "$LEAN" ]; then
     ok "the LEAN artifact unpacks with the fetcher and the pinned toolchain"
     # It must REFUSE without consent. This is the promise that matters most in
     # an artifact a stranger downloads: nothing large happens by accident.
-    ( cd "$PLUG2" && timeout 60 bash ./SETUP_LEAN.sh >"$WORK/setup.log" 2>&1 )
+    ( cd "$PLUG2" && run_bounded 60 bash ./SETUP_LEAN.sh >"$WORK/setup.log" 2>&1 )
     src=$?
     if [ "$src" -eq 2 ]; then
       ok "SETUP_LEAN.sh from the artifact REFUSES without consent (exit 2)"
@@ -241,7 +287,7 @@ if [ -s "$LEAN" ]; then
     fi
     # ...and --dry-run must create nothing.
     before=$(find "$PLUG2" -type f | grep -c . || true)
-    ( cd "$PLUG2" && timeout 120 bash ./SETUP_LEAN.sh --dry-run >"$WORK/dry.log" 2>&1 )
+    ( cd "$PLUG2" && run_bounded 120 bash ./SETUP_LEAN.sh --dry-run >"$WORK/dry.log" 2>&1 )
     after=$(find "$PLUG2" -type f | grep -c . || true)
     if [ "$before" -eq "$after" ]; then
       ok "SETUP_LEAN.sh --dry-run created NOTHING ($before files before and after)"
@@ -271,7 +317,7 @@ fi
 # C2: the router assertion must be able to miss. A prompt with no FORGE stem
 # must NOT route to FORGE, or "it routed correctly" means nothing.
 out2=$(printf '{"prompt":"I feel lost and tired lately"}' \
-       | timeout 60 bash "$PLUG/hooks/rot-router.sh" 2>/dev/null)
+       | run_bounded 60 bash "$PLUG/hooks/rot-router.sh" 2>/dev/null)
 if case "$out2" in *EMPATHIC*) true ;; *) false ;; esac; then
   ok "CONTROL: a non-FORGE prompt routes elsewhere (EMPATHIC) -- the router is not constant"
 else
@@ -281,8 +327,13 @@ fi
 # C0: THE INTERLOCK MUST BE ABLE TO FIRE. Ask the installer where it would go
 # with NO override at all; that answer must be outside the scratch dir, or the
 # interlock is comparing a value that can never differ and guards nothing.
-unguarded=$( cd "$PLUG" && env -u CLAUDE_CONFIG_DIR -u CLAUDE_DIR \
-             timeout 60 bash ./ARM_ROUTER.sh --dry-run 2>&1 \
+# ORDER MATTERS: run_bounded FIRST, env second. `env` execs a BINARY, and
+# run_bounded is a shell function -- `env -u X run_bounded ...` is "no such file
+# or directory", the capture comes back empty, and the control reports DID NOT
+# APPLY. Which it did, correctly: discarded is not survived, and that is the
+# whole reason the third outcome exists.
+unguarded=$( cd "$PLUG" && run_bounded 60 env -u CLAUDE_CONFIG_DIR -u CLAUDE_DIR \
+             bash ./ARM_ROUTER.sh --dry-run 2>&1 \
              | sed -n 's/.*config dir[[:space:]]*:[[:space:]]*//p' | head -1 )
 case "$unguarded" in
   "$CFG"|"$CFG"/*) bad "CONTROL: with no override the installer STILL reports the scratch dir -- the interlock cannot discriminate" ;;
@@ -314,7 +365,7 @@ if [ -s "$UNSEALED" ]; then
     # and no build tree. Without a toolchain it must SKIP (3) or REFUSE (2) --
     # never exit 0, because a silent pass would be indistinguishable from a
     # clean corpus it never read.
-    ( cd "$UW" && timeout 600 bash checker/axiom-class.sh >/dev/null 2>&1 )
+    ( cd "$UW" && run_bounded 600 bash checker/axiom-class.sh >/dev/null 2>&1 )
     arc=$?
     case "$arc" in
       0) ok "the classifier ran from the unpacked artifact and passed (exit 0)" ;;

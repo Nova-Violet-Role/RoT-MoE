@@ -27,6 +27,23 @@
 # =============================================================================
 
 set -uo pipefail
+
+# --- a bound that does not assume GNU coreutils ------------------------------
+# macOS does NOT ship `timeout` (it is GNU coreutils). A bare `timeout N cmd` is
+# "command not found" there, which returns an EMPTY capture -- and an empty
+# capture reads exactly like a tool that answered nothing. Homebrew installs the
+# same binary as `gtimeout`. If neither exists the call runs UNBOUNDED, and that
+# is announced rather than hidden. Full story: checker/release-install.sh.
+if command -v timeout >/dev/null 2>&1; then TMOBIN=timeout
+elif command -v gtimeout >/dev/null 2>&1; then TMOBIN=gtimeout
+else TMOBIN=""; fi
+run_bounded () {   # run_bounded <seconds> <cmd...>; reads stdin like the command it wraps
+  _secs="$1"; shift
+  if [ -n "$TMOBIN" ]; then "$TMOBIN" "$_secs" "$@"; else
+    [ -n "${_unbounded_warned:-}" ] || { printf "  ----  UNBOUNDED: no timeout/gtimeout on PATH; a hang cannot be detected here\n" >&2; _unbounded_warned=1; }
+    "$@"
+  fi
+}
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
@@ -68,7 +85,7 @@ total=0; hit=0; miss=""
 while IFS='|' read -r prompt want; do
   [ -z "${prompt:-}" ] && continue
   total=$((total+1))
-  got=$(printf '{"prompt":"%s"}' "$prompt" | timeout 20 bash "$ROUTER" 2>/dev/null \
+  got=$(printf '{"prompt":"%s"}' "$prompt" | run_bounded 20 bash "$ROUTER" 2>/dev/null \
         | sed -n 's/.*TIER 1 -> \([A-Z]*\).*/\1/p')
   if [ "$got" = "$want" ]; then hit=$((hit+1)); else miss="$miss
     want=$want got=${got:-<none>}  <- $prompt"; fi
@@ -112,7 +129,7 @@ echo "== 1b. PRIORITY -- what happens when a prompt matches TWO lanes"
 # two lanes resolves to the HIGHER-priority one, deterministically.
 amb=0
 check_priority () {   # check_priority <prompt> <expected> <why>
-  got=$(printf '{"prompt":"%s"}' "$1" | timeout 20 bash "$ROUTER" 2>/dev/null \
+  got=$(printf '{"prompt":"%s"}' "$1" | run_bounded 20 bash "$ROUTER" 2>/dev/null \
         | sed -n 's/.*TIER 1 -> \([A-Z]*\).*/\1/p')
   if [ "$got" = "$2" ]; then
     note "\"$1\" -> $got   ($3)"

@@ -48,6 +48,23 @@
 # =============================================================================
 
 set -uo pipefail
+
+# --- a bound that does not assume GNU coreutils ------------------------------
+# macOS does NOT ship `timeout` (it is GNU coreutils). A bare `timeout N cmd` is
+# "command not found" there, which returns an EMPTY capture -- and an empty
+# capture reads exactly like a tool that answered nothing. Homebrew installs the
+# same binary as `gtimeout`. If neither exists the call runs UNBOUNDED, and that
+# is announced rather than hidden. Full story: checker/release-install.sh.
+if command -v timeout >/dev/null 2>&1; then TMOBIN=timeout
+elif command -v gtimeout >/dev/null 2>&1; then TMOBIN=gtimeout
+else TMOBIN=""; fi
+run_bounded () {   # run_bounded <seconds> <cmd...>; reads stdin like the command it wraps
+  _secs="$1"; shift
+  if [ -n "$TMOBIN" ]; then "$TMOBIN" "$_secs" "$@"; else
+    [ -n "${_unbounded_warned:-}" ] || { printf "  ----  UNBOUNDED: no timeout/gtimeout on PATH; a hang cannot be detected here\n" >&2; _unbounded_warned=1; }
+    "$@"
+  fi
+}
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 LEANDIR="$REPO/lean"
 cd "$LEANDIR" 2>/dev/null || { echo "REFUSE: no lean/ directory"; exit 2; }
@@ -162,7 +179,7 @@ for m in $MODULES; do
   [ "$n_here" -eq 0 ] && { note "$m declares no theorems -- nothing to classify"; continue; }
   total=$((total+n_here))
   probed_modules=$((probed_modules+1))
-  timeout 1800 lake env lean "$P" >> "$WORK/ax.txt" 2>&1
+  run_bounded 1800 lake env lean "$P" >> "$WORK/ax.txt" 2>&1
   rc=$?
   if [ "$rc" -ne 0 ]; then
     note "probe for $m exited $rc -- its verdicts may be missing (the accounting check below will catch it)"

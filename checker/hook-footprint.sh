@@ -36,6 +36,23 @@
 # =============================================================================
 
 set -uo pipefail
+
+# --- a bound that does not assume GNU coreutils ------------------------------
+# macOS does NOT ship `timeout` (it is GNU coreutils). A bare `timeout N cmd` is
+# "command not found" there, which returns an EMPTY capture -- and an empty
+# capture reads exactly like a tool that answered nothing. Homebrew installs the
+# same binary as `gtimeout`. If neither exists the call runs UNBOUNDED, and that
+# is announced rather than hidden. Full story: checker/release-install.sh.
+if command -v timeout >/dev/null 2>&1; then TMOBIN=timeout
+elif command -v gtimeout >/dev/null 2>&1; then TMOBIN=gtimeout
+else TMOBIN=""; fi
+run_bounded () {   # run_bounded <seconds> <cmd...>; reads stdin like the command it wraps
+  _secs="$1"; shift
+  if [ -n "$TMOBIN" ]; then "$TMOBIN" "$_secs" "$@"; else
+    [ -n "${_unbounded_warned:-}" ] || { printf "  ----  UNBOUNDED: no timeout/gtimeout on PATH; a hang cannot be detected here\n" >&2; _unbounded_warned=1; }
+    "$@"
+  fi
+}
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
@@ -107,7 +124,7 @@ echo
 echo "-- a flag with no value must refuse quickly --"
 spin=0
 for f in --vector --breadth --M --C --T --route; do
-  timeout 10 bash hooks/rot-router.sh "$f" </dev/null >/dev/null 2>&1
+  run_bounded 10 bash hooks/rot-router.sh "$f" </dev/null >/dev/null 2>&1
   rc=$?
   case "$rc" in
     2) : ;;
@@ -119,7 +136,7 @@ done
 [ "$spin" -eq 0 ] && ok "all 6 POSIX flags refuse with exit 2 when their value is missing"
 
 if command -v pwsh >/dev/null 2>&1; then
-  timeout 30 pwsh -NoProfile -File hooks/rot-router.ps1 -Vector </dev/null >/dev/null 2>&1
+  run_bounded 30 pwsh -NoProfile -File hooks/rot-router.ps1 -Vector </dev/null >/dev/null 2>&1
   rc=$?
   # The arms are NOT required to agree on the code here, and pretending they do
   # would be the overclaim: PowerShell rejects a parameter with no argument at
@@ -138,7 +155,7 @@ else
 fi
 
 # The gauge itself must still work, or "it refuses everything" would pass above.
-if timeout 20 bash hooks/rot-router.sh --vector 1,0,0,0,0,0,0,0,1 --breadth 2 2>/dev/null | grep -q 'R/s+'; then
+if run_bounded 20 bash hooks/rot-router.sh --vector 1,0,0,0,0,0,0,0,1 --breadth 2 2>/dev/null | grep -q 'R/s+'; then
   ok "the gauge still answers with real arguments -- the refusal did not eat the feature"
 else
   bad "the gauge no longer answers with valid arguments"
