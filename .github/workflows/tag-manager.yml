@@ -171,6 +171,7 @@ jobs:
           # a shuffle is unreproducible, so no drift check could tell a
           # legitimate rotation from a corrupted block.
           mapfile -t TAGS < <(bash checker/dorks.sh --order)   # UNLIMITED tier, rotated
+          mapfile -t TAGS_FILE < /tmp/signature.txt            # file order, for archival copies
           # The rotation must never change WHAT is published. Assert it here,
           # against the file the validator already checked, before rendering.
           if [ "$(printf '%s\n' "${TAGS[@]}" | sort)" != "$(sort /tmp/signature.txt)" ]; then
@@ -232,7 +233,16 @@ jobs:
             # rewritten file and failed the gate with "CITATION.cff has no
             # keywords". The generator and the parser must agree on the format;
             # tags-consistency.sh phase 5b now asserts that they do.
-            for t in "${TAGS[@]}"; do echo "  - \"$t\""; done
+            # FILE ORDER, NOT THE ROTATION. CITATION.cff is archival metadata --
+            # Zenodo and OpenAIRE ingest it and people cite it. Rotating these
+            # keywords daily would churn a file whose whole value is stability,
+            # for zero discovery benefit: nothing renders this list to a reader.
+            # Measured the hard way -- the first version fed the rotated array
+            # here, so the keyword ORDER moved every day and the drift gate,
+            # which compares CITATION.cff byte for byte and correctly still
+            # does, refused the run (Meta Hashtag Manager on 3951c2a).
+            # The rotation exists for the README block a human actually sees.
+            for t in "${TAGS_FILE[@]}"; do echo "  - \"$t\""; done
           } > /tmp/kw.yaml
           awk '
             /^keywords:/      { skip=1; while ((getline line < "/tmp/kw.yaml") > 0) print line; next }

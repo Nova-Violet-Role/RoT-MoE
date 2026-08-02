@@ -1710,12 +1710,12 @@
       ]
     },
     "tag-manager.yml": {
-      "hash": "7b1f7bc71237",
-      "indexed_at": "2026-08-02T13:45:21.640680+00:00",
+      "hash": "84d6df6d8d63",
+      "indexed_at": "2026-08-02T14:06:15.062720+00:00",
       "language": "yaml",
-      "lines": 362,
-      "mtime_ns": 1785676584533837100,
-      "size": 19269,
+      "lines": 372,
+      "mtime_ns": 1785678994751723900,
+      "size": 20073,
       "symbols": [
         {
           "docstring": "Meta Hashtag Manager",
@@ -1932,7 +1932,7 @@
                     {
                       "lines": [
                         164,
-                        262
+                        272
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1940,8 +1940,8 @@
                     {
                       "docstring": "Sync repo topics (verify, then repair)",
                       "lines": [
-                        263,
-                        263
+                        273,
+                        273
                       ],
                       "name": "name",
                       "type": "item"
@@ -1951,24 +1951,24 @@
                         {
                           "docstring": "${{ secrets.GITHUB_TOKEN }}",
                           "lines": [
-                            265,
-                            265
+                            275,
+                            275
                           ],
                           "name": "GH_TOKEN",
                           "type": "key"
                         }
                       ],
                       "lines": [
-                        264,
-                        265
+                        274,
+                        275
                       ],
                       "name": "env",
                       "type": "section"
                     },
                     {
                       "lines": [
-                        266,
-                        317
+                        276,
+                        327
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1976,16 +1976,16 @@
                     {
                       "docstring": "Fail if the derived copies have drifted (never commit them)",
                       "lines": [
-                        318,
-                        318
+                        328,
+                        328
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        319,
-                        363
+                        329,
+                        373
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1993,7 +1993,7 @@
                   ],
                   "lines": [
                     61,
-                    363
+                    373
                   ],
                   "name": "steps",
                   "type": "list"
@@ -2001,7 +2001,7 @@
               ],
               "lines": [
                 59,
-                363
+                373
               ],
               "name": "sync",
               "type": "section"
@@ -2009,7 +2009,7 @@
           ],
           "lines": [
             58,
-            363
+            373
           ],
           "name": "jobs",
           "type": "section"
@@ -2309,6 +2309,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T13:45:21.640782+00:00",
+  "generated_at": "2026-08-02T14:06:15.062826+00:00",
   "version": "1.0"
 }
