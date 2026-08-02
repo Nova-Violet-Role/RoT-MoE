@@ -99,6 +99,18 @@ git -C "$REPO" ls-files -co --exclude-standard -z \
   | while IFS= read -r -d '' f; do
       mkdir -p "$TREE/$(dirname "$f")"; cp "$REPO/$f" "$TREE/$f" 2>/dev/null
     done
+# WEEK 1 MEANS "no STATUS.md yet" -- so MAKE that true here instead of inheriting it.
+# This line is the fix for a real red build (CI run #26, 2026-08-02, all three OSes).
+# The simulator copied the live tree, and for as long as the repo happened to have no
+# STATUS.md, week 1 saw changed=yes and passed. The moment a correct STATUS.md was
+# committed -- which is the desired end state, not a mistake -- week 1 saw changed=no
+# and the whole matrix went red on a commit that was right.
+#
+# That is a spec defect, not a code defect: a test that only passes while a required
+# file is missing has frozen a contingent fact. The tempting "repair" is to delete the
+# assertion, which would destroy the R18 green-square control this file exists for.
+# A precondition a test depends on must be established BY the test.
+rm -f "$TREE/STATUS.md"
 git init -q --bare "$BARE"
 (
   cd "$TREE"

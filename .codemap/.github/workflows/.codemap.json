@@ -2,12 +2,12 @@
   "directory": ".github\\workflows",
   "files": {
     "ads-manager.yml": {
-      "hash": "f8b97310a2f2",
-      "indexed_at": "2026-08-02T07:49:35.863005+00:00",
+      "hash": "6203d59777a5",
+      "indexed_at": "2026-08-02T09:14:42.630066+00:00",
       "language": "yaml",
-      "lines": 196,
-      "mtime_ns": 1785654557011758500,
-      "size": 9813,
+      "lines": 220,
+      "mtime_ns": 1785661545120882500,
+      "size": 11326,
       "symbols": [
         {
           "docstring": "Ads Manager",
@@ -181,7 +181,7 @@
                     {
                       "lines": [
                         116,
-                        123
+                        147
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -189,16 +189,16 @@
                     {
                       "docstring": "Write PROMO.md from measured numbers only",
                       "lines": [
-                        124,
-                        124
+                        148,
+                        148
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        125,
-                        154
+                        149,
+                        178
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -206,16 +206,16 @@
                     {
                       "docstring": "Audit README claims against ground truth",
                       "lines": [
-                        155,
-                        155
+                        179,
+                        179
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        156,
-                        169
+                        180,
+                        193
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -223,16 +223,16 @@
                     {
                       "docstring": "Audit negative control",
                       "lines": [
-                        170,
-                        170
+                        194,
+                        194
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        171,
-                        184
+                        195,
+                        208
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -240,16 +240,16 @@
                     {
                       "docstring": "Fail if PROMO.md has drifted (never commit it)",
                       "lines": [
-                        185,
-                        185
+                        209,
+                        209
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        186,
-                        197
+                        210,
+                        221
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -257,7 +257,7 @@
                   ],
                   "lines": [
                     42,
-                    197
+                    221
                   ],
                   "name": "steps",
                   "type": "list"
@@ -265,7 +265,7 @@
               ],
               "lines": [
                 40,
-                197
+                221
               ],
               "name": "copy",
               "type": "section"
@@ -273,7 +273,7 @@
           ],
           "lines": [
             39,
-            197
+            221
           ],
           "name": "jobs",
           "type": "section"
@@ -2298,6 +2298,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T07:49:36.041848+00:00",
+  "generated_at": "2026-08-02T09:14:42.630166+00:00",
   "version": "1.0"
 }

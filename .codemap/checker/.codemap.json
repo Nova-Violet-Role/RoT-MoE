@@ -632,12 +632,12 @@
       ]
     },
     "verdict-schedule-sim.sh": {
-      "hash": "ef4fc0c923f7",
-      "indexed_at": "2026-08-01T08:18:54.790457+00:00",
+      "hash": "6dea2ebcdb04",
+      "indexed_at": "2026-08-02T09:14:42.805169+00:00",
       "language": "shell",
-      "lines": 293,
-      "mtime_ns": 1785570652894307800,
-      "size": 14243,
+      "lines": 305,
+      "mtime_ns": 1785661503549882600,
+      "size": 15080,
       "symbols": [
         {
           "lines": [
@@ -649,16 +649,16 @@
         },
         {
           "lines": [
-            126,
-            294
+            138,
+            306
           ],
           "name": "run_week",
           "type": "function"
         },
         {
           "lines": [
-            261,
-            279
+            273,
+            291
           ],
           "name": "old_week",
           "type": "function"
@@ -799,6 +799,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T07:49:36.397958+00:00",
+  "generated_at": "2026-08-02T09:14:42.805251+00:00",
   "version": "1.0"
 }
