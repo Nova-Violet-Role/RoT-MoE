@@ -61,7 +61,31 @@ export LC_ALL
 # --- CONFIG ------------------------------------------------------------------
 # Every one of these is measured from the environment, never baked in.
 HERE=$(dirname "$0")
-WS=${ROTMOE_LEAN_WORKSPACE:-$HERE/../lean}
+# WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live.
+#
+# This defaulted straight to the plugin's bundled corpus, and that was wrong in
+# a way that quietly disabled the whole point. The bundled lean/ folder sits
+# inside plugins/cache: it is READ-ONLY, it is ours, and it never changes. A
+# user's own theorems -- the ones that start at zero and accumulate as they
+# work -- had no home any hook could see, so the reminder measured debt against
+# a corpus that cannot acquire debt, and reported healthy forever.
+#
+# SETUP_LEAN already asks which filesystem ROOT to install under (C:/, D:/, /)
+# and puts .elan there. It now records the workspace it created in the state
+# directory as well, so the answer to "where does this machine keep its proofs"
+# survives the install and is readable by every later session.
+#
+# The chain, most specific first. Each step is a deliberate answer, never a
+# guess: an explicit environment variable beats a recorded install, and a
+# recorded install beats our own shipped corpus.
+_ws_from_state () {
+  _f="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}/workspace"
+  [ -f "$_f" ] || return 1
+  _v=$(head -1 "$_f" 2>/dev/null | tr -d '\r')
+  [ -n "$_v" ] && [ -d "$_v" ] && printf '%s' "$_v"
+}
+WS=${ROTMOE_LEAN_WORKSPACE:-$(_ws_from_state 2>/dev/null)}
+[ -n "$WS" ] || WS="$HERE/../lean"
 PROOFS_DIR="$WS/Proofs"
 WATCH_REPO=${ROTMOE_WATCH_REPO:-.}
 STATE_DIR=${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}
@@ -215,6 +239,109 @@ measure_kernel () {   # echoes "<red csv>|<sorry csv>" from the watchdog status 
 }
 
 # --- HOOK MODE ---------------------------------------------------------------
+# =============================================================================
+# THE HOOK INVOKES LEAN -- WHEN LEAN WORK HAS JUST HAPPENED, AND ONLY THEN.
+#
+# Reminding a model that it owes a proof is not the same as making it prove one.
+# Until this function existed, the reminder READ the workspace off disk -- file
+# mtimes, counts -- and reported debt. Nothing ever checked whether the .lean
+# file that was just written actually COMPILES. The model could write a theorem,
+# be congratulated by its own reminder, and move on; the defect surfaced later,
+# in CI, or never.
+#
+# So: the moment a .lean file is written or edited, the module it belongs to is
+# BUILT, and the verdict goes back into the transcript. Practical code is not
+# "delivered" until the theorem behind it elaborates.
+#
+# WHY NOT ON EVERY TURN, WHICH IS THE OBVIOUS ASK. Measured on this machine:
+#
+#   router hook                       176 ms
+#   lake build, ONE module, no-op    1206 ms
+#   lake build, one module, edited   1287 ms
+#   lake build, whole corpus, no-op  4850 ms
+#
+# Registering `lake` against every prompt and every tool call adds 1.2-4.9 s to
+# each -- a fifty-tool-call session pays one to four MINUTES of waiting for
+# answers that are almost always identical to the last one. That is not caution,
+# it is arithmetic. Lean runs when Lean work happens: full strength on the turn
+# that matters, zero cost on the turns that do not.
+#
+# THREE GUARDS, each of which makes this SILENT rather than broken:
+#   1. no toolchain on PATH  -> silent. The Core variant ships no Lean and must
+#      keep working exactly as before; so must a Lean user who has not run
+#      SETUP_LEAN yet. A hook that fails because an OPTIONAL dependency is
+#      missing has made it mandatory.
+#   2. no timeout binary     -> silent. An unbounded build inside a hook does not
+#      fail, it HANGS, and a hung hook looks like a hung model.
+#   3. ROTMOE_LEAN_VERIFY=0  -> silent, for anyone who wants the router alone.
+#
+# This is deliberately NOT throttled. Throttling exists so a tight tool loop
+# cannot spam advice; a proof that does not compile is not advice.
+verify_lean_edit () {
+  _pl="$1"
+  [ -n "$_pl" ] || return 0
+  [ "${ROTMOE_LEAN_VERIFY:-1}" = "0" ] && return 0
+  command -v node >/dev/null 2>&1 || return 0
+  command -v lake >/dev/null 2>&1 || return 0
+
+  _fp=$(printf '%s' "$_pl" | node -e '
+    let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+      try{
+        const j=JSON.parse(s), t=j.tool_input||{};
+        process.stdout.write(String(t.file_path||t.path||""));
+      }catch(e){process.stdout.write("");}});' 2>/dev/null)
+  case "$_fp" in
+    *.lean) : ;;
+    *) return 0 ;;
+  esac
+
+  # Bound it or do not run it. Never leave a build unbounded inside a hook.
+  if command -v timeout >/dev/null 2>&1; then _tmo=timeout
+  elif command -v gtimeout >/dev/null 2>&1; then _tmo=gtimeout
+  else return 0; fi
+
+  # The path arrives in whatever form the tool used; the module name is derived
+  # from the part BELOW the workspace root. Both separators are handled because
+  # a Windows tool call reports backslashes while the shell speaks forward ones.
+  _wsabs=$(cd "$WS" 2>/dev/null && pwd) || return 0
+  _norm=$(printf '%s' "$_fp" | tr '\\' '/')
+  _wsn=$(printf '%s' "$_wsabs" | tr '\\' '/')
+  case "$_norm" in
+    "$_wsn"/*) _rel=${_norm#"$_wsn"/} ;;
+    */lean/*)  _rel=${_norm##*/lean/} ;;
+    *)         return 0 ;;
+  esac
+  _mod=$(printf '%s' "${_rel%.lean}" | tr '/' '.')
+  [ -n "$_mod" ] || return 0
+
+  _t0=$(date +%s%N 2>/dev/null)
+  _log=$( cd "$WS" 2>/dev/null && "$_tmo" "${ROTMOE_LEAN_VERIFY_SECS:-300}" lake build "$_mod" 2>&1 )
+  _rc=$?
+  _t1=$(date +%s%N 2>/dev/null)
+  _ms=$(( (${_t1:-0} - ${_t0:-0}) / 1000000 ))
+  [ "$_ms" -lt 0 ] && _ms=0
+
+  # A file may contain `sorry` and still elaborate. Reporting that as a pass is
+  # the exact laundering this project exists to prevent, so it is a THIRD state.
+  _sry=$(grep -c '\bsorry\b' "$_norm" 2>/dev/null)
+  case "$_sry" in ''|*[!0-9]*) _sry=0 ;; esac
+
+  if [ "$_rc" -eq 124 ]; then
+    printf 'LEAN TIMED OUT: %s did not finish in %ss. NOT proved -- a build you killed is not a verdict.' \
+      "$_mod" "${ROTMOE_LEAN_VERIFY_SECS:-300}"
+  elif [ "$_rc" -ne 0 ]; then
+    _err=$(printf '%s' "$_log" | grep -m1 'error:' | cut -c1-200)
+    printf 'LEAN REFUSED: %s does NOT build (lake build exit %s, %sms). First error: %s -- this is not proved. Fix it before the code is called delivered.' \
+      "$_mod" "$_rc" "$_ms" "${_err:-<no error line captured>}"
+  elif [ "$_sry" -gt 0 ]; then
+    printf 'LEAN INCOMPLETE: %s builds (exit 0, %sms) but contains %s sorry. A sorry is an ADMISSION, not a proof -- the module is not done.' \
+      "$_mod" "$_ms" "$_sry"
+  else
+    printf 'LEAN VERIFIED: %s builds, lake build exit 0 in %sms, zero sorry. Elaboration is not truth -- close it with #print axioms (sorryAx = not proved) and lake env leanchecker %s.' \
+      "$_mod" "$_ms" "$_mod"
+  fi
+}
+
 # No arguments means "you were called as a hook". That default is not a
 # nicety: R20 measured the router shipping with only its flag modes while
 # ARM_ROUTER registered it with none, so every real invocation hit the usage
@@ -235,12 +362,23 @@ hook_mode () {
   ev=$(printf '%s' "$ev" | tr -cd 'A-Za-z0-9_-')
   [ -z "$ev" ] && ev=PostToolUse
 
+  # VERIFY FIRST, ADVISE SECOND. If a .lean file was just written, the build
+  # verdict is the most important thing that can go back into the transcript --
+  # more important than any reminder, and immune to being talked out of.
+  _lean=""
+  [ "$ev" = "PostToolUse" ] && _lean=$(verify_lean_edit "${payload:-}" 2>/dev/null)
+
   # Per-event throttle. Independent stamps, so no lane can silence another.
   case "$ev" in
     UserPromptSubmit) thr=${ROTMOE_THROTTLE_PROMPT:-0} ;;
     PreToolUse)       thr=${ROTMOE_THROTTLE_PRE:-7} ;;
     *)                thr=${ROTMOE_THROTTLE_POST:-5} ;;
   esac
+  # A build verdict is never throttled. Throttling exists so a tight tool loop
+  # cannot spam ADVICE; "this module does not compile" is not advice, and a
+  # verdict suppressed because a similar one appeared four minutes ago is a
+  # defect that ships.
+  [ -n "$_lean" ] && thr=0
   mkdir -p "$STATE_DIR" 2>/dev/null
   stampf="$STATE_DIR/prover-remind.$ev.stamp"
   if [ "$thr" -gt 0 ] && [ -f "$stampf" ]; then
@@ -259,7 +397,16 @@ hook_mode () {
   ksorry=${kern#*|}; [ -z "$ksorry" ] && ksorry=-
   alarms=$(measure_alarms)
 
-  ctx=$(decide "$ev" "$mins" "$lastp" "$debt" "$kred" "$ksorry" "$alarms") || exit 0
+  ctx=$(decide "$ev" "$mins" "$lastp" "$debt" "$kred" "$ksorry" "$alarms") || ctx=""
+
+  # THE VERDICT OUTRANKS THE ADVICE, and the `|| exit 0` this replaced is why
+  # that has to be said in code. `decide` returns non-zero when it has nothing
+  # worth saying, which is the common case -- so a build failure would have been
+  # discarded on the way out because the REMINDER was feeling quiet. The verdict
+  # goes first, and its presence alone is enough to speak.
+  if [ -n "$_lean" ]; then
+    ctx="$_lean${ctx:+ }$ctx"
+  fi
   [ -z "$ctx" ] && exit 0
 
   date +%s > "$stampf" 2>/dev/null

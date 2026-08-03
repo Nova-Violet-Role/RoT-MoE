@@ -39,8 +39,22 @@ function Get-EnvOr([string] $Name, [string] $Default) {
   if ([string]::IsNullOrWhiteSpace($v)) { return $Default } else { return $v }
 }
 $Here      = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Ws        = Get-EnvOr 'ROTMOE_LEAN_WORKSPACE' (Join-Path $Here '../lean')
-$ProofsDir = Join-Path $Ws 'Proofs'
+# WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live. The POSIX
+# arm carries the full rationale; the chain is identical and deliberately so:
+# an explicit environment variable beats a recorded install, and a recorded
+# install beats our own shipped corpus. Defaulting to the bundled lean/ folder
+# pointed every measurement at a READ-ONLY corpus that can never acquire debt.
+function Get-RecordedWorkspace {
+  try {
+    $sd = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path (Get-HomeDir) '.local/state/rot-moe')
+    $f  = Join-Path $sd 'workspace'
+    if (Test-Path -LiteralPath $f) {
+      $v = (Get-Content -LiteralPath $f -TotalCount 1 -ErrorAction Stop).Trim()
+      if ($v -and (Test-Path -LiteralPath $v)) { return $v }
+    }
+  } catch { }
+  return ''
+}
 $WatchRepo = Get-EnvOr 'ROTMOE_WATCH_REPO' '.'
 # HOME, ON EVERY PLATFORM POWERSHELL RUNS ON.
 #
@@ -65,6 +79,19 @@ function Get-HomeDir {
   $p = [Environment]::GetFolderPath('UserProfile')
   if ([string]::IsNullOrWhiteSpace($p)) { return '.' } else { return $p }
 }
+
+# RESOLVED HERE, BELOW Get-HomeDir, AND THE ORDER IS LOAD-BEARING. PowerShell
+# executes a script top to bottom, so a function is not callable above its own
+# definition. The first draft of this put the resolution at line 58 while
+# Get-RecordedWorkspace calls Get-HomeDir, defined at 77 -- the call threw
+# CommandNotFoundException, my own try/catch swallowed it, and the workspace
+# SILENTLY fell back to the bundled corpus. That is worse than a crash: the
+# feature would have been dead in exactly the case it exists for, with every
+# gate green. Resolution stays below every function it depends on.
+$Ws = $env:ROTMOE_LEAN_WORKSPACE
+if (-not $Ws) { $Ws = Get-RecordedWorkspace }
+if (-not $Ws) { $Ws = Join-Path $Here '../lean' }
+$ProofsDir = Join-Path $Ws 'Proofs'
 $StateDir  = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path (Get-HomeDir) '.local/state/rot-moe')
 $GoalFile  = Get-EnvOr 'ROTMOE_GOAL_FILE' ''
 $StaleMin  = [int](Get-EnvOr 'ROTMOE_PROOF_STALE_MIN' '45')
@@ -149,6 +176,89 @@ if ($Decide) {
 }
 
 # --- MEASURE + HOOK MODE -----------------------------------------------------
+# =============================================================================
+# THE HOOK INVOKES LEAN -- WHEN LEAN WORK HAS JUST HAPPENED, AND ONLY THEN.
+# The POSIX arm carries the full rationale and the measurements; this is its
+# mirror, and checker/cross-diff-remind.sh exists to keep the two honest.
+#
+# Measured: router 176 ms · one module no-op 1206 ms · one module edited
+# 1287 ms · whole corpus 4850 ms. Building on every prompt and every tool call
+# would cost a fifty-call session one to four MINUTES for verdicts that barely
+# change. Building on the turn a .lean file is written costs 1.2 s and cannot be
+# talked out of its answer.
+#
+# Silent -- never broken -- when lake is absent, when the build cannot be
+# bounded, or when ROTMOE_LEAN_VERIFY=0. An optional dependency that breaks the
+# hook when missing is not optional.
+function Invoke-LeanVerify {
+  param($Payload)
+  if (-not $Payload) { return '' }
+  if ((Get-EnvOr 'ROTMOE_LEAN_VERIFY' '1') -eq '0') { return '' }
+  if (-not (Get-Command lake -ErrorAction SilentlyContinue)) { return '' }
+
+  $fp = ''
+  try {
+    $ti = $Payload.tool_input
+    if ($ti) {
+      if ($ti.file_path) { $fp = [string]$ti.file_path }
+      elseif ($ti.path)  { $fp = [string]$ti.path }
+    }
+  } catch { }
+  if (-not $fp) { return '' }
+  if (-not $fp.EndsWith('.lean')) { return '' }
+
+  $wsAbs = ''
+  try { $wsAbs = (Resolve-Path -LiteralPath $Ws -ErrorAction Stop).Path } catch { return '' }
+  $norm = $fp -replace '\\', '/'
+  $wsn  = $wsAbs -replace '\\', '/'
+  $rel  = ''
+  if ($norm.StartsWith($wsn + '/')) { $rel = $norm.Substring($wsn.Length + 1) }
+  elseif ($norm -match '/lean/(.+)$') { $rel = $Matches[1] }
+  else { return '' }
+  $mod = ($rel -replace '\.lean$', '') -replace '/', '.'
+  if (-not $mod) { return '' }
+
+  $secs = [int](Get-EnvOr 'ROTMOE_LEAN_VERIFY_SECS' '300')
+  $sw = [Diagnostics.Stopwatch]::StartNew()
+  $job = Start-Job -ScriptBlock {
+    param($w, $m)
+    Set-Location -LiteralPath $w
+    $out = & lake build $m 2>&1 | Out-String
+    [pscustomobject]@{ Out = $out; Code = $LASTEXITCODE }
+  } -ArgumentList $wsAbs, $mod
+
+  if (-not (Wait-Job $job -Timeout $secs)) {
+    Stop-Job $job -ErrorAction SilentlyContinue
+    Remove-Job $job -Force -ErrorAction SilentlyContinue
+    return "LEAN TIMED OUT: $mod did not finish in ${secs}s. NOT proved -- a build you killed is not a verdict."
+  }
+  $res = Receive-Job $job
+  Remove-Job $job -Force -ErrorAction SilentlyContinue
+  $sw.Stop()
+  $ms = [int]$sw.ElapsedMilliseconds
+  $code = 0; $out = ''
+  if ($res) { $code = [int]$res.Code; $out = [string]$res.Out }
+
+  # A file may contain `sorry` and still elaborate. Reporting that as a pass is
+  # the exact laundering this project exists to prevent, so it is a THIRD state.
+  $sry = 0
+  try {
+    $sry = @(Select-String -LiteralPath $fp -Pattern '\bsorry\b' -AllMatches -ErrorAction Stop).Count
+  } catch { $sry = 0 }
+
+  if ($code -ne 0) {
+    $err = ''
+    try { $err = (($out -split "`n") | Where-Object { $_ -match 'error:' } | Select-Object -First 1) } catch { }
+    if ($err) { $err = $err.Trim(); if ($err.Length -gt 200) { $err = $err.Substring(0, 200) } }
+    else { $err = '<no error line captured>' }
+    return "LEAN REFUSED: $mod does NOT build (lake build exit $code, ${ms}ms). First error: $err -- this is not proved. Fix it before the code is called delivered."
+  }
+  if ($sry -gt 0) {
+    return "LEAN INCOMPLETE: $mod builds (exit 0, ${ms}ms) but contains $sry sorry. A sorry is an ADMISSION, not a proof -- the module is not done."
+  }
+  return "LEAN VERIFIED: $mod builds, lake build exit 0 in ${ms}ms, zero sorry. Elaboration is not truth -- close it with #print axioms (sorryAx = not proved) and lake env leanchecker $mod."
+}
+
 # Everything below is wrapped so the contract holds: never throw, always exit 0.
 try {
   # DISCOVER the invoking event from the hook payload on stdin. IsInputRedirected
@@ -167,6 +277,12 @@ try {
   $ev = ($ev -replace '[^A-Za-z0-9_-]', '')
   if (-not $ev) { $ev = 'PostToolUse' }
 
+  # VERIFY FIRST, ADVISE SECOND -- the POSIX arm carries the reasoning.
+  $leanVerdict = ''
+  if ($ev -eq 'PostToolUse' -and $j) {
+    try { $leanVerdict = Invoke-LeanVerify $j } catch { $leanVerdict = '' }
+  }
+
   # Per-event throttle: independent stamps, so no lane can silence another.
   $thr = switch ($ev) {
     'UserPromptSubmit' { [int](Get-EnvOr 'ROTMOE_THROTTLE_PROMPT' '0') }
@@ -177,6 +293,9 @@ try {
     New-Item -ItemType Directory -Path $StateDir -Force | Out-Null
   }
   $stamp = Join-Path $StateDir "prover-remind.$ev.stamp"
+  # A build verdict is never throttled: throttling exists so a tight tool loop
+  # cannot spam ADVICE, and "this module does not compile" is not advice.
+  if ($leanVerdict) { $thr = 0 }
   if ($thr -gt 0 -and (Test-Path -LiteralPath $stamp)) {
     try {
       $age = ((Get-Date).ToUniversalTime() - (Get-Item -LiteralPath $stamp).LastWriteTimeUtc).TotalMinutes
@@ -238,6 +357,12 @@ try {
   $ctx = Invoke-Decide -Event $ev -Mins $mins -Last $last `
            -Debt (($debtFiles -join ',')) -KRed (($kred -join ',')) `
            -KSorry (($ksorry -join ',')) -Alarms $alarms
+  # THE VERDICT OUTRANKS THE ADVICE. Invoke-Decide returns nothing in the common
+  # case, so a build failure would otherwise be discarded on the way out because
+  # the REMINDER had nothing to add. Its presence alone is enough to speak.
+  if ($leanVerdict) {
+    if ($ctx) { $ctx = "$leanVerdict $ctx" } else { $ctx = $leanVerdict }
+  }
   if ($null -eq $ctx -or $ctx -eq '') { exit 0 }
 
   Set-Content -LiteralPath $stamp -Value (Get-Date -Format 'o') -Encoding ascii -ErrorAction SilentlyContinue

@@ -94,14 +94,52 @@ for h in $HOOKS; do
     code_of "$h" | grep -nEi "$NET_RE" | head -3 | sed 's/^/        /'
     net_bad=1
   fi
-  if code_of "$h" | grep -qE "$TOOL_RE"; then
-    bad "$h invokes a Lean toolchain command -- a user with no Lean would be affected:"
-    code_of "$h" | grep -nE "$TOOL_RE" | head -3 | sed 's/^/        /'
-    tool_bad=1
-  fi
+  # THE RULE CHANGED HERE, AND IT NARROWED RATHER THAN WEAKENED.
+  #
+  # It used to read: no hook may ever invoke Lean. That was right for as long as
+  # the reminder only READ the workspace off disk. It is too strong now that the
+  # reminder BUILDS the module a .lean edit just touched, which is the whole
+  # point of shipping a prover: a reminder that says "you owe a proof" and never
+  # checks whether the proof compiles is advice, not verification.
+  #
+  # The danger the old rule protected against was never "the word lake appears".
+  # It was: a user with NO toolchain gets a broken hook, and every user pays a
+  # multi-second build on every prompt. Measured on this machine -- router
+  # 176 ms, one module 1206 ms, whole corpus 4850 ms -- so the fear was
+  # quantitatively right. The new rule keeps exactly that protection:
+  #
+  #   * THE ROUTER MAY NEVER INVOKE LEAN. It runs on every prompt and every tool
+  #     call; there is no guard that makes seconds acceptable there.
+  #   * THE REMINDER MAY, but only if it is provably safe when Lean is absent
+  #     and provably bounded. All three guards must be present in the file:
+  #       - a `command -v lake` / `Get-Command lake` existence check
+  #       - the ROTMOE_LEAN_VERIFY opt-out
+  #       - a bound (timeout/gtimeout, or Wait-Job -Timeout)
+  #
+  # A guard that is missing is a hook that HANGS or BREAKS on someone else's
+  # machine, so absence is a failure, not a style note.
+  case "$h" in
+    *rot-router*)
+      if code_of "$h" | grep -qE "$TOOL_RE"; then
+        bad "$h invokes a Lean toolchain command -- the ROUTER runs on every prompt and must never build:"
+        code_of "$h" | grep -nE "$TOOL_RE" | head -3 | sed 's/^/        /'
+        tool_bad=1
+      fi
+      ;;
+    *prover-remind*)
+      if code_of "$h" | grep -qE "$TOOL_RE"; then
+        _g=0
+        code_of "$h" | grep -qE "command -v lake|Get-Command lake"        || { bad "$h builds without checking that lake EXISTS -- it would break a user with no toolchain"; _g=1; }
+        code_of "$h" | grep -q  "ROTMOE_LEAN_VERIFY"                      || { bad "$h builds with no ROTMOE_LEAN_VERIFY opt-out"; _g=1; }
+        code_of "$h" | grep -qE "timeout|gtimeout|Wait-Job"               || { bad "$h builds UNBOUNDED -- a hung build is indistinguishable from a hung model"; _g=1; }
+        [ "$_g" -eq 1 ] && tool_bad=1
+        [ "$_g" -eq 0 ] && ok "$(basename "$h") invokes Lean, and carries all three guards (exists / opt-out / bounded)"
+      fi
+      ;;
+  esac
 done
 [ "$net_bad"  -eq 0 ] && ok "no network call in any of the 4 shipped hooks"
-[ "$tool_bad" -eq 0 ] && ok "no lake/lean invocation in any of the 4 shipped hooks (Lean stays optional)"
+[ "$tool_bad" -eq 0 ] && ok "the router never builds; any build in the reminder is guarded (Lean stays optional)"
 
 # --- the promise must be ON THE PAGE ----------------------------------------
 promise_missing=0
@@ -190,6 +228,39 @@ if sed 's/#.*$//' "$CTL/tool.sh" | grep -qE "$TOOL_RE"; then
   ok "CONTROL: a planted lake invocation IS detected"
 else
   bad "CONTROL DEAD: a planted lake invocation is invisible"
+fi
+
+# THE GUARD RULE MUST BE ABLE TO FAIL, or narrowing it was just permission.
+#
+# The rule above lets the reminder build ONLY while all three guards are
+# present. A rule that cannot catch their absence is not a rule, it is a
+# comment -- so plant an UNGUARDED build and require every guard to be reported
+# missing. Each guard is asserted separately: a control that only checks "some
+# guard was missing" would still pass if two of the three checks were deleted.
+cp hooks/prover-remind.sh "$CTL/unguarded.sh"
+printf 'lake build Proofs.RotGauge >/dev/null\n' > "$CTL/unguarded.sh"
+_missing=0
+sed 's/#.*$//' "$CTL/unguarded.sh" | grep -qE "command -v lake|Get-Command lake" || _missing=$((_missing+1))
+sed 's/#.*$//' "$CTL/unguarded.sh" | grep -q  "ROTMOE_LEAN_VERIFY"              || _missing=$((_missing+1))
+sed 's/#.*$//' "$CTL/unguarded.sh" | grep -qE "timeout|gtimeout|Wait-Job"       || _missing=$((_missing+1))
+if [ "$_missing" -eq 3 ]; then
+  ok "CONTROL: an UNGUARDED build in the reminder is caught, and all 3 guards report missing"
+else
+  bad "CONTROL DEAD: an unguarded build reported only $_missing of 3 guards missing"
+fi
+
+# And the shipping reminder must satisfy every one of them -- asserted here as
+# well as in the loop, because the loop only runs its branch when a build is
+# actually present. If someone removes the build, this line still proves the
+# guards were not quietly dropped along with it.
+_have=0
+for _g in "command -v lake" "ROTMOE_LEAN_VERIFY" "timeout"; do
+  sed 's/#.*$//' hooks/prover-remind.sh | grep -q "$_g" && _have=$((_have+1))
+done
+if [ "$_have" -eq 3 ]; then
+  ok "the shipping reminder carries all 3 guards (exists / opt-out / bounded)"
+else
+  bad "the shipping reminder carries only $_have of 3 guards"
 fi
 
 # The other direction, and it is the one that keeps this checker honest: a hook
