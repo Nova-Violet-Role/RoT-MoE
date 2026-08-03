@@ -160,8 +160,22 @@ try {
   $prompt = $payload
 }
 
-# The gauge needs activities measured off disk across turns, which one hook
-# invocation does not have. Emitting a fabricated vector would be worse than
-# emitting none, so hook mode reports only the routing decision it measured.
-Write-Output ("RoT MoE :: TIER 1 -> " + (Invoke-Route $prompt))
+# README.md:77 promises this line carries a named lane AND A GAUGE READING. See
+# the long note at the same point in rot-router.sh: the vector is the ROUTING
+# DECISION expressed one-hot -- the lead lens of the fired lane at 1, the rest
+# at 0 -- which is measured, not invented. A CONVERGENT turn fires no lens, so
+# its vector is all zeros with breadth 0, and the gauge is defined there too.
+# M, C and T are the neutral element 1.0 because one stateless hook call cannot
+# measure memory residue, confidence or recency; that is stated, not hidden.
+# The index comes from $Names so a roster change moves both arms together.
+$lane  = Invoke-Route $prompt
+$lens  = ($lane -split ' ')[1]
+$acts  = @()
+$br    = 0
+foreach ($n in $Names) {
+  if ($n -eq $lens) { $acts += '1'; $br = 1 } else { $acts += '0' }
+}
+$g  = Invoke-Gauge ($acts -join ',') $br 1 1 1
+$rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
+Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs)
 exit 0

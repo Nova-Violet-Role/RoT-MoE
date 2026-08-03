@@ -76,6 +76,28 @@ like it wants to take the wheel. It does not.
 * **Your agent stays your agent.** The router adds *one line* before a turn —
   a named lane and a gauge reading. It changes no tool, intercepts no command,
   and decides nothing. Claude Code does the work exactly as it always did.
+
+  ```
+  RoT MoE :: TIER 1 -> FORGE Claude      | R/s+ 0.66
+  RoT MoE :: TIER 1 -> CLINICAL AntiVenom | R/s+ 0.57
+  RoT MoE :: TIER 1 -> CONVERGENT none    | R/s+ 0.16
+  ```
+
+  The reading is **not** a mood. It is this turn's routing decision written in
+  the gauge's own units: the lead lens of the fired lane at activity 1, every
+  other lens at 0, breadth 1 — and you can reproduce any line above by hand,
+  which is the only reason it is allowed to appear:
+
+  ```sh
+  rot-router.sh --vector 0,0,0,0,0,0,0,0,1 --breadth 1 --M 1 --C 1 --T 1
+  # R/s+ = 0.66 [BELOW RANGE] mean=0.111 breadth=1 K=9 lenses=Claude
+  ```
+
+  `M`, `C` and `T` are the neutral element `1.0` because one stateless hook call
+  cannot measure memory residue, confidence or recency. That is stated rather
+  than hidden, and it is why the number is a *measurement of the routing
+  decision* and not an invented activity profile. A turn that fires no lens is
+  all zeros with breadth 0, and the gauge is defined there too.
 * **Nothing is imposed.** Every lens is a *lens*, not a rule. The engine
   (`engine/rot-lean.md`) is a document the model may read; the only mechanical
   effect in your session is the hook line.

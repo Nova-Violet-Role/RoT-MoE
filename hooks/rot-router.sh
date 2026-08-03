@@ -204,11 +204,50 @@ hook_mode () {
   fi
 
   lane=$(route "$prompt")
-  # The gauge needs measured activities, which a single hook invocation does not
-  # have -- they come from disk state across turns. Emitting a FABRICATED vector
-  # here would be worse than emitting none, so hook mode reports the routing
-  # decision only and says nothing it has not measured.
-  echo "RoT MoE :: TIER 1 -> $lane"
+
+  # README.md:77 promises this line carries "a named lane AND A GAUGE READING".
+  # For a long time it carried the lane only, and the comment that used to sit
+  # here defended that: a single hook invocation has not measured nine lens
+  # activities, and emitting a fabricated vector would be worse than emitting
+  # none. The first half of that is still true. The conclusion was wrong.
+  #
+  # The router HAS measured something by this point: WHICH LANE FIRED. Expressed
+  # as an activity vector that is one-hot -- the lead lens of the fired lane at
+  # 1, every other lens at 0, breadth 1. That is not an invented profile, it is
+  # this turn's routing decision written in the gauge's own units, and it is
+  # reproducible by hand -- WITH THE SAME M, C AND T, which is the whole point
+  # of writing them out:
+  #   rot-router.sh --vector 0,0,0,0,0,0,0,0,1 --breadth 1 --M 1 --C 1 --T 1
+  #     -> R/s+ = 0.66,  which is exactly what the hook line prints for FORGE.
+  # An earlier draft of this comment cited 0.7, the figure the CLI prints when
+  # it falls back to its OWN defaults (T = 0.8, not 1.0). Same vector, different
+  # scalars, different number -- and a reproduction command that does not
+  # reproduce is worse than none, because the reader concludes the gauge is
+  # unstable rather than that the instructions were incomplete. Measured both
+  # ways before this line was written.
+  # A CONVERGENT turn fires no lens, so its vector is all zeros with breadth 0
+  # and the gauge is defined there too (0.16 under these scalars). Every lane
+  # therefore has a reading, and none of them is guessed.
+  #
+  # M, C and T are the neutral element 1.0 -- NOT measurements dressed up as
+  # defaults. Memory residue, confidence calibration and temporal recency are
+  # genuinely unavailable to one stateless hook call, so they are set to the
+  # value that leaves the product unchanged, and this comment is where that is
+  # admitted rather than buried.
+  #
+  # The lens index comes from NAMES itself, so adding or renaming a lens moves
+  # this automatically. A second hard-coded lane->index table would be a
+  # snapshot waiting to drift out of step with the first one.
+  _lens=${lane#* }
+  _vec=''; _br=0; _i=1
+  for _n in $NAMES; do
+    if [ "$_n" = "$_lens" ]; then _vec="$_vec,1"; _br=1; else _vec="$_vec,0"; fi
+    _i=$((_i+1))
+  done
+  _vec=${_vec#,}
+  _rs=$(gauge "$_vec" "$_br" 1 1 1 | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
+  [ -z "$_rs" ] && _rs='n/a'
+  echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs"
   exit 0
 }
 
