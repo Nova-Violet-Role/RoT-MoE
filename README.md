@@ -967,7 +967,7 @@ wall-clock timer):
 | arm | in-script logic | interpreter startup | **wall clock per turn** |
 |---|---|---|---|
 | `rot-router.sh` (bash) | ≈178 ms | ≈20 ms | **≈198 ms** |
-| `rot-router.ps1` (PowerShell) | ≈88–125 ms | ≈160–300 ms | **≈284–388 ms** |
+| `rot-router.ps1` (PowerShell, Windows) | ≈88–125 ms | ≈160–300 ms | **≈284–388 ms** |
 
 The PowerShell arm's *logic* is genuinely faster; its *interpreter* is an order
 of magnitude more expensive to start, so the turn costs **more**, not less. Both

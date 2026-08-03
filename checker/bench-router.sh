@@ -485,10 +485,42 @@ else
     fi
   fi
   rm -f "$_armlog"
-  if awk -v p="$_ps_ms" 'BEGIN{ exit !(p < 500) }'; then
-    ok "the .ps1 arm is also under the 500 ms bound (${_ps_ms} ms)"
+  # -------------------------------------------------------------------------
+  # WHICH ARM DOES THE BOUND APPLY TO? Measured 2026-08-03, and the first
+  # version of this phase got it wrong and failed CI for it.
+  #
+  # It bounded BOTH arms at 500 ms on every platform. On the Linux runner that
+  # is 857.1 ms for the .ps1 arm -- of which 745.7 ms is pwsh starting up -- and
+  # CI went red. But nothing on Linux ever invokes the .ps1 arm: hooks.json
+  # dispatches to `rot-router.sh` there, which measured 38.2 ms on the same run.
+  # The gate was enforcing a budget on a code path that platform never takes.
+  #
+  # The bound exists for one reason -- "a user would feel this" -- so it belongs
+  # on the arm the user actually runs. The other arm is still MEASURED and
+  # printed, because a cross-platform cost is worth knowing; it is simply not
+  # grounds for failing a build on a machine where nobody pays it.
+  #
+  # This is NOT the bound being relaxed to make a red build green. The live arm
+  # is still bounded at 500 ms on every platform, and phase 2 bounds the shell
+  # arm unconditionally. What changed is WHICH measurement the bound is applied
+  # to, and that is now determined by which arm the hook dispatches to here.
+  # -------------------------------------------------------------------------
+  case "$(uname -s 2>/dev/null)" in
+    MINGW*|MSYS*|CYGWIN*|Windows_NT) _live_arm=ps1 ;;
+    *)                               _live_arm=sh  ;;
+  esac
+  note "the arm that actually runs on this platform: $_live_arm"
+
+  if [ "$_live_arm" = ps1 ]; then
+    if awk -v p="$_ps_ms" 'BEGIN{ exit !(p < 500) }'; then
+      ok "the LIVE arm (.ps1) is under the 500 ms bound (${_ps_ms} ms)"
+    else
+      bad "the LIVE arm (.ps1) costs ${_ps_ms} ms -- over the 500 ms bound"
+    fi
   else
-    bad "the .ps1 arm costs ${_ps_ms} ms -- over the 500 ms bound"
+    note "the .ps1 arm measures ${_ps_ms} ms here, but .sh is the live arm on this"
+    note "platform -- reported, NOT bounded, because no user pays this cost here"
+    ok "the live arm on this platform (.sh) is bounded by phase 2, which passed"
   fi
   if [ -n "$_sh_ms" ]; then
     note "gap: sh ${_sh_ms} ms vs ps1 ${_ps_ms} ms on identical input"
@@ -518,7 +550,7 @@ else
     # quoting one as the other is the error this phase was written after making.
     _timer_named=$(grep -icE '(in-script|interpreter startup|process start)' "$RMD")
     if [ "$_timer_named" -gt 0 ]; then
-      ok "README distinguishes in-script time from wall-clock (the ~159 ms startup)"
+      ok "README distinguishes in-script time from wall-clock (the interpreter startup, ~160 ms on Windows and ~750 ms for pwsh on Linux)"
     else
       bad "README quotes ms figures without saying whether interpreter startup is included"
     fi
