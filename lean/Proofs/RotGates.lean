@@ -246,7 +246,7 @@ def shipped : List Gate :=
   , d "mutate the checker" ["checker/", "hooks/"]
   , d "portability" ["checker/", "hooks/", "ARM_ROUTER", "DISARM_ROUTER", ".githooks/"]
   , d "installer round trip" ["ARM_ROUTER", "DISARM_ROUTER", "checker/install", ".claude-plugin/"]
-  , d "release install" [".release/", "checker/release", ".claude-plugin/"]
+  , d "release install" ["checker/release", ".claude-plugin/"]
   ]
 
 -- Twenty-eight gates, unchanged in number by the split.

@@ -139,17 +139,32 @@ else
   bad "gates with no valid tier: $untiered"
 fi
 
-# Every trigger must name a path that EXISTS. A trigger pointing at a moved or
-# deleted path silently stops escalating, and the gate quietly goes dark -- the
-# same invisibility as an empty trigger list, arriving by a different road.
-missing=""
+# Every trigger must name a path a COMMIT CAN ACTUALLY STAGE. Two ways to fail
+# that, and the second is the one CI found:
+#
+#   1. the path does not exist -- moved or deleted, so nothing matches it;
+#   2. the path is GITIGNORED -- it may exist on your disk and still never
+#      appear in `git diff --cached --name-only`, which is what the runner
+#      matches against. The trigger is then dead BY CONSTRUCTION, not by
+#      accident, and no amount of editing files there will ever escalate it.
+#
+# Measured 2026-08-03: `release install` carried a `.release/` trigger.
+# `.gitignore:9` ignores that directory, so the gate could never be escalated by
+# any commit; it merely looked covered. It has other, live triggers, so nothing
+# was actually dark -- but the row was decoration and is now gone.
+#
+# Both cases are the same defect as an empty trigger list
+# (`no_trigger_never_escalates`), arriving by different roads.
+missing=""; ignored=""
 while IFS='|' read -r n t g; do
   [ "$t" = deep ] || continue
   _o="$IFS"; IFS=','
   for tr in $g; do
     IFS="$_o"
     [ -z "$tr" ] && continue
-    if [ ! -e "$tr" ] && [ -z "$(find . -path "./$tr*" -not -path './.git/*' 2>/dev/null | head -1)" ]; then
+    if git check-ignore -q "$tr" 2>/dev/null; then
+      ignored="$ignored $n:$tr"
+    elif [ ! -e "$tr" ] && [ -z "$(find . -path "./$tr*" -not -path './.git/*' 2>/dev/null | head -1)" ]; then
       missing="$missing $n:$tr"
     fi
     IFS=','
@@ -162,6 +177,20 @@ if [ -z "$missing" ]; then
   ok "every trigger names a path that exists in this tree"
 else
   bad "triggers pointing at nothing (the gate is dark):$missing"
+fi
+if [ -z "$ignored" ]; then
+  ok "no trigger names a gitignored path (which no commit could ever stage)"
+else
+  bad "triggers on GITIGNORED paths -- dead by construction:$ignored"
+fi
+
+# CONTROL: the gitignored-trigger check must be able to fire. `.release/` is
+# ignored in this repo, so it is the natural probe -- asserted in memory, never
+# written into the table.
+if git check-ignore -q ".release/" 2>/dev/null; then
+  ok "CONTROL: a gitignored trigger IS recognised (probe: .release/)"
+else
+  note "CONTROL INCONCLUSIVE: .release/ is not ignored here, so the probe proves nothing"
 fi
 
 # Every command in the table must be a checker that exists.

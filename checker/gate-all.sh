@@ -103,7 +103,7 @@ axiom class|deep|lean/|bash checker/axiom-class.sh
 mutate the checker|deep|checker/,hooks/|bash checker/mutate-checker.sh
 portability|deep|checker/,hooks/,ARM_ROUTER,DISARM_ROUTER,.githooks/|bash checker/portability.sh
 installer round trip|deep|ARM_ROUTER,DISARM_ROUTER,checker/install,.claude-plugin/|bash checker/install-roundtrip.sh
-release install|deep|.release/,checker/release,.claude-plugin/|bash checker/release-install.sh
+release install|deep|checker/release,.claude-plugin/|bash checker/release-install.sh
 "
 
 if [ "$MODE" = full ]; then
@@ -114,8 +114,8 @@ scheduled verdict, three weeks with a remote|deep|STATUS.md,checker/verdict|bash
 plugin + fresh-user install|deep|.claude-plugin/,ARM_ROUTER|bash checker/plugin-install.sh
 marketplace session (install as a stranger, router in the loop)|deep|.claude-plugin/,hooks/|bash checker/marketplace-session.sh
 live-session smoke|deep|hooks/,agents/|bash checker/live-session-smoke.sh
-release session (every variant, every lane, real CLI)|deep|.release/,checker/release|bash checker/release-session.sh
-sustained session (cloned auth, plugin installed, real conversation)|deep|.release/,hooks/|bash checker/release-longsession.sh
+release session (every variant, every lane, real CLI)|deep|checker/release|bash checker/release-session.sh
+sustained session (cloned auth, plugin installed, real conversation)|deep|hooks/|bash checker/release-longsession.sh
 deferred closure (the runner ran what the dry run could not)|deep|.github/|bash checker/deferred-closure.sh
 "
 fi
