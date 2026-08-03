@@ -71,6 +71,14 @@ echo "== TIER 1: both arms, every lane =="
 # One probe per lane plus the default. This is the routing half of R7b: it
 # executes the SHIPPED router, not the model. RotRoute.lean proves the order is
 # total and dead-lane-free; this proves the shipped code implements that order.
+# CONVERGENT names the MODEL that convenes the nine, not a lead lens, so its
+# expected value depends on the machine's settings.json. Pinning the override
+# makes the row deterministic on every machine WITHOUT weakening it: the check
+# still asserts the exact string, it just asserts one the test controls. An
+# expectation that quoted this developer's model would have been a snapshot,
+# red on any other machine with nothing wrong.
+ROTMOE_MODEL="ROTMOE_TESTMODEL"; export ROTMOE_MODEL
+
 while IFS='|' read -r prompt want; do
   case "$prompt" in ''|\#*) continue ;; esac
   got=$("$SH" --route "$prompt")
@@ -91,7 +99,7 @@ invent a paradox|CREATIVE Carnage
 what happens next|PREDICTIVE Chroma
 compress the tokens|STEALTH Soleil
 refactor the meta layer|RECURSIVE Eidolon
-hello there|CONVERGENT none
+hello there|CONVERGENT ROTMOE_TESTMODEL
 ROUTES
 
 echo

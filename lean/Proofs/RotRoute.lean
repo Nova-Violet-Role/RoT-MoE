@@ -336,4 +336,69 @@ mixing in Anti-Venom's CLINICAL-profile μ. -/
 example : lamH 1.5 1.5 = 1.7 ∧ muH 1.05 1.00 = 1.05 ∧ hH 0.30 0.30 = 0.35 := by
   refine ⟨?_, ?_, ?_⟩ <;> norm_num [lamH, muH, hH, max_self]
 
+/-! ## The convener — why `CONVERGENT` no longer prints `none`
+
+Nine lanes have a lead **lens**. `convergent` has none, by design: all nine
+co-reason and nobody leads. The router used to print the literal `none` there,
+and that was a display defect rather than a modelling one — `none` reads as a
+null, as though the router failed to decide instead of deciding that nobody
+leads.
+
+What convenes the nine on that lane is the **model the user chose**, so that is
+what the line now names. The payload does not carry it (measured live: the
+`UserPromptSubmit` keys are session id, transcript path, cwd, prompt id,
+permission mode, hook event name, prompt — and no model), so it is resolved
+through a fallback chain.
+
+The property that matters is not *which* name appears — that legitimately
+differs per machine, and a theorem fixing it to one model would expire the
+moment someone switched. The property is that the chain **can never produce
+nothing**. That is what is proved here. -/
+
+/-- The convener resolution, modelling `convener()` in `hooks/rot-router.sh`
+and `Get-Convener` in the `.ps1` arm: an environment override, then the model
+recorded in settings, then a literal last resort. -/
+def convener (envModel settingsModel : String) : String :=
+  if envModel ≠ "" then envModel
+  else if settingsModel ≠ "" then settingsModel
+  else "model"
+
+/-- **The load-bearing theorem: the convener is never empty.**
+
+Every branch yields a non-empty string, so the router can never emit a lane
+with a blank lead — the failure mode that `none` was a polite spelling of.
+Quantified over ARBITRARY inputs, so it holds for any model name a future
+client reports, including ones that do not exist yet. A theorem naming
+`opus[1m]` would be a snapshot of this machine on this day. -/
+theorem convener_never_empty (e s : String) : convener e s ≠ "" := by
+  unfold convener
+  by_cases he : e ≠ ""
+  · simp [he]
+  · by_cases hs : s ≠ "" <;> simp [he, hs]
+
+/-- The override wins when it is set — the property that makes the checkers
+deterministic across machines without weakening what they assert. -/
+theorem convener_env_wins (e s : String) (he : e ≠ "") : convener e s = e := by
+  unfold convener; simp [he]
+
+/-- With no override, the user's recorded model is used. This is the row that
+answers "the router should name the model the user actually chose". -/
+theorem convener_uses_settings (s : String) (hs : s ≠ "") : convener "" s = s := by
+  unfold convener; simp [hs]
+
+/-- Only when BOTH sources are empty does the literal appear — and it is still
+a word, never a null. -/
+theorem convener_last_resort : convener "" "" = "model" := by decide
+
+/-! ### Executed, not merely stated -/
+
+example : convener "sonnet-test" "opus[1m]" = "sonnet-test" := by decide
+example : convener "" "opus[1m]" = "opus[1m]" := by decide
+example : convener "" "" = "model" := by decide
+
+/-- The gauge does not move because of who convenes: `CONVERGENT` fires no
+lens, so its reading is what it always was. Naming the convener is a display
+change and this pins it as one. -/
+example : (convener "" "opus[1m]" ≠ "") ∧ (convener "" "sonnet" ≠ "") := by decide
+
 end RotMoE.Route

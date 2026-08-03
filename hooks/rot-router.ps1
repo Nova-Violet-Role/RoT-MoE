@@ -55,6 +55,32 @@ $Tier1 = @(
   @{ Mode = 'RECURSIVE';  Lead = 'Eidolon';   Stems = @('evolv','recurs','meta','architect','refactor','ontolog','hybrid') }
 )
 
+# CONVERGENT is the only lane with no lead LENS -- by design, all nine
+# co-reason and none leads. It used to print the literal 'none', which reads as
+# a null: as though the router failed to decide, rather than decided that
+# nobody leads. What convenes the nine is the MODEL the user chose, so that is
+# what gets named.
+#
+# MEASURED (live UserPromptSubmit payload, 2026-08-03): the payload carries
+# session_id, transcript_path, cwd, prompt_id, permission_mode, hook_event_name
+# and prompt -- and NO model key. It is therefore read from the settings file
+# the client itself writes, degrading at every step rather than failing:
+# env override -> settings.json -> the literal 'model'. Never 'none', never
+# empty; a hook that emits an empty lead is worse than one that emits a
+# generic word.
+function Get-Convener {
+  if ($env:ROTMOE_MODEL) { return $env:ROTMOE_MODEL }
+  $cfgDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME '.claude' }
+  $cfg = Join-Path $cfgDir 'settings.json'
+  if (Test-Path -LiteralPath $cfg) {
+    try {
+      $j = Get-Content -LiteralPath $cfg -Raw | ConvertFrom-Json
+      if ($j.model) { return [string] $j.model }
+    } catch { }
+  }
+  return 'model'
+}
+
 function Invoke-Route([string] $Prompt) {
   $p = $Prompt.ToLowerInvariant()
   foreach ($lane in $Tier1) {
@@ -62,7 +88,7 @@ function Invoke-Route([string] $Prompt) {
       if ($p.Contains($stem)) { return "$($lane.Mode) $($lane.Lead)" }
     }
   }
-  return 'CONVERGENT none'
+  return "CONVERGENT $(Get-Convener)"
 }
 
 # --- THE GAUGE ---------------------------------------------------------------

@@ -241,6 +241,18 @@ else
   # The README names a lens beside every lane. That is a claim about this code,
   # so it is read out of hooks/rot-router.sh rather than trusted: rename a lens
   # in the router and the README goes red in the same run.
+  #
+  # This extraction used to be `sed -n '70,78p'` -- a HARDCODED LINE RANGE. It
+  # broke the moment a function was inserted above the route block: the range
+  # still existed, still produced output, and the checker reported "0 lane->lens
+  # pairs parsed" on a router that was perfectly correct. That is the fragile
+  # spec this repository keeps warning about, found in its own checker: a
+  # snapshot of where the code sat on the day it was written, red on a correct
+  # change. It now matches the PATTERN of a lane emission anywhere in the file,
+  # so moving code around cannot break it.
+  #
+  # The CONVERGENT branch deliberately does not match: it emits the convening
+  # MODEL, not a lens, and there is no lens to check it against.
   lens_fail=0; lens_rows=0
   while read -r lane lens; do
     [ -z "${lane:-}" ] && continue
@@ -257,7 +269,7 @@ else
       lens_fail=1; note "README lane $lane does not name its router lens $lens"
     fi
   done <<INNER
-$(sed -n '70,78p' "$ROUTER" | sed -n 's/.*echo "\([A-Z]*\) \([A-Za-z]*\)".*/\1 \2/p')
+$(sed -n 's/.*echo "\([A-Z][A-Z]*\) \([A-Za-z][A-Za-z]*\)".*/\1 \2/p' "$ROUTER")
 INNER
   # -- control: rename a lens in a COPY of the README and it must be caught.
   # Without this, "9 rows match" could mean the matcher accepts anything.

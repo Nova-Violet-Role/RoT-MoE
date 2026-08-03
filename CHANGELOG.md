@@ -24,6 +24,79 @@ that honest.
 
 ---
 
+## [0.3.0] · [0.3.1] · [0.3.2] — 2026-08-03
+
+The three numbers are not a roadmap. The patch digit is the **tier**: `0.3.0` is
+the router alone, `0.3.1` adds the Lean 4 proof corpus, `0.3.2` adds the
+unsealed checkers. They ship together, from one commit.
+
+The minor moved because the **content** moved. Publishing changed files under an
+unchanged version string is the same staleness defect this repository refuses
+everywhere else — an installed `0.2.1` and a rebuilt `0.2.1` would be
+indistinguishable to anyone holding the archive.
+
+### Proved
+
+- `RotPath.lean` 8 to 12 theorems, and the corpus 154 to **158**. The reminder
+  hook's module derivation — workspace root plus edited file, out comes the Lean
+  module to build — had shipped with **three silent defects**. It returned no
+  verdict at all, which reads as "nothing to check" rather than "I could not
+  work out what to build".
+  - `moduleOf_spelling_invariant` — the Windows and POSIX spellings of one edit
+    give the same module.
+  - `moduleOf_root_agnostic` — the module never depends on how the workspace
+    directory is named or capitalised. Quantified over **arbitrary** roots, so
+    it does not expire the day someone renames `Lean` to `Formal`.
+  - `moduleOf_no_slash` — a derived module name never contains a separator.
+  - `moduleOf_none_of_outside` — a file outside the workspace derives nothing,
+    which is the theorem that separates *correct* silence from the two bugs.
+  - Three mutations of the definitions each killed the build; `#print axioms`
+    shows `propext, Classical.choice, Quot.sound` and no `sorryAx`; and
+    `leanchecker` re-verified the module at exit 0 with zero bytes.
+
+### Changed
+
+- **`--root` now moves your PROOFS, not the toolchain.** A toolchain is a
+  bounded one-time cost elan manages in the home directory; the proof workspace
+  is what grows as you work, so it is the one that belongs on the disk you pick.
+  `--elan-root` keeps the old capability for a tight system drive — one flag had
+  been doing two jobs and answering the commoner question wrongly.
+- Both installers now **scaffold** the workspace: a `lakefile.toml` and a
+  `lean-toolchain` pinned to the version this corpus is verified against. A
+  directory alone was not a workspace — the user's first theorem could not build
+  at all, and the hook reported `LEAN REFUSED`, which reads as "your proof is
+  wrong" when the truth was "there was nothing to build it with". Core-only, no
+  mathlib: your proofs start at zero and grow from your own work.
+
+### Fixed
+
+- `elan toolchain install` **exits 1 when the toolchain is already present**
+  (measured on elan 4.2.3). Both arms treated that as fatal, so the installer
+  aborted on every machine that already had it — the common case for a re-run —
+  and never reached the step that records the workspace.
+- `SETUP_LEAN.ps1` never created or recorded a workspace at all, so a
+  Windows-native user silently got the plugin's read-only bundled corpus, a
+  directory that can never accumulate their proof debt.
+- The recorder ran only at the end of the pwsh script, making it dead code on
+  the two paths users actually take: `-DryRun` and "nothing to do".
+- **The cross-arm handoff was broken.** PowerShell wrote a backslash path; the
+  shell hook's `-d` test is false for those in Git Bash, so it rejected a
+  correct workspace and fell back to the bundled corpus without a word. Both
+  arms now agree on the format, and the reader still accepts what an older
+  install wrote.
+- The stale-verdict alarm now rings **before** the push. `verify.yml` had failed
+  twice while all 26 local gates were green: a module count went 12 to 13 and
+  the only instrument that could see it ran in CI. A check that can only fail
+  after a push will keep failing after a push.
+
+### Measured
+
+- Router cost re-measured: **170-179 ms** across three runs of twenty
+  invocations, ~17 ms of which is bash process startup. The README had said
+  ~154 ms, which predated the `R/s+` gauge the router now computes on every
+  invocation. Recorded as a range plus the bound the gate enforces (under
+  500 ms), because a single figure is a snapshot pretending to be a constant.
+
 ## [0.2.0] · [0.2.1] · [0.2.2] — 2026-08-03
 
 Released together from one commit, as always: the version **is** the variant.

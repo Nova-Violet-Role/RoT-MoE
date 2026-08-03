@@ -78,10 +78,33 @@ like it wants to take the wheel. It does not.
   and decides nothing. Claude Code does the work exactly as it always did.
 
   ```
-  RoT MoE :: TIER 1 -> FORGE Claude      | R/s+ 0.66
+  RoT MoE :: TIER 1 -> FORGE Claude       | R/s+ 0.66
   RoT MoE :: TIER 1 -> CLINICAL AntiVenom | R/s+ 0.57
-  RoT MoE :: TIER 1 -> CONVERGENT none    | R/s+ 0.16
+  RoT MoE :: TIER 1 -> CONVERGENT opus[1m] | R/s+ 0.16
   ```
+
+  That last line used to end in the literal `none`, and `none` was wrong — not
+  factually, but in what it communicated. `CONVERGENT` is the one lane with no
+  lead **lens**: all nine co-reason and nobody leads. Printed as `none` it reads
+  like a null, as though the router had failed to decide rather than decided
+  that nobody leads. What actually convenes the nine is the **model you chose**,
+  so that is what the line now names — `opus[1m]` here, `sonnet` on a machine
+  configured that way. The convener is genuinely different, so the line should
+  be too.
+
+  Measured, because the obvious implementation does not work. A live
+  `UserPromptSubmit` payload, captured 2026-08-03, carries exactly these keys:
+
+  ```json
+  { "session_id": …, "transcript_path": …, "cwd": …, "prompt_id": …,
+    "permission_mode": …, "hook_event_name": …, "prompt": … }
+  ```
+
+  There is **no model field** in it. So the model is read from the settings file
+  your client writes, with
+  `ROTMOE_MODEL` overriding it and the literal `model` as the last resort. Every
+  step degrades to a word; none of them degrades to `none` or to an empty
+  string, because a lead that renders as nothing is the defect this replaced.
 
   The reading is **not** a mood. It is this turn's routing decision written in
   the gauge's own units: the lead lens of the fired lane at activity 1, every
@@ -427,24 +450,24 @@ at install time. The variants differ only in material Claude Code does not load.
 | you want | do this |
 |---|---|
 | the router, working, in one minute | `/plugin install rot-moe@rot-moe` — nothing else needed |
-| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.2.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
-| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.2.2-unsealed.zip`** |
-| the router alone as a file you can read end to end | download **`rot-moe-0.2.0-core.zip`** |
+| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.3.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
+| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.3.2-unsealed.zip`** |
+| the router alone as a file you can read end to end | download **`rot-moe-0.3.0-core.zip`** |
 
 Every archive verifies against the `SHA256SUMS.txt` published beside it.
 
 A downloaded archive installs without unzipping:
 
 ```sh
-claude --plugin-dir rot-moe-0.2.1-lean.zip
+claude --plugin-dir rot-moe-0.3.1-lean.zip
 ```
 
 Measured for all three archives — each one fires the router on the first prompt:
 
 ```
-0.2.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.2.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.2.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.3.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.3.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.3.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 ```
 
 Those three lines are **re-measured, not edited.** The archives were rebuilt
@@ -470,7 +493,7 @@ one prompt, --debug hooks       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 the checkers or `SETUP_LEAN`, because those are not plugin components and Claude
 Code never loads them. The three release archives are **download tiers for
 humans**, not three different plugins: their plugin surface is identical. If you
-want the proofs and the verification scripts, take the `0.2.1` or `0.2.2` zip
+want the proofs and the verification scripts, take the `0.3.1` or `0.3.2` zip
 from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases).
 
 Both paths are exercised by `checker/plugin-install.sh`, including from a config

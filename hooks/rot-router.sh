@@ -57,6 +57,34 @@ STEMS_PREDICTIVE='futur scenar predict trend forec likel horizon next'
 STEMS_STEALTH='encod optim token compress concise byte distill'
 STEMS_RECURSIVE='evolv recurs meta architect refactor ontolog hybrid'
 
+# CONVERGENT is the only lane with no lead LENS -- by design, it is the lane
+# where all nine co-reason and none leads. It used to print the literal "none",
+# and that reads as a null: as though the router had failed to decide, rather
+# than decided that nobody leads.
+#
+# What actually convenes the nine on that lane is the MODEL the user chose. So
+# that is what is named. `opus[1m]` and `sonnet` produce different lines, which
+# is correct -- the convener is genuinely different.
+#
+# MEASURED, not assumed (live UserPromptSubmit payload captured 2026-08-03):
+#   session_id, transcript_path, cwd, prompt_id, permission_mode,
+#   hook_event_name, prompt
+# There is NO `model` key in the payload. So it is read from the settings file
+# the user's own client writes, and every step degrades instead of failing:
+# env override -> settings.json -> the literal "model". The last fallback is
+# still a word, never "none" and never an empty string, because a hook that
+# emits an empty lead is worse than one that emits a generic one.
+convener () {
+  if [ -n "$ROTMOE_MODEL" ]; then printf '%s' "$ROTMOE_MODEL"; return 0; fi
+  _cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
+  if [ -r "$_cfg" ]; then
+    # One line, one field, no JSON parser: the value of a top-level "model".
+    _m=$(tr -d '\n' < "$_cfg" | sed -n 's/.*"model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    if [ -n "$_m" ]; then printf '%s' "$_m"; return 0; fi
+  fi
+  printf 'model'
+}
+
 fired () {   # fired "<lowercased prompt>" "<stem list>" -> 0 if any stem occurs
   _p="$1"; _s="$2"
   for _stem in $_s; do
@@ -76,7 +104,7 @@ route () {
   elif fired "$_p" "$STEMS_PREDICTIVE"; then echo "PREDICTIVE Chroma"
   elif fired "$_p" "$STEMS_STEALTH";    then echo "STEALTH Soleil"
   elif fired "$_p" "$STEMS_RECURSIVE";  then echo "RECURSIVE Eidolon"
-  else                                       echo "CONVERGENT none"
+  else                                       echo "CONVERGENT $(convener)"
   fi
 }
 
