@@ -982,6 +982,39 @@ your machine and what it never will.
 
 ---
 
+## 🏛️ Where this sits in the organisation
+
+RoT MoE is a **[Nova-Violet Role](https://github.com/Nova-Violet-Role)** project,
+and it is the *router* arm of a larger idea the organisation states plainly on
+its own page: **five lenses on the same problem, each incomplete alone.**
+
+Nine lanes here, five lenses there, and that is not a contradiction worth
+papering over — so here is the map, because a reader who notices the mismatch
+deserves the answer rather than a slogan:
+
+| the organisation's lens | the lanes that implement it here |
+|---|---|
+| 🔮 Emotional Resonance | `EMPATHIC` — Violet |
+| 🛡️ Immunological Purification | `CLINICAL` — Anti-Venom |
+| 👑 Sovereign Execution | `EXECUTIVE` — Venom · `FORGE` — Claude |
+| 🌪️ Chaos Weaving | `CREATIVE` — Carnage |
+| 🌌 Omniscient Coalescence | `CONVERGENT` — the default lane, no single lead |
+
+The four that do not appear above — `STRATEGIC`, `PREDICTIVE`, `STEALTH`,
+`RECURSIVE` — are **this repository's own**, added because a router that has to
+choose on every prompt needs finer distinctions than a philosophy does. The
+organisation's five are archetypes; the nine are an implementation, and the
+extra four are stated here rather than quietly folded into the five so the
+count adds up on inspection.
+
+**Sibling project, same discipline.** [Rolling Context — Lean 4](https://github.com/Nova-Violet-Role/claude-rolling-context-Lean-4-)
+proves that what you pin is never cut across any number of compression rounds;
+that corpus and this one are built the same way — machine-checked, zero `sorry`,
+mutation-tested so it is known which theorems constrain behaviour rather than
+merely being true.
+
+---
+
 ## ☕ Supporting a non-profit
 
 **Nova-Violet Role is a non-profit organisation.** Everything here is free

@@ -11,7 +11,7 @@ that script on the run that produced it -- none is a description.
 | field | value |
 |---|---|
 | theorems | 154 |
-| modules | 12 |
+| modules | 13 |
 | mutation suites | 8 |
 | checkers | 37 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |

@@ -300,6 +300,51 @@ else
   bad "CONTROL did not reproduce the old defect (r2=$r2, $b -> $a) -- week 2's green above is then unattributable"
 fi
 
+# --- IS THE COMMITTED VERDICT ACTUALLY CURRENT? ------------------------------
+# Everything above proves the MECHANISM works: a real verdict change commits, a
+# silent week does not. It never once asked whether the verdict sitting in
+# STATUS.md right now is TRUE. Those are different claims, and the gap between
+# them is why verify.yml failed twice in a row on a tree whose 26 local gates
+# were all green: RotStem raised the module count 12 -> 13, nothing local
+# noticed, and the only instrument that could notice ran after the push.
+#
+# A check that can only fail in CI will keep failing in CI. Moving it here is
+# not extra strictness, it is putting the alarm where the fix happens.
+echo
+echo "-- is the COMMITTED verdict current? --"
+_fresh=$(bash "$REPO/checker/status-verdict.sh" 2>/dev/null)
+_committed=$(awk '/<!-- VERDICT-BEGIN -->/{f=1;next} /<!-- VERDICT-END -->/{f=0} f' "$REPO/STATUS.md")
+
+# ANTI-VACUITY FIRST, and this is not decoration: the marker names were WRONG in
+# an earlier attempt at exactly this comparison, both sides came back empty, and
+# "IDENTICAL: true" was printed over two empty strings. Two blanks compare equal
+# forever. Require both sides to carry real content before believing either.
+if [ "${#_fresh}" -lt 40 ]; then
+  bad "the generator produced ${#_fresh} bytes -- too little to be a verdict, so this comparison would be vacuous"
+elif [ "${#_committed}" -lt 40 ]; then
+  bad "the committed block is ${#_committed} bytes -- the markers did not match, NOT a passing comparison"
+else
+  ok "both sides carry a real verdict (${#_fresh} fresh / ${#_committed} committed bytes)"
+  if [ "$(printf '%s' "$_fresh" | tr -d '[:space:]')" = "$(printf '%s' "$_committed" | tr -d '[:space:]')" ]; then
+    ok "the committed verdict MATCHES what this tree measures -- verify.yml will not fail on staleness"
+  else
+    bad "STALE VERDICT: STATUS.md disagrees with this tree. Regenerate it, or verify.yml fails after the push:"
+    diff <(printf '%s\n' "$_committed") <(printf '%s\n' "$_fresh") | head -6 | sed 's/^/        /'
+  fi
+fi
+
+# CONTROL: the comparison must be able to see a difference. Perturb one field of
+# the committed text IN MEMORY -- never on disk, a checker that edits the tree it
+# is judging is a hazard -- and require the mismatch to be detected.
+_perturbed=$(printf '%s' "$_committed" | sed 's/| modules | \([0-9]*\) |/| modules | 999 |/')
+if [ "$_perturbed" = "$_committed" ]; then
+  bad "CONTROL INCONCLUSIVE: could not perturb the committed verdict, so its sensitivity is unproven"
+elif [ "$(printf '%s' "$_fresh" | tr -d '[:space:]')" = "$(printf '%s' "$_perturbed" | tr -d '[:space:]')" ]; then
+  bad "CONTROL DEAD: a verdict claiming 999 modules still compared equal"
+else
+  ok "CONTROL: a wrong module count in the committed verdict WOULD be detected"
+fi
+
 printf '\n== schedule sim: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0
