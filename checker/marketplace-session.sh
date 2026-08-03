@@ -68,19 +68,91 @@ rc=$?
 [ "$rc" -eq 0 ] && ok "plugin install succeeded" \
                 || bad "plugin install failed (exit $rc): $(tail -1 "$WORK/inst.log")"
 
-# --- a real session, read from the HARNESS log, not from the model ----------
-marker_runs=0; tries=3
-for i in $(seq 1 "$tries"); do
+# --- the lane table: prompt -> the lane the router must choose ---------------
+# WHY THE LANE AND NOT JUST THE MARKER. This gate used to run the same prompt
+# three times and assert only that SOME marker appeared. A router hard-wired to
+# emit one constant lane passed it, which means it tested wiring and called the
+# result routing. The lane is the thing the plugin is FOR, so the lane is what
+# gets asserted.
+lane_table () {
+cat <<'TBL'
+lake build the theorem|FORGE
+debug this error in the parser|CLINICAL
+i feel lost and tired today|EMPATHIC
+decide now, urgent|EXECUTIVE
+plan the roadmap and priorities|STRATEGIC
+invent something surreal|CREATIVE
+what is the future trend|PREDICTIVE
+compress these tokens|STEALTH
+refactor the meta architecture|RECURSIVE
+hello there|CONVERGENT
+TBL
+}
+
+# --- every lane, against the INSTALLED copy (not the working tree) -----------
+# Cheap and exhaustive: this proves the artifact the marketplace actually
+# delivered maps each prompt to the right lane. It cannot prove the harness
+# calls it -- the live sessions below do that -- so neither check replaces the
+# other.
+INST="$(find "$WORK" -name rot-router.sh -path '*hooks*' 2>/dev/null | head -1)"
+if [ -z "$INST" ]; then
+  bad "no rot-router.sh under the installed plugin -- the marketplace delivered no router"
+else
+  ok "installed router located at ${INST#$WORK/}"
+  lbad=0; ltot=0
+  while IFS='|' read -r prompt expect; do
+    [ -n "$prompt" ] || continue
+    ltot=$((ltot+1))
+    got=$(run 30 bash "$INST" --route "$prompt" 2>/dev/null | grep -oE '^[A-Z]+' | head -1)
+    [ "$got" = "$expect" ] || { lbad=$((lbad+1)); printf '        lane MISMATCH: %-38s expected %-11s got %s\n' "$prompt" "$expect" "${got:-<none>}"; }
+  done <<EOF
+$(lane_table)
+EOF
+  [ "$ltot" -ge 10 ] || bad "the lane table shrank to $ltot rows -- a table that covers fewer lanes proves less"
+  [ "$lbad" -eq 0 ] \
+    && ok "installed router: all $ltot lanes routed correctly" \
+    || bad "installed router: $lbad of $ltot lanes routed to the wrong lane"
+fi
+
+# --- real sessions: the lane must arrive, and it must VARY ------------------
+# Read from the HARNESS debug log, never from the model. Sessions are slow, so
+# the default walks a spread of four distinct lanes; ROTMOE_LANES_FULL=1 walks
+# all ten. The full sweep was measured 10/10 on 2026-08-03 -- the subset exists
+# to keep the gate runnable, not because four lanes is the claim.
+if [ "${ROTMOE_LANES_FULL:-0}" = "1" ]; then
+  LIVE="$(lane_table)"
+else
+  LIVE="$(lane_table | sed -n '1p;3p;8p;10p')"
+fi
+tries=0; marker_runs=0; lane_ok=0; seen=""
+while IFS='|' read -r prompt expect; do
+  [ -n "$prompt" ] || continue
+  tries=$((tries+1))
   rm -f "$WORK/debug/"*.txt 2>/dev/null
-  run 300 claude -p "say only: ok" --debug < /dev/null > "$WORK/sess$i.log" 2>&1
+  run 300 claude -p "$prompt -- reply only: ok" --debug < /dev/null > "$WORK/sess$tries.log" 2>&1
   L="$(ls -t "$WORK"/debug/*.txt 2>/dev/null | head -1)"
   [ -n "$L" ] || continue
-  hit=$(grep -c "RoT MoE :: TIER" "$L" 2>/dev/null || true)
-  [ "${hit:-0}" -ge 1 ] && marker_runs=$((marker_runs+1))
-done
+  got=$(grep -ho 'RoT MoE :: TIER 1 -> [A-Za-z]*' "$L" 2>/dev/null | head -1 | sed 's/.*-> //')
+  [ -n "$got" ] && marker_runs=$((marker_runs+1))
+  if [ "$got" = "$expect" ]; then
+    lane_ok=$((lane_ok+1))
+    case "$seen" in *"|$got|"*) : ;; *) seen="$seen|$got|" ;; esac
+  else
+    printf '        live lane MISMATCH: %-34s expected %-11s got %s\n' "$prompt" "$expect" "${got:-<NO MARKER>}"
+  fi
+done <<EOF
+$LIVE
+EOF
 [ "$marker_runs" -eq "$tries" ] \
   && ok "the router marker reached the session in $marker_runs of $tries runs (harness log, not the model)" \
   || bad "the router marker appeared in only $marker_runs of $tries runs -- the plugin does not reliably wire the router"
+[ "$lane_ok" -eq "$tries" ] \
+  && ok "every live session routed to its expected lane ($lane_ok of $tries)" \
+  || bad "only $lane_ok of $tries live sessions routed to the expected lane"
+distinct=$(printf '%s' "$seen" | tr '|' '\n' | grep -c '[A-Z]' || true)
+[ "${distinct:-0}" -ge 3 ] \
+  && ok "CONTROL: the live lane VARIED across $distinct distinct lanes -- not a constant" \
+  || bad "CONTROL DEAD: only ${distinct:-0} distinct live lane(s) -- a constant-lane router would pass this"
 
 # --- NEGATIVE CONTROL: disable the plugin, the marker must vanish -----------
 # Without this the test could be passing on a marker that comes from anywhere

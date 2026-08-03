@@ -131,6 +131,39 @@ example : ¬ (∀ (f : ℝ → ℝ → ℝ → RotMoE.Band) (lo hi R : ℝ), ∃
   exact absurd (h (fun _ _ _ => RotMoE.Band.below) 0 0 0) (by simp)
 '
 
+# --- THE EXCEPTION: when "it generalizes" is the POINT, not the defect ------
+# `lead_does_not_shrink` generalizes -- swap `lead` for any function and it
+# still holds. By the rule above that reads DECORATIVE, and it is not: the claim
+# README.md:676 makes is "choosing a lead removes NOBODY from the ensemble",
+# which is precisely an INDEPENDENCE claim. A statement that survives replacing
+# `lead` with an arbitrary function is the strongest form of "the choice cannot
+# affect this", not the weakest form of saying nothing.
+#
+# The distinction is not a loophole, because it costs something: a theorem
+# excused this way must be killed by a DIFFERENT mutation, or it is decorative
+# after all. The second probe below is that obligation discharged -- shorten the
+# roster and the same statement becomes FALSE, so it does constrain the object
+# it is really about. Measured 2026-08-03: dropping one lens from `lenses` also
+# fails the real theorem in RotLens.lean.
+probe lead_shrink_generalizes OK \
+  "lead_does_not_shrink generalizes -- INDEPENDENCE is the claim, not a defect" '
+import Proofs.RotLens
+open RotMoE.Ensemble in
+example (f : Mode → Lens) (m : Mode) :
+    (lenses.erase (f m)).length = 8 ∧ ∀ l : Lens, l ∈ lenses := by
+  refine ⟨?_, by intro l; cases l <;> decide⟩
+  cases f m <;> decide
+'
+
+probe lead_shrink_roster_sensitive NOCOMPILE \
+  "but on a roster of EIGHT the same statement is false -- it constrains the roster" '
+import Proofs.RotLens
+open RotMoE.Ensemble in
+example :
+    (([.nova, .violet, .antivenom, .venom, .carnage, .chroma, .soleil, .eidolon]
+      : List Lens).erase (lead .clinical)).length = 8 := by decide
+'
+
 # --- the load-bearing theorems: each generalization is REFUTED -------------
 probe route_fires OK \
   "route_fires generalized is FALSE (a constant router does not fire)" '

@@ -379,13 +379,23 @@
       ]
     },
     "marketplace-session.sh": {
-      "hash": "36fef66a7100",
-      "indexed_at": "2026-08-02T21:06:23.948617+00:00",
+      "hash": "e0fe7c014b55",
+      "indexed_at": "2026-08-03T04:56:55.548220+00:00",
       "language": "shell",
-      "lines": 99,
-      "mtime_ns": 1785703609871140200,
-      "size": 5133,
-      "symbols": []
+      "lines": 171,
+      "mtime_ns": 1785729309656223600,
+      "size": 8472,
+      "symbols": [
+        {
+          "docstring": "--- the lane table: prompt -> the lane the router must choose --------------- WHY THE LANE AND NOT JUST THE MARKER. This gate used to run the same pro",
+          "lines": [
+            77,
+            90
+          ],
+          "name": "lane_table",
+          "type": "function"
+        }
+      ]
     },
     "mutant-discipline.sh": {
       "hash": "61bfd9e42a15",
@@ -871,6 +881,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-02T21:59:16.316174+00:00",
+  "generated_at": "2026-08-03T04:56:55.548327+00:00",
   "version": "1.0"
 }

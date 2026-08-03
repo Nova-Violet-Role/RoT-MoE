@@ -11,12 +11,12 @@
       "symbols": []
     },
     "generalization_probe.sh": {
-      "hash": "d70bdbb2bab5",
-      "indexed_at": "2026-07-31T19:17:28.824502+00:00",
+      "hash": "bb28d4855582",
+      "indexed_at": "2026-08-03T04:56:55.730492+00:00",
       "language": "shell",
-      "lines": 171,
-      "mtime_ns": 1785521933914356300,
-      "size": 7734,
+      "lines": 204,
+      "mtime_ns": 1785731800822323000,
+      "size": 9395,
       "symbols": [
         {
           "lines": [
@@ -231,6 +231,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T01:04:17.945215+00:00",
+  "generated_at": "2026-08-03T04:56:55.730574+00:00",
   "version": "1.0"
 }

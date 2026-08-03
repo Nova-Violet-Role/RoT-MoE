@@ -111,10 +111,29 @@ theorem card_lenses_eq_nine : lenses.length = 9 := rfl
 
 theorem lenses_nodup : lenses.Nodup := by decide
 
-/-- Every lens is in the roster: choosing a lead removes nobody. This is the
-formal content of "the router picks a lead, not a survivor". -/
-theorem lead_does_not_shrink (m : Mode) : ∀ l : Lens, l ∈ lenses := by
-  intro l; cases l <;> decide
+/-- **Choosing a lead removes nobody from the ensemble.** For any lane, taking
+its lead out of the roster leaves the other *eight* — and every lens that is not
+the lead is one of them.
+
+WHAT THIS STATEMENT USED TO BE, and why it was changed (2026-08-03). It read
+
+```
+theorem lead_does_not_shrink (m : Mode) : ∀ l : Lens, l ∈ lenses
+```
+
+which binds `m` without using it and never mentions `lead`. Measured: pointing
+`lead` at a constant killed `lead_injective`, `lead_surjective`,
+`lanes_correspond_to_lenses` and `forge_lead_is_not_the_floor` — and this one
+SURVIVED, because it was not about `lead` at all. It was roster completeness
+wearing the name of a claim about leads, and `README.md:676` cites it for
+exactly the claim it did not make.
+
+The old content is not lost: `∀ l : Lens, l ∈ lenses` is the second conjunct.
+What is added is the part that makes the name honest — the ensemble minus the
+lead still has eight members, so a lead is a WEIGHT and not a survivor. -/
+theorem lead_does_not_shrink (m : Mode) :
+    (lenses.erase (lead m)).length = 8 ∧ ∀ l : Lens, l ∈ lenses := by
+  cases m <;> exact ⟨rfl, by intro l; cases l <;> decide⟩
 
 /-! ## The shipped FORGE weights
 
