@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **158
+lens activities off disk, computes an `R/s+` gauge from them, and **162
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -279,7 +279,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   `gauge_divisor_eq_card`. The last one is the theorem that would have caught a
   real bug in the shipped hook, where one lens's activity was pinned at zero
   while still dividing the sum by K.
-* **`lean/Proofs/RotRoute.lean`** (14 theorems) — the router as a function.
+* **`lean/Proofs/RotRoute.lean`** (18 theorems) — the router as a function.
   `route_fires`, `route_covers_every_mode` (no dead lane), `route_exact` (all
   ten lanes characterised in both directions), and the headline
   `nsil_overrides_tier1` — which proves both that the override lands *and* that
