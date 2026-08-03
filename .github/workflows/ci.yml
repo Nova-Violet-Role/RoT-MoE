@@ -280,6 +280,17 @@ jobs:
         shell: bash
         run: bash checker/verdict-stability.sh
 
+      # Fast, and deliberately SEPARATE from the three-week simulation below.
+      # The simulation is slow, so it sits in gate-all's FULL set, which CI runs
+      # and a developer usually does not -- and that gap shipped a STATUS.md
+      # claiming 154 theorems against 162 in the sources. All three OS legs then
+      # failed at once on a tree whose local sweep was green. This runs in under
+      # a second, so it is in the DEFAULT local set too: every check CI can fail,
+      # the default local sweep must be able to fail.
+      - name: verdict freshness -- is the committed STATUS.md true of this tree
+        shell: bash
+        run: bash checker/verdict-fresh.sh
+
       - name: scheduled verdict, three weeks with a real (local) remote
         shell: bash
         run: bash checker/verdict-schedule-sim.sh

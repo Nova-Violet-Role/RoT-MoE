@@ -285,6 +285,14 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   `nsil_overrides_tier1` — which proves both that the override lands *and* that
   it genuinely differs from the keyword result, the difference between a router
   and an `if`-chain.
+* **`lean/Proofs/RotStem.lean`** (10 theorems) — stem matching proved over an
+  **arbitrary vocabulary**, so the theorems do not expire the next time a stem is
+  added. `fires_iff` pins firing to genuine infix containment; `not_fires_nil`
+  proves an empty stem list is not a wildcard; `fires_mono` and `fires_perm` say
+  growing the list can only add matches and that the *order* of stems never
+  changes the outcome — the property that makes the word list safe to edit.
+  `routeText_sound` is the headline: every routing result is either CONVERGENT or
+  a lane whose own stems actually fired, so no lane can be reached by accident.
 * **`lean/Proofs/RotPath.lean`** (12 theorems) — path canonicalisation, written
   *after* a real stranding bug: the two installer arms wrote different command
   strings for one install, and removal matches by exact string, so installing

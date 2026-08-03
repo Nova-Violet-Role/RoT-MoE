@@ -50,6 +50,7 @@ licence bridge (NOTICE vs disk)|bash checker/license-bridge.sh
 release consistency (version, tag, date)|bash checker/release-consistency.sh
 tag consistency (local half of R18)|bash checker/tags-consistency.sh
 verdict stability (the scheduled commit rule)|bash checker/verdict-stability.sh
+verdict freshness (is STATUS.md TRUE of this tree)|bash checker/verdict-fresh.sh
 gauge cross (Lean mirror vs hook)|bash checker/gauge-cross.sh
 axiom audit (#print axioms, all theorems)|bash checker/axiom-audit.sh
 axiom class (KERNEL vs COMPILER vs BROKEN)|bash checker/axiom-class.sh
