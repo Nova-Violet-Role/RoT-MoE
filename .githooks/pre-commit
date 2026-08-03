@@ -68,8 +68,21 @@ if [ ! -f checker/gate-all.sh ]; then
   exit 1
 fi
 
-echo "pre-commit: running the fast gates (bypass with --no-verify)"
-bash checker/gate-all.sh
+# -----------------------------------------------------------------------------
+# THIRD FAILURE, MEASURED 2026-08-01 -- and it is why this runs `--staged`.
+#
+# This hook ran the whole gate set. That set had grown to 587 SECONDS. Two
+# commits were killed by a wall-clock ceiling PART WAY THROUGH, and one of the
+# kills landed while `mutate-checker.sh` had a mutant applied -- leaving a live
+# mutant and four `.mutbak` files in the tree. A hook that cannot finish is a
+# hook that gets bypassed, and the bypass is where unverified commits come from.
+#
+# So the hook runs the tier that always applies plus the deep gates this commit
+# actually touches (`--staged`, measured at ~51 s for a fast-only commit). What
+# it must NOT do is pretend that is the full sweep -- see the closing message.
+# -----------------------------------------------------------------------------
+echo "pre-commit: gates for THIS commit's staged paths (bypass with --no-verify)"
+bash checker/gate-all.sh --staged
 rc=$?
 
 if [ "$rc" -ne 0 ]; then
@@ -84,7 +97,14 @@ if [ "$rc" -ne 0 ]; then
   exit 1
 fi
 
-echo "pre-commit: all gates green."
+# Say what this run did NOT cover, in the same breath as the pass. A hook that
+# prints "all gates green" after a narrowed run teaches the reader that a commit
+# is fully verified when it is not -- which is the FULL=1 defect all over again,
+# this time delivered by the hook itself.
+echo "pre-commit: the gates for this commit are green."
+echo "            This was the STAGED set, not all 28. Before pushing:"
+echo "              bash checker/gate-all.sh          # all 28"
+echo "              bash checker/gate-all.sh --full   # + the session gates"
 
 # --- delegates: everything that is not the gate -----------------------------
 # Run in sorted order, AFTER the gate has passed, so an indexer can never stage

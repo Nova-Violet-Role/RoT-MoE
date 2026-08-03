@@ -404,7 +404,16 @@ jobs:
       - name: lake build (exit code read DIRECTLY, never through a pipe)
         working-directory: lean
         run: |
-          lake build Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotDorks Proofs.RotVacuity Proofs.RotMutant Proofs.RotStem Proofs.RotLens Proofs.RotAbility
+          # ENUMERATED FROM DISK, never hand-typed. The comment below this step
+          # already records that a hand-typed module list silently stopped
+          # covering RotRemind, RotAcquire and RotVerdict as they were added --
+          # and then this very line repeated the mistake, going stale again the
+          # day RotGates landed. A list in a file is wrong the day it changes.
+          mods=$(ls Proofs/*.lean | sed 's#Proofs/#Proofs.#; s#\.lean$##' | tr '\n' ' ')
+          echo "modules found on disk: $mods"
+          n=$(echo $mods | wc -w)
+          [ "$n" -lt 10 ] && { echo "FAIL: only $n modules found -- enumeration broke"; exit 1; }
+          lake build $mods
           echo "lake build exit=$?"
 
       # A green build means it ELABORATED. It does not mean the theorems rest on
@@ -480,6 +489,14 @@ jobs:
       - name: benchmark -- routing accuracy on a labelled key, and per-turn cost
         run: bash checker/bench-router.sh
 
+      # The fast/deep gate split decides what a commit is allowed to SKIP, so a
+      # mistake in it is silent by construction: the gate that stops running
+      # looks exactly like the gate that passed. This step requires the shell
+      # table in gate-all.sh and the proved witness in lean/Proofs/RotGates.lean
+      # to be the same table, gate for gate and trigger for trigger.
+      - name: gate split -- the runner's tiers match the Lean witness
+        run: bash checker/gate-split.sh
+
       - name: hook footprint -- no network, no lake, Lean stays optional
         run: bash checker/hook-footprint.sh
 
@@ -542,7 +559,12 @@ jobs:
         working-directory: lean
         run: |
           set +e
-          for m in Proofs.RotGauge Proofs.RotRoute Proofs.RotInstall Proofs.RotPath Proofs.RotRemind Proofs.RotAcquire Proofs.RotVerdict Proofs.RotDorks Proofs.RotVacuity Proofs.RotMutant Proofs.RotStem Proofs.RotLens Proofs.RotAbility; do
+          # Enumerated from disk for the same reason as the build step above: a
+          # hand-typed list stops covering whatever is added after it is written.
+          mods=$(ls Proofs/*.lean | sed 's#Proofs/#Proofs.#; s#\.lean$##')
+          n=$(echo $mods | wc -w)
+          [ "$n" -lt 10 ] && { echo "FAIL: only $n modules found -- enumeration broke"; exit 1; }
+          for m in $mods; do
             lake env leanchecker "$m"; rc=$?
             echo "$m -> $rc"
             [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }
@@ -557,11 +579,14 @@ jobs:
         working-directory: lean
         run: |
           set -e
-          bash mutate/mutate_rotgauge.sh
-          bash mutate/mutate_rotroute.sh
-          bash mutate/mutate_rotinstall.sh
-          bash mutate/mutate_rotpath.sh
-          bash mutate/mutate_rotremind.sh
-          bash mutate/mutate_rotacquire.sh
-          bash mutate/mutate_rotverdict.sh
-          bash mutate/mutate_rotvacuity.sh
+          # Enumerated from disk. A hand-typed suite list has the same staleness
+          # defect as a hand-typed module list: a mutation suite added later is
+          # simply never run, and its theorems read as mutation-tested when
+          # nothing has ever tried to break them.
+          suites=$(ls mutate/mutate_*.sh)
+          n=$(echo $suites | wc -w)
+          [ "$n" -lt 8 ] && { echo "FAIL: only $n suites found -- enumeration broke"; exit 1; }
+          for s in $suites; do
+            echo "== $s =="
+            bash "$s"
+          done

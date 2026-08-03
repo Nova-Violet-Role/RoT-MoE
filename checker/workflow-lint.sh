@@ -386,12 +386,59 @@ fi
 # --- 3. does CI build every Lean module and run every mutation suite? -------
 echo
 echo "-- drift: every Lean module and mutation suite must be in CI --"
+# -----------------------------------------------------------------------------
+# THIS CHECK WAS ITSELF THE STALENESS DEFECT IT EXISTS TO CATCH. Measured
+# 2026-08-01.
+#
+# It required every module to appear LITERALLY in the workflow text. That is a
+# snapshot of today's names, not the property that matters, and it had a
+# perverse consequence: it FORCED ci.yml to carry a hand-typed module list --
+# the very thing the comment at ci.yml:414 records as having silently stopped
+# covering RotRemind, RotAcquire and RotVerdict when they were added. When the
+# workflow was fixed to enumerate from disk, this check went red on a strictly
+# BETTER workflow, and the obvious repair (re-typing the list) would have
+# restored the defect.
+#
+# So it now checks COVERAGE instead of spelling: a module is verified if CI
+# names it, OR if CI's own enumeration -- executed here, not assumed -- yields
+# it. `ls Proofs/*.lean` covers every module by construction; `ls Proofs/Rot*`
+# would not, and the control below proves this can still tell the difference.
+# -----------------------------------------------------------------------------
+ENUM_MOD="$(grep -oE 'ls Proofs/[^ |]*\.lean' .github/workflows/ci.yml | head -1)"
+enum_mods() {
+  [ -n "$ENUM_MOD" ] || return 0
+  ( cd lean 2>/dev/null && eval "$ENUM_MOD" 2>/dev/null ) \
+    | sed 's#^Proofs/##; s#\.lean$##'
+}
+MOD_ENUMERATED="$(enum_mods)"
+if [ -n "$ENUM_MOD" ]; then
+  ok "CI enumerates its Lean modules from disk ($ENUM_MOD) -- no hand-typed list to go stale"
+fi
+
 for m in lean/Proofs/*.lean; do
   mod="$(basename "$m" .lean)"
-  contains "$WF_TEXT" "Proofs.$mod" \
-    && ok "CI builds Proofs.$mod" \
-    || bad "CI NEVER BUILDS Proofs.$mod -- it is unverified in CI"
+  if contains "$WF_TEXT" "Proofs.$mod"; then
+    ok "CI builds Proofs.$mod (named explicitly)"
+  elif contains_line "$MOD_ENUMERATED" "$mod"; then
+    ok "CI builds Proofs.$mod (covered by the disk enumeration)"
+  else
+    bad "CI NEVER BUILDS Proofs.$mod -- it is unverified in CI"
+  fi
 done
+
+# CONTROL: a narrower enumeration must NOT be accepted as covering everything.
+# Without this the branch above would pass for any glob at all, including one
+# that quietly omits half the tree.
+_narrow="$( ( cd lean 2>/dev/null && ls Proofs/RotG*.lean 2>/dev/null ) | sed 's#^Proofs/##; s#\.lean$##' )"
+_missed=0
+for m in lean/Proofs/*.lean; do
+  contains_line "$_narrow" "$(basename "$m" .lean)" || _missed=$((_missed+1))
+done
+if [ "$_missed" -eq 0 ]; then
+  bad "CONTROL DEAD: a narrow glob appears to cover every module -- coverage is not being measured"
+else
+  ok "CONTROL: a narrower enumeration IS detected as leaving $_missed module(s) unbuilt"
+fi
 # EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The
 # generalization probe and the isolation artifact live here too, and a rule that
 # matched one filename prefix would have let them rot unrun -- the same blind
@@ -405,10 +452,19 @@ mut_except_reason () {
   esac
 }
 
+# Same treatment as the module list, for the same reason: CI enumerates its
+# mutation suites from disk, so requiring each filename to appear as text would
+# force back the hand-typed list whose staleness is the whole problem.
+ENUM_MUT="$(grep -oE 'ls mutate/[^ |)]*\.sh' .github/workflows/ci.yml | head -1)"
+MUT_ENUMERATED="$( [ -n "$ENUM_MUT" ] && ( cd lean 2>/dev/null && eval "$ENUM_MUT" 2>/dev/null ) | sed 's#^mutate/##' )"
+[ -n "$ENUM_MUT" ] && ok "CI enumerates its mutation suites from disk ($ENUM_MUT)"
+
 for s in lean/mutate/*.sh; do
   base="$(basename "$s")"
   if contains "$WF_TEXT" "$base"; then
     ok "CI runs $base"
+  elif contains_line "$MUT_ENUMERATED" "$base"; then
+    ok "CI runs $base (covered by the disk enumeration)"
   elif [ -n "$(mut_except_reason "$base")" ]; then
     echo "  NOTE  exempt: $base -- $(mut_except_reason "$base")"
   else

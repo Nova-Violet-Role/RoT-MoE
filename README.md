@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **183
+lens activities off disk, computes an `R/s+` gauge from them, and **195
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -251,7 +251,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **62 applied, 62 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **67 applied, 67 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -274,6 +274,18 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 
 ### 📐 The ten modules
 
+* **`lean/Proofs/RotGates.lean`** (12 theorems) — **what a commit is allowed to
+  skip.** The gate set had grown to **587 s**, so it is now split: cheap gates
+  run on every commit, expensive ones run when the commit *touches what they
+  check*. That is a mechanism which already produced one false green here — a
+  gate behind `FULL=1` was red while the sweep printed `26/26 GREEN` — so the
+  split is proved rather than trusted: `fast_always_runs` (an unconditional gate
+  runs whatever is staged), `triggered_gate_runs`, `stagedRun_mono` (staging
+  *more* never runs *less*, so no commit can dodge a gate by growing), and
+  `no_trigger_never_escalates` — a deep gate with no triggers is invisible to
+  every possible commit, which is the silent hole stated as a theorem.
+  Quantified over an arbitrary gate table, so adding a gate cannot date them;
+  `checker/gate-split.sh` binds the witness to the real runner.
 * **`lean/Proofs/RotGauge.lean`** (47 theorems) — the R/s+ gauge.
   `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
   `gauge_divisor_eq_card`. The last one is the theorem that would have caught a
@@ -458,24 +470,24 @@ at install time. The variants differ only in material Claude Code does not load.
 | you want | do this |
 |---|---|
 | the router, working, in one minute | `/plugin install rot-moe@rot-moe` — nothing else needed |
-| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.4.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
-| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.4.2-unsealed.zip`** |
-| the router alone as a file you can read end to end | download **`rot-moe-0.4.0-core.zip`** |
+| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.5.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
+| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.5.2-unsealed.zip`** |
+| the router alone as a file you can read end to end | download **`rot-moe-0.5.0-core.zip`** |
 
 Every archive verifies against the `SHA256SUMS.txt` published beside it.
 
 A downloaded archive installs without unzipping:
 
 ```sh
-claude --plugin-dir rot-moe-0.4.1-lean.zip
+claude --plugin-dir rot-moe-0.5.1-lean.zip
 ```
 
 Measured for all three archives — each one fires the router on the first prompt:
 
 ```
-0.4.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.4.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.4.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.5.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.5.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.5.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 ```
 
 Those three lines are **re-measured, not edited.** The archives were rebuilt
@@ -501,7 +513,7 @@ one prompt, --debug hooks       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 the checkers or `SETUP_LEAN`, because those are not plugin components and Claude
 Code never loads them. The three release archives are **download tiers for
 humans**, not three different plugins: their plugin surface is identical. If you
-want the proofs and the verification scripts, take the `0.4.1` or `0.4.2` zip
+want the proofs and the verification scripts, take the `0.5.1` or `0.5.2` zip
 from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases).
 
 Both paths are exercised by `checker/plugin-install.sh`, including from a config
@@ -679,7 +691,7 @@ with the line they came from — none of them is invented here.
 > ability name in either. Rather than inventing a Latin phrase to make the table
 > symmetrical, the cell says so. That is the same discipline the proofs run on.
 
-### ⚡ How the router answers in ~130 ms — and what makes it different
+### ⚡ How the router's logic runs in ~130 ms — and what makes it different
 
 The number is not a trick, it is an *architecture*. `hooks/rot-router.sh` is
 POSIX shell, and this is the whole of it:
@@ -939,14 +951,32 @@ installed from the shipping archive, `ROTMOE_DEBUG_LOG` armed):
 | `R/s+` recomputed from per-lens terms | **14/14 exact**, zero mismatches |
 | lenses per record / `K` | **9 / 9**, every record — no lens dropped out |
 | lane chosen | **FORGE ×14** — correct: every prompt was a Lean build task |
-| per-turn cost, live PowerShell arm | **93–133 ms**, mean **104.6 ms** |
+| router logic, live PowerShell arm | **93–133 ms**, mean **104.6 ms** — *in-script only* |
 | prompt text in the log | **none** — length only, safe to paste into an issue |
 
-That last cost figure is worth separating from the one above it: the **194–256
-ms** in the cost table is the *bash* arm measured by `bench-router.sh`, which
-pays a POSIX process start on Windows. The arm that actually runs in a live
-session is the PowerShell one, and it costs **about half that**. Both are
-reported because both are real; quoting only the faster one would be marketing.
+**That last figure is not a per-turn cost, and this README said it was.** The
+debug log's `ms` field starts at `hooks/rot-router.ps1:40` — *inside* the
+script, after PowerShell has already started — so it measures the router's
+**logic**, not the turn. Comparing it against the bash arm's **wall-clock**
+194–256 ms and concluding the PowerShell arm "costs about half" was comparing
+two different clocks, and the conclusion was backwards.
+
+Measured like for like (`bench-router.sh` §6, both arms, same prompt, same
+wall-clock timer):
+
+| arm | in-script logic | interpreter startup | **wall clock per turn** |
+|---|---|---|---|
+| `rot-router.sh` (bash) | ≈178 ms | ≈20 ms | **≈198 ms** |
+| `rot-router.ps1` (PowerShell) | ≈88–125 ms | ≈160–300 ms | **≈284–388 ms** |
+
+The PowerShell arm's *logic* is genuinely faster; its *interpreter* is an order
+of magnitude more expensive to start, so the turn costs **more**, not less. Both
+stay inside the 500 ms bound the gate enforces. §6 now prints the decomposition
+every run, and fails if the README quotes a figure without saying which arm and
+which clock it came from — the check exists because this paragraph was wrong.
+
+Both clocks are reported because both are real; quoting only the flattering one
+would be marketing.
 
 ### 🎯 Routing accuracy, per lane — and who holds it
 

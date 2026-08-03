@@ -402,6 +402,138 @@ else
 fi
 rm -f "$_dbg"
 
+# ---------------------------------------------------------------------------
+echo
+echo "== 6. THE TWO ARMS -- which cost does the README actually quote?"
+# ---------------------------------------------------------------------------
+# WHY THIS PHASE EXISTS, and it is a misattribution I shipped.
+#
+# Phase 2 times the SHELL arm, because that is the arm a Linux CI runner has.
+# The README then quoted that number as "the per-turn cost". But on Windows --
+# where this plugin is developed and where the router is registered through
+# hooks.json -- the arm that actually executes is `hooks/rot-router.ps1`. A live
+# 56-turn session logged 93-133 ms (mean 104.6) while the bash arm benchmarks at
+# 194-256 ms. Same router, same decisions, roughly half the cost, and the README
+# was attributing the slower figure to the faster path.
+#
+# Neither number is wrong. Quoting one of them WITHOUT SAYING WHICH ARM is what
+# is wrong, because a reader on Windows plans around a cost they will not pay,
+# and a reader on Linux plans around one they will. So this phase measures both
+# on the same prompt and requires the README to name the arm it is quoting.
+#
+# The PowerShell arm is environment-bound: no pwsh on a Linux runner is a SKIP,
+# never a pass, and the phase says so out loud rather than silently passing.
+PS_ARM="hooks/rot-router.ps1"
+PSH=""
+for cand in pwsh powershell; do
+  command -v "$cand" >/dev/null 2>&1 && { PSH="$cand"; break; }
+done
+
+_sh_ms=""; _ps_ms=""
+if [ -n "${start:-}" ] && [ -n "${per:-}" ]; then
+  _sh_ms="$per"
+  note "sh  arm: ${_sh_ms} ms per invocation (phase 2, mean of $N)"
+fi
+
+if [ -z "$PSH" ]; then
+  note "SKIP: no pwsh/powershell on PATH -- the .ps1 arm's cost is UNMEASURED here"
+  note "      (a skip is never a pass; the Windows figure must come from a real run)"
+elif [ ! -f "$PS_ARM" ]; then
+  bad "$PS_ARM is missing -- the arm half the users run does not exist"
+else
+  M=10
+  _armlog="$(mktemp "${TMPDIR:-/tmp}/armcost.XXXXXX")"
+  rm -f "$_armlog"
+  ps_start=$(date +%s%N)
+  k=0
+  while [ "$k" -lt "$M" ]; do
+    printf '{"prompt":"lake build the theorem"}' \
+      | ROTMOE_DEBUG_LOG="$_armlog" "$PSH" -NoProfile -ExecutionPolicy Bypass \
+        -File "$PS_ARM" >/dev/null 2>&1
+    k=$((k+1))
+  done
+  ps_end=$(date +%s%N)
+  _ps_ms=$(awk -v a="$ps_start" -v b="$ps_end" -v n="$M" 'BEGIN{ printf "%.1f", (b-a)/1000000/n }')
+  note "ps1 arm: ${_ps_ms} ms per invocation WALL CLOCK, mean of $M (includes pwsh start)"
+
+  # -------------------------------------------------------------------------
+  # TWO TIMERS, AND THE MISTAKE OF COMPARING THEM. Measured 2026-08-01.
+  #
+  # The debug log's `ms` field starts at rot-router.ps1:40 -- INSIDE the script,
+  # after the interpreter has already started. So it measures our LOGIC, not the
+  # turn's cost. A live session logged 93-133 ms that way, and I compared it
+  # against the shell arm's WALL-CLOCK figure and reported the .ps1 arm as
+  # roughly half the cost. It is not. Measured like for like it is nearly
+  # double, because PowerShell startup is ~159 ms against bash's ~20.
+  #
+  # Both numbers are real and both are useful; subtracting one from the other is
+  # what produced a false statement. The phase now prints the decomposition so
+  # the two can never again be quoted as if they were the same measurement.
+  # -------------------------------------------------------------------------
+  if [ -s "$_armlog" ]; then
+    _inms=$(grep -o '"ms":[0-9]*' "$_armlog" | sed 's/"ms"://' \
+      | awk '{s+=$1;n++} END{ if(n>0) printf "%.1f", s/n; else print "" }')
+    if [ -n "$_inms" ]; then
+      _startup=$(awk -v w="$_ps_ms" -v i="$_inms" 'BEGIN{ printf "%.1f", w-i }')
+      note "ps1 arm: ${_inms} ms IN-SCRIPT (the router's own logic, what the debug log reports)"
+      note "ps1 arm: ~${_startup} ms of the wall figure is PowerShell interpreter startup"
+      if awk -v s="$_startup" 'BEGIN{ exit !(s > 0) }'; then
+        ok "the two timers are decomposed: wall = in-script + interpreter startup"
+      else
+        bad "in-script time (${_inms}) exceeds wall time (${_ps_ms}) -- a timer is wrong"
+      fi
+    fi
+  fi
+  rm -f "$_armlog"
+  if awk -v p="$_ps_ms" 'BEGIN{ exit !(p < 500) }'; then
+    ok "the .ps1 arm is also under the 500 ms bound (${_ps_ms} ms)"
+  else
+    bad "the .ps1 arm costs ${_ps_ms} ms -- over the 500 ms bound"
+  fi
+  if [ -n "$_sh_ms" ]; then
+    note "gap: sh ${_sh_ms} ms vs ps1 ${_ps_ms} ms on identical input"
+  fi
+fi
+
+# THE BINDING. Whatever the numbers are, the README must not quote a per-turn
+# cost without saying which arm produced it. This is the check that would have
+# caught the misattribution, and it is stated over the property (an arm is
+# named) rather than over today's figures (which move every run).
+RMD="README.md"
+if [ ! -f "$RMD" ]; then
+  bad "README.md is missing -- the cost claim cannot be bound to anything"
+else
+  _costlines=$(grep -cE '[0-9]+(\.[0-9]+)? *ms' "$RMD")
+  if [ "$_costlines" -eq 0 ]; then
+    note "README quotes no millisecond figure -- nothing to misattribute"
+  else
+    _arm_named=$(grep -icE '(ps1|powershell|bash|sh arm|\.sh arm)' "$RMD")
+    if [ "$_arm_named" -gt 0 ]; then
+      ok "README names the arm alongside its $_costlines millisecond claim(s)"
+    else
+      bad "README quotes $_costlines ms figure(s) but never names WHICH ARM produced them"
+    fi
+    # And it must say which TIMER, not only which arm. An in-script figure and a
+    # wall-clock figure differ here by ~159 ms of interpreter startup, and
+    # quoting one as the other is the error this phase was written after making.
+    _timer_named=$(grep -icE '(in-script|interpreter startup|process start)' "$RMD")
+    if [ "$_timer_named" -gt 0 ]; then
+      ok "README distinguishes in-script time from wall-clock (the ~159 ms startup)"
+    else
+      bad "README quotes ms figures without saying whether interpreter startup is included"
+    fi
+  fi
+  # CONTROL: the check must be able to fail. A README body with a cost and no
+  # arm named must be flagged -- tested in memory, never on disk.
+  _ctl_body="the hook adds 210 ms per turn."
+  _ctl_arm=$(printf '%s' "$_ctl_body" | grep -icE '(ps1|powershell|bash|sh arm)')
+  if [ "$_ctl_arm" -eq 0 ]; then
+    ok "CONTROL: a cost claim with no arm named IS detectable"
+  else
+    bad "CONTROL DEAD: an unattributed cost claim was not detected"
+  fi
+fi
+
 printf '\n== benchmark: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

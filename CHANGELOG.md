@@ -24,6 +24,90 @@ that honest.
 
 ---
 
+## [0.5.0] · [0.5.1] · [0.5.2] — 2026-08-03
+
+Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
+`2` unsealed.
+
+### Fixed
+
+- **The pre-commit hook had become the thing its own comment warned about.**
+  `checker/gate-all.sh` opens by explaining that "a pre-commit hook that takes
+  four minutes is a hook people disable". Measured per gate, the set it ran took
+  **587 seconds**. Two commits were killed by a wall-clock ceiling *part way
+  through*, and one of those kills landed while `mutate-checker.sh` had a mutant
+  applied — leaving a live mutant and four `.mutbak` files in the tree, which the
+  next run correctly **refused** to certify. Four gates owned 76% of the time
+  (`mutate the checker` 198 s, `axiom audit` 94 s, `axiom class` 84 s, `release
+  install` 71 s).
+
+- **A per-turn cost figure was attributed to the wrong clock, and the error
+  flattered us.** The debug log's `ms` field starts at `rot-router.ps1:40`,
+  *inside* the script, so it measures the router's logic and not the turn. That
+  number (93–133 ms) was compared against the bash arm's **wall-clock** 194–256
+  ms and reported as "about half the cost". Measured like for like, the
+  PowerShell arm costs **more**: ~88–125 ms of logic under ~160–300 ms of
+  interpreter startup, against bash's ~178 ms under ~20 ms. Both stay inside the
+  500 ms bound. `bench-router.sh` §6 now measures both arms on one clock, prints
+  the decomposition, and **fails if the README quotes a figure without naming the
+  arm and the timer**.
+
+- **`checker/workflow-lint.sh` was itself the staleness defect it exists to
+  catch.** It required every Lean module to appear *literally* in `ci.yml`, which
+  forced CI to carry a hand-typed module list — precisely the thing `ci.yml:414`
+  records as having silently stopped covering `RotRemind`, `RotAcquire` and
+  `RotVerdict`. When CI was fixed to enumerate from disk, the linter went red on
+  a strictly better workflow, and the obvious repair would have restored the
+  defect. It now checks **coverage** — executing CI's own enumeration and
+  comparing it against the tree — with a control proving a narrower glob is still
+  caught. The spec was wrong, not the change.
+
+### Added
+
+- **`lean/Proofs/RotGates.lean` (12 theorems) — the gate split, proved before it
+  was written.** A tiered gate set is the exact mechanism that already produced a
+  false green in this repo: `verdict-schedule-sim.sh` sat behind `FULL=1`, was
+  red, and the default sweep printed `26/26 GREEN` for weeks. So the split is
+  stated as theorems over an **arbitrary** gate table, never over today's names:
+  `fast_always_runs` (an unconditional gate runs whatever is staged),
+  `triggered_gate_runs`, `stagedRun_mono` (staging *more* never runs *less*, so
+  no commit can dodge a gate by growing), `tier_lengths` / `tiers_disjoint` (the
+  tiers partition — no gate can fall out of the table), and
+  `no_trigger_never_escalates`: **a deep gate with no triggers is invisible to
+  every possible commit.** That last one is the silent hole, written down.
+  All 12 rest on `propext`/`Quot.sound`, kernel-re-verified, and
+  `lean/mutate/mutate_rotgates.sh` kills 5 of 5 mutants aimed at each failure
+  mode in turn.
+
+- **`checker/gate-split.sh`** — the binding. A proof about a model that nothing
+  compares to the code is decoration (this repo shipped one for a week), so this
+  extracts the tier table from `gate-all.sh` *and* the witness from
+  `RotGates.lean` and requires them to be the same table, gate for gate and
+  trigger for trigger. It refuses if either parse returns too few rows, because
+  an empty-vs-empty comparison passes forever. Three negative controls. It caught
+  a real defect on its first run: two gates had triggers pointing at `install/`,
+  a directory that does not exist in this tree.
+
+- **`gate-all.sh --fast` and `--staged`**; the pre-commit hook now runs
+  `--staged`. A **bare** `gate-all.sh` still runs all 28 — the split is opt-in,
+  so nobody gets a weaker run by accident and CI is untouched. Measured: a
+  fast-only commit gates in **51 s** instead of 587 s. The runner **refuses**
+  (exit 2) a gate with an unknown tier or a deep gate with no triggers, and
+  validates the whole table *before* running anything — the first version
+  validated inline and printed a column of greens above its own refusal.
+
+### Changed
+
+- CI enumerates Lean modules and mutation suites **from disk** in all three
+  places that hand-typed them (build, `leanchecker`, mutation), each with a
+  floor assertion so a broken enumeration fails loudly instead of covering
+  nothing quietly.
+
+### Notes
+
+- 195 machine-checked theorems across 14 modules, 0 `sorry`, 0 `native_decide`.
+- 28 default gates; 67 Lean mutants applied, 67 killed, 0 survived, 0 discarded.
+
 ## [0.4.0] · [0.4.1] · [0.4.2] — 2026-08-03
 
 Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
@@ -68,7 +152,7 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 
 ### Notes
 
-- 183 machine-checked theorems across 13 modules, 0 `sorry`, 0 `native_decide`.
+- 195 machine-checked theorems across 14 modules, 0 `sorry`, 0 `native_decide`.
 - 27 default gates green; all five GitHub workflows green with zero errors and
   zero warnings across 254 log files.
 
@@ -111,8 +195,9 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
   from those terms, requires it to match what the router reported, and then
   **corrupts a term to prove the check can fail**. Measured in a live 56-turn
   CTT session: 14/14 records recomputed exactly, K=9 and nine lens terms in
-  every one, 93–133 ms per turn on the PowerShell arm. The log records prompt
-  *length*, never prompt text.
+  every one, 93–133 ms of *router logic* on the PowerShell arm. The log records
+  prompt *length*, never prompt text. (That 93–133 ms is an **in-script** timer
+  and was wrongly reported here as a per-turn cost — corrected in 0.5.x below.)
 
 ### Changed
 

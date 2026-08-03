@@ -72,7 +72,7 @@ command -v node   >/dev/null 2>&1 || { echo "REFUSE: node absent (needed to pars
 command -v unzip  >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 2; }
 
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
-VARIANT_MAP="core:0.4.0 lean:0.4.1 unsealed:0.4.2"
+VARIANT_MAP="core:0.5.0 lean:0.5.1 unsealed:0.5.2"
 WANT="${ROTMOE_VARIANTS:-core lean unsealed}"
 
 TURN_TIMEOUT="${ROTMOE_TURN_TIMEOUT:-180}"
