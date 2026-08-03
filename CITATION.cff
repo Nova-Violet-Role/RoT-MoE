@@ -12,8 +12,8 @@ repository-code: "https://github.com/Nova-Violet-Role/RoT-MoE"
 license:
   - AGPL-3.0-or-later
   - EUPL-1.2
-version: 0.1.2
-date-released: 2026-08-01
+version: 0.2.2
+date-released: 2026-08-03
 abstract: >-
   A Mixture-of-Experts router for Claude Code: nine lenses, a measured R/s+
   divergence gauge, and TIER 1 keyword routing, shipped in two independent

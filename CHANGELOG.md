@@ -10,17 +10,77 @@ with one deliberate twist documented below.
 
 ## The three numbers are not a roadmap
 
-`0.1.0`, `0.1.1` and `0.1.2` are **released together, on the same commit**. The
-version *is* the variant. Nothing in `0.1.1` supersedes `0.1.0`; it adds a
-Lean 4 workshop on top of it. Nothing in `0.1.2` fixes `0.1.1`; it unseals a
-tactic that `0.1.1` withholds **by policy**, and ships the instrument that keeps
+`0.2.0`, `0.2.1` and `0.2.2` are **released together, on the same commit**. The
+version *is* the variant. Nothing in `0.2.1` supersedes `0.2.0`; it adds a
+Lean 4 workshop on top of it. Nothing in `0.2.2` fixes `0.2.1`; it unseals a
+tactic that `0.2.1` withholds **by policy**, and ships the instrument that keeps
 that honest.
 
 | pick | if you want |
 |---|---|
-| `0.1.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
-| `0.1.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
-| `0.1.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
+| `0.2.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
+| `0.2.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
+| `0.2.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
+
+---
+
+## [0.2.0] · [0.2.1] · [0.2.2] — 2026-08-03
+
+Released together from one commit, as always: the version **is** the variant.
+
+### The router line now carries what the README always promised
+
+`README.md` said the hook adds *"a named lane and a gauge reading"*. For three
+releases it added the lane alone. The premise behind that was sound — one
+stateless hook call has not measured nine lens activities, and a fabricated
+vector is worse than none — but the conclusion was wrong, and it left a promise
+unkept.
+
+By the time the line is printed the router **has** measured something: which
+lane fired. Written in the gauge's own units that is a one-hot activity vector,
+and the reading is computed per invocation, not appended as a constant:
+
+```
+FORGE 0.66  CLINICAL 0.57  STRATEGIC 0.47  RECURSIVE 0.45  EXECUTIVE 0.44
+PREDICTIVE 0.41  STEALTH 0.39  CREATIVE 0.32  EMPATHIC 0.31  CONVERGENT 0.16
+```
+
+Byte-identical on both the POSIX and PowerShell arms. `M`, `C` and `T` are the
+neutral `1.0` because memory residue, confidence and recency are genuinely
+unavailable to one stateless call — stated in the code and the README rather
+than hidden. The reading is a function of the lane: it varies across lanes, not
+across turns.
+
+### Half the router was inert and looked healthy
+
+The hook registers on `UserPromptSubmit` **and** `PreToolUse`. The `PreToolUse`
+half read only `tool_name`, so every tool call in every session routed to
+`CONVERGENT none` — a healthy-looking stream of classifications carrying no
+signal at all. It now reads the tool's intent (`command`, `file_path`, `path`,
+`pattern`, `description`). Measured: a Bash running the Lean build tool routes
+to FORGE, a Bash searching a log for the word error routes to CLINICAL, an Edit
+of a proof module routes to FORGE.
+
+### CLINICAL vocabulary widened
+
+`segfault crash panic leak regress traceback` join the stem list on all three
+surfaces — both router arms and the engine document — after a live session
+misrouted *"there is a segfault when I free a pointer twice"* to `CONVERGENT`.
+Router accuracy on the labelled bench is unchanged at **18/18**.
+
+### Verification
+
+- Every one of the **12 modules** is now under a mutation instrument. Four
+  (`RotAbility`, `RotDorks`, `RotLens`, `RotMutant` — 44 of 144 theorems) had
+  never been attacked before this release.
+- **59 mutants, 59 killed, 0 survived, 0 discarded** across all eight suites.
+- The lens **roster** is now bound across four surfaces in name *and* order;
+  renaming a lens in the engine document is caught at exit 1.
+- An overclaim was repaired: `lead_does_not_shrink` proved an independence
+  property its name did not describe.
+- Mutation attribution no longer reports a per-line list as an inventory. When a
+  mutant produces no `.olean`, **every** theorem in the module is dead, and the
+  report now says so instead of implying survivors.
 
 ---
 

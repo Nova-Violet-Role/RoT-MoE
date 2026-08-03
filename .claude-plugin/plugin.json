@@ -1,6 +1,6 @@
 {
   "name": "rot-moe",
-  "version": "0.1.2",
+  "version": "0.2.2",
   "description": "RoT MoE - a nine-lens Mixture-of-Experts router with a measured R/s+ divergence gauge, specified in Lean 4 and bound to the shipped hooks by an executable checker. 144 machine-checked theorems, zero sorry, kernel re-verified.",
   "author": {
     "name": "Saimonokuma",

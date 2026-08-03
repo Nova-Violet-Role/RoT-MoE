@@ -18,7 +18,7 @@
 # checker/live-session-smoke.sh closes that gap for the REPOSITORY packet, with
 # one prompt. This file closes it for all three SHIPPED ARCHIVES, across the
 # whole lane table -- because a router that answered FORGE to everything would
-# pass a single-prompt test perfectly, and because 0.1.0, 0.1.1 and 0.1.2 are
+# pass a single-prompt test perfectly, and because 0.2.0, 0.2.1 and 0.2.2 are
 # three different archives with three different manifests. A superset assertion
 # says the files are present in each; only an executed session says they FIRE.
 #
@@ -77,7 +77,7 @@ command -v unzip  >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 2; }
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 # The version IS the variant; an asset name is never derived from the tree's own
 # version. Same map as checker/release-package.sh.
-VARIANT_MAP="core:0.1.0 lean:0.1.1 unsealed:0.1.2"
+VARIANT_MAP="core:0.2.0 lean:0.2.1 unsealed:0.2.2"
 WANT="${ROTMOE_VARIANTS:-core lean unsealed}"
 
 SESSION_TIMEOUT="${ROTMOE_SESSION_TIMEOUT:-180}"

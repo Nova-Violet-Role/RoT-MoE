@@ -427,24 +427,24 @@ at install time. The variants differ only in material Claude Code does not load.
 | you want | do this |
 |---|---|
 | the router, working, in one minute | `/plugin install rot-moe@rot-moe` — nothing else needed |
-| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.1.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
-| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.1.2-unsealed.zip`** |
-| the router alone as a file you can read end to end | download **`rot-moe-0.1.0-core.zip`** |
+| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.2.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
+| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.2.2-unsealed.zip`** |
+| the router alone as a file you can read end to end | download **`rot-moe-0.2.0-core.zip`** |
 
 Every archive verifies against the `SHA256SUMS.txt` published beside it.
 
 A downloaded archive installs without unzipping:
 
 ```sh
-claude --plugin-dir rot-moe-0.1.1-lean.zip
+claude --plugin-dir rot-moe-0.2.1-lean.zip
 ```
 
 Measured for all three archives — each one fires the router on the first prompt:
 
 ```
-0.1.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.1.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.1.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.2.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.2.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.2.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 ```
 
 Those three lines are **re-measured, not edited.** The archives were rebuilt
@@ -470,7 +470,7 @@ one prompt, --debug hooks       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 the checkers or `SETUP_LEAN`, because those are not plugin components and Claude
 Code never loads them. The three release archives are **download tiers for
 humans**, not three different plugins: their plugin surface is identical. If you
-want the proofs and the verification scripts, take the `0.1.1` or `0.1.2` zip
+want the proofs and the verification scripts, take the `0.2.1` or `0.2.2` zip
 from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases).
 
 Both paths are exercised by `checker/plugin-install.sh`, including from a config

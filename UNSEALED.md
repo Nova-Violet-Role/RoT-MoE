@@ -6,15 +6,15 @@
 
 # ⚗️ Unsealed — what the Extra variant actually unseals
 
-**This file ships only in `v0.1.2`.** It is the difference between that variant
-and `v0.1.1`, written down, because a tier whose extra content cannot be named
+**This file ships only in `v0.2.2`.** It is the difference between that variant
+and `v0.2.1`, written down, because a tier whose extra content cannot be named
 is not a tier.
 
 ---
 
 ## The one-line version
 
-`v0.1.1` gives you the toolchain with our discipline enforced. `v0.1.2` gives
+`v0.2.1` gives you the toolchain with our discipline enforced. `v0.2.2` gives
 you the toolchain with **the discipline in your hands**, plus the instrument
 that keeps it honest when you relax it.
 
@@ -27,7 +27,7 @@ that keeps it honest when you relax it.
 Not by adding a binary — and this is the part worth being precise about, because
 it was proposed here on the opposite assumption:
 
-> **`native_decide` is already possible in `v0.1.1`.** Nothing was withheld.
+> **`native_decide` is already possible in `v0.2.1`.** Nothing was withheld.
 > Every Lean toolchain `elan` installs contains what it needs, because what it
 > needs is the compiler and runtime that Lean *is*.
 >
@@ -37,7 +37,7 @@ it was proposed here on the opposite assumption:
 >   *is*, the C backend Lean compiles through.
 >
 > None of the three is the mechanism. `native_decide` was withheld by **policy**,
-> and `v0.1.2` changes the policy, not the payload.
+> and `v0.2.2` changes the policy, not the payload.
 
 ---
 
