@@ -45,7 +45,7 @@ if ($Version) { Write-Output 'rot-router.ps1 1.0.0'; exit 0 }
 # is a proved defect rather than a matter of taste.
 $Tier1 = @(
   @{ Mode = 'FORGE';      Lead = 'Claude';    Stems = @('run','build','install','deploy','reproduce','ship','lake','theorem','tactic','sorry','mathlib','.lean') },
-  @{ Mode = 'CLINICAL';   Lead = 'AntiVenom'; Stems = @('debug','error','bug','fix','secur','audit','verif','test','cve') },
+  @{ Mode = 'CLINICAL';   Lead = 'AntiVenom'; Stems = @('debug','error','bug','fix','secur','audit','verif','test','cve','segfault','crash','panic','leak','regress','traceback') },
   @{ Mode = 'EXECUTIVE';  Lead = 'Venom';     Stems = @('decid','urgenc','strike','direct','declar','now','conclud') },
   @{ Mode = 'EMPATHIC';   Lead = 'Violet';    Stems = @('emot','feel','grief','lonel','soul','story','human','tired','lost') },
   @{ Mode = 'STRATEGIC';  Lead = 'Nova';      Stems = @('strateg','plan','goal','roadmap','priorit','legal','recommend','analyz') },
@@ -137,8 +137,23 @@ if ([string]::IsNullOrWhiteSpace($payload)) {
 $prompt = ''
 try {
   $j = $payload | ConvertFrom-Json
+  # MEASURED DEFECT, 2026-08-03 -- see the same note in rot-router.sh. Reading
+  # only the tool NAME made every PreToolUse firing route to CONVERGENT, because
+  # "Bash", "Edit", "Read" and "Grep" match no stem. The autonomous half of the
+  # router was inert and looked healthy. Route on what the tool is DOING.
   if ($j.prompt)         { $prompt = [string]$j.prompt }
-  elseif ($j.tool_name)  { $prompt = [string]$j.tool_name }
+  elseif ($j.tool_name)  {
+    $ti = $j.tool_input
+    $act = @()
+    if ($ti) {
+      foreach ($f in 'command','file_path','path','pattern','description') {
+        $v = $ti.$f
+        if ($v -is [string] -and $v) { $act += $v }
+      }
+    }
+    if ($act.Count -gt 0) { $prompt = ([string]$j.tool_name) + ' ' + ($act -join ' ') }
+    else                  { $prompt = [string]$j.tool_name }
+  }
 } catch {
   # A payload that does not parse is not a reason to fail the user's turn. Route
   # the raw text: the routing decision degrades, the session does not break.

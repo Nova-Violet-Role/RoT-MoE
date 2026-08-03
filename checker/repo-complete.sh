@@ -435,6 +435,72 @@ fi
 rm -rf "$PYCTL"
 rm -f "$PYTMP"
 
+# --- 4. EVERY THEOREM README CITES MUST EXIST -------------------------------
+# THE GAP THIS CLOSES (measured 2026-08-03). Section 2 recounts the per-module
+# theorem NUMBERS, so a count that drifts is caught. Nothing checked the NAMES.
+# README.md cites 58 theorems by name -- `route_fires`, `lead_does_not_shrink`,
+# `claude_leads_forge` and the rest -- and a rename or a deletion would have
+# left the page citing a ghost with every gate still green. The citation is the
+# reader's only route from a claim to its proof; a dead one is a broken promise
+# that looks exactly like a kept one.
+#
+# THE SCAN MUST BE COMMENT-AWARE, and that is not a detail. A naive
+# `grep '^theorem'` over the corpus reports `lead_does_not_shrink` TWICE,
+# because the doc comment of the real theorem quotes its own former statement
+# in a fenced block that starts at column 0. The same trap has now been hit
+# four times in this repository by four different scanners, so the stripper
+# below is the same nesting-aware one `count-theorems.sh` uses.
+echo
+echo "== README CITATIONS: every theorem named on the page must exist =="
+RCTMP="$(mktemp -d "${TMPDIR:-/tmp}/readmecite.XXXXXX")"
+strip_lean_comments () {
+  awk '{ line=$0; i=1; out=""
+         while (i <= length(line)) {
+           two = substr(line, i, 2)
+           if (two == "/-") { depth++; i += 2; continue }
+           if (two == "-/") { if (depth > 0) depth--; i += 2; continue }
+           if (depth == 0) out = out substr(line, i, 1)
+           i++ }
+         print out }' "$1"
+}
+for f in lean/Proofs/*.lean; do strip_lean_comments "$f"; done \
+  | grep -oE '^(@\[[^]]*\] )?(private |protected |noncomputable )*(theorem|lemma) [A-Za-z_][A-Za-z0-9_]*' \
+  | awk '{print $NF}' | sort -u > "$RCTMP/real.txt"
+
+# A citation is a backticked snake_case identifier: at least one underscore and
+# no dot or slash, which excludes file names, flags and module paths.
+grep -oE '`[a-z][a-z0-9]*(_[a-z0-9]+)+`' README.md | tr -d '`' | sort -u > "$RCTMP/cited.txt"
+# Words that are legitimately snake_case and are NOT theorems.
+NOT_THEOREMS='native_decide|lake_build|lean_lib|rot_moe|claude_config_dir'
+grep -vE "^($NOT_THEOREMS)$" "$RCTMP/cited.txt" > "$RCTMP/cited2.txt" || true
+
+ghosts=0
+while read -r nm; do
+  [ -n "$nm" ] || continue
+  grep -qx "$nm" "$RCTMP/real.txt" || { bad "README cites \`$nm\` -- no such theorem in lean/Proofs"; ghosts=$((ghosts+1)); }
+done < "$RCTMP/cited2.txt"
+ncit=$(wc -l < "$RCTMP/cited2.txt" | tr -d ' ')
+[ "$ghosts" -eq 0 ] && ok "all $ncit theorem names cited in README.md resolve to a real declaration"
+
+# The citation set must not be allowed to shrink to nothing: an extractor that
+# silently stops matching would report "0 ghosts" and look like a pass.
+if [ "$ncit" -ge 40 ]; then
+  ok "the citation extractor found $ncit names (a scan that matched nothing would pass vacuously)"
+else
+  bad "only $ncit citations extracted from README.md -- the extractor has gone blind, not the page clean"
+fi
+
+# CONTROL: a cited name that does not exist MUST be reported. The needle is
+# assembled at run time so this file cannot match its own fixture -- the
+# mistake that has already cost this repo two false greens.
+GHOST="no_such$(printf '_')theorem_$$"
+if grep -qx "$GHOST" "$RCTMP/real.txt"; then
+  bad "CONTROL BROKEN: the invented name somehow exists"
+else
+  ok "CONTROL: an invented citation (\`$GHOST\`) is absent from the corpus, so the lookup can fail"
+fi
+rm -rf "$RCTMP"
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

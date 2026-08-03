@@ -606,12 +606,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "04629b3d0de5",
-      "indexed_at": "2026-08-02T05:05:29.722904+00:00",
+      "hash": "223bc763ce90",
+      "indexed_at": "2026-08-03T05:52:22.103613+00:00",
       "language": "shell",
-      "lines": 441,
-      "mtime_ns": 1785645889921862500,
-      "size": 22153,
+      "lines": 507,
+      "mtime_ns": 1785733383404141300,
+      "size": 25596,
       "symbols": [
         {
           "lines": [
@@ -644,6 +644,14 @@
             405
           ],
           "name": "detects",
+          "type": "function"
+        },
+        {
+          "lines": [
+            456,
+            465
+          ],
+          "name": "strip_lean_comments",
           "type": "function"
         }
       ]
@@ -881,6 +889,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-03T04:56:55.548327+00:00",
+  "generated_at": "2026-08-03T05:52:22.103704+00:00",
   "version": "1.0"
 }

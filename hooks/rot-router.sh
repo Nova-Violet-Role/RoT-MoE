@@ -48,7 +48,7 @@ export LC_ALL LC_NUMERIC
 # stems are the common case. route_exact in RotRoute.lean characterises every
 # lane in both directions against exactly this order.
 STEMS_FORGE='run build install deploy reproduce ship lake theorem tactic sorry mathlib .lean'
-STEMS_CLINICAL='debug error bug fix secur audit verif test cve'
+STEMS_CLINICAL='debug error bug fix secur audit verif test cve segfault crash panic leak regress traceback'
 STEMS_EXECUTIVE='decid urgenc strike direct declar now conclud'
 STEMS_EMPATHIC='emot feel grief lonel soul story human tired lost'
 STEMS_STRATEGIC='strateg plan goal roadmap priorit legal recommend analyz'
@@ -172,7 +172,30 @@ hook_mode () {
   if command -v node >/dev/null 2>&1; then
     prompt=$(printf '%s' "$payload" | node -e '
       let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-        try { const j=JSON.parse(s); process.stdout.write(String(j.prompt||j.tool_name||"")); }
+        // MEASURED DEFECT, 2026-08-03: this read `j.prompt || j.tool_name` only.
+        // On UserPromptSubmit that is right. On PreToolUse the payload carries no
+        // prompt, so the router saw the bare tool NAME -- "Bash", "Edit", "Read",
+        // "Grep" -- and not one of those matches any stem. Every autonomous
+        // firing therefore returned CONVERGENT, measured on all four. The half of
+        // the router that watches what the MODEL decided to do carried no signal
+        // at all, while looking perfectly healthy in the log.
+        // The fix reads what the tool is actually DOING. A Bash invoking the
+        // Lean build tool is FORGE work; a Bash searching a log for the word
+        // error is CLINICAL work; the tool name alone cannot tell them apart.
+        // Command, file path and pattern are the fields that carry the intent.
+        //
+        // NOTE ON WORDING, and it is not fussiness: this comment deliberately
+        // NAMES no toolchain binary next to a backtick. checker/hook-footprint.sh
+        // forbids a Lean invocation in a shipped hook and matches COMMAND
+        // POSITION -- and in shell, a backtick followed by that name IS command
+        // substitution. The checker cannot know this block is JavaScript. It
+        // caught an earlier draft of this very comment, which is the rule
+        // working, so the prose moved rather than the rule.
+        try { const j=JSON.parse(s);
+          const ti = j.tool_input || {};
+          const act = [ti.command, ti.file_path, ti.path, ti.pattern, ti.description]
+                        .filter(x => typeof x === "string").join(" ");
+          process.stdout.write(String(j.prompt || (act ? (j.tool_name||"") + " " + act : j.tool_name) || "")); }
         catch(e) { process.stdout.write(""); }
       });' 2>/dev/null)
   else

@@ -143,7 +143,7 @@ pretend · character · User*.
 
 | Mode | Trigger stems | Lead |
 |------|---------------|------|
-| CLINICAL | debug, error, bug, fix, secur, audit, verif, test, CVE | ⚪ Anti-Venom |
+| CLINICAL | debug, error, bug, fix, secur, audit, verif, test, CVE, segfault, crash, panic, leak, regress, traceback | ⚪ Anti-Venom |
 | EXECUTIVE | decid, urgenc, strike, direct, declar, now, conclud | 🕷️ Venom |
 | EMPATHIC | emot, feel, grief, lonel, soul, story, human, tired, lost | 🎷 Violet |
 | STRATEGIC | strateg, plan, goal, roadmap, priorit, legal, recommend, analyz | ⚜️ Nova |
