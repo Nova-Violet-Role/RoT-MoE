@@ -121,7 +121,31 @@ run_mut() {
           END { if (name != "") print name }
         ' "$F"
       done | sed -E 's/^(noncomputable )?(theorem|def|instance|structure|inductive|example) *//; s/[ ({:].*$//' | sort -u | tr '\n' ',' )
-    echo "$id  KILLED     exit=$ec  dead: ${dead%,}  | expected: $expect"
+    # THE `dead:` LIST IS A LOWER BOUND, NOT AN INVENTORY. Measured 2026-08-03
+    # on M03 (gauge replaced by a constant): the errors landed at lines 192,
+    # 282, 311 and 338, and `gauge_not_constant` at :346 was NOT among them --
+    # so the list appeared to show it surviving a mutation whose whole purpose
+    # was to kill it. It did not survive. Two facts settle it:
+    #
+    #   1. The mutant build produces NO olean. Nothing downstream can use ANY
+    #      theorem in the module, so every one of them is dead in the only
+    #      sense a consumer cares about.
+    #   2. `gauge_not_constant` elaborated only because Lean's error recovery
+    #      keeps the STATEMENT of the broken lemma it rewrites with (:338)
+    #      alive. Its `rw` matched a lemma that no longer has a proof.
+    #
+    # That is exactly the failure the doctrine warns about -- attribute through
+    # DEPENDENCIES, never by which line reported an error. Reporting the list
+    # without this caveat would let a reader conclude a theorem is decorative
+    # when the truth is the opposite, which is how a real overclaim gets
+    # dismissed as noise. The line below now says what the list is worth.
+    if [ ! -f "$OLEAN" ]; then
+      echo "$id  KILLED     exit=$ec  MODULE DEAD (no olean: every theorem in it is unusable)"
+      echo "        errors reported at: ${dead%,}  <- LOWER BOUND, not the full set"
+      echo "        expected: $expect"
+    else
+      echo "$id  KILLED     exit=$ec  dead: ${dead%,}  | expected: $expect"
+    fi
     killed=$((killed+1))
   fi
   cp "$BAK" "$F"
