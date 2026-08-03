@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **154
+lens activities off disk, computes an `R/s+` gauge from them, and **158
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -262,7 +262,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   `nsil_overrides_tier1` — which proves both that the override lands *and* that
   it genuinely differs from the keyword result, the difference between a router
   and an `if`-chain.
-* **`lean/Proofs/RotPath.lean`** (8 theorems) — path canonicalisation, written
+* **`lean/Proofs/RotPath.lean`** (12 theorems) — path canonicalisation, written
   *after* a real stranding bug: the two installer arms wrote different command
   strings for one install, and removal matches by exact string, so installing
   from one shell and uninstalling from the other left a dead hook entry forever.
@@ -547,15 +547,28 @@ one module is the rule that keeps kills attributable.
 
 Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:
 
-| what | measured 2026-08-01 |
+| what | measured 2026-08-03 |
 |---|---|
 | routing accuracy on a labelled key written *before* the run | **18/18**, covering **9** distinct lanes |
-| cost per turn | **≈154 ms**, of which ~18 ms is bash process startup |
+| cost per turn | **170–179 ms** (three runs of 20 invocations each), of which **~17 ms** is bash process startup |
+| the bound the gate actually enforces | **under 500 ms**, and it fails the build above that |
 | ambiguous prompts (two lanes match) | resolve by the **proved** priority order, deterministically |
 | armed vs disarmed in a real `claude` session | **1 emission vs 0** — attributable to the install |
 
-That last row is the one that matters: the router is not "probably running", it
-was watched firing and watched going silent when disarmed.
+A **range**, not a single figure, and the reason is worth one sentence: three
+consecutive runs of twenty invocations gave 178.5, 175.9 and 170.4 ms on this
+machine. Quoting one of those as *the* number would be a snapshot pretending to
+be a constant, and the next run on another machine would make the README look
+wrong when nothing had regressed. The durable claim is the row beneath it — the
+**bound** is what `bench-router.sh` enforces, and a bound is a property rather
+than a measurement.
+
+The previous figure here read ≈154 ms and was genuinely out of date: the router
+now computes the `R/s+` gauge on every invocation, which the earlier number
+predates. It was re-measured rather than adjusted.
+
+The last row is the one that matters most: the router is not "probably running",
+it was watched firing and watched going silent when disarmed.
 
 **Its strong point is not the number — it is that the number is falsifiable.**
 Nine lenses, a priority order a theorem characterises in both directions, and a
@@ -715,7 +728,7 @@ Carnage's chaos to `proved` killed it (5 error lines).
 | 🧭 Claude's ability has **no name in any codex** | **PROVED** | `claudeAbilityIsUnnamed`, `exactly_one_ability_is_unnamed` |
 | the documentation does not mark opinions as proved | **PROVED** | `no_ability_overclaims`, `evidence_split` (6 proved / 3 not modelled) |
 | routing accuracy on a labelled key | **MEASURED** (18/18) | `checker/bench-router.sh` |
-| per-turn cost | **MEASURED**, bounded | `bench-router.sh` §2 |
+| per-turn cost | **MEASURED** 170–179 ms, bounded under 500 ms | `bench-router.sh` §2 |
 | 🩸 Carnage genuinely produces *useful* chaos | **NOT MODELLED** | no instrument exists — saying otherwise would be a lie |
 | 🎷 Violet_Noir genuinely hears *felt truth* | **NOT MODELLED** | same |
 | the answers are *better* with nine than with one | **NOT MODELLED** | output quality is not measurable here |
@@ -726,6 +739,38 @@ has the shape it claims — and the four mutations that kill those theorems
 (dropping a lens from the roster, zeroing a weight, making one lens lead two
 lanes, demoting the lead below the floor) confirm they are load-bearing rather
 than decorative.
+
+#### The newest four, and why they exist
+
+`RotPath.lean` grew from 8 theorems to 12 on 2026-08-03, and the occasion is
+worth recording because it is the pattern this repository is built around: the
+reminder hook's module derivation — workspace root plus edited file, out comes
+the Lean module to build — shipped with **three separate defects, all silent**.
+It returned no verdict at all, which reads as "nothing to check" rather than "I
+could not work out what to build". They were found by running the thing end to
+end, not by reading it.
+
+| Claim about module derivation | Status | Instrument |
+|---|---|---|
+| the Windows and POSIX spellings of one edit give the SAME module | **PROVED** | `moduleOf_spelling_invariant` |
+| the module never depends on how the workspace directory is named or capitalised | **PROVED** | `moduleOf_root_agnostic` |
+| a derived module name never contains a path separator | **PROVED** | `moduleOf_no_slash` |
+| a file outside the workspace derives **nothing**, so nothing is built | **PROVED** | `moduleOf_none_of_outside` |
+| a path that merely shares a prefix string (`…/Leanx`) is not inside `…/Lean` | **MEASURED** by `decide` | executable `example` |
+
+The second row is the one that would have prevented the worst of the three: the
+shipped fallback matched a lowercase `*/lean/*` only, so a workspace at
+`<root>/Lean` — the layout the installer now creates — matched nothing. Stated
+over **arbitrary** roots rather than over the name `Lean`, so it does not expire
+the day someone chooses `Formal` or `Proofs` instead. A theorem naming today's
+directory would have been a snapshot, and it would have gone red on a correct
+change.
+
+All four survive `#print axioms` with `propext, Classical.choice, Quot.sound`
+and nothing else, are re-verified by `leanchecker`, and are load-bearing: three
+mutations of the definitions — dropping the trailing separator from the prefix
+test, making `dotify` the identity, making `dropLeanExt` keep the extension —
+each **killed** the build.
 
 ---
 
