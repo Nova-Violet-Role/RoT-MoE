@@ -33,6 +33,12 @@ param(
 $ErrorActionPreference = 'Stop'
 $inv = [System.Globalization.CultureInfo]::InvariantCulture
 
+# Start of THIS invocation, used only by the debug log's per-turn `ms` field.
+# Taken here rather than later so the figure includes the routing work itself,
+# not just the tail of it -- a latency number that excludes the thing being
+# measured is worse than none.
+$__rotStart = Get-Date
+
 if ($Version) { Write-Output 'rot-router.ps1 1.0.0'; exit 0 }
 
 # --- TIER 1 ------------------------------------------------------------------
@@ -109,6 +115,25 @@ function Format-Num([double] $x, [int] $d) {
   return $s
 }
 
+# --- DEBUG LOG ---------------------------------------------------------------
+# Set ROTMOE_DEBUG_LOG=<path> and every routing decision appends ONE JSON line
+# carrying the whole computation: the lane, the lead lens, and for each of the
+# nine lenses its lambda, mu, activity, delta, sigma, H and the resulting term.
+#
+# This exists because "the router works" was, until now, a claim backed by the
+# router's own one-line summary. A summary cannot show you that lens 5 was
+# multiplied by the wrong mu, or that a lens never participated at all. The log
+# can, because it prints every factor that went into the sum -- so the reported
+# R/s+ is reproducible by hand from the record.
+#
+# Failure here must never break a turn: the hook's job is to route, not to log.
+# Every write is wrapped, and a failed write is silently dropped.
+function Write-RotDebug([string] $Line) {
+  $p = $env:ROTMOE_DEBUG_LOG
+  if (-not $p) { return }
+  try { Add-Content -LiteralPath $p -Value $Line -Encoding utf8 -ErrorAction Stop } catch { }
+}
+
 function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [double] $T) {
   $acts = @($Vec -split ',' | ForEach-Object { [double]$_ })
   $K = $acts.Count
@@ -117,6 +142,7 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
 
   $sum = 0.0
   $active = New-Object System.Collections.Generic.List[string]
+  $terms  = New-Object System.Collections.Generic.List[string]
   for ($i = 0; $i -lt $K; $i++) {
     $a = $acts[$i]
     if ($a -gt 0) { $active.Add($Names[$i]) }
@@ -124,7 +150,18 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
     $s = 1.0 / (1.0 + [Math]::Exp(-4.0 * ($d - 0.5)))
     $H = if ($Br -gt 0) { $a / [double]$Br } else { 0.0 }
     if ($H -gt 1.0) { $H = 1.0 }
-    $sum += $Lambdas[$i] * $s * (1.0 + $H) * $Mus[$i] * $M * $C * $T
+    $term = $Lambdas[$i] * $s * (1.0 + $H) * $Mus[$i] * $M * $C * $T
+    $sum += $term
+    if ($env:ROTMOE_DEBUG_LOG) {
+      $terms.Add(('{{"lens":"{0}","lambda":{1},"mu":{2},"a":{3},"delta":{4},"sigma":{5},"H":{6},"term":{7}}}' -f `
+        $Names[$i], (Format-Num $Lambdas[$i] 3), (Format-Num $Mus[$i] 3), (Format-Num $a 3), `
+        (Format-Num $d 4), (Format-Num $s 4), (Format-Num $H 4), (Format-Num $term 5)))
+    }
+  }
+  if ($env:ROTMOE_DEBUG_LOG) {
+    Write-RotDebug ('{{"kind":"gauge","ts":"{0}","K":{1},"mean":{2},"breadth":{3},"M":{4},"C":{5},"T":{6},"sum":{7},"Rs":{8},"active":"{9}","lenses":[{10}]}}' -f `
+      (Get-Date -Format 'o'), $K, (Format-Num $mean 4), $Br, (Format-Num $M 3), (Format-Num $C 3), (Format-Num $T 3), `
+      (Format-Num $sum 5), (Format-Num ($sum / $K) 5), ($(if ($active.Count) { $active -join ',' } else { 'none' })), ($terms -join ','))
   }
   $R = $sum / $K
   $band = if ($R -lt 0.9) { 'BELOW RANGE' } elseif ($R -gt 1.8) { 'ABOVE RANGE' } else { 'IN RANGE (0.9-1.8)' }
@@ -203,5 +240,15 @@ foreach ($n in $Names) {
 }
 $g  = Invoke-Gauge ($acts -join ',') $br 1 1 1
 $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
+
+# One record per ROUTED TURN, distinct from the per-lens gauge record above.
+# `chars` rather than the prompt itself: the log must be safe to paste into an
+# issue, and the routing decision is what is under test, not the user's text.
+if ($env:ROTMOE_DEBUG_LOG) {
+  $ms = [int]((Get-Date) - $__rotStart).TotalMilliseconds
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"arm":"ps1","ms":{5}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $ms)
+}
+
 Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs)
 exit 0

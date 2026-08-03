@@ -6,15 +6,15 @@
 
 # ⚗️ Unsealed — what the Extra variant actually unseals
 
-**This file ships only in `v0.3.2`.** It is the difference between that variant
-and `v0.3.1`, written down, because a tier whose extra content cannot be named
+**This file ships only in `v0.4.2`.** It is the difference between that variant
+and `v0.4.1`, written down, because a tier whose extra content cannot be named
 is not a tier.
 
 ---
 
 ## The one-line version
 
-`v0.3.1` gives you the toolchain with our discipline enforced. `v0.3.2` gives
+`v0.4.1` gives you the toolchain with our discipline enforced. `v0.4.2` gives
 you the toolchain with **the discipline in your hands**, plus the instrument
 that keeps it honest when you relax it.
 
@@ -27,7 +27,7 @@ that keeps it honest when you relax it.
 Not by adding a binary — and this is the part worth being precise about, because
 it was proposed here on the opposite assumption:
 
-> **`native_decide` is already possible in `v0.3.1`.** Nothing was withheld.
+> **`native_decide` is already possible in `v0.4.1`.** Nothing was withheld.
 > Every Lean toolchain `elan` installs contains what it needs, because what it
 > needs is the compiler and runtime that Lean *is*.
 >
@@ -37,7 +37,7 @@ it was proposed here on the opposite assumption:
 >   *is*, the C backend Lean compiles through.
 >
 > None of the three is the mechanism. `native_decide` was withheld by **policy**,
-> and `v0.3.2` changes the policy, not the payload.
+> and `v0.4.2` changes the policy, not the payload.
 
 ---
 
@@ -121,7 +121,7 @@ own docstring, because the axiom will not say it for you where anyone looks.
 
 ## What does NOT change
 
-* The 162 theorems in this repository stay `native_decide`-free. Unsealing
+* The 183 theorems in this repository stay `native_decide`-free. Unsealing
   applies to **your** work, not ours.
 * Every gate still runs. `ROTMOE_ALLOW_COMPILER=1` permits and **reports**; it
   never hides.

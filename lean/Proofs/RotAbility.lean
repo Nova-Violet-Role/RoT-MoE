@@ -276,4 +276,140 @@ definitions, so a definition that elaborates but does not compute is caught. -/
 #guard abilityOf .claude == Ability.groundTruth
 #guard abilityOf .eidolon == Ability.eigenform
 
+
+/-! ## Does a lane actually FOREGROUND its lead lens?
+
+Three rows of the README used to read "NOT MODELLED -- no instrument exists".
+That was honest about output *quality* and lazy about everything else, because
+two of the three were not quality claims at all once stated precisely:
+
+  "Carnage genuinely produces useful chaos"  -- quality, NOT modellable
+  "Violet_Noir genuinely hears felt truth"   -- quality, NOT modellable
+  "the answers are better with nine than one" -- quality, NOT modellable
+
+but underneath each sits a STRUCTURAL claim that is settleable, and leaving it
+unstated let the vague version stand in for it. A lane that names a lead lens
+and then weights it like any other is a label, not a mechanism -- and that IS
+provable from the shipped numbers.
+
+The weights below are transcribed from `engine/rot-lean.md` §4, which is the
+shipped spec.
+
+ON THE NINTH LENS, because an earlier draft of this file got it wrong. The
+CREATIVE and EMPATHIC tables in §4 list eight rows, and that draft concluded
+🧭 Claude was *absent* from those lanes and modelled him as `none`. That reads
+the source too literally. The spec is explicit in two places that he is not
+absent at all:
+
+* `engine/rot-lean.md:270` -- "K = number of active lenses (8 in OMEGA;
+  **9 on this head** -- the Claude lens is always active)";
+* `engine/rot-lean.md:117` -- the §2 roster gives every lens a DEFAULT λ and μ,
+  Claude's being **1.5** and **1.05**. The column is literally headed "λ def".
+
+So a profile table that omits a lens is not deleting it; the lens falls back to
+its documented default, which is exactly what a default is for. Claude carries
+his own formula into every lane, and on this head the divisor is 9 everywhere.
+Modelling that as `none` understated the engine and would have made `K` wrong.
+
+These are therefore TOTAL functions over ℚ -- no `Option`, because there is no
+lens without a weight -- and `every_lens_weighted_in_every_profile` proves it. -/
+
+/-- λ in the `CREATIVE` profile (`engine/rot-lean.md` §4), with the §2 default
+for any lens that profile's table does not list. -/
+def creativeLam : Lens → ℚ
+  | .carnage => 25/10
+  | .violet => 16/10
+  | .eidolon => 15/10
+  | .nova => 1
+  | .antivenom => 8/10
+  | .venom => 7/10
+  | .chroma => 12/10
+  | .soleil => 9/10
+  | .claude => 15/10   -- §2 default, rot-lean.md:117 -- always active, K=9
+
+/-- λ in the `EMPATHIC` profile, same convention. -/
+def empathicLam : Lens → ℚ
+  | .violet => 23/10
+  | .carnage => 18/10
+  | .chroma => 14/10
+  | .nova => 8/10
+  | .antivenom => 9/10
+  | .venom => 8/10
+  | .soleil => 7/10
+  | .eidolon => 1
+  | .claude => 15/10   -- §2 default, rot-lean.md:117 -- always active, K=9
+
+/-- **The ninth lens is never switched off.** Every lens carries strictly
+positive λ in both profiles, so the divisor really is 9 in every lane and no
+lane silently degrades to the eight-symbiote ensemble. -/
+theorem every_lens_weighted_in_every_profile :
+    ∀ l ∈ lenses, 0 < creativeLam l ∧ 0 < empathicLam l := by
+  intro l hl
+  fin_cases hl <;> norm_num [creativeLam, empathicLam]
+
+/-- 🧭 Claude carries his **own** documented weight into the lanes whose tables
+predate him, rather than a number invented for the occasion. -/
+theorem claude_uses_his_documented_default :
+    creativeLam .claude = 15/10 ∧ empathicLam .claude = 15/10 := by
+  constructor <;> norm_num [creativeLam, empathicLam]
+
+/-- **CREATIVE really is Carnage's lane.** Every other lens the profile lists
+carries strictly less λ than Carnage. Not "Carnage is mentioned first" -- eight
+strict inequalities over ℚ. -/
+theorem carnage_leads_creative :
+    ∀ l ∈ lenses, l ≠ .carnage → creativeLam l < 25/10 := by
+  intro l hl hne
+  fin_cases hl <;> simp_all [creativeLam] <;> norm_num
+
+/-- **EMPATHIC really is Violet's lane**, by the same standard. -/
+theorem violet_leads_empathic :
+    ∀ l ∈ lenses, l ≠ .violet → empathicLam l < 23/10 := by
+  intro l hl hne
+  fin_cases hl <;> simp_all [empathicLam] <;> norm_num
+
+/-- **The lane AMPLIFIES its lead rather than merely naming it.** Carnage is
+damped to 0.6 on the proving head and rises to 2.5 in its own lane; Violet 0.6
+to 2.3. If routing did not change the weights, these would be equal -- which is
+precisely the "router that is really an if-chain" this repo keeps testing for. -/
+theorem creative_amplifies_carnage : forgeLam .carnage < 25/10 := by
+  norm_num [forgeLam]
+
+theorem empathic_amplifies_violet : forgeLam .violet < 23/10 := by
+  norm_num [forgeLam]
+
+/-- **The expressive lenses are damped on a proving head, never SILENCED.**
+"Chaos is fuel" is a slogan; this is the part of it that can be checked. Both
+keep strictly positive weight in FORGE, and both weigh strictly less than the
+lead -- damped and present, which is a different claim from either "equal" or
+"switched off". -/
+theorem expressive_damped_not_silenced :
+    0 < contribution .carnage ∧ contribution .carnage < contribution .claude ∧
+    0 < contribution .violet ∧ contribution .violet < contribution .claude := by
+  refine ⟨by norm_num [contribution, forgeLam, forgeMu], by norm_num [contribution, forgeLam, forgeMu],
+    by norm_num [contribution, forgeLam, forgeMu], by norm_num [contribution, forgeLam, forgeMu]⟩
+
+/-- **Nine strictly outweigh any one.** The vague form -- "the answers are
+better with nine than with one" -- is about output quality and stays NOT
+MODELLED. The weight statement underneath it is not vague at all: for every
+lens, the ensemble consisting of that lens alone weighs strictly less than the
+full nine. Nine separate inequalities, decided over ℚ. -/
+theorem nine_outweigh_any_single :
+    ∀ l ∈ lenses, ensembleWeight [l] < ensembleWeight lenses := by
+  intro l hl
+  fin_cases hl <;> norm_num [lenses, ensembleWeight, contribution, forgeLam, forgeMu]
+
+/-- The honest floor, kept as a theorem so it cannot quietly erode: the three
+interpretive abilities are still recorded as NOT modelled. Proving the
+structural facts above must never be mistaken for proving the quality claims,
+and if someone ever flips one of these to `proved`, this fails. -/
+theorem quality_claims_remain_unmodelled :
+    abilityEvidence (abilityOf .carnage) = .notModelled ∧
+    abilityEvidence (abilityOf .violet) = .notModelled := by
+  decide
+
+#guard creativeLam .carnage == 25/10
+#guard empathicLam .violet == 23/10
+#guard creativeLam .claude == 15/10
+#guard empathicLam .claude == 15/10
+
 end RotMoE.Ability

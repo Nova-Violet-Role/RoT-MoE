@@ -73,12 +73,12 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "13b9c31f7b53",
-      "indexed_at": "2026-08-02T05:52:47.062647+00:00",
+      "hash": "9af29f2e65a7",
+      "indexed_at": "2026-08-03T17:36:30.855070+00:00",
       "language": "shell",
-      "lines": 293,
-      "mtime_ns": 1785648900314655100,
-      "size": 14512,
+      "lines": 407,
+      "mtime_ns": 1785775973109057600,
+      "size": 19971,
       "symbols": [
         {
           "lines": [
@@ -189,12 +189,12 @@
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "194cebf9c306",
-      "indexed_at": "2026-07-31T11:35:25.328277+00:00",
+      "hash": "afe18bf62b2a",
+      "indexed_at": "2026-08-03T17:36:32.617284+00:00",
       "language": "shell",
-      "lines": 138,
-      "mtime_ns": 1785497240941889100,
-      "size": 6474,
+      "lines": 146,
+      "mtime_ns": 1785759308618010000,
+      "size": 6974,
       "symbols": []
     },
     "deferred-closure.sh": {
@@ -252,12 +252,12 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "228c95f174da",
-      "indexed_at": "2026-08-02T21:06:23.589429+00:00",
+      "hash": "8f75fb228980",
+      "indexed_at": "2026-08-03T17:36:32.617840+00:00",
       "language": "shell",
-      "lines": 147,
-      "mtime_ns": 1785703043335573900,
-      "size": 6694,
+      "lines": 149,
+      "mtime_ns": 1785765241836035000,
+      "size": 6886,
       "symbols": []
     },
     "gauge-cross.sh": {
@@ -297,12 +297,12 @@
       ]
     },
     "hook-footprint.sh": {
-      "hash": "5c9e3d9a925f",
-      "indexed_at": "2026-08-02T07:02:50.936263+00:00",
+      "hash": "4e0637e6033d",
+      "indexed_at": "2026-08-03T17:36:32.618744+00:00",
       "language": "shell",
-      "lines": 208,
-      "mtime_ns": 1785652277505055300,
-      "size": 10466,
+      "lines": 279,
+      "mtime_ns": 1785751028822476700,
+      "size": 14511,
       "symbols": [
         {
           "lines": [
@@ -343,12 +343,12 @@
       ]
     },
     "lean-binds-shell.sh": {
-      "hash": "b0fb06086c87",
-      "indexed_at": "2026-07-31T14:10:08.597053+00:00",
+      "hash": "7cb030b148a5",
+      "indexed_at": "2026-08-03T17:36:32.619426+00:00",
       "language": "shell",
-      "lines": 117,
-      "mtime_ns": 1785504847826785000,
-      "size": 5274,
+      "lines": 193,
+      "mtime_ns": 1785745585708711600,
+      "size": 9406,
       "symbols": []
     },
     "license-bridge.sh": {
@@ -490,11 +490,11 @@
       "symbols": []
     },
     "release-install.sh": {
-      "hash": "d8d1cf8fad4f",
-      "indexed_at": "2026-08-02T06:17:19.994434+00:00",
+      "hash": "7e03b22ff315",
+      "indexed_at": "2026-08-03T17:36:31.031322+00:00",
       "language": "shell",
       "lines": 399,
-      "mtime_ns": 1785650831960209400,
+      "mtime_ns": 1785772195664888900,
       "size": 20267,
       "symbols": [
         {
@@ -508,11 +508,11 @@
       ]
     },
     "release-longsession.sh": {
-      "hash": "913d907d2926",
-      "indexed_at": "2026-08-01T21:53:10.372019+00:00",
+      "hash": "22ac8fe24407",
+      "indexed_at": "2026-08-03T17:36:31.206896+00:00",
       "language": "shell",
       "lines": 269,
-      "mtime_ns": 1785619809313809100,
+      "mtime_ns": 1785772195664888900,
       "size": 14568,
       "symbols": [
         {
@@ -536,11 +536,11 @@
       ]
     },
     "release-package.sh": {
-      "hash": "eeb217090446",
-      "indexed_at": "2026-08-02T04:40:20.713312+00:00",
+      "hash": "5f0551f0ddd8",
+      "indexed_at": "2026-08-03T17:36:31.383344+00:00",
       "language": "shell",
       "lines": 361,
-      "mtime_ns": 1785645054062268000,
+      "mtime_ns": 1785772195665887300,
       "size": 15876,
       "symbols": [
         {
@@ -563,11 +563,11 @@
       ]
     },
     "release-session.sh": {
-      "hash": "7be454dbb509",
-      "indexed_at": "2026-08-02T05:52:47.801427+00:00",
+      "hash": "e4418649c30e",
+      "indexed_at": "2026-08-03T17:36:31.559030+00:00",
       "language": "shell",
       "lines": 268,
-      "mtime_ns": 1785648900447655800,
+      "mtime_ns": 1785772195665887300,
       "size": 13356,
       "symbols": [
         {
@@ -721,13 +721,22 @@
         }
       ]
     },
-    "verdict-schedule-sim.sh": {
-      "hash": "6dea2ebcdb04",
-      "indexed_at": "2026-08-02T09:14:42.805169+00:00",
+    "verdict-fresh.sh": {
+      "hash": "105d43464c59",
+      "indexed_at": "2026-08-03T17:36:32.975356+00:00",
       "language": "shell",
-      "lines": 305,
-      "mtime_ns": 1785661503549882600,
-      "size": 15080,
+      "lines": 75,
+      "mtime_ns": 1785765896016034900,
+      "size": 3770,
+      "symbols": []
+    },
+    "verdict-schedule-sim.sh": {
+      "hash": "44543718dfab",
+      "indexed_at": "2026-08-03T17:36:32.620770+00:00",
+      "language": "shell",
+      "lines": 331,
+      "mtime_ns": 1785765227258034800,
+      "size": 16588,
       "symbols": [
         {
           "lines": [
@@ -740,7 +749,7 @@
         {
           "lines": [
             138,
-            306
+            332
           ],
           "name": "run_week",
           "type": "function"
@@ -889,6 +898,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-03T05:52:22.103704+00:00",
+  "generated_at": "2026-08-03T17:36:33.021581+00:00",
   "version": "1.0"
 }

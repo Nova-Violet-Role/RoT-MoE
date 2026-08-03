@@ -300,6 +300,108 @@ INNER
   fi
 fi
 
+
+echo
+echo "== 5. THE DEBUG LOG -- is the reported R/s+ REPRODUCIBLE, or just asserted?"
+# ---------------------------------------------------------------------------
+# WHY THIS PHASE EXISTS. Every earlier phase checks what the router DECIDED.
+# None of them checks how it arrived there, because until now the router only
+# emitted a one-line summary -- and a summary cannot show you that lens 5 was
+# multiplied by the wrong mu, that a lens never participated, or that K silently
+# fell to 8. Those are exactly the defects that leave the headline number
+# looking plausible.
+#
+# ROTMOE_DEBUG_LOG makes the router append one JSON line per gauge evaluation
+# carrying EVERY factor of the sum: per lens its lambda, mu, activity, delta,
+# sigma, H and resulting term. This phase then does the only thing that turns a
+# log into evidence: it recomputes R/s+ from those terms and requires the result
+# to match what the router reported. If the log and the headline ever disagree,
+# one of them is lying and this fails.
+#
+# The negative control matters as much as the check: a corrupted term MUST be
+# caught, or the recomputation is arithmetic theatre.
+_dbg="${TMPDIR:-/tmp}/rot-bench-debug.$$.jsonl"
+rm -f "$_dbg"
+
+ROTMOE_DEBUG_LOG="$_dbg" sh "$REPO/hooks/rot-router.sh" --route "lake build a theorem" >/dev/null 2>&1
+ROTMOE_DEBUG_LOG="$_dbg" sh "$REPO/hooks/rot-router.sh" --vector 1,0,0,0,0,0,0,0,0 --breadth 1 >/dev/null 2>&1
+ROTMOE_DEBUG_LOG="$_dbg" sh "$REPO/hooks/rot-router.sh" --vector 1,1,0,0,0,0,0,1,1 --breadth 4 >/dev/null 2>&1
+
+if [ ! -s "$_dbg" ]; then
+  bad "the debug log is EMPTY -- ROTMOE_DEBUG_LOG wrote nothing, so nothing below was tested"
+else
+  _n=$(grep -c '"kind":"gauge"' "$_dbg" 2>/dev/null || echo 0)
+  if [ "$_n" -lt 2 ]; then
+    bad "only $_n gauge records logged; expected one per gauge evaluation"
+  else
+    ok "the debug log records every gauge evaluation ($_n records)"
+  fi
+
+  # Every record must carry all nine lenses and K=9. A record with eight is the
+  # "a lens silently stopped participating" bug, which is invisible in the
+  # headline number and obvious here.
+  _bad=$(awk '/"kind":"gauge"/ {
+      k = 0; if (match($0, /"K":[0-9]+/)) { k = substr($0, RSTART+4, RLENGTH-4) + 0 }
+      n = gsub(/"lens":/, "&");
+      if (k != 9 || n != 9) c++
+    } END { print c+0 }' "$_dbg")
+  if [ "$_bad" -eq 0 ]; then
+    ok "every record carries K=9 and nine per-lens terms -- no lens dropped out"
+  else
+    bad "$_bad record(s) had K != 9 or fewer than nine lens terms"
+  fi
+
+  # THE RECOMPUTATION. Sum the logged per-lens terms, divide by K, compare with
+  # the logged Rs. Tolerance 1e-4 because both sides are printed decimals.
+  _mis=$(awk '/"kind":"gauge"/ {
+      sum = 0; s = $0;
+      while (match(s, /"term":-?[0-9.]+/)) {
+        sum += substr(s, RSTART+7, RLENGTH-7) + 0;
+        s = substr(s, RSTART+RLENGTH);
+      }
+      k = 9; if (match($0, /"K":[0-9]+/)) { k = substr($0, RSTART+4, RLENGTH-4) + 0 }
+      rs = 0; if (match($0, /"Rs":-?[0-9.]+/)) { rs = substr($0, RSTART+5, RLENGTH-5) + 0 }
+      d = sum/k - rs; if (d < 0) d = -d;
+      if (d > 0.0001) c++
+    } END { print c+0 }' "$_dbg")
+  if [ "$_mis" -eq 0 ]; then
+    ok "R/s+ recomputed by hand from the per-lens terms matches the router, every record"
+  else
+    bad "$_mis record(s) where the logged R/s+ does NOT equal the sum of its own terms"
+  fi
+
+  # CONTROL: corrupt one term and require the recomputation to notice. Without
+  # this, the check above could be passing because it always passes.
+  _ctl="${TMPDIR:-/tmp}/rot-bench-debug-ctl.$$.jsonl"
+  sed 's/"term":[0-9.]*/"term":99.0/' "$_dbg" > "$_ctl"
+  _cmis=$(awk '/"kind":"gauge"/ {
+      sum = 0; s = $0;
+      while (match(s, /"term":-?[0-9.]+/)) {
+        sum += substr(s, RSTART+7, RLENGTH-7) + 0;
+        s = substr(s, RSTART+RLENGTH);
+      }
+      k = 9; if (match($0, /"K":[0-9]+/)) { k = substr($0, RSTART+4, RLENGTH-4) + 0 }
+      rs = 0; if (match($0, /"Rs":-?[0-9.]+/)) { rs = substr($0, RSTART+5, RLENGTH-5) + 0 }
+      d = sum/k - rs; if (d < 0) d = -d;
+      if (d > 0.0001) c++
+    } END { print c+0 }' "$_ctl")
+  if [ "$_cmis" -gt 0 ]; then
+    ok "CONTROL: a corrupted term IS caught ($_cmis record(s)) -- the recomputation can fail"
+  else
+    bad "CONTROL DID NOT FAIL: corrupting every term changed nothing, so this phase proves nothing"
+  fi
+  rm -f "$_ctl"
+
+  # The log must never contain the prompt text. A debug log people are afraid to
+  # paste is a debug log nobody uses.
+  if grep -q '"prompt"' "$_dbg" 2>/dev/null; then
+    bad "the debug log contains prompt text -- it must record chars, not content"
+  else
+    ok "the log records prompt LENGTH, never prompt text -- safe to paste into an issue"
+  fi
+fi
+rm -f "$_dbg"
+
 printf '\n== benchmark: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

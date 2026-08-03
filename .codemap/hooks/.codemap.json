@@ -2,34 +2,43 @@
   "directory": "hooks",
   "files": {
     "prover-remind.sh": {
-      "hash": "1a6ac0769856",
-      "indexed_at": "2026-08-03T05:52:23.028482+00:00",
+      "hash": "9dc2f00825a7",
+      "indexed_at": "2026-08-03T17:36:32.622792+00:00",
       "language": "shell",
-      "lines": 286,
-      "mtime_ns": 1785736204319622200,
-      "size": 14136,
+      "lines": 483,
+      "mtime_ns": 1785778444099324700,
+      "size": 24449,
       "symbols": [
+        {
+          "docstring": "WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live.  This defaulted straight to the plugin's bundled corpus, and that was wrong in a way",
+          "lines": [
+            81,
+            94
+          ],
+          "name": "_ws_from_state",
+          "type": "function"
+        },
         {
           "docstring": "--- DECIDE ------------------------------------------------------------------ A PURE function of measured inputs. Nothing below touches the disk, whic",
           "lines": [
-            85,
-            88
+            117,
+            120
           ],
           "name": "first_n",
           "type": "function"
         },
         {
           "lines": [
-            89,
-            92
+            121,
+            124
           ],
           "name": "count_csv",
           "type": "function"
         },
         {
           "lines": [
-            109,
-            161
+            141,
+            193
           ],
           "name": "decide",
           "type": "function"
@@ -37,41 +46,50 @@
         {
           "docstring": "--- MEASURE ----------------------------------------------------------------- Each probe is individually tolerant: one unreadable path must not blind",
           "lines": [
-            167,
-            179
+            199,
+            211
           ],
           "name": "measure_mins_since_proof",
           "type": "function"
         },
         {
           "lines": [
-            181,
-            195
+            213,
+            227
           ],
           "name": "measure_debt",
           "type": "function"
         },
         {
           "lines": [
-            197,
-            200
+            229,
+            232
           ],
           "name": "measure_alarms",
           "type": "function"
         },
         {
           "lines": [
-            202,
-            215
+            234,
+            247
           ],
           "name": "measure_kernel",
           "type": "function"
         },
         {
-          "docstring": "--- HOOK MODE --------------------------------------------------------------- No arguments means \"you were called as a hook\". That default is not a ni",
+          "docstring": "--- HOOK MODE --------------------------------------------------------------- ========================================================================",
           "lines": [
-            222,
-            287
+            288,
+            484
+          ],
+          "name": "verify_lean_edit",
+          "type": "function"
+        },
+        {
+          "docstring": "No arguments means \"you were called as a hook\". That default is not a nicety: R20 measured the router shipping with only its flag modes while ARM_ROUT",
+          "lines": [
+            399,
+            484
           ],
           "name": "hook_mode",
           "type": "function"
@@ -79,33 +97,42 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "c87f2da4f52c",
-      "indexed_at": "2026-08-03T05:52:22.474531+00:00",
+      "hash": "ff2d40a9d016",
+      "indexed_at": "2026-08-03T17:36:31.734065+00:00",
       "language": "shell",
-      "lines": 254,
-      "mtime_ns": 1785736204299623000,
-      "size": 12918,
+      "lines": 344,
+      "mtime_ns": 1785778444079328400,
+      "size": 18202,
       "symbols": [
         {
+          "docstring": "CONVERGENT is the only lane with no lead LENS -- by design, it is the lane where all nine co-reason and none leads. It used to print the literal \"none",
           "lines": [
-            60,
-            66
+            77,
+            86
+          ],
+          "name": "convener",
+          "type": "function"
+        },
+        {
+          "lines": [
+            88,
+            94
           ],
           "name": "fired",
           "type": "function"
         },
         {
           "lines": [
-            68,
-            81
+            96,
+            109
           ],
           "name": "route",
           "type": "function"
         },
         {
           "lines": [
-            94,
-            133
+            122,
+            176
           ],
           "name": "gauge",
           "type": "function"
@@ -113,8 +140,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            154,
-            213
+            197,
+            345
           ],
           "name": "hook_mode",
           "type": "function"
@@ -122,8 +149,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            227,
-            234
+            317,
+            324
           ],
           "name": "need_value",
           "type": "function"
@@ -140,6 +167,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-03T05:52:23.060146+00:00",
+  "generated_at": "2026-08-03T17:36:32.632524+00:00",
   "version": "1.0"
 }

@@ -2,11 +2,11 @@
   "directory": "agents",
   "files": {
     "lean4-prover.md": {
-      "hash": "26b1c0a32287",
-      "indexed_at": "2026-07-31T16:50:48.988599+00:00",
+      "hash": "ae0356e3c7ea",
+      "indexed_at": "2026-08-03T17:36:30.509464+00:00",
       "language": "markdown",
       "lines": 559,
-      "mtime_ns": 1785516231852644100,
+      "mtime_ns": 1785772195664888900,
       "size": 32477,
       "symbols": [
         {
@@ -112,6 +112,6 @@
       ]
     }
   },
-  "generated_at": "2026-07-31T16:50:48.988669+00:00",
+  "generated_at": "2026-08-03T17:36:30.509557+00:00",
   "version": "1.0"
 }

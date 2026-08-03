@@ -24,6 +24,103 @@ that honest.
 
 ---
 
+## [0.4.0] · [0.4.1] · [0.4.2] — 2026-08-03
+
+Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
+`2` unsealed.
+
+### Fixed
+
+- **The `sorry` alarm cried wolf on clean proofs.** The reminder hook counted
+  `\bsorry\b` in a file's *text*, so a doc comment reading "no sorry, no
+  native_decide" — the sentence this project's own discipline puts in files —
+  was scored as an admission. An armed 50-turn session wrote a correct module,
+  was told twice it "contains 1 sorry", and had to argue with its own tool.
+  Both arms now ask the **elaborator** instead, counting the compiler's
+  `declaration uses \`sorry\`` warning, which is per-declaration and cannot be
+  fooled by a comment. Measured both directions on Lean 4.33.0-rc1: a real
+  `by sorry` produces the warning, `sorry` in comments produces none, where the
+  old text scan counted two. An alarm that fires on correct work teaches people
+  to ignore alarms, which costs more than the false positive itself.
+
+- **A green local sweep could contradict CI.** The check that asks whether the
+  committed `STATUS.md` verdict is *true of this tree* lived inside the 3-week
+  schedule simulation, which is gated behind `gate-all --full`. CI runs FULL; a
+  developer running plain `gate-all.sh` does not. So the tree could report ALL
+  26 GATES GREEN and publish a verdict claiming 154 theorems against 162 in the
+  sources — and it did, failing three CI legs at once. The comparison now lives
+  in `checker/verdict-fresh.sh`, runs in the **default** gate set and in
+  `ci.yml`, and the simulation *delegates* to it rather than keeping a copy.
+  Rule enforced from here: every check CI can fail, the default local sweep must
+  be able to fail too.
+
+- **README documented 12 of 13 Lean modules.** `RotStem.lean` had no row, so the
+  published-claims audit summed the per-module counts to 152 against 162 and
+  failed. Row added, describing the theorems that are actually in the file.
+
+### Added
+
+- `checker/verdict-fresh.sh` — anti-vacuity first (both sides must carry a real
+  verdict before they are compared, because two empty strings compare equal
+  forever), then a whitespace-insensitive comparison, then a control that
+  perturbs the committed text **in memory** and requires the difference to be
+  seen. A checker that edits the tree it is judging is a hazard.
+
+### Notes
+
+- 183 machine-checked theorems across 13 modules, 0 `sorry`, 0 `native_decide`.
+- 27 default gates green; all five GitHub workflows green with zero errors and
+  zero warnings across 254 log files.
+
+### Added — the gauge stops being a recipe and becomes a law
+
+- **`gauge_separates`.** `R/s+(M,C,T) = M·C·T·R/s+(1,1,1)` — the three per-turn
+  modifiers factor out of the entire sum, exactly, for every lens family, every
+  activity vector, every breadth. With it: `gauge_scales_in_C` (confidence is
+  linear, not saturating), `gauge_zero_of_C_zero` (divergence cannot manufacture
+  confidence), `gauge_modifiers_commute` (pre-multiplying `M·C·T` outside the
+  loop is provably the same engine as applying it inside — so the two shipped
+  arms may differ there without disagreeing).
+
+- **"Useful chaos" is now proved, not asserted.** The spec always said the
+  sigmoid *"rewards median divergence and damps both conformism and pure
+  chaos"*. That is a claim about a shipped function, and the README used to
+  answer it with "no instrument exists". Since σ′ = 4·σ·(1−σ), the quantity
+  `σ(1−σ)` **is** the marginal return on divergence: `marginal_gain_le_quarter`
+  bounds it, `marginal_gain_max_iff_center` shows the bound is reached **only**
+  at the median, and `pure_chaos_pays_less` / `conformism_pays_less` fall out as
+  the same theorem applied at δ=1 and δ=0. One mechanism penalising both failure
+  modes, with `sigma_symm_about_center` (σ(x)+σ(1−x)=1) proving the symmetry.
+
+- **Lane weights.** `carnage_leads_creative` and `violet_leads_empathic` — eight
+  strict inequalities each — plus `creative_amplifies_carnage` /
+  `empathic_amplifies_violet`: a lane *amplifies* its lead (0.6 → 2.5, 0.6 →
+  2.3) rather than merely naming it.
+
+- **The ninth lens, corrected.** A first draft read the eight-row CREATIVE and
+  EMPATHIC tables literally and modelled 🧭 Claude as *absent* from those lanes.
+  That was wrong: `engine/rot-lean.md:270` states K=9 on this head and the lens
+  is always active, and `:117` gives it a documented default λ 1.5 / μ 1.05. A
+  profile table that omits a lens is not deleting it — the lens falls back to
+  its default. Now total functions over ℚ with no `Option`, and
+  `every_lens_weighted_in_every_profile` proves no lane degrades to eight.
+
+- **`ROTMOE_DEBUG_LOG` — a real debugger for the router.** Set it and both arms
+  append one JSON line per gauge evaluation carrying every factor: per lens its
+  λ, μ, activity, δ, σ, H and term. `bench-router.sh` phase 5 recomputes `R/s+`
+  from those terms, requires it to match what the router reported, and then
+  **corrupts a term to prove the check can fail**. Measured in a live 56-turn
+  CTT session: 14/14 records recomputed exactly, K=9 and nine lens terms in
+  every one, 93–133 ms per turn on the PowerShell arm. The log records prompt
+  *length*, never prompt text.
+
+### Changed
+
+- Benchmark figures refreshed from three fresh runs (194–256 ms bash arm, ~20 ms
+  of it process start). The previous 170–179 ms and ~130 ms figures were true
+  when taken and are now stale; the range is kept rather than a single number,
+  because a 32% run-to-run spread is itself the honest finding.
+
 ## [0.3.0] · [0.3.1] · [0.3.2] — 2026-08-03
 
 The three numbers are not a roadmap. The patch digit is the **tier**: `0.3.0` is

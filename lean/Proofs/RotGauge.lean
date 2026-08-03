@@ -544,4 +544,212 @@ file agree with itself. -/
 #eval round2 (gaugeF [1,1,1,1,1,1,1,1,1] 1 1.05 0.7 0.8)  -- twice the floor
 #eval (forgeF.length, (List.replicate 9 (0:Float)).length)
 
+
+/-! ## What "useful chaos" MEANS in the gauge -- stated as algebra, then proved
+
+The README used to record 🩸 Carnage's chaos as NOT MODELLED, on the grounds
+that "useful" is a judgement about an answer. Half of that was right and half
+was laziness, and the lazy half was the interesting one.
+
+The spec does not merely say chaos is good. It says something precise:
+
+  "The sigmoid is the heart: it rewards MEDIAN divergence and damps both
+   conformism (delta -> 0, sigma ~ 0.12) and pure chaos (delta -> 1, sigma ~ 0.88)."
+
+That is not a slogan, it is a claim about a function -- and the function is
+shipped. So it is provable, and leaving it unproved while writing "no instrument
+exists" understated what this corpus can actually settle.
+
+`sigma` is the logistic centred on 1/2 with slope 4. Its derivative is
+`4 * sigma * (1 - sigma)`, so the quantity `sigma x * (1 - sigma x)` IS the
+marginal return on one more unit of divergence, up to the constant 4. The
+theorems below pin the shape of that return:
+
+* it is **maximal exactly at the median** (delta = 1/2) -- so divergence pays
+  best where the spec says it should;
+* it is **strictly smaller anywhere else** -- so both a conformist lens and a
+  maximally chaotic one earn strictly less per unit than a productively
+  divergent one. That is the whole content of "chaos is fuel, not a goal";
+* the gauge is **symmetric about the centre**, so conformism and pure chaos are
+  penalised by the same construction rather than by two ad-hoc rules.
+
+None of this says a chaotic sentence is a good sentence. It says the ENGINE
+pays for chaos exactly the way the specification claims it does -- which is the
+part a reader is entitled to have checked rather than asserted. -/
+
+/-- σ is exactly one half at the centre of the band. The centre is `1/2` by
+construction, so this is the sanity anchor everything below leans on. -/
+theorem sigma_center : sigma (1/2) = 1/2 := by
+  unfold sigma
+  norm_num
+
+/-- **The gauge is symmetric about the median.** Conformism at distance `d`
+below centre is damped exactly as hard as chaos at distance `d` above it:
+`σ(x) + σ(1-x) = 1` for every `x`.
+
+This matters because it means the two failure modes the spec names -- the lens
+that repeats the consensus and the lens that has flown off entirely -- are
+penalised by ONE mechanism, not by a special case bolted on for each. -/
+theorem sigma_symm_about_center (x : ℝ) : sigma x + sigma (1 - x) = 1 := by
+  unfold sigma
+  have h1 : (1 : ℝ) - x - 1 / 2 = -(x - 1 / 2) := by ring
+  rw [h1]
+  have h2 : -4 * -(x - 1 / 2) = -(-4 * (x - 1 / 2)) := by ring
+  rw [h2, Real.exp_neg]
+  have hp : (0 : ℝ) < Real.exp (-4 * (x - 1 / 2)) := Real.exp_pos _
+  field_simp
+  ring
+
+/-- **The marginal return on divergence is bounded, and the bound is attained
+only at the median.** `σ(1-σ)` is the derivative of σ up to the constant 4, so
+this says: no lens can earn more than `1/4` per unit of divergence, whatever it
+does.
+
+`nlinarith` closes it from `(t - 1/2)^2 ≥ 0`, which is the honest reason it is
+true: the quantity is a downward parabola in σ with its apex at `σ = 1/2`. -/
+theorem marginal_gain_le_quarter (x : ℝ) : sigma x * (1 - sigma x) ≤ 1/4 := by
+  nlinarith [sq_nonneg (sigma x - 1/2)]
+
+/-- **...and strictly less than the maximum away from the median.** This is the
+theorem that earns the phrase "useful chaos": a lens sitting at consensus and a
+lens in free fall both earn STRICTLY less marginal R/s+ than one diverging
+productively. Chaos is fuel; it is not the destination. -/
+theorem marginal_gain_lt_quarter_off_center (x : ℝ) (h : sigma x ≠ 1/2) :
+    sigma x * (1 - sigma x) < 1/4 := by
+  have hne : sigma x - 1/2 ≠ 0 := sub_ne_zero.mpr h
+  have hsq : 0 < (sigma x - 1/2)^2 := by positivity
+  nlinarith [hsq]
+
+/-- The median is the ONLY place the maximum is reached, stated from the other
+side: attaining `1/4` forces `σ = 1/2`, which by `sigma_center` and strict
+monotonicity forces `x = 1/2`. Without this the bound above could in principle
+be attained everywhere and the "rewards median divergence" claim would be
+empty. -/
+theorem marginal_gain_max_iff_center (x : ℝ) :
+    sigma x * (1 - sigma x) = 1/4 ↔ x = 1/2 := by
+  constructor
+  · intro h
+    have hhalf : sigma x = 1/2 := by nlinarith [sq_nonneg (sigma x - 1/2)]
+    have : sigma x = sigma (1/2) := by rw [hhalf, sigma_center]
+    exact sigma_strictMono.injective this
+  · intro h
+    subst h
+    rw [sigma_center]
+    norm_num
+
+/-- **Pure chaos is strictly worse than productive divergence**, in the gauge's
+own units. A lens at maximal divergence earns strictly less marginal return
+than one at the median -- the exact statement the spec makes in prose. -/
+theorem pure_chaos_pays_less :
+    sigma 1 * (1 - sigma 1) < sigma (1/2) * (1 - sigma (1/2)) := by
+  rw [sigma_center]
+  have h : sigma 1 ≠ 1/2 := by
+    intro hc
+    have : sigma 1 = sigma (1/2) := by rw [hc, sigma_center]
+    have := sigma_strictMono.injective this
+    norm_num at this
+  have := marginal_gain_lt_quarter_off_center 1 h
+  norm_num at this ⊢
+  linarith
+
+/-- ...and so is conformism, by the same theorem rather than a second rule.
+This is the pair that makes the sigmoid the right shape instead of an arbitrary
+squashing function. -/
+theorem conformism_pays_less :
+    sigma 0 * (1 - sigma 0) < sigma (1/2) * (1 - sigma (1/2)) := by
+  rw [sigma_center]
+  have h : sigma 0 ≠ 1/2 := by
+    intro hc
+    have : sigma 0 = sigma (1/2) := by rw [hc, sigma_center]
+    have := sigma_strictMono.injective this
+    norm_num at this
+  have := marginal_gain_lt_quarter_off_center 0 h
+  norm_num at this ⊢
+  linarith
+
+
+/-! ## The separation law -- the identity that makes R/s+ a law rather than a recipe
+
+Everything above proves the gauge is well-formed. This section proves it has a
+SHAPE, and the shape is the useful part.
+
+`M` (memory resonance), `C` (confidence calibration) and `T` (temporal recency)
+are per-TURN modifiers. `λ`, `μ`, `σ(δ)` and `H` describe the ENSEMBLE and the
+divergence structure of that turn. Those are different kinds of quantity, and
+the formula multiplies them together in one long product -- which invites the
+belief that they are entangled and that changing `C` reshapes who contributes.
+
+They are not entangled. `M`, `C` and `T` factor out of the entire sum exactly:
+
+    R/s+(M, C, T) = M · C · T · R/s+(1, 1, 1)
+
+That is `gauge_separates`, and it is the closest thing this engine has to a
+Pythagorean identity: an exact equality, quantified over EVERY lens family,
+every activity vector, every breadth and every choice of the three modifiers --
+not a bound, not an approximation, not a claim about the shipped nine.
+
+Three consequences worth stating separately, because each kills a different
+misreading:
+
+* `gauge_scales_in_C` -- doubling confidence doubles the gauge. Linear, not
+  saturating, so the band thresholds move proportionally and a "0.9-1.8" range
+  keeps meaning the same thing after rescaling.
+* `gauge_zero_of_C_zero` -- zero confidence collapses the gauge to zero
+  regardless of how the lenses diverged. Divergence cannot manufacture
+  confidence, which is exactly the failure mode a divergence-rewarding gauge
+  invites.
+* `gauge_modifiers_commute` -- the three modifiers can be applied in any order
+  or folded into one scalar. So an implementation that pre-multiplies `M*C*T`
+  before the loop is provably the same engine as one that applies them inside
+  it, and the shipped arms may differ there without disagreeing.
+
+None of this is decoration: the separation is what licenses the debug log to
+report a per-lens `term` and still have the reported `R/s+` be reproducible by
+hand, because the modifiers are a single scalar on the outside. -/
+
+/-- **The separation law.** The three per-turn modifiers factor out of the gauge
+exactly. Quantified over every lens family, activity vector, breadth and every
+`M`, `C`, `T` -- so it cannot expire when the roster or the weights change. -/
+theorem gauge_separates (L : ι → Lens) (a : ι → Bool) (breadth : ℕ) (M C T : ℝ) :
+    gauge L a breadth M C T = M * C * T * gauge L a breadth 1 1 1 := by
+  unfold gauge
+  rw [← mul_div_assoc, Finset.mul_sum]
+  congr 1
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  unfold term weight
+  ring
+
+/-- Confidence enters linearly: scaling `C` scales the whole gauge by the same
+factor. Stated on its own because it is the one people assume saturates. -/
+theorem gauge_scales_in_C (L : ι → Lens) (a : ι → Bool) (breadth : ℕ) (M C T k : ℝ) :
+    gauge L a breadth M (k * C) T = k * gauge L a breadth M C T := by
+  rw [gauge_separates L a breadth M (k * C) T, gauge_separates L a breadth M C T]
+  ring
+
+/-- **Divergence cannot manufacture confidence.** With `C = 0` the gauge is zero
+however the nine diverged -- the σ-reward has nothing to multiply. -/
+theorem gauge_zero_of_C_zero (L : ι → Lens) (a : ι → Bool) (breadth : ℕ) (M T : ℝ) :
+    gauge L a breadth M 0 T = 0 := by
+  rw [gauge_separates L a breadth M 0 T]
+  ring
+
+/-- The modifiers commute and associate: any order, or folded into one scalar,
+gives the same gauge. This is what lets one arm pre-multiply them outside the
+loop and the other apply them inside without the two disagreeing. -/
+theorem gauge_modifiers_commute (L : ι → Lens) (a : ι → Bool) (breadth : ℕ) (M C T : ℝ) :
+    gauge L a breadth M C T = gauge L a breadth T M C := by
+  rw [gauge_separates L a breadth M C T, gauge_separates L a breadth T M C]
+  ring
+
+/-- The neutral turn is the structural core itself: with all three modifiers at
+`1` the gauge is exactly the ensemble term. The anchor the law is stated
+against. -/
+theorem gauge_neutral (L : ι → Lens) (a : ι → Bool) (breadth : ℕ) :
+    gauge L a breadth 1 1 1 = (∑ i, (L i).lam * (L i).mu * shape a breadth i) /
+      (Fintype.card ι) := by
+  unfold gauge term weight
+  congr 1
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  ring
+
 end RotMoE

@@ -264,7 +264,7 @@ have never invoked, so know what they are before you need them:
 | extra | what it is | why it matters to a prover |
 |---|---|---|
 | `cadical` | a real SAT solver (`usage: cadical [<option>...] [<input> [<proof>]]`) | this is the engine **behind `bv_decide`**. A bitvector goal that `decide` chokes on may be one `bv_decide` away, and this is what runs it. It emits a **proof**, which is why `bv_decide` is kernel-checkable and `native_decide` is not |
-| `leantar` | `leantar 0.3.20 lean (de)compression utility` | the `.ltar` format **mathlib's cache ships in**. If `lake exe cache get` misbehaves, this is the layer under it |
+| `leantar` | `leantar 0.4.20 lean (de)compression utility` | the `.ltar` format **mathlib's cache ships in**. If `lake exe cache get` misbehaves, this is the layer under it |
 | `leanir` | `usage: leanir <setup.json> <output.ir> <output.c> [--stat]` | dumps Lean's **intermediate representation and generated C**. The tool for "what does this definition actually compile to" — the honest answer to a performance or extraction question |
 | `clang` / `lld` / `ld.lld` / `llvm-ar` | bundled LLVM 22.1.4 toolchain | Lean ships its own C toolchain so you are never blocked on a system compiler. **`lld` alone refuses to run** — it is a generic driver and tells you to invoke `ld.lld` (Unix) or `lld-link` (Windows) instead |
 | `libleanshared*.dll`, `libLake_shared.dll` | the runtime the above link against | copy these too if you ever ship a Lean-built native artifact |

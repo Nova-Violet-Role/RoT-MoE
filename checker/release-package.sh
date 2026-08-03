@@ -6,12 +6,12 @@
 # =============================================================================
 # BUILD THE THREE RELEASE VARIANTS -- AND REFUSE TO SHIP A DISHONEST ONE.
 #
-# The version number IS the variant. This is not a roadmap where 0.3.2 succeeds
-# 0.3.1; all three are built from one tree, in one run, and shipped together:
+# The version number IS the variant. This is not a roadmap where 0.4.2 succeeds
+# 0.4.1; all three are built from one tree, in one run, and shipped together:
 #
-#   0.3.0  core       the router. No Lean, no fetcher, NO NETWORK AT ALL.
-#   0.3.1  lean       core + the Lean 4 toolchain fetcher + the proof corpus.
-#   0.3.2  unsealed   lean + the axiom classifier + the policy that permits
+#   0.4.0  core       the router. No Lean, no fetcher, NO NETWORK AT ALL.
+#   0.4.1  lean       core + the Lean 4 toolchain fetcher + the proof corpus.
+#   0.4.2  unsealed   lean + the axiom classifier + the policy that permits
 #                     native_decide in YOUR proofs, with the instrument that
 #                     keeps that honest.
 #
@@ -25,7 +25,7 @@
 # UPLOADED, and this exits non-zero rather than emit one that lies.
 #
 # THE MANIFEST INSIDE EACH ZIP IS REWRITTEN TO ITS VARIANT'S VERSION. A user who
-# downloads 0.3.0 and finds a manifest saying 0.3.2 has been handed a file that
+# downloads 0.4.0 and finds a manifest saying 0.4.2 has been handed a file that
 # contradicts its own name, and no gate in the tree would ever notice.
 #
 # Exit: 0 all three built and every assertion held · 1 an assertion FAILED
@@ -55,7 +55,7 @@ esac
 # --- THE VARIANT MAP ----------------------------------------------------------
 # One place, read by everything below. Adding a variant means adding a line here
 # and a paths block; nothing else in this file hard-codes a variant name.
-VARIANTS="core:0.3.0 lean:0.3.1 unsealed:0.3.2"
+VARIANTS="core:0.4.0 lean:0.4.1 unsealed:0.4.2"
 
 # The tree's own version must be one of the variants, and by convention the
 # HIGHEST -- that is the version the newest tag will carry, and
@@ -109,7 +109,7 @@ lean
 checker
 "
 # UNSEALED adds the document that names the trade. The classifier itself lives
-# in checker/ and therefore already ships with LEAN; what 0.3.2 adds is the
+# in checker/ and therefore already ships with LEAN; what 0.4.2 adds is the
 # POLICY and the page that states it, which is why UNSEALED.md is the marker
 # file every assertion below keys on.
 UNSEALED_EXTRA="
@@ -192,7 +192,7 @@ if [ -s "$L_CORE" ]; then
     has "$L_CORE" "^$forbidden$" && { bad "CORE contains $forbidden -- its 'no network' / 'no extras' promise is FALSE"; leak=$((leak+1)); }
   done
   has "$L_CORE" '^lean/' && { bad "CORE contains the lean/ corpus -- it is not the core artifact"; leak=$((leak+1)); }
-  [ "$leak" -eq 0 ] && ok "CORE (0.3.0) carries no fetcher, no corpus, no unsealed page -- it cannot download anything"
+  [ "$leak" -eq 0 ] && ok "CORE (0.4.0) carries no fetcher, no corpus, no unsealed page -- it cannot download anything"
 fi
 
 # --- 2. LEAN MUST CARRY WHAT ITS NAME SELLS, AND NOT THE TIER ABOVE ----------
@@ -205,8 +205,8 @@ if [ -s "$L_LEAN" ]; then
   ondisk=$(find lean/Proofs -name '*.lean' | grep -c . || true)
   [ "$nmod" -ne "$ondisk" ] && { bad "LEAN carries $nmod proof module(s) but $ondisk are on disk"; short=$((short+1)); }
   # It must NOT carry the tier above it, or the tiers are not distinct.
-  has "$L_LEAN" '^UNSEALED.md$' && { bad "LEAN contains UNSEALED.md -- 0.3.1 and 0.3.2 would be the same artifact"; short=$((short+1)); }
-  [ "$short" -eq 0 ] && ok "LEAN (0.3.1) carries both fetchers, the pinned toolchain, all $nmod proof module(s), and NOT the unsealed page"
+  has "$L_LEAN" '^UNSEALED.md$' && { bad "LEAN contains UNSEALED.md -- 0.4.1 and 0.4.2 would be the same artifact"; short=$((short+1)); }
+  [ "$short" -eq 0 ] && ok "LEAN (0.4.1) carries both fetchers, the pinned toolchain, all $nmod proof module(s), and NOT the unsealed page"
 fi
 
 # --- 3. UNSEALED MUST ACTUALLY DIFFER FROM LEAN ------------------------------
@@ -216,7 +216,7 @@ if [ -s "$L_UNS" ]; then
   for needed in UNSEALED.md checker/axiom-class.sh SETUP_LEAN.sh lean/lean-toolchain; do
     has "$L_UNS" "^$needed$" || { bad "UNSEALED is missing $needed"; u=$((u+1)); }
   done
-  [ "$u" -eq 0 ] && ok "UNSEALED (0.3.2) carries the unsealed page AND the axiom classifier"
+  [ "$u" -eq 0 ] && ok "UNSEALED (0.4.2) carries the unsealed page AND the axiom classifier"
 fi
 
 # --- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ----------------------
@@ -302,7 +302,7 @@ else
   [ "$cl" -eq 0 ] && ok "every archive ships a CHANGELOG naming all 3 variant versions" \
                   || bad "a shipped CHANGELOG is missing or stale"
 
-  cz="$OUT/rot-moe-0.3.0-core.zip"
+  cz="$OUT/rot-moe-0.4.0-core.zip"
   if [ -s "$cz" ]; then
     cb=$(wc -c < "$cz" | tr -d ' ')
     if [ "$cb" -lt 1048576 ]; then ok "CORE is $cb bytes -- under the 1 MB the page claims"
@@ -314,7 +314,7 @@ fi
 echo
 echo "-- negative controls --"
 
-CZ="$OUT/rot-moe-0.3.0-core.zip"
+CZ="$OUT/rot-moe-0.4.0-core.zip"
 if [ -s "$CZ" ]; then
   probe="$OUT/probe-core.zip"; cp "$CZ" "$probe"
   ( cd "$REPO" && zip -q "$probe" SETUP_LEAN.sh ) >/dev/null 2>&1

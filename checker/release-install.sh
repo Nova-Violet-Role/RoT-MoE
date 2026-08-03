@@ -44,11 +44,11 @@ command -v unzip >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 3; }
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 
 # THE VERSION IS THE VARIANT, so an asset's name cannot be derived from the
-# tree's own version -- that produced `rot-moe-0.3.2-core.zip`, a file that has
+# tree's own version -- that produced `rot-moe-0.4.2-core.zip`, a file that has
 # never existed. This map is the same one checker/release-package.sh builds
 # from; the two must stay in step, which the assertion below enforces rather
 # than trusting.
-VARIANTS="core:0.3.0 lean:0.3.1 unsealed:0.3.2"
+VARIANTS="core:0.4.0 lean:0.4.1 unsealed:0.4.2"
 version_of () { for vp in $VARIANTS; do [ "${vp%%:*}" = "$1" ] && { printf '%s' "${vp#*:}"; return; }; done; }
 
 # --- a bound that does not assume GNU coreutils ------------------------------
@@ -355,7 +355,7 @@ else
 fi
 
 # --- the UNSEALED variant, installed the same way a stranger meets it --------
-# 0.3.2's whole claim is that it ships an instrument the tier below does not.
+# 0.4.2's whole claim is that it ships an instrument the tier below does not.
 # That is checked HERE, from the unpacked archive, because a file present in the
 # repository proves nothing about a file present in the download.
 if [ -s "$UNSEALED" ]; then

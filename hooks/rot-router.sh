@@ -123,7 +123,7 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
   _acts="$1"; _breadth="$2"; _M="$3"; _C="$4"; _T="$5"
   printf '%s|%s|%s|%s|%s|%s|%s|%s\n' \
     "$_acts" "$_breadth" "$_M" "$_C" "$_T" "$LAMBDAS" "$MUS" "$NAMES" |
-  awk -F'|' '
+  awk -F'|' -v dbg="${ROTMOE_DEBUG_LOG:-}" -v ts="$(date -Is 2>/dev/null || date)" '
     # Match PowerShell ToString("0.##"): round, then strip trailing zeros and a
     # bare trailing dot. 0.90 -> "0.9", 1.00 -> "1", 0.09 -> "0.09".
     # Formatting is part of the observable: the cross-diff compares these
@@ -150,11 +150,26 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
         s  = 1.0 / (1.0 + exp(-4.0 * (d - 0.5)));    # sigmoid, slope 4, centre 0.5
         H  = (breadth > 0 ? act / breadth : 0.0);    # share of the turn breadth
         if (H > 1.0) H = 1.0;
-        sum += lam[i] * s * (1.0 + H) * mu[i] * M * C * T;
+        term = lam[i] * s * (1.0 + H) * mu[i] * M * C * T;
+        sum += term;
+        if (dbg != "") {
+          terms = terms (terms == "" ? "" : ",") \
+            sprintf("{\"lens\":\"%s\",\"lambda\":%s,\"mu\":%s,\"a\":%s,\"delta\":%s,\"sigma\":%s,\"H\":%s,\"term\":%s}",
+                    nm[i], fmt(lam[i],3), fmt(mu[i],3), fmt(act,3), fmt(d,4), fmt(s,4), fmt(H,4), fmt(term,5));
+        }
       }
       R = sum / K;
       band = (R < 0.9 ? "BELOW RANGE" : (R > 1.8 ? "ABOVE RANGE" : "IN RANGE (0.9-1.8)"));
       if (active == "") active = "none";
+      # DEBUG LOG -- one JSON line carrying every factor of the sum, so the
+      # reported R/s+ can be recomputed by hand from the record. A summary
+      # cannot show that a lens was multiplied by the wrong mu or never
+      # participated; this can. Logging must never break a turn, so the write
+      # is appended with >> and any failure is swallowed by the caller.
+      if (dbg != "") {
+        printf "{\"kind\":\"gauge\",\"ts\":\"%s\",\"K\":%d,\"mean\":%s,\"breadth\":%d,\"M\":%s,\"C\":%s,\"T\":%s,\"sum\":%s,\"Rs\":%s,\"active\":\"%s\",\"lenses\":[%s]}\n",
+               ts, K, fmt(mean,4), breadth, fmt(M,3), fmt(C,3), fmt(T,3), fmt(sum,5), fmt(R,5), active, terms >> dbg;
+      }
       printf "R/s+ = %s [%s] mean=%s breadth=%d K=%d lenses=%s\n",
              fmt(R, 2), band, fmt(mean, 3), breadth, K, active;
     }'
@@ -275,6 +290,14 @@ hook_mode () {
   _vec=${_vec#,}
   _rs=$(gauge "$_vec" "$_br" 1 1 1 | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
   [ -z "$_rs" ] && _rs='n/a'
+  # One record per ROUTED TURN, matching the ps1 arm's shape so the two logs are
+  # comparable. `chars` not the prompt: a debug log must be safe to paste into
+  # an issue, and the decision is what is under test, not the user's text.
+  if [ -n "${ROTMOE_DEBUG_LOG:-}" ]; then
+    printf '{"kind":"route","ts":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"arm":"sh"}\n' \
+      "$(date -Is 2>/dev/null || date)" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" \
+      >> "$ROTMOE_DEBUG_LOG" 2>/dev/null || true
+  fi
   echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs"
   exit 0
 }
