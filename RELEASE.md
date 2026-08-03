@@ -20,7 +20,7 @@
 [![Router + Lean](https://img.shields.io/badge/v0.2.1-Router%20%2B%20Lean%204-1a7f37?style=flat-square)](#-v011--router--lean-4)
 [![Unsealed](https://img.shields.io/badge/v0.2.2-Router%20%2B%20Lean%20%2B%20Extra-8250df?style=flat-square)](#-v012--router--lean--extra)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
-[![Theorems](https://img.shields.io/badge/theorems-144-2C3E50?style=flat-square)](#)
+[![Theorems](https://img.shields.io/badge/theorems-154-2C3E50?style=flat-square)](#)
 
 </div>
 
@@ -48,7 +48,7 @@ that is the whole product and you are done in a minute.
 **Take `v0.2.1` — Router + Lean 4** if you want **the machine that makes the
 theorems**, not just the theorems.
 
-Re-checking our 144 proofs is the *smallest* thing it does — it is the demo, not
+Re-checking our 154 proofs is the *smallest* thing it does — it is the demo, not
 the product. What actually lands on your disk is a complete Lean 4 toolchain:
 `elan`, `lean`, `lake`, `leanchecker`, the mathlib cache, the SAT solver behind
 `bv_decide`. That is the same engine every one of these proofs was written with,
@@ -114,7 +114,7 @@ licences · `CLAUDE.md` · `README.md`
 | ✅ **Pro** | **The full Lean 4 shelf, not a viewer.** `elan` · `lean` · `lake` · `leanchecker` · mathlib · `cadical` (the solver behind `bv_decide`) · `leanir` · a bundled `clang`/`lld`. Everything these proofs were written with |
 | ✅ **Pro** | **Rewrite the router and prove your rewrite.** The λ weights, the lanes, the lead of each mode are a Lean *specification*. Change the router, make the theorems agree, and the build tells you when your change means something other than you intended |
 | ✅ **Pro** | **A mathlib workspace of your own.** The costly setup for *any* formal project, done, on a drive you picked. Nothing in it is RoT-specific once it is there |
-| ✅ **Pro** | **You can falsify us.** 144 theorems, 12 modules, `lake build` → `#print axioms` → `leanchecker`, on your hardware — the demo, not the point |
+| ✅ **Pro** | **You can falsify us.** 154 theorems, 13 modules, `lake build` → `#print axioms` → `leanchecker`, on your hardware — the demo, not the point |
 | ✅ **Pro** | Ships the mutation suites: break a definition on purpose and watch the theorems die. A theorem no mutation kills is decoration — and the same harnesses point at *your* code |
 | ✅ **Pro** | **You choose the drive.** The installer asks for a root — `C:/`, `D:/`, `/` — because a toolchain plus a mathlib cache is measured in gigabytes and the default lands on your system drive whether it has room or not |
 | ✅ **Pro** | Downloads from the **official** hosts only, pinned: `elan.lean-lang.org`, `github.com/leanprover/elan`, and mathlib's own prebuilt cache. Never a source build |
@@ -168,13 +168,13 @@ people:
 | ✅ **Pro** | Everything in `v0.2.1` — the toolchain, the corpus, the mutation suites |
 | ⚠️ **Con** | **A `native_decide` theorem is not proved, it is executed.** You are trusting the compiler, the runtime and your own CPU, none of which the kernel inspects |
 | ⚠️ **Con** | `leanchecker` gives you a **false sense of coverage** here: exit 0 means the proof terms are valid, not that a computation was checked |
-| ⚠️ **Con** | The 144 theorems in this repository **stay `native_decide`-free**. Unsealing applies to your work, not ours — the headline count would otherwise stop meaning what it says |
+| ⚠️ **Con** | The 154 theorems in this repository **stay `native_decide`-free**. Unsealing applies to your work, not ours — the headline count would otherwise stop meaning what it says |
 | ⚠️ **Con** | Nothing new is downloaded. `v0.2.1` already has the binaries; `v0.2.2` changes what the gates *permit* and hands you the instrument — it does not add a compiler |
 
 **Contains:** everything in `v0.2.1` **plus** `UNSEALED.md` — the page that names
 the trade in full, and the only file that distinguishes this variant.
 
-Measured on this corpus by the tool itself: **144 KERNEL, 0 COMPILER, 0 BROKEN.**
+Measured on this corpus by the tool itself: **154 KERNEL, 0 COMPILER, 0 BROKEN.**
 
 **Why we prevented it in the first place, in one line:** a theorem's worth is
 what a reader must trust to believe it, and `native_decide` silently moves that

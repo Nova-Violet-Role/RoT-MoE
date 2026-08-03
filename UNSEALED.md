@@ -84,7 +84,7 @@ checker/axiom-class.sh Proofs.MyModule          # one module
 ROTMOE_ALLOW_COMPILER=1 checker/axiom-class.sh  # permit COMPILER, still reported
 ```
 
-Measured on this repository: **144 KERNEL, 0 COMPILER, 0 BROKEN.**
+Measured on this repository: **154 KERNEL, 0 COMPILER, 0 BROKEN.**
 
 **The rule that survives unsealing:** a COMPILER-class theorem may exist, but it
 may never be counted in a headline theorem number. Executed is not proved, and a
@@ -121,7 +121,7 @@ own docstring, because the axiom will not say it for you where anyone looks.
 
 ## What does NOT change
 
-* The 144 theorems in this repository stay `native_decide`-free. Unsealing
+* The 154 theorems in this repository stay `native_decide`-free. Unsealing
   applies to **your** work, not ours.
 * Every gate still runs. `ROTMOE_ALLOW_COMPILER=1` permits and **reports**; it
   never hides.
