@@ -442,10 +442,15 @@ claude --plugin-dir rot-moe-0.1.1-lean.zip
 Measured for all three archives — each one fires the router on the first prompt:
 
 ```
-0.1.0  core      -> MoE :: TIER 1 -> FORGE Claude
-0.1.1  lean      -> MoE :: TIER 1 -> FORGE Claude
-0.1.2  unsealed  -> MoE :: TIER 1 -> FORGE Claude
+0.1.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.1.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+0.1.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 ```
+
+Those three lines are **re-measured, not edited.** The archives were rebuilt
+from the current tree, unzipped, and their own `rot-router.sh` was run on the
+same payload — which is the only way a transcript in a README stays a
+measurement instead of becoming a drawing of one.
 
 The hooks come from `hooks/hooks.json` and resolve through
 `${CLAUDE_PLUGIN_ROOT}`, so the router arms itself on install and unarms itself
@@ -456,7 +461,8 @@ the live `~/.claude` was never opened:
 claude plugin marketplace add   -> Successfully added marketplace: rot-moe
 claude plugin install           -> Successfully installed plugin: rot-moe@rot-moe
 claude plugin details rot-moe   -> Agents (1) lean4-prover · Hooks (3) · ~104 tok always-on
-one prompt, --debug hooks       -> MoE :: TIER 1 -> FORGE Claude
+one prompt, --debug hooks       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+                                   Registered 5 hooks from 1 plugins
 ```
 
 **What this does *not* give you, stated plainly:** `/plugin install` delivers the
