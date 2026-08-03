@@ -164,6 +164,42 @@ example :
       : List Lens).erase (lead .clinical)).length = 8 := by decide
 '
 
+# --- THE UNCOVERED MODULES -------------------------------------------------
+# MEASURED GAP, 2026-08-03: eight mutation suites existed and covered eight
+# modules. RotAbility (16 theorems), RotDorks (5), RotLens (13) and RotMutant
+# (10) had NONE -- 44 of 144 theorems had never been broken on purpose. That is
+# not an academic hole: `lead_does_not_shrink` was an overclaim living in
+# RotLens, one of the four, and it survived a year of green builds precisely
+# because nothing ever tried to kill it. The three probes below put each
+# remaining module under the same instrument.
+probe ability_contribution OK \
+  "contribution_pos generalized is FALSE (a zero-valued weight contributes nothing)" '
+import Proofs.RotAbility
+open RotMoE.Ability RotMoE.Ensemble in
+example : ¬ (∀ (f : Lens → ℚ) (l : Lens), l ∈ lenses → 0 < f l) := by
+  intro h
+  exact absurd (h (fun _ => 0) Lens.nova (by decide)) (by norm_num)
+'
+
+probe dorks_injective OK \
+  "rot_injective generalized is FALSE (a constant rotation collides)" '
+import Proofs.RotDorks
+example : ¬ (∀ (f : Nat → Nat) (i j : Nat), i < 5 → j < 5 → f i = f j → i = j) := by
+  intro h
+  exact absurd (h (fun _ => 0) 0 1 (by decide) (by decide) rfl) (by decide)
+'
+
+probe mutant_classify OK \
+  "killed_implies_all_three generalized is FALSE (an arbitrary verdict proves nothing)" '
+import Proofs.RotMutant
+open RotMoE in
+example : ¬ (∀ (g : Run → Bool → Outcome) (r : Run) (a : Bool),
+      g r a = Outcome.killed → r.toolExit = 0) := by
+  intro h
+  exact absurd (h (fun _ _ => Outcome.killed) { toolExit := 1, empty := false, changed := true } true rfl)
+    (by decide)
+'
+
 # --- the load-bearing theorems: each generalization is REFUTED -------------
 probe route_fires OK \
   "route_fires generalized is FALSE (a constant router does not fire)" '

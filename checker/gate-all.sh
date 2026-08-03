@@ -68,6 +68,7 @@ release install (the artifact, from the zip)|bash checker/release-install.sh
 if [ "$FULL" -eq 1 ]; then
   GATES="$GATES
 ci dry run (the CI step list, clean clone)|bash checker/ci-dryrun.sh
+generalization probe (does each theorem CONSTRAIN its function)|cd lean && bash mutate/generalization_probe.sh
 scheduled verdict, three weeks with a remote|bash checker/verdict-schedule-sim.sh
 plugin + fresh-user install|bash checker/plugin-install.sh
 marketplace session (install as a stranger, router in the loop)|bash checker/marketplace-session.sh
