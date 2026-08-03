@@ -81,7 +81,15 @@ HERE=$(dirname "$0")
 _ws_from_state () {
   _f="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}/workspace"
   [ -f "$_f" ] || return 1
-  _v=$(head -1 "$_f" 2>/dev/null | tr -d '\r')
+  # Backslashes are translated to forward slashes because THIS FILE IS SHARED
+  # WITH THE POWERSHELL INSTALLER, which naturally produces a backslash path of
+  # the form <drive>:\path\Lean. To POSIX test a backslash is an ordinary
+  # character rather than a separator, so testing such a path with -d is
+  # false, and this function then returned nothing and the caller fell back to
+  # the plugin's READ-ONLY bundled corpus -- emitting no verdict at all rather
+  # than an error. The pwsh arm now normalises on write; this normalises on read
+  # so a state file recorded by an EARLIER install still resolves.
+  _v=$(head -1 "$_f" 2>/dev/null | tr -d '\r' | tr '\\' '/')
   [ -n "$_v" ] && [ -d "$_v" ] && printf '%s' "$_v"
 }
 WS=${ROTMOE_LEAN_WORKSPACE:-$(_ws_from_state 2>/dev/null)}
@@ -303,14 +311,37 @@ verify_lean_edit () {
   # The path arrives in whatever form the tool used; the module name is derived
   # from the part BELOW the workspace root. Both separators are handled because
   # a Windows tool call reports backslashes while the shell speaks forward ones.
-  _wsabs=$(cd "$WS" 2>/dev/null && pwd) || return 0
+  # THREE candidate spellings of the same directory, because `pwd` and the tool
+  # call disagree on Windows and the mismatch fails SILENTLY:
+  #
+  #   pwd      -> /d/tmp/ws/Lean      (Git Bash POSIX form)
+  #   pwd -W   -> D:/tmp/ws/Lean      (Windows form; unsupported off Git Bash)
+  #   $WS      -> whatever was recorded, e.g. D:/tmp/ws/Lean
+  #
+  # The tool reports 'D:/tmp/ws/Lean/Proofs/X.lean', so matching ONLY against
+  # `pwd` never fired, control fell to the fallback, and the fallback below was
+  # LOWERCASE-ONLY -- so a workspace at <root>/Lean, which is the layout the
+  # installer now creates, matched nothing and the hook returned quietly. A
+  # verifier that goes silent on the supported layout is worse than one that
+  # errors, because nothing tells you it stopped looking.
+  _wsp=$(cd "$WS" 2>/dev/null && pwd) || return 0
+  _wsw=$(cd "$WS" 2>/dev/null && pwd -W 2>/dev/null) || _wsw=""
   _norm=$(printf '%s' "$_fp" | tr '\\' '/')
-  _wsn=$(printf '%s' "$_wsabs" | tr '\\' '/')
-  case "$_norm" in
-    "$_wsn"/*) _rel=${_norm#"$_wsn"/} ;;
-    */lean/*)  _rel=${_norm##*/lean/} ;;
-    *)         return 0 ;;
-  esac
+  _rel=""
+  for _cand in "$_wsw" "$_wsp" "$WS"; do
+    [ -n "$_cand" ] || continue
+    _c=$(printf '%s' "$_cand" | tr '\\' '/')
+    case "$_norm" in "$_c"/*) _rel=${_norm#"$_c"/}; break ;; esac
+  done
+  if [ -z "$_rel" ]; then
+    # Both spellings of the directory name. Case matters to `case`, and the
+    # installer creates 'Lean' while the bundled corpus ships as 'lean'.
+    case "$_norm" in
+      */lean/*) _rel=${_norm##*/lean/} ;;
+      */Lean/*) _rel=${_norm##*/Lean/} ;;
+      *)        return 0 ;;
+    esac
+  fi
   _mod=$(printf '%s' "${_rel%.lean}" | tr '/' '.')
   [ -n "$_mod" ] || return 0
 

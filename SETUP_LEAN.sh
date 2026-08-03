@@ -57,14 +57,28 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 WS="${ROTMOE_LEAN_WORKSPACE:-$HERE/lean}"
 ELAN_ROOT="${ELAN_HOME:-$HOME/.elan}"
 
-YES=0; DRY=0; UNINSTALL=0; ASK_ROOT=0; ROOT_ARG=""
+YES=0; DRY=0; UNINSTALL=0; ASK_ROOT=0; ROOT_ARG=""; ELAN_ROOT_ARG=""
 for a in "$@"; do
   case "$a" in
     --yes|-y)     YES=1 ;;
     --dry-run|-n) DRY=1 ;;
     --uninstall)  UNINSTALL=1 ;;
     --ask-root)   ASK_ROOT=1 ;;
-    --root=*)     ROOT_ARG="${a#--root=}" ;;
+    # --root NOW MEANS "where do MY PROOFS live", not "where does elan live".
+    #
+    # It used to mean the second, and that was measured against the only layout
+    # proven end to end on the machine this was built on -- toolchain in the
+    # HOME directory, proofs on a roomy second disk -- and found to disagree
+    # with it. The toolchain is a fixed cost that elan itself knows how to
+    # manage; the PROOF WORKSPACE is the thing that grows without bound as the
+    # user works, and it is the one that belongs on the disk they chose.
+    #
+    # The old capability is not lost, it is separated: --elan-root still puts
+    # the toolchain elsewhere for anyone whose system drive is tight, which was
+    # the real problem the original flag solved. One flag was doing two jobs and
+    # answering the more common question wrongly.
+    --root=*)      ROOT_ARG="${a#--root=}" ;;
+    --elan-root=*) ELAN_ROOT_ARG="${a#--elan-root=}" ;;
     --help|-h)
       sed -n '6,55p' "$0" | sed 's/^# \{0,1\}//'
       exit 0 ;;
@@ -139,6 +153,58 @@ lean_dir () {
 # proof debt against a corpus that cannot acquire any, and reported healthy
 # forever. An install that asks a question and then forgets the answer has only
 # performed asking.
+# A DIRECTORY IS NOT A WORKSPACE. Creating <root>/Lean/Proofs and stopping there
+# produced a folder in which the user's very first theorem CANNOT build: lake
+# reports "no configuration file with a supported extension" and the hook
+# correctly answers LEAN REFUSED. Measured end to end before this was added.
+#
+# So scaffold the minimum that makes `lake build Proofs.Foo` work, and NEVER
+# overwrite: a returning user's lakefile is theirs, not ours.
+#
+# Deliberately CORE-ONLY, no mathlib dependency. Their proofs start at zero and
+# grow from their own work; making the first build depend on a multi-gigabyte
+# cache would be us deciding how they should work. Adding mathlib later is one
+# `require` line, and the header written below says so.
+scaffold_workspace () {
+  _lw="$1"; _pin="$2"
+  if [ "$DRY" -eq 1 ]; then
+    say "would scaffold: $_lw/lakefile.toml, $_lw/lean-toolchain, $_lw/Proofs/"
+    return 0
+  fi
+  mkdir -p "$_lw/Proofs" 2>/dev/null || { say "could not create $_lw/Proofs"; return 1; }
+
+  if [ ! -f "$_lw/lakefile.toml" ]; then
+    cat > "$_lw/lakefile.toml" <<'LAKE'
+name = "proofs"
+defaultTargets = ["Proofs"]
+
+# Core Lean only -- your proofs start here and grow from your own work.
+# To add mathlib later, append:
+#
+#   [[require]]
+#   name = "mathlib"
+#   scope = "leanprover-community"
+#
+# then run `lake update` and `lake exe cache get` (never build it from source).
+
+[[lean_lib]]
+name = "Proofs"
+LAKE
+    say "  scaffolded $_lw/lakefile.toml"
+  else
+    say "  kept your existing $_lw/lakefile.toml"
+  fi
+
+  # Pin the SAME toolchain the plugin's own corpus is verified against, so a
+  # proof that builds here builds there. 'unknown' means we could not read one,
+  # and inventing a version would be worse than leaving elan to its default.
+  if [ ! -f "$_lw/lean-toolchain" ] && [ "$_pin" != "unknown" ]; then
+    printf '%s\n' "$_pin" > "$_lw/lean-toolchain"
+    say "  pinned $_lw/lean-toolchain to $_pin"
+  fi
+  return 0
+}
+
 record_workspace () {
   _ws="$1"
   _sd="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
@@ -164,7 +230,10 @@ record_workspace () {
 check_root () {   # check_root <resolved-root> ; echoes nothing, exits 2 on refusal
   if [ ! -d "$1" ]; then
     say "REFUSE: '$1' is not an existing directory. NOTHING was installed."
-    say "        Create it first, or omit --root to use the default."
+    # Names no single flag ON PURPOSE: this validator is now shared by --root
+    # and --elan-root, and a message that says "omit --root" after the user
+    # passed a bad --elan-root sends them to correct the wrong argument.
+    say "        Create it first, or omit the flag that named it."
     exit 2
   fi
   if [ ! -w "$1" ]; then
@@ -175,30 +244,41 @@ check_root () {   # check_root <resolved-root> ; echoes nothing, exits 2 on refu
 }
 
 CHOSEN_ROOT=""
+
+# The toolchain moves ONLY if asked, and .elan otherwise stays in the home
+# directory where elan itself expects it. This is the layout this machine runs
+# and the one every instruction here has been measured against.
+if [ -n "$ELAN_ROOT_ARG" ]; then
+  ER="$(resolve_root "$ELAN_ROOT_ARG")"
+  check_root "$ER"
+  ELAN_ROOT="$(elan_dir "$ER")"
+  export ELAN_HOME="$ELAN_ROOT"
+fi
+
 if [ -n "$ROOT_ARG" ]; then
   R="$(resolve_root "$ROOT_ARG")"
   check_root "$R"
-  ELAN_ROOT="$(elan_dir "$R")"
-  export ELAN_HOME="$ELAN_ROOT"
   CHOSEN_ROOT="$R"
 elif [ "$ASK_ROOT" -eq 1 ] && [ "$YES" -eq 0 ] && [ -t 0 ]; then
   say ""
-  say "== where should the Lean toolchain live? =="
-  say "   A toolchain is ~500 MB; a mathlib cache adds several GB more."
-  say "   Give a filesystem ROOT and elan goes into <root>/.elan:"
+  say "== where should YOUR proofs live? =="
+  say "   Your own .lean files start EMPTY here and grow as you work -- this is"
+  say "   the directory the router watches and builds, not our shipped corpus."
+  say "   Give a filesystem ROOT and the workspace goes into <root>/Lean:"
   say ""
-  say "     C:/       ->  C:/.elan        (Windows system drive)"
-  say "     D:/       ->  D:/.elan        (a second drive with room)"
-  say "     /         ->  /.elan          (Unix root; needs write access)"
-  say "     <empty>   ->  keep the default below"
+  say "     C:/       ->  C:/Lean/Proofs     (Windows system drive)"
+  say "     D:/       ->  D:/Lean/Proofs     (a second drive with room)"
+  say "     /         ->  /Lean/Proofs       (Unix root; needs write access)"
+  say "     <empty>   ->  skip; the router falls back to our bundled corpus"
   say ""
-  printf 'install root [default: keep %s]: ' "$ELAN_ROOT"
+  say "   The toolchain itself stays in your home directory ($ELAN_ROOT)."
+  say "   Use --elan-root=<path> if your system drive is short on space."
+  say ""
+  printf 'proof workspace root [empty to skip]: '
   read -r answer || answer=""
   if [ -n "$answer" ]; then
     R="$(resolve_root "$answer")"
     check_root "$R"
-    ELAN_ROOT="$(elan_dir "$R")"
-    export ELAN_HOME="$ELAN_ROOT"
     CHOSEN_ROOT="$R"
   fi
 fi
@@ -215,9 +295,16 @@ if [ -n "$CHOSEN_ROOT" ]; then
   USER_WS="$(lean_dir "$CHOSEN_ROOT")"
   if [ "$DRY" -eq 1 ]; then
     say "would create workspace: $USER_WS/Proofs"
-  else
-    mkdir -p "$USER_WS/Proofs" 2>/dev/null || say "could not create $USER_WS/Proofs"
   fi
+  # PINNED is not computed until later in this file, so read the pin HERE rather
+  # than referencing a variable that is still empty. An unset variable would have
+  # been passed as "", scaffold_workspace would have written a lean-toolchain
+  # containing a blank line, and the user's first `lake build` would fail on a
+  # toolchain that does not exist. Order of definition is load-bearing; the same
+  # shape was caught in SETUP_LEAN.ps1 earlier in this session.
+  _pin_now="unknown"
+  [ -f "$WS/lean-toolchain" ] && _pin_now="$(tr -d '\r\n' < "$WS/lean-toolchain")"
+  scaffold_workspace "$USER_WS" "$_pin_now"
   if [ -d "$USER_WS/Proofs" ] || [ "$DRY" -eq 1 ]; then
     record_workspace "$USER_WS"
   fi
@@ -272,11 +359,23 @@ if [ "$have_elan" -eq 0 ]; then
 else
   say "  [1] SKIP: elan already present"
 fi
-if [ "$PINNED" != "unknown" ]; then
+# Is the pinned toolchain ALREADY there? Asked with `elan toolchain list`
+# rather than discovered by running the install and reading a failure -- an
+# installer that learns the state of the world from an error it treats as fatal
+# cannot be re-run, and being re-runnable is most of what an installer is for.
+have_tc=0
+if [ "$PINNED" != "unknown" ] && command -v elan >/dev/null 2>&1; then
+  _tcl="$(elan toolchain list 2>/dev/null || true)"
+  case "$_tcl" in *"$PINNED"*) have_tc=1 ;; esac
+fi
+
+if [ "$PINNED" = "unknown" ]; then
+  say "  [2] SKIP: no lean-toolchain found at $WS -- nothing to pin to"
+elif [ "$have_tc" -eq 1 ]; then
+  say "  [2] SKIP: toolchain $PINNED already installed"
+else
   steps=$((steps+1))
   say "  [2] elan toolchain install $PINNED   (~500 MB, one toolchain, pinned)"
-else
-  say "  [2] SKIP: no lean-toolchain found at $WS -- nothing to pin to"
 fi
 if [ "$have_cache" -eq 0 ]; then
   steps=$((steps+1))
@@ -333,11 +432,19 @@ if [ "$have_elan" -eq 0 ]; then
   PATH="$ELAN_ROOT/bin:$PATH"; export PATH
 fi
 
-if [ "$PINNED" != "unknown" ]; then
+if [ "$PINNED" != "unknown" ] && [ "$have_tc" -eq 0 ]; then
   say "[2/3] installing toolchain $PINNED ..."
   elan toolchain install "$PINNED"
   rc=$?
+  # MEASURED on elan 4.2.3: `elan toolchain install <t>` exits 1 with
+  # "error: '<t>' is already installed" when the toolchain is present. Treating
+  # that as fatal meant the installer ABORTED on every machine that already had
+  # the pinned toolchain -- the common case for anyone re-running it -- and so
+  # never reached the step that records the user's workspace. The idempotent
+  # re-run is exactly when an installer must be safest, and this one was worst.
   [ "$rc" -ne 0 ] && { say "  elan toolchain install exited $rc -- stopping."; exit "$rc"; }
+elif [ "$PINNED" != "unknown" ]; then
+  say "[2/3] SKIP: $PINNED is already installed."
 fi
 
 if [ "$have_cache" -eq 0 ]; then

@@ -31,7 +31,12 @@ param(
   [switch] $DryRun,
   [switch] $Uninstall,
   [switch] $AskRoot,
-  [string] $Root = ''
+  [string] $Root = '',
+  # Named $ElanRoot_ because $ElanRoot is already the COMPUTED install path a
+  # few lines below. Two variables one underscore apart is not elegant, and the
+  # alternative -- a parameter silently overwritten by the computation it is
+  # meant to control -- is a defect rather than an inelegance.
+  [Alias('ElanRoot')] [string] $ElanRoot_ = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -89,28 +94,148 @@ function Join-ElanDir([string] $r) {
   return (Join-Path $r '.elan')
 }
 
+function Join-LeanDir([string] $r) {
+  if ($r.EndsWith('\') -or $r.EndsWith('/')) { return ($r + 'Lean') }
+  return (Join-Path $r 'Lean')
+}
+
+# --- the user's OWN workspace ------------------------------------------------
+# This half was missing from the pwsh arm entirely: it printed a workspace line
+# and then never created or recorded one, so a Windows-native user ended up with
+# the hooks resolving the plugin's READ-ONLY bundled corpus inside plugins/cache
+# -- a directory that can never accumulate their proof debt.
+#
+# It is a FUNCTION rather than a block at the end because the script exits early
+# on -DryRun, and a block at the end is dead code on exactly the path a careful
+# user runs FIRST. Called from both exits, so both report the same thing.
+#
+# $HomeDir, not a Get-HomeDir call: this file computes the home directory into a
+# VARIABLE at the top. A call to a function that does not exist would throw
+# under $ErrorActionPreference='Stop' and take the whole installer with it.
+function Record-UserWorkspace {
+  if ($ChosenRoot -eq '') { return }
+  $LeanWs  = Join-LeanDir $ChosenRoot
+  $ProofsD = Join-Path $LeanWs 'Proofs'
+  $StateD  = if ($env:ROTMOE_STATE_DIR) { $env:ROTMOE_STATE_DIR }
+             elseif ($env:XDG_STATE_HOME) { Join-Path $env:XDG_STATE_HOME 'rot-moe' }
+             else { Join-Path $HomeDir '.local/state/rot-moe' }
+  $StateF  = Join-Path $StateD 'workspace'
+
+  if ($DryRun) {
+    Write-Output "would create workspace: $ProofsD"
+    Write-Output "would scaffold: $LeanWs\lakefile.toml, $LeanWs\lean-toolchain"
+    Write-Output "would record workspace: $LeanWs -> $StateF"
+    return
+  }
+
+  New-Item -ItemType Directory -Force -Path $ProofsD | Out-Null
+
+  # A DIRECTORY IS NOT A WORKSPACE -- see the matching comment in SETUP_LEAN.sh.
+  # Without a lakefile the user's first theorem cannot build at all: lake says
+  # "no configuration file with a supported extension" and the hook answers LEAN
+  # REFUSED, which reads as "your proof is wrong" when the truth is "there was
+  # nothing to build it with". Measured end to end before this was added.
+  #
+  # NEVER overwrite: a returning user's lakefile is theirs.
+  $lakeF = Join-Path $LeanWs 'lakefile.toml'
+  if (-not (Test-Path -LiteralPath $lakeF)) {
+    $lake = @'
+name = "proofs"
+defaultTargets = ["Proofs"]
+
+# Core Lean only -- your proofs start here and grow from your own work.
+# To add mathlib later, append:
+#
+#   [[require]]
+#   name = "mathlib"
+#   scope = "leanprover-community"
+#
+# then run `lake update` and `lake exe cache get` (never build it from source).
+
+[[lean_lib]]
+name = "Proofs"
+'@
+    Set-Content -LiteralPath $lakeF -Value $lake -Encoding utf8
+    Write-Output "  scaffolded $lakeF"
+  } else {
+    Write-Output "  kept your existing $lakeF"
+  }
+
+  # Pin the SAME toolchain this plugin's corpus is verified against, so a proof
+  # that builds in your workspace builds in ours. 'unknown' means we could not
+  # read one, and inventing a version is worse than leaving elan its default.
+  $tcOut = Join-Path $LeanWs 'lean-toolchain'
+  if ((-not (Test-Path -LiteralPath $tcOut)) -and $pinned -ne 'unknown') {
+    Set-Content -LiteralPath $tcOut -Value $pinned -Encoding utf8
+    Write-Output "  pinned $tcOut to $pinned"
+  }
+  New-Item -ItemType Directory -Force -Path $StateD  | Out-Null
+
+  # NORMALISE TO FORWARD SLASHES BEFORE WRITING. This state file is READ BY THE
+  # SHELL HOOK, and a POSIX -d test on a backslash path is FALSE in Git Bash --
+  # a backslash is not a separator there. Measured: the pwsh installer recorded a
+  # perfectly correct Windows path, the shell hook silently rejected it, fell
+  # back to the plugin's read-only bundled corpus, and emitted NO verdict at all.
+  # Silence, not an error, which is the worst way for this to fail.
+  #
+  # Windows APIs accept forward slashes, so one format serves both arms.
+  $recorded = $LeanWs -replace '\\', '/'
+  Set-Content -LiteralPath $StateF -Value $recorded -Encoding utf8 -NoNewline
+
+  # READ IT BACK. Writing a file is not evidence that the file says what you
+  # wrote -- an encoding or a stale handle turns a silent success into a hook
+  # that resolves the wrong directory forever after. Refuse to claim success on
+  # a mismatch rather than reporting the value we INTENDED to write.
+  $back = ''
+  if (Test-Path -LiteralPath $StateF) {
+    $back = (Get-Content -LiteralPath $StateF -Raw).Trim()
+  }
+  if ($back -eq $recorded) {
+    Write-Output "  workspace recorded: $recorded"
+  } else {
+    Write-Output "  WARNING: recorded '$back' but meant '$recorded' -- the hooks will not find it."
+    Write-Output "           Set ROTMOE_LEAN_WORKSPACE='$recorded' to work around this."
+  }
+}
+
+# -Root NOW MEANS "where do MY PROOFS live", matching SETUP_LEAN.sh. The
+# toolchain is a bounded, one-time cost that elan manages in the home directory;
+# the proof workspace is what grows without bound, so it is the one that belongs
+# on the disk the user picked. -ElanRoot keeps the old capability for a tight
+# system drive, which was the real problem the single flag was solving.
+$ChosenRoot = ''
+
+if ($ElanRoot_ -ne '') {
+  $ER = Resolve-Root $ElanRoot_
+  Assert-Root $ER
+  $ElanRoot = Join-ElanDir $ER
+  $env:ELAN_HOME = $ElanRoot
+}
+
 if ($Root -ne '') {
   $R = Resolve-Root $Root
   Assert-Root $R
-  $ElanRoot = Join-ElanDir $R
-  $env:ELAN_HOME = $ElanRoot
+  $ChosenRoot = $R
 } elseif ($AskRoot -and -not $Yes) {
   Write-Output ''
-  Write-Output '== where should the Lean toolchain live? =='
-  Write-Output '   A toolchain is ~500 MB; a mathlib cache adds several GB more.'
-  Write-Output '   Give a filesystem ROOT and elan goes into <root>/.elan:'
+  Write-Output '== where should YOUR proofs live? =='
+  Write-Output '   Your own .lean files start EMPTY here and grow as you work -- this is'
+  Write-Output '   the directory the router watches and builds, not our shipped corpus.'
+  Write-Output '   Give a filesystem ROOT and the workspace goes into <root>/Lean:'
   Write-Output ''
-  Write-Output '     C:/       ->  C:/.elan        (Windows system drive)'
-  Write-Output '     D:/       ->  D:/.elan        (a second drive with room)'
-  Write-Output '     /         ->  /.elan          (Unix root; needs write access)'
-  Write-Output '     <empty>   ->  keep the default below'
+  Write-Output '     C:/       ->  C:/Lean/Proofs     (Windows system drive)'
+  Write-Output '     D:/       ->  D:/Lean/Proofs     (a second drive with room)'
+  Write-Output '     /         ->  /Lean/Proofs       (Unix root; needs write access)'
+  Write-Output '     <empty>   ->  skip; the router falls back to our bundled corpus'
   Write-Output ''
-  $answer = Read-Host "install root [default: keep $ElanRoot]"
+  Write-Output "   The toolchain itself stays in your home directory ($ElanRoot)."
+  Write-Output '   Use -ElanRoot <path> if your system drive is short on space.'
+  Write-Output ''
+  $answer = Read-Host 'proof workspace root [empty to skip]'
   if (-not [string]::IsNullOrWhiteSpace($answer)) {
     $R = Resolve-Root $answer
     Assert-Root $R
-    $ElanRoot = Join-ElanDir $R
-    $env:ELAN_HOME = $ElanRoot
+    $ChosenRoot = $R
   }
 }
 
@@ -157,10 +282,24 @@ if (-not $haveElan) {
   Write-Output '  [1] install elan from https://github.com/leanprover/elan/releases (official)'
   Write-Output "      -> into $ElanRoot ; no elevation, no system directory"
 } else { Write-Output '  [1] SKIP: elan already present' }
-if ($pinned -ne 'unknown') {
+# Is the pinned toolchain ALREADY there? Asked with `elan toolchain list`
+# rather than discovered by running the install and reading a failure -- see the
+# matching comment in SETUP_LEAN.sh. MEASURED on elan 4.2.3: installing a
+# toolchain that is already present exits 1.
+$haveTc = $false
+if ($pinned -ne 'unknown' -and (Get-Command elan -ErrorAction SilentlyContinue)) {
+  $tcl = (& elan toolchain list 2>$null) -join "`n"
+  $haveTc = $tcl.Contains($pinned)
+}
+
+if ($pinned -eq 'unknown') {
+  Write-Output "  [2] SKIP: no lean-toolchain found at $Ws"
+} elseif ($haveTc) {
+  Write-Output "  [2] SKIP: toolchain $pinned already installed"
+} else {
   $steps++
   Write-Output "  [2] elan toolchain install $pinned   (~500 MB, one toolchain, pinned)"
-} else { Write-Output "  [2] SKIP: no lean-toolchain found at $Ws" }
+}
 if (-not $haveCache) {
   $steps++
   Write-Output "  [3] lake exe cache get in $Ws"
@@ -169,6 +308,15 @@ if (-not $haveCache) {
   Write-Output '      -> never a source build (that is hours, not minutes)'
 } else { Write-Output "  [3] SKIP: mathlib already resolved under $Ws\.lake" }
 Write-Output ''
+
+# RECORD THE WORKSPACE BEFORE ANY EXIT PATH, not after the downloads.
+#
+# It was placed at the end and was therefore dead code on the two paths users
+# actually take: -DryRun (which a careful reader runs FIRST) and "nothing to do"
+# (which is every re-run on a machine that already has the toolchain). Setting
+# where your proofs live has NOTHING to do with whether a 7 GB cache needs
+# fetching, so it must not be gated behind that work happening.
+Record-UserWorkspace
 
 if ($steps -eq 0) {
   Write-Output 'Nothing to do -- everything this script installs is already present.'
@@ -208,7 +356,9 @@ if (-not $haveElan) {
   $env:Path = (Join-Path $ElanRoot 'bin') + ';' + $env:Path
 }
 
-if ($pinned -ne 'unknown') {
+if ($pinned -ne 'unknown' -and $haveTc) {
+  Write-Output "[2/3] SKIP: $pinned is already installed."
+} elseif ($pinned -ne 'unknown') {
   Write-Output "[2/3] installing toolchain $pinned ..."
   & elan toolchain install $pinned
   if ($LASTEXITCODE -ne 0) { Write-Output "  elan toolchain install exited $LASTEXITCODE -- stopping."; exit $LASTEXITCODE }
@@ -222,6 +372,7 @@ if (-not $haveCache) {
   Pop-Location
   if ($rc -ne 0) { Write-Output "  lake exe cache get exited $rc."; exit $rc }
 }
+
 
 Write-Output ''
 Write-Output 'done. Verify the proofs yourself -- $LASTEXITCODE read DIRECTLY, never through a pipe:'
