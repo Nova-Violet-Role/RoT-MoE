@@ -241,9 +241,22 @@ function Invoke-LeanVerify {
 
   # A file may contain `sorry` and still elaborate. Reporting that as a pass is
   # the exact laundering this project exists to prevent, so it is a THIRD state.
+  #
+  # THIS USED TO SCAN THE FILE'S TEXT for \bsorry\b and it cried wolf: a doc
+  # comment reading "no sorry, no native_decide" -- the sentence this project's
+  # own discipline puts in files -- was counted as an admission. An armed
+  # 50-turn session on 2026-08-03 wrote a clean module, was told twice it
+  # "contains 1 sorry", and had to argue with its own tool. An alarm that fires
+  # on correct work teaches people to ignore alarms.
+  #
+  # Ask the ELABORATOR instead; it knows a term from a word in a comment.
+  # Measured both ways on Lean 4.33.0-rc1:
+  #   a real `by sorry`        -> exit 0 AND "declaration uses `sorry`"
+  #   `sorry` only in comments -> exit 0 and ZERO such warnings (text scan: 2)
+  # Counting the warning is also per-DECLARATION, which is the honest unit.
   $sry = 0
   try {
-    $sry = @(Select-String -LiteralPath $fp -Pattern '\bsorry\b' -AllMatches -ErrorAction Stop).Count
+    $sry = @(($out -split "`n") | Where-Object { $_ -match 'declaration uses .sorry.' }).Count
   } catch { $sry = 0 }
 
   if ($code -ne 0) {

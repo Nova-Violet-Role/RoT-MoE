@@ -354,7 +354,26 @@ verify_lean_edit () {
 
   # A file may contain `sorry` and still elaborate. Reporting that as a pass is
   # the exact laundering this project exists to prevent, so it is a THIRD state.
-  _sry=$(grep -c '\bsorry\b' "$_norm" 2>/dev/null)
+  #
+  # THIS USED TO SCAN THE FILE'S TEXT for `\bsorry\b`, and it was WRONG in the
+  # direction that matters least for safety but most for trust: it cried wolf.
+  # A doc comment reading "no sorry, no native_decide" -- the exact sentence
+  # this project's own discipline puts in files -- was counted as an admission.
+  # Found by an armed 50-turn session on 2026-08-03 that wrote a clean module,
+  # was told twice it "contains 1 sorry", and had to argue with its own tool.
+  #
+  # An alarm that fires on correct work teaches people to ignore alarms, which
+  # costs more than the false positive itself.
+  #
+  # The fix is to stop guessing from text and ask the ELABORATOR, which knows
+  # the difference between a term and a word in a comment. Measured both ways
+  # on Lean 4.33.0-rc1:
+  #   a real `by sorry`          -> build exit 0 AND "declaration uses `sorry`"
+  #   `sorry` only in comments   -> build exit 0 and ZERO such warnings
+  #                                 (the old text scan counted 2 -- the bug)
+  # The compiler's own warning is per-DECLARATION, so the count is also more
+  # honest than "how many times the word appears".
+  _sry=$(printf '%s' "$_log" | grep -c "declaration uses \`sorry\`" 2>/dev/null)
   case "$_sry" in ''|*[!0-9]*) _sry=0 ;; esac
 
   if [ "$_rc" -eq 124 ]; then
