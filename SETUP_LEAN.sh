@@ -113,6 +113,48 @@ elan_dir () {
   esac
 }
 
+# WHERE THE USER'S OWN PROOFS WILL LIVE, and it is NOT where ours live.
+#
+# Our corpus ships inside the plugin, under plugins/cache, and it is read-only.
+# The user's own theorems need somewhere else entirely: a directory that starts
+# EMPTY and accumulates as they work, on whatever disk they chose -- which is
+# the whole reason the installer asks for a root instead of assuming one.
+#
+# The layout mirrors the machine this was built on, which is the only layout
+# proven to work end to end here: toolchain in the home directory, proofs on a
+# roomy disk. <root>/Lean/Proofs is created, and nothing is written into it --
+# an empty workspace is the correct starting state, not a defect.
+lean_dir () {
+  case "$1" in
+    */) printf '%sLean' "$1" ;;
+    *)  printf '%s/Lean' "$1" ;;
+  esac
+}
+
+# RECORD IT WHERE THE HOOKS LOOK, or the choice dies with this shell.
+#
+# This is the half that was missing and it made the other half pointless: both
+# hooks resolve their workspace as env -> RECORDED -> our bundled corpus, and
+# nothing ever wrote the recorded value. Every later session therefore measured
+# proof debt against a corpus that cannot acquire any, and reported healthy
+# forever. An install that asks a question and then forgets the answer has only
+# performed asking.
+record_workspace () {
+  _ws="$1"
+  _sd="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
+  [ "$DRY" -eq 1 ] && { say "would record workspace: $_ws -> $_sd/workspace"; return 0; }
+  mkdir -p "$_sd" 2>/dev/null || { say "could not create $_sd -- the workspace will not be remembered"; return 1; }
+  printf '%s\n' "$_ws" > "$_sd/workspace" 2>/dev/null || {
+    say "could not write $_sd/workspace -- the workspace will not be remembered"; return 1; }
+  # Read it back. A write that silently produced nothing is the failure this
+  # project keeps finding, and it is cheaper to catch here than in a session
+  # three days from now that quietly verifies the wrong directory.
+  _back=$(head -1 "$_sd/workspace" 2>/dev/null)
+  [ "$_back" = "$_ws" ] || { say "WROTE the workspace but read back '$_back' -- not trusting it"; return 1; }
+  say "workspace recorded: $_ws"
+  return 0
+}
+
 # One validator, used by BOTH the flag and the prompt. Written once on purpose:
 # the first draft of this validated only the interactive answer, so --root= -- the
 # path the plugin installer actually uses, non-interactively -- would happily
@@ -132,11 +174,13 @@ check_root () {   # check_root <resolved-root> ; echoes nothing, exits 2 on refu
   fi
 }
 
+CHOSEN_ROOT=""
 if [ -n "$ROOT_ARG" ]; then
   R="$(resolve_root "$ROOT_ARG")"
   check_root "$R"
   ELAN_ROOT="$(elan_dir "$R")"
   export ELAN_HOME="$ELAN_ROOT"
+  CHOSEN_ROOT="$R"
 elif [ "$ASK_ROOT" -eq 1 ] && [ "$YES" -eq 0 ] && [ -t 0 ]; then
   say ""
   say "== where should the Lean toolchain live? =="
@@ -155,6 +199,27 @@ elif [ "$ASK_ROOT" -eq 1 ] && [ "$YES" -eq 0 ] && [ -t 0 ]; then
     check_root "$R"
     ELAN_ROOT="$(elan_dir "$R")"
     export ELAN_HOME="$ELAN_ROOT"
+    CHOSEN_ROOT="$R"
+  fi
+fi
+
+# --- the user's own workspace, on the disk they picked -----------------------
+# Created, then RECORDED where the hooks look. Both steps or neither: a
+# directory nobody can find is the same as no directory, and a recorded path
+# that does not exist makes every later session fall back silently.
+#
+# Only when a root was actually chosen. With no root there is no new disk to
+# put anything on, and inventing a location the user never asked for is how an
+# installer earns its reputation.
+if [ -n "$CHOSEN_ROOT" ]; then
+  USER_WS="$(lean_dir "$CHOSEN_ROOT")"
+  if [ "$DRY" -eq 1 ]; then
+    say "would create workspace: $USER_WS/Proofs"
+  else
+    mkdir -p "$USER_WS/Proofs" 2>/dev/null || say "could not create $USER_WS/Proofs"
+  fi
+  if [ -d "$USER_WS/Proofs" ] || [ "$DRY" -eq 1 ]; then
+    record_workspace "$USER_WS"
   fi
 fi
 
