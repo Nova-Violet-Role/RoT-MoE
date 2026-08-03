@@ -101,9 +101,85 @@ else
   bad "MUS DIFFER -- the Lean witness no longer describes the shipping profile"
 fi
 
+# --- the ROSTER binds too, not just the numbers -----------------------------
+# The weights were bound long before the NAMES were, which left a hole exactly
+# the width of a rename: the engine document calls them Violet_Noir,
+# Chroma_Spectral, Soleil_Blank and Anti-Venom, while both routers and the Lean
+# witness say Violet, Chroma, Soleil, AntiVenom. Nothing checked that those are
+# the same nine lenses in the same order, so renaming a lens on one surface
+# would have drifted silently and every gate would have stayed green.
+#
+# The rule is a PREFIX rule, deliberately, and it is the honest shape of the
+# relationship: the short name is the stem of the long one. Demanding equality
+# would forbid the engine from ever using a full name, which is a spec that
+# forbids a correct future -- the defect class this project hunts. Demanding
+# only "nine of each" would accept a reordering, which is the actual risk,
+# since `lead` and the weight vectors are POSITIONAL.
+echo
+echo "-- lens roster, all three surfaces --"
+canon () { printf '%s' "$1" | tr 'A-Z' 'a-z' | tr -cd 'a-z0-9'; }
+
+sh_names=$(sed -n "s/^NAMES='\(.*\)'.*/\1/p" "$REPO/hooks/rot-router.sh")
+ps_names=$(sed -n "s/.*Names *= *@(\(.*\)).*/\1/p" "$REPO/hooks/rot-router.ps1" | tr -d "'" | tr ',' ' ')
+lean_names=$(sed -n '/^inductive Lens where/,/^deriving/p' "$REPO/lean/Proofs/RotLens.lean" \
+             | tr '|' '\n' | sed -n 's/^ *\([a-z][a-z0-9]*\) *$/\1/p' | tr '\n' ' ')
+# sed -E, and NOT by preference: the first version of this line used BRE
+# alternation (\|), which is a GNU extension. BSD sed on macOS ignores it, the
+# match never fires, and the extraction FAILS OPEN -- the worst direction, since
+# an empty roster makes every comparison below vacuously true. checker/
+# portability.sh caught it on this very line. The anti-vacuity guard would have
+# converted that silent pass into a loud failure anyway, which is the point of
+# having both: one instrument stops the defect, the other stops it from being
+# quiet.
+eng_names=$(sed -nE 's/.*\*\*(Nova|Violet_Noir|Anti-Venom|Venom|Carnage|Chroma_Spectral|Soleil_Blank|Eidolon|Claude)\*\*.*/\1/p' \
+             "$REPO/engine/rot-lean.md" | awk '!seen[$0]++' | tr '\n' ' ')
+
+# ANTI-VACUITY: every surface must actually yield nine names. An extraction that
+# silently returns nothing would make every comparison below trivially true --
+# the way a roster check turns into decoration without anyone noticing.
+for pair in "shell:$sh_names" "pwsh:$ps_names" "lean:$lean_names" "engine:$eng_names"; do
+  _who=${pair%%:*}; _what=${pair#*:}
+  _n=$(printf '%s\n' $_what | grep -c .)
+  if [ "$_n" -eq 9 ]; then ok "$_who roster extracted: 9 lenses"
+  else bad "$_who roster extracted $_n names, expected 9 -- extraction is broken, not the roster"; fi
+done
+
+i=1; roster_ok=1
+for s in $sh_names; do
+  p=$(printf '%s\n' $ps_names | sed -n "${i}p")
+  l=$(printf '%s\n' $lean_names | sed -n "${i}p")
+  e=$(printf '%s\n' $eng_names | sed -n "${i}p")
+  cs=$(canon "$s"); cl=$(canon "$l"); ce=$(canon "$e"); cp=$(canon "$p")
+  [ "$cs" = "$cp" ] || { bad "position $i: shell '$s' vs pwsh '$p'"; roster_ok=0; }
+  [ "$cs" = "$cl" ] || { bad "position $i: shell '$s' vs Lean '$l'"; roster_ok=0; }
+  case "$ce" in
+    "$cs"*) : ;;
+    *) bad "position $i: engine '$e' is not a long form of '$s'"; roster_ok=0 ;;
+  esac
+  i=$((i+1))
+done
+[ "$roster_ok" -eq 1 ] && ok "roster agrees in NAME and ORDER across shell, pwsh, Lean and the engine document"
+
 # --- negative control -------------------------------------------------------
 echo
 echo "-- negative control --"
+
+# The roster control has to break the ORDER, not just a spelling: a swap is the
+# failure a positional weight table actually suffers, and a checker that only
+# catches typos would pass the dangerous case.
+swapped=$(printf '%s\n' $sh_names | awk 'NR==1{print "Venom";next} NR==4{print "Nova";next} {print}' | tr '\n' ' ')
+ctl_i=1; ctl_caught=0
+for s in $swapped; do
+  l=$(printf '%s\n' $lean_names | sed -n "${ctl_i}p")
+  [ "$(canon "$s")" = "$(canon "$l")" ] || ctl_caught=1
+  ctl_i=$((ctl_i+1))
+done
+if [ "$ctl_caught" -eq 1 ]; then
+  ok "CONTROL: swapping two lenses in the roster WOULD be detected"
+else
+  bad "CONTROL DEAD: a swapped roster still compared equal"
+fi
+
 mutated=$(printf '%s\n' $sh_lam | awk 'NR==1{$1=$1+0.5} {printf "%s ", $1}' | sed 's/ $//')
 if [ "$(norm "$mutated")" = "$(norm "$lean_lam")" ]; then
   bad "CONTROL DEAD: a retuned first lambda still compared equal"
