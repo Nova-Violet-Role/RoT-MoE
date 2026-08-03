@@ -72,7 +72,19 @@ command -v node   >/dev/null 2>&1 || { echo "REFUSE: node absent (needed to pars
 command -v unzip  >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 2; }
 
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
-VARIANT_MAP="core:0.5.0 lean:0.5.1 unsealed:0.5.2"
+# THE THIRD COPY OF THIS MAP, found 2026-08-04 while fixing the second. The
+# packager (checker/release-package.sh) DEFINES it; release-install.sh kept a
+# copy that silently pointed at archives the tree no longer builds, and so did
+# this file. A constant duplicated in three places is not a constant, it is
+# three independent claims that happen to agree until one of them does not.
+# Parsed from the one definition, and refused rather than guessed.
+VARIANT_MAP=$(sed -n 's/^VARIANTS="\(.*\)"$/\1/p' "$REPO/checker/release-package.sh" | head -1)
+case "$VARIANT_MAP" in
+  *core:*|*lean:*|*unsealed:*) : ;;
+  *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANT_MAP')."
+     echo "        Refusing a hardcoded fallback -- that is the drift being removed."
+     exit 2 ;;
+esac
 WANT="${ROTMOE_VARIANTS:-core lean unsealed}"
 
 TURN_TIMEOUT="${ROTMOE_TURN_TIMEOUT:-180}"

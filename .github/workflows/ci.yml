@@ -350,6 +350,17 @@ jobs:
           [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
           exit $rc
 
+      # THIS ONE DOES RUN HERE, and the distinction is the point of the note
+      # below. `ctt-session.sh --report` does not hold a session -- it ANALYSES
+      # the committed corpus in bench/, which is the evidence behind the
+      # benchmark table in README.md. No claude CLI, no credential, nothing that
+      # forces a permanent SKIP. If the corpus is ever replaced by one whose
+      # gauge records do not recompute, or that drops a lens, or that covers too
+      # few lanes, this step goes red on a public runner.
+      - name: CTT session report -- re-derive the README numbers from the corpus
+        shell: bash
+        run: bash checker/ctt-session.sh --report
+
       # DELIBERATELY NOT RUN HERE: checker/release-session.sh and
       # checker/release-longsession.sh.
       #

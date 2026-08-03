@@ -117,6 +117,7 @@ marketplace session (install as a stranger, router in the loop)|deep|.claude-plu
 live-session smoke|deep|hooks/,agents/|bash checker/live-session-smoke.sh
 release session (every variant, every lane, real CLI)|deep|checker/release|bash checker/release-session.sh
 sustained session (cloned auth, plugin installed, real conversation)|deep|hooks/|bash checker/release-longsession.sh
+CTT session report (the 80-turn corpus the README quotes)|deep|hooks/,checker/ctt-session.sh|bash checker/ctt-session.sh --report
 deferred closure (the runner ran what the dry run could not)|deep|.github/|bash checker/deferred-closure.sh
 "
 fi

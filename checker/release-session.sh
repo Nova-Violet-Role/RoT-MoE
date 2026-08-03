@@ -77,7 +77,17 @@ command -v unzip  >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 2; }
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 # The version IS the variant; an asset name is never derived from the tree's own
 # version. Same map as checker/release-package.sh.
-VARIANT_MAP="core:0.5.0 lean:0.5.1 unsealed:0.5.2"
+# FOURTH AND LAST COPY of a map that has exactly one definition, in
+# checker/release-package.sh. All four had drifted to 0.5.x while the packager
+# built 0.6.x. Parsed, and refused rather than guessed -- see the note in
+# release-install.sh for the full account.
+VARIANT_MAP=$(sed -n 's/^VARIANTS="\(.*\)"$/\1/p' "$REPO/checker/release-package.sh" | head -1)
+case "$VARIANT_MAP" in
+  *core:*|*lean:*|*unsealed:*) : ;;
+  *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANT_MAP')."
+     echo "        Refusing a hardcoded fallback -- that is the drift being removed."
+     exit 2 ;;
+esac
 WANT="${ROTMOE_VARIANTS:-core lean unsealed}"
 
 SESSION_TIMEOUT="${ROTMOE_SESSION_TIMEOUT:-180}"

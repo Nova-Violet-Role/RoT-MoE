@@ -590,10 +590,10 @@ one module is the rule that keeps kills attributable.
 
 Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:
 
-| what | measured 2026-08-03 |
+| what | measured 2026-08-04 |
 |---|---|
-| routing accuracy on a labelled key written *before* the run | **18/18**, covering **9** distinct lanes |
-| cost per turn | **194–256 ms** (three runs of 20 invocations each), of which **~20 ms** is bash process startup |
+| routing accuracy on a labelled key written *before* the run | **18/18**, covering **9** distinct lanes — and **all 10** lanes reached in a live 80-turn session |
+| cost per turn | **194–256 ms** in-gate (three runs of 20 invocations each), of which **~20 ms** is bash process startup; **median 116 ms, p95 175 ms** over 145 firings in a real session |
 | the bound the gate actually enforces | **under 500 ms**, and it fails the build above that |
 | ambiguous prompts (two lanes match) | resolve by the **proved** priority order, deterministically |
 | armed vs disarmed in a real `claude` session | **1 emission vs 0** — attributable to the install |
@@ -781,12 +781,12 @@ module (M01, M05 in `lean/mutate/mutate_rotability.sh`).
 | nine abilities, one per lens, none shared | **PROVED** | `abilityOf_injective`, `one_ability_per_lens` |
 | 🧭 Claude's ability is named *Grounded Truth*, and that name is **coined here, not sourced** | **PROVED** | `claudeAbilityIsNamed`, `every_ability_is_named`, `exactly_one_name_is_coined`, `only_claude_name_is_coined` |
 | **every one of the nine abilities has a proved router-observable effect** | **PROVED** ×9 | `every_ability_effect_holds`, `every_ability_is_proved`, `evidence_split` (9 proved / 0 unmodelled), `no_ability_is_unmodelled` |
-| routing accuracy on a labelled key | **MEASURED** (18/18) | `checker/bench-router.sh` |
+| routing accuracy on a labelled key | **MEASURED** (18/18); all 10 lanes reached in one live 80-turn session | `checker/bench-router.sh`, `checker/ctt-session.sh` |
 | **the modifiers `M`, `C`, `T` factor out of the gauge exactly** — `R/s+(M,C,T) = M·C·T·R/s+(1,1,1)` | **PROVED** | `gauge_separates` |
 | confidence enters linearly, and `C=0` collapses the gauge whatever the divergence | **PROVED** | `gauge_scales_in_C`, `gauge_zero_of_C_zero` |
 | the three modifiers commute — pre-multiplied or applied in the loop is the same engine | **PROVED** | `gauge_modifiers_commute` |
-| the reported `R/s+` is **recomputable** from the logged per-lens terms | **MEASURED** 14/14 live, 2/2 in-gate | `bench-router.sh` §5 |
-| per-turn cost | **MEASURED** 194–256 ms, bounded under 500 ms | `bench-router.sh` §2 |
+| the reported `R/s+` is **recomputable** from the logged per-lens terms | **MEASURED** 240/240 in an 80-turn live session, 2/2 in-gate | `checker/ctt-session.sh --report`, `bench-router.sh` §5 |
+| per-turn cost | **MEASURED** 194–256 ms in-gate; median **116 ms**, p95 **175 ms** over 145 live firings | `bench-router.sh` §2, `checker/ctt-session.sh` |
 | `CREATIVE` really is 🩸 Carnage's lane — every other lens carries strictly less λ **than Carnage does** | **PROVED** ×8 | `carnage_leads_creative` |
 | `EMPATHIC` really is 🎷 Violet's lane, by the same standard | **PROVED** ×8 | `violet_leads_empathic` |
 | a lane **amplifies** its lead rather than merely naming it (Carnage 0.6 → 2.5, Violet 0.6 → 2.3, Chroma 1.0 → 2.4) | **PROVED** | `creative_amplifies_carnage`, `empathic_amplifies_violet`, `predictive_amplifies_chroma`, `lane_leads_carry_weight` |
@@ -954,17 +954,46 @@ the reported `R/s+` is recomputable by hand from those terms — and phase 5 of
 the benchmark does exactly that, then **corrupts a term and requires the check
 to fail**. A recomputation that cannot fail is arithmetic theatre.
 
-**Measured in a real 56-turn CTT coding session** (Lean workspace, plugin
-installed from the shipping archive, `ROTMOE_DEBUG_LOG` armed):
+**Measured in a real 80-turn CTT coding session** (2026-08-04, plugin 0.6.1
+installed from the shipping archive into a separate Claude config, every prompt
+about real files in this repository, `ROTMOE_DEBUG_LOG` armed).
+`checker/ctt-session.sh` runs it and `--report` analyses the corpus; both
+negative controls below were fired to prove the report can fail.
 
 | what the live log shows | measured |
 |---|---|
-| turns logged | **14** gauge records, 14 route records |
-| `R/s+` recomputed from per-lens terms | **14/14 exact**, zero mismatches |
-| lenses per record / `K` | **9 / 9**, every record — no lens dropped out |
-| lane chosen | **FORGE ×14** — correct: every prompt was a Lean build task |
-| router logic, live PowerShell arm | **93–133 ms**, mean **104.6 ms** — *in-script only* |
+| session | **80 turns**, 71 completed clean, one continuous resumed conversation |
+| router firings | **187** route records, **240** gauge records |
+| `R/s+` recomputed from per-lens terms | **240/240 exact** (tol 2e-5), zero mismatches |
+| lenses per record / `K` | **9 / 9 on all 240** — the ninth lens never dropped out |
+| lanes reached | **all 10**: FORGE 78, CONVERGENT 42, CLINICAL 24, EXECUTIVE 8, EMPATHIC 7, RECURSIVE 7, STEALTH 7, CREATIVE 6, PREDICTIVE 6, STRATEGIC 2 |
+| router cost, live bash arm | median **116 ms**, mean **125.7 ms**, p95 **175 ms**, max **335 ms** over 145 timed firings |
 | prompt text in the log | **none** — length only, safe to paste into an issue |
+
+Two things in that table are stronger than anything a unit test can say. The
+whole lane table was exercised **inside one long conversation**, not in nine
+fresh processes — the condition under which a truncated or compacted context is
+most likely to break routing. And `K=9` held on every one of 240 records, which
+is the live counterpart of `every_lens_is_present`: the ninth lens is not merely
+listed in the spec, it participated in every gauge the session computed.
+
+The controls, because a report that cannot fail is decoration: shifting one
+record's `Rs` by +0.5 gives `239 agreed, 1 DISAGREED` and exit 1; stripping one
+record to eight lens terms fails the `K=9` check and exits 1. Both were run, and
+the corpus restored byte-identical afterwards.
+
+**How this corpus was collected, including the part that went wrong.** The run
+was launched with this repository as the session's working directory, and turn 6
+— *"compress the docstring of RotAbility.lean"* — did exactly what it was asked:
+it **edited the file**, rewrote the docstring and added two unreviewed theorems.
+The count went 205 → 207 and `checker/repo-complete.sh` caught it; the edit was
+reverted and the module rebuilt at 205, exit 0, zero warnings. A benchmark that
+mutates the tree it is benchmarking is not a measurement, so
+`checker/ctt-session.sh` now runs every turn from a scratch directory and
+**refuses outright** if that directory resolves inside the repository. The
+routing figures above are unaffected — a lane and an `R/s+` are computed from the
+prompt text alone, before any tool runs — but the collection method was wrong and
+saying so is cheaper than a reader discovering it.
 
 **That last figure is not a per-turn cost, and this README said it was.** The
 debug log's `ms` field starts at `hooks/rot-router.ps1:40` — *inside* the
@@ -1035,7 +1064,7 @@ fails the build over if they ever drift from the Lean corpus.
 | lane coverage of the key | 9 lanes | `bench-router.sh` §1 | **MEASURED** |
 | collision priority | 3 cases, deterministic | `bench-router.sh` §1b + `RotRoute.lean` | **PROVED** in Lean 4 |
 | per-turn cost | **under 500 ms** | `bench-router.sh` §2 | **CLAIM** — the bound is the promise |
-| the latency figure itself | ≈194–256 ms here | 20-run mean | **MEASURED, and it varies** |
+| the latency figure itself | ≈194–256 ms in-gate; median 116 ms live | 20-run mean; 145 live firings | **MEASURED, and it varies** |
 | bash startup inside that | ≈20 ms | subtracted baseline | **MEASURED** |
 | armed-vs-disarmed effect | A/B in a live session | `live-session-smoke.sh` | **MEASURED**, not proved |
 
