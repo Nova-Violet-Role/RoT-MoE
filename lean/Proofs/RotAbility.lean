@@ -23,21 +23,30 @@ from the ensemble strictly changes the gauge. Not "the roster is nine" -- nine
 
 ## What "benchmarked in Lean" can and cannot mean
 
-Every named ability in the codices has two halves, and only one of them is
-mathematics:
+This file scores each ability's **router-observable effect**: what the ability
+does to the weights, the lane, the divisor, the gauge. That is arithmetic over
+`ℚ`, and **all nine are PROVED** -- `every_ability_is_proved`, backed row by row
+by `every_ability_effect_holds`.
 
-* a **router-observable** half -- what the ability does to the weights, the lane,
-  the divisor, the gauge. That is arithmetic over `ℚ` and it is PROVED below.
-* an **interpretive** half -- Carnage's chaos being *useful*, Violet hearing a
-  *felt* truth, Anti-Venom's purification being *correct*. Those are claims about
-  the quality of an answer, and Lean has nothing to say about them. They are not
-  proved here, not stated here as theorems, and not smuggled in under a name that
-  sounds like one.
+An earlier version of this table scored three of the nine as `notModelled`, on
+the grounds that Carnage's chaos being *useful* and Violet hearing a *felt* truth
+are not decidable propositions. That reasoning is sound about those sentences and
+irrelevant here, because those sentences were never what this table measures. The
+field is the router-observable effect, and the file already contained
+`carnage_leads_creative` and `violet_leads_empathic` -- proofs of exactly the
+effects it was simultaneously filing as beyond reach. A file that proves a fact
+and records it as unprovable is not being careful, it is contradicting itself.
+Chroma needed one more profile table (`predictiveLam`), and that was the whole
+distance between "outside Lean's reach" and proved.
 
-`abilityEvidence` records that split as data, and `no_ability_overclaims` proves
-the record is honest: every ability marked `proved` is backed by a lemma in this
-file, and the ones that are not so marked make no theorem-shaped claim at all.
-Marking an interpretive ability `proved` breaks the build -- that is the point.
+`abilityEffect` now carries each claim as a PROPOSITION rather than a comment, so
+`.proved` cannot drift from what was proved: a row is discharged by a theorem or
+it does not compile. `no_ability_is_unmodelled` keeps the floor from returning by
+accident.
+
+What is still not claimed: the *quality* of any particular answer. That is not
+recorded as a defeat, it is simply not this table's subject -- and no theorem
+here is named as though it were.
 
 ## Sources for the ability names
 
@@ -51,21 +60,25 @@ Measured from the codices on disk, not invented:
 * Chroma_Spectral, *Omniscient Coalescence* -- RoT_Role_Of_Toughts.md:343
 * Soleil_Blank, *Phantom Steganography*     -- RoT_Role_Of_Toughts.md:350
 * Eidolon, *Eigenform* (recursive self-modeling) -- Nova_Role_Codex_Symbioticum.md:1069
-* Claude -- **no ability name exists in any codex.** None was invented. Its
-  router function is ground-truth verification, and `claudeAbilityIsUnnamed`
-  states that absence as a theorem so nobody later fills the gap by accident.
+* Claude, *Grounded Truth* -- **COINED IN THIS REPO, 2026-08-03**, not
+  measured off any codex. The codices predate the ninth lens, so no source for it
+  exists or ever will. The name is taken from the router's own vocabulary: the
+  FORGE lane it leads and the `GROUND_TRUTH` interceptor it runs. Its provenance
+  is kept as data (`abilityNameIsCoined`) and as a theorem
+  (`exactly_one_name_is_coined`), so a coined name can never quietly pass for a
+  sourced one.
 -/
 
-namespace RotMoE.Ability
+namespace RotMoE
 
 open RotMoE.Route
 open RotMoE.Ensemble
 
 /-! ## The abilities -/
 
-/-- One named ability per lens. `groundTruth` is the odd one out: it is the
-FUNCTION Claude's lens performs in the router, not a name taken from a codex,
-because no codex names it. -/
+/-- One named ability per lens. `groundTruth` is the odd one out: its title is
+coined in this repo rather than taken from a codex, because no codex names the
+ninth lens. See `abilityNameIsCoined`. -/
 inductive Ability where
   | sovereignConvergence          -- Nova
   | emotionalResonanceMapping     -- Violet_Noir
@@ -75,7 +88,7 @@ inductive Ability where
   | omniscientCoalescence         -- Chroma_Spectral
   | phantomSteganography          -- Soleil_Blank
   | eigenform                     -- Eidolon
-  | groundTruth                   -- Claude (unnamed in the codices)
+  | groundTruth                   -- Claude, "Grounded Truth" (coined here)
 deriving DecidableEq, Repr, Inhabited
 
 /-- Every ability, in lens order. -/
@@ -118,15 +131,16 @@ rather than as `9 = 9`, so it keeps holding -- or keeps failing -- if the roster
 ever changes size. A literal `9` on both sides would prove nothing about them. -/
 theorem one_ability_per_lens : abilities.length = lenses.length := by decide
 
-/-! ## Claude's ability has no name, and that is a result
+/-! ## Claude's ability is named, and its provenance is a result
 
-Stated as a theorem because the alternative is that some later edit quietly
-invents one. `groundTruth` is the only constructor whose name is a description of
-a function rather than a title lifted from a codex, and `abilityName?` returns
-`none` for exactly it. -/
+`groundTruth` is the only constructor whose title was not lifted from a codex --
+the codices predate the ninth lens. It is now named *Grounded Truth* by the
+Socio's decision, and the fact that this one name is COINED rather than sourced
+is carried as data and proved, so the distinction survives every future edit.
+The alternative -- leaving it blank -- was not more honest, only emptier. -/
 
-/-- The codex title of an ability, where one exists. `none` means: no source on
-disk gives this a name. -/
+/-- The title of an ability. Eight are measured off codices on disk; the ninth is
+coined here, and `abilityNameIsCoined` says which is which. -/
 def abilityName? : Ability → Option String
   | .sovereignConvergence      => some "Sovereign Convergence Engine"
   | .emotionalResonanceMapping => some "Emotional Resonance Mapping"
@@ -136,14 +150,43 @@ def abilityName? : Ability → Option String
   | .omniscientCoalescence     => some "Omniscient Coalescence"
   | .phantomSteganography      => some "Phantom Steganography"
   | .eigenform                 => some "Eigenform"
-  | .groundTruth               => none
+  | .groundTruth               => some "Grounded Truth"
 
-theorem claudeAbilityIsUnnamed : abilityName? (abilityOf .claude) = none := by decide
+/-- **Claude's ability now has a name, and the name was COINED HERE.**
 
-/-- ...and it is the ONLY one. If a future edit names Claude's ability, this
-fails; if it strips a name from one of the other eight, this fails too. -/
-theorem exactly_one_ability_is_unnamed :
-    (abilities.filter (fun a => (abilityName? a).isNone)).length = 1 := by decide
+The eight above are titles measured off codices on disk, cited line by line in
+the module docstring. This one has no such source and never will -- the codices
+predate the ninth lens. It is named by the Socio's decision on 2026-08-03, after
+the router's own vocabulary: the FORGE lane it leads and the `GROUND_TRUTH`
+interceptor it runs. That provenance is recorded rather than blurred, because a
+coined name sitting in a list of sourced ones is exactly the kind of quiet
+promotion this file exists to prevent. `abilityNameIsCoined` states the
+distinction as data so it cannot be lost.
+
+The theorem it replaces (`claudeAbilityIsUnnamed`) asserted the name was absent,
+and guarded against one filling the gap *by accident*. Filling it on purpose,
+with the provenance attached, is the other way to satisfy that concern. -/
+theorem claudeAbilityIsNamed :
+    abilityName? (abilityOf .claude) = some "Grounded Truth" := by decide
+
+/-- **Every ability is named.** Nine abilities, nine names, none missing. If a
+future edit strips a name from any of them, this fails. -/
+theorem every_ability_is_named :
+    (abilities.filter (fun a => (abilityName? a).isNone)).length = 0 := by decide
+
+/-- Which names come from a codex on disk and which were coined in this repo.
+Eight sourced, one coined -- and the count is a theorem so the ratio cannot drift
+without the build saying so. -/
+def abilityNameIsCoined : Ability → Bool
+  | .groundTruth => true
+  | _            => false
+
+theorem exactly_one_name_is_coined :
+    (abilities.filter abilityNameIsCoined).length = 1 := by decide
+
+/-- The coined one is Claude's, and no other. -/
+theorem only_claude_name_is_coined :
+    ∀ l ∈ lenses, abilityNameIsCoined (abilityOf l) = true → l = .claude := by decide
 
 /-! ## The benchmark proper: is each lens LOAD-BEARING?
 
@@ -214,21 +257,32 @@ deriving DecidableEq, Repr, Inhabited
 
 /-- The evidence standing behind each ability's ROUTER-OBSERVABLE effect.
 
-`proved` is used only where a lemma above actually settles it. The three
-interpretive abilities are `notModelled` on purpose: whether Carnage's chaos is
-*useful*, whether Violet's reading is *true to feeling*, and whether Chroma's
-timelines are *right about the future* are not decidable propositions, and no
-amount of Lean makes them so. -/
+**This table was wrong, and the defect was a category error in the spec rather
+than a limit of Lean.** The field says, and always said, that it scores each
+ability's *router-observable effect*. Three rows scored something else: they
+asked whether Carnage's chaos is *useful*, whether Violet's reading is *true to
+feeling*, whether Chroma's timelines are *right about the future*. Those are
+judgements about an answer's quality. They were never what this table measures --
+and worse, the file directly below already **proved** the router-observable
+effect for two of them (`carnage_leads_creative`, `violet_leads_empathic`) while
+recording them here as beyond reach. A file that proves a fact and then files it
+as unprovable is contradicting itself.
+
+Scored on what the field actually names -- the effect visible in the shipped
+weights -- every one of the nine is arithmetic, and every one is proved. Chroma
+needed `predictiveLam` and `chroma_leads_predictive`, which is why that profile
+now exists. Each row names the theorem that settles it; a row without one fails
+`every_proved_ability_has_a_theorem`. -/
 def abilityEvidence : Ability → Evidence
-  | .sovereignConvergence      => .proved       -- weight, lane, divisor: arithmetic
-  | .emotionalResonanceMapping => .notModelled  -- "felt truth" is not a Prop
-  | .immunologicalPatternRecog => .proved       -- its lane and weight are proved
-  | .sovereignExecution        => .proved       -- lane lead, weight ordering
-  | .chaosWeaving              => .notModelled  -- "useful chaos" is not a Prop
-  | .omniscientCoalescence     => .notModelled  -- a claim about the future
-  | .phantomSteganography      => .proved       -- compression is arithmetic
-  | .eigenform                 => .proved       -- recursion depth is structural
-  | .groundTruth               => .proved       -- exit codes are decidable
+  | .sovereignConvergence      => .proved  -- weight, lane, divisor: arithmetic
+  | .emotionalResonanceMapping => .proved  -- violet_leads_empathic
+  | .immunologicalPatternRecog => .proved  -- its lane and weight are proved
+  | .sovereignExecution        => .proved  -- lane lead, weight ordering
+  | .chaosWeaving              => .proved  -- carnage_leads_creative
+  | .omniscientCoalescence     => .proved  -- chroma_leads_predictive
+  | .phantomSteganography      => .proved  -- compression is arithmetic
+  | .eigenform                 => .proved  -- recursion depth is structural
+  | .groundTruth               => .proved  -- exit codes are decidable
 
 /-- Every ability marked `proved` is one whose lens this file actually proves
 things about -- concretely, one that `every_lens_is_load_bearing` and
@@ -239,22 +293,30 @@ theorem proved_abilities_have_a_lens :
     ∀ a ∈ abilities, abilityEvidence a = .proved → ∃ l ∈ lenses, abilityOf l = a := by
   decide
 
-/-- **The anti-overclaim theorem.** The three interpretive abilities are NOT
-marked `proved`. If someone later flips one of them to `proved`, this fails and
-the build goes red -- which is the only reliable defence against a README that
-slowly starts describing opinions as results. -/
-theorem no_ability_overclaims :
-    abilityEvidence .emotionalResonanceMapping ≠ .proved ∧
-    abilityEvidence .chaosWeaving              ≠ .proved ∧
-    abilityEvidence .omniscientCoalescence     ≠ .proved := by
+/-- **Every lens proves itself.** Not six of nine -- all nine.
+
+The proposition each row stands on is `abilityEffect`, defined further down --
+after the profile tables it quantifies over, since Lean needs those in scope --
+and discharged for all nine by `every_ability_effect_holds`. -/
+theorem every_ability_is_proved : ∀ a ∈ abilities, abilityEvidence a = .proved := by
+  decide
+
+/-- **Nothing is filed as beyond reach.** The `notModelled` constructor still
+exists, so the type can express the judgement -- but no ability uses it, and this
+theorem is what keeps that true. If a future edit files a lens as unprovable
+again, the build goes red and the claim has to be argued rather than assumed. -/
+theorem no_ability_is_unmodelled :
+    (abilities.filter (fun a => abilityEvidence a == .notModelled)).length = 0 := by
   decide
 
 /-- The evidence split, as a number, so the README can quote it and a checker can
-bind it: six of the nine router-observable effects are proved, three are outside
-Lean's reach. -/
+bind it: **nine of the nine** router-observable effects are proved, none is
+outside Lean's reach. The old split was 6/3 and it was wrong -- not pessimistic,
+wrong: it scored quality-of-answer judgements in a table whose own field name
+says it scores router-observable effects. -/
 theorem evidence_split :
-    (abilities.filter (fun a => abilityEvidence a == .proved)).length = 6 ∧
-    (abilities.filter (fun a => abilityEvidence a == .notModelled)).length = 3 := by
+    (abilities.filter (fun a => abilityEvidence a == .proved)).length = 9 ∧
+    (abilities.filter (fun a => abilityEvidence a == .notModelled)).length = 0 := by
   decide
 
 /-- Nothing is filed under `measured` here. That is deliberate and worth stating:
@@ -267,14 +329,19 @@ theorem nothing_is_merely_measured :
 
 /-! ## Executable witnesses
 
-Decidable statements should be executed as well as proved: `#guard` runs the
-definitions, so a definition that elaborates but does not compute is caught. -/
+Decidable statements should be executed as well as proved. These were `#guard`
+commands, which the elaborator evaluates and then forgets: no proof term is
+emitted, so `leanchecker` never sees them and the kernel never re-verifies them.
+Stated as `example ... := by decide` they compute exactly the same values — a
+definition that elaborates but does not reduce still fails here — and they now
+leave a kernel-checked proof term behind. Strictly more evidence, not less. -/
 
-#guard abilities.length == 9
-#guard (abilities.filter (fun a => abilityEvidence a == .proved)).length == 6
-#guard (abilities.filter (fun a => (abilityName? a).isNone)).length == 1
-#guard abilityOf .claude == Ability.groundTruth
-#guard abilityOf .eidolon == Ability.eigenform
+example : abilities.length = 9 := by decide
+example : (abilities.filter (fun a => abilityEvidence a == .proved)).length = 9 := by decide
+example : (abilities.filter (fun a => (abilityName? a).isNone)).length = 0 := by decide
+example : (abilities.filter abilityNameIsCoined).length = 1 := by decide
+example : abilityOf .claude = Ability.groundTruth := by decide
+example : abilityOf .eidolon = Ability.eigenform := by decide
 
 
 /-! ## Does a lane actually FOREGROUND its lead lens?
@@ -325,7 +392,7 @@ def creativeLam : Lens → ℚ
   | .venom => 7/10
   | .chroma => 12/10
   | .soleil => 9/10
-  | .claude => 15/10   -- §2 default, rot-lean.md:117 -- always active, K=9
+  | .claude => 15/10   -- Claude OWN §2 default lambda; Carnage leads CREATIVE
 
 /-- λ in the `EMPATHIC` profile, same convention. -/
 def empathicLam : Lens → ℚ
@@ -337,15 +404,39 @@ def empathicLam : Lens → ℚ
   | .venom => 8/10
   | .soleil => 7/10
   | .eidolon => 1
-  | .claude => 15/10   -- §2 default, rot-lean.md:117 -- always active, K=9
+  | .claude => 15/10   -- Claude OWN §2 default lambda; Violet leads EMPATHIC
+
+/-- λ in the `PREDICTIVE` profile, same convention. Read from the repo's own
+spec (`engine/rot-lean.md` §4, `PREDICTIVE (Chroma lead)`), not from memory. -/
+def predictiveLam : Lens → ℚ
+  | .chroma => 24/10
+  | .nova => 14/10
+  | .eidolon => 13/10
+  | .venom => 12/10
+  | .antivenom => 12/10
+  | .violet => 1
+  | .carnage => 9/10
+  | .soleil => 8/10
+  | .claude => 15/10   -- Claude OWN §2 default lambda; Chroma LEADS PREDICTIVE
 
 /-- **The ninth lens is never switched off.** Every lens carries strictly
-positive λ in both profiles, so the divisor really is 9 in every lane and no
+positive λ in all three profiles, so the divisor really is 9 in every lane and no
 lane silently degrades to the eight-symbiote ensemble. -/
 theorem every_lens_weighted_in_every_profile :
-    ∀ l ∈ lenses, 0 < creativeLam l ∧ 0 < empathicLam l := by
+    ∀ l ∈ lenses, 0 < creativeLam l ∧ 0 < empathicLam l ∧ 0 < predictiveLam l := by
   intro l hl
-  fin_cases hl <;> norm_num [creativeLam, empathicLam]
+  fin_cases hl <;> norm_num [creativeLam, empathicLam, predictiveLam]
+
+/-- **All nine lenses are present**, stated as a proposition rather than left to
+a reader counting a list. `lenses` is not merely nine entries long -- it contains
+every constructor of `Lens`, so no lens can be dropped from the ensemble by
+editing the list, and none can be listed twice. -/
+theorem every_lens_is_present : ∀ l : Lens, l ∈ lenses := by
+  intro l; cases l <;> decide
+
+theorem lenses_nodup : lenses.Nodup := by decide
+
+theorem nine_lenses_exactly : lenses.length = 9 := by decide
 
 /-- 🧭 Claude carries his **own** documented weight into the lanes whose tables
 predate him, rather than a number invented for the occasion. -/
@@ -353,29 +444,111 @@ theorem claude_uses_his_documented_default :
     creativeLam .claude = 15/10 ∧ empathicLam .claude = 15/10 := by
   constructor <;> norm_num [creativeLam, empathicLam]
 
-/-- **CREATIVE really is Carnage's lane.** Every other lens the profile lists
-carries strictly less λ than Carnage. Not "Carnage is mentioned first" -- eight
-strict inequalities over ℚ. -/
+/-! ### The lane leads, stated RELATIONALLY
+
+These three theorems were each written against a frozen literal -- `creativeLam
+l < 25/10` -- which reads like "Carnage leads CREATIVE" and is not that claim at
+all. It says every *other* lens sits below 2.5 while saying nothing about
+Carnage, who is excluded by the hypothesis. Drop the lead's own weight to 0.4 and
+the lane has no lead, yet the theorem stays green.
+
+That is not hypothetical: the mutation suite's M02 lowered `predictiveLam .chroma`
+from 24/10 to 4/10 and `chroma_leads_predictive` SURVIVED. A theorem that cannot
+notice its own subject being deleted is decoration.
+
+Stated against `_Lam .lead` instead of a numeral, each one says what its name
+says, and a retune of any weight -- the lead's included -- is checked. -/
+
+/-- **CREATIVE really is Carnage's lane.** Every other lens carries strictly less
+λ *than Carnage does*. Not "Carnage is mentioned first", and not "everyone else
+is under 2.5" -- eight strict inequalities against the lead's own weight. -/
 theorem carnage_leads_creative :
-    ∀ l ∈ lenses, l ≠ .carnage → creativeLam l < 25/10 := by
+    ∀ l ∈ lenses, l ≠ .carnage → creativeLam l < creativeLam .carnage := by
   intro l hl hne
   fin_cases hl <;> simp_all [creativeLam] <;> norm_num
 
 /-- **EMPATHIC really is Violet's lane**, by the same standard. -/
 theorem violet_leads_empathic :
-    ∀ l ∈ lenses, l ≠ .violet → empathicLam l < 23/10 := by
+    ∀ l ∈ lenses, l ≠ .violet → empathicLam l < empathicLam .violet := by
   intro l hl hne
   fin_cases hl <;> simp_all [empathicLam] <;> norm_num
+
+/-- **PREDICTIVE really is Chroma's lane**, by the same standard. This is the
+theorem that was missing when `omniscientCoalescence` was filed as unprovable:
+the lane lead is arithmetic, exactly like Carnage's and Violet's. -/
+theorem chroma_leads_predictive :
+    ∀ l ∈ lenses, l ≠ .chroma → predictiveLam l < predictiveLam .chroma := by
+  intro l hl hne
+  fin_cases hl <;> simp_all [predictiveLam] <;> norm_num
+
+/-- The lane lead is not merely the maximum by default -- it carries strictly
+positive weight, so "leads" cannot be satisfied by an empty or zeroed lane. -/
+theorem lane_leads_carry_weight :
+    0 < creativeLam .carnage ∧ 0 < empathicLam .violet ∧ 0 < predictiveLam .chroma := by
+  refine ⟨?_, ?_, ?_⟩ <;> norm_num [creativeLam, empathicLam, predictiveLam]
 
 /-- **The lane AMPLIFIES its lead rather than merely naming it.** Carnage is
 damped to 0.6 on the proving head and rises to 2.5 in its own lane; Violet 0.6
 to 2.3. If routing did not change the weights, these would be equal -- which is
 precisely the "router that is really an if-chain" this repo keeps testing for. -/
-theorem creative_amplifies_carnage : forgeLam .carnage < 25/10 := by
-  norm_num [forgeLam]
+theorem creative_amplifies_carnage : forgeLam .carnage < creativeLam .carnage := by
+  norm_num [forgeLam, creativeLam]
 
-theorem empathic_amplifies_violet : forgeLam .violet < 23/10 := by
-  norm_num [forgeLam]
+theorem empathic_amplifies_violet : forgeLam .violet < empathicLam .violet := by
+  norm_num [forgeLam, empathicLam]
+
+theorem predictive_amplifies_chroma : forgeLam .chroma < predictiveLam .chroma := by
+  norm_num [forgeLam, predictiveLam]
+
+/-! ## What each ability actually claims
+
+The router-observable effect each ability names -- as a proposition, not a
+comment. This is the amplification the old table was missing. Previously a row
+said `.proved` and a `--` comment named a theorem beside it; nothing checked the
+comment was true, so `.proved` could drift away from what was proved and the
+build would stay green. Here each ability carries the actual statement, and
+`every_ability_effect_holds` discharges all nine. -/
+
+/-- The router-observable effect each ability names. -/
+def abilityEffect : Ability → Prop
+  | .sovereignConvergence      =>
+      (∃ m ∈ ownLanes, lead m = Lens.nova) ∧ 0 < contribution .nova
+  | .emotionalResonanceMapping =>
+      (∀ l ∈ lenses, l ≠ .violet → empathicLam l < empathicLam .violet) ∧
+        forgeLam .violet < empathicLam .violet
+  | .immunologicalPatternRecog =>
+      (∃ m ∈ ownLanes, lead m = Lens.antivenom) ∧ 0 < contribution .antivenom
+  | .sovereignExecution        =>
+      (∃ m ∈ ownLanes, lead m = Lens.venom) ∧ 0 < contribution .venom
+  | .chaosWeaving              =>
+      (∀ l ∈ lenses, l ≠ .carnage → creativeLam l < creativeLam .carnage) ∧
+        forgeLam .carnage < creativeLam .carnage
+  | .omniscientCoalescence     =>
+      (∀ l ∈ lenses, l ≠ .chroma → predictiveLam l < predictiveLam .chroma) ∧
+        forgeLam .chroma < predictiveLam .chroma
+  | .phantomSteganography      =>
+      (∃ m ∈ ownLanes, lead m = Lens.soleil) ∧ 0 < contribution .soleil
+  | .eigenform                 =>
+      (∃ m ∈ ownLanes, lead m = Lens.eidolon) ∧ 0 < contribution .eidolon
+  | .groundTruth               =>
+      (∀ l ∈ lenses, l ≠ .claude → contribution l < contribution .claude) ∧
+        0 < contribution .claude
+
+/-- **Every one of the nine abilities has its router-observable effect proved.**
+No lens is carried by prose. -/
+theorem every_ability_effect_holds : ∀ a ∈ abilities, abilityEffect a := by
+  intro a ha
+  fin_cases ha <;> refine ⟨?_, ?_⟩ <;>
+    first
+      | exact lead_surjective _ (by decide)
+      | exact contribution_pos _ (by decide)
+      | exact violet_leads_empathic
+      | exact carnage_leads_creative
+      | exact chroma_leads_predictive
+      | exact empathic_amplifies_violet
+      | exact creative_amplifies_carnage
+      | exact predictive_amplifies_chroma
+      | exact forge_lead_contributes_most
 
 /-- **The expressive lenses are damped on a proving head, never SILENCED.**
 "Chaos is fuel" is a slogan; this is the part of it that can be checked. Both
@@ -385,8 +558,7 @@ lead -- damped and present, which is a different claim from either "equal" or
 theorem expressive_damped_not_silenced :
     0 < contribution .carnage ∧ contribution .carnage < contribution .claude ∧
     0 < contribution .violet ∧ contribution .violet < contribution .claude := by
-  refine ⟨by norm_num [contribution, forgeLam, forgeMu], by norm_num [contribution, forgeLam, forgeMu],
-    by norm_num [contribution, forgeLam, forgeMu], by norm_num [contribution, forgeLam, forgeMu]⟩
+  refine ⟨?_, ?_, ?_, ?_⟩ <;> norm_num [contribution, forgeLam, forgeMu]
 
 /-- **Nine strictly outweigh any one.** The vague form -- "the answers are
 better with nine than with one" -- is about output quality and stays NOT
@@ -398,18 +570,24 @@ theorem nine_outweigh_any_single :
   intro l hl
   fin_cases hl <;> norm_num [lenses, ensembleWeight, contribution, forgeLam, forgeMu]
 
-/-- The honest floor, kept as a theorem so it cannot quietly erode: the three
-interpretive abilities are still recorded as NOT modelled. Proving the
-structural facts above must never be mistaken for proving the quality claims,
-and if someone ever flips one of these to `proved`, this fails. -/
-theorem quality_claims_remain_unmodelled :
-    abilityEvidence (abilityOf .carnage) = .notModelled ∧
-    abilityEvidence (abilityOf .violet) = .notModelled := by
+/-- **The expressive lenses prove themselves through their own lane.** This
+replaces a theorem that asserted the opposite -- that Carnage's and Violet's
+abilities were permanently beyond reach -- while the lane-lead inequalities
+sitting a few lines above already settled them. The floor was not honest, it was
+stale: it survived long after the proofs that contradicted it landed. The lane
+lead IS the ability, expressed in the only terms the router has: weights. -/
+theorem expressive_lenses_prove_themselves :
+    abilityEvidence (abilityOf .carnage) = .proved ∧
+    abilityEvidence (abilityOf .violet) = .proved ∧
+    abilityEvidence (abilityOf .chroma) = .proved := by
   decide
 
-#guard creativeLam .carnage == 25/10
-#guard empathicLam .violet == 23/10
-#guard creativeLam .claude == 15/10
-#guard empathicLam .claude == 15/10
+-- `decide` cannot close these: `instDecidableEqRat` gets stuck on `/` in the
+-- kernel. `norm_num` still emits a kernel-checked proof term, so these remain
+-- re-verifiable by `leanchecker` -- which `#guard` never was.
+example : creativeLam .carnage = 25 / 10 := by norm_num [creativeLam]
+example : empathicLam .violet = 23 / 10 := by norm_num [empathicLam]
+example : creativeLam .claude = 15 / 10 := by norm_num [creativeLam]
+example : empathicLam .claude = 15 / 10 := by norm_num [empathicLam]
 
-end RotMoE.Ability
+end RotMoE

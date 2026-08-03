@@ -55,7 +55,7 @@ esac
 # --- THE VARIANT MAP ----------------------------------------------------------
 # One place, read by everything below. Adding a variant means adding a line here
 # and a paths block; nothing else in this file hard-codes a variant name.
-VARIANTS="core:0.5.0 lean:0.5.1 unsealed:0.5.2"
+VARIANTS="core:0.6.0 lean:0.6.1 unsealed:0.6.2"
 
 # The tree's own version must be one of the variants, and by convention the
 # HIGHEST -- that is the version the newest tag will carry, and

@@ -104,13 +104,13 @@ theorem normalize_posix_id {rest : List Char} (h : '\\' ∉ rest)
   unfold normalize
   rw [slashify_eq_self_of_no_backslash h]
   cases rest with
-  | nil => simp [normalize]
+  | nil => simp
   | cons a t =>
       cases t with
-      | nil => simp [normalize]
+      | nil => simp
       | cons b t2 =>
           cases t2 with
-          | nil => simp [normalize]
+          | nil => simp
           | cons c t3 =>
               by_cases hb : b = ':'
               · subst hb

@@ -45,10 +45,28 @@ REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 
 # THE VERSION IS THE VARIANT, so an asset's name cannot be derived from the
 # tree's own version -- that produced `rot-moe-0.5.2-core.zip`, a file that has
-# never existed. This map is the same one checker/release-package.sh builds
-# from; the two must stay in step, which the assertion below enforces rather
-# than trusting.
-VARIANTS="core:0.5.0 lean:0.5.1 unsealed:0.5.2"
+# never existed.
+#
+# THIS MAP USED TO BE A SECOND COPY of the one in checker/release-package.sh,
+# with a comment claiming "the two must stay in step, which the assertion below
+# enforces rather than trusting". No assertion did. Measured 2026-08-03: the
+# packager moved to 0.6.x, this copy stayed at 0.5.x, and the gate REFUSED
+# looking for `rot-moe-0.5.0-core.zip` -- an archive the tree no longer builds.
+# The failure was loud, but it was a false alarm about the wrong thing, and the
+# tempting repair is to hand-edit the copy again.
+#
+# A duplicated constant with a promise attached is still a duplicated constant.
+# This repo has already shipped that exact defect once (a duplicate weight table
+# the binding checker was validating instead of the real one). So the map is now
+# PARSED from the packager, which is the only place it is defined.
+VARIANTS=$(sed -n 's/^VARIANTS="\(.*\)"$/\1/p' "$REPO/checker/release-package.sh" | head -1)
+case "$VARIANTS" in
+  *core:*|*lean:*|*unsealed:*) : ;;
+  *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANTS')."
+     echo "        Refusing to fall back to a hardcoded map -- that is the drift this"
+     echo "        block was rewritten to make impossible."
+     exit 2 ;;
+esac
 version_of () { for vp in $VARIANTS; do [ "${vp%%:*}" = "$1" ] && { printf '%s' "${vp#*:}"; return; }; done; }
 
 # --- a bound that does not assume GNU coreutils ------------------------------

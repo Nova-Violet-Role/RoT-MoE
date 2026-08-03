@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **195
+lens activities off disk, computes an `R/s+` gauge from them, and **205
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -251,7 +251,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **67 applied, 67 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **72 applied, 72 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -737,7 +737,7 @@ ensemble it actually has.
 
 This is the question worth asking, so it gets a straight answer instead of an
 enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the
-**structure**; `lean/Proofs/RotAbility.lean` (25 theorems) proves each lens is
+**structure**; `lean/Proofs/RotAbility.lean` (35 theorems) proves each lens is
 **load-bearing** and pins what is *not* provable so it cannot drift into a claim.
 Nothing proves the *thinking*.
 
@@ -747,10 +747,21 @@ ensemble. That is nine separate inequalities over ℚ, not one statement about a
 list length — a lens whose removal changed nothing would be listed, weighted,
 documented, and inert, and this is what rules that out.
 
-The second is `no_ability_overclaims`, which is a theorem *about the
-documentation*: the three interpretive abilities are recorded as `notModelled`,
-and marking any of them `proved` fails the build. Mutation-tested — flipping
-Carnage's chaos to `proved` killed it (5 error lines).
+The second is `every_ability_effect_holds`, and it replaced a theorem that was
+quietly wrong. That table used to score three of the nine abilities
+`notModelled`, reasoning that Carnage's chaos being *useful* is not a decidable
+proposition. True — and beside the point, because the field records each
+ability's **router-observable effect**, not a judgement about prose. The file
+already contained `carnage_leads_creative` and `violet_leads_empathic`: proofs of
+exactly the effects it was filing as beyond reach. Chroma needed one more lane
+table (`predictiveLam`) and that was the entire distance between "outside Lean's
+reach" and proved.
+
+**All nine are now proved**, and each row carries its claim as a *proposition*
+(`abilityEffect`) rather than a comment, so `.proved` cannot drift from what was
+proved — a row is discharged by a theorem or the module does not compile.
+Mutation-tested: filing any ability back as `notModelled` or `measured` kills the
+module (M01, M05 in `lean/mutate/mutate_rotability.sh`).
 
 | Claim about the nine | Status | Instrument |
 |---|---|---|
@@ -768,24 +779,25 @@ Carnage's chaos to `proved` killed it (5 error lines).
 | no single lens carries half the ensemble | **PROVED** | `no_lens_dominates` |
 | the FORGE lead outweighs each of the other eight | **PROVED** | `forge_lead_contributes_most` |
 | nine abilities, one per lens, none shared | **PROVED** | `abilityOf_injective`, `one_ability_per_lens` |
-| 🧭 Claude's ability has **no name in any codex** | **PROVED** | `claudeAbilityIsUnnamed`, `exactly_one_ability_is_unnamed` |
-| the documentation does not mark opinions as proved | **PROVED** | `no_ability_overclaims`, `evidence_split` (6 proved / 3 not modelled) |
+| 🧭 Claude's ability is named *Grounded Truth*, and that name is **coined here, not sourced** | **PROVED** | `claudeAbilityIsNamed`, `every_ability_is_named`, `exactly_one_name_is_coined`, `only_claude_name_is_coined` |
+| **every one of the nine abilities has a proved router-observable effect** | **PROVED** ×9 | `every_ability_effect_holds`, `every_ability_is_proved`, `evidence_split` (9 proved / 0 unmodelled), `no_ability_is_unmodelled` |
 | routing accuracy on a labelled key | **MEASURED** (18/18) | `checker/bench-router.sh` |
 | **the modifiers `M`, `C`, `T` factor out of the gauge exactly** — `R/s+(M,C,T) = M·C·T·R/s+(1,1,1)` | **PROVED** | `gauge_separates` |
 | confidence enters linearly, and `C=0` collapses the gauge whatever the divergence | **PROVED** | `gauge_scales_in_C`, `gauge_zero_of_C_zero` |
 | the three modifiers commute — pre-multiplied or applied in the loop is the same engine | **PROVED** | `gauge_modifiers_commute` |
 | the reported `R/s+` is **recomputable** from the logged per-lens terms | **MEASURED** 14/14 live, 2/2 in-gate | `bench-router.sh` §5 |
 | per-turn cost | **MEASURED** 194–256 ms, bounded under 500 ms | `bench-router.sh` §2 |
-| `CREATIVE` really is 🩸 Carnage's lane — every other lens it lists carries strictly less λ | **PROVED** ×8 | `carnage_leads_creative` |
+| `CREATIVE` really is 🩸 Carnage's lane — every other lens carries strictly less λ **than Carnage does** | **PROVED** ×8 | `carnage_leads_creative` |
 | `EMPATHIC` really is 🎷 Violet's lane, by the same standard | **PROVED** ×8 | `violet_leads_empathic` |
-| a lane **amplifies** its lead rather than merely naming it (Carnage 0.6 → 2.5, Violet 0.6 → 2.3) | **PROVED** | `creative_amplifies_carnage`, `empathic_amplifies_violet` |
+| a lane **amplifies** its lead rather than merely naming it (Carnage 0.6 → 2.5, Violet 0.6 → 2.3, Chroma 1.0 → 2.4) | **PROVED** | `creative_amplifies_carnage`, `empathic_amplifies_violet`, `predictive_amplifies_chroma`, `lane_leads_carry_weight` |
 | the expressive lenses are damped on a proving head but **never silenced** | **PROVED** | `expressive_damped_not_silenced` |
 | nine lenses strictly outweigh **any** single lens | **PROVED** ×9 | `nine_outweigh_any_single` |
 | **chaos is *useful*, in the gauge's own units** — the marginal return on divergence is maximal at the median and strictly lower anywhere else | **PROVED** | `marginal_gain_le_quarter`, `marginal_gain_lt_quarter_off_center`, `marginal_gain_max_iff_center` |
 | **pure chaos pays strictly less than productive divergence** | **PROVED** | `pure_chaos_pays_less` |
 | **conformism pays strictly less too — by the same theorem, not a second rule** | **PROVED** | `conformism_pays_less` |
 | the gauge is symmetric about the median: σ(x) + σ(1−x) = 1 | **PROVED** | `sigma_symm_about_center` |
-| the *wording* of any particular answer is good | **NOT MODELLED** | that is a judgement about prose, and `quality_claims_remain_unmodelled` fails the build if anyone marks it proved |
+| `PREDICTIVE` really is 🔮 Chroma's lane, by the same standard | **PROVED** ×8 | `chroma_leads_predictive` |
+| the three lane tables equal the spec they were transcribed from | **CHECKED** | `checker/profile-bind.sh` (9/9, with controls) |
 
 **"Useful chaos" is not a mood — it is a property of the sigmoid, and it is
 proved.** The specification does not merely praise divergence; it states exactly

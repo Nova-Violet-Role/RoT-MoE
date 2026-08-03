@@ -24,6 +24,92 @@ that honest.
 
 ---
 
+## [0.6.0] · [0.6.1] · [0.6.2] — 2026-08-04
+
+Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
+`2` unsealed.
+
+### Every lens now proves itself — the evidence table was wrong, not Lean
+
+`RotAbility.lean` scored three of the nine abilities `notModelled`, on the
+grounds that Carnage's chaos being *useful* is not a decidable proposition. That
+is true of the sentence and irrelevant to the field, which records each ability's
+**router-observable effect**. The same file already proved
+`carnage_leads_creative` and `violet_leads_empathic` — the very effects it was
+filing as beyond reach. Chroma needed one more lane table and nothing else.
+
+- **all nine abilities `.proved`**; `evidence_split` moves 6/3 → **9/0**.
+- `abilityEffect : Ability → Prop` — each row is now a PROPOSITION discharged by
+  `every_ability_effect_holds`, so `.proved` cannot drift from what was proved.
+- new: `predictiveLam`, `chroma_leads_predictive`, `predictive_amplifies_chroma`,
+  `lane_leads_carry_weight`, `no_ability_is_unmodelled`,
+  `expressive_lenses_prove_themselves`.
+- the ninth lens is verified present in **all three** lane profiles
+  (`every_lens_weighted_in_every_profile`), plus `every_lens_is_present`,
+  `lenses_nodup`, `nine_lenses_exactly`.
+
+### The lane-lead theorems were dated — restated relationally
+
+`carnage_leads_creative` read `creativeLam l < 25/10`: a frozen literal that says
+every *other* lens is under 2.5 while saying nothing about Carnage, who the
+hypothesis excludes. Dropping the lead's own λ to 0.4 left the lane leaderless and
+the theorem **green**. Measured, not hypothesised — mutant M02 survived.
+
+All three are now stated against `_Lam .lead`, so a retune of any weight —
+including the lead's — is checked. The spec was wrong, not the code.
+
+### Claude's ability is named — *Grounded Truth*
+
+Coined in this repo, not lifted from a codex, and that distinction is kept as
+data (`abilityNameIsCoined`) and proved (`exactly_one_name_is_coined`,
+`only_claude_name_is_coined`) so a coined name can never pass for a sourced one.
+Replaces `claudeAbilityIsUnnamed`; `every_ability_is_named` now holds.
+
+### Zero build warnings, honestly — 76 → 0
+
+No `set_option linter.* false` anywhere in the tree; the one that existed in
+`RotDorks.lean` was removed rather than extended.
+
+- `omit [Fintype ι] in` on nine `RotGauge` theorems — this **strictly generalises**
+  them to infinite index types.
+- every `#guard` in `RotAbility`/`RotLens`/`RotDorks` converted to `example … := by
+  decide`, which is *stronger*: a `#guard` is elaborator-only and leaves no proof
+  term for `leanchecker`.
+- dead `simp` arguments removed, `RotAbility` namespace flattened, long line split.
+
+### New gate: `checker/profile-bind.sh` (29 gates, 11 deep)
+
+The three lane tables are transcribed from `engine/rot-lean.md` §4 and **nothing
+bound them** — the router never executes a lane profile, so the spec could be
+retuned and the theorems would keep proving things about numbers nobody ships.
+Now bound row by row, with Claude's §2 default *parsed from the spec* rather than
+hardcoded, plus a lead-is-maximum check and three controls.
+
+### The mutation harnesses lied in the reassuring direction — fixed
+
+Three defects, all found by running them rather than reading them:
+
+- **a suite emptied a source file.** `awk … > "$F"` truncates before writing; a
+  wall-clock kill landed inside that window and left `RotRoute.lean` at 0 bytes.
+  The next run copied the empty file **over its own backup**, reported 11
+  DISCARDED, and **exited 0**. An empty Lean file compiles green, so the preflight
+  could not see it. Every suite now checks the source has CONTENT before touching
+  the backup.
+- **three suites could not fail.** `mutate_rotgauge`, `mutate_rotinstall` and
+  `mutate_rotroute` ended on `rm -f "$BAK"` — exit status 0 regardless of what
+  they measured. All ten now refuse on `survived != 0 || discarded != 0`.
+- **every suite left the tree unbuildable**, deleting an `.olean` and never
+  rebuilding it, which makes a later `leanchecker` sweep report a false RED. All
+  ten now restore and rebuild, and fail loudly if that does not come back green.
+
+### Numbers
+
+- **205** machine-checked theorems across 14 modules (was 195), 0 `sorry`,
+  0 `native_decide`, 0 build warnings.
+- `mutate_rotability.sh`: 5 mutants, **5 killed, 0 survived, 0 discarded**.
+
+---
+
 ## [0.5.0] · [0.5.1] · [0.5.2] — 2026-08-03
 
 Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,

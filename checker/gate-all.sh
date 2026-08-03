@@ -56,7 +56,7 @@ cd "$REPO"
 # green. `verdict-schedule-sim.sh` sat behind FULL=1, was red, and the default
 # local sweep printed "26/26 GREEN" for weeks. Two structural answers:
 #
-#   1. A BARE `gate-all.sh` STILL RUNS ALL 27. The split is opt-in (`--staged`,
+#   1. A BARE `gate-all.sh` STILL RUNS THE WHOLE TABLE. The split is opt-in
 #      `--fast`). Nobody gets a weaker run by accident, and CI is untouched.
 #   2. A deep gate with an EMPTY trigger list is refused below, because nothing
 #      could ever escalate it. That is `RotGates.no_trigger_never_escalates`
@@ -98,6 +98,7 @@ repo completeness|deep|README.md,CHANGELOG.md,STATUS.md,lean/|bash checker/repo-
 cross-diff (both reminder arms)|deep|hooks/prover-remind|bash checker/cross-diff-remind.sh
 verdict stability|deep|STATUS.md,checker/verdict|bash checker/verdict-stability.sh
 gauge cross|deep|hooks/rot-router,lean/Proofs/RotGauge.lean|bash checker/gauge-cross.sh
+profile binding|deep|engine/rot-lean.md,lean/Proofs/RotAbility.lean|bash checker/profile-bind.sh
 axiom audit|deep|lean/|bash checker/axiom-audit.sh
 axiom class|deep|lean/|bash checker/axiom-class.sh
 mutate the checker|deep|checker/,hooks/|bash checker/mutate-checker.sh
@@ -129,7 +130,7 @@ if [ "$MODE" = staged ]; then
   # invoked outside a commit (or with nothing added), and the honest response is
   # the conservative one: run everything, exactly as a bare invocation does.
   if [ -z "$STAGED" ]; then
-    echo "gate-all: --staged with an EMPTY staged list -- running the FULL 27."
+    echo "gate-all: --staged with an EMPTY staged list -- running the FULL set."
     echo "          A commit that stages nothing must not get a weaker run."
     MODE=all
   fi
@@ -265,7 +266,7 @@ fi
 # for a full one -- which is the FULL=1 defect wearing a different hat.
 if [ "$skipped" -gt 0 ]; then
   echo "mode=$MODE -- $skipped deep gate(s) NOT RUN (untouched by this commit)."
-  echo "             They are not passes. Run 'gate-all.sh' bare for all 28."
+  echo "             They are not passes. Run 'gate-all.sh' bare for all $(printf '%s' "$GATES" | grep -c '|')."
 fi
 
 if [ "$red" -eq 0 ]; then

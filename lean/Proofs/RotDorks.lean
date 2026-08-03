@@ -26,8 +26,6 @@ down to 7 distinct under stride 6).
 
 import Mathlib
 
-set_option linter.hashCommand false
-
 namespace RotDorks
 
 /-- The rotation the shell script performs, on indices. -/
@@ -35,9 +33,13 @@ def rot (n s o i : Nat) : Nat := (i * s + o) % n
 
 -- Concrete agreement with the shell implementation: 42 tags, stride 5, offset 3.
 -- If checker/dorks.sh ever computes something else, these rows notice.
-#guard rot 42 5 3 0 = 3
-#guard rot 42 5 3 1 = 8
-#guard rot 42 5 3 41 = 40
+-- Stated as kernel-checked `example`s rather than `#guard`: same computation,
+-- but a proof term survives for `leanchecker` to re-verify. The file previously
+-- carried `set_option linter.hashCommand false` to silence the complaint; the
+-- silencer is gone, because the honest fix was to produce the proof.
+example : rot 42 5 3 0 = 3 := by decide
+example : rot 42 5 3 1 = 8 := by decide
+example : rot 42 5 3 41 = 40 := by decide
 
 /-- Every index lands inside the range, so no rotation can index past the tag
 list. `n > 0` is exactly the guard the script enforces by refusing an empty
@@ -85,11 +87,11 @@ theorem stride_must_be_coprime :
   refine ⟨by decide, by decide, by decide⟩
 
 -- Coprimality is decidable, so the runtime check and this proof share a predicate.
-#guard Nat.gcd 5 42 = 1
-#guard Nat.gcd 6 42 = 6
+example : Nat.gcd 5 42 = 1 := by decide
+example : Nat.gcd 6 42 = 6 := by decide
 
 -- A coprime stride hits every slot exactly once, at the shipping size.
-#guard (List.range 42 |>.map (rot 42 5 3) |>.eraseDups |>.length) = 42
+example : (List.range 42 |>.map (rot 42 5 3) |>.eraseDups |>.length) = 42 := by decide
 
 /-- And the identity that makes the daily refresh visible: with a non-zero
 offset the first published tag is not the first tag in the file, so the block

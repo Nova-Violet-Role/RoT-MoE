@@ -307,6 +307,16 @@ jobs:
           [ "$rc" -eq 3 ] && { echo "SKIPPED: no built Lean workspace -- NOT a pass"; exit 0; }
           exit $rc
 
+      # The three lane profiles in RotAbility.lean (creativeLam, empathicLam,
+      # predictiveLam) are TRANSCRIBED from engine/rot-lean.md §4. Until
+      # 2026-08-03 nothing bound them: the router never executes a lane profile,
+      # so the spec could be retuned and the theorems would keep proving things
+      # about numbers nobody ships. This is pure text-vs-text and needs no Lean
+      # workspace, so it never skips.
+      - name: profile binding -- Lean lane tables vs the spec they came from
+        shell: bash
+        run: bash checker/profile-bind.sh
+
       - name: mutate the checker -- it must be able to fail
         shell: bash
         run: bash checker/mutate-checker.sh

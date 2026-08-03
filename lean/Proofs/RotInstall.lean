@@ -205,14 +205,14 @@ theorem disarm_arm_id (cmd : String) (s : Settings)
     have hkeep : (s.hookEvents k).filter (fun c => c != cmd) = s.hookEvents k := by
       apply List.filter_eq_self.mpr
       intro a ha
-      simp only [bne_iff_ne, ne_eq, decide_eq_true_eq]
+      simp only [bne_iff_ne, ne_eq]
       rintro rfl
       exact hk ha
     simp [hkeep]
   · simp only [if_neg h]
     apply List.filter_eq_self.mpr
     intro a ha
-    simp only [bne_iff_ne, ne_eq, decide_eq_true_eq]
+    simp only [bne_iff_ne, ne_eq]
     rintro rfl
     exact hk ha
 

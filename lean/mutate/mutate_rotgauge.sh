@@ -73,6 +73,27 @@ if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotGauge ) >/tmp/mut_pre_rotgau
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
 
+# --- SOURCE SANITY: a green baseline is NOT proof the source is intact -----
+# Measured 2026-08-03, the hard way. A run of this suite was killed by a
+# wall-clock timeout DURING `awk ... > "$F"`. The redirection truncates the
+# file before awk writes, so the source was left at ZERO BYTES. The EXIT trap
+# never ran (SIGKILL). Then the next run did `cp "$F" "$BAK"` and copied the
+# EMPTY file over the only good backup, reported every needle as DISCARDED,
+# and restored the emptiness. `rm -f "$BAK"` then deleted the evidence.
+#
+# The preflight could not see it: AN EMPTY LEAN FILE BUILDS GREEN. "The
+# baseline compiles" is a weaker statement than it looks, so the source is
+# checked for CONTENT before it is ever copied over the backup.
+_lines=$(wc -l < "$F" 2>/dev/null || echo 0)
+_thms=$(grep -c "^theorem \|^@\[simp\] theorem \|^example " "$F" 2>/dev/null || echo 0)
+if [ "${_lines:-0}" -lt 20 ] || [ "${_thms:-0}" -lt 1 ]; then
+  echo "FATAL: $F looks DAMAGED ($_lines lines, $_thms theorem/example lines)."
+  echo "Refusing to overwrite the backup with it. An empty or truncated source"
+  echo "compiles green and would be scored as a suite full of DISCARDED mutants."
+  echo "Restore the file (git checkout -- <path>) before running this suite."
+  exit 2
+fi
+
 cp "$F" "$BAK"
 
 killed=0; survived=0; discarded=0
@@ -231,6 +252,37 @@ rm -f "$OLEAN"
 ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotGauge ) > "$LOG/baseline.log" 2>&1
 base=$?
 echo "---"
+# --- RESTORE THE BASELINE ---------------------------------------------------
+# The EXIT trap restores the SOURCE, but the last mutant deleted the .olean and
+# nothing rebuilt it. Measured 2026-08-03: re-running a suite immediately after
+# itself hit its own no-download guard and reported SKIP, because the workspace
+# was no longer built -- and a later `leanchecker` sweep over the same tree would
+# report `Could not find any oleans`, which reads as a KERNEL failure when it is
+# only a deleted artifact. A false red is as corrosive as a false green.
+cp "$BAK" "$F"
+if ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotGauge ) >/tmp/mut_post_rotgauge.log 2>&1; then
+  echo "baseline restored and REBUILT green (olean present again)"
+else
+  echo "FATAL: the tree does not build after restore -- the suite left damage."
+  tail -5 /tmp/mut_post_rotgauge.log
+  exit 2
+fi
 echo "killed=$killed survived=$survived discarded=$discarded"
 echo "baseline restored -> lake build exit=$base"
 rm -f "$BAK"
+
+# --- THE VERDICT GATE -------------------------------------------------------
+# This suite used to end on `rm -f "$BAK"`, whose exit status is 0, so the run
+# reported success no matter what it measured. Verified 2026-08-03 on RotRoute:
+# 11 of 11 mutants DISCARDED -- nothing tested at all -- and the suite exited 0,
+# which CI reads as a pass. SURVIVED and DISCARDED mean opposite things and
+# neither is a pass: one says the theorem does not constrain the model, the
+# other says this harness did not run.
+if [ "$survived" -ne 0 ] || [ "$discarded" -ne 0 ]; then
+  echo "NOT A PASS: survived=$survived discarded=$discarded"
+  echo "  survived  = the theorem does not constrain the model."
+  echo "  discarded = the patch never landed; this harness tested nothing."
+  exit 1
+fi
+echo "ALL $killed MUTATIONS KILLED."
+exit 0

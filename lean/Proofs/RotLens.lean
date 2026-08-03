@@ -213,27 +213,34 @@ theorem forge_lead_is_not_the_floor :
 /-! ## Executable witnesses
 
 The theorems above are `decide`-closed, so the definitions must also *run*.
-These `#guard`s execute them on concrete input: a definition that elaborates but
-computes something else is caught here, not in review. -/
+These execute them on concrete input: a definition that elaborates but computes
+something else is caught here, not in review.
+
+They were `#guard` commands. `#guard` is evaluated by the elaborator and then
+discarded -- no proof term survives, so `leanchecker` never re-verifies it and
+the kernel never sees it. As `example ... := by decide` they run exactly the same
+computation and leave a kernel-checked term behind. Strictly more evidence. -/
 
 -- the roster really has nine members
-#guard lenses.length = 9
+example : lenses.length = 9 := by decide
 
 -- the four lanes a reader is most likely to check by hand
-#guard lead .forge = Lens.claude
-#guard lead .clinical = Lens.antivenom
-#guard lead .empathic = Lens.violet
-#guard lead .stealth = Lens.soleil
+example : lead .forge = Lens.claude := by decide
+example : lead .clinical = Lens.antivenom := by decide
+example : lead .empathic = Lens.violet := by decide
+example : lead .stealth = Lens.soleil := by decide
 
 -- the shipped weight vector, in the shell's own order, evaluated end to end
-#guard (lenses.map forgeLam) =
-  [14/10, 6/10, 19/10, 12/10, 6/10, 1, 1, 12/10, 23/10]
-#guard (lenses.map forgeMu) =
-  [105/100, 85/100, 110/100, 105/100, 90/100, 110/100, 95/100, 110/100, 115/100]
+example : (lenses.map forgeLam) =
+    [14/10, 6/10, 19/10, 12/10, 6/10, 1, 1, 12/10, 23/10] := by
+  norm_num [lenses, forgeLam]
+example : (lenses.map forgeMu) =
+    [105/100, 85/100, 110/100, 105/100, 90/100, 110/100, 95/100, 110/100, 115/100] := by
+  norm_num [lenses, forgeMu]
 
 -- the whole lane->lens assignment, exhaustively, in one line
-#guard (ownLanes.map lead) =
-  [Lens.claude, Lens.antivenom, Lens.venom, Lens.violet, Lens.nova,
-   Lens.carnage, Lens.chroma, Lens.soleil, Lens.eidolon]
+example : (ownLanes.map lead) =
+    [Lens.claude, Lens.antivenom, Lens.venom, Lens.violet, Lens.nova,
+     Lens.carnage, Lens.chroma, Lens.soleil, Lens.eidolon] := by decide
 
 end RotMoE.Ensemble

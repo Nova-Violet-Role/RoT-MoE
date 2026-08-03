@@ -67,10 +67,27 @@ if [ -z "$newest_tag" ]; then
   echo "  NOTE  no v* tag yet -- nothing to contradict. Not a pass, not a failure."
 else
   tag_ver="${newest_tag#v}"
+  # WHAT THIS USED TO ASSERT, and why it was wrong.
+  #
+  # The rule was `tag_ver = pj_ver`, i.e. "the newest tag equals the declared
+  # version". That is FALSE BY CONSTRUCTION for the whole life of a release
+  # commit: a tag can only point at a commit that already exists, so bumping the
+  # version and committing necessarily happens BEFORE tagging. The gate went red
+  # on a correct commit, and the obvious repair -- weaken or delete the check --
+  # would have destroyed real coverage. The spec was wrong, not the workflow.
+  #
+  # The property that actually matters is DIRECTIONAL: the tree may run AHEAD of
+  # the newest tag (an untagged release in progress), but it must never fall
+  # BEHIND one. A tree declaring 0.5.2 while v0.6.2 is tagged means shipped
+  # artifacts claim a version the source has already abandoned -- that is drift.
+  _cmp=$(printf '%s\n%s\n' "$tag_ver" "$pj_ver" | sort -V | head -1)
   if [ "$tag_ver" = "$pj_ver" ]; then
     ok "newest tag $newest_tag matches the declared version"
+  elif [ "$_cmp" = "$tag_ver" ]; then
+    ok "tree ($pj_ver) is AHEAD of the newest tag ($newest_tag) -- release in progress, not drift"
   else
-    bad "TAG DRIFT: newest tag is $newest_tag but the tree declares $pj_ver"
+    bad "TAG DRIFT: the tree declares $pj_ver but a NEWER tag $newest_tag already exists"
+    bad "           the source is BEHIND a shipped tag -- artifacts claim a version this tree abandoned"
   fi
   # An annotated tag carries a message and a tagger; a lightweight one is just
   # a moving pointer. Releases should be annotated so the claim is signed to a
@@ -86,14 +103,35 @@ else
 fi
 
 # --- the date must not be in the future -------------------------------------
+# TIMEZONES MAKE "TOMORROW" A LEGITIMATE ANSWER FOR UP TO 14 HOURS.
+#
+# This compared against `date -u` and refused anything greater. Measured
+# 2026-08-04 00:04 local / 2026-08-03 22:04 UTC: a release cut just after local
+# midnight, dated with the LOCAL day -- which is what a human writes and what
+# every calendar in the room agrees on -- was rejected as "a citation for
+# something that has not happened". The commit was correct; the rule was.
+#
+# UTC+14 (Kiribati) is the furthest ahead any release engineer can legitimately
+# be, so ONE day of slack is exactly the width of the real ambiguity, and no
+# wider. A date two days out is still refused, which is the case this rule was
+# written for -- a placeholder or a typo'd year.
 cf_date=$(sed -n 's/^date-released:[[:space:]]*\(.*\)$/\1/p' "$CF" | head -1 | tr -d "'\" \r")
 today=$(date -u +%Y-%m-%d)
+tomorrow=$(date -u -d '+1 day' +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d 2>/dev/null)
+if [ -z "$tomorrow" ]; then
+  echo "REFUSE: cannot compute tomorrow's UTC date on this system -- neither GNU"
+  echo "        (-d) nor BSD (-v) date accepted. Refusing to skip the check."
+  exit 2
+fi
 if [ -z "$cf_date" ]; then
   bad "CITATION.cff has no date-released"
+elif [ "$cf_date" \> "$tomorrow" ]; then
+  bad "date-released $cf_date is in the FUTURE (UTC today is $today, max allowed $tomorrow)"
+  bad "           more than one day ahead cannot be a timezone -- that is a typo or a placeholder"
 elif [ "$cf_date" \> "$today" ]; then
-  bad "date-released $cf_date is in the FUTURE (today is $today) -- a citation for something that has not happened"
+  ok "date-released $cf_date is one day ahead of UTC ($today) -- a local date east of UTC, allowed"
 else
-  ok "date-released $cf_date is not in the future (today $today)"
+  ok "date-released $cf_date is not in the future (UTC today $today)"
 fi
 
 # --- controls ---------------------------------------------------------------

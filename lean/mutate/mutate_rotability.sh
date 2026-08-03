@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotGates.lean (the fast/deep gate split)
+# MUTATION SUITE -- Proofs/RotAbility.lean (every lens proves itself)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -16,25 +16,25 @@
 # DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
 # claim about the theorem. Folding them together manufactures reassurance.
 #
-# WHAT THIS SUITE IS AIMED AT. The split it models is a mechanism that already
-# produced one false green in this repo: a gate behind `FULL=1` was red while
-# the default sweep reported 26/26 GREEN. So the mutations are not arbitrary
-# edits -- each one RE-CREATES a way the split could silently stop protecting:
+# WHAT THIS SUITE IS AIMED AT. This module used to score three of the nine
+# abilities `notModelled` -- while proving the router-observable effect for two
+# of them fifty lines further down. The evidence table and the theorems had
+# drifted apart and nothing noticed, because a `--` comment beside a table row
+# is not checked by anything. The mutations below re-create exactly that drift:
 #
-#   M01  the run drops fast gates          (what FULL=1 did)
-#   M02  triggers match only exact paths   (a directory prefix stops escalating)
-#   M03  an empty trigger list fires       (the silent hole, inverted)
-#   M04  the two tiers overlap             (a gate in both, or in neither)
-#   M05  every gate becomes fast           (the split silently does nothing)
+#   M01  an ability is filed as beyond reach again   (the original defect)
+#   M02  a lane lead stops leading its own lane      (the arithmetic breaks)
+#   M03  the ninth lens loses its weight in a lane   (K silently becomes 8)
+#   M04  an effect names the wrong lens              (table/theorem drift)
+#   M05  an ability is filed as merely measured      (proved -> unproved)
 # =============================================================================
-
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotGates.lean"
+F="Proofs/RotAbility.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotGates.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutgates.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotAbility.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutability.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -44,8 +44,7 @@ LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutgates.XXXXXX")"
 
 # --- NO-DOWNLOAD GUARD ------------------------------------------------------
 # `lake build` RESOLVES the package first, and against the vendored `lean/` tree
-# that resolution starts fetching mathlib INTO the repository (measured: 7.2 GB
-# before it was caught, against a tree that ships as ~200 KB). A workspace that
+# that resolution starts fetching mathlib INTO the repository. A workspace that
 # was never built cannot satisfy this suite, so it SKIPS rather than builds.
 # Exit 3 is a skip everywhere in this repo, and a skip is never a pass.
 _WSDIR="${LEAN_ROOT:-.}"
@@ -57,10 +56,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotGates ) >/tmp/mut_pre_rotgates.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotGates)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotAbility ) >/tmp/mut_pre_rotability.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotAbility)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotgates.log
+  tail -5 /tmp/mut_pre_rotability.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -117,19 +116,18 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotGates ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotAbility ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   if [ "$ec" -eq 0 ]; then
     echo "$id  SURVIVED   (build still exit 0)  expected to kill: $expect"
     survived=$((survived+1))
   else
-    # Attribution note, inherited from the RotGauge suite and just as true here:
-    # the reported error lines are a LOWER BOUND on what died, not an inventory.
+    # The reported error lines are a LOWER BOUND on what died, not an inventory.
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotGates\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotAbility\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -139,72 +137,78 @@ run_mut() {
         ' "$F"
       done | sed -E 's/^(private )?(theorem|def|instance|structure|inductive|example) *//; s/[ ({:].*$//' \
       | sort -u | tr '\n' ',')
-    local guards
-    guards=$(grep -c "did not evaluate to .true." "$LOG/$id.log")
     if [ ! -f "$OLEAN" ]; then
       echo "$id  KILLED     exit=$ec  MODULE DEAD (no olean: every theorem unusable)"
       echo "        errors at: ${dead%,}  <- LOWER BOUND, not the full set"
-      echo "        #guard failures: $guards"
       echo "        expected: $expect"
     else
-      echo "$id  KILLED     exit=$ec  dead: ${dead%,}  guards failed: $guards"
+      echo "$id  KILLED     exit=$ec  dead: ${dead%,}"
     fi
     killed=$((killed+1))
   fi
   cp "$BAK" "$F"
 }
 
-echo "=== RotGates mutation suite ==="
+echo "=== RotAbility mutation suite ==="
 
-# M01 -- the exact shape of the FULL=1 regression: the run stops including the
-# gates that are supposed to be unconditional.
+# M01 -- the original defect, restored: an ability is filed as beyond Lean's
+# reach even though the lane-lead theorem below settles it.
 run_mut M01 \
-  '  gs.filter (fun g => isFast g || fires g staged)' \
-  '  gs.filter (fun g => fires g staged)' \
-  'fast_always_runs, stagedRun_nil, and the count guards'
+  '  | .chaosWeaving              => .proved' \
+  '  | .chaosWeaving              => .notModelled' \
+  'every_ability_is_proved, evidence_split, no_ability_is_unmodelled, expressive_lenses_prove_themselves'
 
-# M02 -- triggers stop being prefixes. `lean/` would no longer escalate on
-# `lean/Proofs/RotGauge.lean`, so a proof edit would skip the Lean gates.
+# M02 -- Chroma stops leading PREDICTIVE. The ability is exactly this
+# inequality, so the ability claim must fall with it.
 run_mut M02 \
-  '  p.take trigger.length = trigger' \
-  '  p = trigger' \
-  'the staged-run count guards (directory prefixes stop matching)'
+  '  | .chroma => 24/10' \
+  '  | .chroma => 4/10' \
+  'chroma_leads_predictive, every_ability_effect_holds'
 
-# M03 -- the silent hole, inverted: a gate with NO triggers starts firing, which
-# would make `no_trigger_never_escalates` false.
+# M03 -- the ninth lens loses its weight in a lane, which is how K silently
+# degrades from 9 to 8 without anything printing a warning.
+#
+# The needle MUST be one line. An earlier version spanned two lines plus a blank
+# one; `grep -F -c` treats embedded newlines as SEPARATE patterns, so it counted
+# 525 "occurrences" and the mutant was correctly DISCARDED rather than scored.
+# That is the harness's assertion doing its job -- a multi-line needle silently
+# not matching is exactly how a suite reports SURVIVED for a patch that never
+# landed. `predictiveLam .chroma` is the only 24/10 in the file, so the lead's
+# own weight is a unique single-line target.
 run_mut M03 \
-  '  staged.any (fun p => g.triggers.any (fun t => hits t p))' \
-  '  staged.any (fun p => g.triggers.all (fun t => hits t p))' \
-  'no_trigger_never_escalates, stagedRun_nil'
+  '  | .claude => 15/10   -- Claude OWN §2 default lambda; Chroma LEADS PREDICTIVE' \
+  '  | .claude => 0' \
+  'every_lens_weighted_in_every_profile'
 
-# M04 -- the tiers overlap instead of partitioning.
+# M04 -- table/theorem drift in its purest form: the effect names a different
+# lens than the one whose lane it describes.
 run_mut M04 \
-  '  gs.filter (fun g => !isFast g)' \
-  '  gs.filter (fun g => isFast g)' \
-  'tiers_disjoint, tier_lengths, mem_tier_total, deepSet guards'
+  '      (∀ l ∈ lenses, l ≠ .chroma → predictiveLam l < predictiveLam .chroma) ∧' \
+  '      (∀ l ∈ lenses, l ≠ .carnage → predictiveLam l < predictiveLam .chroma) ∧' \
+  'every_ability_effect_holds'
 
-# M05 -- the split silently does nothing: every gate is fast again.
+# M05 -- an ability slides from proved to merely measured.
 run_mut M05 \
-  '  | Tier.deep => false' \
-  '  | Tier.deep => true' \
-  'the fastSet/deepSet count guards, the deep-trigger guard'
+  '  | .emotionalResonanceMapping => .proved' \
+  '  | .emotionalResonanceMapping => .measured' \
+  'every_ability_is_proved, evidence_split, nothing_is_merely_measured'
 
 echo
 # --- RESTORE THE BASELINE ---------------------------------------------------
 # The EXIT trap restores the SOURCE, but the last mutant deleted the .olean and
-# nothing rebuilt it. Measured 2026-08-03: re-running a suite immediately after
-# itself hit its own no-download guard and reported SKIP, because the workspace
-# was no longer built -- and a later `leanchecker` sweep over the same tree would
-# report `Could not find any oleans`, which reads as a KERNEL failure when it is
-# only a deleted artifact. A false red is as corrosive as a false green.
+# nothing rebuilt it. Measured 2026-08-03: re-running this suite immediately
+# afterwards hit its own no-download guard and reported SKIP, because the
+# workspace it was pointed at was no longer built. A suite that leaves the tree
+# unbuildable has told you nothing about the final state of the tree.
 cp "$BAK" "$F"
-if ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotGates ) >/tmp/mut_post_rotgates.log 2>&1; then
+if ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotAbility ) >/tmp/mut_post_rotability.log 2>&1; then
   echo "baseline restored and REBUILT green (olean present again)"
 else
   echo "FATAL: the tree does not build after restore -- the suite left damage."
-  tail -5 /tmp/mut_post_rotgates.log
+  tail -5 /tmp/mut_post_rotability.log
   exit 2
 fi
+
 echo "killed=$killed survived=$survived discarded=$discarded"
 if [ "$discarded" -ne 0 ]; then
   echo "REFUSING to report a verdict: $discarded mutation(s) did not apply."

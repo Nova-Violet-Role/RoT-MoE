@@ -104,6 +104,27 @@ if ! lake build Proofs.RotPath >/tmp/mut_baseline_pre.log 2>&1; then
 fi
 echo "preflight: baseline builds GREEN, $SRC present -- kills are attributable"
 
+# --- SOURCE SANITY: a green baseline is NOT proof the source is intact -----
+# Measured 2026-08-03, the hard way. A run of this suite was killed by a
+# wall-clock timeout DURING `awk ... > "$SRC"`. The redirection truncates the
+# file before awk writes, so the source was left at ZERO BYTES. The EXIT trap
+# never ran (SIGKILL). Then the next run did `cp "$SRC" "$BAK"` and copied the
+# EMPTY file over the only good backup, reported every needle as DISCARDED,
+# and restored the emptiness. `rm -f "$BAK"` then deleted the evidence.
+#
+# The preflight could not see it: AN EMPTY LEAN FILE BUILDS GREEN. "The
+# baseline compiles" is a weaker statement than it looks, so the source is
+# checked for CONTENT before it is ever copied over the backup.
+_lines=$(wc -l < "$SRC" 2>/dev/null || echo 0)
+_thms=$(grep -c "^theorem \|^@\[simp\] theorem \|^example " "$SRC" 2>/dev/null || echo 0)
+if [ "${_lines:-0}" -lt 20 ] || [ "${_thms:-0}" -lt 1 ]; then
+  echo "FATAL: $SRC looks DAMAGED ($_lines lines, $_thms theorem/example lines)."
+  echo "Refusing to overwrite the backup with it. An empty or truncated source"
+  echo "compiles green and would be scored as a suite full of DISCARDED mutants."
+  echo "Restore the file (git checkout -- <path>) before running this suite."
+  exit 2
+fi
+
 cp "$SRC" "$BAK"
 trap 'cp "$BAK" "$SRC"; rm -f "$BAK"' EXIT
 
@@ -217,6 +238,21 @@ run_mut P05 "then '/' :: d.toLower" "then '\\\\' :: d.toLower" \
 
 echo
 echo "== RESULT =="
+# --- RESTORE THE BASELINE ---------------------------------------------------
+# The EXIT trap restores the SOURCE, but the last mutant deleted the .olean and
+# nothing rebuilt it. Measured 2026-08-03: re-running a suite immediately after
+# itself hit its own no-download guard and reported SKIP, because the workspace
+# was no longer built -- and a later `leanchecker` sweep over the same tree would
+# report `Could not find any oleans`, which reads as a KERNEL failure when it is
+# only a deleted artifact. A false red is as corrosive as a false green.
+cp "$BAK" "$SRC"
+if ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotPath ) >/tmp/mut_post_rotpath.log 2>&1; then
+  echo "baseline restored and REBUILT green (olean present again)"
+else
+  echo "FATAL: the tree does not build after restore -- the suite left damage."
+  tail -5 /tmp/mut_post_rotpath.log
+  exit 2
+fi
 echo "killed=$killed survived=$survived discarded=$discarded"
 cp "$BAK" "$SRC"; rm -f "$OLEAN"
 lake build Proofs.RotPath >/dev/null 2>&1

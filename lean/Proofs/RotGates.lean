@@ -241,6 +241,7 @@ def shipped : List Gate :=
   , d "cross-diff (both reminder arms)" ["hooks/prover-remind"]
   , d "verdict stability" ["STATUS.md", "checker/verdict"]
   , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean"]
+  , d "profile binding" ["engine/rot-lean.md", "lean/Proofs/RotAbility.lean"]
   , d "axiom audit" ["lean/"]
   , d "axiom class" ["lean/"]
   , d "mutate the checker" ["checker/", "hooks/"]
@@ -249,14 +250,14 @@ def shipped : List Gate :=
   , d "release install" ["checker/release", ".claude-plugin/"]
   ]
 
--- Twenty-eight gates, unchanged in number by the split.
-#guard shipped.length = 28
+-- Twenty-nine gates: `profile binding` joined on 2026-08-03, deep tier.
+#guard shipped.length = 29
 
 -- Eighteen run on every commit.
 #guard (fastSet shipped).length = 18
 
 -- Ten are escalated by path.
-#guard (deepSet shipped).length = 10
+#guard (deepSet shipped).length = 11
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

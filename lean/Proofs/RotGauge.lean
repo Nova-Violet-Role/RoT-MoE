@@ -118,6 +118,7 @@ own signal moved this turn, observed on disk* — never an opinion, never a numb
 the reasoning invented. -/
 def actR (a : ι → Bool) (i : ι) : ℝ := if a i then 1 else 0
 
+omit [Fintype ι] in
 theorem actR_nonneg (a : ι → Bool) (i : ι) : 0 ≤ actR a i := by
   unfold actR; split <;> norm_num
 
@@ -136,6 +137,7 @@ independent of the activity vector and is carried as a separate argument. -/
 noncomputable def entropyAt (a : ι → Bool) (breadth : ℕ) (i : ι) : ℝ :=
   if breadth = 0 then 0 else min 1 (actR a i / (breadth : ℝ))
 
+omit [Fintype ι] in
 theorem entropyAt_nonneg (a : ι → Bool) (breadth : ℕ) (i : ι) :
     0 ≤ entropyAt a breadth i := by
   unfold entropyAt
@@ -143,6 +145,7 @@ theorem entropyAt_nonneg (a : ι → Bool) (breadth : ℕ) (i : ι) :
   · exact le_refl 0
   · exact le_min zero_le_one (div_nonneg (actR_nonneg a i) (Nat.cast_nonneg _))
 
+omit [Fintype ι] in
 theorem entropyAt_le_one (a : ι → Bool) (breadth : ℕ) (i : ι) :
     entropyAt a breadth i ≤ 1 := by
   unfold entropyAt
@@ -202,9 +205,11 @@ def allQuiet (ι : Type*) : ι → Bool := fun _ => false
 /-- The all-active vector: every lens's signal moved. -/
 def allLive (ι : Type*) : ι → Bool := fun _ => true
 
+omit [Fintype ι] in
 @[simp] theorem actR_allQuiet (i : ι) : actR (allQuiet ι) i = 0 := by
   simp [actR, allQuiet]
 
+omit [Fintype ι] in
 @[simp] theorem actR_allLive (i : ι) : actR (allLive ι) i = 1 := by
   simp [actR, allLive]
 
@@ -214,6 +219,7 @@ def allLive (ι : Type*) : ι → Bool := fun _ => true
 @[simp] theorem deltaAt_allQuiet (i : ι) : deltaAt (allQuiet ι) i = 0 := by
   simp [deltaAt]
 
+omit [Fintype ι] in
 @[simp] theorem entropyAt_allQuiet (breadth : ℕ) (i : ι) :
     entropyAt (allQuiet ι) breadth i = 0 := by
   unfold entropyAt
@@ -230,6 +236,7 @@ theorem meanAct_allLive [Nonempty ι] : meanAct (allLive ι) = 1 := by
 @[simp] theorem deltaAt_allLive [Nonempty ι] (i : ι) : deltaAt (allLive ι) i = 0 := by
   simp [deltaAt, meanAct_allLive]
 
+omit [Fintype ι] in
 theorem entropyAt_allLive_one (i : ι) : entropyAt (allLive ι) 1 i = 1 := by
   unfold entropyAt
   simp
@@ -247,11 +254,13 @@ structure PosWeights (L : ι → Lens) (M C T : ℝ) : Prop where
   hC : 0 < C
   hT : 0 < T
 
+omit [Fintype ι] in
 theorem weight_pos {L : ι → Lens} {M C T : ℝ} (h : PosWeights L M C T) (i : ι) :
     0 < weight L M C T i := by
   unfold weight
   exact mul_pos (mul_pos (mul_pos (mul_pos (h.lam i) (h.mu i)) h.hM) h.hC) h.hT
 
+omit [Fintype ι] in
 theorem weight_nonneg {L : ι → Lens} {M C T : ℝ} (h : PosWeights L M C T) (i : ι) :
     0 ≤ weight L M C T i := (weight_pos h i).le
 
@@ -614,7 +623,7 @@ theorem marginal_gain_le_quarter (x : ℝ) : sigma x * (1 - sigma x) ≤ 1/4 := 
 theorem that earns the phrase "useful chaos": a lens sitting at consensus and a
 lens in free fall both earn STRICTLY less marginal R/s+ than one diverging
 productively. Chaos is fuel; it is not the destination. -/
-theorem marginal_gain_lt_quarter_off_center (x : ℝ) (h : sigma x ≠ 1/2) :
+theorem marginal_gain_lt_quarter_off_center (x : ℝ) (h : sigma x ≠ 1 / 2) :
     sigma x * (1 - sigma x) < 1/4 := by
   have hne : sigma x - 1/2 ≠ 0 := sub_ne_zero.mpr h
   have hsq : 0 < (sigma x - 1/2)^2 := by positivity

@@ -160,10 +160,33 @@ scan_file_claims () {   # scan_file_claims <file> ; echoes "<file> <claimed>" pe
   # Folding newlines to spaces first removes the blind spot. Markdown emphasis
   # markers are stripped for the same reason: `**72** machine-checked` is the
   # same claim to a reader and must be the same claim to the checker.
-  tr '\n' ' ' < "$1" | tr -s ' ' | sed 's/\*\*//g; s/__//g' \
+  # A CHANGELOG IS A LOG. Its older entries state what was true AT THAT RELEASE,
+  # and 0.5.x really did ship 195 theorems. Requiring every historical entry to
+  # track the current tree does not catch drift -- it demands the history be
+  # rewritten on every commit that adds a theorem, which is the one thing a
+  # changelog must never do. Measured 2026-08-03: the count went 195 -> 205 and
+  # this rule went red on two entries that were, and remain, correct.
+  #
+  # So for CHANGELOG.md only the NEWEST release section is a LIVE claim; earlier
+  # sections are history and are not scanned. This is a scope fix, not a hole:
+  # the current entry is still checked, so a stale claim in the section being
+  # written today still fails. `--newest-section-only` is proved to still catch
+  # that by the control at the end of this block.
+  _src="$1"
+  if [ "$(basename "$1")" = "CHANGELOG.md" ]; then
+    _src=$(mktemp "${TMPDIR:-/tmp}/chlog.XXXXXX")
+    awk '
+      /^## \[/ { seen++ }
+      seen >= 2 { exit }
+      { print }
+    ' "$1" > "$_src"
+  fi
+  tr '\n' ' ' < "$_src" | tr -s ' ' | sed 's/\*\*//g; s/__//g' \
     | grep -oE '[0-9]+ machine-checked( Lean 4)? theorems?' \
     | grep -oE '^[0-9]+' \
     | while read -r n; do printf '%s %s\n' "$1" "$n"; done
+  [ "$_src" != "$1" ] && rm -f "$_src"
+  return 0
 }
 while IFS= read -r -d '' f; do
   [ -f "$f" ] || continue
