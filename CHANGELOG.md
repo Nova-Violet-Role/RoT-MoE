@@ -29,6 +29,72 @@ that honest.
 Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 `2` unsealed.
 
+### The README stopped narrating its own construction
+
+The page had accumulated development recaps — what a table *used to* score, which
+paragraph *had been* wrong, how a corpus was collected and the part of that
+collection which went astray. All true, none of it what a reader wants from a
+README. It belongs here. **Removed 73 lines, added 34**; what survived is the
+claim, the instrument that settles it, and the controls that prove the instrument
+can fail.
+
+The four removed passages, kept in full:
+
+**1 — the `CONVERGENT` lane header used to print `none`.** That was wrong, not
+factually but in what it communicated. `CONVERGENT` is the one lane with no lead
+**lens**: all nine co-reason and nobody leads. Printed as `none` it reads like a
+null, as though the router had failed to decide rather than decided that nobody
+leads. What actually convenes the nine is the **model you chose**, so that is
+what the line now names — `opus[1m]`, or `sonnet` on a machine configured that
+way. Measured, because the obvious implementation does not work: a live
+`UserPromptSubmit` payload, captured 2026-08-03, carries exactly
+`session_id · transcript_path · cwd · prompt_id · permission_mode ·
+hook_event_name · prompt` — there is **no model field** in it. The model is read
+from the settings file your client writes, with `ROTMOE_MODEL` overriding it and
+the literal `model` as the last resort. Every step degrades to a word; none
+degrades to `none` or to an empty string, because a lead that renders as nothing
+is the defect this replaced.
+
+**2 — the ability table scored three of nine `notModelled`,** reasoning that
+Carnage's chaos being *useful* is not a decidable proposition. True — and beside
+the point, because the field records each ability's **router-observable effect**,
+not a judgement about prose. The file already contained `carnage_leads_creative`
+and `violet_leads_empathic`: proofs of exactly the effects it was filing as
+beyond reach. Chroma needed one more lane table (`predictiveLam`) and that was
+the entire distance between "outside Lean's reach" and proved. Each row now
+carries its claim as a *proposition* (`abilityEffect`) rather than a comment, so
+`.proved` cannot drift from what was proved. Mutation-tested: filing any ability
+back as `notModelled` or `measured` kills the module (M01, M05 in
+`lean/mutate/mutate_rotability.sh`).
+
+**3 — how the 80-turn corpus was collected, including the part that went
+wrong.** The run was launched with this repository as the session's working
+directory, and turn 6 — *"compress the docstring of RotAbility.lean"* — did
+exactly what it was asked: it **edited the file**, rewrote the docstring and
+added two unreviewed theorems. The count went 205 → 207 and
+`checker/repo-complete.sh` caught it; the edit was reverted and the module
+rebuilt at 205, exit 0, zero warnings. A benchmark that mutates the tree it is
+benchmarking is not a measurement, so `checker/ctt-session.sh` now runs every
+turn from a scratch directory and **refuses outright** if that directory resolves
+inside the repository. The routing figures are unaffected — a lane and an `R/s+`
+are computed from the prompt text alone, before any tool runs — but the
+collection method was wrong and saying so is cheaper than a reader discovering
+it.
+
+**4 — the router latency figure was not a per-turn cost, and the README said it
+was.** The debug log's `ms` field starts at `hooks/rot-router.ps1:40` — *inside*
+the script, after PowerShell has already started — so it measures the router's
+**logic**, not the turn. Comparing it against the bash arm's **wall-clock**
+194–256 ms and concluding the PowerShell arm "costs about half" was comparing two
+different clocks, and the conclusion was backwards. `bench-router.sh` §6 now
+prints the decomposition every run and fails if a quoted figure does not say
+which arm and which clock produced it — that check exists because this paragraph
+was wrong.
+
+Two version strings stay at `0.6.1` on purpose: the corpus filename
+`bench/ctt-session-0.6.1.jsonl` and the sentence recording which plugin version
+the 80-turn session measured. Those are facts about a past measurement.
+
 ### Every lens now proves itself — the evidence table was wrong, not Lean
 
 `RotAbility.lean` scored three of the nine abilities `notModelled`, on the

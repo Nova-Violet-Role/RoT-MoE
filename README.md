@@ -83,28 +83,14 @@ like it wants to take the wheel. It does not.
   RoT MoE :: TIER 1 -> CONVERGENT opus[1m] | R/s+ 0.16
   ```
 
-  That last line used to end in the literal `none`, and `none` was wrong — not
-  factually, but in what it communicated. `CONVERGENT` is the one lane with no
-  lead **lens**: all nine co-reason and nobody leads. Printed as `none` it reads
-  like a null, as though the router had failed to decide rather than decided
-  that nobody leads. What actually convenes the nine is the **model you chose**,
-  so that is what the line now names — `opus[1m]` here, `sonnet` on a machine
-  configured that way. The convener is genuinely different, so the line should
-  be too.
+  `CONVERGENT` is the one lane with no lead **lens**: all nine co-reason and
+  nobody leads. What convenes them is the **model you chose**, so that is what
+  the line names — `opus[1m]` here, `sonnet` on a machine configured that way.
 
-  Measured, because the obvious implementation does not work. A live
-  `UserPromptSubmit` payload, captured 2026-08-03, carries exactly these keys:
-
-  ```json
-  { "session_id": …, "transcript_path": …, "cwd": …, "prompt_id": …,
-    "permission_mode": …, "hook_event_name": …, "prompt": … }
-  ```
-
-  There is **no model field** in it. So the model is read from the settings file
-  your client writes, with
-  `ROTMOE_MODEL` overriding it and the literal `model` as the last resort. Every
-  step degrades to a word; none of them degrades to `none` or to an empty
-  string, because a lead that renders as nothing is the defect this replaced.
+  The hook payload carries no model field, so the model is read from your
+  client's settings file, with `ROTMOE_MODEL` overriding it and the literal
+  `model` as a last resort. Every step degrades to a word — never to an empty
+  string.
 
   The reading is **not** a mood. It is this turn's routing decision written in
   the gauge's own units: the lead lens of the fired lane at activity 1, every
@@ -327,7 +313,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   its ancestor died of. `speaks_iff` characterises speech in **both** directions,
   because "if there is debt it speaks" would still be satisfied by something that
   speaks always. `stale_monotone` says time can only make it louder — and carries
-  a freshness hypothesis that **Lean refused to let me omit**: `-1` does not mean
+  a freshness hypothesis that **cannot be dropped**: `-1` does not mean
   "a minute ago", it means *no proofs found*, so `stale_monotone_needs_nonneg`
   proves the hypothesis cannot be dropped. `lower_threshold_speaks_more` is
   quantified over the threshold rather than pinned at 45, so retuning the default
@@ -747,21 +733,13 @@ ensemble. That is nine separate inequalities over ℚ, not one statement about a
 list length — a lens whose removal changed nothing would be listed, weighted,
 documented, and inert, and this is what rules that out.
 
-The second is `every_ability_effect_holds`, and it replaced a theorem that was
-quietly wrong. That table used to score three of the nine abilities
-`notModelled`, reasoning that Carnage's chaos being *useful* is not a decidable
-proposition. True — and beside the point, because the field records each
-ability's **router-observable effect**, not a judgement about prose. The file
-already contained `carnage_leads_creative` and `violet_leads_empathic`: proofs of
-exactly the effects it was filing as beyond reach. Chroma needed one more lane
-table (`predictiveLam`) and that was the entire distance between "outside Lean's
-reach" and proved.
-
-**All nine are now proved**, and each row carries its claim as a *proposition*
-(`abilityEffect`) rather than a comment, so `.proved` cannot drift from what was
-proved — a row is discharged by a theorem or the module does not compile.
-Mutation-tested: filing any ability back as `notModelled` or `measured` kills the
-module (M01, M05 in `lean/mutate/mutate_rotability.sh`).
+The second is `every_ability_effect_holds`. Each of the nine abilities is scored
+on its **router-observable effect** — what it does to the weights, the lane, the
+divisor — and **all nine are proved**. Each row carries its claim as a
+*proposition* (`abilityEffect`) rather than a comment, so `.proved` cannot drift
+from what was proved: a row is discharged by a theorem or the module does not
+compile. Mutation-tested — filing any ability as `notModelled` or `measured`
+kills the module (`lean/mutate/mutate_rotability.sh`).
 
 | Claim about the nine | Status | Instrument |
 |---|---|---|
@@ -970,38 +948,24 @@ negative controls below were fired to prove the report can fail.
 | router cost, live bash arm | median **116 ms**, mean **125.7 ms**, p95 **175 ms**, max **335 ms** over 145 timed firings |
 | prompt text in the log | **none** — length only, safe to paste into an issue |
 
-Two things in that table are stronger than anything a unit test can say. The
-whole lane table was exercised **inside one long conversation**, not in nine
+The whole lane table was exercised **inside one long conversation**, not in nine
 fresh processes — the condition under which a truncated or compacted context is
-most likely to break routing. And `K=9` held on every one of 240 records, which
-is the live counterpart of `every_lens_is_present`: the ninth lens is not merely
-listed in the spec, it participated in every gauge the session computed.
+most likely to break routing. `K=9` held on every one of 240 records, the live
+counterpart of `every_lens_is_present`.
 
-The controls, because a report that cannot fail is decoration: shifting one
-record's `Rs` by +0.5 gives `239 agreed, 1 DISAGREED` and exit 1; stripping one
-record to eight lens terms fails the `K=9` check and exits 1. Both were run, and
-the corpus restored byte-identical afterwards.
+Two controls run against the corpus, because a report that cannot fail is
+decoration: shifting one record's `Rs` by +0.5 gives `239 agreed, 1 DISAGREED`
+and exit 1; stripping one record to eight lens terms fails the `K=9` check and
+exits 1.
 
-**How this corpus was collected, including the part that went wrong.** The run
-was launched with this repository as the session's working directory, and turn 6
-— *"compress the docstring of RotAbility.lean"* — did exactly what it was asked:
-it **edited the file**, rewrote the docstring and added two unreviewed theorems.
-The count went 205 → 207 and `checker/repo-complete.sh` caught it; the edit was
-reverted and the module rebuilt at 205, exit 0, zero warnings. A benchmark that
-mutates the tree it is benchmarking is not a measurement, so
-`checker/ctt-session.sh` now runs every turn from a scratch directory and
-**refuses outright** if that directory resolves inside the repository. The
-routing figures above are unaffected — a lane and an `R/s+` are computed from the
-prompt text alone, before any tool runs — but the collection method was wrong and
-saying so is cheaper than a reader discovering it.
+The session runs from a scratch directory and **refuses** if that directory
+resolves inside the repository — a benchmark that can edit the tree it measures
+is not a measurement.
 
-**That last figure is not a per-turn cost, and this README said it was.** The
-debug log's `ms` field starts at `hooks/rot-router.ps1:40` — *inside* the
-script, after PowerShell has already started — so it measures the router's
-**logic**, not the turn. Comparing it against the bash arm's **wall-clock**
-194–256 ms and concluding the PowerShell arm "costs about half" was comparing
-two different clocks, and the conclusion was backwards.
+### ⏱️ Two clocks, both reported
 
+The debug log's `ms` field starts *inside* the script
+(`hooks/rot-router.ps1:40`), so it measures the router's **logic**, not the turn.
 Measured like for like (`bench-router.sh` §6, both arms, same prompt, same
 wall-clock timer):
 
@@ -1012,12 +976,9 @@ wall-clock timer):
 
 The PowerShell arm's *logic* is genuinely faster; its *interpreter* is an order
 of magnitude more expensive to start, so the turn costs **more**, not less. Both
-stay inside the 500 ms bound the gate enforces. §6 now prints the decomposition
-every run, and fails if the README quotes a figure without saying which arm and
-which clock it came from — the check exists because this paragraph was wrong.
-
-Both clocks are reported because both are real; quoting only the flattering one
-would be marketing.
+stay inside the 500 ms bound the gate enforces. §6 prints the decomposition every
+run and fails if a quoted figure does not say which arm and which clock produced
+it.
 
 ### 🎯 Routing accuracy, per lane — and who holds it
 
