@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **436 / 21** |
+| 14 | theorems / modules | 205 / 14 | **442 / 21** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **18 suites — 190 applied, 190 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **18 suites — 193 applied, 193 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -96,6 +96,60 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Fixed — our own recovery advice destroyed two shipped hooks
+
+`checker/gate-all.sh` refuses to run when a mutation suite left `.mutbak` files
+behind, because the tree may carry a live mutant. That refusal is correct and it
+fired exactly as designed after a commit was killed by a wall-clock ceiling
+mid-suite. **Its recovery instruction was the defect.** It said:
+
+> Restore each file from its backup (`cp <f>.mutbak <f>`), delete the backups.
+
+Followed literally, that left `hooks/prover-remind.sh` and
+`hooks/prover-remind.ps1` at **zero bytes** — `sha256 e3b0c442…` is the empty
+string — with the backups deleted in the same breath. Three gates went red with
+every measurement returning `''`. Recovered from git (29107 and 23611 bytes).
+
+The mistake is structural, not clumsiness: **"a backup exists" and "a backup can
+restore" are different propositions.** `find` answers the first. A suite killed
+between *creating* `<f>.mutbak` and *writing content into it* leaves a file that
+satisfies the first and fails the second, and `cp` from an empty source
+**destroys the target and exits 0** — a destructive operation reporting success,
+which is the same shape as a fake green.
+
+The preflight now **sizes every backup**, marks any empty one
+`*** EMPTY -- copying THIS would ERASE the file ***`, and leads with
+`git checkout HEAD -- <file>` — a recovery path that cannot be truncated by the
+kill being recovered from.
+
+Two related **false reds** from the same kill, both cleared by rebuilding rather
+than by "fixing" anything: `leanchecker` reported `Proofs.RotMutant` as KERNEL
+REJECTED because the suite had deleted its `.olean`, and a missing artifact is
+indistinguishable from a kernel failure at the exit code. A red must be
+attributed before it is believed.
+
+`lean/Proofs/RotMutant.lean` grows 17 → **23 theorems**:
+
+| theorem | content |
+|---|---|
+| `existence_is_not_restorability` | the two predicates come apart on the empty backup |
+| `empty_backup_restore_is_destructive` | `cp` from a 0-byte source erases any non-empty file |
+| `copy_is_safe_iff_backup_nonempty` | the size test is precisely the side condition, not belt-and-braces |
+| `git_restore_ignores_the_backup` | the git path does not read the artifact the kill produced |
+| `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
+| `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
+
+Mutants M11–M13 (**193 applied, 193 killed**, was 190). M13 exists specifically
+because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
+axioms** — the vacuity smell — so it had to be shown load-bearing against a
+`restoreFromGit` that reads the backup, or labelled decoration. It dies.
+
+Recorded because it cost two DISCARDED results first: **a multi-line `grep -F -c`
+needle counts matching lines, not occurrences**, and M13's first form came back
+`needle occurs 2 times (expected 1) -- patch not applied`. The harness reported
+DISCARDED and refused a verdict rather than scoring it SURVIVED, which is the
+`RotMutant` law protecting its own suite.
 
 ### Fixed — the CI honesty law was strict in one direction and blind in the other
 
@@ -159,7 +213,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**190 applied, 190
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**193 applied, 193
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -523,7 +577,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **436** machine-checked theorems across 21 modules (was 205 across 14),
+- **442** machine-checked theorems across 21 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
