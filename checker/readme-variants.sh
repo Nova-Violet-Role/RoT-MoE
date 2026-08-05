@@ -54,8 +54,22 @@ bad() {
 
 echo "== README download links vs the packager's own variant map =="
 
+# EVERY PUBLISHED DOC, NOT ONLY THE README. The first version of this file read
+# README.md alone, which would have left the identical defect free to recur one
+# file over: RELEASE.md is the page a downloader lands on and it names the
+# archives too. A checker scoped to the one place a defect happened to appear is
+# how the same defect comes back wearing a different filename.
+#
+# `docs/*.md` is included by glob rather than by list, for the same reason the
+# mutation suites are enumerated from disk in CI: a document added later must be
+# covered without anyone remembering to add it here.
+DOCS="README.md RELEASE.md"
+for _d in docs/*.md; do [ -f "$_d" ] && DOCS="$DOCS $_d"; done
 README="README.md"
 [ -f "$README" ] || { echo "REFUSE: $README missing"; exit 2; }
+_ndocs=0
+for _d in $DOCS; do [ -f "$_d" ] && _ndocs=$((_ndocs+1)); done
+ok "scanning $_ndocs published document(s) for archive names"
 
 # THE MAP IS ASKED FOR, NOT PARSED OUT OF THE PACKAGER'S TEXT. Three files in
 # this repository once recovered the release map by `sed`-ing
@@ -87,15 +101,18 @@ done
 # The half that catches staleness. `grep -o` over the whole file, then subtract
 # the expected set; anything left is a link to something that does not exist.
 _stale=0
-for found in $(grep -oE 'rot-moe-[0-9]+\.[0-9]+\.[0-9]+-[a-z]+\.zip' "$README" | sort -u); do
-  _known=0
-  for e in $expected; do [ "$found" = "$e" ] && _known=1; done
-  if [ "$_known" -eq 0 ]; then
-    bad "README links $found, which the packager does not build -- a dead download"
-    _stale=$((_stale+1))
-  fi
+for _d in $DOCS; do
+  [ -f "$_d" ] || continue
+  for found in $(grep -oE 'rot-moe-[0-9]+\.[0-9]+\.[0-9]+-[a-z]+\.zip' "$_d" | sort -u); do
+    _known=0
+    for e in $expected; do [ "$found" = "$e" ] && _known=1; done
+    if [ "$_known" -eq 0 ]; then
+      bad "$_d links $found, which the packager does not build -- a dead download"
+      _stale=$((_stale+1))
+    fi
+  done
 done
-[ "$_stale" -eq 0 ] && ok "no README link names an archive the packager does not build"
+[ "$_stale" -eq 0 ] && ok "no published doc names an archive the packager does not build"
 
 # --- 3. CONTROL: this check must be able to fail -----------------------------
 # Both directions, on a COPY -- the README is never touched. A checker whose
