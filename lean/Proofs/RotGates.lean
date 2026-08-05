@@ -637,6 +637,94 @@ def run31035932155_repaired : Run :=
 -- One skip is enough. Not a majority, not a threshold -- one.
 #guard !runIsHonest (⟨"anything", .skipped⟩ :: run31035932155_repaired)
 
+/-! ### A dispatch that selects NO branch is a skip wearing a different hat
+
+MEASURED 2026-08-06, on the very step written to abolish skips.
+
+The `tty guard` runs on all three platforms and branches inside, choosing a pty
+allocator: GNU `script` on Linux, BSD `script` on macOS, and a narrower
+non-blocking probe where no pty is possible. An edit removed the `else` keyword
+from that `if / elif / else` chain. The result is still **valid shell**, so the
+144-check workflow linter passed it — and:
+
+* on Windows **neither branch ran**. `rc` took the exit status of the failed
+  `elif` *test* (0), `tty.out` was never created, and the step fell through to
+  assertions about a pty it had never allocated.
+* on macOS the fallback body had been absorbed into the BSD branch, so it ran
+  **after** the real pty probe and **overwrote its result** — that leg reported
+  `PASS` while asserting nothing whatever about a terminal.
+
+The second is the dangerous one: a green leg that tested nothing. It is the same
+defect as a skipped step — *concluded success, asserted nothing* — and the law
+should treat it the same way rather than needing a new category. -/
+
+/-- Which allocator a platform dispatch chose. -/
+inductive Allocator where
+  | gnuScript | bsdScript | noPty
+  deriving DecidableEq, Repr
+
+/-- A dispatch, as observed: which branch it selected (`none` = **no branch
+ran**) and whether that branch actually produced its artifact. -/
+structure Dispatch where
+  selected : Option Allocator
+  producedArtifact : Bool
+  deriving DecidableEq, Repr
+
+/-- **A dispatch is evidence only if some branch ran AND it produced its
+artifact.** Both conjuncts were violated in the measured defect, on different
+platforms, so dropping either would let one of the two legs back through. -/
+def dispatchAsserted (d : Dispatch) : Bool :=
+  match d.selected with
+  | Option.none   => false
+  | Option.some _ => d.producedArtifact
+
+/-- **No branch ran ⇒ nothing was asserted**, for every artifact flag — so a
+leftover `tty.out` from an earlier step could not rescue it either. -/
+theorem unselected_asserts_nothing (d : Dispatch) (h : d.selected = Option.none) :
+    dispatchAsserted d = false := by
+  simp [dispatchAsserted, h]
+
+/-- **A named branch that produced nothing asserts nothing.** This is the
+Windows leg: the chain fell through, no `tty.out` existed, and the step still
+reached its assertions. -/
+theorem selected_without_artifact_asserts_nothing
+    (a : Allocator) (d : Dispatch)
+    (hs : d.selected = Option.some a) (hp : d.producedArtifact = false) :
+    dispatchAsserted d = false := by
+  simp [dispatchAsserted, hs, hp]
+
+/-- **Asserting nothing is exactly as green as being skipped.** The binding that
+makes this section part of the CI law rather than a separate idea: a leg that
+selected no branch has the same evidential value as a step GitHub never ran, and
+`isGreen` already says what that is worth. -/
+theorem unselected_dispatch_is_as_green_as_a_skip (d : Dispatch)
+    (h : d.selected = Option.none) :
+    dispatchAsserted d = isGreen Outcome.skipped := by
+  simp [dispatchAsserted, isGreen, h]
+
+/-- **The exhaustiveness guard is exactly right — neither too strict nor too
+lax.** `ci.yml` refuses when no branch named itself *or* when the artifact is
+missing; this proves that pair of refusals is equivalent to "this dispatch is
+evidence". A guard that checked only one would pass one of the two measured
+legs. -/
+theorem guard_is_exactly_assertion (d : Dispatch) :
+    (d.selected.isSome && d.producedArtifact) = dispatchAsserted d := by
+  cases h : d.selected <;> simp [dispatchAsserted, h]
+
+/-- **Not vacuous:** a dispatch that really asserts something exists. -/
+theorem honest_dispatch_exists :
+    dispatchAsserted ⟨Option.some Allocator.gnuScript, true⟩ = true := by decide
+
+-- The three legs of run 31052104913 as the broken chain actually behaved.
+#guard !dispatchAsserted ⟨Option.none, false⟩                          -- windows
+#guard  dispatchAsserted ⟨Option.some Allocator.gnuScript, true⟩       -- ubuntu
+-- macOS: a branch WAS selected and an artifact DID exist -- but it was the
+-- fallback's, written over the pty probe's. The model cannot see that, and
+-- saying so is the point: this theorem catches "no branch ran", not "the wrong
+-- branch ran last". The workflow guard catches the second by naming ALLOC once
+-- per branch; only R22 in checker/workflow-lint.sh binds that.
+#guard  dispatchAsserted ⟨Option.some Allocator.bsdScript, true⟩
+
 /-! ### Run `31045719329` — the repair worked, and one assertion was wrong
 
 The commit that removed every `if: runner.os` produced this run. **Rule 1 was

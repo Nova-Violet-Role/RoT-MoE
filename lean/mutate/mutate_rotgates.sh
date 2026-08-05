@@ -214,6 +214,23 @@ run_mut M08 \
   '"".isPrefixOf s.name' \
   'any_authored_skip_is_dishonest and the run31035932155 guard (every name becomes scaffolding)'
 
+# --- the exhaustive-dispatch law (added after the missing-`else` defect) ------
+# M09 -- a dispatch that selected NO branch starts counting as evidence. This is
+# the Windows leg of run 31052104913 exactly: the if/elif chain fell through and
+# the step asserted things about a pty it never allocated.
+run_mut M09 \
+  '  | Option.none   => false' \
+  '  | Option.none   => true' \
+  'unselected_asserts_nothing, unselected_dispatch_is_as_green_as_a_skip, guard_is_exactly_assertion, and the windows #guard'
+
+# M10 -- the artifact conjunct is dropped: naming a branch becomes enough, even
+# if it produced nothing. Both conjuncts were violated on DIFFERENT platforms in
+# the same run, so dropping either lets one leg back through.
+run_mut M10 \
+  '  | Option.some _ => d.producedArtifact' \
+  '  | Option.some _ => true' \
+  'selected_without_artifact_asserts_nothing, guard_is_exactly_assertion'
+
 echo
 # --- RESTORE THE BASELINE ---------------------------------------------------
 # The EXIT trap restores the SOURCE, but the last mutant deleted the .olean and

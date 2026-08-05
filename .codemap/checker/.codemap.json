@@ -1123,12 +1123,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "b88247d93917",
-      "indexed_at": "2026-08-05T13:16:35.098952+00:00",
+      "hash": "ef1ba6f8b424",
+      "indexed_at": "2026-08-05T23:26:58.983563+00:00",
       "language": "shell",
-      "lines": 1051,
-      "mtime_ns": 1785903879227673600,
-      "size": 53824,
+      "lines": 1106,
+      "mtime_ns": 1785971447620239900,
+      "size": 56540,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -1220,7 +1220,7 @@
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
             922,
-            932
+            937
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -1228,6 +1228,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-05T22:42:16.634652+00:00",
+  "generated_at": "2026-08-05T23:26:58.991098+00:00",
   "version": "1.0"
 }
