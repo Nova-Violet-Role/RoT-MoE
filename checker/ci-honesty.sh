@@ -212,10 +212,28 @@ else
 fi
 
 # --- rule 2: no fake green ---------------------------------------------------
+# DEFECT FOUND BY INSPECTION while auditing run 31045719329, and it was mine.
+# The scaffolding exemption was applied to BOTH rules, so a runner step that
+# FAILED would have been ignored entirely.
+#
+# CORRECTION, recorded because this comment is evidence: the first version of
+# this note claimed run 31045719329 actually HAD two failing
+# `Post Run actions/checkout@v7` steps. It did not. That came from parsing the
+# jobs list with `paste - -`, which pairs lines offset by one and glued a
+# job-level conclusion onto a step name. Re-measured: zero Post steps failed in
+# that run; the single ungreen step was `tty guard` on windows-latest. The hole
+# below was real, but it was read out of the code -- not observed firing.
+#
+# The two rules need opposite treatment, because the exemption is asymmetric:
+#   - SKIP:    GitHub decides whether to run its own scaffolding. Exempt.
+#   - FAILURE: nothing may fail. A broken cleanup is a broken run, whoever
+#              authored the step. NOT exempt.
+# `is_scaffolding` is therefore deliberately absent from this loop. A scaffolding
+# step that is `skipped` still passes here (the case arm below allows it); one
+# that fails does not.
 : > "$ST2"
 while IFS=$'\t' read -r name concl; do
   [ -n "$name" ] || continue
-  is_scaffolding "$name" && continue
   case "$concl" in
     success|skipped|null) ;;
     *) printf 'UNGREEN\t%s\t%s\n' "$concl" "$name" >> "$ST2" ;;
@@ -252,11 +270,33 @@ rm -f "$CTL"
                 || bad "CONTROL FAILED: the no-fake-green rule cannot fire -- decorative"
 
 # --- control: scaffolding must NOT be flagged, or the rule is indiscriminate --
-if is_scaffolding "Set up job" && ! is_scaffolding "tty guard -- the router must not block on a terminal"; then
-  ok "CONTROL: runner scaffolding is exempt, an authored step is NOT"
+if is_scaffolding "Set up job" && ! is_scaffolding "tty guard -- pty refusal where a pty exists, non-blocking everywhere"; then
+  ok "CONTROL: runner scaffolding is exempt from RULE 1, an authored step is NOT"
 else
   bad "CONTROL FAILED: the scaffolding filter is too broad or too narrow"
 fi
+
+# --- control: a FAILING scaffolding step must still be caught by rule 2 -------
+# The control that would have caught the hole above. Without it, widening the
+# exemption again would go unnoticed -- exactly how the defect survived review.
+CTL="$(mktemp)"
+printf 'Post Run actions/checkout@v7\tfailure\n' > "$CTL"
+c3=0
+while IFS=$'\t' read -r name concl; do
+  case "$concl" in success|skipped|null) ;; *) c3=1 ;; esac
+done < "$CTL"
+printf 'Post Run actions/checkout@v7\tskipped\n' > "$CTL"
+c4=0
+while IFS=$'\t' read -r name concl; do
+  [ "$concl" = "skipped" ] || continue
+  is_scaffolding "$name" && continue
+  c4=1
+done < "$CTL"
+rm -f "$CTL"
+[ "$c3" -eq 1 ] && ok "CONTROL: a FAILING scaffolding step is caught (rule 2 has no exemption)" \
+                || bad "CONTROL FAILED: scaffolding can fail unseen -- the both-rules exemption is back"
+[ "$c4" -eq 0 ] && ok "CONTROL: a SKIPPED scaffolding step is still exempt (the asymmetry holds)" \
+                || bad "CONTROL FAILED: rule 1 now flags GitHub's own scaffolding"
 
 echo
 echo "== ci-honesty: $pass passed, $fail failed"

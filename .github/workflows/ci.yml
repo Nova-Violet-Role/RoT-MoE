@@ -477,7 +477,7 @@ jobs:
       # reported not-red. It now runs on all three, choosing the pty allocator
       # available on each and REFUSING if none is, so the coverage is real
       # everywhere or the run goes red.
-      - name: tty guard -- the router must not block on a terminal
+      - name: tty guard -- pty refusal where a pty exists, non-blocking everywhere
         shell: bash
         run: |
           set +e
@@ -492,20 +492,45 @@ jobs:
             # BSD script (macOS): the file comes first, then the command.
             echo "pty allocator: BSD script"
             bound 15 script -q /dev/null sh hooks/rot-router.sh > tty.out 2>&1
-          else
-            # Windows/Git Bash has no `script`. Rather than skip -- which asserts
-            # nothing while looking green -- assert the SAME contract through the
-            # channel that exists here: the router must refuse a non-payload stdin
-            # with the documented message instead of blocking. This is a narrower
-            # probe than a real pty and the log says so; it is not the guard being
-            # weakened, it is the guard being run where it can be run.
-            echo "pty allocator: none on $RUNNER_OS -- probing the same refusal via closed stdin"
+            echo "pty allocator: none on $RUNNER_OS"
+            # MEASURED, and the first attempt here was WRONG in a way worth
+            # recording. Git Bash ships `winpty`, but winpty needs a real console
+            # and a CI runner has none: it dies with
+            #   ASSERT_CONDITION("wp != nullptr && cols > 0 && rows > 0")
+            # So a genuine pty is IMPOSSIBLE on this leg -- not inconvenient,
+            # impossible.
+            #
+            # The first version pretended otherwise: it fed the router /dev/null
+            # and asserted `rc != 0`, "the same contract". It is NOT the same
+            # contract. Empty stdin is not a terminal, and the router correctly
+            # exits 0 on it (measured: exit 0, zero bytes). That assertion was
+            # false and it turned run 31045719329's Windows job RED -- which is
+            # the system working: a wrong check failed loudly instead of passing
+            # quietly.
+            #
+            # What IS assertable here is the weaker but real property, and it is
+            # named as weaker rather than dressed up as the pty check: on empty
+            # stdin the router must terminate, must not hang, and must emit
+            # nothing. That catches a hang and catches stray output; it does not
+            # catch tty-blocking, and the log says so on this leg.
+            NO_PTY=1
             bound 15 sh hooks/rot-router.sh < /dev/null > tty.out 2>&1
           fi
           rc=$?
           echo "exit=$rc"; cat tty.out
-          if [ "$rc" -eq 124 ]; then echo "FAIL: the router BLOCKED on a tty"; exit 1; fi
-          if [ "$rc" -eq 0 ];   then echo "FAIL: the router accepted a tty as hook input"; exit 1; fi
+          if [ "$rc" -eq 124 ]; then echo "FAIL: the router BLOCKED (no bound reached)"; exit 1; fi
+          if [ "${NO_PTY:-0}" = "1" ]; then
+            # Narrower leg, stated plainly.
+            if [ "$rc" -ne 0 ]; then
+              echo "FAIL: empty stdin must be a clean no-op, got exit $rc"; exit 1; fi
+            if [ -s tty.out ]; then
+              echo "FAIL: empty stdin produced output; the router must stay silent"; exit 1; fi
+            echo "PASS: no pty on $RUNNER_OS -- asserted the NON-BLOCKING + silent-on-empty"
+            echo "      contract instead. The tty-refusal itself is covered on the Linux"
+            echo "      and macOS legs of this same matrix, which DO allocate a pty."
+            exit 0
+          fi
+          if [ "$rc" -eq 0 ]; then echo "FAIL: the router accepted a tty as hook input"; exit 1; fi
           grep -qi 'expects a JSON payload on stdin' tty.out \
             && echo "PASS: refused a terminal with the documented message" \
             || { echo "FAIL: refused, but not for the documented reason"; exit 1; }
