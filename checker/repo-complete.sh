@@ -161,6 +161,14 @@ claim_exempt () {   # 0 = exempt (carries the pattern by construction)
     # surface -- README.md, CHANGELOG.md's newest section, STATUS.md, both plugin
     # manifests, CITATION.cff -- is still scanned, and the controls below still
     # prove the rule can fire.
+    #
+    # AS OF THIS COMMIT `TASKS/` IS GITIGNORED AND LOCAL-ONLY, so this arm can no
+    # longer fire: the scan enumerates `git ls-files`, and an untracked file is
+    # never offered to it. It is kept deliberately rather than deleted. The
+    # checkpoints are still written, still read during a session, and a future
+    # decision to track any of them again must not silently re-arm a rule that
+    # was reasoned about once and then thrown away. A dead arm with a note is
+    # cheaper than rediscovering the argument.
     TASKS/*)                   return 0 ;;
     *) return 1 ;;
   esac

@@ -7,3 +7,11 @@ build/
 # release artifacts built by checker/release-package.sh (never committed:
 # they are rebuilt from the tree and uploaded to a GitHub Release)
 .release/
+
+# Session checkpoints -- LOCAL ONLY, never published.
+# They are working notes: dated, written mid-session, and about the state of one
+# machine's tree at one moment. Publishing them puts a record of the past in a
+# repository whose every other surface is required to describe the present, and
+# `checker/repo-complete.sh` had to carry a permanent exemption to stop scanning
+# them for stale numbers. Kept on disk, out of git.
+TASKS/
