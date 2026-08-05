@@ -11,8 +11,8 @@ that script on the run that produced it -- none is a description.
 | field | value |
 |---|---|
 | theorems | 303 |
-| modules | 19 |
-| mutation suites | 16 |
+| modules | 20 |
+| mutation suites | 17 |
 | checkers | 47 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |
