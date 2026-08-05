@@ -196,8 +196,80 @@ A pre-commit hook whose failure paths all `exit 0` is not a hook.
 
 ### 4.3 Never force-push, never rewrite published history
 
-Tags are consumed by the marketplace. A moved tag silently changes what an
-installed plugin resolves to.
+**Branch history is never rewritten. Full stop.**
+
+Tags are narrower than this section used to claim, and the difference decides
+whether a re-tag is routine or destructive. Measured:
+
+* `.claude-plugin/marketplace.json` declares `"source": "./"`, and a
+  `claude plugin marketplace add Nova-Violet-Role/RoT-MoE` resolves the
+  **default branch**, not a tag. A directory-sourced install records
+  `"source": "directory"` and a path. **Neither reads a tag.**
+* What *is* pinned to a tag is a **GitHub Release** — its source archive and its
+  assets. Move a tag that has a Release attached and every download published
+  under it silently changes meaning.
+
+So the rule is a boundary, not a blanket:
+
+| state of the tag | may it move |
+|---|---|
+| created, pushed, **no Release attached** | yes — and this is the last moment it is free |
+| **a Release is published on it** | **never.** People have the checksums |
+
+Re-tagging onto a later commit before publishing is how a triple ends up on a
+commit whose CI is actually green. Re-tagging after publishing is how a
+`SHA256SUMS.txt` someone saved stops matching the file they can download.
+
+### 4.4 Dispatching a pre-release — the measured procedure
+
+**There is no release-publishing workflow.** The four workflows are
+`ads-manager`, `ci`, `tag-manager` and `verify`; `tag-manager` only refreshes
+the tag block inside notes of releases that are **already published**. Nothing
+creates a Release, uploads an asset, or fires on a tag push. `gh` is not
+installed on the author's machine either, so this step is done by hand, with a
+token or in the GitHub UI.
+
+Order matters, and every step has an exit code you read directly:
+
+```sh
+# 1. CI green on the exact commit you are about to tag -- all four jobs
+#    (checkers on ubuntu/macos/windows, and lean). Not "the last run", THIS commit.
+
+# 2. the payloads, rebuilt from that commit
+bash checker/release-package.sh          # 3 zips + SHA256SUMS.txt, or exit 1
+bash checker/release-install.sh          # installs each one as a stranger would
+
+# 3. the tags, onto the green commit
+git tag -f -a v0.7.0 -m "Router"                <green-sha>
+git tag -f -a v0.7.1 -m "Router + Lean"         <green-sha>
+git tag -f -a v0.7.2 -m "Router + Lean + Extra" <green-sha>
+git push -f origin v0.7.0 v0.7.1 v0.7.2   # allowed ONLY while no Release exists
+
+# 4. three Pre-Releases, one per tag, each carrying its OWN archive and the
+#    shared SHA256SUMS.txt. Mark them pre-release; every 0.7.x is pre-release.
+
+# 5. verify from OUTSIDE: download each published asset from its URL, check it
+#    against the published sums, unzip it, and run ITS OWN hooks/rot-router.sh.
+#    A release nobody downloaded is a release nobody tested.
+```
+
+Step 5 is not ceremony. The archives are verified locally by the packager
+(`checker/release-package.sh` refuses to emit sums for an artifact it did not
+bless, and a tampered byte fails `-c`), but that proves the *build* was sound,
+not that the *upload* was. Only fetching the published bytes tests the upload.
+
+**The tier names go in the tag annotation and the release title**, because the
+patch digit alone does not tell a reader which one to take:
+
+| tag | title |
+|---|---|
+| `v0.7.0` | Router |
+| `v0.7.1` | Router + Lean |
+| `v0.7.2` | Router + Lean + Extra |
+
+**Until a Release exists, every download link in the docs is a 404** — however
+correct its filename. `checker/readme-variants.sh` proves the names match what
+the packager builds; it cannot prove the file was uploaded, and it says so.
 
 ---
 
