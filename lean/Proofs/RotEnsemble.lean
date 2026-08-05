@@ -634,4 +634,92 @@ theorem every_forge_lens_is_pivotal
     gauge forge a breadth 1 1 1 < gauge (bump forge j l) a breadth 1 1 1 :=
   no_lens_is_inert forge_posWeights_router a breadth j l hlam hmu
 
+
+/-! ## 3h. WHAT WOULD ACTUALLY REPAIR THE NINTH LENS
+
+`claude_is_antivenom_or_soleil` proves the defect: the ninth activity is a
+function of two others, so the vector carries EIGHT bits and calls itself nine.
+Two repairs were on the table. This section decides between them BY PROOF rather
+than by preference, and the answer is not the one that was expected.
+
+The property is stated over an ARBITRARY ninth function, not over today's
+formula. That is deliberate: a theorem about `actClaude` specifically would have
+to be rewritten the moment the router changes, and would say nothing about
+whether the replacement is any better. `NinthIsIndependent f` asks the only
+question that matters -- can two turns agree on all eight other lenses and still
+disagree on this one? -- and any candidate can be tested against it. -/
+
+/-- Two signal states agree on the eight lenses that are not Claude. -/
+def eightAgree (s t : Signals) : Prop :=
+  actNova s = actNova t ∧ actViolet s = actViolet t ∧
+  actAntiVenom s = actAntiVenom t ∧ actVenom s = actVenom t ∧
+  actCarnage s = actCarnage t ∧ actChroma s = actChroma t ∧
+  actSoleil s = actSoleil t ∧ actEidolon s = actEidolon t
+
+/-- A ninth activity is INDEPENDENT when it can move while the other eight stand
+still. This is what "nine measurements" has to mean; anything weaker is eight
+measurements and a derived display value. -/
+def NinthIsIndependent (f : Signals → Bool) : Prop :=
+  ∃ s t : Signals, eightAgree s t ∧ f s ≠ f t
+
+/-- **The shipped ninth lens fails it.** Restated from the determination
+theorem so the defect has a name in the vocabulary of the repair. -/
+theorem current_ninth_is_not_independent : ¬ NinthIsIndependent actClaude := by
+  rintro ⟨s, t, ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩, hne⟩
+  exact hne (activity_vector_determined_by_eight s t h1 h2 h3 h4 h5 h6 h7 h8)
+
+/-- REPAIR CANDIDATE 1 -- Eidolon-gated fusion. The reasoning was that a fusion
+is legitimate when Eidolon licenses it, so gate the disjunction on Eidolon's own
+signal. -/
+def actClaudeGated (s : Signals) : Bool :=
+  actEidolon s && (actAntiVenom s || actSoleil s)
+
+/-- The gate is a REAL behaviour change -- it is not the same function. -/
+theorem gated_differs_from_current : ∃ s : Signals, actClaudeGated s ≠ actClaude s := by
+  refine ⟨⟨false, false, true, false, false, false, false, false, false⟩, ?_⟩
+  decide
+
+/-- **AND IT DOES NOT FIX ANYTHING.** This is the finding: gating a disjunction
+of two dependent activities on a third dependent activity produces a third
+dependent activity. Eidolon's licence changes WHEN the fusion fires, never
+whether the ninth reading carries information the other eight lack. -/
+theorem gated_is_still_not_independent : ¬ NinthIsIndependent actClaudeGated := by
+  rintro ⟨s, t, ⟨_, _, h3, _, _, _, h7, h8⟩, hne⟩
+  exact hne (by simp only [actClaudeGated, h3, h7, h8])
+
+/-- REPAIR CANDIDATE 2 -- an own signal. `Signals` has nine fields and every one
+is already read by some lens, so this is not a re-wiring: it needs a TENTH
+measured bit that belongs to Claude alone. -/
+structure Signals10 extends Signals where
+  forgeUtc : Bool
+deriving DecidableEq, Repr
+
+/-- Claude reads its own bit and nothing else. -/
+def actClaudeOwn (s : Signals10) : Bool := s.forgeUtc
+
+/-- **This one works.** Two turns that agree on all eight other lenses and
+disagree on the ninth -- exhibited, not argued. -/
+theorem own_signal_restores_independence :
+    ∃ s t : Signals10, eightAgree s.toSignals t.toSignals ∧
+      actClaudeOwn s ≠ actClaudeOwn t := by
+  refine ⟨⟨⟨false, false, false, false, false, false, false, false, false⟩, true⟩,
+          ⟨⟨false, false, false, false, false, false, false, false, false⟩, false⟩,
+          ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩, by decide⟩
+
+/-- And the own-signal reading is not secretly the old one wearing a hat: it
+disagrees with the current formula on a state the router can actually reach
+(a proof landed, nothing else moved). -/
+theorem own_signal_differs_from_current :
+    ∃ s : Signals10, actClaudeOwn s ≠ actClaude s.toSignals := by
+  refine ⟨⟨⟨false, false, true, false, false, false, false, false, false⟩, false⟩, ?_⟩
+  decide
+
+-- Executable checks: the three candidates on one concrete turn (a proof landed,
+-- no tool ran). Current fires, the gated form does NOT, the own signal is free.
+#guard actClaude      ⟨false, false, true, false, false, false, false, false, false⟩ = true
+#guard actClaudeGated ⟨false, false, true, false, false, false, false, false, false⟩ = false
+#guard actClaudeOwn   ⟨⟨false, false, true, false, false, false, false, false, false⟩, false⟩ = false
+-- And on a turn where a tool DID run, the gate opens.
+#guard actClaudeGated ⟨false, false, true, false, false, false, false, false, true⟩ = true
+
 end RotMoE.Ensemble

@@ -213,6 +213,52 @@ run_mut M06 RotEnsemble \
   'noncomputable def lamFuse (l₁ l₂ : ℝ) : ℝ := (l₁ + l₂) / 2 + 1/5' \
   'noncomputable def lamFuse (l₁ l₂ : ℝ) : ℝ := (l₁ + l₂) / 2' \
   'lamFuse_self, lamFuse_has_no_fixed_point, iterated_fusion_diverges'
+
+# =============================================================================
+# M07..M11 -- THE INDEPENDENCE SECTION (3h). It decides between two proposed
+# repairs for the welded ninth lens, so if any of it is decorative the decision
+# is decorative too.
+# =============================================================================
+
+# M07 -- THE DEFECT IS DECLARED FIXED BY FIAT. Point the independence property
+# at the ninth activity's own definition instead of at the eight others, and
+# `current_ninth_is_not_independent` should stop meaning anything.
+run_mut M07 RotEnsemble \
+  '  actSoleil s = actSoleil t ∧ actEidolon s = actEidolon t' \
+  '  actSoleil s = actSoleil t ∧ actClaude s = actClaude t' \
+  'current_ninth_is_not_independent, gated_is_still_not_independent'
+
+# M08 -- THE GATE STOPS GATING. If `actClaudeGated` drops Eidolon it becomes the
+# current formula, and the theorem that says the two DIFFER must die. This is the
+# mutant that proves candidate 1 was actually evaluated rather than described.
+run_mut M08 RotEnsemble \
+  '  actEidolon s && (actAntiVenom s || actSoleil s)' \
+  '  (actAntiVenom s || actSoleil s)' \
+  'gated_differs_from_current'
+
+# M09 -- THE OWN SIGNAL IS NOT ITS OWN. Wire Claude back onto a field another
+# lens already reads and the independence witness must fail: `proofUtc` is
+# AntiVenom's, so the two states that used to differ now agree on lens three.
+run_mut M09 RotEnsemble \
+  'def actClaudeOwn (s : Signals10) : Bool := s.forgeUtc' \
+  'def actClaudeOwn (s : Signals10) : Bool := s.proofUtc' \
+  'own_signal_restores_independence, own_signal_differs_from_current'
+
+# M10 -- THE CONCRETE TURN IS MISREAD. The #guard row that pins the gated form
+# CLOSED on a proof-only turn is the executable half of the argument; if it can
+# be flipped without a failure, the claim rests on prose.
+run_mut M10 RotEnsemble \
+  '#guard actClaudeGated ⟨false, false, true, false, false, false, false, false, false⟩ = false' \
+  '#guard actClaudeGated ⟨false, false, true, false, false, false, false, false, false⟩ = true' \
+  'the gated-form #guard on a proof-only turn'
+
+# M11 -- THE GATE OPENS WHEN NOTHING RAN. The companion row: with a tool run the
+# gate must OPEN, and a suite that cannot tell the two rows apart has pinned a
+# constant rather than a function.
+run_mut M11 RotEnsemble \
+  '#guard actClaudeGated ⟨false, false, true, false, false, false, false, false, true⟩ = true' \
+  '#guard actClaudeGated ⟨false, false, true, false, false, false, false, false, true⟩ = false' \
+  'the gated-form #guard on a tool turn'
 # --- RESTORE AND REBUILD, and this is not a formality --------------------------
 # Measured 2026-08-04 on the sibling suite: restoring the SOURCE and stopping
 # there leaves the module compiled OUT of the tree, because every mutant deletes
