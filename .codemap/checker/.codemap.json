@@ -2,12 +2,12 @@
   "directory": "checker",
   "files": {
     "axiom-audit.sh": {
-      "hash": "fa3cf8695145",
-      "indexed_at": "2026-08-01T06:03:54.768159+00:00",
+      "hash": "c429698047f1",
+      "indexed_at": "2026-08-05T13:16:35.004041+00:00",
       "language": "shell",
       "lines": 267,
-      "mtime_ns": 1785563774569804000,
-      "size": 12243,
+      "mtime_ns": 1785903876394673400,
+      "size": 12328,
       "symbols": [
         {
           "docstring": "--- theorem names, from the SOURCE, comment- and namespace-aware ------------ Lean block comments NEST, so a boolean flag is wrong. Doc comments carry",
@@ -38,12 +38,12 @@
       ]
     },
     "axiom-class.sh": {
-      "hash": "295816f85492",
-      "indexed_at": "2026-08-02T05:52:46.877314+00:00",
+      "hash": "c34ed4223b93",
+      "indexed_at": "2026-08-05T13:16:35.007175+00:00",
       "language": "shell",
-      "lines": 316,
-      "mtime_ns": 1785648900357655700,
-      "size": 13899,
+      "lines": 342,
+      "mtime_ns": 1785921056909370800,
+      "size": 15548,
       "symbols": [
         {
           "lines": [
@@ -57,15 +57,15 @@
           "docstring": "--- extracting declaration names --------------------------------------------- A `sed` for `^theorem` is the obvious approach and it is WRONG, measure",
           "lines": [
             115,
-            317
+            343
           ],
           "name": "names_in",
           "type": "function"
         },
         {
           "lines": [
-            288,
-            295
+            314,
+            321
           ],
           "name": "classify_line",
           "type": "function"
@@ -73,12 +73,12 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "a7be49f90199",
-      "indexed_at": "2026-08-05T02:59:07.383703+00:00",
+      "hash": "b338970653e0",
+      "indexed_at": "2026-08-05T13:16:35.010630+00:00",
       "language": "shell",
-      "lines": 571,
-      "mtime_ns": 1785898585128410300,
-      "size": 28239,
+      "lines": 579,
+      "mtime_ns": 1785918854790667800,
+      "size": 28964,
       "symbols": [
         {
           "lines": [
@@ -99,12 +99,12 @@
       ]
     },
     "ci-dryrun.sh": {
-      "hash": "6fbf7434cdf0",
-      "indexed_at": "2026-08-04T23:51:54.967107+00:00",
+      "hash": "f7c111c93fa8",
+      "indexed_at": "2026-08-05T13:16:35.013431+00:00",
       "language": "shell",
       "lines": 387,
-      "mtime_ns": 1785885751687014100,
-      "size": 19961,
+      "mtime_ns": 1785903876638674000,
+      "size": 20044,
       "symbols": [
         {
           "lines": [
@@ -143,12 +143,12 @@
       ]
     },
     "claude-md-lint.sh": {
-      "hash": "9ad8f8ab1498",
-      "indexed_at": "2026-07-31T15:55:18.513777+00:00",
+      "hash": "eaf513f5d8a4",
+      "indexed_at": "2026-08-05T13:16:35.014567+00:00",
       "language": "shell",
       "lines": 120,
-      "mtime_ns": 1785512211792609700,
-      "size": 5086,
+      "mtime_ns": 1785903876720674200,
+      "size": 5174,
       "symbols": [
         {
           "docstring": "--- 1. every repo path the documents name must exist ------------------------ Extract candidates: anything inside backticks that looks like a repo-rel",
@@ -180,30 +180,47 @@
       ]
     },
     "cross-diff-remind.sh": {
-      "hash": "c958a71f636a",
-      "indexed_at": "2026-07-31T15:55:18.677435+00:00",
+      "hash": "c4411b37a1ce",
+      "indexed_at": "2026-08-05T13:16:35.016441+00:00",
       "language": "shell",
       "lines": 102,
-      "mtime_ns": 1785511143825602600,
-      "size": 4349,
+      "mtime_ns": 1785903876915673600,
+      "size": 4440,
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "0e5fe3ab4965",
-      "indexed_at": "2026-08-05T04:10:28.708417+00:00",
+      "hash": "a7f7d0f4071b",
+      "indexed_at": "2026-08-05T13:16:35.018348+00:00",
       "language": "shell",
-      "lines": 179,
-      "mtime_ns": 1785902282043584500,
-      "size": 9113,
-      "symbols": []
+      "lines": 251,
+      "mtime_ns": 1785919916097580100,
+      "size": 13052,
+      "symbols": [
+        {
+          "lines": [
+            154,
+            161
+          ],
+          "name": "_stem_of",
+          "type": "function"
+        },
+        {
+          "lines": [
+            162,
+            169
+          ],
+          "name": "_drive",
+          "type": "function"
+        }
+      ]
     },
     "ctt-session.sh": {
-      "hash": "df6c28e354ef",
-      "indexed_at": "2026-08-04T09:56:21.046889+00:00",
+      "hash": "2ad103e758df",
+      "indexed_at": "2026-08-05T13:16:35.020298+00:00",
       "language": "shell",
       "lines": 244,
-      "mtime_ns": 1785798008233738900,
-      "size": 12391,
+      "mtime_ns": 1785903876989674100,
+      "size": 12476,
       "symbols": [
         {
           "docstring": "--- the conversation: REAL work on THIS repository -------------------------- Every prompt names something that exists on disk. The lane each is expec",
@@ -217,21 +234,21 @@
       ]
     },
     "deferred-closure.sh": {
-      "hash": "30a8cedbe01e",
-      "indexed_at": "2026-08-05T02:59:07.394584+00:00",
+      "hash": "a5294c963f01",
+      "indexed_at": "2026-08-05T13:16:35.022703+00:00",
       "language": "shell",
       "lines": 369,
-      "mtime_ns": 1785898585154409900,
-      "size": 20557,
+      "mtime_ns": 1785903877068674200,
+      "size": 20647,
       "symbols": []
     },
     "disarm-safety.sh": {
-      "hash": "5d17ee6b3434",
-      "indexed_at": "2026-08-04T23:51:55.371191+00:00",
+      "hash": "034452f45dff",
+      "indexed_at": "2026-08-05T13:16:35.024322+00:00",
       "language": "shell",
       "lines": 189,
-      "mtime_ns": 1785874609890546000,
-      "size": 8980,
+      "mtime_ns": 1785903877144674100,
+      "size": 9067,
       "symbols": [
         {
           "docstring": "A config carrying BOTH shapes: an entry naming a plugin cache (which the exact matcher cannot reproduce from this directory) and a hook of the user's",
@@ -245,12 +262,12 @@
       ]
     },
     "dorks.sh": {
-      "hash": "4e1ec56c281a",
-      "indexed_at": "2026-08-02T19:55:39.791968+00:00",
+      "hash": "c6865ca0cf92",
+      "indexed_at": "2026-08-05T13:16:35.026169+00:00",
       "language": "shell",
       "lines": 240,
-      "mtime_ns": 1785699300242211900,
-      "size": 11411,
+      "mtime_ns": 1785903877220673600,
+      "size": 11490,
       "symbols": [
         {
           "docstring": "--- the source of truth, exactly as tag-manager.yml reads it ---------------- Same awk section extractor, same comment/blank stripping. If these two e",
@@ -290,18 +307,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "3626d2104077",
-      "indexed_at": "2026-08-05T04:10:28.718978+00:00",
+      "hash": "bd11864f057d",
+      "indexed_at": "2026-08-05T13:16:35.028206+00:00",
       "language": "shell",
-      "lines": 285,
-      "mtime_ns": 1785901168687846400,
-      "size": 13330,
+      "lines": 325,
+      "mtime_ns": 1785923872437714700,
+      "size": 15419,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            147,
-            162
+            148,
+            163
           ],
           "name": "fires",
           "type": "function"
@@ -309,12 +326,12 @@
       ]
     },
     "gate-split.sh": {
-      "hash": "3f76c8f8be5b",
-      "indexed_at": "2026-08-04T09:56:21.053947+00:00",
+      "hash": "dd2c4ea063a6",
+      "indexed_at": "2026-08-05T13:16:35.030021+00:00",
       "language": "shell",
       "lines": 246,
-      "mtime_ns": 1785784955880308900,
-      "size": 9804,
+      "mtime_ns": 1785903877307673900,
+      "size": 9888,
       "symbols": [
         {
           "docstring": "--- side A: the shell table ------------------------------------------------- Only the DEFAULT block (between `GATES=\"` and the closing lone quote). T",
@@ -337,12 +354,12 @@
       ]
     },
     "gauge-cross.sh": {
-      "hash": "01a41dc45527",
-      "indexed_at": "2026-08-01T06:03:54.925815+00:00",
+      "hash": "57c61ab340a8",
+      "indexed_at": "2026-08-05T13:16:35.031537+00:00",
       "language": "shell",
       "lines": 184,
-      "mtime_ns": 1785563774569804000,
-      "size": 8224,
+      "mtime_ns": 1785903877385674300,
+      "size": 8309,
       "symbols": [
         {
           "lines": [
@@ -355,12 +372,12 @@
       ]
     },
     "hook-contract.sh": {
-      "hash": "7f1a156ed9e3",
-      "indexed_at": "2026-08-02T21:59:16.316091+00:00",
+      "hash": "a97a6f3a23e7",
+      "indexed_at": "2026-08-05T13:16:35.033066+00:00",
       "language": "shell",
       "lines": 186,
-      "mtime_ns": 1785706199217299400,
-      "size": 10048,
+      "mtime_ns": 1785903877461673300,
+      "size": 10135,
       "symbols": [
         {
           "lines": [
@@ -436,12 +453,12 @@
       ]
     },
     "install-roundtrip.sh": {
-      "hash": "4f34a65cceac",
-      "indexed_at": "2026-08-05T02:59:07.410084+00:00",
+      "hash": "4abb9223b176",
+      "indexed_at": "2026-08-05T13:16:35.039033+00:00",
       "language": "shell",
       "lines": 408,
-      "mtime_ns": 1785898585167409500,
-      "size": 20006,
+      "mtime_ns": 1785903877557674800,
+      "size": 20097,
       "symbols": [
         {
           "docstring": "--- the fixture ------------------------------------------------------------ Deliberately hostile, and every hostile trait is one measured on the real",
@@ -455,30 +472,30 @@
       ]
     },
     "lean-binds-shell.sh": {
-      "hash": "7cb030b148a5",
-      "indexed_at": "2026-08-03T17:36:32.619426+00:00",
+      "hash": "5d6bb1343316",
+      "indexed_at": "2026-08-05T13:16:35.040405+00:00",
       "language": "shell",
       "lines": 193,
-      "mtime_ns": 1785745585708711600,
-      "size": 9406,
+      "mtime_ns": 1785903877637674200,
+      "size": 9496,
       "symbols": []
     },
     "license-bridge.sh": {
-      "hash": "e792ccfc4876",
-      "indexed_at": "2026-07-31T16:50:49.144781+00:00",
+      "hash": "97fdf6333615",
+      "indexed_at": "2026-08-05T13:16:35.041555+00:00",
       "language": "shell",
       "lines": 160,
-      "mtime_ns": 1785516197478645000,
-      "size": 7562,
+      "mtime_ns": 1785903877714673600,
+      "size": 7650,
       "symbols": []
     },
     "live-session-smoke.sh": {
-      "hash": "46aa782137bc",
-      "indexed_at": "2026-08-05T02:59:07.414300+00:00",
+      "hash": "1fe71a354271",
+      "indexed_at": "2026-08-05T13:16:35.043269+00:00",
       "language": "shell",
       "lines": 252,
-      "mtime_ns": 1785898585180410500,
-      "size": 12352,
+      "mtime_ns": 1785903877791674200,
+      "size": 12444,
       "symbols": [
         {
           "lines": [
@@ -491,12 +508,12 @@
       ]
     },
     "log-replay.sh": {
-      "hash": "07515c29d9bb",
-      "indexed_at": "2026-08-05T04:10:28.738031+00:00",
+      "hash": "46aaf310320d",
+      "indexed_at": "2026-08-05T13:16:35.046195+00:00",
       "language": "shell",
-      "lines": 331,
-      "mtime_ns": 1785900537066073300,
-      "size": 16004,
+      "lines": 464,
+      "mtime_ns": 1785918854801668800,
+      "size": 23293,
       "symbols": [
         {
           "docstring": "See the long note on the same function in checker/hook-footprint.sh: an unauthenticated caller cannot read CI logs (403, admin rights), so a failure t",
@@ -510,8 +527,8 @@
         {
           "docstring": "--- 2. THE NEGATIVE CONTROLS ------------------------------------------------ A replayer that accepts everything is worse than none: it certifies. Eac",
           "lines": [
-            259,
-            299
+            367,
+            407
           ],
           "name": "ctl",
           "type": "function"
@@ -519,12 +536,12 @@
       ]
     },
     "marketplace-session.sh": {
-      "hash": "e0fe7c014b55",
-      "indexed_at": "2026-08-03T04:56:55.548220+00:00",
+      "hash": "269455b1af72",
+      "indexed_at": "2026-08-05T13:16:35.047566+00:00",
       "language": "shell",
       "lines": 171,
-      "mtime_ns": 1785729309656223600,
-      "size": 8472,
+      "mtime_ns": 1785903877878672800,
+      "size": 8565,
       "symbols": [
         {
           "docstring": "--- the lane table: prompt -> the lane the router must choose --------------- WHY THE LANE AND NOT JUST THE MARKER. This gate used to run the same pro",
@@ -538,21 +555,21 @@
       ]
     },
     "mutant-discipline.sh": {
-      "hash": "51be0676a5dd",
-      "indexed_at": "2026-08-05T04:10:28.740788+00:00",
+      "hash": "81001e4d8e59",
+      "indexed_at": "2026-08-05T13:16:35.048846+00:00",
       "language": "shell",
       "lines": 197,
-      "mtime_ns": 1785899352566318300,
-      "size": 9045,
+      "mtime_ns": 1785903877952674200,
+      "size": 9136,
       "symbols": []
     },
     "mutate-checker.sh": {
-      "hash": "5f7068e19aa2",
-      "indexed_at": "2026-08-05T02:59:07.421218+00:00",
+      "hash": "04240532e6c7",
+      "indexed_at": "2026-08-05T13:16:35.051206+00:00",
       "language": "shell",
-      "lines": 308,
-      "mtime_ns": 1785888254437861600,
-      "size": 14648,
+      "lines": 350,
+      "mtime_ns": 1785918854813668100,
+      "size": 16724,
       "symbols": [
         {
           "docstring": "run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker] The 7th argument names the checker to run; it defaults to the router cross",
@@ -566,30 +583,30 @@
       ]
     },
     "no-local-paths.sh": {
-      "hash": "7a82517d53eb",
-      "indexed_at": "2026-07-31T11:35:25.333013+00:00",
+      "hash": "d920d24f1666",
+      "indexed_at": "2026-08-05T13:16:35.052509+00:00",
       "language": "shell",
-      "lines": 104,
-      "mtime_ns": 1785495880057954200,
-      "size": 4557,
+      "lines": 212,
+      "mtime_ns": 1785928173987474600,
+      "size": 9833,
       "symbols": []
     },
     "plugin-install.sh": {
-      "hash": "f1b6c0efb76a",
-      "indexed_at": "2026-08-05T04:10:28.745250+00:00",
+      "hash": "4c431fddc9b4",
+      "indexed_at": "2026-08-05T13:16:35.053635+00:00",
       "language": "shell",
       "lines": 148,
-      "mtime_ns": 1785902300815585500,
-      "size": 7070,
+      "mtime_ns": 1785903878051673500,
+      "size": 7158,
       "symbols": []
     },
     "portability.sh": {
-      "hash": "8a26e89936ba",
-      "indexed_at": "2026-08-05T02:59:07.426150+00:00",
+      "hash": "828653b1a2ba",
+      "indexed_at": "2026-08-05T13:16:35.056425+00:00",
       "language": "shell",
       "lines": 491,
-      "mtime_ns": 1785898585205409400,
-      "size": 25396,
+      "mtime_ns": 1785903878125673100,
+      "size": 25481,
       "symbols": [
         {
           "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
@@ -621,12 +638,12 @@
       ]
     },
     "profile-bind.sh": {
-      "hash": "207f21c91d5b",
-      "indexed_at": "2026-08-04T09:56:21.077124+00:00",
+      "hash": "3c809217b257",
+      "indexed_at": "2026-08-05T13:16:35.059448+00:00",
       "language": "shell",
       "lines": 200,
-      "mtime_ns": 1785791649182820000,
-      "size": 8072,
+      "mtime_ns": 1785903878212673900,
+      "size": 8158,
       "symbols": [
         {
           "docstring": "--- spec side: lens -> lambda for one \u00a74 block ------------------------------",
@@ -665,22 +682,41 @@
         }
       ]
     },
+    "readme-variants.sh": {
+      "hash": "0788f2e68f69",
+      "indexed_at": "2026-08-05T13:16:35.061118+00:00",
+      "language": "shell",
+      "lines": 160,
+      "mtime_ns": 1785925586062108000,
+      "size": 7308,
+      "symbols": [
+        {
+          "docstring": "An unauthenticated caller cannot read CI logs (403, admin rights), so a failure that exists only in the log is one nobody outside the org can diagnose",
+          "lines": [
+            49,
+            53
+          ],
+          "name": "bad",
+          "type": "function"
+        }
+      ]
+    },
     "release-consistency.sh": {
-      "hash": "60c71bb932c8",
-      "indexed_at": "2026-08-04T09:56:21.078253+00:00",
+      "hash": "6e711402ed20",
+      "indexed_at": "2026-08-05T13:16:35.062721+00:00",
       "language": "shell",
       "lines": 159,
-      "mtime_ns": 1785794697108789500,
-      "size": 7651,
+      "mtime_ns": 1785903878287673800,
+      "size": 7744,
       "symbols": []
     },
     "release-install.sh": {
-      "hash": "4ee0fa4c41a5",
-      "indexed_at": "2026-08-04T22:18:54.639140+00:00",
+      "hash": "248f3101f451",
+      "indexed_at": "2026-08-05T13:16:35.065350+00:00",
       "language": "shell",
       "lines": 428,
-      "mtime_ns": 1785880192868780400,
-      "size": 22036,
+      "mtime_ns": 1785903878367676200,
+      "size": 22125,
       "symbols": [
         {
           "lines": [
@@ -693,12 +729,12 @@
       ]
     },
     "release-longsession.sh": {
-      "hash": "6d55f93d233d",
-      "indexed_at": "2026-08-05T04:10:28.759430+00:00",
+      "hash": "99318ad15656",
+      "indexed_at": "2026-08-05T13:16:35.067361+00:00",
       "language": "shell",
       "lines": 286,
-      "mtime_ns": 1785899068079319000,
-      "size": 15718,
+      "mtime_ns": 1785903878446673800,
+      "size": 15811,
       "symbols": [
         {
           "docstring": "--- the conversation --------------------------------------------------------- A working session, not a lane drill: the turns build on each other, and",
@@ -721,12 +757,12 @@
       ]
     },
     "release-package.sh": {
-      "hash": "bdee0b6aafaf",
-      "indexed_at": "2026-08-04T22:18:54.640197+00:00",
+      "hash": "0869d8d595c8",
+      "indexed_at": "2026-08-05T13:16:35.070210+00:00",
       "language": "shell",
-      "lines": 395,
-      "mtime_ns": 1785881854694704600,
-      "size": 17629,
+      "lines": 474,
+      "mtime_ns": 1785926444077850600,
+      "size": 21668,
       "symbols": [
         {
           "lines": [
@@ -748,12 +784,12 @@
       ]
     },
     "release-session.sh": {
-      "hash": "2e1811a873a8",
-      "indexed_at": "2026-08-05T04:10:28.764757+00:00",
+      "hash": "2e6343892d9a",
+      "indexed_at": "2026-08-05T13:16:35.072299+00:00",
       "language": "shell",
       "lines": 297,
-      "mtime_ns": 1785898893154159700,
-      "size": 15026,
+      "mtime_ns": 1785903878599674800,
+      "size": 15115,
       "symbols": [
         {
           "lines": [
@@ -791,12 +827,12 @@
       ]
     },
     "remind-measure.sh": {
-      "hash": "d062075cef98",
-      "indexed_at": "2026-08-04T23:51:56.515710+00:00",
+      "hash": "c19d52f7b50e",
+      "indexed_at": "2026-08-05T13:16:35.073758+00:00",
       "language": "shell",
       "lines": 203,
-      "mtime_ns": 1785875289031229600,
-      "size": 10597,
+      "mtime_ns": 1785903878677674200,
+      "size": 10685,
       "symbols": [
         {
           "docstring": "RECORD IT THE WAY THE INSTALLER DOES. SETUP_LEAN.sh normalises to the drive-letter form because that is the only spelling BOTH arms can test -- measur",
@@ -810,12 +846,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "04fe0ef94a7f",
-      "indexed_at": "2026-08-05T02:59:07.445582+00:00",
+      "hash": "fe049bdd199c",
+      "indexed_at": "2026-08-05T13:16:35.078008+00:00",
       "language": "shell",
-      "lines": 637,
-      "mtime_ns": 1785898585231410200,
-      "size": 32508,
+      "lines": 645,
+      "mtime_ns": 1785922117725362800,
+      "size": 33122,
       "symbols": [
         {
           "lines": [
@@ -829,31 +865,31 @@
           "docstring": "Every \"<n> theorems\" / \"<n> machine-checked\" claim must equal TH -- ANYWHERE IN THE TREE, not in three files chosen by hand.  MEASURED DEFECT, 2026-07",
           "lines": [
             137,
-            167
+            175
           ],
           "name": "claim_exempt",
           "type": "function"
         },
         {
           "lines": [
-            169,
-            212
+            177,
+            220
           ],
           "name": "scan_file_claims",
           "type": "function"
         },
         {
           "lines": [
-            464,
-            471
+            472,
+            479
           ],
           "name": "detects",
           "type": "function"
         },
         {
           "lines": [
-            522,
-            531
+            530,
+            539
           ],
           "name": "strip_lean_comments",
           "type": "function"
@@ -861,12 +897,12 @@
       ]
     },
     "router-duplication.sh": {
-      "hash": "0e0ac56d9b11",
-      "indexed_at": "2026-08-04T23:51:56.909652+00:00",
+      "hash": "202dfbef2b3a",
+      "indexed_at": "2026-08-05T13:16:35.080224+00:00",
       "language": "shell",
       "lines": 245,
-      "mtime_ns": 1785881784295705300,
-      "size": 11884,
+      "mtime_ns": 1785903878830673400,
+      "size": 11976,
       "symbols": [
         {
           "docstring": "--- fixtures ---------------------------------------------------------------- A scratch Claude config. `enabled` decides whether the plugin registrati",
@@ -925,31 +961,40 @@
       ]
     },
     "status-verdict.sh": {
-      "hash": "2c3eb9cf7b92",
-      "indexed_at": "2026-08-02T07:49:36.220408+00:00",
+      "hash": "3bcb4fff7fb9",
+      "indexed_at": "2026-08-05T13:16:35.082677+00:00",
       "language": "shell",
-      "lines": 137,
-      "mtime_ns": 1785654536099758700,
-      "size": 5825,
+      "lines": 191,
+      "mtime_ns": 1785917576262843600,
+      "size": 8602,
       "symbols": [
         {
           "docstring": "`sorry` and `native_decide` are COUNTED, not asserted. A line saying \"none\" that nothing recounts is the kind of claim this repository exists to refus",
           "lines": [
-            78,
-            101
+            95,
+            104
           ],
           "name": "count_token",
+          "type": "function"
+        },
+        {
+          "docstring": "The scan itself, over ONE file, so it can be aimed at a fixture. Narrowing a safety check without a control that proves it still fires is how a check",
+          "lines": [
+            109,
+            133
+          ],
+          "name": "token_in_file",
           "type": "function"
         }
       ]
     },
     "tags-consistency.sh": {
-      "hash": "46a9105d9078",
-      "indexed_at": "2026-08-01T07:24:17.389633+00:00",
+      "hash": "86e30e32b58e",
+      "indexed_at": "2026-08-05T13:16:35.085263+00:00",
       "language": "shell",
       "lines": 327,
-      "mtime_ns": 1785567942365784300,
-      "size": 15248,
+      "mtime_ns": 1785903878928673300,
+      "size": 15338,
       "symbols": [
         {
           "docstring": "Section extraction: a tag line is a bare lowercase token; comments and blanks are skipped. Written as a function so the control below runs the SAME co",
@@ -971,21 +1016,21 @@
       ]
     },
     "verdict-fresh.sh": {
-      "hash": "105d43464c59",
-      "indexed_at": "2026-08-03T17:36:32.975356+00:00",
+      "hash": "a2271c0b7624",
+      "indexed_at": "2026-08-05T13:16:35.086140+00:00",
       "language": "shell",
       "lines": 75,
-      "mtime_ns": 1785765896016034900,
-      "size": 3770,
+      "mtime_ns": 1785903879002674300,
+      "size": 3857,
       "symbols": []
     },
     "verdict-schedule-sim.sh": {
-      "hash": "44543718dfab",
-      "indexed_at": "2026-08-03T17:36:32.620770+00:00",
+      "hash": "5f9f18f88859",
+      "indexed_at": "2026-08-05T13:16:35.089568+00:00",
       "language": "shell",
       "lines": 331,
-      "mtime_ns": 1785765227258034800,
-      "size": 16588,
+      "mtime_ns": 1785903879076673400,
+      "size": 16682,
       "symbols": [
         {
           "lines": [
@@ -1014,12 +1059,12 @@
       ]
     },
     "verdict-stability.sh": {
-      "hash": "a4216693390c",
-      "indexed_at": "2026-08-01T07:24:17.553098+00:00",
+      "hash": "9394ee60cf25",
+      "indexed_at": "2026-08-05T13:16:35.092018+00:00",
       "language": "shell",
       "lines": 248,
-      "mtime_ns": 1785568603266211900,
-      "size": 13553,
+      "mtime_ns": 1785903879151674400,
+      "size": 13644,
       "symbols": [
         {
           "docstring": "--------------------------------------------------------------------------- On a scratch copy. The real tree is never mutated by this checker: a harne",
@@ -1059,12 +1104,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "bf6814fd49db",
-      "indexed_at": "2026-08-05T04:10:28.793424+00:00",
+      "hash": "b88247d93917",
+      "indexed_at": "2026-08-05T13:16:35.098952+00:00",
       "language": "shell",
       "lines": 1051,
-      "mtime_ns": 1785902510146855200,
-      "size": 53737,
+      "mtime_ns": 1785903879227673600,
+      "size": 53824,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -1164,6 +1209,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-05T04:10:28.858223+00:00",
+  "generated_at": "2026-08-05T13:16:35.167079+00:00",
   "version": "1.0"
 }

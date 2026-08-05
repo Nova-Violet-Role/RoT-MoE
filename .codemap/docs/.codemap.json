@@ -2,12 +2,12 @@
   "directory": "docs",
   "files": {
     "GIT-WORKFLOW.md": {
-      "hash": "d77afb211cf1",
-      "indexed_at": "2026-08-04T23:51:57.282785+00:00",
+      "hash": "701e84854fa1",
+      "indexed_at": "2026-08-05T13:16:35.099937+00:00",
       "language": "markdown",
-      "lines": 273,
-      "mtime_ns": 1785881672826704400,
-      "size": 10605,
+      "lines": 345,
+      "mtime_ns": 1785929884939431300,
+      "size": 14023,
       "symbols": [
         {
           "children": [
@@ -114,18 +114,27 @@
               "type": "subsection"
             },
             {
-              "docstring": "Tags are consumed by the marketplace. A moved tag silently changes what an installed plugin resolves to.",
+              "docstring": "**Branch history is never rewritten. Full stop.**",
               "lines": [
                 197,
-                203
+                222
               ],
               "name": "4.3 Never force-push, never rewrite published history",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**There is no release-publishing workflow.** The four workflows are `ads-manager`, `ci`, `tag-manager` and `verify`; `tag-manager` only refreshes the",
+              "lines": [
+                223,
+                275
+              ],
+              "name": "4.4 Dispatching a pre-release \u2014 the measured procedure",
               "type": "subsection"
             }
           ],
           "lines": [
             162,
-            203
+            275
           ],
           "name": "4. Committing, tagging, releasing",
           "type": "section"
@@ -133,8 +142,8 @@
         {
           "docstring": "Never test installer changes against the configuration you are using. Point at a scratch config:",
           "lines": [
-            204,
-            241
+            276,
+            313
           ],
           "name": "5. Testing an install for real (CTT)",
           "type": "section"
@@ -142,8 +151,8 @@
         {
           "docstring": "| trap | what happens | do this | |---|---|---| | exit code through a pipe | reports the pipe's status; **false green** | read `$?` directly | | `sed`",
           "lines": [
-            242,
-            257
+            314,
+            329
           ],
           "name": "6. Things that will bite you",
           "type": "section"
@@ -151,8 +160,8 @@
         {
           "docstring": "State the **defect**, the **measurement**, and the **instrument** that now catches it. The subject line is a finding, not a category:",
           "lines": [
-            258,
-            274
+            330,
+            346
           ],
           "name": "7. What a good commit message looks like here",
           "type": "section"
@@ -273,6 +282,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-04T23:51:57.469202+00:00",
+  "generated_at": "2026-08-05T13:16:35.169017+00:00",
   "version": "1.0"
 }
