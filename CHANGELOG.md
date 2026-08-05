@@ -306,7 +306,68 @@ the output. And the tamper control extracted the filename with
 every `cp`/`mv` would have addressed a file that does not exist and the control
 would have "passed" while touching nothing.
 
+### The tag rule was a blanket where the hazard has a boundary
+
+`docs/GIT-WORKFLOW.md` §4.3 said *"never force-push, never rewrite published
+history — tags are consumed by the marketplace."* The first half is right and
+unconditional. The second half is not what this project's marketplace does, and
+the difference is not pedantic: it decides whether a re-tag is routine or
+destructive.
+
+Measured, not recalled. `.claude-plugin/marketplace.json` declares
+`"source": "./"`, and a marketplace install resolves the **default branch**; a
+directory install records `"source": "directory"` and a path — verified in the
+CTT config. **Neither reads a tag.** What *is* pinned to a tag is a published
+GitHub Release: its source archive and its assets, `SHA256SUMS.txt` included.
+
+So the rule now has a boundary. A tag with **no Release attached** may move, and
+that is the last moment it is free; a tag with a Release published on it **never**
+moves, because people have the checksums. A blanket in the wrong place is not
+caution — it forbade re-tagging onto a commit whose CI is actually green, which
+is precisely the operation this release needed.
+
+§4.4 is new: the dispatch procedure, written from measurement rather than
+rediscovered each time. There is **no release-publishing workflow** — the four
+are `ads-manager`, `ci`, `tag-manager`, `verify`, and `tag-manager` only
+refreshes notes on releases that already exist. Nothing creates a Release,
+uploads an asset, or fires on a tag push. The step is manual, and the procedure
+now says so, including the part that is easy to skip: **download each published
+asset from its URL and run its own router.** The packager proves the *build* was
+sound — it refuses to emit sums for an artifact it did not bless, and a tampered
+byte fails `-c`. It cannot prove the *upload* was.
+
+Also recorded, because the question keeps being asked: **a plugin install does
+not write your `settings.json`.** Measured in CTT — 0 router entries there, 5
+hook bindings across 3 events in the plugin's own manifest, and
+`checker/install-parity.sh` shows both install paths register the *same*
+(event, script) set. Nothing of the user's is edited, which is what makes
+`/plugin uninstall` clean. `ARM_ROUTER` is the path that writes `settings.json`,
+for people who cannot use plugins.
+
 ### New Lean modules
+
+- `RotTag.lean` (9) — the rule above, stated so it can be checked instead of
+  remembered. `released_tag_never_moves` is the durable form: a published tag is
+  a fixed point of an **entire history** of move attempts, in any order, not
+  merely of one — a force-push loop *is* a history, and a rule that survives a
+  single step is not an invariant. `unreleased_tag_can_move` is its non-vacuity
+  partner and carries real weight: a rule that forbids everything forbids the
+  safe operation as firmly as the dangerous one, and the usual repair for that
+  is to weaken the rule. `move_preserves_name` says why a moved published tag is
+  dangerous rather than untidy — the reference still resolves, so nothing
+  anywhere reports an error. **Not proved, and stated plainly because "proved in
+  Lean" reads like a technical control:** git does not enforce this. Lean
+  constrains the model; the binding is procedural.
+  10 mutants, 10 killed — but **three were first written from memory and all
+  three were caught as DISCARDED, not survived**. One needle was indented
+  differently from the source; one replacement contained its own needle, so it
+  could never be seen to land; one appended to a signature, leaving the needle a
+  prefix of its replacement. A harness without a landing assertion would have
+  reported all three as *"the theorem is robust"* — which is the reassuring
+  direction, and the reason that assertion exists.
+  The suite's inherited header was wrong too: derived with `head -178` from a
+  sibling, it described `RotStem`'s matcher mutants, concepts that do not appear
+  in this module. Same defect `mutate_rotlog.sh` carried once before.
 
 - `RotVariants.lean` (7) — a published document is *sound* when the archive
   names it carries are exactly those the packager builds, both directions

@@ -418,17 +418,11 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   `checker/readme-variants.sh`, which reads the packager's own
   `--print-variants` and scans `README.md`, `RELEASE.md` and `docs/*.md`.
 
-* **`lean/Proofs/RotTag.lean`** (9 theorems) — **a tag may move until someone
-  can have downloaded it.** `released_tag_never_moves` is the durable form: a
-  published tag is a fixed point of an *entire history* of move attempts, not
-  merely of one, because a force-push loop is a history. Its non-vacuity partner
-  `unreleased_tag_can_move` matters just as much — a rule that forbids
-  everything is not caution, it forbids re-tagging onto a green commit as firmly
-  as rewriting a published one, and the usual repair for that is to weaken the
-  rule. `move_preserves_name` states why a moved published tag is dangerous
-  rather than untidy: the reference still resolves, so nothing reports an error.
-  **What is not proved:** that git enforces any of this. Lean constrains the
-  model; the binding is procedural, in `docs/GIT-WORKFLOW.md` §4.3–§4.4.
+* **`lean/Proofs/RotTag.lean`** (9 theorems) — **a tag may move until a Release
+  is published on it, and never after.** `released_tag_never_moves` quantifies
+  over an entire history of move attempts; `unreleased_tag_can_move` keeps it
+  from being vacuous. Not proved: that git enforces it — the binding is
+  procedural, `docs/GIT-WORKFLOW.md` §4.3–§4.4.
 
 ---
 

@@ -492,6 +492,36 @@ jobs:
           lake build $mods
           echo "lake build exit=$?"
 
+      # THIS STEP CLOSES A HOLE THAT WAS GREEN FOR THE WHOLE 0.7.x CYCLE.
+      #
+      # `checker/gauge-cross.sh` was wired ONCE, in the `checkers` job -- a job
+      # with no Lean toolchain. It therefore exited 3 and printed
+      # "SKIPPED: no built Lean workspace -- NOT a pass" on ubuntu, macos AND
+      # windows, every run, and the `lean` job (the one that HAS a built
+      # workspace) never invoked it at all. Found by reading the run's log.zip,
+      # not by any check: the instrument that verifies the Lean Float mirror
+      # against the RUNNING hook had never executed in CI. Locally it passes,
+      # which is exactly why nobody noticed.
+      #
+      # A skip that is honest in one job can be a hole in the suite. The label
+      # "NOT a pass" was true and still hid the fact that NO job was passing it.
+      #
+      # Here a SKIP IS A FAILURE. lake is installed and the workspace is built
+      # two steps above, so exit 3 can only mean the instrument did not run
+      # where it must -- and an instrument that never runs is decoration.
+      - name: gauge cross-check -- Lean mirror vs the running hook (MUST run here)
+        run: |
+          set +e
+          LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/gauge-cross.sh; rc=$?
+          echo "gauge-cross exit=$rc"
+          if [ "$rc" -eq 3 ]; then
+            echo "::error::gauge-cross SKIPPED in the lean job. lake and a built"
+            echo "::error::workspace exist here; a skip means the instrument did"
+            echo "::error::not run in the one job that can run it."
+            exit 1
+          fi
+          exit $rc
+
       # A green build means it ELABORATED. It does not mean the theorems rest on
       # nothing unsound, and it does not mean there is no `sorry`.
       # THE STEP THAT USED TO BE HERE DID NEITHER THING ITS NAME CLAIMED, and it
