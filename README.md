@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **294
+lens activities off disk, computes an `R/s+` gauge from them, and **303
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **136 applied, 136 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **146 applied, 146 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -418,6 +418,18 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   `checker/readme-variants.sh`, which reads the packager's own
   `--print-variants` and scans `README.md`, `RELEASE.md` and `docs/*.md`.
 
+* **`lean/Proofs/RotTag.lean`** (9 theorems) — **a tag may move until someone
+  can have downloaded it.** `released_tag_never_moves` is the durable form: a
+  published tag is a fixed point of an *entire history* of move attempts, not
+  merely of one, because a force-push loop is a history. Its non-vacuity partner
+  `unreleased_tag_can_move` matters just as much — a rule that forbids
+  everything is not caution, it forbids re-tagging onto a green commit as firmly
+  as rewriting a published one, and the usual repair for that is to weaken the
+  rule. `move_preserves_name` states why a moved published tag is dangerous
+  rather than untidy: the reference still resolves, so nothing reports an error.
+  **What is not proved:** that git enforces any of this. Lean constrains the
+  model; the binding is procedural, in `docs/GIT-WORKFLOW.md` §4.3–§4.4.
+
 ---
 
 ## 🫀 The four organs
@@ -490,7 +502,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-0.7.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 19 modules, 294 theorems, 16 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 20 modules, 303 theorems, 17 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-0.7.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
