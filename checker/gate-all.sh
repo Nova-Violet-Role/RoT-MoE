@@ -187,6 +187,45 @@ if [ -n "$leftover" ]; then
   exit 2
 fi
 
+# --- PREFLIGHT 1b: NO TRACKED FILE MAY BE EMPTY ------------------------------
+#
+# MEASURED 2026-08-05, and the `.mutbak` refusal above did NOT catch it.
+#
+# A bare sweep was run under an external `timeout`. `timeout` signals the direct
+# child -- gate-all -- and the mutation suite it had already started was ORPHANED
+# rather than signalled, so its EXIT/INT/TERM trap never fired. It was later
+# killed outright. What it left behind was the WORST of both worlds:
+#
+#     hooks/rot-router.sh      0 bytes
+#     hooks/prover-remind.sh   0 bytes
+#     hooks/prover-remind.ps1  0 bytes
+#     .mutbak files            NONE -- so the refusal above saw a clean tree
+#
+# Emptying a file is one of the mutants, so this is a LIVE MUTANT with no
+# evidence beside it. The fast sweep stayed green for two more runs: every fast
+# gate reads source TEXT, and an empty file simply has no offending text in it.
+# It took a deep gate that EXECUTES the router to notice, with the honest but
+# unhelpful message "an arm that never speaks would pass this suite".
+#
+# The lesson generalises past mutation: an empty tracked file is never something
+# anyone did on purpose, and a checker that reads files rather than running them
+# cannot tell "clean" from "erased". Checking for it costs one `git ls-files`.
+empties="$(git ls-files -z 2>/dev/null | while IFS= read -r -d '' _f; do
+             [ -f "$_f" ] && [ ! -s "$_f" ] && printf '%s\n' "$_f"
+           done)"
+if [ -n "$empties" ]; then
+  echo "REFUSING: these TRACKED files are EMPTY -- the tree carries a live mutant"
+  echo "          or an interrupted edit, and no .mutbak survived to say so:"
+  printf '%s\n' "$empties" | sed 's/^/    /'
+  echo
+  echo "An empty tracked file is never deliberate. Restore each one --"
+  echo "    git checkout HEAD -- <file>"
+  echo "-- and re-run. Do NOT commit on top of this: every gate that reads source"
+  echo "text passes an empty file, so a sweep can stay green while the shipped"
+  echo "router does nothing at all."
+  exit 2
+fi
+
 # =============================================================================
 # PREFLIGHT 2: VALIDATE THE WHOLE TABLE BEFORE RUNNING ANYTHING.
 #

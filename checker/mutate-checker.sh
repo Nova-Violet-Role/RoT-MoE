@@ -296,6 +296,43 @@ run H25 "$RSH" \
   checker/cross-diff-remind.sh
 
 restore
+
+# --- THE RESTORE MUST BE VERIFIED, NOT ASSUMED -------------------------------
+#
+# MEASURED 2026-08-05. `timeout` signals its DIRECT CHILD. When a bounded sweep
+# of checker/gate-all.sh was killed, THIS script had already been started by it
+# and was ORPHANED rather than signalled -- so the EXIT/INT/TERM trap above never
+# fired, and the process was later killed outright. It left three shipped hooks
+# at ZERO BYTES with no .mutbak beside them, which is the one state gate-all's
+# leftover-backup refusal cannot see.
+#
+# Emptying a file is one of the mutants below, so that is a LIVE MUTANT with the
+# evidence removed. Two fast sweeps stayed green afterwards: every fast gate
+# reads source TEXT, and an empty file has no offending text in it.
+#
+# A trap cannot be made to fire for SIGKILL. What CAN be done is refuse to
+# report success unless the files this script is allowed to touch are back --
+# non-empty, and byte-identical to what git has. `git checkout` is the recovery
+# the message names, and it is not run automatically: silently repairing the
+# tree would hide the interruption that caused it.
+_rbad=0
+for _f in "$SH" "$PS1" "$RSH" "$RPS1"; do
+  _rel="${_f#"$REPO"/}"
+  if [ ! -s "$_f" ]; then
+    echo "RESTORE FAILED: $_rel is EMPTY after restore -- a live mutant is on disk."
+    _rbad=1
+  elif ! git -C "$REPO" diff --quiet -- "$_rel" 2>/dev/null; then
+    echo "RESTORE FAILED: $_rel differs from git after restore -- a mutant survived."
+    _rbad=1
+  fi
+done
+if [ "$_rbad" -ne 0 ]; then
+  echo "Recover with: git checkout HEAD -- hooks/"
+  echo "REFUSING to report a result: every gate after this one would measure the mutant."
+  exit 1
+fi
+ok_restore=1
+
 bash "$REPO/checker/cross-diff.sh" > "$LOG/baseline.log" 2>&1
 base=$?
 bash "$REPO/checker/cross-diff-remind.sh" > "$LOG/baseline-remind.log" 2>&1
