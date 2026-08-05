@@ -486,13 +486,14 @@ jobs:
                      else echo "FAIL: no bound available; a hang would report nothing"; exit 1; fi; }
           if script -q -e -c 'true' /dev/null >/dev/null 2>&1; then
             # GNU script (Linux): -c takes the command, the file comes last.
-            echo "pty allocator: GNU script"
+            ALLOC="GNU script"; echo "pty allocator: $ALLOC"
             bound 15 script -q -e -c 'sh hooks/rot-router.sh' /dev/null > tty.out 2>&1
           elif script -q /dev/null true >/dev/null 2>&1; then
             # BSD script (macOS): the file comes first, then the command.
-            echo "pty allocator: BSD script"
+            ALLOC="BSD script"; echo "pty allocator: $ALLOC"
             bound 15 script -q /dev/null sh hooks/rot-router.sh > tty.out 2>&1
-            echo "pty allocator: none on $RUNNER_OS"
+          else
+            ALLOC="none"; echo "pty allocator: none on $RUNNER_OS"
             # MEASURED, and the first attempt here was WRONG in a way worth
             # recording. Git Bash ships `winpty`, but winpty needs a real console
             # and a CI runner has none: it dies with
@@ -517,6 +518,26 @@ jobs:
             bound 15 sh hooks/rot-router.sh < /dev/null > tty.out 2>&1
           fi
           rc=$?
+          # EXHAUSTIVENESS GUARD -- added after this very block shipped broken.
+          # An edit removed the `else` keyword, so on Windows NEITHER branch ran:
+          # `rc` was the exit of the failed `elif` TEST (0), `tty.out` was never
+          # created, and the step fell through to the pty assertions. Worse, on
+          # macOS the fallback ran AFTER the real pty probe and overwrote its
+          # result -- a leg that reported PASS while asserting nothing about a
+          # terminal. A dispatch that silently selects NO branch is the same
+          # defect as a skipped step, wearing a different hat.
+          #
+          # So each branch now names itself and the absence of a name is fatal.
+          if [ -z "${ALLOC:-}" ]; then
+            echo "FAIL: no pty-allocator branch ran -- the dispatch is not exhaustive."
+            echo "      Nothing was asserted. This is a skipped check, not a pass."
+            exit 1
+          fi
+          if [ ! -f tty.out ]; then
+            echo "FAIL: allocator '$ALLOC' selected but tty.out was never created."
+            exit 1
+          fi
+          echo "allocator=$ALLOC"
           echo "exit=$rc"; cat tty.out
           if [ "$rc" -eq 124 ]; then echo "FAIL: the router BLOCKED (no bound reached)"; exit 1; fi
           if [ "${NO_PTY:-0}" = "1" ]; then

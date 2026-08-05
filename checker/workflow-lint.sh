@@ -922,11 +922,16 @@ rm -f "$R21AWK" "$R21BAD" "$R21GOOD"
 _reads_packager_text () {   # 1 = offends
   _t="$(mktemp "${TMPDIR:-/tmp}/rotmoe-vscan.XXXXXX")"
   sed 's/#.*$//' "$1" > "$_t"
-  _hits=$(grep -c -E 'release-package[^ ]*\.sh' "$_t" 2>/dev/null || printf 0)
+  # `grep -c` PRINTS 0 and EXITS 1 when there is no match, so `|| printf 0`
+  # appends a SECOND zero and produces two lines. `[ -eq ]` then fails with
+  # "integer expression expected" -- observed here on line 926. The same defect
+  # is already recorded in checker/ci-honesty.sh; take grep's output as-is.
+  _hits=$(grep -c -E 'release-package[^ ]*\.sh' "$_t" 2>/dev/null); _hits=${_hits:-0}
   if [ "${_hits:-0}" -eq 0 ]; then rm -f "$_t"; return 1; fi
   _bad_lines=$(grep -E 'release-package[^ ]*\.sh' "$_t" \
                | grep -v -- '--print-variants' \
-               | grep -c -E '(sed|awk|grep|cat|head|tail)[[:space:]]' 2>/dev/null || printf 0)
+               | grep -c -E '(sed|awk|grep|cat|head|tail)[[:space:]]' 2>/dev/null)
+  _bad_lines=${_bad_lines:-0}
   rm -f "$_t"
   [ "${_bad_lines:-0}" -gt 0 ]
 }
@@ -1044,6 +1049,56 @@ _n=$(sed 's/#.*$//' "$_PCTL" | grep -v -E '^[[:space:]]*((printf|echo|cat)[[:spa
   && ok "CONTROL: the two cures (grep -c, or grep a FILE) are NOT flagged" \
   || bad "CONTROL: rule 7 flags the fix -- it would push the tree back to the hazard"
 rm -f "$_PCTL"
+
+# --- R22: a platform dispatch must be EXHAUSTIVE, and must SAY which branch ran
+#
+# MEASURED 2026-08-06, and this linter passed the broken file 144/144.
+#
+# An edit to the `tty guard` step deleted the `else` keyword from an
+# `if / elif / else` chain. The result is still valid shell, so nothing textual
+# objected -- but on Windows NEITHER branch ran: `rc` took the exit status of the
+# failed `elif` TEST (0), `tty.out` was never created, and the step fell through
+# to assertions about a pty it had never allocated. On macOS it was worse: the
+# fallback body had been absorbed into the BSD branch, so it ran AFTER the real
+# pty probe and OVERWROTE its result. That leg reported PASS while asserting
+# nothing whatever about a terminal.
+#
+# A dispatch that silently selects NO branch is the same defect as a skipped
+# step wearing a different hat: it concludes success having tested nothing. A
+# text linter cannot see control flow, so it checks for the GUARD instead --
+# the branch marker and the refusal that fires when no branch set it.
+echo
+echo "-- exhaustive platform dispatch (R22) --"
+_CI=".github/workflows/ci.yml"
+if [ -f "$_CI" ]; then
+  _alloc=$(grep -c 'ALLOC="' "$_CI"); _alloc=${_alloc:-0}
+  if [ "$_alloc" -ge 3 ]; then
+    ok "the pty dispatch names its branch ($_alloc assignments: GNU / BSD / none)"
+  else
+    bad "the pty dispatch has $_alloc branch markers -- a branch that does not name itself cannot be shown to have run"
+  fi
+  if grep -q 'no pty-allocator branch ran' "$_CI"; then
+    ok "an unselected dispatch is REFUSED (the missing-else defect cannot recur silently)"
+  else
+    bad "the exhaustiveness refusal is gone: a dispatch selecting NO branch would report success"
+  fi
+  if grep -q 'tty.out was never created' "$_CI"; then
+    ok "a selected branch that produced no artifact is REFUSED"
+  else
+    bad "no artifact check: a branch could be named without ever running"
+  fi
+  # CONTROL: the rule must be able to fail. Strip the refusal from a copy.
+  _CCTL="$(mktemp)"
+  grep -v 'no pty-allocator branch ran' "$_CI" > "$_CCTL"
+  if grep -q 'no pty-allocator branch ran' "$_CCTL"; then
+    bad "CONTROL DEAD: R22 cannot detect a removed exhaustiveness guard"
+  else
+    ok "CONTROL: removing the refusal IS detectable -- R22 can fire"
+  fi
+  rm -f "$_CCTL"
+else
+  bad "$_CI is missing -- R22 cannot be evaluated, and that is not a pass"
+fi
 
 echo
 echo "== RESULT =="
