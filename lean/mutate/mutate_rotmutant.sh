@@ -210,8 +210,8 @@ run_mut M04 RotMutant \
   'not_landed_discarded, discarded_never_counts, outcomes_distinct'
 
 # M05 -- A DISCARDED RUN STARTS COUNTING TOWARD THE TOTAL. The totals in README
-# and CHANGELOG are built from this; if discards count, "101 applied, 101 killed"
-# stops meaning anything.
+# and CHANGELOG are built from this; if discards count, the applied/killed totals
+# stop meaning anything.
 run_mut M05 RotMutant \
   '  o != Outcome.discarded' \
   '  true' \

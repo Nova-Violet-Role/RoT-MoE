@@ -256,7 +256,14 @@ def shipped : List Gate :=
   , d "axiom audit" ["lean/"]
   , d "axiom class" ["lean/"]
   , d "mutate the checker" ["checker/", "hooks/"]
-  , d "portability" ["checker/", "hooks/", "ARM_ROUTER", "DISARM_ROUTER", ".githooks/"]
+  -- `lean/` joined 2026-08-05. The gate asserts that EVERY tracked `.sh` carries
+  -- the exec bit in the index, but its trigger named only four path prefixes --
+  -- so a new harness under `lean/mutate/` could never escalate the gate that
+  -- checks it. Measured twice in one session: `mutate_rotensemble.sh` and
+  -- `mutate_rotmutant.sh` both reached CI at mode 100644, and CI's Linux runner
+  -- was the first thing to notice. A trigger narrower than the property it
+  -- guards is a dead trigger for everything outside it.
+  , d "portability" ["checker/", "hooks/", "lean/", "ARM_ROUTER", "DISARM_ROUTER", ".githooks/"]
   , d "installer round trip" ["ARM_ROUTER", "DISARM_ROUTER", "checker/install", ".claude-plugin/"]
   , d "install parity" ["ARM_ROUTER", "DISARM_ROUTER", "hooks/hooks.json", "hooks/settings-merge.js"]
   , d "release install" ["checker/release", ".claude-plugin/"]
@@ -287,7 +294,14 @@ def shipped : List Gate :=
 #guard (fastSet shipped).all (fun g => g.triggers.isEmpty)
 
 -- Editing a Lean proof escalates the gates that read Lean.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 26
+--
+-- 26 -> 27 on 2026-08-05, and the number moved because the BEHAVIOUR moved:
+-- `portability` gained `lean/` as a trigger, so a Lean edit now also re-checks
+-- that every tracked `.sh` carries its exec bit. This guard is a measurement of
+-- the trigger table, not an independent claim, so it is expected to follow the
+-- table -- what would be wrong is editing it to keep a red build quiet while the
+-- table said something else.
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 27
 
 -- A commit that touches nothing runs exactly the fast set.
 #guard (stagedRun shipped []).length = 22
