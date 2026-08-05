@@ -146,7 +146,11 @@ echo "== LOCALE INVARIANCE: the same row under every installed locale =="
 base_row=$("$SH" --vector 0,0,0,0,0,0,0,0,0 --breadth 0 --M 1.05 --C 0.7 --T 0.8)
 loc_tested=0
 for cand in de_DE.UTF-8 de_DE.utf8 fr_FR.UTF-8 it_IT.UTF-8 nl_NL.UTF-8; do
-  locale -a 2>/dev/null | grep -qix "$(printf '%s' "$cand" | tr 'A-Z' 'a-z' | sed 's/utf-8/utf8/')" \
+  # `grep -c … >/dev/null`, never `grep -q`, and `locale -a` is exactly the
+  # producer that makes the difference: on a glibc runner it lists hundreds of
+  # entries, so `grep -q` exits long before it finishes, `locale` takes SIGPIPE,
+  # and under `set -o pipefail` a SUCCESSFUL match is reported as failure.
+  locale -a 2>/dev/null | grep -cix "$(printf '%s' "$cand" | tr 'A-Z' 'a-z' | sed 's/utf-8/utf8/')" >/dev/null \
     || locale -a 2>/dev/null | grep -cx "$cand" >/dev/null || continue
   loc_tested=$((loc_tested+1))
   got=$(LC_ALL="$cand" LC_NUMERIC="$cand" "$SH" --vector 0,0,0,0,0,0,0,0,0 --breadth 0 --M 1.05 --C 0.7 --T 0.8)

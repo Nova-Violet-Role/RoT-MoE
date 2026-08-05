@@ -254,7 +254,7 @@ else
 fi
 
 # The gauge itself must still work, or "it refuses everything" would pass above.
-if run_bounded 20 bash hooks/rot-router.sh --vector 1,0,0,0,0,0,0,0,1 --breadth 2 2>/dev/null | grep -q 'R/s+'; then
+if run_bounded 20 bash hooks/rot-router.sh --vector 1,0,0,0,0,0,0,0,1 --breadth 2 2>/dev/null | grep -c 'R/s+' >/dev/null; then
   ok "the gauge still answers with real arguments -- the refusal did not eat the feature"
 else
   bad "the gauge no longer answers with valid arguments"
@@ -293,7 +293,7 @@ printf 'lake build Proofs.RotGauge >/dev/null\n' > "$CTL/unguarded.sh"
 _missing=0
 grep -qE "command -v lake|Get-Command lake" "$(strip_of "$CTL/unguarded.sh")" || _missing=$((_missing+1))
 grep -q "ROTMOE_LEAN_VERIFY" "$(strip_of "$CTL/unguarded.sh")"              || _missing=$((_missing+1))
-sed 's/#.*$//' "$CTL/unguarded.sh" | grep -qE "timeout|gtimeout|Wait-Job"       || _missing=$((_missing+1))
+grep -qE "timeout|gtimeout|Wait-Job" "$(strip_of "$CTL/unguarded.sh")"          || _missing=$((_missing+1))
 if [ "$_missing" -eq 3 ]; then
   ok "CONTROL: an UNGUARDED build in the reminder is caught, and all 3 guards report missing"
 else
@@ -306,7 +306,14 @@ fi
 # guards were not quietly dropped along with it.
 _have=0
 for _g in "command -v lake" "ROTMOE_LEAN_VERIFY" "timeout"; do
-  sed 's/#.*$//' hooks/prover-remind.sh | grep -q "$_g" && _have=$((_have+1))
+  # THE SITE THAT PROVED THE SWEEP WAS INCOMPLETE. This line kept the exact
+  # pipefail/SIGPIPE race the rest of this file was rewritten to remove: `grep -q`
+  # exits on the first match, `sed` dies with 141, pipefail reports 141, `&&`
+  # never fires, and `_have` stays 0 -- so CI announced
+  #     the shipping reminder carries only 0 of 3 guards
+  # for a file that carries all three. Same defect, same file, missed because the
+  # rewrite was applied to the assertions and not to the counters.
+  grep -q "$_g" "$(strip_of hooks/prover-remind.sh)" && _have=$((_have+1))
 done
 if [ "$_have" -eq 3 ]; then
   ok "the shipping reminder carries all 3 guards (exists / opt-out / bounded)"

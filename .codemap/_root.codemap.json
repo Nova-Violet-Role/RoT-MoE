@@ -404,11 +404,11 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "d423718afc58",
-      "indexed_at": "2026-08-05T02:59:07.355829+00:00",
+      "hash": "68e6e025805d",
+      "indexed_at": "2026-08-05T04:10:28.671625+00:00",
       "language": "markdown",
       "lines": 273,
-      "mtime_ns": 1785895043503395600,
+      "mtime_ns": 1785900175776306800,
       "size": 15096,
       "symbols": [
         {
@@ -522,7 +522,7 @@
               "type": "subsection"
             },
             {
-              "docstring": "- **269** machine-checked theorems across 18 modules (was 205 across 14), 0 `sorry`, 0 `native_decide`, 0 build warnings. - **33** gates (was 29); 22",
+              "docstring": "- **276** machine-checked theorems across 18 modules (was 205 across 14), 0 `sorry`, 0 `native_decide`, 0 build warnings. - **33** gates (was 29); 22",
               "lines": [
                 265,
                 274
@@ -839,11 +839,11 @@
       ]
     },
     "README.md": {
-      "hash": "80468337b489",
-      "indexed_at": "2026-08-05T02:59:07.361708+00:00",
+      "hash": "9297b139fa39",
+      "indexed_at": "2026-08-05T04:10:28.677712+00:00",
       "language": "markdown",
       "lines": 1316,
-      "mtime_ns": 1785895043477395800,
+      "mtime_ns": 1785900226751305700,
       "size": 76956,
       "symbols": [
         {
@@ -1393,11 +1393,11 @@
       ]
     },
     "STATUS.md": {
-      "hash": "bad04b30d276",
-      "indexed_at": "2026-08-05T02:59:07.366354+00:00",
+      "hash": "fbcd3f3823f3",
+      "indexed_at": "2026-08-05T04:10:28.682594+00:00",
       "language": "markdown",
       "lines": 30,
-      "mtime_ns": 1785895216408126600,
+      "mtime_ns": 1785900184966306200,
       "size": 1087,
       "symbols": []
     },
@@ -1466,6 +1466,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-05T02:59:07.512701+00:00",
+  "generated_at": "2026-08-05T04:10:28.847848+00:00",
   "version": "1.0"
 }

@@ -189,12 +189,12 @@
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "7d2c37ab1723",
-      "indexed_at": "2026-08-05T02:59:07.390728+00:00",
+      "hash": "0e5fe3ab4965",
+      "indexed_at": "2026-08-05T04:10:28.708417+00:00",
       "language": "shell",
-      "lines": 175,
-      "mtime_ns": 1785898585141410000,
-      "size": 8789,
+      "lines": 179,
+      "mtime_ns": 1785902282043584500,
+      "size": 9113,
       "symbols": []
     },
     "ctt-session.sh": {
@@ -290,12 +290,12 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "a492aaafe83e",
-      "indexed_at": "2026-08-05T02:59:07.399519+00:00",
+      "hash": "3626d2104077",
+      "indexed_at": "2026-08-05T04:10:28.718978+00:00",
       "language": "shell",
       "lines": 285,
-      "mtime_ns": 1785892405220202400,
-      "size": 13324,
+      "mtime_ns": 1785901168687846400,
+      "size": 13330,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
@@ -373,12 +373,12 @@
       ]
     },
     "hook-footprint.sh": {
-      "hash": "aa6a8d3ac0da",
-      "indexed_at": "2026-08-05T02:59:07.406155+00:00",
+      "hash": "a3b52e9be28d",
+      "indexed_at": "2026-08-05T04:10:28.726531+00:00",
       "language": "shell",
-      "lines": 330,
-      "mtime_ns": 1785898506864666200,
-      "size": 16801,
+      "lines": 337,
+      "mtime_ns": 1785902288744585400,
+      "size": 17308,
       "symbols": [
         {
           "lines": [
@@ -417,12 +417,12 @@
       ]
     },
     "install-parity.sh": {
-      "hash": "4434a1def77c",
-      "indexed_at": "2026-08-05T02:59:07.407444+00:00",
+      "hash": "7418166e35e0",
+      "indexed_at": "2026-08-05T04:10:28.727935+00:00",
       "language": "shell",
-      "lines": 167,
-      "mtime_ns": 1785898308497668100,
-      "size": 7374,
+      "lines": 182,
+      "mtime_ns": 1785899362036319000,
+      "size": 8163,
       "symbols": [
         {
           "docstring": "`::error::` becomes a check-run annotation, and annotations are PUBLIC on a public repository while `actions/runs/<id>/logs` answers 403 without admin",
@@ -491,12 +491,12 @@
       ]
     },
     "log-replay.sh": {
-      "hash": "536ce79cd032",
-      "indexed_at": "2026-08-05T02:59:07.416457+00:00",
+      "hash": "07515c29d9bb",
+      "indexed_at": "2026-08-05T04:10:28.738031+00:00",
       "language": "shell",
-      "lines": 315,
-      "mtime_ns": 1785897717235976300,
-      "size": 15059,
+      "lines": 331,
+      "mtime_ns": 1785900537066073300,
+      "size": 16004,
       "symbols": [
         {
           "docstring": "See the long note on the same function in checker/hook-footprint.sh: an unauthenticated caller cannot read CI logs (403, admin rights), so a failure t",
@@ -511,7 +511,7 @@
           "docstring": "--- 2. THE NEGATIVE CONTROLS ------------------------------------------------ A replayer that accepts everything is worse than none: it certifies. Eac",
           "lines": [
             259,
-            283
+            299
           ],
           "name": "ctl",
           "type": "function"
@@ -538,12 +538,12 @@
       ]
     },
     "mutant-discipline.sh": {
-      "hash": "61bfd9e42a15",
-      "indexed_at": "2026-08-01T07:44:40.850144+00:00",
+      "hash": "51be0676a5dd",
+      "indexed_at": "2026-08-05T04:10:28.740788+00:00",
       "language": "shell",
-      "lines": 178,
-      "mtime_ns": 1785569207397686000,
-      "size": 7951,
+      "lines": 197,
+      "mtime_ns": 1785899352566318300,
+      "size": 9045,
       "symbols": []
     },
     "mutate-checker.sh": {
@@ -575,12 +575,12 @@
       "symbols": []
     },
     "plugin-install.sh": {
-      "hash": "da1d70eba1a5",
-      "indexed_at": "2026-08-05T02:59:07.423195+00:00",
+      "hash": "f1b6c0efb76a",
+      "indexed_at": "2026-08-05T04:10:28.745250+00:00",
       "language": "shell",
-      "lines": 144,
-      "mtime_ns": 1785898585192412100,
-      "size": 6735,
+      "lines": 148,
+      "mtime_ns": 1785902300815585500,
+      "size": 7070,
       "symbols": []
     },
     "portability.sh": {
@@ -693,18 +693,18 @@
       ]
     },
     "release-longsession.sh": {
-      "hash": "efbe852b7800",
-      "indexed_at": "2026-08-04T09:56:21.082698+00:00",
+      "hash": "6d55f93d233d",
+      "indexed_at": "2026-08-05T04:10:28.759430+00:00",
       "language": "shell",
-      "lines": 281,
-      "mtime_ns": 1785795512078355600,
-      "size": 15329,
+      "lines": 286,
+      "mtime_ns": 1785899068079319000,
+      "size": 15718,
       "symbols": [
         {
           "docstring": "--- the conversation --------------------------------------------------------- A working session, not a lane drill: the turns build on each other, and",
           "lines": [
-            115,
-            138
+            120,
+            143
           ],
           "name": "turn_text",
           "type": "function"
@@ -712,8 +712,8 @@
         {
           "docstring": "--- INSTALL, the plugin way: the CLI loads it straight from the zip ------- `--plugin-dir` accepts a directory OR a .zip (measured: claude --help). Th",
           "lines": [
-            181,
-            189
+            186,
+            194
           ],
           "name": "run_turn",
           "type": "function"
@@ -748,12 +748,12 @@
       ]
     },
     "release-session.sh": {
-      "hash": "6b639fcef3dd",
-      "indexed_at": "2026-08-05T02:59:07.439976+00:00",
+      "hash": "2e1811a873a8",
+      "indexed_at": "2026-08-05T04:10:28.764757+00:00",
       "language": "shell",
-      "lines": 278,
-      "mtime_ns": 1785898585218409000,
-      "size": 13940,
+      "lines": 297,
+      "mtime_ns": 1785898893154159700,
+      "size": 15026,
       "symbols": [
         {
           "lines": [
@@ -765,8 +765,8 @@
         },
         {
           "lines": [
-            106,
-            118
+            125,
+            137
           ],
           "name": "prompt_for",
           "type": "function"
@@ -774,16 +774,16 @@
         {
           "docstring": "The expected lens is read from THIS ARCHIVE's router, not from a copy here. A hard-coded expectation is a second source of truth that silently rots --",
           "lines": [
-            184,
-            187
+            203,
+            206
           ],
           "name": "lens_for",
           "type": "function"
         },
         {
           "lines": [
-            206,
-            216
+            225,
+            235
           ],
           "name": "run_session",
           "type": "function"
@@ -1059,12 +1059,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "09631418123b",
-      "indexed_at": "2026-08-05T02:59:07.462702+00:00",
+      "hash": "bf6814fd49db",
+      "indexed_at": "2026-08-05T04:10:28.793424+00:00",
       "language": "shell",
-      "lines": 896,
-      "mtime_ns": 1785898585244410400,
-      "size": 45469,
+      "lines": 1051,
+      "mtime_ns": 1785902510146855200,
+      "size": 53737,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -1151,10 +1151,19 @@
           ],
           "name": "probe_r20",
           "type": "function"
+        },
+        {
+          "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
+          "lines": [
+            922,
+            932
+          ],
+          "name": "_reads_packager_text",
+          "type": "function"
         }
       ]
     }
   },
-  "generated_at": "2026-08-05T02:59:07.522073+00:00",
+  "generated_at": "2026-08-05T04:10:28.858223+00:00",
   "version": "1.0"
 }

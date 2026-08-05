@@ -385,8 +385,99 @@
           "type": "section"
         }
       ]
+    },
+    "2026-08-05-CP5-ci-truth.md": {
+      "hash": "2da82d71e000",
+      "indexed_at": "2026-08-05T04:10:28.847760+00:00",
+      "language": "markdown",
+      "lines": 149,
+      "mtime_ns": 1785900716988846500,
+      "size": 7099,
+      "symbols": [
+        {
+          "docstring": "The previous release commit had been pushed with CI **unverified** (API rate limit, no `gh`). It was red. So was the one before it. Four distinct defe",
+          "lines": [
+            11,
+            26
+          ],
+          "name": "What was actually wrong",
+          "type": "section"
+        },
+        {
+          "docstring": "`actions/runs/<id>/logs` answers **403 \u2014 \"Must have admin rights to Repository\"** to an unauthenticated caller. On a **public** repo the only readable",
+          "lines": [
+            27,
+            50
+          ],
+          "name": "The instrument that made all of it findable",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **A gate that could not pass.** `release-session.sh` recovered the release map by `sed`-ing the packager's *source text*. The packager now derives",
+          "lines": [
+            51,
+            68
+          ],
+          "name": "Three more defects fell out of the sweep",
+          "type": "section"
+        },
+        {
+          "docstring": "`mutant-discipline.sh` selects harnesses by behaviour. Its adjudication test was `killed|survived|discard|CONTROL` \u2014 and `CONTROL` is what every good",
+          "lines": [
+            69,
+            89
+          ],
+          "name": "A classifier repair, proved rather than asserted",
+          "type": "section"
+        },
+        {
+          "docstring": "The module that *defines* mutation discipline had no suite. Now 10 mutants \u2014 each landing condition dropped, `discarded` collapsed into `survived`, di",
+          "lines": [
+            90,
+            97
+          ],
+          "name": "RotMutant had never been mutated",
+          "type": "section"
+        },
+        {
+          "docstring": "| instrument | result | |---|---| | `lake build Proofs.RotMutant` | exit 0, read directly | | `#print axioms` \u00d7 7 new theorems | `propext`, or none at",
+          "lines": [
+            98,
+            118
+          ],
+          "name": "Measurements",
+          "type": "section"
+        },
+        {
+          "docstring": "Clean uninstall + reinstall from the local marketplace; 10/10 probed files match the tree. **All nine lanes** driven through the installed router \u2192 ni",
+          "lines": [
+            119,
+            129
+          ],
+          "name": "CTT, before each push",
+          "type": "section"
+        },
+        {
+          "docstring": "All 19 modules now live in the shared Lean workspace, built **serially** (a parallel `lake build` exhausted memory and produced misleading `failed to",
+          "lines": [
+            130,
+            139
+          ],
+          "name": "Delivery",
+          "type": "section"
+        },
+        {
+          "docstring": "1. Read CI for `e565fa5` and `b46ab39` \u2014 expect mutation-discipline (lean job) and log-replay (macOS) to close. Anything still red gets annotated now.",
+          "lines": [
+            140,
+            150
+          ],
+          "name": "NEXT",
+          "type": "section"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-05T02:59:07.520688+00:00",
+  "generated_at": "2026-08-05T04:10:28.856673+00:00",
   "version": "1.0"
 }

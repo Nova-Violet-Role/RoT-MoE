@@ -958,6 +958,93 @@ else
 fi
 rm -f "$_VCTL"
 
+# --- 7. no checker may pipe into `grep -q` while `pipefail` is set -----------
+#
+# MEASURED TWICE, and the second time it was the repair itself that was
+# incomplete -- which is the whole argument for making it a rule instead of a
+# habit.
+#
+#   set -o pipefail
+#   producer | grep -q PATTERN
+#
+# `grep -q` exits at the FIRST match. The producer then writes into a closed
+# pipe, takes SIGPIPE, and dies with 141. Under `pipefail` the pipeline's status
+# is the rightmost non-zero one, so A SUCCESSFUL MATCH REPORTS FAILURE. Whether
+# it happens depends on whether the producer finishes first -- file size, machine
+# speed, runner load. It is a RACE, and it fails in the direction that looks like
+# a real defect:
+#
+#   CI:  hooks/prover-remind.ps1 builds with no ROTMOE_LEAN_VERIFY opt-out
+#        (the file contains that string three times)
+#   CI:  the shipping reminder carries only 0 of 3 guards
+#        (it carries all three)
+#
+# The first was fixed by rewriting eleven assertions across eleven files. The
+# second came from TWO SITES IN THE SAME FILE that the sweep missed, because they
+# were counters rather than assertions. A sweep done by eye finds what it is
+# looking for; this finds what is there.
+#
+# Both cures are one character: grep a FILE instead of a pipeline, or use
+# `grep -c ... >/dev/null`, which consumes the whole stream and so never
+# signals the producer. Identical exit semantics either way.
+_pf=0
+for _f in checker/*.sh lean/mutate/*.sh; do
+  [ -f "$_f" ] || continue
+  case "$_f" in checker/workflow-lint.sh) continue ;; esac   # this file: the controls below
+  grep -qE '^[[:space:]]*set .*(pipefail)' "$_f" || continue
+  # TWO CARVE-OUTS, both measured as false positives on the first run, both
+  # narrow and both stated rather than silently widened:
+  #
+  #   `||` IS NOT A PIPE. `grep -qE "$A" "$F" || grep -qE "$B" "$F"` greps two
+  #   FILES and is perfectly safe, but a naive `\|` matches the second bar of the
+  #   `||`. Requiring a non-bar before the bar excludes it, and still catches
+  #   every real pipeline, which by definition has something else to its left.
+  #
+  #   A FIXTURE IS NOT CODE. checker/portability.sh WRITES a little script
+  #   containing this exact hazard, on purpose, to prove its own rule can see one.
+  #   Flagging that would be the third time in this file that a rule punished the
+  #   control written to keep it honest. Lines that are a printf/echo/cat
+  #   REDIRECTED INTO A FILE are building a fixture, not running a pipeline.
+  #
+  #   A MESSAGE IS NOT A PIPELINE either. checker/portability.sh reports
+  #   `ok "CONTROL: a planted printf|grep -q IS detected"` -- prose describing the
+  #   hazard, inside a string, in the file that proves it can find one. `ok` and
+  #   `bad` take a single message argument and never pipe, so a line that STARTS
+  #   with one is excluded. `printf`/`echo` are NOT excluded on that basis, since
+  #   `echo "$x" | grep -q y` is a genuine instance of the hazard.
+  _n=$(sed 's/#.*$//' "$_f" \
+       | grep -v -E '^[[:space:]]*((printf|echo|cat)[[:space:]].*>|(ok|bad)[[:space:]])' \
+       | grep -c -E '[^|][|][[:space:]]*grep[[:space:]]+-[A-Za-z]*q')
+  if [ "${_n:-0}" -gt 0 ]; then
+    bad "$_f pipes into 'grep -q' under pipefail ($_n site(s)) -- SIGPIPE 141 makes a MATCH report failure"
+    _pf=1
+  fi
+done
+[ "$_pf" -eq 0 ] && ok "no checker pipes into 'grep -q' while pipefail is set"
+
+# TWO CONTROLS again: the rule must catch the hazard AND leave the cure alone.
+_PCTL="$(mktemp "${TMPDIR:-/tmp}/rotmoe-pctl.XXXXXX")"
+# SIGPIPE-ALLOW -- this line BUILDS the hazard as a fixture, on purpose, so that
+# rule 7 can be proved able to see one. checker/portability.sh carries an older,
+# narrower version of this same rule (it recognises only printf/echo/cat as the
+# producer, which is why it never saw the `sed`, `locale -a` and `head -c` sites
+# that CI hit) and it offers this marker as the documented escape for controls.
+# Used rather than loosening either rule: a pragma on one line is auditable, a
+# widened pattern is not.
+printf 'set -uo pipefail\nsed s/x/y/ f | grep -q PATTERN || bad "missing"\n' > "$_PCTL"   # SIGPIPE-ALLOW
+_n=$(sed 's/#.*$//' "$_PCTL" | grep -v -E '^[[:space:]]*((printf|echo|cat)[[:space:]].*>|(ok|bad)[[:space:]])' | grep -c -E '[^|][|][[:space:]]*grep[[:space:]]+-[A-Za-z]*q')
+0
+[ "${_n:-0}" -gt 0 ] \
+  && ok "CONTROL: a pipe into 'grep -q' under pipefail IS detected" \
+  || bad "CONTROL DEAD: the SIGPIPE hazard is not detected -- rule 7 proves nothing"
+printf 'set -uo pipefail\nsed s/x/y/ f | grep -c PATTERN >/dev/null || bad "missing"\ngrep -q P file || bad "x"\n' > "$_PCTL"
+_n=$(sed 's/#.*$//' "$_PCTL" | grep -v -E '^[[:space:]]*((printf|echo|cat)[[:space:]].*>|(ok|bad)[[:space:]])' | grep -c -E '[^|][|][[:space:]]*grep[[:space:]]+-[A-Za-z]*q')
+0
+[ "${_n:-0}" -eq 0 ] \
+  && ok "CONTROL: the two cures (grep -c, or grep a FILE) are NOT flagged" \
+  || bad "CONTROL: rule 7 flags the fix -- it would push the tree back to the hazard"
+rm -f "$_PCTL"
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

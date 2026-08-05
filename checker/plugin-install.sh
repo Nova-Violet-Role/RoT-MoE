@@ -116,7 +116,11 @@ if [ -f "$PB/.claude/settings.json" ]; then
     && ok "the created file is valid JSON" \
     || bad "the created file does NOT parse"
   # A file we create should set clean conventions: no BOM, and it must round trip.
-  head -c 3 "$PB/.claude/settings.json" | grep -q $'\xef\xbb\xbf' \
+  # `grep -c … >/dev/null` rather than `grep -q`: the producer here is only three
+  # bytes, so the SIGPIPE race is vanishingly unlikely -- but "unlikely" is what
+  # every other site in this repo looked like until a runner disagreed, and the
+  # rule that forbids the shape is worth more than a per-site risk assessment.
+  head -c 3 "$PB/.claude/settings.json" | grep -c $'\xef\xbb\xbf' >/dev/null \
     && bad "a NEW file was created WITH a BOM -- we should not add one" \
     || ok "the created file has no BOM (we preserve one, we never add one)"
 else
