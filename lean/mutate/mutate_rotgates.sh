@@ -189,6 +189,31 @@ run_mut M05 \
   '  | Tier.deep => true' \
   'the fastSet/deepSet count guards, the deep-trigger guard'
 
+# --- the CI-honesty asymmetry (added after run 31045719329) ------------------
+# M06 re-opens the exact hole that run found: let the `failure` arm consult
+# `isScaffolding`, so a `Post ` step that FAILS becomes acceptable. This is the
+# checker bug transcribed into the model. If nothing dies, the asymmetry is
+# decoration and the law does not actually forbid the thing it was written for.
+run_mut M06 \
+  '  | _        => false' \
+  '  | _        => s.isScaffolding' \
+  'scaffolding_failure_is_still_dishonest, post_checkout_failure_is_dishonest, failure_sinks_the_run, honest_run_has_no_failure, and the run31045719329 guards'
+
+# M07 -- the other direction: every skip is tolerated, scaffolding or not. This
+# is the `bc1272d` defect ("gauge-cross had NEVER run") re-legalised.
+run_mut M07 \
+  '  | .skipped => s.isScaffolding' \
+  '  | .skipped => true' \
+  'any_authored_skip_is_dishonest, skipping_somewhere_is_still_dishonest, no_authored_skip_is_implied, and the run31035932155 guard'
+
+# M08 -- the exemption widens to swallow authored steps. `isPrefixOf ""` is true
+# of every name, so EVERY step becomes scaffolding. The narrowness of the
+# scaffolding predicate is the only thing keeping the skip exemption honest.
+run_mut M08 \
+  '"Post ".isPrefixOf s.name' \
+  '"".isPrefixOf s.name' \
+  'any_authored_skip_is_dishonest and the run31035932155 guard (every name becomes scaffolding)'
+
 echo
 # --- RESTORE THE BASELINE ---------------------------------------------------
 # The EXIT trap restores the SOURCE, but the last mutant deleted the .olean and

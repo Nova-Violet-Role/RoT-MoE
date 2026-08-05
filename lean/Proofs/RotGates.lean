@@ -413,12 +413,42 @@ def noSkip (r : Run) : Bool := r.all didRun
 /-- **Every step concluded success.** -/
 def allGreen (r : Run) : Bool := r.all (fun s => isGreen s.outcome)
 
-/-- **The CI honesty verdict**, and it is just `allGreen`: since only `success`
-is green and `skipped` is not, "every step is green" already entails "no step
-skipped". Both names are kept because the *checker* reports them separately —
-a run that skips and a run that fails need different repairs — but the law does
-not need two clauses, and `no_skip_is_implied` below proves it. -/
-def runIsHonest (r : Run) : Bool := allGreen r
+/-- Steps GitHub **injects**, which the repository does not author. Matched by
+exact name or the `Post ` prefix, narrowly, so an authored step cannot drift in.
+
+This is *not* the `kind` field returning. `kind` let a step declare itself
+excusable; this predicate reads a name GitHub assigns and, crucially, buys an
+exemption from **one** rule only — see `stepIsAcceptable`. -/
+def Step.isScaffolding (s : Step) : Bool :=
+  s.name == "Set up job" || s.name == "Complete job" || "Post ".isPrefixOf s.name
+
+/-- **The per-step verdict, and the asymmetry is the whole content.**
+
+Run `31045719329` forced this. Its two `Post Run actions/checkout@v7` steps
+concluded `failure`, and the checker — which exempted scaffolding from *both*
+rules — would have called the run honest. The exemption was correct for one
+rule and catastrophic for the other:
+
+* **skipped** — GitHub decides whether to run its own cleanup. Tolerated for
+  scaffolding, never for an authored step.
+* **failure** — nothing may fail, whoever wrote it. A broken cleanup is a
+  broken run.
+
+So the `skipped` arm consults `isScaffolding` and the failure arms do not. -/
+def stepIsAcceptable (s : Step) : Bool :=
+  match s.outcome with
+  | .success => true
+  | .skipped => s.isScaffolding
+  | _        => false
+
+/-- **The CI honesty verdict.** -/
+def runIsHonest (r : Run) : Bool := r.all stepIsAcceptable
+
+/-- An authored step must have run; scaffolding is excused *this* rule alone. -/
+def authoredRan (s : Step) : Bool := s.isScaffolding || didRun s
+
+/-- **No authored step was skipped.** -/
+def noSkipAuthored (r : Run) : Bool := r.all authoredRan
 
 /-! ### The law -/
 
@@ -437,60 +467,126 @@ green by default. -/
 theorem success_is_the_only_green (o : Outcome) : isGreen o = true ↔ o = .success := by
   cases o <;> simp [isGreen]
 
-/-- **ANY skipped step sinks the run.** No exemption, no kind, no manifest —
-the statement is quantified over an arbitrary step name, so there is no step
-this could fail to cover. This replaces a `provision_may_skip` theorem that
-legalised exactly the eight skips measured above. -/
-theorem any_skip_is_dishonest (n : String) :
+/-- **ANY skipped authored step sinks the run.** Quantified over an arbitrary
+name, with the single hypothesis that the step is one the repository wrote.
+
+The hypothesis is new and it is a real narrowing, so it is flagged rather than
+buried: the previous version quantified over *every* name and so claimed a
+skipped `Post Run actions/checkout` was dishonest too. That was stricter than
+the checker and stricter than reality — GitHub skips its own cleanup as normal
+operation, and a law that calls normal operation dishonest is a law someone
+later deletes. The authored case, which is the case the rule exists for, is
+unchanged and still admits no exemption. -/
+theorem any_authored_skip_is_dishonest (n : String)
+    (hauth : (Step.mk n .skipped).isScaffolding = false) :
     runIsHonest [⟨n, .skipped⟩] = false := by
-  simp [runIsHonest, allGreen, isGreen]
+  simp [runIsHonest, stepIsAcceptable, hauth]
 
 /-- **Skipping in one job is not redeemed by running in another.** The old law
 allowed this ("scoped but live") and it is precisely how `tty guard` went
 untested on two platforms while the run stayed green. -/
-theorem skipping_somewhere_is_still_dishonest (n : String) :
+theorem skipping_somewhere_is_still_dishonest (n : String)
+    (hauth : (Step.mk n .skipped).isScaffolding = false) :
     runIsHonest [⟨n, .skipped⟩, ⟨n, .success⟩] = false := by
-  simp [runIsHonest, allGreen, isGreen]
+  simp [runIsHonest, stepIsAcceptable, hauth]
 
 /-- A step that ran and failed sinks the run. -/
 theorem failure_sinks_the_run (n : String) :
     runIsHonest [⟨n, .failure⟩] = false := by
-  simp [runIsHonest, allGreen, isGreen]
+  simp [runIsHonest, stepIsAcceptable]
+
+/-- **The theorem run `31045719329` paid for.** Scaffolding buys an exemption
+from the skip rule and *only* from the skip rule: a `Post ` step that FAILS is
+still dishonest. No hypothesis — this holds for every scaffolding name there
+is, which is exactly what the checker's loop must do. -/
+theorem scaffolding_failure_is_still_dishonest (n : String) :
+    runIsHonest [⟨"Post " ++ n, .failure⟩] = false := by
+  simp [runIsHonest, stepIsAcceptable]
+
+/-- And the concrete pair that was green in that run's checker. -/
+theorem post_checkout_failure_is_dishonest :
+    runIsHonest [ ⟨"Post Run actions/checkout@v7", .failure⟩
+                , ⟨"Post Run actions/checkout@v7", .failure⟩ ] = false := by
+  decide
+
+/-- The other half of the asymmetry, stated so it cannot silently invert:
+scaffolding that is *skipped* is tolerated. Without this the exemption would be
+unreachable and the two rules would collapse back into one. -/
+theorem scaffolding_skip_is_tolerated :
+    runIsHonest [⟨"Post Run actions/checkout@v7", .skipped⟩] = true := by
+  -- `decide` cannot close this: `String.isPrefixOf`'s `Decidable` instance does
+  -- not reduce in the kernel (measured -- `decide` and `rfl` both refuse).
+  -- `simp` unfolds it instead. The `#guard`s below are unaffected: they run in
+  -- the interpreter, which evaluates it fine.
+  simp [runIsHonest, stepIsAcceptable, Step.isScaffolding, String.isPrefixOf]
 
 /-- So does `cancelled`, and so does `neutral` — the two outcomes that render as
-"not red" and assert nothing. -/
+"not red" and assert nothing. Neither is excused for scaffolding either. -/
 theorem cancelled_sinks_the_run (n : String) :
     runIsHonest [⟨n, .cancelled⟩] = false := by
-  simp [runIsHonest, allGreen, isGreen]
+  simp [runIsHonest, stepIsAcceptable]
 
 theorem neutral_sinks_the_run (n : String) :
     runIsHonest [⟨n, .neutral⟩] = false := by
-  simp [runIsHonest, allGreen, isGreen]
+  simp [runIsHonest, stepIsAcceptable]
 
-/-- **`no skip` is entailed, not assumed.** An honest run has no skipped step,
-derived from `allGreen` alone — which is why the law needs one clause and not
-two, and why no future edit can satisfy `runIsHonest` while skipping. -/
-theorem no_skip_is_implied {r : Run} (hr : runIsHonest r = true) :
-    noSkip r = true := by
-  simp only [noSkip, List.all_eq_true]
+/-- **The exemption cannot leak.** For an arbitrary step, being scaffolding
+changes the verdict *only* when the outcome is `skipped`. This is the theorem
+that makes the asymmetry load-bearing rather than a comment: no future edit can
+widen `isScaffolding` into a way of excusing a failure, because acceptability
+for every non-skipped outcome does not mention it. -/
+theorem scaffolding_matters_only_for_skips (s : Step) (h : s.outcome ≠ .skipped) :
+    stepIsAcceptable s = isGreen s.outcome := by
+  cases hc : s.outcome <;> simp [stepIsAcceptable, isGreen, hc] <;>
+    exact absurd hc h
+
+/-- **`no authored skip` is entailed, not assumed.** Derived from the verdict
+alone — so no future edit can satisfy `runIsHonest` while skipping a check. -/
+theorem no_authored_skip_is_implied {r : Run} (hr : runIsHonest r = true) :
+    noSkipAuthored r = true := by
+  simp only [noSkipAuthored, List.all_eq_true]
   intro s hs
-  have := List.all_eq_true.mp hr s hs
-  cases h : s.outcome <;> simp [didRun, h] <;> rw [h] at this <;> simp [isGreen] at this
+  have h := List.all_eq_true.mp hr s hs
+  simp only [stepIsAcceptable] at h
+  cases hc : s.outcome <;> rw [hc] at h <;> simp_all [authoredRan, didRun]
 
-/-- An honest run cannot contain any step that is not green. Stated over an
-arbitrary member, so it covers runs of any size rather than the witnesses
-above — and with no `didRun` hypothesis, because a skipped step is not excused
-from the requirement. -/
-theorem honest_run_has_no_ungreen_step {r : Run} {s : Step}
+/-- **Nothing in an honest run failed** — scaffolding included, no hypothesis.
+This is the rule-2 counterpart, and the one the checker's loop implements. -/
+theorem honest_run_has_no_failure {r : Run} {s : Step}
     (hr : runIsHonest r = true) (hmem : s ∈ r) :
-    isGreen s.outcome = true :=
-  List.all_eq_true.mp hr s hmem
+    s.outcome ≠ .failure := by
+  have h := List.all_eq_true.mp hr s hmem
+  simp only [stepIsAcceptable] at h
+  intro hf
+  rw [hf] at h
+  simp at h
+
+/-- An honest run's every step is green, *unless* it is scaffolding GitHub
+skipped. Stated over an arbitrary member, so it covers runs of any size. -/
+theorem honest_run_step_is_green_or_scaffolding_skip {r : Run} {s : Step}
+    (hr : runIsHonest r = true) (hmem : s ∈ r) :
+    isGreen s.outcome = true ∨ (s.outcome = .skipped ∧ s.isScaffolding = true) := by
+  have h := List.all_eq_true.mp hr s hmem
+  simp only [stepIsAcceptable] at h
+  cases hc : s.outcome <;> rw [hc] at h <;> simp at h
+  · exact Or.inl (by simp [isGreen])
+  · exact Or.inr ⟨rfl, h⟩
+
+/-- **An authored step in an honest run is green, full stop.** The corollary
+that matters for the user-facing rule: for anything the repository wrote, the
+exemption is not available and `success` is the only outcome allowed. -/
+theorem honest_run_authored_step_is_green {r : Run} {s : Step}
+    (hr : runIsHonest r = true) (hmem : s ∈ r) (hauth : s.isScaffolding = false) :
+    isGreen s.outcome = true := by
+  rcases honest_run_step_is_green_or_scaffolding_skip hr hmem with hg | ⟨_, hs⟩
+  · exact hg
+  · rw [hauth] at hs; exact absurd hs (by simp)
 
 /-- **The law is not vacuous** — a run that satisfies it exists, and it is the
 one every CI run must now be. Without this, everything above could be true of
 nothing. -/
 theorem honest_runs_exist : runIsHonest [⟨"tty guard", .success⟩] = true := by
-  simp [runIsHonest, allGreen, isGreen]
+  simp [runIsHonest, stepIsAcceptable]
 
 /-! ### The measured run — executed evidence, never a hypothesis
 
@@ -536,10 +632,63 @@ def run31035932155_repaired : Run :=
   , ⟨"tty guard -- the router must not block on a terminal", .success⟩ ]
 
 #guard runIsHonest run31035932155_repaired
-#guard noSkip run31035932155_repaired
+#guard noSkipAuthored run31035932155_repaired
 
 -- One skip is enough. Not a majority, not a threshold -- one.
 #guard !runIsHonest (⟨"anything", .skipped⟩ :: run31035932155_repaired)
+
+/-! ### Run `31045719329` — the repair worked, and one assertion was wrong
+
+The commit that removed every `if: runner.os` produced this run. **Rule 1 was
+satisfied outright: 0 skipped steps.** The no-skip repair is measured, not
+hoped for.
+
+Rule 2 was not satisfied. `checkers (windows-latest)` went red because the
+Windows leg of `tty guard` asserted `rc != 0` after feeding the router
+`/dev/null`. Empty stdin is not a terminal, and the router correctly exits 0 on
+it (measured: exit 0, zero bytes) — so the assertion was simply **false**. A
+wrong check failed loudly instead of passing quietly, which is the system
+working as designed.
+
+**A correction belongs here, because this file is evidence.** An earlier draft
+of this section stated that two `Post Run actions/checkout@v7` steps also
+concluded `failure`, and built a `#guard` on it. That was a misreading: the job
+list was parsed with `paste - -`, which pairs lines *offset by one* and
+attributed a job-level conclusion to a step name. Re-measured against the API:
+**zero** Post steps failed in this run. The claim is withdrawn rather than
+quietly deleted.
+
+The checker hole it pointed at was nonetheless real — `is_scaffolding` was
+consulted by both rules, so a failing scaffolding step *would* have passed
+unseen. It was found by reading the code, not by observing it happen. The law
+below still forbids it; what changed is that it is presented as a hazard closed
+by inspection, not as a defect caught in the wild. -/
+
+def run31045719329 : Run :=
+  [ ⟨"tty guard -- the router must not block on a terminal", .success⟩   -- ubuntu
+  , ⟨"tty guard -- the router must not block on a terminal", .success⟩   -- macos
+  , ⟨"tty guard -- the router must not block on a terminal", .failure⟩   -- windows
+  , ⟨"Post Run actions/checkout@v7", .success⟩
+  , ⟨"Post Run actions/checkout@v7", .success⟩
+  , ⟨"Post Run actions/checkout@v7", .success⟩ ]
+
+-- Not honest: one authored step failed. Nothing else in the run was wrong.
+#guard !runIsHonest run31045719329
+
+-- **Rule 1 was genuinely satisfied** -- this is the no-skip repair, measured.
+#guard noSkipAuthored run31045719329
+
+-- CONSTRUCTED, not measured: the run that the pre-repair checker would have
+-- called honest. Labelled as hypothetical precisely because the real run was
+-- not this. It is what `stepIsAcceptable`'s failure arm exists to reject.
+def scaffoldingFailureRun : Run :=
+  [ ⟨"Post Run actions/checkout@v7", .failure⟩
+  , ⟨"Complete job", .failure⟩ ]
+
+#guard !runIsHonest scaffoldingFailureRun
+-- ...and rule 1 alone would NOT have caught it, which is why rule 2 may not
+-- share rule 1's exemption.
+#guard noSkipAuthored scaffoldingFailureRun
 
 -- Deleting a check is the other half of the rule, and it needs no new theorem
 -- here: a deleted step is simply absent, so this law holds vacuously on the

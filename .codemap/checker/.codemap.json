@@ -143,12 +143,12 @@
       ]
     },
     "ci-honesty.sh": {
-      "hash": "e9473f0f1bf2",
-      "indexed_at": "2026-08-05T20:46:46.499127+00:00",
+      "hash": "4641f1efbb48",
+      "indexed_at": "2026-08-05T22:03:07.955829+00:00",
       "language": "shell",
-      "lines": 265,
-      "mtime_ns": 1785961822475324700,
-      "size": 12165,
+      "lines": 305,
+      "mtime_ns": 1785965101518293600,
+      "size": 14371,
       "symbols": [
         {
           "docstring": "--- runner scaffolding ------------------------------------------------------ GitHub injects these; the repository does not author them, so they are n",
@@ -1228,6 +1228,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-05T20:46:46.682238+00:00",
+  "generated_at": "2026-08-05T22:03:07.962860+00:00",
   "version": "1.0"
 }
