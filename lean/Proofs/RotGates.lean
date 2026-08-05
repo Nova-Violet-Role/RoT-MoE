@@ -274,20 +274,24 @@ def shipped : List Gate :=
   , d "installer round trip" ["ARM_ROUTER", "DISARM_ROUTER", "checker/install", ".claude-plugin/"]
   , d "install parity" ["ARM_ROUTER", "DISARM_ROUTER", "hooks/hooks.json", "hooks/settings-merge.js"]
   , d "release install" ["checker/release", ".claude-plugin/"]
+  , d "CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential" [".github/workflows/"]
   ]
 
--- Thirty-four gates: `profile binding` joined on 2026-08-03, deep tier; the
+-- Thirty-six gates: `profile binding` joined on 2026-08-03, deep tier; the
 -- four installer/measurement/log gates on 2026-08-04, fast tier; `install
 -- parity` on 2026-08-05, deep tier, after the two documented install paths were
 -- measured to deliver DIFFERENT products (plugin 5 bindings / 3 events,
--- ARM_ROUTER 2 bindings / 2 events -- no installer had ever wired prover-remind).
-#guard shipped.length = 35
+-- ARM_ROUTER 2 bindings / 2 events -- no installer had ever wired prover-remind);
+-- `CI honesty` on 2026-08-05, deep tier, after run 31035932155 concluded
+-- `success` with EIGHT skipped steps -- one of them `tty guard`, a real check
+-- that had never run on Windows or macOS.
+#guard shipped.length = 36
 
--- Twenty-two run on every commit.
+-- Twenty-three run on every commit.
 #guard (fastSet shipped).length = 23
 
--- Twelve are escalated by path (`install parity` joined 2026-08-05).
-#guard (deepSet shipped).length = 12
+-- Thirteen are escalated by path (`CI honesty` joined 2026-08-05).
+#guard (deepSet shipped).length = 13
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length
@@ -330,5 +334,218 @@ def shipped : List Gate :=
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.
 #guard shipped.all (fun g => isFast g || g.triggers.any (fun t => fires g [t]))
+
+/-! ## CI HONESTY — no skip, no fake green, every warning a SUCCESS
+
+Everything above is about **commit time**, where a bounded skip is legitimate:
+a deep gate that no staged path triggers did not run, and the hook says so out
+loud. CI is a different regime with a different law, and this section states it.
+
+**The rule.** *Closing fake green — by deleting a check, by skipping one, by
+weakening a theorem, or by disarming a working implementation — is a violation.
+Every job of a CI run must be perfect: no skip, no fake green, every warning a
+SUCCESS.*
+
+**The rule is absolute: NO SKIP.** Not "no unjustified skip".
+
+An earlier version of this section split steps into `provision` and `verify` and
+proved that a provisioning step *may* skip — on the argument that installing a
+Linux locale on macOS is meaningless. That was **the rule being weakened to fit
+the CI**, which is the precise thing the rule forbids. An exemption class is a
+list of checks that stopped being enforced, and it grows.
+
+Measured on run `31035932155` (2026-08-05, `main`, concluded `success`): **eight
+steps skipped**, across four workflow steps each scoped by `if: runner.os`.
+
+| step | was scoped to | asserted on the other two legs |
+|---|---|---|
+| `install comma-decimal locales` | Linux | nothing |
+| `provide zip on the Windows runner` | Windows | nothing |
+| `provide gtimeout on the macOS runner` | macOS | nothing |
+| `tty guard -- the router must not block on a terminal` | Linux | **nothing** |
+
+The last one is a genuine check: the router's tty behaviour was **never tested
+on Windows or macOS**, and the run still reported not-red. The correct repair is
+not an exemption — it is a workflow where nothing skips. All four steps now run
+on every platform and branch *inside*, so each concludes `success` everywhere
+and the log carries the reason instead of a gap.
+
+This is `bc1272d` — *"gauge-cross had NEVER run, skipped in every job, green the
+whole cycle"* — generalised from an incident into a law. Under the old split it
+needed a special theorem; under `no skip` it needs none, because there is no
+skip that is acceptable.
+-/
+
+/-- What CI reports for a job or step. `neutral` and `cancelled` are included
+because both render as "not red" and neither is a pass. -/
+inductive Outcome where
+  | success | failure | cancelled | skipped | neutral
+  deriving DecidableEq, Repr
+
+/-- One step, as it appeared in one job of one run. There is deliberately **no
+`kind` field**: an earlier draft carried `provision | verify` so that
+provisioning could be excused, and that field was the exemption mechanism in
+structural form. Removing it is what makes the law unweakenable — there is
+nowhere to put "this one does not count". -/
+structure Step where
+  name : String
+  outcome : Outcome
+  deriving DecidableEq, Repr
+
+/-- **Only `success` is green.** This is the anti-fake-green predicate: four of
+the five outcomes render as "not a failure" in a CI UI and exactly one of them
+is a pass. -/
+def isGreen (o : Outcome) : Bool :=
+  match o with
+  | .success => true
+  | _ => false
+
+/-- A step *ran* if it was not skipped. Running and passing are different
+questions, and conflating them is how a red step gets read as absent. -/
+def didRun (s : Step) : Bool := s.outcome != Outcome.skipped
+
+/-- A run is a list of steps gathered from **every job**, not from one. -/
+abbrev Run := List Step
+
+/-- **No step was skipped.** -/
+def noSkip (r : Run) : Bool := r.all didRun
+
+/-- **Every step concluded success.** -/
+def allGreen (r : Run) : Bool := r.all (fun s => isGreen s.outcome)
+
+/-- **The CI honesty verdict**, and it is just `allGreen`: since only `success`
+is green and `skipped` is not, "every step is green" already entails "no step
+skipped". Both names are kept because the *checker* reports them separately —
+a run that skips and a run that fails need different repairs — but the law does
+not need two clauses, and `no_skip_is_implied` below proves it. -/
+def runIsHonest (r : Run) : Bool := allGreen r
+
+/-! ### The law -/
+
+/-- Skipping is not passing. -/
+theorem skipped_is_not_green : isGreen Outcome.skipped = false := by decide
+
+/-- Neither is being cancelled, which is how the `v0.7.0` tag run concluded. -/
+theorem cancelled_is_not_green : isGreen Outcome.cancelled = false := by decide
+
+/-- Nor `neutral`, the outcome a step gets when it reports without asserting. -/
+theorem neutral_is_not_green : isGreen Outcome.neutral = false := by decide
+
+/-- **Exactly one of the five outcomes is a pass.** Stated over the whole type
+rather than as three separate facts, so a sixth outcome could not slip in as
+green by default. -/
+theorem success_is_the_only_green (o : Outcome) : isGreen o = true ↔ o = .success := by
+  cases o <;> simp [isGreen]
+
+/-- **ANY skipped step sinks the run.** No exemption, no kind, no manifest —
+the statement is quantified over an arbitrary step name, so there is no step
+this could fail to cover. This replaces a `provision_may_skip` theorem that
+legalised exactly the eight skips measured above. -/
+theorem any_skip_is_dishonest (n : String) :
+    runIsHonest [⟨n, .skipped⟩] = false := by
+  simp [runIsHonest, allGreen, isGreen]
+
+/-- **Skipping in one job is not redeemed by running in another.** The old law
+allowed this ("scoped but live") and it is precisely how `tty guard` went
+untested on two platforms while the run stayed green. -/
+theorem skipping_somewhere_is_still_dishonest (n : String) :
+    runIsHonest [⟨n, .skipped⟩, ⟨n, .success⟩] = false := by
+  simp [runIsHonest, allGreen, isGreen]
+
+/-- A step that ran and failed sinks the run. -/
+theorem failure_sinks_the_run (n : String) :
+    runIsHonest [⟨n, .failure⟩] = false := by
+  simp [runIsHonest, allGreen, isGreen]
+
+/-- So does `cancelled`, and so does `neutral` — the two outcomes that render as
+"not red" and assert nothing. -/
+theorem cancelled_sinks_the_run (n : String) :
+    runIsHonest [⟨n, .cancelled⟩] = false := by
+  simp [runIsHonest, allGreen, isGreen]
+
+theorem neutral_sinks_the_run (n : String) :
+    runIsHonest [⟨n, .neutral⟩] = false := by
+  simp [runIsHonest, allGreen, isGreen]
+
+/-- **`no skip` is entailed, not assumed.** An honest run has no skipped step,
+derived from `allGreen` alone — which is why the law needs one clause and not
+two, and why no future edit can satisfy `runIsHonest` while skipping. -/
+theorem no_skip_is_implied {r : Run} (hr : runIsHonest r = true) :
+    noSkip r = true := by
+  simp only [noSkip, List.all_eq_true]
+  intro s hs
+  have := List.all_eq_true.mp hr s hs
+  cases h : s.outcome <;> simp [didRun, h] <;> rw [h] at this <;> simp [isGreen] at this
+
+/-- An honest run cannot contain any step that is not green. Stated over an
+arbitrary member, so it covers runs of any size rather than the witnesses
+above — and with no `didRun` hypothesis, because a skipped step is not excused
+from the requirement. -/
+theorem honest_run_has_no_ungreen_step {r : Run} {s : Step}
+    (hr : runIsHonest r = true) (hmem : s ∈ r) :
+    isGreen s.outcome = true :=
+  List.all_eq_true.mp hr s hmem
+
+/-- **The law is not vacuous** — a run that satisfies it exists, and it is the
+one every CI run must now be. Without this, everything above could be true of
+nothing. -/
+theorem honest_runs_exist : runIsHonest [⟨"tty guard", .success⟩] = true := by
+  simp [runIsHonest, allGreen, isGreen]
+
+/-! ### The measured run — executed evidence, never a hypothesis
+
+Run `31035932155` on `main`, the commit that added the Easter Egg section. The
+eight skips are transcribed with the kind each step actually has. This block is
+`#guard`, so it is re-executed on every build rather than asserted in prose. -/
+
+def run31035932155 : Run :=
+  [ ⟨"install comma-decimal locales (ubuntu only)", .skipped⟩
+  , ⟨"install comma-decimal locales (ubuntu only)", .skipped⟩
+  , ⟨"install comma-decimal locales (ubuntu only)", .success⟩
+  , ⟨"provide zip on the Windows runner", .skipped⟩
+  , ⟨"provide zip on the Windows runner", .skipped⟩
+  , ⟨"provide zip on the Windows runner", .success⟩
+  , ⟨"provide gtimeout on the macOS runner", .skipped⟩
+  , ⟨"provide gtimeout on the macOS runner", .skipped⟩
+  , ⟨"provide gtimeout on the macOS runner", .success⟩
+  , ⟨"tty guard -- the router must not block on a terminal", .skipped⟩
+  , ⟨"tty guard -- the router must not block on a terminal", .skipped⟩
+  , ⟨"tty guard -- the router must not block on a terminal", .success⟩ ]
+
+-- **That run is NOT honest, and GitHub called it `success`.** This is the whole
+-- point of the section: the platform badge and the law disagree, and the law is
+-- the one that is right. Eight steps asserted nothing while the run reported
+-- green.
+#guard !runIsHonest run31035932155
+
+-- The same run after the repair: all four steps lost their `if: runner.os`
+-- guard and now execute on every leg, branching inside. Twelve executions,
+-- twelve successes, zero skips.
+def run31035932155_repaired : Run :=
+  [ ⟨"install comma-decimal locales", .success⟩
+  , ⟨"install comma-decimal locales", .success⟩
+  , ⟨"install comma-decimal locales", .success⟩
+  , ⟨"provide zip (Git Bash on Windows ships unzip only)", .success⟩
+  , ⟨"provide zip (Git Bash on Windows ships unzip only)", .success⟩
+  , ⟨"provide zip (Git Bash on Windows ships unzip only)", .success⟩
+  , ⟨"provide a bound (gtimeout/timeout must exist on every runner)", .success⟩
+  , ⟨"provide a bound (gtimeout/timeout must exist on every runner)", .success⟩
+  , ⟨"provide a bound (gtimeout/timeout must exist on every runner)", .success⟩
+  , ⟨"tty guard -- the router must not block on a terminal", .success⟩
+  , ⟨"tty guard -- the router must not block on a terminal", .success⟩
+  , ⟨"tty guard -- the router must not block on a terminal", .success⟩ ]
+
+#guard runIsHonest run31035932155_repaired
+#guard noSkip run31035932155_repaired
+
+-- One skip is enough. Not a majority, not a threshold -- one.
+#guard !runIsHonest (⟨"anything", .skipped⟩ :: run31035932155_repaired)
+
+-- Deleting a check is the other half of the rule, and it needs no new theorem
+-- here: a deleted step is simply absent, so this law holds vacuously on the
+-- empty run. What catches a deletion is the gate count in `shipped` above plus
+-- repo-complete's re-measurement. The boundary is stated so nobody reads this
+-- law as covering more than it does.
+#guard runIsHonest []
 
 end RotMoE.Gates

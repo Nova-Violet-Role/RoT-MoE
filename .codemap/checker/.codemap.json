@@ -142,6 +142,25 @@
         }
       ]
     },
+    "ci-honesty.sh": {
+      "hash": "e9473f0f1bf2",
+      "indexed_at": "2026-08-05T20:46:46.499127+00:00",
+      "language": "shell",
+      "lines": 265,
+      "mtime_ns": 1785961822475324700,
+      "size": 12165,
+      "symbols": [
+        {
+          "docstring": "--- runner scaffolding ------------------------------------------------------ GitHub injects these; the repository does not author them, so they are n",
+          "lines": [
+            73,
+            79
+          ],
+          "name": "is_scaffolding",
+          "type": "function"
+        }
+      ]
+    },
     "claude-md-lint.sh": {
       "hash": "eaf513f5d8a4",
       "indexed_at": "2026-08-05T13:16:35.014567+00:00",
@@ -307,18 +326,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "bd11864f057d",
-      "indexed_at": "2026-08-05T13:16:35.028206+00:00",
+      "hash": "24ea20a1481c",
+      "indexed_at": "2026-08-05T20:46:46.682149+00:00",
       "language": "shell",
-      "lines": 325,
-      "mtime_ns": 1785923872437714700,
-      "size": 15419,
+      "lines": 326,
+      "mtime_ns": 1785957683161121500,
+      "size": 15542,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            148,
-            163
+            149,
+            164
           ],
           "name": "fires",
           "type": "function"
@@ -1209,6 +1228,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-05T13:16:35.167079+00:00",
+  "generated_at": "2026-08-05T20:46:46.682238+00:00",
   "version": "1.0"
 }

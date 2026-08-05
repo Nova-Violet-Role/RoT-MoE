@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **418
+lens activities off disk, computes an `R/s+` gauge from them, and **430
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -260,8 +260,29 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 
 ### 📐 The ten modules
 
-* **`lean/Proofs/RotGates.lean`** (12 theorems) — **what a commit is allowed to
-  skip.** The gate set had grown to **587 s**, so it is now split: cheap gates
+* **`lean/Proofs/RotGates.lean`** (24 theorems) — **what may be deferred at a
+  commit, and what may never be skipped in CI.** Two regimes, and the module
+  states both because they have opposite answers.
+
+  **In CI: nothing may be skipped.** Measured on run `31035932155` — which
+  concluded `success` — **eight steps were skipped**, and one of them was
+  `tty guard`, a real check that had therefore never run on Windows or macOS.
+  `any_skip_is_dishonest` makes one skip sink a run for any step name;
+  `skipping_somewhere_is_still_dishonest` refuses the tempting excuse that
+  running on another platform redeems it; `success_is_the_only_green` proves
+  exactly one of the five GitHub outcomes is a pass, so `cancelled` and
+  `neutral` — both of which render as "not red" — are failures. `no_skip_is_implied`
+  derives the no-skip rule rather than assuming it, which is why there is no
+  clause an edit could relax. An earlier draft of this section classified steps
+  into `provision` and `verify` and *proved provisioning may skip*; that was the
+  law being weakened to fit the CI, and the `kind` field is gone so there is
+  nowhere left to put "this one does not count". The workflow was fixed instead:
+  all four `if: runner.os` steps now run everywhere and branch inside.
+  `checker/ci-honesty.sh` is the executable half — it reads the run for `HEAD`
+  over the API and fails on any skip, with three negative controls.
+
+  **At a commit: the split is deferral, not skipping.** The gate set had grown
+  to **587 s**, so it is now split: cheap gates
   run on every commit, expensive ones run when the commit *touches what they
   check*. That is a mechanism which already produced one false green here — a
   gate behind `FULL=1` was red while the sweep printed `26/26 GREEN` — so the
@@ -496,7 +517,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-0.7.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 21 modules, 418 theorems, 17 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 21 modules, 430 theorems, 17 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-0.7.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your

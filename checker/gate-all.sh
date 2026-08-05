@@ -91,6 +91,7 @@ Lean witness vs shipped weights|fast||bash checker/lean-binds-shell.sh
 release package|fast||bash checker/release-package.sh
 hook contract|fast||bash checker/hook-contract.sh
 workflow lint + drift|fast||bash checker/workflow-lint.sh
+CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential|deep|.github/workflows/|bash checker/ci-honesty.sh
 README download links vs the packager|fast||bash checker/readme-variants.sh
 cross-diff (both router arms)|fast||bash checker/cross-diff.sh
 router duplication (plugin + ARM must not stack)|fast||bash checker/router-duplication.sh

@@ -67,13 +67,27 @@ jobs:
         shell: bash
         run: bash checker/preflight.sh
 
-      - name: install comma-decimal locales (ubuntu only)
-        if: runner.os == 'Linux'
+      # NO `if:`. A step guarded by `runner.os` SKIPS on the other two platforms,
+      # and a skipped step is not a passed step -- it renders as "not red" while
+      # having asserted nothing. This job therefore runs on every platform and
+      # branches INSIDE, so its conclusion is `success` everywhere and the run
+      # carries zero skips. `checker/ci-honesty.sh` enforces that; the law is
+      # `no_step_may_skip` in lean/Proofs/RotGates.lean.
+      - name: install comma-decimal locales
+        shell: bash
         run: |
-          sudo locale-gen de_DE.UTF-8 fr_FR.UTF-8
-          sudo update-locale
-          # Prove the trap is expressible HERE before relying on it below.
-          echo "awk under de_DE.UTF-8: $(LC_ALL=de_DE.UTF-8 awk 'BEGIN{printf "%.2f", 0.09}')"
+          set -e
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo locale-gen de_DE.UTF-8 fr_FR.UTF-8
+            sudo update-locale
+            # Prove the trap is expressible HERE before relying on it below.
+            echo "awk under de_DE.UTF-8: $(LC_ALL=de_DE.UTF-8 awk 'BEGIN{printf "%.2f", 0.09}')"
+          else
+            # NOT a silent no-op. State which platform this is and why nothing
+            # was installed, so the log carries the reason rather than a gap.
+            echo "RUNNER_OS=$RUNNER_OS: locale-gen is glibc-only; the comma-decimal"
+            echo "trap is exercised on the Linux leg of this matrix. Nothing to install."
+          fi
 
       # Required files present, and every count in the prose RECOUNTED from
       # source. A README that claims more theorems than exist is the project
@@ -131,10 +145,22 @@ jobs:
       # test that exercises the installer on the platform where path handling,
       # CRLF and the PowerShell arm actually differ. Provisioning one tool costs
       # less than losing that coverage.
-      - name: provide zip on the Windows runner (Git Bash ships unzip only)
-        if: runner.os == 'Windows'
+      # NO `if:` -- see the locale step. Runs everywhere, branches inside, so the
+      # conclusion is `success` on all three legs and nothing skips.
+      - name: provide zip (Git Bash on Windows ships unzip only)
         shell: pwsh
         run: |
+          if ($env:RUNNER_OS -ne 'Windows') {
+            "RUNNER_OS=$($env:RUNNER_OS): zip is present in the base image; nothing to install."
+            # Still ASSERT it, rather than assuming. A step that reports success
+            # without checking anything is the fake green this rule forbids.
+            if (-not (Get-Command zip -ErrorAction SilentlyContinue)) {
+              Write-Error "zip is absent on $($env:RUNNER_OS) -- packaging cannot run"
+              exit 1
+            }
+            "zip verified present on $($env:RUNNER_OS)"
+            exit 0
+          }
           if (Get-Command zip -ErrorAction SilentlyContinue) {
             "zip already present"
           } else {
@@ -161,8 +187,11 @@ jobs:
       #
       # coreutils installs it as `gtimeout`, which the run_bounded chain in the
       # checkers already prefers over nothing.
-      - name: provide gtimeout on the macOS runner (no coreutils by default)
-        if: runner.os == 'macOS'
+      # NO `if:` -- see the locale step. The body below is already a pure
+      # capability test ("is a bound available? if not, write a shim"), so it is
+      # correct and meaningful on every platform: it now ASSERTS on Linux and
+      # Windows that a bound exists rather than skipping and assuming one does.
+      - name: provide a bound (gtimeout/timeout must exist on every runner)
         shell: bash
         run: |
           # WAS: `brew install coreutils`. It works, but Homebrew emits its tap-trust
@@ -441,12 +470,38 @@ jobs:
       # pty, so stdin IS a terminal and the router must refuse rather than block.
       # Bounded by timeout: a hang here is the exact failure being tested for,
       # and an unbounded hang reports nothing.
+      # NO `if:`. This is a VERIFY step, not provisioning -- the kind whose skip
+      # is a coverage hole rather than a courtesy. It was scoped to Linux because
+      # GNU `script -q -e -c` is the only pty allocator on that image; the other
+      # two legs asserted NOTHING about the router's tty behaviour and still
+      # reported not-red. It now runs on all three, choosing the pty allocator
+      # available on each and REFUSING if none is, so the coverage is real
+      # everywhere or the run goes red.
       - name: tty guard -- the router must not block on a terminal
-        if: runner.os == 'Linux'
         shell: bash
         run: |
           set +e
-          timeout 15 script -q -e -c 'sh hooks/rot-router.sh' /dev/null > tty.out 2>&1
+          bound () { if command -v timeout >/dev/null 2>&1; then timeout "$@";
+                     elif command -v gtimeout >/dev/null 2>&1; then gtimeout "$@";
+                     else echo "FAIL: no bound available; a hang would report nothing"; exit 1; fi; }
+          if script -q -e -c 'true' /dev/null >/dev/null 2>&1; then
+            # GNU script (Linux): -c takes the command, the file comes last.
+            echo "pty allocator: GNU script"
+            bound 15 script -q -e -c 'sh hooks/rot-router.sh' /dev/null > tty.out 2>&1
+          elif script -q /dev/null true >/dev/null 2>&1; then
+            # BSD script (macOS): the file comes first, then the command.
+            echo "pty allocator: BSD script"
+            bound 15 script -q /dev/null sh hooks/rot-router.sh > tty.out 2>&1
+          else
+            # Windows/Git Bash has no `script`. Rather than skip -- which asserts
+            # nothing while looking green -- assert the SAME contract through the
+            # channel that exists here: the router must refuse a non-payload stdin
+            # with the documented message instead of blocking. This is a narrower
+            # probe than a real pty and the log says so; it is not the guard being
+            # weakened, it is the guard being run where it can be run.
+            echo "pty allocator: none on $RUNNER_OS -- probing the same refusal via closed stdin"
+            bound 15 sh hooks/rot-router.sh < /dev/null > tty.out 2>&1
+          fi
           rc=$?
           echo "exit=$rc"; cat tty.out
           if [ "$rc" -eq 124 ]; then echo "FAIL: the router BLOCKED on a tty"; exit 1; fi
