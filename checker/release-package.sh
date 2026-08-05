@@ -387,9 +387,88 @@ if [ "$FAIL" -ne 0 ]; then
   echo "   NOTHING IS UPLOADED. Fix the artifact, not the assertion."
   exit 1
 fi
+# --- SHA256SUMS.txt ----------------------------------------------------------
+# THE README PROMISED THIS FILE AND NOTHING PRODUCED IT. `README.md` says "Every
+# archive verifies against the `SHA256SUMS.txt` published beside it", and a grep
+# of this packager for `sha256` returned ZERO hits. A documented verification
+# step with no artifact behind it is worse than none: a reader who tries it finds
+# nothing and cannot tell an unpublished checksum from a tampered download.
+#
+# The fix is to emit the file, never to delete the sentence. The docs described
+# the correct behaviour; the code was the part that was missing.
+#
+# Written LAST, after every assertion above has passed, so a checksum file can
+# never exist for an artifact this script refused to bless. If FAIL is non-zero
+# the script has already exited and no sums are written.
+SUMS="$OUT/SHA256SUMS.txt"
+rm -f "$SUMS"
+_sha_tool=""
+if command -v sha256sum >/dev/null 2>&1; then _sha_tool="sha256sum"
+elif command -v shasum >/dev/null 2>&1; then _sha_tool="shasum -a 256"
+fi
+if [ -z "$_sha_tool" ]; then
+  # REFUSE rather than ship archives with no checksums while the README says
+  # they have some. Silence here would recreate the exact defect this block
+  # exists to close.
+  echo "   FAIL: no sha256sum or shasum on PATH -- cannot produce SHA256SUMS.txt"
+  echo "   The README promises this file. Refusing to leave the promise unbacked."
+  exit 1
+fi
+( cd "$OUT" && for vp in $VARIANTS; do
+    v="${vp%%:*}"; ver="${vp#*:}"
+    $_sha_tool "rot-moe-$ver-$v.zip"
+  done ) > "$SUMS"
+
+# The file must contain one line per variant and each hash must be 64 hex chars.
+# A truncated or empty sums file would verify nothing while looking official.
+_want=$(printf '%s\n' $VARIANTS | grep -c .)
+# The `[*]?` is not cosmetic. GNU sha256sum writes `<hash> *<name>` in BINARY
+# mode and `<hash>  <name>` in text mode; this run emitted the star form and the
+# first version of this pattern rejected all three lines while the file was
+# perfectly good. The check was wrong, not the output -- so the pattern moved,
+# and the sums file was left exactly as the tool writes it, because `-c` has to
+# read it back and the tool's own format is the one it understands.
+_got=$(grep -cE '^[0-9a-f]{64}[[:space:]]+[*]?rot-moe-[0-9]+\.[0-9]+\.[0-9]+-[a-z]+\.zip$' "$SUMS")
+if [ "$_got" -ne "$_want" ]; then
+  echo "   FAIL: SHA256SUMS.txt has $_got well-formed line(s), expected $_want"
+  cat "$SUMS"
+  exit 1
+fi
+
+# CONTROL: the sums must actually VERIFY, and a tampered byte must break them.
+# Checking that a file exists is not checking that it is right.
+if ( cd "$OUT" && $_sha_tool -c SHA256SUMS.txt >/dev/null 2>&1 ); then
+  ok "SHA256SUMS.txt verifies against all $_got archive(s)"
+else
+  bad "SHA256SUMS.txt does NOT verify against the archives it names"
+  exit 1
+fi
+# THE NAME IS STRIPPED OF ITS BINARY-MODE STAR ONCE, into one variable. Written
+# inline as `awk '{print $2}'` it yields `*rot-moe-0.7.0-core.zip`, and every
+# `cp`/`mv` below would then address a file that does not exist -- the tamper
+# control would appear to pass while touching nothing at all. That is the
+# "mutation never landed" failure, in the one place whose whole job is to prove
+# a mutation lands.
+_ctlname=$(head -1 "$SUMS" | awk '{print $2}'); _ctlname="${_ctlname#\*}"
+_ctlzip="$OUT/.sumctl.orig"
+[ -f "$OUT/$_ctlname" ] || { echo "   FAIL: control target $_ctlname not found"; exit 1; }
+cp "$OUT/$_ctlname" "$_ctlzip"
+printf 'tamper' >> "$OUT/$_ctlname"
+if ( cd "$OUT" && $_sha_tool -c SHA256SUMS.txt >/dev/null 2>&1 ); then
+  bad "CONTROL: a tampered archive still passed its checksum -- the sums are decoration"
+  mv "$_ctlzip" "$OUT/$_ctlname"
+  exit 1
+else
+  ok "CONTROL: a tampered archive FAILS its checksum"
+fi
+mv "$_ctlzip" "$OUT/$_ctlname"
+( cd "$OUT" && $_sha_tool -c SHA256SUMS.txt >/dev/null 2>&1 ) \
+  || { echo "   FAIL: restore after the tamper control left a bad archive"; exit 1; }
+
 echo "   artifacts ready:"
 for vp in $VARIANTS; do
   v="${vp%%:*}"; ver="${vp#*:}"
   echo "     $OUT/rot-moe-$ver-$v.zip"
 done
+echo "     $SUMS"
 exit 0

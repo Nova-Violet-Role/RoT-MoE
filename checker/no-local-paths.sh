@@ -84,10 +84,27 @@ rm -rf "$TMP"
 # what answers. Without this, "skip ignored files" is a claim with nothing behind
 # it -- and a filter that silently started skipping EVERYTHING would look exactly
 # like a clean tree.
+#
+# THE PLANTS ARE ONLY MADE WHERE THEY CAN BE JUDGED. Measured 2026-08-05 by
+# running this file from the INSTALLED plugin copy, which is not a git checkout:
+# the plants were written, git was unavailable, so the branch that reads their
+# verdict never ran -- and the sweep dutifully reported ITS OWN CONTROL FILES as
+# machine-local paths in the packet. A checker that fails on evidence it planted
+# itself is worse than one with no controls: it is loud, wrong, and teaches the
+# reader to ignore it.
+#
+# So the decision of whether git can answer is made FIRST, and nothing is
+# written unless it can.
+_GITOK=0
+if command -v git >/dev/null 2>&1 && ( cd "$ROOT" && git rev-parse --git-dir >/dev/null 2>&1 ); then
+  _GITOK=1
+fi
 _ctl_keep="$ROOT/.rotmoe-nolocal-control.txt"     # untracked, NOT ignored -> kept
 _ctl_skip="$ROOT/TASKS/.rotmoe-nolocal-control.txt" # inside an ignored dir -> skipped
-printf 'control D:%s\n' '\\' > "$_ctl_keep"
-[ -d "$ROOT/TASKS" ] && printf 'control D:%s\n' '\\' > "$_ctl_skip"
+if [ "$_GITOK" -eq 1 ]; then
+  printf 'control D:%s\n' '\\' > "$_ctl_keep"
+  [ -d "$ROOT/TASKS" ] && printf 'control D:%s\n' '\\' > "$_ctl_skip"
+fi
 # THE TWO PATHS ARE REMOVED BY NAME, NOT FROM A SPACE-JOINED LIST. The first
 # version accumulated them into one string and looped over it unquoted; this
 # checkout lives at `C:/GIT External Repo/RoT MoE`, so word splitting tore both
@@ -108,7 +125,7 @@ raw_all=$(grep -rIn -F -f "$PAT" \
 # Drop hits whose file git ignores. `git check-ignore -q` answers 0 for ignored.
 # If git is unavailable the sweep keeps every hit -- the strict behaviour -- so a
 # missing tool can never quietly widen what is allowed through.
-if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
+if [ "$_GITOK" -eq 1 ]; then
   raw=""
   _skipped=0
   while IFS= read -r _line; do
