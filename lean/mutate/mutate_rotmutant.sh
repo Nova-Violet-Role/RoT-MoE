@@ -260,6 +260,36 @@ run_mut M10 RotMutant \
   'repair_is_not_vacuous, the 32-shape difference #guard'
 
 echo
+# --- back to a VERIFIED green baseline ---------------------------------------
+# Every other suite in this directory ends by rebuilding after the final restore.
+# This one did not: it was derived with `head -165` from a sibling, and the tail
+# that carried the guard was exactly what the truncation cut off. The same
+# derivation produced the same hole in mutate_rotlog.sh.
+#
+# The consequence is a FALSE RED, not a false green, and it is still expensive:
+# the last mutant's build fails, its olean is deleted and never rebuilt, so the
+# suite exits 0 having left the workspace unbuildable. `checker/axiom-class.sh`
+# then imports the module to probe it and reports theorems "unaccounted for",
+# which reads exactly like a broken proof. Telling those two apart cost a full
+# attribution cycle.
+for m in $MODULES; do
+  cp "Proofs/$m.lean.mutbak" "Proofs/$m.lean" 2>/dev/null
+done
+_baseline_bad=0
+for m in $MODULES; do
+  if ! ( cd "$_WSDIR" && lake build "Proofs.$m" ) > "$LOG/post_$m.log" 2>&1; then
+    echo "FATAL: the tree does NOT build after restoring (Proofs.$m)."
+    echo "The suite has left this workspace red. Do not trust the counts above."
+    tail -5 "$LOG/post_$m.log"
+    _baseline_bad=1
+  elif [ ! -f "$_WSDIR/.lake/build/lib/lean/Proofs/$m.olean" ]; then
+    echo "FATAL: Proofs.$m built but produced no olean -- downstream probes will fail."
+    _baseline_bad=1
+  fi
+done
+if [ "$_baseline_bad" -ne 0 ]; then exit 2; fi
+echo "baseline restored and REBUILT green (olean present again)"
+
 echo "=== RotMutant: killed=$killed survived=$survived discarded=$discarded ==="
 # DISCARDED is reported on its own line and never folded into survived: the first
 # is a defect in this harness, the second a claim about a theorem.

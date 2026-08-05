@@ -244,6 +244,38 @@ run_mut L10 RotLog \
 echo
 echo "killed=$killed survived=$survived discarded=$discarded"
 echo
+# --- back to a VERIFIED green baseline ---------------------------------------
+# The contract at the top of this file promises step 5: "restore from the backup,
+# ALWAYS, and rebuild to a verified green baseline". The EXIT trap does the first
+# half. Nothing did the second, and the header said otherwise -- so this suite
+# ended with the source correct and NO OLEAN, because the last mutant's build
+# failed and its artifact was deleted before it ran.
+#
+# That is not cosmetic. `checker/axiom-class.sh` imports the module to probe it,
+# and a missing olean makes it report "18 unaccounted for" -- a red that looks
+# exactly like a broken proof and is really a leftover from a suite that ran to
+# completion. It cost a full attribution cycle to tell those two apart.
+#
+# A harness that leaves the tree unbuildable has not finished, whatever its
+# summary says.
+for m in $MODULES; do
+  cp "Proofs/$m.lean.mutbak" "Proofs/$m.lean" 2>/dev/null
+done
+_baseline_bad=0
+for m in $MODULES; do
+  if ! ( cd "$_WSDIR" && lake build "Proofs.$m" ) > "$LOG/post_$m.log" 2>&1; then
+    echo "FATAL: the tree does NOT build after restoring (Proofs.$m)."
+    echo "The suite has left this workspace red. Do not trust the counts above."
+    tail -5 "$LOG/post_$m.log"
+    _baseline_bad=1
+  elif [ ! -f "$_WSDIR/.lake/build/lib/lean/Proofs/$m.olean" ]; then
+    echo "FATAL: Proofs.$m built but produced no olean -- downstream probes will fail."
+    _baseline_bad=1
+  fi
+done
+if [ "$_baseline_bad" -ne 0 ]; then exit 2; fi
+echo "baseline restored and REBUILT green -- the workspace is as it was found"
+
 if [ "$discarded" -gt 0 ]; then
   echo "DISCARDED > 0: at least one patch never landed, so it tested NOTHING."
   echo "A discard is a defect in this harness, never evidence about a theorem."

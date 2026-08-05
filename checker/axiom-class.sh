@@ -124,12 +124,40 @@ names_in () {
         if (depth == 0) out = out substr(line, i, 1)
         i++
       }
+      # NAMESPACES NEST, AND THE PROBE MUST FOLLOW THEM.
+      #
+      # This used to emit a bare name, and the caller prefixed every one of them
+      # with the FIRST `namespace` line in the file. That is correct only while
+      # a module has exactly one namespace. `RotLog.lean` opens
+      # `namespace RotMoE.Log` and then `namespace Stemlog` inside it, so six
+      # theorems were probed as `RotMoE.Log.laneOfStem_sound` -- a name that does
+      # not exist. ONE unresolvable name makes the whole probe file error out,
+      # and with it EVERY verdict for that module: the run reported "287 probed,
+      # 269 verdicts, 18 unaccounted", losing all of RotLog rather than six of it.
+      #
+      # It failed loudly and that is the only reason this is a repair and not a
+      # silent hole -- the count reconciliation is what caught it. A stack is
+      # kept here instead, so the name emitted is the one the elaborator knows.
+      if (depth_at_line_start == 0 && out ~ /^namespace[ ]+/) {
+        nsline = out
+        sub(/^namespace[ ]+/, "", nsline); sub(/[ ].*$/, "", nsline)
+        if (nsline != "") { nsdepth++; nsstack[nsdepth] = nsline }
+      }
+      if (depth_at_line_start == 0 && out ~ /^end[ ]+/) {
+        endline = out
+        sub(/^end[ ]+/, "", endline); sub(/[ ].*$/, "", endline)
+        if (nsdepth > 0 && endline == nsstack[nsdepth]) { nsdepth-- }
+      }
       if (depth_at_line_start == 0 &&
           out ~ /^(@\[[^]]*\] )?(private |protected |noncomputable )*(theorem|lemma)[ (]/) {
         # strip any attribute and modifiers, then take the identifier
         sub(/^(@\[[^]]*\] )?(private |protected |noncomputable )*(theorem|lemma)[ ]+/, "", out)
         sub(/[ (:{\[].*$/, "", out)
-        if (out != "") print out
+        if (out != "") {
+          pre = ""
+          for (k = 1; k <= nsdepth; k++) pre = pre nsstack[k] "."
+          print pre out
+        }
       }
       depth_at_line_start = depth
     }
@@ -160,16 +188,14 @@ probed_modules=0
 for m in $MODULES; do
   file="Proofs/$(printf '%s' "$m" | sed 's/^Proofs\.//').lean"
   [ -f "$file" ] || { note "no source for $m -- skipped"; continue; }
-  ns=$(sed -n 's/^namespace \([A-Za-z0-9_.]*\).*/\1/p' "$file" | head -1)
+  # `names_in` now returns FULLY QUALIFIED names -- it walks the namespace stack
+  # itself, because a module may open more than one and the old single-prefix
+  # form silently produced names that do not exist. See the long note there.
   P="$WORK/probe-$(printf '%s' "$m" | tr '.' '_').lean"
   printf 'import %s\n\n' "$m" > "$P"
   n_here=0
   for t in $(names_in "$file"); do
-    if [ -n "$ns" ]; then
-      printf '#print axioms %s.%s\n' "$ns" "$t" >> "$P"
-    else
-      printf '#print axioms %s\n' "$t" >> "$P"
-    fi
+    printf '#print axioms %s\n' "$t" >> "$P"
     n_here=$((n_here+1))
   done
   # A module with no theorems is not probed at all -- and must NOT be counted as

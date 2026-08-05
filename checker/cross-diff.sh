@@ -32,6 +32,10 @@ CORPUS="$REPO/checker/corpus-gauge.txt"
 pass=0; fail=0; skip=0
 ok()   { echo "  PASS  $*"; pass=$((pass+1)); }
 bad()  { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=cross-diff::%s\n' "$*"; fail=$((fail+1)); }
+# A skipped comparison is neither a pass nor a failure, and saying so out loud is
+# the point: without pwsh this file compares one arm against a corpus and calls
+# it a cross-diff. It counts nothing, so it cannot inflate the pass total.
+note() { echo "  ----  $*"; }
 
 PWSH=""
 for c in pwsh powershell; do command -v "$c" >/dev/null 2>&1 && { PWSH="$c"; break; }; done
@@ -130,6 +134,74 @@ the strategy document|STRATEGIC Nova
 # it falls back to a substring test. Without that carve-out this row goes red.
 check Basic.lean now|FORGE Claude
 ROUTES
+
+echo
+echo "== THE TWO ARMS MUST AGREE ON *WHY*, NOT ONLY ON WHICH =="
+# The loop above compares `--route` output, which prints the LANE alone. When the
+# route record gained a `stem`, that comparison stopped covering the whole
+# decision: the arms could record different reasons for the same lane and every
+# check in this file would stay green. The gap was introduced by the same change
+# that added the field, which is the usual way a cross-diff develops a blind
+# spot -- the new observable is simply not in the old comparison.
+#
+# `--route` is deliberately NOT widened to print the stem: its output is compared
+# byte for byte against a corpus and against the other arm, and changing it would
+# be changing the thing under test. The stem is compared where it actually
+# lives -- in the log, written by the real hook path, which also exercises the
+# ps1 arm's `Split-Routed` that nothing else touches.
+if [ -n "$PWSH" ]; then
+  _SD="$(mktemp -d "${TMPDIR:-/tmp}/xdstem.XXXXXX")"
+  _stem_of () {   # _stem_of <logfile> -> the route record's stem, or the string NONE
+    if [ "$(grep -c '"kind":"route"' "$1")" -eq 0 ]; then printf 'NONE'; return; fi
+    # One sed, no pipe. `... | head -1` would be the same SIGPIPE hazard rule 7
+    # in workflow-lint exists to forbid: head exits at the first line, sed dies
+    # of SIGPIPE, and under `pipefail` a SUCCESSFUL extraction reports 141. The
+    # `q` does the truncation inside the one process instead.
+    sed -n 's/.*"kind":"route".*"stem":"\([^"]*\)".*/\1/p; /"kind":"route"/q' "$1"
+  }
+  _drive () {     # _drive <arm> <prompt> <logfile>
+    rm -f "$3"
+    if [ "$1" = sh ]; then
+      printf '{"prompt":"%s"}' "$2" | ROTMOE_DEBUG_LOG="$3" "$SH" >/dev/null 2>&1
+    else
+      printf '{"prompt":"%s"}' "$2" | ROTMOE_DEBUG_LOG="$3" "$PWSH" -NoProfile -File "$PS1" >/dev/null 2>&1
+    fi
+  }
+  _sdis=0; _srows=0
+  for _p in "lake build the theorem" "fix this bug" "refactor the meta layer" \
+            "compress this to fewer tokens" "some entirely unremarkable sentence"; do
+    _drive sh  "$_p" "$_SD/a.log"
+    _drive ps1 "$_p" "$_SD/b.log"
+    _a=$(_stem_of "$_SD/a.log"); _b=$(_stem_of "$_SD/b.log")
+    if [ "$_a" = "NONE" ] || [ "$_b" = "NONE" ]; then
+      bad "STEM: no route record from one arm for '$_p' (sh=$_a ps1=$_b) -- nothing compared"
+      _sdis=1
+    elif [ "$_a" = "$_b" ]; then
+      _srows=$((_srows+1))
+      ok "arms agree on the reason: '$_p' -> stem '${_a:-<none, CONVERGENT>}'"
+    else
+      bad "STEM ARMS DISAGREE: '$_p' -- sh '$_a' / ps1 '$_b'"
+      _sdis=1
+    fi
+  done
+  # A row count guard, for the same reason bench-router carries one: a loop that
+  # silently compared nothing would print no failures and read as agreement.
+  [ "$_srows" -ge 5 ] || bad "only $_srows stem rows compared -- the probe broke, not the arms"
+  # CONTROL: the comparison must be able to FAIL. Two DIFFERENT prompts are fed
+  # to the two arms; their stems must differ and that difference must be seen.
+  # This exercises the real extraction path, not the shell's `=` operator.
+  _drive sh  "lake build the theorem"  "$_SD/a.log"
+  _drive ps1 "compress this to fewer tokens" "$_SD/b.log"
+  _a=$(_stem_of "$_SD/a.log"); _b=$(_stem_of "$_SD/b.log")
+  if [ "$_a" != "NONE" ] && [ "$_b" != "NONE" ] && [ "$_a" != "$_b" ]; then
+    ok "CONTROL: a genuine stem disagreement IS detected (sh '$_a' vs ps1 '$_b')"
+  else
+    bad "CONTROL: the stem comparison could not distinguish two different prompts (sh '$_a' ps1 '$_b')"
+  fi
+  rm -rf "$_SD"
+else
+  note "no pwsh: the stem cross-diff is SKIPPED, which is never a pass"
+fi
 
 echo
 echo "== LOCALE INVARIANCE: the same row under every installed locale =="
