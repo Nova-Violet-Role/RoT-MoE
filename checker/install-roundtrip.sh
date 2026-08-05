@@ -82,7 +82,7 @@ jget () { CLAUDE_SETTINGS="$1" node -e '
   let v=s; if (process.argv[1]) for (const k of process.argv[1].split(".")) v = v===undefined?undefined:v[k];
   console.log(JSON.stringify(v));' "$2"; }
 
-hasbom () { head -c3 "$1" | od -An -tx1 | tr -d ' \n' | grep -qi '^efbbbf'; }
+hasbom () { head -c3 "$1" | od -An -tx1 | tr -d ' \n' | grep -ci '^efbbbf' >/dev/null; }
 
 # ============================================================================
 h "R4 -- ARM_ROUTER is non-destructive"

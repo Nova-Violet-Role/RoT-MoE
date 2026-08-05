@@ -147,7 +147,7 @@ base_row=$("$SH" --vector 0,0,0,0,0,0,0,0,0 --breadth 0 --M 1.05 --C 0.7 --T 0.8
 loc_tested=0
 for cand in de_DE.UTF-8 de_DE.utf8 fr_FR.UTF-8 it_IT.UTF-8 nl_NL.UTF-8; do
   locale -a 2>/dev/null | grep -qix "$(printf '%s' "$cand" | tr 'A-Z' 'a-z' | sed 's/utf-8/utf8/')" \
-    || locale -a 2>/dev/null | grep -qx "$cand" || continue
+    || locale -a 2>/dev/null | grep -cx "$cand" >/dev/null || continue
   loc_tested=$((loc_tested+1))
   got=$(LC_ALL="$cand" LC_NUMERIC="$cand" "$SH" --vector 0,0,0,0,0,0,0,0,0 --breadth 0 --M 1.05 --C 0.7 --T 0.8)
   [ "$got" = "$base_row" ] && ok "locale-invariant under $cand" \

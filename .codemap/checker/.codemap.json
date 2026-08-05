@@ -73,12 +73,12 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "30559107bd71",
-      "indexed_at": "2026-08-04T09:56:21.039292+00:00",
+      "hash": "a7be49f90199",
+      "indexed_at": "2026-08-05T02:59:07.383703+00:00",
       "language": "shell",
       "lines": 571,
-      "mtime_ns": 1785783876511497000,
-      "size": 28217,
+      "mtime_ns": 1785898585128410300,
+      "size": 28239,
       "symbols": [
         {
           "lines": [
@@ -189,12 +189,12 @@
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "13a923924cae",
-      "indexed_at": "2026-08-04T22:18:54.637274+00:00",
+      "hash": "7d2c37ab1723",
+      "indexed_at": "2026-08-05T02:59:07.390728+00:00",
       "language": "shell",
       "lines": 175,
-      "mtime_ns": 1785878584849995400,
-      "size": 8778,
+      "mtime_ns": 1785898585141410000,
+      "size": 8789,
       "symbols": []
     },
     "ctt-session.sh": {
@@ -217,12 +217,12 @@
       ]
     },
     "deferred-closure.sh": {
-      "hash": "144332f8cc42",
-      "indexed_at": "2026-08-02T19:55:39.611018+00:00",
+      "hash": "30a8cedbe01e",
+      "indexed_at": "2026-08-05T02:59:07.394584+00:00",
       "language": "shell",
       "lines": 369,
-      "mtime_ns": 1785699185253211200,
-      "size": 20535,
+      "mtime_ns": 1785898585154409900,
+      "size": 20557,
       "symbols": []
     },
     "disarm-safety.sh": {
@@ -290,18 +290,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "414338364cb4",
-      "indexed_at": "2026-08-04T22:18:54.637988+00:00",
+      "hash": "a492aaafe83e",
+      "indexed_at": "2026-08-05T02:59:07.399519+00:00",
       "language": "shell",
-      "lines": 284,
-      "mtime_ns": 1785875144273545700,
-      "size": 13207,
+      "lines": 285,
+      "mtime_ns": 1785892405220202400,
+      "size": 13324,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            146,
-            161
+            147,
+            162
           ],
           "name": "fires",
           "type": "function"
@@ -373,12 +373,12 @@
       ]
     },
     "hook-footprint.sh": {
-      "hash": "4e0637e6033d",
-      "indexed_at": "2026-08-03T17:36:32.618744+00:00",
+      "hash": "aa6a8d3ac0da",
+      "indexed_at": "2026-08-05T02:59:07.406155+00:00",
       "language": "shell",
-      "lines": 279,
-      "mtime_ns": 1785751028822476700,
-      "size": 14511,
+      "lines": 330,
+      "mtime_ns": 1785898506864666200,
+      "size": 16801,
       "symbols": [
         {
           "lines": [
@@ -389,23 +389,59 @@
           "type": "function"
         },
         {
+          "docstring": "A FAILURE MUST BE READABLE WITHOUT ADMIN RIGHTS ON THE REPOSITORY.  MEASURED 2026-08-05: this checker went red in CI's `lean` job while passing in eve",
+          "lines": [
+            77,
+            81
+          ],
+          "name": "bad",
+          "type": "function"
+        },
+        {
           "docstring": "Strip comments so a hook may DOCUMENT what it does not do.",
           "lines": [
-            67,
-            72
+            87,
+            92
           ],
           "name": "code_of",
+          "type": "function"
+        },
+        {
+          "lines": [
+            119,
+            123
+          ],
+          "name": "strip_of",
+          "type": "function"
+        }
+      ]
+    },
+    "install-parity.sh": {
+      "hash": "4434a1def77c",
+      "indexed_at": "2026-08-05T02:59:07.407444+00:00",
+      "language": "shell",
+      "lines": 167,
+      "mtime_ns": 1785898308497668100,
+      "size": 7374,
+      "symbols": [
+        {
+          "docstring": "`::error::` becomes a check-run annotation, and annotations are PUBLIC on a public repository while `actions/runs/<id>/logs` answers 403 without admin",
+          "lines": [
+            50,
+            54
+          ],
+          "name": "bad",
           "type": "function"
         }
       ]
     },
     "install-roundtrip.sh": {
-      "hash": "42ac5727e40d",
-      "indexed_at": "2026-07-31T12:18:17.418756+00:00",
+      "hash": "4f34a65cceac",
+      "indexed_at": "2026-08-05T02:59:07.410084+00:00",
       "language": "shell",
-      "lines": 377,
-      "mtime_ns": 1785500143426159900,
-      "size": 18283,
+      "lines": 408,
+      "mtime_ns": 1785898585167409500,
+      "size": 20006,
       "symbols": [
         {
           "docstring": "--- the fixture ------------------------------------------------------------ Deliberately hostile, and every hostile trait is one measured on the real",
@@ -437,12 +473,12 @@
       "symbols": []
     },
     "live-session-smoke.sh": {
-      "hash": "17c3d76fc612",
-      "indexed_at": "2026-07-31T11:56:31.100076+00:00",
+      "hash": "46aa782137bc",
+      "indexed_at": "2026-08-05T02:59:07.414300+00:00",
       "language": "shell",
       "lines": 252,
-      "mtime_ns": 1785498967825277300,
-      "size": 12341,
+      "mtime_ns": 1785898585180410500,
+      "size": 12352,
       "symbols": [
         {
           "lines": [
@@ -455,18 +491,27 @@
       ]
     },
     "log-replay.sh": {
-      "hash": "f32d35e1a0ef",
-      "indexed_at": "2026-08-04T23:51:55.761205+00:00",
+      "hash": "536ce79cd032",
+      "indexed_at": "2026-08-05T02:59:07.416457+00:00",
       "language": "shell",
-      "lines": 305,
-      "mtime_ns": 1785876189810234400,
-      "size": 14500,
+      "lines": 315,
+      "mtime_ns": 1785897717235976300,
+      "size": 15059,
       "symbols": [
+        {
+          "docstring": "See the long note on the same function in checker/hook-footprint.sh: an unauthenticated caller cannot read CI logs (403, admin rights), so a failure t",
+          "lines": [
+            84,
+            88
+          ],
+          "name": "bad",
+          "type": "function"
+        },
         {
           "docstring": "--- 2. THE NEGATIVE CONTROLS ------------------------------------------------ A replayer that accepts everything is worse than none: it certifies. Eac",
           "lines": [
-            249,
-            273
+            259,
+            283
           ],
           "name": "ctl",
           "type": "function"
@@ -502,18 +547,18 @@
       "symbols": []
     },
     "mutate-checker.sh": {
-      "hash": "263ac89cf771",
-      "indexed_at": "2026-08-04T23:51:55.954579+00:00",
+      "hash": "5f7068e19aa2",
+      "indexed_at": "2026-08-05T02:59:07.421218+00:00",
       "language": "shell",
-      "lines": 280,
-      "mtime_ns": 1785887415127736400,
-      "size": 13267,
+      "lines": 308,
+      "mtime_ns": 1785888254437861600,
+      "size": 14648,
       "symbols": [
         {
           "docstring": "run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker] The 7th argument names the checker to run; it defaults to the router cross",
           "lines": [
-            77,
-            110
+            105,
+            138
           ],
           "name": "run",
           "type": "function"
@@ -531,20 +576,20 @@
     },
     "plugin-install.sh": {
       "hash": "da1d70eba1a5",
-      "indexed_at": "2026-07-31T12:18:17.584994+00:00",
+      "indexed_at": "2026-08-05T02:59:07.423195+00:00",
       "language": "shell",
       "lines": 144,
-      "mtime_ns": 1785500053367979600,
+      "mtime_ns": 1785898585192412100,
       "size": 6735,
       "symbols": []
     },
     "portability.sh": {
-      "hash": "1d2ae48faf69",
-      "indexed_at": "2026-08-02T05:05:29.344410+00:00",
+      "hash": "8a26e89936ba",
+      "indexed_at": "2026-08-05T02:59:07.426150+00:00",
       "language": "shell",
       "lines": 491,
-      "mtime_ns": 1785645955570861200,
-      "size": 25374,
+      "mtime_ns": 1785898585205409400,
+      "size": 25396,
       "symbols": [
         {
           "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
@@ -703,12 +748,12 @@
       ]
     },
     "release-session.sh": {
-      "hash": "28b69132a519",
-      "indexed_at": "2026-08-04T09:56:21.086737+00:00",
+      "hash": "6b639fcef3dd",
+      "indexed_at": "2026-08-05T02:59:07.439976+00:00",
       "language": "shell",
       "lines": 278,
-      "mtime_ns": 1785795534508723100,
-      "size": 13929,
+      "mtime_ns": 1785898585218409000,
+      "size": 13940,
       "symbols": [
         {
           "lines": [
@@ -765,12 +810,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "fdb1e67adb16",
-      "indexed_at": "2026-08-04T23:51:56.713105+00:00",
+      "hash": "04fe0ef94a7f",
+      "indexed_at": "2026-08-05T02:59:07.445582+00:00",
       "language": "shell",
       "lines": 637,
-      "mtime_ns": 1785882565758608000,
-      "size": 32497,
+      "mtime_ns": 1785898585231410200,
+      "size": 32508,
       "symbols": [
         {
           "lines": [
@@ -1014,12 +1059,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "04f6172dd90f",
-      "indexed_at": "2026-08-04T09:56:21.106439+00:00",
+      "hash": "09631418123b",
+      "indexed_at": "2026-08-05T02:59:07.462702+00:00",
       "language": "shell",
       "lines": 896,
-      "mtime_ns": 1785781476391063000,
-      "size": 45447,
+      "mtime_ns": 1785898585244410400,
+      "size": 45469,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -1110,6 +1155,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-04T23:51:56.909743+00:00",
+  "generated_at": "2026-08-05T02:59:07.522073+00:00",
   "version": "1.0"
 }

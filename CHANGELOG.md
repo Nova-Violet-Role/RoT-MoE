@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **269 / 18** |
+| 14 | theorems / modules | 205 / 14 | **276 / 18** |
 | 15 | gates | 29 | **33** (22 fast, 11 deep) |
-| 16 | mutation suites | 10 suites | **13 suites — 101 applied, 101 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **14 suites — 111 applied, 111 killed**, 0 survived, 0 discarded |
 
 Rows 1–8 are defects that **had already reached a live machine** while
 twenty-nine gates were green. Rows 9–12 are a routing fix that could not be made
@@ -264,7 +264,7 @@ red**, measured.
 
 ### Numbers
 
-- **269** machine-checked theorems across 18 modules (was 205 across 14),
+- **276** machine-checked theorems across 18 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **33** gates (was 29); 22 fast, 11 deep.
 - Every new theorem `#print axioms`-audited and `leanchecker`-re-verified.

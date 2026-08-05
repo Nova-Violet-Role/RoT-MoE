@@ -519,7 +519,7 @@ done
 # above are a pattern nobody has seen fail.
 MCTL="$(mktemp -d "${TMPDIR:-/tmp}/mutctl.XXXXXX")"
 printf '#!/usr/bin/env bash\ncd "$(dirname "$0")"\nSRC="Proofs/X.lean"\nlake build Proofs.X\n' > "$MCTL/mutate_broken.sh"
-if grep -q 'LEAN_ROOT' "$MCTL/mutate_broken.sh" || grep -qE 'preflight|FATAL' "$MCTL/mutate_broken.sh"; then
+if grep -q 'LEAN_ROOT' "$MCTL/mutate_broken.sh" || grep -cE 'preflight >/dev/null|FATAL' "$MCTL/mutate_broken.sh"; then
   bad "CONTROL DEAD: the pre-2026-07-31 broken suite shape passes these checks"
 else
   ok "CONTROL: a suite that cds to its own directory with no preflight IS rejected"
@@ -602,7 +602,7 @@ setup_verdict () {   # setup_verdict <file> -> prints defects, empty = clean
   # Measured on the macOS runner -- the strip did nothing, so SETUP_LEAN.sh's own
   # reassurance, say "This installer never asks for sudo", was read as a sudo
   # CALL and the gate failed on the sentence promising the opposite.
-  sed 's/#.*$//' "$f" | sed -E 's/(say|echo|printf).*$//' | grep -qE '(^|[^[:alnum:]_])sudo ' && v="$v USES_SUDO"
+  sed 's/#.*$//' "$f" | sed -E 's/(say|echo|printf).*$//' | grep -cE '(^|[^[:alnum:]_])sudo ' >/dev/null && v="$v USES_SUDO"
   # The toolchain must be PINNED. A floating "latest" makes the proofs
   # unreproducible and would silently move under the reader.
   grep -q 'lean-toolchain' "$f" || v="$v NOT_PINNED"
@@ -889,6 +889,74 @@ n_good=$(awk -f "$R21AWK" "$R21GOOD" 2>/dev/null | grep -c . || true)
   && ok "CONTROL: an array defined in the SAME block is NOT flagged" \
   || bad "CONTROL: R21 flags the correct form -- it would block the fix"
 rm -f "$R21AWK" "$R21BAD" "$R21GOOD"
+
+# --- 6. nobody may re-derive the release map by reading the packager's TEXT ---
+#
+# MEASURED 2026-08-05. checker/release-package.sh once defined
+#
+#     VARIANTS="core:0.6.0 lean:0.6.1 unsealed:0.6.2"
+#
+# and two gates recovered it with `sed -n 's/^VARIANTS="\(.*\)"$/\1/p'`. Then the
+# packager started COMPUTING the versions from plugin.json --
+#
+#     VARIANTS="core:$_MM.0 lean:$_MM.1 unsealed:$_MM.2"
+#
+# -- and the sed began returning that line verbatim, unexpanded. release-install
+# was repaired to run `release-package.sh --print-variants`; release-session was
+# NOT, and spent an unknown number of releases hunting an archive named
+# `rot-moe-$_MM.0-core.zip`. It could not pass, and it was still counted as one
+# of the deep gates.
+#
+# The rule is the general one, so a third copy cannot repeat it: ASK the packager,
+# never read its source. Any file that greps VARIANTS out of the packager's text
+# is flagged, whatever it does with the result.
+# The predicate must separate the BROKEN form from the CORRECT one, and the
+# first draft of it did not: `VARIANTS=.*release-package` matches
+# `VARIANTS=$(bash .../release-package.sh --print-variants)` just as happily as
+# the sed. It flagged the file that had already been REPAIRED -- a rule that
+# condemns the fix is worse than no rule, because the way to make it green is to
+# undo the repair.
+#
+# So: a line that names the packager AND pulls text out of it with a text tool,
+# while NOT asking it via --print-variants.
+_reads_packager_text () {   # 1 = offends
+  _t="$(mktemp "${TMPDIR:-/tmp}/rotmoe-vscan.XXXXXX")"
+  sed 's/#.*$//' "$1" > "$_t"
+  _hits=$(grep -c -E 'release-package[^ ]*\.sh' "$_t" 2>/dev/null || printf 0)
+  if [ "${_hits:-0}" -eq 0 ]; then rm -f "$_t"; return 1; fi
+  _bad_lines=$(grep -E 'release-package[^ ]*\.sh' "$_t" \
+               | grep -v -- '--print-variants' \
+               | grep -c -E '(sed|awk|grep|cat|head|tail)[[:space:]]' 2>/dev/null || printf 0)
+  rm -f "$_t"
+  [ "${_bad_lines:-0}" -gt 0 ]
+}
+_vt=0
+for _f in checker/*.sh lean/mutate/*.sh .github/workflows/*.yml; do
+  [ -f "$_f" ] || continue
+  case "$_f" in checker/release-package.sh|checker/workflow-lint.sh) continue ;; esac
+  if _reads_packager_text "$_f"; then
+    bad "$_f reads the release map out of release-package.sh's SOURCE TEXT -- run it with --print-variants instead"
+    _vt=1
+  fi
+done
+[ "$_vt" -eq 0 ] && ok "no file re-derives the release map by parsing the packager's source"
+
+# TWO CONTROLS, because this rule has to tell two similar lines apart and a
+# single control could only prove one half.
+_VCTL="$(mktemp "${TMPDIR:-/tmp}/rotmoe-vctl.XXXXXX")"
+printf 'VARIANT_MAP=$(sed -n %ss/^VARIANTS=x/p%s "$REPO/checker/release-package.sh")\n' "'" "'" > "$_VCTL"
+if _reads_packager_text "$_VCTL"; then
+  ok "CONTROL: the old source-parsing form IS detected"
+else
+  bad "CONTROL DEAD: the source-parsing form is not detected -- rule 6 proves nothing"
+fi
+printf 'VARIANTS=$(bash "$REPO/checker/release-package.sh" --print-variants | head -1)\n' > "$_VCTL"
+if _reads_packager_text "$_VCTL"; then
+  bad "CONTROL: the CORRECT --print-variants form is flagged -- the rule punishes the fix"
+else
+  ok "CONTROL: asking the packager with --print-variants is NOT flagged"
+fi
+rm -f "$_VCTL"
 
 echo
 echo "== RESULT =="

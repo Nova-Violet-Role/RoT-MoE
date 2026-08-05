@@ -155,7 +155,7 @@ fi
 
 # The routing decision itself must be correct, not merely present. The prompt is
 # "lake build the theorem": three FORGE stems, so any other lane is a defect.
-if grep -hF "$MARKER" "$WORK/armed.debug" "$WORK/armed.out" 2>/dev/null | grep -q 'FORGE Claude'; then
+if grep -hF "$MARKER" "$WORK/armed.debug" "$WORK/armed.out" 2>/dev/null | grep -c 'FORGE Claude' >/dev/null; then
   ok "ARMED: routed CORRECTLY -- '$PROMPT' -> FORGE Claude"
   grep -hF "$MARKER" "$WORK/armed.debug" "$WORK/armed.out" 2>/dev/null | head -1 | sed 's/^/        /'
 else

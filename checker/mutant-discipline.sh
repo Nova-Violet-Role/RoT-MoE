@@ -72,8 +72,27 @@ done
 # discipline of install-roundtrip.sh and verdict-schedule-sim.sh, whose `sed`
 # calls only indent output for display. A rule that fails a correct script is a
 # defect in the rule, so the pattern is a patch tool WRITING a file.
+# NARROWED A SECOND TIME, 2026-08-05, and for the same reason as the first.
+#
+# The second filter used to read `killed|survived|discard|CONTROL`. `CONTROL` is
+# the problem: a negative control is something EVERY well-written checker in this
+# repository has, and several of them also write a scratch file with sed. So the
+# moment checker/install-parity.sh grew
+#
+#     sed '$d' "$WORK/plugin.txt" > "$WORK/plugin.short.txt"
+#
+# to build its control, and checker/workflow-lint.sh grew a comment-stripped
+# scratch copy, both were classified as MUTATION HARNESSES and failed for missing
+# `discard-reporting` -- a discipline that is meaningless in a checker that never
+# produces a mutant of anything.
+#
+# A rule that fails a correct script is a defect in the rule. Measured both ways
+# before changing it: the loose form selects 17 files, the tightened form selects
+# 15, and the two dropped are exactly those two -- every genuine harness reports
+# killed/survived/discarded and is still selected. That is a classifier repair,
+# not a relaxation of the discipline: nothing that reports a kill escapes.
 harnesses="$(grep -lE 'sed -i|perl -0?pi|(sed|awk|perl)[^|]*> *"' checker/*.sh lean/mutate/*.sh 2>/dev/null \
-             | xargs grep -lE 'killed|survived|discard|CONTROL' 2>/dev/null | sort -u)"
+             | xargs grep -lE 'killed|survived|discard' 2>/dev/null | sort -u)"
 [ -n "$harnesses" ] || { echo "REFUSE: found no mutation harness at all -- this checker would pass vacuously"; exit 2; }
 
 n_h=0

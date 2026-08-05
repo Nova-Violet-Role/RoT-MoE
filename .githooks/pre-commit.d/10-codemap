@@ -1,12 +1,4 @@
-#!/usr/bin/env bash
-# Delegate of .githooks/pre-commit -- runs only after the gates are green.
-#
-# NOT an original work of RoT MoE: this is the local CodeMap indexing hook,
-# moved here verbatim from `.githooks/pre-commit` after that tool overwrote the
-# repo's own gate on 2026-07-31. It keeps working exactly as before; it simply
-# no longer occupies the file that must refuse a red commit. Its own header and
-# defect notes follow unchanged.
-#
+#!/bin/bash
 # CodeMap pre-commit hook
 #
 # Keeps .codemap/ fully in step with every commit:

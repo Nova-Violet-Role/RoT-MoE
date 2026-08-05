@@ -320,7 +320,7 @@ done
 # CONTROL 1: the scan must see the pattern.
 ctl_sh="$ctl_dir/sigpipe.sh"
 printf '%s\n' '#!/usr/bin/env bash' 'printf "%s" "$X" | grep -q needle' > "$ctl_sh"
-if sed 's/#.*$//' "$ctl_sh" | grep -qE '(printf|echo|cat)[^|]*\|[[:space:]]*grep[[:space:]]+-[A-Za-z]*q'; then  # SIGPIPE-ALLOW
+if sed 's/#.*$//' "$ctl_sh" | grep -cE '(printf|echo|cat)[^|]*\|[[:space:]]*grep[[:space:]]+-[A-Za-z]*q' >/dev/null; then  # SIGPIPE-ALLOW
   ok "CONTROL: a planted printf|grep -q IS detected"  # SIGPIPE-ALLOW
 else
   bad "CONTROL DEAD: the scan cannot see the pattern it forbids"
@@ -332,7 +332,7 @@ fi
 # has become superstition and should be re-argued rather than kept on faith.
 big=$(head -c 400000 /dev/zero 2>/dev/null | tr '\0' 'a' 2>/dev/null)
 if [ -n "$big" ]; then
-  ( set -o pipefail; printf 'needle%s' "$big" | grep -q needle ) 2>/dev/null  # SIGPIPE-ALLOW
+  ( set -o pipefail; printf 'needle%s' "$big" | grep -c needle >/dev/null ) 2>/dev/null  # SIGPIPE-ALLOW
   rc=$?
   if [ "$rc" -ne 0 ]; then
     ok "CONTROL: with a 400 KB string the pipeline really does fail under pipefail (exit $rc) -- the defect is real here too"

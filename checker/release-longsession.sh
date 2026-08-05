@@ -78,7 +78,12 @@ REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 # this file. A constant duplicated in three places is not a constant, it is
 # three independent claims that happen to agree until one of them does not.
 # Parsed from the one definition, and refused rather than guessed.
-VARIANT_MAP=$(sed -n 's/^VARIANTS="\(.*\)"$/\1/p' "$REPO/checker/release-package.sh" | head -1)
+# THE THIRD COPY of the same defect, found by checker/workflow-lint.sh rule 6 on
+# the day that rule was written. Reading the packager's SOURCE TEXT worked only
+# while VARIANTS was a literal; the packager now derives the versions from
+# plugin.json, so this sed returned `core:$_MM.0 ...` verbatim and the gate hunted
+# an archive named `rot-moe-$_MM.0-core.zip`. Ask the packager instead.
+VARIANT_MAP=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null | head -1)
 case "$VARIANT_MAP" in
   *core:*|*lean:*|*unsealed:*) : ;;
   *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANT_MAP')."

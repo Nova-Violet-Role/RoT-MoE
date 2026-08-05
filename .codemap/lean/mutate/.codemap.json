@@ -90,6 +90,24 @@
         }
       ]
     },
+    "mutate_rotensemble.sh": {
+      "hash": "a94c3421b67a",
+      "indexed_at": "2026-08-05T02:59:07.490484+00:00",
+      "language": "shell",
+      "lines": 268,
+      "mtime_ns": 1785891707280825500,
+      "size": 12351,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            164
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotgates.sh": {
       "hash": "7f584fec5a97",
       "indexed_at": "2026-08-04T09:56:21.129912+00:00",
@@ -127,12 +145,12 @@
       ]
     },
     "mutate_rotinstall.sh": {
-      "hash": "7ec57e1beeac",
-      "indexed_at": "2026-08-04T09:56:21.134689+00:00",
+      "hash": "9596e2e2eff9",
+      "indexed_at": "2026-08-05T02:59:07.497177+00:00",
       "language": "shell",
-      "lines": 286,
-      "mtime_ns": 1785790790556196900,
-      "size": 13698,
+      "lines": 335,
+      "mtime_ns": 1785893234112310800,
+      "size": 16265,
       "symbols": [
         {
           "docstring": "Map error line numbers back to the enclosing declaration.  TWO KNOWN LIMITS, stated because an attribution that overstates its reach is the same defec",
@@ -303,6 +321,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-04T23:51:58.611411+00:00",
+  "generated_at": "2026-08-05T02:59:07.526476+00:00",
   "version": "1.0"
 }

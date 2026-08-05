@@ -222,4 +222,145 @@ def landedKill : Run := { toolExit := 0, empty := false, changed := true }
           let r : Run := { toolExit := e, empty := em, changed := ch }
           (classify r acc == Outcome.killed) == (e == 0 && !em && ch && !acc)
 
+
+/-! ## The CLASSIFIER: which files owe mutation discipline at all
+
+`checker/mutant-discipline.sh` enforces the theorems above against every
+mutation harness in the tree. To do that it must first decide **which files are
+harnesses**, and it decides that by behaviour rather than from a list — a list
+stops covering whatever is added after it is written.
+
+The predicate is a conjunction of two observations about a file:
+
+  * it PATCHES — a text tool (`sed -i`, `perl -0pi`, or `sed`/`awk`/`perl`
+    redirected into a file) writes a modified copy;
+  * it ADJUDICATES — it reports the outcome of a mutation run.
+
+MEASURED DEFECT, 2026-08-05. The second observation was spelled
+`killed|survived|discard|CONTROL`, and `CONTROL` is the word every well-written
+checker in this repository uses for its negative control. So the moment
+`checker/install-parity.sh` built its control with
+
+    sed '$d' plugin.txt > plugin.short.txt
+
+it was classified as a mutation harness and failed for missing
+`discard-reporting` — a discipline with no meaning in a checker that never
+produces a mutant. `checker/workflow-lint.sh` fell the same way.
+
+A rule that fails a correct script is a defect in the rule. The repair drops
+`CONTROL` from the adjudication test, and this section is why that is a
+CLASSIFIER REPAIR rather than a relaxation: `discipline_applies_to_every_kill`
+proves that no file which reports a kill can escape, whatever else it says.
+Measured alongside: 17 files selected before, 15 after, and the two dropped are
+exactly the two named above. -/
+
+/-- What the classifier can observe about a file, one Bool per grep. -/
+structure FileEvidence where
+  /-- a text tool writes a patched copy (`sed -i`, `perl -0pi`, `… > "file"`) -/
+  patches : Bool
+  /-- the word `killed` appears -/
+  saysKilled : Bool
+  /-- the word `survived` appears -/
+  saysSurvived : Bool
+  /-- the word `discard` appears -/
+  saysDiscard : Bool
+  /-- the word `CONTROL` appears — true of nearly every checker here -/
+  saysControl : Bool
+  deriving DecidableEq, Repr
+
+/-- The shipped classifier, after the repair. -/
+def isHarness (f : FileEvidence) : Bool :=
+  f.patches && (f.saysKilled || f.saysSurvived || f.saysDiscard)
+
+/-- The classifier as it stood before the repair. -/
+def isHarnessLoose (f : FileEvidence) : Bool :=
+  f.patches && (f.saysKilled || f.saysSurvived || f.saysDiscard || f.saysControl)
+
+/-- THE PROPERTY THAT MAKES THE REPAIR SAFE.
+
+Any file that patches and reports a kill is still selected. This is the
+invariant the discipline actually needs — stated over every `FileEvidence`, not
+over the 15 files that happen to exist today, so it cannot expire when a
+sixteenth harness is added. -/
+theorem discipline_applies_to_every_kill (f : FileEvidence)
+    (hp : f.patches = true) (hk : f.saysKilled = true) :
+    isHarness f = true := by
+  simp [isHarness, hp, hk]
+
+/-- The same for a file that reports survivors, and for one that reports
+discards. A harness may legitimately report only one of the three. -/
+theorem discipline_applies_to_every_survivor (f : FileEvidence)
+    (hp : f.patches = true) (hs : f.saysSurvived = true) :
+    isHarness f = true := by
+  simp [isHarness, hp, hs]
+
+theorem discipline_applies_to_every_discard (f : FileEvidence)
+    (hp : f.patches = true) (hd : f.saysDiscard = true) :
+    isHarness f = true := by
+  simp [isHarness, hd, hp]
+
+/-- THE REPAIR IS A NARROWING, NEVER A WIDENING.
+
+Everything the new classifier selects, the old one selected too. So no file that
+was under discipline yesterday escaped it today — the change can only have
+removed false positives. -/
+theorem repair_only_narrows (f : FileEvidence) (h : isHarness f = true) :
+    isHarnessLoose f = true := by
+  simp only [isHarness, Bool.and_eq_true] at h
+  simp [isHarnessLoose, h.1, h.2]
+
+/-- And it is a STRICT narrowing: the two forms genuinely disagree, on exactly
+the shape that was misclassified — a file that patches, carries a control, and
+never adjudicates a mutation. Without this the repair could have been a no-op
+dressed up as a fix. -/
+theorem repair_is_not_vacuous :
+    ∃ f : FileEvidence, isHarnessLoose f = true ∧ isHarness f = false := by
+  refine ⟨{ patches := true, saysKilled := false, saysSurvived := false,
+            saysDiscard := false, saysControl := true }, ?_, ?_⟩ <;> decide
+
+/-- A CONTROL IS NOT AN ADJUDICATION. Stated on its own because it is the whole
+content of the defect: carrying a negative control must never, by itself, put a
+file under mutation discipline. -/
+theorem a_control_alone_is_not_a_harness (p : Bool) :
+    isHarness { patches := p, saysKilled := false, saysSurvived := false,
+                saysDiscard := false, saysControl := true } = false := by
+  cases p <;> decide
+
+/-- Nothing that fails to patch is a harness, however it talks. -/
+theorem no_patch_no_discipline (f : FileEvidence) (h : f.patches = false) :
+    isHarness f = false := by
+  simp [isHarness, h]
+
+/-! ### The two files measured on 2026-08-05 -/
+
+/-- `checker/install-parity.sh`: writes `plugin.short.txt` with `sed`, carries a
+negative control, never reports a kill. -/
+def installParityEvidence : FileEvidence :=
+  { patches := true, saysKilled := false, saysSurvived := false,
+    saysDiscard := false, saysControl := true }
+
+/-- A real suite, e.g. `lean/mutate/mutate_rotinstall.sh`. -/
+def realSuiteEvidence : FileEvidence :=
+  { patches := true, saysKilled := true, saysSurvived := true,
+    saysDiscard := true, saysControl := true }
+
+#guard isHarnessLoose installParityEvidence = true
+#guard isHarness installParityEvidence = false
+#guard isHarness realSuiteEvidence = true
+#guard isHarnessLoose realSuiteEvidence = true
+
+-- EXHAUSTIVE over all 32 evidence shapes: the repaired classifier and the loose
+-- one differ on exactly those files that patch, carry a control, and adjudicate
+-- nothing. Not a sample — the whole space.
+#guard
+  [true, false].all fun p =>
+    [true, false].all fun k =>
+      [true, false].all fun s =>
+        [true, false].all fun d =>
+          [true, false].all fun c =>
+            let f : FileEvidence :=
+              { patches := p, saysKilled := k, saysSurvived := s,
+                saysDiscard := d, saysControl := c }
+            (isHarnessLoose f != isHarness f) == (p && c && !k && !s && !d)
+
 end RotMoE

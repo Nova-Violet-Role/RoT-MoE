@@ -81,7 +81,26 @@ REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 # checker/release-package.sh. All four had drifted to 0.5.x while the packager
 # built 0.6.x. Parsed, and refused rather than guessed -- see the note in
 # release-install.sh for the full account.
-VARIANT_MAP=$(sed -n 's/^VARIANTS="\(.*\)"$/\1/p' "$REPO/checker/release-package.sh" | head -1)
+# ASKED FOR, NOT GREPPED OUT -- and this file was the one that never got the fix.
+#
+# The line here used to be
+#   sed -n 's/^VARIANTS="\(.*\)"$/\1/p' checker/release-package.sh
+# which reads the packager's SOURCE TEXT. That worked only while the map was a
+# literal string. The packager now DERIVES the three versions from plugin.json,
+# so its source line reads `VARIANTS="core:$_MM.0 ..."` and the sed returned that
+# verbatim, unexpanded. This gate then hunted an archive literally named
+#   rot-moe-$_MM.0-core.zip
+# and failed with "no artifact ... run checker/release-package.sh first" while
+# the three real archives sat in .release/ the whole time.
+#
+# MEASURED 2026-08-05: identical wording to the defect already fixed in
+# checker/release-install.sh -- the repair was applied to one sibling and not the
+# other, and nothing noticed because CI deliberately does not run this gate and
+# the deep tier is rarely run by hand. A gate that CANNOT PASS is worse than a
+# missing one: it is counted in the total.
+#
+# Execute the packager and let it print the map it will actually use.
+VARIANT_MAP=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null | head -1)
 case "$VARIANT_MAP" in
   *core:*|*lean:*|*unsealed:*) : ;;
   *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANT_MAP')."
@@ -231,7 +250,7 @@ for v in $WANT; do
       bad "$v/$lane: session timed out at ${SESSION_TIMEOUT}s -- no evidence either way"
     elif [ "$hit" -eq 0 ]; then
       bad "$v/$lane: the router NEVER FIRED in a real session (0 marker lines)"
-    elif grep -hF "$MARKER" "$VW/$lane.debug" "$VW/$lane.out" 2>/dev/null | grep -q "$lane $expect"; then
+    elif grep -hF "$MARKER" "$VW/$lane.debug" "$VW/$lane.out" 2>/dev/null | grep -c "$lane $expect" >/dev/null; then
       ok "$v/$lane -> $expect"
       vok=$((vok+1)); TOTAL_OK=$((TOTAL_OK+1))
     else

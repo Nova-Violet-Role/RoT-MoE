@@ -265,7 +265,7 @@ else
     # the router token as a substring checks the thing that matters -- that the
     # named lens IS the one the code routes to -- without freezing a house
     # style that a future edit is entitled to change.
-    if ! grep -E "\`$lane\`" "$RM" | tr -cd '[:alnum:]' | grep -qi "$lens"; then
+    if ! grep -E "\`$lane\`" "$RM" | tr -cd '[:alnum:]' | grep -ci "$lens" >/dev/null; then
       lens_fail=1; note "README lane $lane does not name its router lens $lens"
     fi
   done <<INNER
@@ -279,7 +279,7 @@ INNER
     bad "CONTROL DID NOT APPLY: sed exit $lrc / empty mutant -- discarded, NOT survived"
   elif cmp -s "$lprobe" "$RM"; then
     bad "CONTROL DID NOT APPLY: the lens rename changed nothing -- discarded, NOT survived"
-  elif grep -E '\`FORGE\`' "$lprobe" | tr -cd '[:alnum:]' | grep -qi 'Claude'; then
+  elif grep -E '\`FORGE\`' "$lprobe" | tr -cd '[:alnum:]' | grep -ci 'Claude' >/dev/null; then
     bad "CONTROL: a README whose FORGE lens was renamed still passed -- the matcher is blind"
   else
     ok "CONTROL: a renamed lens IS caught -- the lane->lens check can fail"

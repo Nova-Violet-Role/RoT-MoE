@@ -157,6 +157,21 @@ fi
 # head on macOS rejects it, which would turn the CONTROL -- the one assertion
 # that proves this gate can fail at all -- into a platform-dependent error.
 sed '$d' "$WORK/plugin.txt" > "$WORK/plugin.short.txt"
+
+# THE CONTROL'S OWN PLANT MUST BE PROVED TO HAVE LANDED.
+#
+# Same principle the mutation harnesses are held to: a control is evidence only
+# if the edit it depends on actually happened. If plugin.txt held a single line,
+# `sed '$d'` yields an EMPTY file -- the diff below still differs, the control
+# still reports PASS, and it would have proved nothing about removing a
+# registration. Assert the shape instead of assuming it.
+_full=$(wc -l < "$WORK/plugin.txt" | tr -d ' ')
+_short=$(wc -l < "$WORK/plugin.short.txt" | tr -d ' ')
+if [ "${_short:-0}" -ge 1 ] && [ "$_short" -eq $((_full - 1)) ]; then
+  ok "control plant landed: $_full pair(s) -> $_short (exactly one removed, none empty)"
+else
+  bad "CONTROL PLANT DID NOT LAND: $_full -> $_short -- the control below proves nothing"
+fi
 if diff -q "$WORK/plugin.short.txt" "$WORK/armed.txt" >/dev/null 2>&1; then
   bad "CONTROL DEAD: removing a registration did not change the comparison"
 else

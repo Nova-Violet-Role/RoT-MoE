@@ -91,6 +91,37 @@ code_of () {
   esac
 }
 
+# `strip_of FILE` -> path to a comment-stripped COPY. Assertions grep the FILE,
+# never a pipeline, and that is not a style preference -- it is the fix for a
+# measured false failure.
+#
+# THE BUG, and it is a nasty one because it is a RACE.
+#
+#   set -o pipefail            (line 38 of this file)
+#   code_of "$h" | grep -q X
+#
+# `grep -q` exits at the FIRST match. The `sed` upstream then writes into a
+# closed pipe, takes SIGPIPE, and dies with 141. Under `pipefail` the pipeline's
+# status is the RIGHTMOST NON-ZERO one -- so a SUCCESSFUL MATCH reports 141, and
+# `|| bad "...guard missing"` fires on a guard that is plainly present.
+#
+# Whether it happens depends on whether sed finishes before grep exits, i.e. on
+# file size and machine speed. Measured: on this machine the same command returns
+# 0 every time; on the ubuntu runner it returned non-zero and CI reported
+#
+#     hooks/prover-remind.ps1 builds with no ROTMOE_LEAN_VERIFY opt-out
+#
+# for a file containing that string three times. A checker that fails at random
+# on other people's machines is worse than no checker: it teaches everyone to
+# ignore it.
+STRIPD="$(mktemp -d "${TMPDIR:-/tmp}/rotmoe-strip.XXXXXX")"
+trap 'rm -rf "$STRIPD"' EXIT INT TERM
+strip_of () {
+  _sf="$STRIPD/$(printf '%s' "$1" | tr '/.' '__')"
+  [ -f "$_sf" ] || code_of "$1" > "$_sf"
+  printf '%s' "$_sf"
+}
+
 NET_RE='(curl|wget|Invoke-WebRequest|Invoke-RestMethod|iwr |System\.Net|https?://)'
 
 # COMMAND POSITION, not "the word appears". The first version matched `lake` and
@@ -109,9 +140,9 @@ TOOL_RE='(^|[;&|(]|&&|\|\||\$\(|`|^[[:space:]]*&[[:space:]]+)[[:space:]]*(lake|l
 
 net_bad=0; tool_bad=0
 for h in $HOOKS; do
-  if code_of "$h" | grep -qEi "$NET_RE"; then
+  if grep -qEi "$NET_RE" "$(strip_of "$h")"; then
     bad "$h makes (or mentions in code) a NETWORK call:"
-    code_of "$h" | grep -nEi "$NET_RE" | head -3 | sed 's/^/        /'
+    grep -nEi "$NET_RE" "$(strip_of "$h")" | head -3 | sed 's/^/        /'
     net_bad=1
   fi
   # THE RULE CHANGED HERE, AND IT NARROWED RATHER THAN WEAKENED.
@@ -140,18 +171,18 @@ for h in $HOOKS; do
   # machine, so absence is a failure, not a style note.
   case "$h" in
     *rot-router*)
-      if code_of "$h" | grep -qE "$TOOL_RE"; then
+      if grep -qE "$TOOL_RE" "$(strip_of "$h")"; then
         bad "$h invokes a Lean toolchain command -- the ROUTER runs on every prompt and must never build:"
-        code_of "$h" | grep -nE "$TOOL_RE" | head -3 | sed 's/^/        /'
+        grep -nE "$TOOL_RE" "$(strip_of "$h")" | head -3 | sed 's/^/        /'
         tool_bad=1
       fi
       ;;
     *prover-remind*)
-      if code_of "$h" | grep -qE "$TOOL_RE"; then
+      if grep -qE "$TOOL_RE" "$(strip_of "$h")"; then
         _g=0
-        code_of "$h" | grep -qE "command -v lake|Get-Command lake"        || { bad "$h builds without checking that lake EXISTS -- it would break a user with no toolchain"; _g=1; }
-        code_of "$h" | grep -q  "ROTMOE_LEAN_VERIFY"                      || { bad "$h builds with no ROTMOE_LEAN_VERIFY opt-out"; _g=1; }
-        code_of "$h" | grep -qE "timeout|gtimeout|Wait-Job"               || { bad "$h builds UNBOUNDED -- a hung build is indistinguishable from a hung model"; _g=1; }
+        grep -qE "command -v lake|Get-Command lake" "$(strip_of "$h")"        || { bad "$h builds without checking that lake EXISTS -- it would break a user with no toolchain"; _g=1; }
+        grep -q "ROTMOE_LEAN_VERIFY" "$(strip_of "$h")"                             || { bad "$h builds with no ROTMOE_LEAN_VERIFY opt-out"; _g=1; }
+        grep -qE "timeout|gtimeout|Wait-Job" "$(strip_of "$h")"               || { bad "$h builds UNBOUNDED -- a hung build is indistinguishable from a hung model"; _g=1; }
         [ "$_g" -eq 1 ] && tool_bad=1
         [ "$_g" -eq 0 ] && ok "$(basename "$h") invokes Lean, and carries all three guards (exists / opt-out / bounded)"
       fi
@@ -236,7 +267,7 @@ CTL=$(mktemp -d); trap 'rm -rf "$CTL"' EXIT
 
 cp hooks/rot-router.sh "$CTL/net.sh"
 printf 'curl -s https://example.invalid/ping >/dev/null\n' >> "$CTL/net.sh"
-if sed 's/#.*$//' "$CTL/net.sh" | grep -qEi "$NET_RE"; then
+if grep -qEi "$NET_RE" "$(strip_of "$CTL/net.sh")"; then
   ok "CONTROL: a planted curl IS detected"
 else
   bad "CONTROL DEAD: a planted network call is invisible"
@@ -244,7 +275,7 @@ fi
 
 cp hooks/rot-router.sh "$CTL/tool.sh"
 printf 'lake build Proofs.RotGauge >/dev/null\n' >> "$CTL/tool.sh"
-if sed 's/#.*$//' "$CTL/tool.sh" | grep -qE "$TOOL_RE"; then
+if grep -qE "$TOOL_RE" "$(strip_of "$CTL/tool.sh")"; then
   ok "CONTROL: a planted lake invocation IS detected"
 else
   bad "CONTROL DEAD: a planted lake invocation is invisible"
@@ -260,8 +291,8 @@ fi
 cp hooks/prover-remind.sh "$CTL/unguarded.sh"
 printf 'lake build Proofs.RotGauge >/dev/null\n' > "$CTL/unguarded.sh"
 _missing=0
-sed 's/#.*$//' "$CTL/unguarded.sh" | grep -qE "command -v lake|Get-Command lake" || _missing=$((_missing+1))
-sed 's/#.*$//' "$CTL/unguarded.sh" | grep -q  "ROTMOE_LEAN_VERIFY"              || _missing=$((_missing+1))
+grep -qE "command -v lake|Get-Command lake" "$(strip_of "$CTL/unguarded.sh")" || _missing=$((_missing+1))
+grep -q "ROTMOE_LEAN_VERIFY" "$(strip_of "$CTL/unguarded.sh")"              || _missing=$((_missing+1))
 sed 's/#.*$//' "$CTL/unguarded.sh" | grep -qE "timeout|gtimeout|Wait-Job"       || _missing=$((_missing+1))
 if [ "$_missing" -eq 3 ]; then
   ok "CONTROL: an UNGUARDED build in the reminder is caught, and all 3 guards report missing"

@@ -93,7 +93,7 @@ organ hooks/prover-remind.ps1   "the proof-debt reminder, Windows arm"
 # An agent file without frontmatter is a text file: Claude Code will not load
 # it, and the organ would be present and inert.
 if [ -f agents/lean4-prover.md ]; then
-  if head -1 agents/lean4-prover.md | grep -q '^---$' && grep -q '^name: lean4-prover$' agents/lean4-prover.md; then
+  if head -1 agents/lean4-prover.md | grep -c '^---$' >/dev/null && grep -q '^name: lean4-prover$' agents/lean4-prover.md; then
     ok "agents/lean4-prover.md carries the frontmatter that makes it loadable"
   else
     bad "agents/lean4-prover.md has no usable frontmatter -- present but inert"

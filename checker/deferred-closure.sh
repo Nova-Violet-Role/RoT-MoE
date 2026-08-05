@@ -256,7 +256,7 @@ while IFS= read -r name; do
   # where the runner cuts, then take a short prefix.
   probe=$(printf '%s' "$name" | sed 's/#.*$//; s|/| |g' | cut -c1-20 \
           | sed 's/[ ]*$//' | sed 's/[][\\\\.*^$/]/./g')
-  if ! find "$WORK/x" -name '*.txt' | sed 's|.*/||' | grep -q "$probe"; then
+  if ! find "$WORK/x" -name '*.txt' | sed 's|.*/||' | grep -c "$probe" >/dev/null; then
     bad "no runner log for step: $name"
     missing=$((missing+1))
   fi
@@ -334,7 +334,7 @@ done
 
 # A mutation suite that discarded everything would print kill counts and prove
 # nothing -- RotMutant.lean is explicit that discarded is not a kill.
-if grep -rhoE 'killed=[0-9]+ survived=[0-9]+ discarded=[0-9]+' "$WORK/x" 2>/dev/null | grep -qv 'killed=0'; then
+if grep -rhoE 'killed=[0-9]+ survived=[0-9]+ discarded=[0-9]+' "$WORK/x" 2>/dev/null | grep -cv 'killed=0' >/dev/null; then
   ok "at least one suite reported a NON-ZERO kill count (not all discarded)"
 else
   bad "no suite reported a non-zero kill count -- the mutation evidence is empty"
