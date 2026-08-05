@@ -1,0 +1,278 @@
+{
+  "directory": "docs",
+  "files": {
+    "GIT-WORKFLOW.md": {
+      "hash": "d77afb211cf1",
+      "indexed_at": "2026-08-04T23:51:57.282785+00:00",
+      "language": "markdown",
+      "lines": 273,
+      "mtime_ns": 1785881672826704400,
+      "size": 10605,
+      "symbols": [
+        {
+          "children": [
+            {
+              "lines": [
+                34,
+                49
+              ],
+              "name": "Reading exit codes",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            18,
+            49
+          ],
+          "name": "1. Before you touch anything: take a baseline",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Every hook ships twice: `*.sh` (POSIX) and `*.ps1` (PowerShell). **A fix to one arm that does not reach the other is a defect**, and it will not be ob",
+              "lines": [
+                52,
+                63
+              ],
+              "name": "2.1 Both arms, always",
+              "type": "subsection"
+            },
+            {
+              "docstring": "This repo's rule, and the reason it exists: a checker that asserts what the code already does can be satisfied by editing the checker. A theorem canno",
+              "lines": [
+                64,
+                87
+              ],
+              "name": "2.2 If it changes behaviour, it changes the Lean spec",
+              "type": "subsection"
+            },
+            {
+              "docstring": "A theorem no mutation kills is decorative. A gate no mutation reddens is an untested alarm. Both get labelled as such, or they get fixed.",
+              "lines": [
+                88,
+                115
+              ],
+              "name": "2.3 Mutate what you added",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            50,
+            115
+          ],
+          "name": "2. The change itself",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Four edits, and **all four are required** \u2014 three gates independently enforce this and will refuse otherwise:",
+              "lines": [
+                129,
+                142
+              ],
+              "name": "If you added a checker",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Theorem counts appear in five files and are re-measured from source:",
+              "lines": [
+                143,
+                161
+              ],
+              "name": "If you changed counts",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Run these; each has caught a real defect:",
+          "lines": [
+            116,
+            161
+          ],
+          "name": "3. Before you commit",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Three tags on **one commit**: `vX.Y.0`, `vX.Y.1`, `vX.Y.2`. The patch digit *is* the tier \u2014 `0` Pure Router, `1` Router + Lean 4, `2` Router + Lean +",
+              "lines": [
+                164,
+                184
+              ],
+              "name": "4.1 The release triple",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`.githooks/pre-commit` runs the fast tier. If another tool overwrites it (the CodeMap plugin has), restore it and use the delegate slot instead:",
+              "lines": [
+                185,
+                196
+              ],
+              "name": "4.2 The pre-commit hook",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Tags are consumed by the marketplace. A moved tag silently changes what an installed plugin resolves to.",
+              "lines": [
+                197,
+                203
+              ],
+              "name": "4.3 Never force-push, never rewrite published history",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            162,
+            203
+          ],
+          "name": "4. Committing, tagging, releasing",
+          "type": "section"
+        },
+        {
+          "docstring": "Never test installer changes against the configuration you are using. Point at a scratch config:",
+          "lines": [
+            204,
+            241
+          ],
+          "name": "5. Testing an install for real (CTT)",
+          "type": "section"
+        },
+        {
+          "docstring": "| trap | what happens | do this | |---|---|---| | exit code through a pipe | reports the pipe's status; **false green** | read `$?` directly | | `sed`",
+          "lines": [
+            242,
+            257
+          ],
+          "name": "6. Things that will bite you",
+          "type": "section"
+        },
+        {
+          "docstring": "State the **defect**, the **measurement**, and the **instrument** that now catches it. The subject line is a finding, not a category:",
+          "lines": [
+            258,
+            274
+          ],
+          "name": "7. What a good commit message looks like here",
+          "type": "section"
+        }
+      ]
+    },
+    "SCRUTINY-0.7.md": {
+      "hash": "e48bcbe2f9a9",
+      "indexed_at": "2026-08-04T23:51:57.469118+00:00",
+      "language": "markdown",
+      "lines": 212,
+      "mtime_ns": 1785882480022607700,
+      "size": 11301,
+      "symbols": [
+        {
+          "docstring": "Twenty-nine gates were green. Every one of the eight defects in the table below was **already live on a real machine**.",
+          "lines": [
+            20,
+            44
+          ],
+          "name": "0. The finding that should shape how you read the rest",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`checker/log-replay.sh` first asserted `route.Rs == gauge.Rs`. It failed on **every** line, including the untouched positive control \u2014 the tell that t",
+              "lines": [
+                50,
+                64
+              ],
+              "name": "1.1 The route record's `Rs` was never meant to equal the gauge's",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`old_chain_falls_to_bundled` built green with a `Variable name 'h' is not explicitly referenced` warning. The hypothesis was doing nothing: the *label",
+              "lines": [
+                65,
+                77
+              ],
+              "name": "1.2 A theorem that held without its hypothesis",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Two cases. Both are recorded because a spec quietly edited to match the code is worthless, and a spec that survives only because nobody tested it is d",
+          "lines": [
+            45,
+            77
+          ],
+          "name": "1. Where the specification was WRONG, not the code",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`lean/mutate/mutate_rotduplicate.sh` restored every source file and stopped there. Each mutant deletes the `.olean` to defeat Lake's incremental build",
+              "lines": [
+                83,
+                95
+              ],
+              "name": "2.1 The mutation suite left the tree unbuildable",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Measured on the CTT instance: `claude plugin update` leaves every previous version in the cache. Seven directories, `0.1.2` through `0.7.2`, each with",
+              "lines": [
+                96,
+                109
+              ],
+              "name": "2.2 The plugin detector counted stale cache directories as live registrations",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`sed`'s bracket class is byte-wise in this locale, so stripping non-alphanumerics from a heading that begins with an emoji removes *some* of its UTF-8",
+              "lines": [
+                110,
+                126
+              ],
+              "name": "2.3 The new anchor check was a seven-line false alarm before it was a gate",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Three, and they are the most instructive entries here because in each case the thing that was broken was the thing meant to detect breakage.",
+          "lines": [
+            78,
+            126
+          ],
+          "name": "2. Where the INSTRUMENT was wrong",
+          "type": "section"
+        },
+        {
+          "docstring": "`checker/release-package.sh` hardcoded `VARIANTS=\"core:0.6.0 lean:0.6.1 unsealed:0.6.2\"`.",
+          "lines": [
+            127,
+            153
+          ],
+          "name": "3. Where a check FORBADE a correct future",
+          "type": "section"
+        },
+        {
+          "docstring": "**PROVED** \u2014 a theorem closed, axioms audited, kernel re-verified by `leanchecker`:",
+          "lines": [
+            154,
+            197
+          ],
+          "name": "4. What is PROVED, what is MEASURED, what is neither",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **Six superseded plugin versions sit in the CTT cache.** They are inert \u2014 `installed_plugins.json` names one `installPath` \u2014 but they are also a gr",
+          "lines": [
+            198,
+            213
+          ],
+          "name": "5. Open, and honestly so",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-08-04T23:51:57.469202+00:00",
+  "version": "1.0"
+}

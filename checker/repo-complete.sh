@@ -140,6 +140,28 @@ claim_exempt () {   # 0 = exempt (carries the pattern by construction)
     checker/count-theorems.sh) return 0 ;;  # its comments quote the 73-vs-71 defect
     .github/workflows/*)       return 0 ;;  # ads-manager plants its own control count
     .codemap/*)                return 0 ;;  # generated index, not prose
+    # CHANGELOG-ARCHIVE.md is HISTORY, whole. It is the same argument this file
+    # already accepted for the newest-section rule twenty lines below: 0.5.x
+    # really did ship 195 theorems and really did report 62 mutants, and
+    # demanding that those lines track today's tree does not catch drift -- it
+    # demands the history be rewritten on every commit, which is the one thing a
+    # changelog must never do. The file is exempt BY CONSTRUCTION: every section
+    # in it is a settled release, and no live claim is written there. The live
+    # log, CHANGELOG.md, is still scanned and still scoped to its newest section.
+    CHANGELOG-ARCHIVE.md)      return 0 ;;
+    # TASKS/* are DATED CHECKPOINT REPORTS -- the same argument again, and the
+    # third time this file has had to make it. `TASKS/2026-08-04-CP2...` states
+    # what was measured ON 2026-08-04: 82 mutants across 11 suites, which was
+    # true, and which stopped being today's number the moment a twelfth suite was
+    # added. Re-measuring a dated report against a later tree does not catch
+    # drift; it demands that a record of the past be edited whenever the present
+    # moves, and a checkpoint that gets rewritten is not a checkpoint.
+    #
+    # This is an exemption for HISTORY, not for prose in general. Every live
+    # surface -- README.md, CHANGELOG.md's newest section, STATUS.md, both plugin
+    # manifests, CITATION.cff -- is still scanned, and the controls below still
+    # prove the rule can fire.
+    TASKS/*)                   return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -252,15 +274,36 @@ if [ "$declared_mut" -gt 0 ]; then
     [ -f "$f" ] || continue
     claim_exempt "$f" && continue
     grep -Iq . "$f" 2>/dev/null || continue
+    # SAME SCOPING AS THE THEOREM COUNT, and the asymmetry was a real gap rather
+    # than a considered difference. The theorem-count scan learned in 0.6.x that
+    # a changelog's older entries are history and must not be re-measured; the
+    # mutant-count scan on the same file kept scanning top to bottom. Nothing
+    # exposed it until a release entry quoted the PREVIOUS release's mutant total
+    # in a prior-versus-after table -- a correct, measured, historical number that
+    # this rule called a lie.
+    #
+    # Scoping it is not a hole: a stale mutant count in the section being written
+    # today still fails, which the control at the end of this block proves by
+    # planting one.
+    _msrc="$f"
+    if [ "$(basename "$f")" = "CHANGELOG.md" ]; then
+      _msrc=$(mktemp "${TMPDIR:-/tmp}/chmut.XXXXXX")
+      awk '
+        /^## \[/ { seen++ }
+        seen >= 2 { exit }
+        { print }
+      ' "$f" > "$_msrc"
+    fi
     while read -r n k; do
       mut_claims=$((mut_claims+1))
       if [ "$n" != "$declared_mut" ] || [ "$k" != "$declared_mut" ]; then
         bad "$f claims $n applied / $k killed; the suites declare $declared_mut mutants"
         mut_wrong=$((mut_wrong+1))
       fi
-    done < <(tr '\n' ' ' < "$f" | tr -s ' ' | sed 's/\*\*//g' \
+    done < <(tr '\n' ' ' < "$_msrc" | tr -s ' ' | sed 's/\*\*//g' \
              | grep -oE '[0-9]+ applied, [0-9]+ killed' \
              | awk '{print $1, $3}')
+    [ "$_msrc" != "$f" ] && rm -f "$_msrc"
   done < <(git ls-files -z)
   if [ "$mut_claims" -eq 0 ]; then
     bad "no mutant-count claim found in the prose -- this check is vacuous"
@@ -523,6 +566,70 @@ else
   ok "CONTROL: an invented citation (\`$GHOST\`) is absent from the corpus, so the lookup can fail"
 fi
 rm -rf "$RCTMP"
+
+# --- 5. EVERY IN-DOCUMENT ANCHOR MUST RESOLVE TO A HEADING -------------------
+# MEASURED 2026-08-04: RELEASE.md's three variant badges -- the first thing a
+# reader sees and clicks -- pointed at `#-v010--pure-router`, `#-v011-...` and
+# `#-v012-...`. Those headings stopped existing after 0.1.x. The links had been
+# dead through six releases, in the document whose entire job is telling a
+# stranger which archive to download.
+#
+# Nothing could have caught it. The version bump is a sed over `0.6.x -> 0.7.x`
+# in the HEADINGS; the anchors carry a squashed spelling (`v012`) that no
+# version-shaped pattern matches, so they sit still while everything around them
+# moves. That is the signature of rot: not a wrong edit, an edit that could not
+# reach.
+#
+# The rule is general and does not expire: a `](#...)` in a shipped Markdown file
+# must match a heading in the same file, under GitHub's slug rules -- lowercase,
+# non-alphanumerics dropped, spaces to hyphens.
+echo
+echo "== INTERNAL ANCHORS: every '](#...)' must name a heading in its own file =="
+anch_total=0; anch_dead=0
+for f in $(git ls-files '*.md'); do
+  [ -f "$f" ] || continue
+  # Slugs of every heading in this file.
+  # NON-ASCII IS DROPPED FIRST, and that is not tidiness. `sed`'s bracket class
+  # is BYTE-wise in this locale: `s/[^a-z0-9 _-]//g` over a heading beginning
+  # with an emoji removes some of its UTF-8 bytes and leaves the rest, so the
+  # slug came out as `\xa6-v070--pure-router` and every emoji heading was
+  # reported dead. The check would have been a 7-line false alarm shipped as a
+  # gate. `tr -d '\200-\377'` removes the whole character, which is also what
+  # GitHub does with emoji before slugging.
+  slugs=$(grep -E '^#{1,6} ' "$f" \
+    | sed -E 's/^#{1,6} //' \
+    | tr '[:upper:]' '[:lower:]' \
+    | tr -d '\200-\377' \
+    | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g')
+  for a in $(grep -oE '\]\(#[a-zA-Z0-9_-]+\)' "$f" | sed -E 's/^\]\(#//; s/\)$//'); do
+    anch_total=$((anch_total+1))
+    # A here-string, NOT `printf | grep -q`. `grep -q` exits at the first match
+    # and SIGPIPEs the writer; under `set -o pipefail` that is a platform-
+    # dependent failure, which is why checker/portability.sh refuses the shape.
+    grep -qx -- "$a" <<<"$slugs" || {
+      bad "$f: anchor '#$a' matches no heading in that file"
+      anch_dead=$((anch_dead+1))
+    }
+  done
+done
+if [ "$anch_total" -eq 0 ]; then
+  bad "no internal anchors found at all -- this check is vacuous"
+elif [ "$anch_dead" -eq 0 ]; then
+  ok "all $anch_total internal anchors resolve"
+fi
+# CONTROL: the slug rule must be able to reject. A heading that does not exist
+# has to be reported, or the sweep above is decoration.
+_actl=$(mktemp -d "${TMPDIR:-/tmp}/anchctl.XXXXXX")
+printf '# Real Heading\n\n[go](#real-heading) and [dead](#not-a-heading)\n' > "$_actl/t.md"
+_s=$(grep -E '^#{1,6} ' "$_actl/t.md" | sed -E 's/^#{1,6} //' \
+     | tr '[:upper:]' '[:lower:]' | sed -E 's/`//g; s/[^a-z0-9 _-]//g; s/ /-/g')
+if grep -qx -- "real-heading" <<<"$_s" \
+   && ! grep -qx -- "not-a-heading" <<<"$_s"; then
+  ok "CONTROL: the slug rule accepts a real heading and rejects an invented one"
+else
+  bad "CONTROL DEAD: the slug rule cannot tell a real heading from an invented one"
+fi
+rm -rf "$_actl"
 
 echo
 echo "== RESULT =="

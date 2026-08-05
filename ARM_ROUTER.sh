@@ -60,13 +60,23 @@ set -euo pipefail
 # and leaves the real file untouched -- verified by checker/install-roundtrip.sh
 # comparing the file's bytes before and after a dry run.
 DRY=0
+FORCE=0
 for a in "$@"; do
   case "$a" in
     --dry-run|-n) DRY=1 ;;
+    --force) FORCE=1 ;;
     --help|-h)
-      echo "usage: ARM_ROUTER.sh [--dry-run]"
+      echo "usage: ARM_ROUTER.sh [--dry-run] [--force]"
       echo "  --dry-run   show what would change; write nothing"
+      echo "  --force     arm even if the installed plugin already registers the"
+      echo "              router -- this DUPLICATES it. See the guard below."
       exit 0 ;;
+    *)
+      # An ignored flag is how DISARM_ROUTER's --dry-run once deleted live hook
+      # entries: the script did not understand the argument and read that as
+      # "proceed". Refusing is the only reading that cannot destroy anything.
+      echo "ARM_ROUTER: unknown argument '$a' -- refusing to run." >&2
+      exit 2 ;;
   esac
 done
 
@@ -143,6 +153,44 @@ EVENTS='UserPromptSubmit PreToolUse'
 echo "RoT MoE :: ARM_ROUTER"
 echo "  config dir : $CLAUDE_DIR"
 echo "  settings   : $SETTINGS"
+
+# --- THE DOUBLE-FIRE GUARD ---------------------------------------------------
+# MEASURED DEFECT, 2026-08-04, on the author's own machine. The two install
+# paths are ADDITIVE and the documentation told the user to take both:
+#
+#   plugin install  -> hooks/hooks.json binds rot-router on UserPromptSubmit and
+#                      PreToolUse through ${CLAUDE_PLUGIN_ROOT}
+#   ARM_ROUTER      -> writes an absolute-path entry for THE SAME script on THE
+#                      SAME two events into settings.json
+#
+# Result: the router fires TWICE per prompt. Two identical marker lines injected
+# into the context, two gauge computations, twice the tokens -- forever, on every
+# machine that followed the documented procedure. Counted in a live transcript:
+# the marker appears twice per turn, and settings.json plus the plugin's own
+# hooks.json account for exactly one each.
+#
+# It is invisible from inside because nothing is broken. The lane is right, the
+# gauge is right; it is right twice. So the check has to be a program.
+#
+# Refusing here is a SUCCESS, not a failure: the user asked for the router to be
+# armed and it already is. Exit 0, say so, change nothing. --force is kept for
+# the person who genuinely wants a second registration and now knows it is one.
+if [ "$FORCE" -eq 0 ] && [ -f "$SETTINGS" ]; then
+  DETECT_RC=0
+  DETECT_OUT=$(node "$SELF_DIR/hooks/plugin-detect.js" "$CLAUDE_DIR" 2>/dev/null) || DETECT_RC=$?
+  if [ "$DETECT_RC" -eq 0 ]; then
+    echo "$DETECT_OUT"
+    echo
+    echo "  ALREADY ARMED BY THE INSTALLED PLUGIN -- nothing to do."
+    echo "  The plugin's hooks.json already binds the router on UserPromptSubmit"
+    echo "  and PreToolUse. Adding a settings.json entry too would fire it TWICE"
+    echo "  per prompt: two marker lines, two gauges, twice the tokens."
+    echo
+    echo "  ARM_ROUTER is for installs that are NOT via the marketplace/plugin."
+    echo "  If you really want a second registration: ARM_ROUTER.sh --force"
+    exit 0
+  fi
+fi
 
 if [ ! -f "$SETTINGS" ]; then
   echo "  no settings.json found -- creating a minimal one"

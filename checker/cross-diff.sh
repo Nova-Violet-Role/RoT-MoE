@@ -100,6 +100,35 @@ what happens next|PREDICTIVE Chroma
 compress the tokens|STEALTH Soleil
 refactor the meta layer|RECURSIVE Eidolon
 hello there|CONVERGENT ROTMOE_TESTMODEL
+# --- 0.7.0: the word-prefix matcher -----------------------------------------
+# THE TWO PROMPTS THAT WERE MEASURED WRONG. Before the fix, on the shipped
+# router: "prove this lemma" -> CONVERGENT, and the second -> STEALTH, because
+# it matched `byte` and nothing in FORGE. On a prover head those are the two
+# most proof-shaped prompts imaginable.
+prove this lemma|FORGE Claude
+prove the read loop conserves bytes in lean|FORGE Claude
+# THE COLLISIONS THAT MADE THOSE STEMS UNADDABLE. Each row is a word CONTAINING
+# a stem: a substring matcher routes every one of them to FORGE, which is why
+# `prove`, `lemma` and `lean` could not simply be appended to the list. These
+# rows are the reason the matcher cannot be reverted quietly.
+improve the documentation|CONVERGENT ROTMOE_TESTMODEL
+that is the dilemma|CONVERGENT ROTMOE_TESTMODEL
+cleaning up the tree|CONVERGENT ROTMOE_TESTMODEL
+# COLLISIONS THAT WERE ALREADY LIVE before 0.7.0 and are fixed by the same rule:
+# `fix` fired on "prefix", `now` on "known", `test` on "latest". Each of these
+# used to reach a lane that has nothing to do with the prompt.
+add a prefix to the name|CONVERGENT ROTMOE_TESTMODEL
+what is known about it|CONVERGENT ROTMOE_TESTMODEL
+the latest release notes|CONVERGENT ROTMOE_TESTMODEL
+# AND THE PREFIXES THAT MUST STILL FIRE. A stem is a word PREFIX, not a whole
+# word -- `verif` has always been expected to catch "verification". A matcher
+# tightened to whole words would pass every row above and break these.
+proofs of termination|FORGE Claude
+verification of the bound|CLINICAL AntiVenom
+the strategy document|STRATEGIC Nova
+# THE PUNCTUATION-LED EXCEPTION: `.lean` has no word boundary before the dot, so
+# it falls back to a substring test. Without that carve-out this row goes red.
+check Basic.lean now|FORGE Claude
 ROUTES
 
 echo

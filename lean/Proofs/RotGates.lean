@@ -235,6 +235,17 @@ def shipped : List Gate :=
   , f "hook contract"
   , f "workflow lint + drift"
   , f "cross-diff (both router arms)"
+  -- Four gates joined on 2026-08-04, all FAST, and the tier is a decision worth
+  -- recording. Each one guards a defect that had already reached a live machine:
+  -- the double-fire, the dry run that deleted, the one-level proof scan, the
+  -- debug log nothing read. A defect that has shipped once is not a candidate
+  -- for "run it when someone touches the right directory" -- the double-fire was
+  -- introduced by an INSTALL DOCUMENT, which stages no path a deep trigger would
+  -- have matched. They cost seconds; they run every commit.
+  , f "router duplication (plugin + ARM must not stack)"
+  , f "disarm safety (--dry-run writes nothing, --all reaches plugin entries)"
+  , f "remind measure (both arms, one tree, nested proof)"
+  , f "log replay (every gauge record recomputed from its own fields)"
   , f "benchmark"
   , f "gate split"
   , d "repo completeness" ["README.md", "CHANGELOG.md", "STATUS.md", "lean/"]
@@ -250,11 +261,12 @@ def shipped : List Gate :=
   , d "release install" ["checker/release", ".claude-plugin/"]
   ]
 
--- Twenty-nine gates: `profile binding` joined on 2026-08-03, deep tier.
-#guard shipped.length = 29
+-- Thirty-three gates: `profile binding` joined on 2026-08-03, deep tier; the
+-- four installer/measurement/log gates on 2026-08-04, fast tier.
+#guard shipped.length = 33
 
--- Eighteen run on every commit.
-#guard (fastSet shipped).length = 18
+-- Twenty-two run on every commit.
+#guard (fastSet shipped).length = 22
 
 -- Ten are escalated by path.
 #guard (deepSet shipped).length = 11
@@ -271,17 +283,17 @@ def shipped : List Gate :=
 #guard (fastSet shipped).all (fun g => g.triggers.isEmpty)
 
 -- Editing a Lean proof escalates the gates that read Lean.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 22
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 26
 
 -- A commit that touches nothing runs exactly the fast set.
-#guard (stagedRun shipped []).length = 18
+#guard (stagedRun shipped []).length = 22
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 21
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 25
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 19
+#guard (stagedRun shipped ["README.md".toList]).length = 23
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

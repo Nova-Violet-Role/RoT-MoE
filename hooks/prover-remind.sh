@@ -92,7 +92,45 @@ _ws_from_state () {
   _v=$(head -1 "$_f" 2>/dev/null | tr -d '\r' | tr '\\' '/')
   [ -n "$_v" ] && [ -d "$_v" ] && printf '%s' "$_v"
 }
+# DISCOVERY -- the step that was missing, and the reason the chain had a hole in
+# practice. `env -> RECORDED -> bundled corpus` reads like three answers, but
+# NOTHING in the plugin install path writes the recorded file: only SETUP_LEAN
+# does (record_workspace). Install via `claude plugin install` and the middle
+# step is permanently empty, so a three-step chain silently degrades to two.
+#
+# Measured on a live machine after a complete-looking install: the state file was
+# ABSENT, the hook fell back to its own read-only bundled corpus, and it reported
+# "No proof written for 2907 min" while 18 .lean files had been written in the
+# previous two hours. The reminder was not wrong about its measurement -- it was
+# measuring a tree nobody was working in, which is worse than being silent,
+# because it reads as an accusation instead of a mis-config.
+#
+# Discovery asks the FILESYSTEM instead of a state file nothing writes: walk up
+# from the session's directory for a Lake workspace that actually has proofs.
+# Both layouts are accepted, because both are real: the workspace itself
+# (<ws>/lakefile.toml + <ws>/Proofs) and a project that keeps its Lean in a
+# subdirectory (<repo>/lean/lakefile.toml + <repo>/lean/Proofs) -- which is this
+# very repository's layout, so checking only the first would fail on its own
+# source tree. Depth is bounded: a hook that must never block cannot wander.
+_ws_try () {   # _ws_try <dir> -> prints it if it is a Lake workspace with proofs
+  [ -d "$1/Proofs" ] || return 1
+  { [ -f "$1/lakefile.toml" ] || [ -f "$1/lakefile.lean" ]; } || return 1
+  printf '%s' "$1"
+}
+_ws_discover () {
+  _d=${ROTMOE_CWD:-$PWD}
+  _n=0
+  while [ -n "$_d" ] && [ "$_n" -lt 8 ]; do
+    _ws_try "$_d" && return 0
+    _ws_try "$_d/lean" && return 0
+    _p=$(dirname "$_d")
+    [ "$_p" = "$_d" ] && break
+    _d=$_p; _n=$((_n + 1))
+  done
+  return 1
+}
 WS=${ROTMOE_LEAN_WORKSPACE:-$(_ws_from_state 2>/dev/null)}
+[ -n "$WS" ] || WS=$(_ws_discover 2>/dev/null)
 [ -n "$WS" ] || WS="$HERE/../lean"
 PROOFS_DIR="$WS/Proofs"
 WATCH_REPO=${ROTMOE_WATCH_REPO:-.}
@@ -198,16 +236,40 @@ decide () {   # decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS
 # sentinel (-1 / empty) and the decision handles it.
 measure_mins_since_proof () {
   [ -d "$PROOFS_DIR" ] || { echo "-1 -"; return; }
+  # RECURSIVE. The glob `"$PROOFS_DIR"/*.lean` matched ONE level, so the moment
+  # proofs are filed by subject -- Proofs/Ctbrec/, Proofs/Sanctum/ -- the newest
+  # file it could see was whatever last landed in the root. Measured on a real
+  # tree at one instant:
+  #     one level  -> SanctumPulse   2947 min ago
+  #     recursive  -> LlhlsSequence    54 min ago
+  # A 55x error, and the hook spent a whole session insisting no proof had been
+  # written while eighteen modules were being written into a subfolder. `find` is
+  # used rather than globstar because this file is POSIX sh, where `**` is not
+  # recursive. Filing proofs per subject is the sane layout for a shared
+  # workspace, so this will matter more over time, not less.
   _newest=""; _newest_t=0
-  for f in "$PROOFS_DIR"/*.lean; do
+  while IFS= read -r f; do
     [ -f "$f" ] || continue
     _t=$( { stat -c %Y "$f" 2>/dev/null || stat -f %m "$f" 2>/dev/null; } )
     [ -z "$_t" ] && continue
     if [ "$_t" -gt "$_newest_t" ]; then _newest_t=$_t; _newest=$f; fi
-  done
+  done <<EOF
+$(find "$PROOFS_DIR" -type f -name '*.lean' 2>/dev/null)
+EOF
   [ -z "$_newest" ] && { echo "-1 -"; return; }
   _now=$(date +%s)
   echo "$(( (_now - _newest_t) / 60 )) $(basename "$_newest" .lean)"
+}
+
+# COUNT OF PROOF FILES SEEN -- exists so the MEASUREMENT half can be cross-armed.
+# `--decide` made the DECISION comparable between the two arms and the checker
+# says outright that what it does not cover is "that both arms measure the same
+# things off disk". That uncovered half is precisely where the one-level scan
+# defect lived for weeks, in BOTH arms, invisible to a green cross-diff. A
+# boundary that is documented instead of tested is a boundary defects live in.
+measure_proof_count () {
+  [ -d "$PROOFS_DIR" ] || { echo 0; return; }
+  find "$PROOFS_DIR" -type f -name '*.lean' 2>/dev/null | wc -l | tr -d ' '
 }
 
 measure_debt () {
@@ -476,8 +538,30 @@ case "$1" in
     [ $# -eq 7 ] || { echo "usage: prover-remind.sh --decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS" >&2; exit 2; }
     decide "$1" "$2" "$3" "$4" "$5" "$6" "$7" && printf '\n'
     exit 0 ;;
+  # MEASUREMENT MODE -- the other half of --decide, and the half that had no
+  # instrument. It reads the real disk and prints what the hook would feed the
+  # decision, so checker/remind-measure.sh can run BOTH arms over one fixture
+  # tree and compare. The fields are chosen to be DETERMINISTIC first: count and
+  # name do not move with the wall clock, mins does, so the checker compares the
+  # first two exactly and allows one minute of drift on the third.
+  --measure)
+    echo "$(measure_proof_count) $(measure_mins_since_proof)"
+    exit 0 ;;
+  # WORKSPACE MODE -- prints the resolved workspace and how it was resolved.
+  # Resolution is a four-step chain (env, recorded, discovered, bundled) whose
+  # middle step nothing used to write; being able to ASK which step answered is
+  # the difference between diagnosing that in one command and in an afternoon.
+  --workspace)
+    if [ -n "${ROTMOE_LEAN_WORKSPACE:-}" ]; then _src=env
+    elif [ -n "$(_ws_from_state 2>/dev/null)" ]; then _src=recorded
+    elif [ -n "$(_ws_discover 2>/dev/null)" ]; then _src=discovered
+    else _src=bundled; fi
+    echo "$_src $WS"
+    exit 0 ;;
   --version) echo "prover-remind.sh 1.0.0"; exit 0 ;;
   *) echo "usage: prover-remind.sh                (hook mode, JSON on stdin)" >&2
      echo "       prover-remind.sh --decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS" >&2
+     echo "       prover-remind.sh --measure      (count, minutes and name, off disk)" >&2
+     echo "       prover-remind.sh --workspace    (resolved workspace and its source)" >&2
      exit 2 ;;
 esac

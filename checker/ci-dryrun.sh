@@ -202,10 +202,49 @@ fi
 ok "clean tree materialised: $copied file(s), working tree as it stands, no .lake, no ~/.claude"
 
 # --- 3. run what can be run -------------------------------------------------
-ran=0; deferred=0; broke=0
+# `--from N` / `--to N` SELECT A STEP WINDOW, and the reason is operational
+# rather than cosmetic. A full pass over the step list exceeds ten minutes, and
+# the agent harness driving this repo terminates a foreground command at exactly
+# that bound -- so the only way to complete a pass was to detach it. That is how
+# a run of this checker once overlapped a mutation suite, which deletes .olean
+# files mid-flight, and reported two Lean steps RED for a reason that existed
+# only in the concurrency. Neither reproduced when re-run alone.
+#
+# A window makes the whole list reachable BY HAND, in sequence, with nothing else
+# touching the tree:
+#     bash checker/ci-dryrun.sh --to 20
+#     bash checker/ci-dryrun.sh --from 21
+#
+# The default is unchanged -- bare invocation still runs everything, and CI still
+# calls it bare. A window narrows what is EXECUTED, never what is judged: steps
+# outside it are reported as WINDOWED and counted separately, so a partial pass
+# can never read as a full green.
+FROM=1; TO=0   # TO=0 means "no upper bound"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --from) FROM="${2:-1}"; shift 2 ;;
+    --to)   TO="${2:-0}";   shift 2 ;;
+    -h|--help)
+      echo "usage: ci-dryrun.sh [--from N] [--to N]"
+      echo "  no flags: every step (the CI-equivalent run)"
+      echo "  a window runs a contiguous slice; the rest are reported WINDOWED,"
+      echo "  never as passes. Step numbers are stable for one step list."
+      exit 0 ;;
+    *) echo "REFUSE: unknown argument '$1' -- an ignored flag is how a checker"
+       echo "        silently stops checking. Use --help."; exit 2 ;;
+  esac
+done
+case "$FROM$TO" in *[!0-9]*) echo "REFUSE: --from/--to take integers"; exit 2 ;; esac
+
+ran=0; deferred=0; broke=0; windowed=0; stepno=0
 while IFS=$'\x1f' read -r -d $'\x1e' name wd sh cmd; do
   [ -z "${name:-}" ] && continue
   [ -z "${cmd:-}" ]  && continue
+  stepno=$((stepno+1))
+  if [ "$stepno" -lt "$FROM" ] || { [ "$TO" -gt 0 ] && [ "$stepno" -gt "$TO" ]; }; then
+    printf '  ...   %-52s WINDOWED (step %d, not run)\n' "$name" "$stepno"
+    windowed=$((windowed+1)); continue
+  fi
   # HONOUR THE DECLARED SHELL, or DEFER -- never run a body under the wrong one.
   # `shell: pwsh` steps exist in ci.yml (the Windows zip provisioning), and
   # running their PowerShell under bash produced a syntax error reported as
@@ -269,11 +308,21 @@ echo
 # have caught the stdin-eating loop immediately instead of after a green:
 # ran + deferred must equal the number of records extracted, or the harness
 # stopped early and its verdict covers a tree it did not finish reading.
-accounted=$((ran + deferred))
+# WINDOWED steps are counted here so the accounting identity still holds. That
+# identity is the guard against the loop stopping early and the verdict reading
+# green for steps nobody reached -- a real defect this harness has had -- so a
+# window must be ACCOUNTED FOR, never subtracted from the total.
+accounted=$((ran + deferred + windowed))
 if [ "$accounted" -eq "$nsteps" ]; then
-  ok "every extracted step accounted for: $ran run + $deferred deferred = $nsteps"
+  ok "every extracted step accounted for: $ran run + $deferred deferred + $windowed windowed = $nsteps"
 else
-  bad "ACCOUNTING GAP: $ran run + $deferred deferred = $accounted, but $nsteps were extracted -- the loop stopped early and this verdict is incomplete"
+  bad "ACCOUNTING GAP: $ran run + $deferred deferred + $windowed windowed = $accounted, but $nsteps were extracted -- the loop stopped early and this verdict is incomplete"
+fi
+if [ "$windowed" -gt 0 ]; then
+  echo "  PARTIAL  $windowed step(s) were WINDOWED OUT (--from $FROM${TO:+ --to $TO})."
+  echo "           This run is NOT a full pass. Windowed is not passed, not"
+  echo "           deferred, and not skipped -- it is untested. Run the"
+  echo "           complementary window before calling the step list green."
 fi
 [ "$broke" -eq 0 ] && ok "$ran executable CI step(s) pass in a clean clone; $deferred deferred to the runner"
 echo "  NOTE  DEFERRED IS NOT PASSED. $deferred step(s) remain unverified until"

@@ -1,13 +1,32 @@
 {
   "directory": "hooks",
   "files": {
+    "plugin-detect.js": {
+      "hash": "5b2d16afa47b",
+      "indexed_at": "2026-08-04T23:51:57.657798+00:00",
+      "language": "javascript",
+      "lines": 156,
+      "mtime_ns": 1785880906880196900,
+      "size": 7203,
+      "symbols": [
+        {
+          "lines": [
+            73,
+            75
+          ],
+          "name": "safeReaddir",
+          "signature": "(p)",
+          "type": "function"
+        }
+      ]
+    },
     "prover-remind.sh": {
-      "hash": "9dc2f00825a7",
-      "indexed_at": "2026-08-03T17:36:32.622792+00:00",
+      "hash": "78837f65a507",
+      "indexed_at": "2026-08-04T23:51:57.854806+00:00",
       "language": "shell",
-      "lines": 483,
-      "mtime_ns": 1785778444099324700,
-      "size": 24449,
+      "lines": 567,
+      "mtime_ns": 1785887357528735900,
+      "size": 29107,
       "symbols": [
         {
           "docstring": "WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live.  This defaulted straight to the plugin's bundled corpus, and that was wrong in a way",
@@ -19,26 +38,43 @@
           "type": "function"
         },
         {
+          "docstring": "DISCOVERY -- the step that was missing, and the reason the chain had a hole in practice. `env -> RECORDED -> bundled corpus` reads like three answers,",
+          "lines": [
+            115,
+            119
+          ],
+          "name": "_ws_try",
+          "type": "function"
+        },
+        {
+          "lines": [
+            120,
+            131
+          ],
+          "name": "_ws_discover",
+          "type": "function"
+        },
+        {
           "docstring": "--- DECIDE ------------------------------------------------------------------ A PURE function of measured inputs. Nothing below touches the disk, whic",
           "lines": [
-            117,
-            120
+            155,
+            158
           ],
           "name": "first_n",
           "type": "function"
         },
         {
           "lines": [
-            121,
-            124
+            159,
+            162
           ],
           "name": "count_csv",
           "type": "function"
         },
         {
           "lines": [
-            141,
-            193
+            179,
+            231
           ],
           "name": "decide",
           "type": "function"
@@ -46,32 +82,41 @@
         {
           "docstring": "--- MEASURE ----------------------------------------------------------------- Each probe is individually tolerant: one unreadable path must not blind",
           "lines": [
-            199,
-            211
+            237,
+            262
           ],
           "name": "measure_mins_since_proof",
           "type": "function"
         },
         {
+          "docstring": "COUNT OF PROOF FILES SEEN -- exists so the MEASUREMENT half can be cross-armed. `--decide` made the DECISION comparable between the two arms and the c",
           "lines": [
-            213,
-            227
+            270,
+            273
+          ],
+          "name": "measure_proof_count",
+          "type": "function"
+        },
+        {
+          "lines": [
+            275,
+            289
           ],
           "name": "measure_debt",
           "type": "function"
         },
         {
           "lines": [
-            229,
-            232
+            291,
+            294
           ],
           "name": "measure_alarms",
           "type": "function"
         },
         {
           "lines": [
-            234,
-            247
+            296,
+            309
           ],
           "name": "measure_kernel",
           "type": "function"
@@ -79,8 +124,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- ========================================================================",
           "lines": [
-            288,
-            484
+            350,
+            568
           ],
           "name": "verify_lean_edit",
           "type": "function"
@@ -88,8 +133,8 @@
         {
           "docstring": "No arguments means \"you were called as a hook\". That default is not a nicety: R20 measured the router shipping with only its flag modes while ARM_ROUT",
           "lines": [
-            399,
-            484
+            461,
+            568
           ],
           "name": "hook_mode",
           "type": "function"
@@ -97,42 +142,43 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "ff2d40a9d016",
-      "indexed_at": "2026-08-03T17:36:31.734065+00:00",
+      "hash": "2fe323163133",
+      "indexed_at": "2026-08-04T23:51:58.043046+00:00",
       "language": "shell",
-      "lines": 344,
-      "mtime_ns": 1785778444079328400,
-      "size": 18202,
+      "lines": 387,
+      "mtime_ns": 1785887357464735800,
+      "size": 20797,
       "symbols": [
         {
           "docstring": "CONVERGENT is the only lane with no lead LENS -- by design, it is the lane where all nine co-reason and none leads. It used to print the literal \"none",
           "lines": [
-            77,
-            86
+            84,
+            93
           ],
           "name": "convener",
           "type": "function"
         },
         {
+          "docstring": "A STEM MUST START A WORD. Until 0.7.0 this was a plain substring test, and that is why `prove`, `proof` and `lemma` could not be added to the FORGE li",
           "lines": [
-            88,
-            94
+            122,
+            137
           ],
           "name": "fired",
           "type": "function"
         },
         {
           "lines": [
-            96,
-            109
+            139,
+            152
           ],
           "name": "route",
           "type": "function"
         },
         {
           "lines": [
-            122,
-            176
+            165,
+            219
           ],
           "name": "gauge",
           "type": "function"
@@ -140,8 +186,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            197,
-            345
+            240,
+            388
           ],
           "name": "hook_mode",
           "type": "function"
@@ -149,8 +195,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            317,
-            324
+            360,
+            367
           ],
           "name": "need_value",
           "type": "function"
@@ -158,15 +204,15 @@
       ]
     },
     "settings-merge.js": {
-      "hash": "050e63204ede",
-      "indexed_at": "2026-08-01T18:40:24.793759+00:00",
+      "hash": "a3c76a85a107",
+      "indexed_at": "2026-08-04T22:18:54.647304+00:00",
       "language": "javascript",
-      "lines": 175,
-      "mtime_ns": 1785606850965217600,
-      "size": 8230,
+      "lines": 206,
+      "mtime_ns": 1785873206469972600,
+      "size": 10033,
       "symbols": []
     }
   },
-  "generated_at": "2026-08-03T17:36:32.632524+00:00",
+  "generated_at": "2026-08-04T23:51:58.043150+00:00",
   "version": "1.0"
 }

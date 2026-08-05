@@ -34,7 +34,56 @@ RSH="$REPO/hooks/prover-remind.sh"
 RPS1="$REPO/hooks/prover-remind.ps1"
 LOG="${TMPDIR:-/tmp}/rotmoe-mutchk"; mkdir -p "$LOG"
 
+# RECOVER BEFORE BACKING UP, and this ordering is the whole point.
+#
+# MEASURED 2026-08-05, and it came within one command of being committed: a run
+# of this script was KILLED (a harness bounds command duration; `timeout` sends
+# SIGKILL, and an EXIT trap does not fire for SIGKILL). It left hooks/rot-router.sh
+# EMPTIED -- that is one of the mutants below -- plus four .mutbak files.
+#
+# The next run then did the worst possible thing: it copied the EMPTY file over
+# the good backup and called it the baseline. Twelve mutants came back DISCARDED
+# (their needles no longer existed), and the "restored baseline" cross-diff went
+# red, because what was restored was the mutant.
+#
+# So: if a .mutbak survives from a previous run, the file it backs up is by
+# construction the PRE-MUTATION original, and the live file may be a mutant.
+# Restore first, always, before any new backup is taken. A harness that cannot
+# recover from being killed will eventually hand a mutant to the next reader --
+# and here that reader was `git commit`.
+for f in "$SH" "$PS1" "$RSH" "$RPS1"; do
+  if [ -f "$f.mutbak" ]; then
+    if ! cmp -s "$f" "$f.mutbak"; then
+      echo "RECOVERED: $f differed from a leftover $f.mutbak -- a previous run was"
+      echo "           interrupted mid-mutation. Restoring the backup as the baseline."
+    fi
+    cp "$f.mutbak" "$f"
+    rm -f "$f.mutbak"
+  fi
+done
+
 for f in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$f" "$f.mutbak"; done
+
+# RESTORE AND CLEAN UP ON *ANY* EXIT, not just the happy path. MEASURED
+# 2026-08-05: this script restores the files and removes the backups at the very
+# end, as plain statements. An interrupted run -- a timeout, a Ctrl-C, a harness
+# that bounds command duration -- never reaches them, and leaves four .mutbak
+# files in hooks/.
+#
+# That is not a cosmetic leftover. checker/gate-all.sh REFUSES to run while any
+# .mutbak exists, because the tree may still carry a live mutant and every gate
+# below would be measuring it. So one interrupted run of this file blocks the
+# pre-commit hook and every subsequent gate sweep, with a message about a live
+# mutant that is no longer there. Measured: it blocked a commit.
+#
+# A trap costs one line and makes the failure impossible. The final `rm -f` is
+# kept as well; running it twice is harmless, and the trap must not be the only
+# thing standing between a normal run and a clean tree.
+trap 'for _tf in "$SH" "$PS1" "$RSH" "$RPS1"; do
+        [ -f "$_tf.mutbak" ] && cp "$_tf.mutbak" "$_tf"
+        rm -f "$_tf.mutbak"
+      done' EXIT INT TERM
+
 killed=0; survived=0; discarded=0
 
 # THE LOOP VARIABLE IS `_rf`, AND THAT IS LOAD-BEARING. It was `f`, and `run()`

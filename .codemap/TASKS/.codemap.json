@@ -1,0 +1,328 @@
+{
+  "directory": "TASKS",
+  "files": {
+    "2026-08-04-CP1-duplication-and-installer-safety.md": {
+      "hash": "74d3a3a3d338",
+      "indexed_at": "2026-08-04T23:51:59.568132+00:00",
+      "language": "markdown",
+      "lines": 169,
+      "mtime_ns": 1785873586420094800,
+      "size": 7985,
+      "symbols": [
+        {
+          "docstring": "**Instrument:** `node` over the live `~/.claude/settings.json` + the plugin's own `hooks/hooks.json` + this session's own transcript.",
+          "lines": [
+            16,
+            55
+          ],
+          "name": "0. The headline: the router really was firing TWICE, and the docs caused it",
+          "type": "section"
+        },
+        {
+          "docstring": "**Instrument:** `grep -cE '\\-\\-dry-run|DRY'` \u2014 15 hits in `ARM_ROUTER.sh`, **0** in `DISARM_ROUTER.sh`. The destructive half of the pair was the half",
+          "lines": [
+            56,
+            69
+          ],
+          "name": "1. `DISARM_ROUTER --dry-run` deleted a live configuration",
+          "type": "section"
+        },
+        {
+          "docstring": "Removal matched the exact command string rebuilt from the directory DISARM was run from. An entry pointing at the plugin cache survived a full DISARM",
+          "lines": [
+            70,
+            83
+          ],
+          "name": "2. `DISARM` could not remove what the documented install produces",
+          "type": "section"
+        },
+        {
+          "docstring": "`\"$PROOFS_DIR\"/*.lean` and `Get-ChildItem -Filter '*.lean'` with no `-Recurse`. The moment proofs are filed by subject the newest file either arm can",
+          "lines": [
+            84,
+            92
+          ],
+          "name": "3. The proof scan was one level deep \u2014 in BOTH arms",
+          "type": "section"
+        },
+        {
+          "docstring": "`env -> RECORDED -> bundled corpus` looked like three answers; only `SETUP_LEAN.sh` ever writes RECORDED, so for a marketplace install it is permanent",
+          "lines": [
+            93,
+            103
+          ],
+          "name": "4. The workspace chain had a step nothing wrote",
+          "type": "section"
+        },
+        {
+          "docstring": "`--decide` made the DECISION cross-armable; `checker/cross-diff-remind.sh` states in its own header that what it does not cover is \"that both arms mea",
+          "lines": [
+            104,
+            121
+          ],
+          "name": "5. AMPLIFICATION \u2014 the measurement half now has an instrument",
+          "type": "section"
+        },
+        {
+          "docstring": "**Instrument:** `checker/workflow-lint.sh` \u2014 `FAIL pre-commit exists but never calls gate-all -- it guards nothing`.",
+          "lines": [
+            122,
+            134
+          ],
+          "name": "6. The repo's OWN pre-commit gate had been disarmed",
+          "type": "section"
+        },
+        {
+          "docstring": "`bash checker/gate-all.sh` before any edit: **1 of 29 gates RED** \u2014 and the red one was \u00a76 above, not the work. After the restore, that gate is green.",
+          "lines": [
+            135,
+            142
+          ],
+          "name": "Baseline",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **Lean 4 first, then the checkers.** New invariants get theorems before they get gates: (a) arming when a plugin registration is live cannot increa",
+          "lines": [
+            143,
+            170
+          ],
+          "name": "NEXT",
+          "type": "section"
+        }
+      ]
+    },
+    "2026-08-04-CP2-lean-gates-and-mutation.md": {
+      "hash": "926693e89d6f",
+      "indexed_at": "2026-08-04T23:51:59.747870+00:00",
+      "language": "markdown",
+      "lines": 198,
+      "mtime_ns": 1785882572253607000,
+      "size": 9360,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "`RotDuplicate` \u2014 the finding is one definition: **what fires is the concatenation of two registries.** `RotInstall.arm_idempotent` is true and was nev",
+              "lines": [
+                31,
+                50
+              ],
+              "name": "What the modules actually say",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "| module | theorems | `lake build` | `#print axioms` | `leanchecker` | |---|---|---|---|---| | `RotDuplicate.lean` | 10 | exit 0, 0 warnings | no `sor",
+          "lines": [
+            16,
+            50
+          ],
+          "name": "Lean \u2014 three new modules, all green, all kernel-re-verified",
+          "type": "section"
+        },
+        {
+          "docstring": "**1. An unused hypothesis.** Lean's unused-variable linter flagged `h : ws \u2260 bundled` in `RotScan.old_chain_falls_to_bundled`. It was right: the theor",
+          "lines": [
+            51,
+            76
+          ],
+          "name": "Two spec defects found by instruments, not by reading",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`remind-measure.sh` immediately failed `[ps1] recorded ignored: got 'discovered'`. Root cause, measured: `SETUP_LEAN.sh` wrote the workspace path verb",
+              "lines": [
+                89,
+                103
+              ],
+              "name": "The gate that found a defect on its first run",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The first draft of `log-replay.sh` said the debug log was *\"read by NOTHING\"*. **False.** `bench-router.sh` \u00a75 already summed the logged `term` values",
+              "lines": [
+                104,
+                116
+              ],
+              "name": "A claim of mine that was false, and how it was caught",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "| gate | result | mutation that proved it load-bearing | |---|---|---| | `router-duplication.sh` | 12/12 | disabled the ARM guard \u2192 **FAIL**, exactly",
+          "lines": [
+            77,
+            116
+          ],
+          "name": "Four new gates \u2014 and every one was made to fail on purpose",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "First run: **8 killed, 1 survived, 1 discarded.**",
+              "lines": [
+                138,
+                158
+              ],
+              "name": "The new suite found a vacuity in my own theorems",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "`README.md:240` claimed `72 applied, 72 killed`. The count declared by the suites was 82 after mine joined, so the line was stale. Rather than edit a",
+          "lines": [
+            117,
+            158
+          ],
+          "name": "Mutation: 82 applied, 82 killed, 0 survived, 0 discarded \u2014 measured, not inherited",
+          "type": "section"
+        },
+        {
+          "docstring": "| gate | exit | |---|---| | `workflow-lint` | 0 (123 passed) | | `gate-split` | 0 (12 passed; the Lean witness moved with the table) | | `repo-complet",
+          "lines": [
+            159,
+            181
+          ],
+          "name": "Repository state",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **Re-run `ci-dryrun.sh`** (clean clone, the five previously-red steps) and the full `gate-all.sh` sweep, foreground, in chunks that fit the time bo",
+          "lines": [
+            182,
+            199
+          ],
+          "name": "NEXT",
+          "type": "section"
+        }
+      ]
+    },
+    "2026-08-05-CP3-routing-changelog-and-ctt.md": {
+      "hash": "f5bb1f64d184",
+      "indexed_at": "2026-08-04T23:51:59.918093+00:00",
+      "language": "markdown",
+      "lines": 261,
+      "mtime_ns": 1785882480010607100,
+      "size": 13179,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "`lean/Proofs/RotStem.lean` now specifies the matcher itself, which had never been modelled \u2014 the existing theorems were about *which class fired*, nev",
+              "lines": [
+                39,
+                59
+              ],
+              "name": "What was proved, not just tested",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`wordStart` was first written with the recursion guarded behind an `if`, needing `termination_by`. That makes it **well-founded rather than structural",
+              "lines": [
+                60,
+                74
+              ],
+              "name": "The Lean detail that cost the most time, and is worth remembering",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Reverting `fired` to a plain substring test (needle counted = 1, presence asserted before building) turns **12 of the 24 new corpus rows red**. Restor",
+              "lines": [
+                75,
+                82
+              ],
+              "name": "Load-bearing, demonstrated",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "| prompt | before | after | |---|---|---| | `prove this lemma` | CONVERGENT (nothing fired) | **FORGE Claude** | | `prove the read loop conserves byte",
+          "lines": [
+            14,
+            82
+          ],
+          "name": "1. `prove this lemma` did not reach FORGE \u2014 measured, then fixed, then proved",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`checker/repo-complete.sh` re-measures every `N applied, N killed` in the tree against the suites. The theorem-count rule had already learned in 0.6.x",
+              "lines": [
+                92,
+                117
+              ],
+              "name": "It immediately exposed a gap in a checker",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "`CHANGELOG.md` had reached 770 lines, so a reader comparing *prior* against *after* scrolled through eight releases of settled history first.",
+          "lines": [
+            83,
+            117
+          ],
+          "name": "2. The changelog was split, on request",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`claude plugin update` **leaves every previous version in the cache**. That instance held seven directories \u2014 `0.1.2` through `0.7.2` \u2014 each with a `h",
+              "lines": [
+                147,
+                172
+              ],
+              "name": "The detector was over-reporting, and CTT is what showed it",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Installed through the **actual CLI**, not a simulation:",
+          "lines": [
+            118,
+            172
+          ],
+          "name": "3. The first real CTT install \u2014 and what it revealed",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **The mutation suite left the tree unbuildable.** It restored sources but never rebuilt, and every mutant deletes the `.olean`. `git status` was cl",
+          "lines": [
+            173,
+            194
+          ],
+          "name": "4. Three instruments were the broken thing",
+          "type": "section"
+        },
+        {
+          "docstring": "`checker/release-package.sh` hardcoded `VARIANTS=\"core:0.6.0 lean:0.6.1 unsealed:0.6.2\"`. It went red the moment `plugin.json` moved to `0.7.2` \u2014 on a",
+          "lines": [
+            195,
+            219
+          ],
+          "name": "5. A check that forbade a correct future, and a real dead-link find",
+          "type": "section"
+        },
+        {
+          "docstring": "| item | value | |---|---| | theorems | **244** across **17** modules | | mutation suites | 12 \u2014 **89 applied, 89 killed, 0 survived, 0 discarded** |",
+          "lines": [
+            220,
+            239
+          ],
+          "name": "6. Repository state",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **Confirm the full sweep is 33/33** and commit \u2014 `gate-all.sh` prints *\"Do NOT commit on top of this\"* when any gate is red, and that instruction i",
+          "lines": [
+            240,
+            262
+          ],
+          "name": "NEXT",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-08-04T23:51:59.918167+00:00",
+  "version": "1.0"
+}

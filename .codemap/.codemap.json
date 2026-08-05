@@ -101,19 +101,21 @@
     ".claude\\commands",
     ".github",
     ".github\\workflows",
+    "TASKS",
     "agents",
     "checker",
+    "docs",
     "engine",
     "hooks",
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-03T17:36:33.025312+00:00",
+  "generated_at": "2026-08-04T23:51:59.919098+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-03T17:36:33.014777+00:00",
-    "total_files": 74,
-    "total_symbols": 523
+    "last_full_index": "2026-08-04T23:51:59.918160+00:00",
+    "total_files": 92,
+    "total_symbols": 655
   },
   "version": "1.0"
 }

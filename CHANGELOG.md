@@ -6,583 +6,268 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 with one deliberate twist documented below.
 
+**History lives in [`CHANGELOG-ARCHIVE.md`](CHANGELOG-ARCHIVE.md)** — every
+release up to and including `0.6.2`, unchanged. This file carries the current
+release only, so *prior* and *after* stay one screen apart instead of eight
+releases apart. `checker/repo-complete.sh` re-measures the counts in the newest
+section against the source on every run, which is the reason that section must
+not be buried.
+
 ---
 
 ## The three numbers are not a roadmap
 
-`0.2.0`, `0.2.1` and `0.2.2` are **released together, on the same commit**. The
-version *is* the variant. Nothing in `0.2.1` supersedes `0.2.0`; it adds a
-Lean 4 workshop on top of it. Nothing in `0.2.2` fixes `0.2.1`; it unseals a
-tactic that `0.2.1` withholds **by policy**, and ships the instrument that keeps
+`0.7.0`, `0.7.1` and `0.7.2` are **released together, on the same commit**. The
+version *is* the variant. Nothing in `0.7.1` supersedes `0.7.0`; it adds a
+Lean 4 workshop on top of it. Nothing in `0.7.2` fixes `0.7.1`; it unseals a
+tactic that `0.7.1` withholds **by policy**, and ships the instrument that keeps
 that honest.
 
 | pick | if you want |
 |---|---|
-| `0.2.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
-| `0.2.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
-| `0.2.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
+| `0.7.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
+| `0.7.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
+| `0.7.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
+
+The patch digit **is** the tier, and it has been for every release in
+[`CHANGELOG-ARCHIVE.md`](CHANGELOG-ARCHIVE.md): `0` core, `1` lean, `2` unsealed.
+`.claude-plugin/plugin.json` carries the `.2` by convention, so a **directory- or
+git-sourced** marketplace install reports `0.7.2` — it is installing the tree,
+and the tree is the unsealed superset. The `.0` and `.1` tiers are what the three
+`.release/` archives carve out of it, which is why
+`checker/release-package.sh` builds all three from one commit and now derives
+their versions from that manifest instead of a hardcoded triple.
 
 ---
 
-## [0.6.0] · [0.6.1] · [0.6.2] — 2026-08-04
+## PRIOR → AFTER, at a glance
+
+Every row was **measured on the shipped code**, before and after. This table is
+the whole release in one screen; the sections beneath it give each row its
+evidence.
+
+| # | what | PRIOR (0.6.2, measured) | AFTER (0.7.x, measured) |
+|---|---|---|---|
+| 1 | router firings per prompt, documented install | **2** — plugin *and* `settings.json` both bind it | **1** — `ARM_ROUTER` detects the plugin and refuses |
+| 2 | `DISARM_ROUTER --dry-run` | flag **ignored**; entries deleted for real | previews against a copy, writes **nothing** |
+| 3 | uninstalling a plugin-path entry | **impossible** — exact match, `nothing to remove`, exit 0 | `--all` removes it; exact mode says what it cannot reach |
+| 4 | unknown installer argument | silently **ignored** | **exit 2**, refused by name |
+| 5 | proof scan depth | **one level** (`*.lean` in the root only) | **recursive**, both arms |
+| 6 | staleness on a real subfoldered tree | **2947 min** reported | **54 min** — the truth, a 55× error removed |
+| 7 | workspace chain | `env → recorded → bundled`; **nothing wrote `recorded`** | `env → recorded → **discovered** → bundled` |
+| 8 | recorded path from the POSIX installer | POSIX form; PowerShell `Test-Path` **rejects it** | drive-letter form, readable by **both** arms |
+| 9 | `prove this lemma` | **CONVERGENT** — no lane fired | **FORGE Claude** |
+| 10 | `prove … bytes in lean` | **STEALTH** — it matched `byte` | **FORGE Claude** |
+| 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
+| 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
+| 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
+| 14 | theorems / modules | 205 / 14 | **244 / 17** |
+| 15 | gates | 29 | **33** (22 fast, 11 deep) |
+| 16 | mutation suites | 10 suites | **12 suites — 89 applied, 89 killed**, 0 survived, 0 discarded |
+
+Rows 1–8 are defects that **had already reached a live machine** while
+twenty-nine gates were green. Rows 9–12 are a routing fix that could not be made
+until the matcher itself was specified. Row 13 is the instrument that would have
+caught a drift nobody was watching for.
+
+> **Why the PRIOR column never restates an old total.** `checker/repo-complete.sh`
+> re-measures every "N applied, M killed" in this file against the suites as they
+> exist **today**, and the newest section is scanned in full — a prior-versus-after
+> table lives inside it. Writing the previous release's total there would put a
+> correct historical number where the checker can only read it as a false present
+> claim. The PRIOR cells therefore say what *changed* (ten suites became twelve);
+> the settled totals stay in
+> [`CHANGELOG-ARCHIVE.md`](CHANGELOG-ARCHIVE.md), which is exempt as history.
+> The alternative — loosening the rule so it skips table rows — would have put a
+> hole in the one check that stops a mutation claim from drifting.
+
+---
+
+## [0.7.0] · [0.7.1] · [0.7.2] — 2026-08-04
 
 Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 `2` unsealed.
 
-### The README stopped narrating its own construction
+**Every defect fixed in this release had already reached a live machine while
+twenty-nine gates were green.** That is the only sentence of this entry that
+matters, and it is the reason four of the additions below are gates rather than
+features.
 
-The page had accumulated development recaps — what a table *used to* score, which
-paragraph *had been* wrong, how a corpus was collected and the part of that
-collection which went astray. All true, none of it what a reader wants from a
-README. It belongs here. **Removed 73 lines, added 34**; what survived is the
-claim, the instrument that settles it, and the controls that prove the instrument
-can fail.
+### The router fired TWICE on every prompt, and the install document caused it
 
-The four removed passages, kept in full:
+Measured on the author's machine: two marker lines, two gauge computations,
+twice the tokens, every turn. The packet reaches a session by two routes and
+they are **additive** — the plugin's `hooks/hooks.json` binds the router on
+`UserPromptSubmit` and `PreToolUse`, and `ARM_ROUTER` writes an absolute-path
+entry for **the same script** on **the same two events** into `settings.json`.
+`CLAUDE.md` told the installing agent to do both.
 
-**1 — the `CONVERGENT` lane header used to print `none`.** That was wrong, not
-factually but in what it communicated. `CONVERGENT` is the one lane with no lead
-**lens**: all nine co-reason and nobody leads. Printed as `none` it reads like a
-null, as though the router had failed to decide rather than decided that nobody
-leads. What actually convenes the nine is the **model you chose**, so that is
-what the line now names — `opus[1m]`, or `sonnet` on a machine configured that
-way. Measured, because the obvious implementation does not work: a live
-`UserPromptSubmit` payload, captured 2026-08-03, carries exactly
-`session_id · transcript_path · cwd · prompt_id · permission_mode ·
-hook_event_name · prompt` — there is **no model field** in it. The model is read
-from the settings file your client writes, with `ROTMOE_MODEL` overriding it and
-the literal `model` as the last resort. Every step degrades to a word; none
-degrades to `none` or to an empty string, because a lead that renders as nothing
-is the defect this replaced.
+Nothing about that state looks wrong from inside. The lane is right and the
+gauge is right; they are right twice.
 
-**2 — the ability table scored three of nine `notModelled`,** reasoning that
-Carnage's chaos being *useful* is not a decidable proposition. True — and beside
-the point, because the field records each ability's **router-observable effect**,
-not a judgement about prose. The file already contained `carnage_leads_creative`
-and `violet_leads_empathic`: proofs of exactly the effects it was filing as
-beyond reach. Chroma needed one more lane table (`predictiveLam`) and that was
-the entire distance between "outside Lean's reach" and proved. Each row now
-carries its claim as a *proposition* (`abilityEffect`) rather than a comment, so
-`.proved` cannot drift from what was proved. Mutation-tested: filing any ability
-back as `notModelled` or `measured` kills the module (M01, M05 in
-`lean/mutate/mutate_rotability.sh`).
+- `hooks/plugin-detect.js` — new. Exits `0` when a live plugin registration of
+  the router exists, `10` when none does. It keys on the **fact** (an enabled
+  plugin whose `hooks.json` binds `rot-router.*`), never on the directory being
+  called `rot-moe`, because a marketplace can rename it.
+- `ARM_ROUTER` (both arms) refuses when that detector fires, prints what it
+  found, and exits `0` — **refusing is a success**: the user asked for the
+  router to be armed and it already is. `--force` / `-Force` overrides.
+- Both arms now **refuse an unknown argument** with exit 2 instead of ignoring
+  it. An ignored flag is how the next item happened.
 
-**3 — how the 80-turn corpus was collected, including the part that went
-wrong.** The run was launched with this repository as the session's working
-directory, and turn 6 — *"compress the docstring of RotAbility.lean"* — did
-exactly what it was asked: it **edited the file**, rewrote the docstring and
-added two unreviewed theorems. The count went 205 → 207 and
-`checker/repo-complete.sh` caught it; the edit was reverted and the module
-rebuilt at 205, exit 0, zero warnings. A benchmark that mutates the tree it is
-benchmarking is not a measurement, so `checker/ctt-session.sh` now runs every
-turn from a scratch directory and **refuses outright** if that directory resolves
-inside the repository. The routing figures are unaffected — a lane and an `R/s+`
-are computed from the prompt text alone, before any tool runs — but the
-collection method was wrong and saying so is cheaper than a reader discovering
-it.
+### `DISARM_ROUTER --dry-run` was accepted, ignored, and deleted live entries
 
-**4 — the router latency figure was not a per-turn cost, and the README said it
-was.** The debug log's `ms` field starts at `hooks/rot-router.ps1:40` — *inside*
-the script, after PowerShell has already started — so it measures the router's
-**logic**, not the turn. Comparing it against the bash arm's **wall-clock**
-194–256 ms and concluding the PowerShell arm "costs about half" was comparing two
-different clocks, and the conclusion was backwards. `bench-router.sh` §6 now
-prints the decomposition every run and fails if a quoted figure does not say
-which arm and which clock produced it — that check exists because this paragraph
-was wrong.
+Counted: `grep -cE '\-\-dry-run|DRY'` gave **15** in `ARM_ROUTER.sh` and **0** in
+`DISARM_ROUTER.sh`. The destructive half of the pair was the half with no safety
+flag, and an unknown argument was a no-op, so `--dry-run` read as *proceed*.
 
-Two version strings stay at `0.6.1` on purpose: the corpus filename
-`bench/ctt-session-0.6.1.jsonl` and the sentence recording which plugin version
-the 80-turn session measured. Those are facts about a past measurement.
+- `--dry-run` / `-DryRun` in both arms. The preview runs the **real** removal
+  against a copy and discards it, so preview and act cannot disagree.
+- `--all` / `-All` (`disarm-any` in the merge engine) removes every RoT MoE
+  router entry whatever path it names. The old exact matcher could not touch an
+  entry pointing at the plugin cache — which is what the documented install
+  produces — and reported `nothing to remove`, exit 0, forever.
+- Exact mode remains the default and now **says so** when it can see entries it
+  cannot match, instead of reporting a false all-clear.
 
-### Every lens now proves itself — the evidence table was wrong, not Lean
+### The proof scan was one level deep — in both arms
 
-`RotAbility.lean` scored three of the nine abilities `notModelled`, on the
-grounds that Carnage's chaos being *useful* is not a decidable proposition. That
-is true of the sentence and irrelevant to the field, which records each ability's
-**router-observable effect**. The same file already proved
-`carnage_leads_creative` and `violet_leads_empathic` — the very effects it was
-filing as beyond reach. Chroma needed one more lane table and nothing else.
+`"$PROOFS_DIR"/*.lean` and `Get-ChildItem -Filter '*.lean'` with no `-Recurse`.
+File proofs by subject and the newest file either arm can see is whatever last
+landed in the root. Measured on a real tree at one instant: **2947 minutes stale
+one level deep, 54 minutes recursive** — a 55x error, while eighteen modules
+were being written into a subfolder.
 
-- **all nine abilities `.proved`**; `evidence_split` moves 6/3 → **9/0**.
-- `abilityEffect : Ability → Prop` — each row is now a PROPOSITION discharged by
-  `every_ability_effect_holds`, so `.proved` cannot drift from what was proved.
-- new: `predictiveLam`, `chroma_leads_predictive`, `predictive_amplifies_chroma`,
-  `lane_leads_carry_weight`, `no_ability_is_unmodelled`,
-  `expressive_lenses_prove_themselves`.
-- the ninth lens is verified present in **all three** lane profiles
-  (`every_lens_weighted_in_every_profile`), plus `every_lens_is_present`,
-  `lenses_nodup`, `nine_lenses_exactly`.
+### The workspace chain had a step nothing wrote
 
-### The lane-lead theorems were dated — restated relationally
+`env → RECORDED → bundled corpus` reads like three answers. Only `SETUP_LEAN`
+ever writes RECORDED, so for a marketplace install the middle step is
+permanently empty and every measurement pointed at the plugin's own read-only
+corpus, which can never acquire debt.
 
-`carnage_leads_creative` read `creativeLam l < 25/10`: a frozen literal that says
-every *other* lens is under 2.5 while saying nothing about Carnage, who the
-hypothesis excludes. Dropping the lead's own λ to 0.4 left the lane leaderless and
-the theorem **green**. Measured, not hypothesised — mutant M02 survived.
+- A fourth step, `discovered`, walks up from the session's directory for a Lake
+  workspace with proofs. Added to **both** arms — the first attempt at this fix
+  added it to the POSIX arm only, which would have given Windows and Linux users
+  different answers with no gate able to see it.
+- `SETUP_LEAN.sh` now records the workspace in the **drive-letter form**, the
+  only spelling both arms can test (measured: Git Bash accepts `[ -d "D:/tmp" ]`
+  and so does `Test-Path`). The PowerShell reminder gained a fallback for the
+  legacy POSIX-form paths already on disk, so an upgrade does not silently break
+  the machines that were already set up.
 
-All three are now stated against `_Lam .lead`, so a retune of any weight —
-including the lead's — is checked. The spec was wrong, not the code.
+### The measurement half had no instrument, so defects lived there
 
-### Claude's ability is named — *Grounded Truth*
+`cross-diff-remind.sh` compares the two arms' **decision**; its own header says
+what it does not cover is "that both arms measure the same things off disk".
+Both defects above lived in exactly that gap.
 
-Coined in this repo, not lifted from a codex, and that distinction is kept as
-data (`abilityNameIsCoined`) and proved (`exactly_one_name_is_coined`,
-`only_claude_name_is_coined`) so a coined name can never pass for a sourced one.
-Replaces `claudeAbilityIsUnnamed`; `every_ability_is_named` now holds.
+- `prover-remind` (both arms) gained `--measure` (count, minutes, name) and
+  `--workspace` (which step of the chain answered, and what it returned).
+- The PowerShell arm's scan is now **one function** shared by hook mode and
+  `-Measure`, so the thing the gate drives is the thing the hook runs.
 
-### Zero build warnings, honestly — 76 → 0
+### Four new gates, all fast tier
 
-No `set_option linter.* false` anywhere in the tree; the one that existed in
-`RotDorks.lean` was removed rather than extended.
+| gate | what it makes impossible |
+|---|---|
+| `router-duplication.sh` | arming on top of a live plugin registration |
+| `disarm-safety.sh` | a dry run that writes; an `--all` that takes a neighbour |
+| `remind-measure.sh` | the two arms measuring different trees |
+| `log-replay.sh` | a debug record whose numbers do not re-derive |
 
-- `omit [Fintype ι] in` on nine `RotGauge` theorems — this **strictly generalises**
-  them to infinite index types.
-- every `#guard` in `RotAbility`/`RotLens`/`RotDorks` converted to `example … := by
-  decide`, which is *stronger*: a `#guard` is elaborator-only and leaves no proof
-  term for `leanchecker`.
-- dead `simp` arguments removed, `RotAbility` namespace flattened, long line split.
+Fast tier is a decision, not a default: the double-fire was introduced by an
+**install document**, which stages no path a deep trigger would have matched.
 
-### New gate: `checker/profile-bind.sh` (29 gates, 11 deep)
+### The debug log is now re-derived, not merely summed
 
-The three lane tables are transcribed from `engine/rot-lean.md` §4 and **nothing
-bound them** — the router never executes a lane profile, so the spec could be
-retuned and the theorems would keep proving things about numbers nobody ships.
-Now bound row by row, with Claude's §2 default *parsed from the spec* rather than
-hardcoded, plus a lead-is-maximum check and three controls.
+`bench-router.sh` already summed the logged `term` values and checked
+`Σterm / K = Rs`. What it cannot see is everything upstream of `term`: a record
+with the wrong `mu`, `sigma`, `H` or `mean` is consistent at the level of sums
+and passes. `log-replay.sh` recomputes **every factor** from `lambda`, `mu`, `a`
+and `breadth`, checks gauge/route pairing, checks the route line's displayed
+value is a faithful rounding of the gauge line's, and replays the **PowerShell**
+arm's log as well — then requires the two arms' gauge records to be
+byte-identical. Measured: they are.
 
-### The mutation harnesses lied in the reassuring direction — fixed
+### A spec that was wrong, said plainly
 
-Three defects, all found by running them rather than reading them:
+`RotLog.WellPaired` first asserted that a route record carries the **same** `Rs`
+as its gauge record. The shipped router does not do that: the gauge line carries
+`0.66427` and the route line carries the displayed `0.66`, matching the marker
+the operator sees. Twelve records from each arm recomputed field for field with
+zero error, and the only disagreement was a rounding the spec had forbidden.
 
-- **a suite emptied a source file.** `awk … > "$F"` truncates before writing; a
-  wall-clock kill landed inside that window and left `RotRoute.lean` at 0 bytes.
-  The next run copied the empty file **over its own backup**, reported 11
-  DISCARDED, and **exited 0**. An empty Lean file compiles green, so the preflight
-  could not see it. Every suite now checks the source has CONTENT before touching
-  the backup.
-- **three suites could not fail.** `mutate_rotgauge`, `mutate_rotinstall` and
-  `mutate_rotroute` ended on `rm -f "$BAK"` — exit status 0 regardless of what
-  they measured. All ten now refuse on `survived != 0 || discarded != 0`.
-- **every suite left the tree unbuildable**, deleting an `.olean` and never
-  rebuilding it, which makes a later `leanchecker` sweep report a false RED. All
-  ten now restore and rebuild, and fail loudly if that does not come back green.
+**The spec was wrong, not the code.** It now carries a tolerance parameter, with
+`displayEps = 1/200` — the exact half-ulp of a two-decimal display, so an honest
+rounding passes and a stale or edited number still cannot. `RotScan` had the
+same class of defect in miniature: a hypothesis that Lean's linter proved was
+never used, on a theorem whose doc comment claimed more than it stated. Both
+were found by instruments, not by reading.
+
+### `prove this lemma` did not reach FORGE — and could not be made to
+
+Measured on the shipped router before the change:
+
+```
+prove this lemma                            -> CONVERGENT     (nothing fired)
+prove the read loop conserves bytes in lean -> STEALTH Soleil (it matched `byte`)
+```
+
+On a prover head, the two most proof-shaped prompts imaginable reached every
+lane except the one for proving. **The earlier diagnosis that first-match beat
+priority was wrong** — `route()` has always tried FORGE first. The stem table
+simply did not contain `prove`, `proof` or `lemma`.
+
+They could not be added, either. `fired` was a plain substring test, so `prove`
+would have fired on **improve**, `lemma` on **dilemma**, `lean` on **cleaning**.
+The same flaw was already live and routing prompts wrongly: `fix` fires on
+**prefix**, `now` on **known**, `test` on **latest**.
+
+**A stem must now start a word** — the beginning of the text, or straight after a
+non-alphanumeric character. `proofs` and `prover` still fire, because a stem is a
+word *prefix*; that is what `verif` → "verification" and `strateg` → "strategy"
+have always relied on.
+
+Not `proving`, and the first draft of this entry claimed otherwise. `prove` is
+not a prefix of "proving" — the two diverge at the fifth character — so it fired
+under **neither** matcher. The executable example at `RotStem.lean:386` pins
+that, and is how the error was caught: the prose and the spec disagreed, and the
+spec was right. A stem that itself begins with punctuation
+falls back to a substring test, which is what keeps `.lean` matching
+`Basic.lean`.
+
+`RotStem.lean` now specifies the matcher, which had never been modelled — the
+existing theorems were about *which class fired*, never about *how a class
+decides*. `firesWord_imp_fires` is what made the change safe to ship: word-prefix
+firing implies substring firing, for every prompt and every class, so the new
+rule can only remove a false positive and can never move a prompt onto a lane it
+was not already reaching. `firesWord_strictly_weaker` proves that guarantee is
+not vacuous.
+
+FORGE gained `prove proof lemma lean qed`. The cross-diff corpus gained 12 rows
+covering both directions — the prompts that must now fire and the near-misses
+that must not. Reverting the matcher to a substring test turns **12 of them
+red**, measured.
+
+### New Lean modules
+
+- `RotDuplicate.lean` (9) — what actually fires is the **concatenation of two
+  registries**, so `RotInstall`'s idempotence, which is true, cannot see a
+  duplicate that lives across both. `unguarded_duplicates` counts 2;
+  `guard_keeps_one` counts 1.
+- `RotScan.lean` (14) — a one-level scan can only ever **over**-report staleness
+  (`flat_never_underreports`): its failure mode is a false accusation, never a
+  false silence. Plus the resolution chain's precedence and totality.
+- `RotLog.lean` (12) — a self-consistent record reports exactly the gauge, so
+  `Rs` is **derived rather than trusted**; two consistent records over the same
+  terms cannot disagree; pairing detects a truncated log.
 
 ### Numbers
 
-- **205** machine-checked theorems across 14 modules (was 195), 0 `sorry`,
-  0 `native_decide`, 0 build warnings.
-- `mutate_rotability.sh`: 5 mutants, **5 killed, 0 survived, 0 discarded**.
+- **244** machine-checked theorems across 17 modules (was 205 across 14),
+  0 `sorry`, 0 `native_decide`, 0 build warnings.
+- **33** gates (was 29); 22 fast, 11 deep.
+- Every new theorem `#print axioms`-audited and `leanchecker`-re-verified.
 
 ---
 
-## [0.5.0] · [0.5.1] · [0.5.2] — 2026-08-03
-
-Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
-`2` unsealed.
-
-### Fixed
-
-- **The pre-commit hook had become the thing its own comment warned about.**
-  `checker/gate-all.sh` opens by explaining that "a pre-commit hook that takes
-  four minutes is a hook people disable". Measured per gate, the set it ran took
-  **587 seconds**. Two commits were killed by a wall-clock ceiling *part way
-  through*, and one of those kills landed while `mutate-checker.sh` had a mutant
-  applied — leaving a live mutant and four `.mutbak` files in the tree, which the
-  next run correctly **refused** to certify. Four gates owned 76% of the time
-  (`mutate the checker` 198 s, `axiom audit` 94 s, `axiom class` 84 s, `release
-  install` 71 s).
-
-- **A per-turn cost figure was attributed to the wrong clock, and the error
-  flattered us.** The debug log's `ms` field starts at `rot-router.ps1:40`,
-  *inside* the script, so it measures the router's logic and not the turn. That
-  number (93–133 ms) was compared against the bash arm's **wall-clock** 194–256
-  ms and reported as "about half the cost". Measured like for like, the
-  PowerShell arm costs **more**: ~88–125 ms of logic under ~160–300 ms of
-  interpreter startup, against bash's ~178 ms under ~20 ms. Both stay inside the
-  500 ms bound. `bench-router.sh` §6 now measures both arms on one clock, prints
-  the decomposition, and **fails if the README quotes a figure without naming the
-  arm and the timer**.
-
-- **`checker/workflow-lint.sh` was itself the staleness defect it exists to
-  catch.** It required every Lean module to appear *literally* in `ci.yml`, which
-  forced CI to carry a hand-typed module list — precisely the thing `ci.yml:414`
-  records as having silently stopped covering `RotRemind`, `RotAcquire` and
-  `RotVerdict`. When CI was fixed to enumerate from disk, the linter went red on
-  a strictly better workflow, and the obvious repair would have restored the
-  defect. It now checks **coverage** — executing CI's own enumeration and
-  comparing it against the tree — with a control proving a narrower glob is still
-  caught. The spec was wrong, not the change.
-
-### Added
-
-- **`lean/Proofs/RotGates.lean` (12 theorems) — the gate split, proved before it
-  was written.** A tiered gate set is the exact mechanism that already produced a
-  false green in this repo: `verdict-schedule-sim.sh` sat behind `FULL=1`, was
-  red, and the default sweep printed `26/26 GREEN` for weeks. So the split is
-  stated as theorems over an **arbitrary** gate table, never over today's names:
-  `fast_always_runs` (an unconditional gate runs whatever is staged),
-  `triggered_gate_runs`, `stagedRun_mono` (staging *more* never runs *less*, so
-  no commit can dodge a gate by growing), `tier_lengths` / `tiers_disjoint` (the
-  tiers partition — no gate can fall out of the table), and
-  `no_trigger_never_escalates`: **a deep gate with no triggers is invisible to
-  every possible commit.** That last one is the silent hole, written down.
-  All 12 rest on `propext`/`Quot.sound`, kernel-re-verified, and
-  `lean/mutate/mutate_rotgates.sh` kills 5 of 5 mutants aimed at each failure
-  mode in turn.
-
-- **`checker/gate-split.sh`** — the binding. A proof about a model that nothing
-  compares to the code is decoration (this repo shipped one for a week), so this
-  extracts the tier table from `gate-all.sh` *and* the witness from
-  `RotGates.lean` and requires them to be the same table, gate for gate and
-  trigger for trigger. It refuses if either parse returns too few rows, because
-  an empty-vs-empty comparison passes forever. Three negative controls. It caught
-  a real defect on its first run: two gates had triggers pointing at `install/`,
-  a directory that does not exist in this tree.
-
-- **`gate-all.sh --fast` and `--staged`**; the pre-commit hook now runs
-  `--staged`. A **bare** `gate-all.sh` still runs all 28 — the split is opt-in,
-  so nobody gets a weaker run by accident and CI is untouched. Measured: a
-  fast-only commit gates in **51 s** instead of 587 s. The runner **refuses**
-  (exit 2) a gate with an unknown tier or a deep gate with no triggers, and
-  validates the whole table *before* running anything — the first version
-  validated inline and printed a column of greens above its own refusal.
-
-### Changed
-
-- CI enumerates Lean modules and mutation suites **from disk** in all three
-  places that hand-typed them (build, `leanchecker`, mutation), each with a
-  floor assertion so a broken enumeration fails loudly instead of covering
-  nothing quietly.
-
-### Notes
-
-- 195 machine-checked theorems across 14 modules, 0 `sorry`, 0 `native_decide`.
-- 28 default gates; 67 Lean mutants applied, 67 killed, 0 survived, 0 discarded.
-
-## [0.4.0] · [0.4.1] · [0.4.2] — 2026-08-03
-
-Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
-`2` unsealed.
-
-### Fixed
-
-- **The `sorry` alarm cried wolf on clean proofs.** The reminder hook counted
-  `\bsorry\b` in a file's *text*, so a doc comment reading "no sorry, no
-  native_decide" — the sentence this project's own discipline puts in files —
-  was scored as an admission. An armed 50-turn session wrote a correct module,
-  was told twice it "contains 1 sorry", and had to argue with its own tool.
-  Both arms now ask the **elaborator** instead, counting the compiler's
-  `declaration uses \`sorry\`` warning, which is per-declaration and cannot be
-  fooled by a comment. Measured both directions on Lean 4.33.0-rc1: a real
-  `by sorry` produces the warning, `sorry` in comments produces none, where the
-  old text scan counted two. An alarm that fires on correct work teaches people
-  to ignore alarms, which costs more than the false positive itself.
-
-- **A green local sweep could contradict CI.** The check that asks whether the
-  committed `STATUS.md` verdict is *true of this tree* lived inside the 3-week
-  schedule simulation, which is gated behind `gate-all --full`. CI runs FULL; a
-  developer running plain `gate-all.sh` does not. So the tree could report ALL
-  26 GATES GREEN and publish a verdict claiming 154 theorems against 162 in the
-  sources — and it did, failing three CI legs at once. The comparison now lives
-  in `checker/verdict-fresh.sh`, runs in the **default** gate set and in
-  `ci.yml`, and the simulation *delegates* to it rather than keeping a copy.
-  Rule enforced from here: every check CI can fail, the default local sweep must
-  be able to fail too.
-
-- **README documented 12 of 13 Lean modules.** `RotStem.lean` had no row, so the
-  published-claims audit summed the per-module counts to 152 against 162 and
-  failed. Row added, describing the theorems that are actually in the file.
-
-### Added
-
-- `checker/verdict-fresh.sh` — anti-vacuity first (both sides must carry a real
-  verdict before they are compared, because two empty strings compare equal
-  forever), then a whitespace-insensitive comparison, then a control that
-  perturbs the committed text **in memory** and requires the difference to be
-  seen. A checker that edits the tree it is judging is a hazard.
-
-### Notes
-
-- 195 machine-checked theorems across 14 modules, 0 `sorry`, 0 `native_decide`.
-- 27 default gates green; all five GitHub workflows green with zero errors and
-  zero warnings across 254 log files.
-
-### Added — the gauge stops being a recipe and becomes a law
-
-- **`gauge_separates`.** `R/s+(M,C,T) = M·C·T·R/s+(1,1,1)` — the three per-turn
-  modifiers factor out of the entire sum, exactly, for every lens family, every
-  activity vector, every breadth. With it: `gauge_scales_in_C` (confidence is
-  linear, not saturating), `gauge_zero_of_C_zero` (divergence cannot manufacture
-  confidence), `gauge_modifiers_commute` (pre-multiplying `M·C·T` outside the
-  loop is provably the same engine as applying it inside — so the two shipped
-  arms may differ there without disagreeing).
-
-- **"Useful chaos" is now proved, not asserted.** The spec always said the
-  sigmoid *"rewards median divergence and damps both conformism and pure
-  chaos"*. That is a claim about a shipped function, and the README used to
-  answer it with "no instrument exists". Since σ′ = 4·σ·(1−σ), the quantity
-  `σ(1−σ)` **is** the marginal return on divergence: `marginal_gain_le_quarter`
-  bounds it, `marginal_gain_max_iff_center` shows the bound is reached **only**
-  at the median, and `pure_chaos_pays_less` / `conformism_pays_less` fall out as
-  the same theorem applied at δ=1 and δ=0. One mechanism penalising both failure
-  modes, with `sigma_symm_about_center` (σ(x)+σ(1−x)=1) proving the symmetry.
-
-- **Lane weights.** `carnage_leads_creative` and `violet_leads_empathic` — eight
-  strict inequalities each — plus `creative_amplifies_carnage` /
-  `empathic_amplifies_violet`: a lane *amplifies* its lead (0.6 → 2.5, 0.6 →
-  2.3) rather than merely naming it.
-
-- **The ninth lens, corrected.** A first draft read the eight-row CREATIVE and
-  EMPATHIC tables literally and modelled 🧭 Claude as *absent* from those lanes.
-  That was wrong: `engine/rot-lean.md:270` states K=9 on this head and the lens
-  is always active, and `:117` gives it a documented default λ 1.5 / μ 1.05. A
-  profile table that omits a lens is not deleting it — the lens falls back to
-  its default. Now total functions over ℚ with no `Option`, and
-  `every_lens_weighted_in_every_profile` proves no lane degrades to eight.
-
-- **`ROTMOE_DEBUG_LOG` — a real debugger for the router.** Set it and both arms
-  append one JSON line per gauge evaluation carrying every factor: per lens its
-  λ, μ, activity, δ, σ, H and term. `bench-router.sh` phase 5 recomputes `R/s+`
-  from those terms, requires it to match what the router reported, and then
-  **corrupts a term to prove the check can fail**. Measured in a live 56-turn
-  CTT session: 14/14 records recomputed exactly, K=9 and nine lens terms in
-  every one, 93–133 ms of *router logic* on the PowerShell arm. The log records
-  prompt *length*, never prompt text. (That 93–133 ms is an **in-script** timer
-  and was wrongly reported here as a per-turn cost — corrected in 0.5.x below.)
-
-### Changed
-
-- Benchmark figures refreshed from three fresh runs (194–256 ms bash arm, ~20 ms
-  of it process start). The previous 170–179 ms and ~130 ms figures were true
-  when taken and are now stale; the range is kept rather than a single number,
-  because a 32% run-to-run spread is itself the honest finding.
-
-## [0.3.0] · [0.3.1] · [0.3.2] — 2026-08-03
-
-The three numbers are not a roadmap. The patch digit is the **tier**: `0.3.0` is
-the router alone, `0.3.1` adds the Lean 4 proof corpus, `0.3.2` adds the
-unsealed checkers. They ship together, from one commit.
-
-The minor moved because the **content** moved. Publishing changed files under an
-unchanged version string is the same staleness defect this repository refuses
-everywhere else — an installed `0.2.1` and a rebuilt `0.2.1` would be
-indistinguishable to anyone holding the archive.
-
-### Proved
-
-- `RotPath.lean` 8 to 12 theorems, and the corpus 154 to **158**. The reminder
-  hook's module derivation — workspace root plus edited file, out comes the Lean
-  module to build — had shipped with **three silent defects**. It returned no
-  verdict at all, which reads as "nothing to check" rather than "I could not
-  work out what to build".
-  - `moduleOf_spelling_invariant` — the Windows and POSIX spellings of one edit
-    give the same module.
-  - `moduleOf_root_agnostic` — the module never depends on how the workspace
-    directory is named or capitalised. Quantified over **arbitrary** roots, so
-    it does not expire the day someone renames `Lean` to `Formal`.
-  - `moduleOf_no_slash` — a derived module name never contains a separator.
-  - `moduleOf_none_of_outside` — a file outside the workspace derives nothing,
-    which is the theorem that separates *correct* silence from the two bugs.
-  - Three mutations of the definitions each killed the build; `#print axioms`
-    shows `propext, Classical.choice, Quot.sound` and no `sorryAx`; and
-    `leanchecker` re-verified the module at exit 0 with zero bytes.
-
-### Changed
-
-- **`--root` now moves your PROOFS, not the toolchain.** A toolchain is a
-  bounded one-time cost elan manages in the home directory; the proof workspace
-  is what grows as you work, so it is the one that belongs on the disk you pick.
-  `--elan-root` keeps the old capability for a tight system drive — one flag had
-  been doing two jobs and answering the commoner question wrongly.
-- Both installers now **scaffold** the workspace: a `lakefile.toml` and a
-  `lean-toolchain` pinned to the version this corpus is verified against. A
-  directory alone was not a workspace — the user's first theorem could not build
-  at all, and the hook reported `LEAN REFUSED`, which reads as "your proof is
-  wrong" when the truth was "there was nothing to build it with". Core-only, no
-  mathlib: your proofs start at zero and grow from your own work.
-
-### Fixed
-
-- `elan toolchain install` **exits 1 when the toolchain is already present**
-  (measured on elan 4.2.3). Both arms treated that as fatal, so the installer
-  aborted on every machine that already had it — the common case for a re-run —
-  and never reached the step that records the workspace.
-- `SETUP_LEAN.ps1` never created or recorded a workspace at all, so a
-  Windows-native user silently got the plugin's read-only bundled corpus, a
-  directory that can never accumulate their proof debt.
-- The recorder ran only at the end of the pwsh script, making it dead code on
-  the two paths users actually take: `-DryRun` and "nothing to do".
-- **The cross-arm handoff was broken.** PowerShell wrote a backslash path; the
-  shell hook's `-d` test is false for those in Git Bash, so it rejected a
-  correct workspace and fell back to the bundled corpus without a word. Both
-  arms now agree on the format, and the reader still accepts what an older
-  install wrote.
-- The stale-verdict alarm now rings **before** the push. `verify.yml` had failed
-  twice while all 26 local gates were green: a module count went 12 to 13 and
-  the only instrument that could see it ran in CI. A check that can only fail
-  after a push will keep failing after a push.
-
-### Measured
-
-- Router cost re-measured: **170-179 ms** across three runs of twenty
-  invocations, ~17 ms of which is bash process startup. The README had said
-  ~154 ms, which predated the `R/s+` gauge the router now computes on every
-  invocation. Recorded as a range plus the bound the gate enforces (under
-  500 ms), because a single figure is a snapshot pretending to be a constant.
-
-## [0.2.0] · [0.2.1] · [0.2.2] — 2026-08-03
-
-Released together from one commit, as always: the version **is** the variant.
-
-### The router line now carries what the README always promised
-
-`README.md` said the hook adds *"a named lane and a gauge reading"*. For three
-releases it added the lane alone. The premise behind that was sound — one
-stateless hook call has not measured nine lens activities, and a fabricated
-vector is worse than none — but the conclusion was wrong, and it left a promise
-unkept.
-
-By the time the line is printed the router **has** measured something: which
-lane fired. Written in the gauge's own units that is a one-hot activity vector,
-and the reading is computed per invocation, not appended as a constant:
-
-```
-FORGE 0.66  CLINICAL 0.57  STRATEGIC 0.47  RECURSIVE 0.45  EXECUTIVE 0.44
-PREDICTIVE 0.41  STEALTH 0.39  CREATIVE 0.32  EMPATHIC 0.31  CONVERGENT 0.16
-```
-
-Byte-identical on both the POSIX and PowerShell arms. `M`, `C` and `T` are the
-neutral `1.0` because memory residue, confidence and recency are genuinely
-unavailable to one stateless call — stated in the code and the README rather
-than hidden. The reading is a function of the lane: it varies across lanes, not
-across turns.
-
-### Half the router was inert and looked healthy
-
-The hook registers on `UserPromptSubmit` **and** `PreToolUse`. The `PreToolUse`
-half read only `tool_name`, so every tool call in every session routed to
-`CONVERGENT none` — a healthy-looking stream of classifications carrying no
-signal at all. It now reads the tool's intent (`command`, `file_path`, `path`,
-`pattern`, `description`). Measured: a Bash running the Lean build tool routes
-to FORGE, a Bash searching a log for the word error routes to CLINICAL, an Edit
-of a proof module routes to FORGE.
-
-### CLINICAL vocabulary widened
-
-`segfault crash panic leak regress traceback` join the stem list on all three
-surfaces — both router arms and the engine document — after a live session
-misrouted *"there is a segfault when I free a pointer twice"* to `CONVERGENT`.
-Router accuracy on the labelled bench is unchanged at **18/18**.
-
-### Verification
-
-- Every one of the **12 modules** is now under a mutation instrument. Four
-  (`RotAbility`, `RotDorks`, `RotLens`, `RotMutant` — 44 of 144 theorems) had
-  never been attacked before this release.
-- **59 mutants, 59 killed, 0 survived, 0 discarded** across all eight suites.
-- The lens **roster** is now bound across four surfaces in name *and* order;
-  renaming a lens in the engine document is caught at exit 1.
-- An overclaim was repaired: `lead_does_not_shrink` proved an independence
-  property its name did not describe.
-- Mutation attribution no longer reports a per-line list as an inventory. When a
-  mutant produces no `.olean`, **every** theorem in the module is dead, and the
-  report now says so instead of implying survivors.
-
----
-
-## [0.1.2] — 2026-08-01 — Router + Lean + Extra
-
-### Added
-- `UNSEALED.md` — the only document that distinguishes this variant. Records the
-  measurement that corrected the original premise, the four-tactic axiom table,
-  and the two design defects the tool found in itself.
-- `checker/axiom-class.sh` — classifies every theorem **KERNEL / COMPILER /
-  BROKEN** from `#print axioms`. `ROTMOE_ALLOW_COMPILER=1` permits-and-reports.
-  Rule enforced: a COMPILER theorem may never be counted in a headline number.
-
-### Measured, not assumed
-The premise for this variant was that `native_decide` could be reached through
-`leantar` and `leanir` without `clang`/`lld`/`llvm-ar`. That was **disproved by
-measurement**, and the corrected facts are shipped rather than the guess:
-
-| tactic | axioms it introduces |
-|---|---|
-| `decide` | none |
-| `rfl` | none |
-| `bv_decide` (CaDiCaL) | `propext` |
-| `native_decide` | `…native_decide.ax_1_1` — a fresh axiom per theorem |
-
-`leantar` is the `.ltar` cache compressor; `leanir` dumps IR and generated C;
-`clang`/`lld` **are** what `leanc` wraps. `native_decide` was already reachable
-in `0.1.1` — it was withheld by policy, not by capability.
-
-**The decisive finding:** `lake build` exit 0, then
-`lake env leanchecker Proofs.NativeProbe` **also exit 0** (control: exit 1).
-The kernel re-check does **not** catch `native_decide` — a declared axiom is
-trusted by definition. `#print axioms` is the only witness.
-
----
-
-## [0.1.1] — 2026-08-01 — Router + Lean 4
-
-### Added
-- The full Lean 4 shelf: bounded installer against official hosts only, the
-  proof corpus, and the discipline as runnable scripts.
-- `lean/Proofs/RotAbility.lean` — 16 theorems binding each of the nine lenses to
-  what it *does*, including `every_lens_is_load_bearing` (erasing any lens
-  strictly lowers the ensemble weight) and `no_ability_overclaims`.
-
-### Note on what this variant is for
-It is not "the same product with proofs attached". `0.1.0` is the product;
-`0.1.1` is the product **plus the workshop it was built in** — reshape the
-router and prove the reshape, start your own proved repositories, and get the
-verification discipline as scripts you can run.
-
----
-
-## [0.1.0] — 2026-08-01 — Pure Router
-
-### Added
-- The nine-lane router as a `UserPromptSubmit` hook, both arms (`sh` and
-  PowerShell), cross-diffed byte for byte.
-- `ARM_ROUTER` / `DISARM_ROUTER` installers with a byte-identical round trip.
-- The checker suite and CI across Linux, Windows and macOS.
-
-### Fixed
-- **The installer armed the wrong directory.** All four installer arms honoured
-  `CLAUDE_DIR` but ignored `CLAUDE_CONFIG_DIR`, which is what Claude Code itself
-  reads. Precedence is now `CLAUDE_CONFIG_DIR` → `CLAUDE_DIR` → `$HOME/.claude`.
-  Found by installing the *artifact* rather than testing the repository.
-- **Disarm left an empty `hooks` container.** `hooks/settings-merge.js` now
-  removes `"hooks": {}` when the last entry is gone, so the round trip is byte
-  identical.
-
----
-
-## Verification shipped with these releases
-
-Every claim below has a named instrument. Nothing here is asserted from reading.
-
-| claim | instrument | result |
-|---|---|---|
-| the Lean corpus elaborates | `lake build` (exit code read directly) | exit 0, **zero `sorry`** |
-| the proof terms are valid | `lake env leanchecker <Module>` | exit 0; control exit 1 |
-| nothing rests on the compiler | `checker/axiom-class.sh` | 144 KERNEL, 0 COMPILER, 0 BROKEN |
-| the archives are well-formed | `checker/release-package.sh` | each tier a strict superset of the one below |
-| the artifact installs | `checker/release-install.sh` | unpacked, armed, round trip byte-identical |
-| the router **routes** from each archive | `checker/release-session.sh` | 27 lane-sessions, 3 archives × 9 lanes |
-| the router **works in a real conversation** | `checker/release-longsession.sh` | 181 turns, 181 real model answers, 181 firings |
-
-The last row is the one that took three attempts. The first two "local proofs"
-passed while no model turn had ever happened: an empty scratch config is not
-logged in, and `UserPromptSubmit` fires *before* the model call, so the router
-printed and every assertion went green on a session that never spoke. The
-sustained test clones a real credential, installs the plugin the way a user does
-(`claude --plugin-dir <artifact.zip>`), and holds a resumed conversation for a
-wall-clock budget — with an auth gate that refuses to score any turn unless the
-session answered for real.
-
-[0.1.2]: https://github.com/Nova-Violet-Role/RoT-MoE/releases/tag/v0.1.2
-[0.1.1]: https://github.com/Nova-Violet-Role/RoT-MoE/releases/tag/v0.1.1
-[0.1.0]: https://github.com/Nova-Violet-Role/RoT-MoE/releases/tag/v0.1.0

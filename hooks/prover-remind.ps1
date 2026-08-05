@@ -24,6 +24,14 @@
 [CmdletBinding()]
 param(
   [switch] $Decide,
+  # -Measure / -Workspace: the MEASUREMENT half of the contract, at parity with
+  # the POSIX arm's --measure / --workspace. -Decide made the DECISION
+  # cross-armable and the checker states outright that what it does not cover is
+  # "that both arms measure the same things off disk". That uncovered half is
+  # exactly where the one-level proof scan lived, in both arms at once, while
+  # every gate stayed green.
+  [switch] $Measure,
+  [switch] $Workspace,
   [switch] $Version,
   [Parameter(ValueFromRemainingArguments = $true)]
   [string[]] $Rest
@@ -44,13 +52,40 @@ $Here      = Split-Path -Parent $MyInvocation.MyCommand.Path
 # an explicit environment variable beats a recorded install, and a recorded
 # install beats our own shipped corpus. Defaulting to the bundled lean/ folder
 # pointed every measurement at a READ-ONLY corpus that can never acquire debt.
+# THE MIRROR OF A BUG THIS FILE'S SIBLING ALREADY DOCUMENTS, and it was found by
+# checker/remind-measure.sh on its very first run.
+#
+# prover-remind.sh normalises backslashes on READ because the PowerShell
+# installer naturally writes `<drive>:\path\Lean`. The reverse direction was
+# never handled: SETUP_LEAN.sh's `record_workspace` writes `$_ws` verbatim, and
+# under Git Bash on Windows that is a POSIX drive path, `/<letter>/...`, and
+# `Test-Path -LiteralPath` REFUSES that spelling on Windows -- so this function
+# good recorded workspace and fell through -- the recorded step was dead in this
+# arm for every user who ran the POSIX installer, which on Windows is most of
+# them. Silently: no error, just the wrong tree measured forever.
+#
+# The literal path is tried FIRST and the drive-letter reading only as a
+# fallback, which is what makes this safe on Linux -- there `/<letter>/...` is an
+# ordinary absolute path and must win. Preferring what EXISTS over what a rule
+# says should exist is the only version that cannot break the other platform.
+function Resolve-RecordedPath([string] $v) {
+  if ([string]::IsNullOrWhiteSpace($v)) { return '' }
+  $v = $v -replace '\\', '/'
+  if (Test-Path -LiteralPath $v) { return $v }
+  if ($v -match '^/([A-Za-z])/(.*)$') {
+    $win = $Matches[1].ToUpperInvariant() + ':/' + $Matches[2]
+    if (Test-Path -LiteralPath $win) { return $win }
+  }
+  return ''
+}
 function Get-RecordedWorkspace {
   try {
     $sd = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path (Get-HomeDir) '.local/state/rot-moe')
     $f  = Join-Path $sd 'workspace'
     if (Test-Path -LiteralPath $f) {
       $v = (Get-Content -LiteralPath $f -TotalCount 1 -ErrorAction Stop).Trim()
-      if ($v -and (Test-Path -LiteralPath $v)) { return $v }
+      $r = Resolve-RecordedPath $v
+      if ($r) { return $r }
     }
   } catch { }
   return ''
@@ -88,8 +123,42 @@ function Get-HomeDir {
 # SILENTLY fell back to the bundled corpus. That is worse than a crash: the
 # feature would have been dead in exactly the case it exists for, with every
 # gate green. Resolution stays below every function it depends on.
+#
+# DISCOVERY -- cross-arm parity with prover-remind.sh's `_ws_discover`, and it is
+# called out because the first attempt at this fix added discovery to the POSIX
+# arm ONLY. Two arms that resolve the workspace differently are two products: a
+# Windows user would keep getting "no proof written for 2907 minutes" from a
+# corpus nobody works in while a Linux user got the right answer, and no
+# cross-diff would see it, because --decide takes the measurements as arguments
+# and never resolves a workspace at all.
+#
+# The chain env -> RECORDED -> bundled corpus has a hole: nothing in the plugin
+# install path writes the recorded file, so the middle step is permanently empty
+# for a marketplace install. Discovery asks the filesystem instead. Both layouts
+# are accepted -- the workspace itself, and a project keeping Lean in a `lean/`
+# subdirectory, which is this repository's own shape.
+function Test-LeanWorkspace([string] $d) {
+  if ([string]::IsNullOrWhiteSpace($d)) { return $false }
+  if (-not (Test-Path -LiteralPath (Join-Path $d 'Proofs'))) { return $false }
+  return (Test-Path -LiteralPath (Join-Path $d 'lakefile.toml')) -or
+         (Test-Path -LiteralPath (Join-Path $d 'lakefile.lean'))
+}
+function Get-DiscoveredWorkspace {
+  try {
+    $d = Get-EnvOr 'ROTMOE_CWD' (Get-Location).Path
+    for ($n = 0; $n -lt 8 -and $d; $n++) {
+      if (Test-LeanWorkspace $d)                    { return $d }
+      if (Test-LeanWorkspace (Join-Path $d 'lean')) { return (Join-Path $d 'lean') }
+      $p = Split-Path -Parent $d
+      if (-not $p -or $p -eq $d) { break }
+      $d = $p
+    }
+  } catch { }
+  return ''
+}
 $Ws = $env:ROTMOE_LEAN_WORKSPACE
 if (-not $Ws) { $Ws = Get-RecordedWorkspace }
+if (-not $Ws) { $Ws = Get-DiscoveredWorkspace }
 if (-not $Ws) { $Ws = Join-Path $Here '../lean' }
 $ProofsDir = Join-Path $Ws 'Proofs'
 $StateDir  = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path (Get-HomeDir) '.local/state/rot-moe')
@@ -97,6 +166,43 @@ $GoalFile  = Get-EnvOr 'ROTMOE_GOAL_FILE' ''
 $StaleMin  = [int](Get-EnvOr 'ROTMOE_PROOF_STALE_MIN' '45')
 $DebtExt   = (Get-EnvOr 'ROTMOE_DEBT_EXT' 'rs c h cpp hpp go ts js py java kt swift') -split '\s+'
 $RiskRe    = Get-EnvOr 'ROTMOE_DEBT_PATTERN' 'as u8|as u16|as u32|as i8|as i16|as i32|as usize|saturating_|wrapping_|checked_|\.clamp\(|\.max\(|\.min\(|<<|>>|MAX_|MIN_|_CAP|_FLOOR|_LIMIT'
+
+# --- THE PROOF SCAN, IN ONE PLACE --------------------------------------------
+# Hook mode and -Measure must not each carry their own copy of this. A second
+# copy is how one of them would keep a defect the other had fixed -- which is
+# precisely the history here: the one-level scan survived because the only thing
+# that ever exercised the measurement was hook mode, and nothing compared it to
+# anything. One function, two callers, and the checker drives the exported one.
+function Get-ProofScan {
+  $r = [pscustomobject]@{ Count = 0; Mins = -1; Last = '-' }
+  try {
+    $all = @(Get-ChildItem -LiteralPath $ProofsDir -Filter '*.lean' -Recurse -ErrorAction Stop)
+    $r.Count = $all.Count
+    $p = $all | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    if ($p) {
+      $r.Mins = [int]((Get-Date).ToUniversalTime() - $p.LastWriteTimeUtc).TotalMinutes
+      $r.Last = $p.BaseName
+    }
+  } catch { }
+  return $r
+}
+
+if ($Measure) {
+  $s = Get-ProofScan
+  Write-Output ('' + $s.Count + ' ' + $s.Mins + ' ' + $s.Last)
+  exit 0
+}
+if ($Workspace) {
+  # WHICH STEP OF THE CHAIN ANSWERED. Four steps, and the middle one was empty
+  # for every marketplace install until discovery was added; being able to ask
+  # turns that diagnosis into one command.
+  $src = 'bundled'
+  if ($env:ROTMOE_LEAN_WORKSPACE)   { $src = 'env' }
+  elseif (Get-RecordedWorkspace)    { $src = 'recorded' }
+  elseif (Get-DiscoveredWorkspace)  { $src = 'discovered' }
+  Write-Output ($src + ' ' + $Ws)
+  exit 0
+}
 
 # --- DECIDE ------------------------------------------------------------------
 # A PURE function of measured inputs, mirroring the POSIX `decide()` clause for
@@ -317,15 +423,13 @@ try {
   }
 
   # 1. minutes since the most recent proof, and its name
-  $mins = -1; $last = '-'
-  try {
-    $p = Get-ChildItem -LiteralPath $ProofsDir -Filter '*.lean' -ErrorAction Stop |
-         Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
-    if ($p) {
-      $mins = [int]((Get-Date).ToUniversalTime() - $p.LastWriteTimeUtc).TotalMinutes
-      $last = $p.BaseName
-    }
-  } catch { }
+  # ONE scan function, shared with -Measure, so the thing the checker drives is
+  # the thing the hook runs. -Recurse lives inside it: one level deep meant that
+  # as soon as proofs were filed by subject (Proofs\Ctbrec\, ...) the newest
+  # visible file was whatever last landed in the root -- measured on one tree at
+  # one instant, one level -> 2947 min stale, recursive -> 54 min.
+  $scan = Get-ProofScan
+  $mins = $scan.Mins; $last = $scan.Last
 
   # 2. uncommitted source that is PROOF-SHAPED
   $debtFiles = @()

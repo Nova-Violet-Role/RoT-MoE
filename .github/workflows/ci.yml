@@ -244,6 +244,44 @@ jobs:
         shell: bash
         run: bash checker/cross-diff-remind.sh
 
+      # ---------------------------------------------------------------------
+      # THE FOUR GATES ADDED IN 0.7.0. Every one of them guards a defect that
+      # had ALREADY REACHED A LIVE MACHINE while 29 gates were green, which is
+      # the only argument for adding a gate that carries any weight.
+      #
+      #   duplication   -- the plugin and ARM_ROUTER both register the router on
+      #                    the same two events, so the documented install made it
+      #                    fire TWICE on every prompt.
+      #   disarm safety -- `--dry-run` was accepted, ignored, and deleted live
+      #                    hook entries; removal could not reach a plugin-path
+      #                    entry at all.
+      #   remind measure-- the proof scan was one level deep in BOTH arms, and
+      #                    the workspace chain had a step nothing ever wrote.
+      #   log replay    -- the debug log was written by both arms and read by
+      #                    nothing, so its numbers could drift unobserved.
+      #
+      # They sit in the `checkers` job, which is a matrix over ubuntu-latest,
+      # windows-latest and macos-latest, so all four run on all three. That is
+      # not incidental: three of them compare the POSIX arm against the
+      # PowerShell arm, and a cross-arm gate that only ever runs on one OS is a
+      # gate for one OS. Each degrades to an explicit SKIP -- never a PASS -- if
+      # pwsh is missing from a runner.
+      - name: router duplication -- the plugin and ARM_ROUTER must not stack
+        shell: bash
+        run: bash checker/router-duplication.sh
+
+      - name: disarm safety -- a dry run writes nothing, --all reaches plugin entries
+        shell: bash
+        run: bash checker/disarm-safety.sh
+
+      - name: remind measure -- both arms, one tree, including a nested proof
+        shell: bash
+        run: bash checker/remind-measure.sh
+
+      - name: log replay -- every gauge record recomputed from its own fields
+        shell: bash
+        run: bash checker/log-replay.sh
+
       # CLAUDE.md and /rot-moe-install are instructions to an AGENT WITH A
       # SHELL. A stale path in them is not a documentation nit -- it is an
       # agent improvising on someone else's machine.

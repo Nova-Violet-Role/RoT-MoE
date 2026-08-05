@@ -19,7 +19,18 @@
 # =============================================================================
 
 [CmdletBinding()]
-param()
+param(
+  # -DryRun: report what WOULD be removed and write nothing. Named to match
+  # ARM_ROUTER.ps1. Its absence here -- on the DESTRUCTIVE half of the pair --
+  # cost a live configuration: the flag was passed to preview a removal, the
+  # POSIX arm ignored it, and two real router hook entries were deleted.
+  [switch] $DryRun,
+  # -All: remove EVERY hook entry invoking a RoT MoE router script, whatever
+  # path or version it names. The default matches this directory's exact command
+  # string, which cannot remove a plugin-cache entry -- measured, and the reason
+  # this switch exists.
+  [switch] $All
+)
 $ErrorActionPreference = 'Stop'
 
 # CLAUDE_CONFIG_DIR FIRST -- it is the variable Claude Code itself reads to
@@ -46,8 +57,12 @@ function ConvertTo-PosixPath([string] $p) {
 $RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
 
+$Mode = if ($All) { 'disarm-any' } else { 'disarm' }
+
 Write-Output 'RoT MoE :: DISARM_ROUTER (PowerShell arm)'
 Write-Output ('  settings   : ' + $Settings)
+Write-Output ('  match      : ' + $(if ($All) { 'ANY RoT MoE router entry (-All)' } else { 'exact command string of this directory' }))
+if ($DryRun) { Write-Output '  mode       : DRY RUN -- nothing will be written' }
 
 if (-not (Test-Path -LiteralPath $Settings)) {
   Write-Output '  no settings.json -- nothing to disarm'; exit 0
@@ -56,13 +71,39 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
   Write-Output '  FATAL: node not found.'; exit 2
 }
 
+# DRY RUN -- cross-arm parity with DISARM_ROUTER.sh. The removal runs FOR REAL
+# against a copy, so the preview and the act share one code path and cannot
+# disagree; a dry run computed by a second implementation is a second thing to
+# be wrong.
+if ($DryRun) {
+  $Tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("rotmoe-disarm-dry-" + $PID + ".json")
+  Copy-Item -LiteralPath $Settings -Destination $Tmp -Force
+  # A read-only settings.json copies read-only, and node would then fail to
+  # write -- reporting "would FAIL" for a removal that would in fact succeed.
+  try { Set-ItemProperty -LiteralPath $Tmp -Name IsReadOnly -Value $false } catch { }
+  $before = @(Select-String -LiteralPath $Settings -Pattern 'rot-router' -SimpleMatch).Count
+  & node $Merge $Mode $Tmp $RouterCmd | Out-Null
+  $rc = $LASTEXITCODE
+  if ($rc -eq 10) {
+    Write-Output '  would remove: 0 router hook entries'
+  } elseif ($rc -ne 0) {
+    Write-Output ('  would FAIL with code ' + $rc + ' -- nothing would be written')
+  } else {
+    $after = @(Select-String -LiteralPath $Tmp -Pattern 'rot-router' -SimpleMatch).Count
+    Write-Output ('  router lines: ' + $before + ' now -> ' + $after + ' if disarmed')
+  }
+  Remove-Item -LiteralPath $Tmp -Force -ErrorAction SilentlyContinue
+  Write-Output ('  DRY RUN complete -- ' + $Settings + ' was NOT modified.')
+  exit 0
+}
+
 $Stamp  = Get-Date -Format 'yyyyMMdd-HHmmss'
 $Backup = "$Settings.pre-disarmrouter-$Stamp.bak"
 Copy-Item -LiteralPath $Settings -Destination $Backup -Force
 Write-Output ('  backup     : ' + $Backup)
 Write-Output ('  restore    : Copy-Item "' + $Backup + '" "' + $Settings + '" -Force')
 
-& node $Merge disarm $Settings $RouterCmd
+& node $Merge $Mode $Settings $RouterCmd
 $rc = $LASTEXITCODE
 
 switch ($rc) {
@@ -70,7 +111,18 @@ switch ($rc) {
       Write-Output '  AUTO-RESTORED from backup.'; exit 4 }
   3 { Write-Output '  settings.json was already invalid. Nothing written.'; exit 3 }
   10 { Remove-Item -LiteralPath $Backup -Force
-       Write-Output '  nothing to remove -- backup removed.'; exit 0 }
+       Write-Output '  nothing to remove -- backup removed.'
+       # Say so when the answer is misleading: `nothing to remove` while router
+       # entries are visibly present is the exact shape of the measured defect.
+       if ((-not $All) -and @(Select-String -LiteralPath $Settings -Pattern 'rot-router' -SimpleMatch).Count -gt 0) {
+         Write-Output ''
+         Write-Output '  BUT settings.json still contains RoT MoE router entries that do NOT'
+         Write-Output "  match this directory's command string (a plugin-cache or older-version"
+         Write-Output '  install). This run could not touch them. To remove those as well:'
+         Write-Output '      pwsh -NoProfile -File .\DISARM_ROUTER.ps1 -All -DryRun   # look first'
+         Write-Output '      pwsh -NoProfile -File .\DISARM_ROUTER.ps1 -All'
+       }
+       exit 0 }
   0 { }
   default { Copy-Item -LiteralPath $Backup -Destination $Settings -Force
             Write-Output ('  unexpected failure (' + $rc + '). AUTO-RESTORED.'); exit $rc }

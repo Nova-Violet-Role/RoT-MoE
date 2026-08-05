@@ -50,7 +50,7 @@ if ($Version) { Write-Output 'rot-router.ps1 1.0.0'; exit 0 }
 # every lane in both directions against exactly this order, so a reordering here
 # is a proved defect rather than a matter of taste.
 $Tier1 = @(
-  @{ Mode = 'FORGE';      Lead = 'Claude';    Stems = @('run','build','install','deploy','reproduce','ship','lake','theorem','tactic','sorry','mathlib','.lean') },
+  @{ Mode = 'FORGE';      Lead = 'Claude';    Stems = @('run','build','install','deploy','reproduce','ship','lake','theorem','tactic','sorry','mathlib','.lean','prove','proof','lemma','lean','qed') },
   @{ Mode = 'CLINICAL';   Lead = 'AntiVenom'; Stems = @('debug','error','bug','fix','secur','audit','verif','test','cve','segfault','crash','panic','leak','regress','traceback') },
   @{ Mode = 'EXECUTIVE';  Lead = 'Venom';     Stems = @('decid','urgenc','strike','direct','declar','now','conclud') },
   @{ Mode = 'EMPATHIC';   Lead = 'Violet';    Stems = @('emot','feel','grief','lonel','soul','story','human','tired','lost') },
@@ -87,11 +87,38 @@ function Get-Convener {
   return 'model'
 }
 
+# A STEM MUST START A WORD -- the POSIX arm's `fired`, character for character.
+# See hooks/rot-router.sh for the full note and lean/Proofs/RotStem.lean for the
+# proof; the short version is that `prove` cannot be a substring stem because
+# "improve" contains it, and neither can `lemma` ("dilemma") or `lean`
+# ("cleaning"). The same flaw was already live for `fix` ("prefix"), `now`
+# ("known") and `test` ("latest").
+#
+# Written with an index scan rather than a regex ON PURPOSE. A regex would need
+# every stem escaped, and `.lean` -- a stem that begins with a metacharacter --
+# is exactly the case that would silently become "any character followed by
+# lean". The dot is also why the punctuation-led fallback exists: "basic.lean"
+# has no word boundary before it.
+function Test-WordChar([char] $c) {
+  return ([char]::IsLetterOrDigit($c))
+}
+
+function Test-StemFires([string] $p, [string] $stem) {
+  if ([string]::IsNullOrEmpty($stem)) { return $false }
+  if (-not (Test-WordChar $stem[0])) { return $p.Contains($stem) }   # ".lean"
+  $i = $p.IndexOf($stem, [System.StringComparison]::Ordinal)
+  while ($i -ge 0) {
+    if ($i -eq 0 -or -not (Test-WordChar $p[$i - 1])) { return $true }
+    $i = $p.IndexOf($stem, $i + 1, [System.StringComparison]::Ordinal)
+  }
+  return $false
+}
+
 function Invoke-Route([string] $Prompt) {
   $p = $Prompt.ToLowerInvariant()
   foreach ($lane in $Tier1) {
     foreach ($stem in $lane.Stems) {
-      if ($p.Contains($stem)) { return "$($lane.Mode) $($lane.Lead)" }
+      if (Test-StemFires $p $stem) { return "$($lane.Mode) $($lane.Lead)" }
     }
   }
   return "CONVERGENT $(Get-Convener)"

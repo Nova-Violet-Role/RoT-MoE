@@ -47,7 +47,14 @@ export LC_ALL LC_NUMERIC
 # ORDER IS THE CONTRACT, not the word list. FORGE first: on this head the Lean
 # stems are the common case. route_exact in RotRoute.lean characterises every
 # lane in both directions against exactly this order.
-STEMS_FORGE='run build install deploy reproduce ship lake theorem tactic sorry mathlib .lean'
+# `prove proof lemma lean qed` joined in 0.7.0. MEASURED before the change, on
+# the shipped router: "prove this lemma" -> CONVERGENT, and "prove the read loop
+# conserves bytes in lean" -> STEALTH (it matched `byte`). On a prover head the
+# two most proof-shaped prompts imaginable reached every lane except FORGE.
+# They could not be added until `fired` matched word prefixes; see the note
+# there, and RotStem.firesWord for why that was the prerequisite rather than a
+# refinement.
+STEMS_FORGE='run build install deploy reproduce ship lake theorem tactic sorry mathlib .lean prove proof lemma lean qed'
 STEMS_CLINICAL='debug error bug fix secur audit verif test cve segfault crash panic leak regress traceback'
 STEMS_EXECUTIVE='decid urgenc strike direct declar now conclud'
 STEMS_EMPATHIC='emot feel grief lonel soul story human tired lost'
@@ -85,10 +92,46 @@ convener () {
   printf 'model'
 }
 
-fired () {   # fired "<lowercased prompt>" "<stem list>" -> 0 if any stem occurs
+# A STEM MUST START A WORD. Until 0.7.0 this was a plain substring test, and
+# that is why `prove`, `proof` and `lemma` could not be added to the FORGE list:
+# `prove` occurs inside "improve", `lemma` inside "dilemma", `lean` inside
+# "cleaning". The same flaw was already live for stems that shipped long ago --
+# `fix` fires on "prefix", `now` on "known", `test` on "latest" -- and had been
+# routing prompts onto the wrong lane for as long as the table existed.
+#
+# The rule: a stem matches at the start of the prompt, or immediately after a
+# character that is not alphanumeric. So "proofs" and "prover" still fire (a stem
+# is a word PREFIX, which is what `verif` -> "verification" and `strateg` ->
+# "strategy" have always relied on) while "improve" does not.
+#
+# NOT "proving" -- and the difference is worth stating because the first draft of
+# this comment got it wrong. `prove` is not a prefix of "proving" (p-r-o-v-i-n-g
+# breaks at the fifth character), so it never fired under EITHER matcher. The
+# executable example at RotStem.lean:386 pins that, which is how the mistake was
+# found: the spec disagreed with the prose and the spec was right.
+#
+# THE EXCEPTION, and it is why `.lean` still works: a stem that itself begins
+# with a non-alphanumeric character falls back to the substring test, because
+# "basic.lean" has no word boundary before the dot.
+#
+# Proved in lean/Proofs/RotStem.lean. `firesWord_imp_fires` is the statement that
+# made this safe to ship: word-prefix firing IMPLIES substring firing, for every
+# prompt and every stem class, so the change can only ever remove a false
+# positive -- it cannot invent a match and move a prompt onto a lane it was never
+# reaching. `firesWord_strictly_weaker` proves it is not vacuous.
+fired () {   # fired "<lowercased prompt>" "<stem list>" -> 0 if any stem starts a word
   _p="$1"; _s="$2"
   for _stem in $_s; do
-    case "$_p" in *"$_stem"*) return 0 ;; esac
+    case "$_stem" in
+      [!a-z0-9]*)
+        # punctuation-led stem: plain substring, as before
+        case "$_p" in *"$_stem"*) return 0 ;; esac ;;
+      *)
+        case "$_p" in
+          "$_stem"*)            return 0 ;;   # at the very start of the prompt
+          *[!a-z0-9]"$_stem"*)  return 0 ;;   # preceded by a non-word character
+        esac ;;
+    esac
   done
   return 1
 }

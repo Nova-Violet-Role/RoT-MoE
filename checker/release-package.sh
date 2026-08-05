@@ -55,7 +55,39 @@ esac
 # --- THE VARIANT MAP ----------------------------------------------------------
 # One place, read by everything below. Adding a variant means adding a line here
 # and a paths block; nothing else in this file hard-codes a variant name.
-VARIANTS="core:0.6.0 lean:0.6.1 unsealed:0.6.2"
+#
+# DERIVED FROM THE TREE, NEVER WRITTEN DOWN. This line used to read
+# `VARIANTS="core:0.6.0 lean:0.6.1 unsealed:0.6.2"`, and that is a snapshot of
+# one release frozen where a rule belongs: it was correct on the day it was
+# written and went red the moment `plugin.json` moved to 0.7.2, on a tree where
+# nothing was wrong. The failure even reads like a real defect -- "the tree
+# declares 0.7.2 but the highest variant is 0.6.2" -- and the quickest repair is
+# to retype the numbers, which teaches nobody anything and expires again next
+# release.
+#
+# The CONVENTION is the durable thing: three variants share one MAJOR.MINOR and
+# differ only in the patch digit, which IS the tier (0 core, 1 lean, 2 unsealed).
+# So it is computed from the manifest the tree already carries. A release bump
+# now needs one edit -- `plugin.json` -- and this file follows it by
+# construction.
+_MM="${TREEVER%.*}"
+case "$_MM" in
+  [0-9]*.[0-9]*) : ;;
+  *) echo "REFUSE: could not read MAJOR.MINOR from '$TREEVER'"; exit 2 ;;
+esac
+VARIANTS="core:$_MM.0 lean:$_MM.1 unsealed:$_MM.2"
+
+# `--print-variants` EXISTS BECAUSE THE MAP IS NOW COMPUTED, NOT WRITTEN.
+# checker/release-install.sh consumes this map, and it used to read it by
+# grepping this file for `^VARIANTS="..."` -- which worked only while the line
+# was a literal. The moment it became an expression that grep returned the
+# characters `core:$_MM.0`, and the gate refused looking for an archive named
+# `rot-moe-$_MM.0-core.zip`.
+#
+# Parsing another script's source is the fragile half of "single source of
+# truth". ASKING it is the robust half: the value is produced by the same code
+# that uses it, so the two cannot disagree even in principle.
+if [ "${1:-}" = "--print-variants" ]; then printf '%s\n' "$VARIANTS"; exit 0; fi
 
 # The tree's own version must be one of the variants, and by convention the
 # HIGHEST -- that is the version the newest tag will carry, and
@@ -91,6 +123,8 @@ DISARM_ROUTER.ps1
 README.md
 RELEASE.md
 CHANGELOG.md
+CHANGELOG-ARCHIVE.md
+docs
 NOTICE.md
 LICENSE
 LICENSE-EUPL-1.2

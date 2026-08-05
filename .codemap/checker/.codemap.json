@@ -73,12 +73,12 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "9af29f2e65a7",
-      "indexed_at": "2026-08-03T17:36:30.855070+00:00",
+      "hash": "30559107bd71",
+      "indexed_at": "2026-08-04T09:56:21.039292+00:00",
       "language": "shell",
-      "lines": 407,
-      "mtime_ns": 1785775973109057600,
-      "size": 19971,
+      "lines": 571,
+      "mtime_ns": 1785783876511497000,
+      "size": 28217,
       "symbols": [
         {
           "lines": [
@@ -99,12 +99,12 @@
       ]
     },
     "ci-dryrun.sh": {
-      "hash": "a21fe92fe167",
-      "indexed_at": "2026-08-02T12:45:28.240939+00:00",
+      "hash": "6fbf7434cdf0",
+      "indexed_at": "2026-08-04T23:51:54.967107+00:00",
       "language": "shell",
-      "lines": 338,
-      "mtime_ns": 1785673655718969900,
-      "size": 17289,
+      "lines": 387,
+      "mtime_ns": 1785885751687014100,
+      "size": 19961,
       "symbols": [
         {
           "lines": [
@@ -189,13 +189,32 @@
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "afe18bf62b2a",
-      "indexed_at": "2026-08-03T17:36:32.617284+00:00",
+      "hash": "13a923924cae",
+      "indexed_at": "2026-08-04T22:18:54.637274+00:00",
       "language": "shell",
-      "lines": 146,
-      "mtime_ns": 1785759308618010000,
-      "size": 6974,
+      "lines": 175,
+      "mtime_ns": 1785878584849995400,
+      "size": 8778,
       "symbols": []
+    },
+    "ctt-session.sh": {
+      "hash": "df6c28e354ef",
+      "indexed_at": "2026-08-04T09:56:21.046889+00:00",
+      "language": "shell",
+      "lines": 244,
+      "mtime_ns": 1785798008233738900,
+      "size": 12391,
+      "symbols": [
+        {
+          "docstring": "--- the conversation: REAL work on THIS repository -------------------------- Every prompt names something that exists on disk. The lane each is expec",
+          "lines": [
+            62,
+            89
+          ],
+          "name": "turn_text",
+          "type": "function"
+        }
+      ]
     },
     "deferred-closure.sh": {
       "hash": "144332f8cc42",
@@ -205,6 +224,25 @@
       "mtime_ns": 1785699185253211200,
       "size": 20535,
       "symbols": []
+    },
+    "disarm-safety.sh": {
+      "hash": "5d17ee6b3434",
+      "indexed_at": "2026-08-04T23:51:55.371191+00:00",
+      "language": "shell",
+      "lines": 189,
+      "mtime_ns": 1785874609890546000,
+      "size": 8980,
+      "symbols": [
+        {
+          "docstring": "A config carrying BOTH shapes: an entry naming a plugin cache (which the exact matcher cannot reproduce from this directory) and a hook of the user's",
+          "lines": [
+            55,
+            68
+          ],
+          "name": "make_cfg",
+          "type": "function"
+        }
+      ]
     },
     "dorks.sh": {
       "hash": "4e1ec56c281a",
@@ -252,13 +290,51 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "8f75fb228980",
-      "indexed_at": "2026-08-03T17:36:32.617840+00:00",
+      "hash": "414338364cb4",
+      "indexed_at": "2026-08-04T22:18:54.637988+00:00",
       "language": "shell",
-      "lines": 149,
-      "mtime_ns": 1785765241836035000,
-      "size": 6886,
-      "symbols": []
+      "lines": 284,
+      "mtime_ns": 1785875144273545700,
+      "size": 13207,
+      "symbols": [
+        {
+          "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
+          "lines": [
+            146,
+            161
+          ],
+          "name": "fires",
+          "type": "function"
+        }
+      ]
+    },
+    "gate-split.sh": {
+      "hash": "3f76c8f8be5b",
+      "indexed_at": "2026-08-04T09:56:21.053947+00:00",
+      "language": "shell",
+      "lines": 246,
+      "mtime_ns": 1785784955880308900,
+      "size": 9804,
+      "symbols": [
+        {
+          "docstring": "--- side A: the shell table ------------------------------------------------- Only the DEFAULT block (between `GATES=\"` and the closing lone quote). T",
+          "lines": [
+            55,
+            61
+          ],
+          "name": "extract_sh",
+          "type": "function"
+        },
+        {
+          "docstring": "--- side B: the Lean witness ------------------------------------------------ `f \"name\"` is a fast gate with no triggers; `d \"name\" [\"a\", \"b\"]` is a d",
+          "lines": [
+            66,
+            86
+          ],
+          "name": "extract_lean",
+          "type": "function"
+        }
+      ]
     },
     "gauge-cross.sh": {
       "hash": "01a41dc45527",
@@ -378,6 +454,25 @@
         }
       ]
     },
+    "log-replay.sh": {
+      "hash": "f32d35e1a0ef",
+      "indexed_at": "2026-08-04T23:51:55.761205+00:00",
+      "language": "shell",
+      "lines": 305,
+      "mtime_ns": 1785876189810234400,
+      "size": 14500,
+      "symbols": [
+        {
+          "docstring": "--- 2. THE NEGATIVE CONTROLS ------------------------------------------------ A replayer that accepts everything is worse than none: it certifies. Eac",
+          "lines": [
+            249,
+            273
+          ],
+          "name": "ctl",
+          "type": "function"
+        }
+      ]
+    },
     "marketplace-session.sh": {
       "hash": "e0fe7c014b55",
       "indexed_at": "2026-08-03T04:56:55.548220+00:00",
@@ -407,18 +502,18 @@
       "symbols": []
     },
     "mutate-checker.sh": {
-      "hash": "22f964eb488f",
-      "indexed_at": "2026-07-31T15:55:19.002296+00:00",
+      "hash": "263ac89cf771",
+      "indexed_at": "2026-08-04T23:51:55.954579+00:00",
       "language": "shell",
-      "lines": 259,
-      "mtime_ns": 1785512586641368500,
-      "size": 12174,
+      "lines": 280,
+      "mtime_ns": 1785887415127736400,
+      "size": 13267,
       "symbols": [
         {
           "docstring": "run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker] The 7th argument names the checker to run; it defaults to the router cross",
           "lines": [
-            56,
-            89
+            77,
+            110
           ],
           "name": "run",
           "type": "function"
@@ -480,27 +575,72 @@
         }
       ]
     },
-    "release-consistency.sh": {
-      "hash": "0657c893276e",
-      "indexed_at": "2026-08-01T05:44:57.824838+00:00",
+    "profile-bind.sh": {
+      "hash": "207f21c91d5b",
+      "indexed_at": "2026-08-04T09:56:21.077124+00:00",
       "language": "shell",
-      "lines": 121,
-      "mtime_ns": 1785562724311035100,
-      "size": 5227,
+      "lines": 200,
+      "mtime_ns": 1785791649182820000,
+      "size": 8072,
+      "symbols": [
+        {
+          "docstring": "--- spec side: lens -> lambda for one \u00a74 block ------------------------------",
+          "lines": [
+            60,
+            76
+          ],
+          "name": "spec_profile",
+          "type": "function"
+        },
+        {
+          "docstring": "--- lean side: lens -> lambda for one def ----------------------------------",
+          "lines": [
+            79,
+            92
+          ],
+          "name": "lean_profile",
+          "type": "function"
+        },
+        {
+          "lines": [
+            96,
+            139
+          ],
+          "name": "check_profile",
+          "type": "function"
+        },
+        {
+          "docstring": "--- the lane lead must actually be the maximum, on the SPEC's own numbers --- Lean proves this over its tables; here it is re-derived from the spec te",
+          "lines": [
+            149,
+            160
+          ],
+          "name": "lead_is_max",
+          "type": "function"
+        }
+      ]
+    },
+    "release-consistency.sh": {
+      "hash": "60c71bb932c8",
+      "indexed_at": "2026-08-04T09:56:21.078253+00:00",
+      "language": "shell",
+      "lines": 159,
+      "mtime_ns": 1785794697108789500,
+      "size": 7651,
       "symbols": []
     },
     "release-install.sh": {
-      "hash": "7e03b22ff315",
-      "indexed_at": "2026-08-03T17:36:31.031322+00:00",
+      "hash": "4ee0fa4c41a5",
+      "indexed_at": "2026-08-04T22:18:54.639140+00:00",
       "language": "shell",
-      "lines": 399,
-      "mtime_ns": 1785772195664888900,
-      "size": 20267,
+      "lines": 428,
+      "mtime_ns": 1785880192868780400,
+      "size": 22036,
       "symbols": [
         {
           "lines": [
-            74,
-            80
+            103,
+            109
           ],
           "name": "run_bounded",
           "type": "function"
@@ -508,18 +648,18 @@
       ]
     },
     "release-longsession.sh": {
-      "hash": "22ac8fe24407",
-      "indexed_at": "2026-08-03T17:36:31.206896+00:00",
+      "hash": "efbe852b7800",
+      "indexed_at": "2026-08-04T09:56:21.082698+00:00",
       "language": "shell",
-      "lines": 269,
-      "mtime_ns": 1785772195664888900,
-      "size": 14568,
+      "lines": 281,
+      "mtime_ns": 1785795512078355600,
+      "size": 15329,
       "symbols": [
         {
           "docstring": "--- the conversation --------------------------------------------------------- A working session, not a lane drill: the turns build on each other, and",
           "lines": [
-            103,
-            126
+            115,
+            138
           ],
           "name": "turn_text",
           "type": "function"
@@ -527,8 +667,8 @@
         {
           "docstring": "--- INSTALL, the plugin way: the CLI loads it straight from the zip ------- `--plugin-dir` accepts a directory OR a .zip (measured: claude --help). Th",
           "lines": [
-            169,
-            177
+            181,
+            189
           ],
           "name": "run_turn",
           "type": "function"
@@ -536,17 +676,17 @@
       ]
     },
     "release-package.sh": {
-      "hash": "5f0551f0ddd8",
-      "indexed_at": "2026-08-03T17:36:31.383344+00:00",
+      "hash": "bdee0b6aafaf",
+      "indexed_at": "2026-08-04T22:18:54.640197+00:00",
       "language": "shell",
-      "lines": 361,
-      "mtime_ns": 1785772195665887300,
-      "size": 15876,
+      "lines": 395,
+      "mtime_ns": 1785881854694704600,
+      "size": 17629,
       "symbols": [
         {
           "lines": [
-            119,
-            125
+            153,
+            159
           ],
           "name": "paths_for",
           "type": "function"
@@ -554,8 +694,8 @@
         {
           "docstring": "--- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ---------------------- The property that makes the numbering mean something. Checked by set dif",
           "lines": [
-            226,
-            234
+            260,
+            268
           ],
           "name": "superset",
           "type": "function"
@@ -563,12 +703,12 @@
       ]
     },
     "release-session.sh": {
-      "hash": "e4418649c30e",
-      "indexed_at": "2026-08-03T17:36:31.559030+00:00",
+      "hash": "28b69132a519",
+      "indexed_at": "2026-08-04T09:56:21.086737+00:00",
       "language": "shell",
-      "lines": 268,
-      "mtime_ns": 1785772195665887300,
-      "size": 13356,
+      "lines": 278,
+      "mtime_ns": 1785795534508723100,
+      "size": 13929,
       "symbols": [
         {
           "lines": [
@@ -580,8 +720,8 @@
         },
         {
           "lines": [
-            96,
-            108
+            106,
+            118
           ],
           "name": "prompt_for",
           "type": "function"
@@ -589,29 +729,48 @@
         {
           "docstring": "The expected lens is read from THIS ARCHIVE's router, not from a copy here. A hard-coded expectation is a second source of truth that silently rots --",
           "lines": [
-            174,
-            177
+            184,
+            187
           ],
           "name": "lens_for",
           "type": "function"
         },
         {
           "lines": [
-            196,
-            206
+            206,
+            216
           ],
           "name": "run_session",
           "type": "function"
         }
       ]
     },
-    "repo-complete.sh": {
-      "hash": "223bc763ce90",
-      "indexed_at": "2026-08-03T05:52:22.103613+00:00",
+    "remind-measure.sh": {
+      "hash": "d062075cef98",
+      "indexed_at": "2026-08-04T23:51:56.515710+00:00",
       "language": "shell",
-      "lines": 507,
-      "mtime_ns": 1785733383404141300,
-      "size": 25596,
+      "lines": 203,
+      "mtime_ns": 1785875289031229600,
+      "size": 10597,
+      "symbols": [
+        {
+          "docstring": "RECORD IT THE WAY THE INSTALLER DOES. SETUP_LEAN.sh normalises to the drive-letter form because that is the only spelling BOTH arms can test -- measur",
+          "lines": [
+            125,
+            131
+          ],
+          "name": "canon_ws",
+          "type": "function"
+        }
+      ]
+    },
+    "repo-complete.sh": {
+      "hash": "fdb1e67adb16",
+      "indexed_at": "2026-08-04T23:51:56.713105+00:00",
+      "language": "shell",
+      "lines": 637,
+      "mtime_ns": 1785882565758608000,
+      "size": 32497,
       "symbols": [
         {
           "lines": [
@@ -625,33 +784,78 @@
           "docstring": "Every \"<n> theorems\" / \"<n> machine-checked\" claim must equal TH -- ANYWHERE IN THE TREE, not in three files chosen by hand.  MEASURED DEFECT, 2026-07",
           "lines": [
             137,
-            145
+            167
           ],
           "name": "claim_exempt",
           "type": "function"
         },
         {
           "lines": [
-            147,
-            167
+            169,
+            212
           ],
           "name": "scan_file_claims",
           "type": "function"
         },
         {
           "lines": [
-            398,
-            405
+            464,
+            471
           ],
           "name": "detects",
           "type": "function"
         },
         {
           "lines": [
-            456,
-            465
+            522,
+            531
           ],
           "name": "strip_lean_comments",
+          "type": "function"
+        }
+      ]
+    },
+    "router-duplication.sh": {
+      "hash": "0e0ac56d9b11",
+      "indexed_at": "2026-08-04T23:51:56.909652+00:00",
+      "language": "shell",
+      "lines": 245,
+      "mtime_ns": 1785881784295705300,
+      "size": 11884,
+      "symbols": [
+        {
+          "docstring": "--- fixtures ---------------------------------------------------------------- A scratch Claude config. `enabled` decides whether the plugin registrati",
+          "lines": [
+            60,
+            70
+          ],
+          "name": "make_cfg",
+          "type": "function"
+        },
+        {
+          "lines": [
+            72,
+            82
+          ],
+          "name": "count_entries",
+          "type": "function"
+        },
+        {
+          "docstring": "--- ARM 1: POSIX ------------------------------------------------------------",
+          "lines": [
+            87,
+            116
+          ],
+          "name": "run_case",
+          "type": "function"
+        },
+        {
+          "docstring": "THE PATH IN THE MANIFEST MUST BE ONE **NODE** CAN OPEN. Claude Code writes a native path there (\"C:\\\\Users\\\\...\\\\0.7.2\" on Windows, measured). Writing",
+          "lines": [
+            217,
+            220
+          ],
+          "name": "canon_np",
           "type": "function"
         }
       ]
@@ -810,12 +1014,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "d79931f9fac2",
-      "indexed_at": "2026-08-02T19:55:39.975068+00:00",
+      "hash": "04f6172dd90f",
+      "indexed_at": "2026-08-04T09:56:21.106439+00:00",
       "language": "shell",
-      "lines": 840,
-      "mtime_ns": 1785699955075255100,
-      "size": 42508,
+      "lines": 896,
+      "mtime_ns": 1785781476391063000,
+      "size": 45447,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -862,26 +1066,34 @@
           "type": "function"
         },
         {
+          "lines": [
+            408,
+            412
+          ],
+          "name": "enum_mods",
+          "type": "function"
+        },
+        {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            402,
-            406
+            449,
+            453
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            530,
-            554
+            586,
+            610
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            610,
-            621
+            666,
+            677
           ],
           "name": "perms_of",
           "type": "function"
@@ -889,8 +1101,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            739,
-            746
+            795,
+            802
           ],
           "name": "probe_r20",
           "type": "function"
@@ -898,6 +1110,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-03T17:36:33.021581+00:00",
+  "generated_at": "2026-08-04T23:51:56.909743+00:00",
   "version": "1.0"
 }

@@ -205,8 +205,34 @@ LAKE
   return 0
 }
 
+# THE RECORDED PATH MUST BE READABLE BY BOTH ARMS, and it was not.
+#
+# This wrote `$_ws` verbatim. Under Git Bash on Windows that is a POSIX drive
+# path, `/<letter>/...`, which `Test-Path -LiteralPath` REFUSES -- so
+# the PowerShell reminder silently discarded a perfectly good recorded workspace
+# and measured the plugin's own read-only corpus instead. Found by
+# checker/remind-measure.sh, which drives both arms over one fixture; no
+# single-arm test could see it.
+#
+# The portable normal form is the DRIVE-LETTER form, `D:/Lean/proofs`, and that
+# is measured rather than assumed: Git Bash accepts `[ -d "D:/tmp" ]` and so does
+# PowerShell's Test-Path. Note this is the OPPOSITE choice from ARM_ROUTER's
+# command string, which is POSIX-form on purpose because Git Bash is what
+# executes the hook. Different question, different normal form -- a path here has
+# to be TESTABLE by two languages, not EXECUTABLE by one shell.
+#
+# On Linux and macOS there is no cygpath, so this is the identity function.
+canon_ws_path () {
+  _p="$1"
+  if command -v cygpath >/dev/null 2>&1; then
+    _w=$(cygpath -w "$_p" 2>/dev/null) || _w=""
+    [ -n "$_w" ] && _p=$(printf '%s' "$_w" | tr '\\' '/')
+  fi
+  printf '%s' "$_p"
+}
+
 record_workspace () {
-  _ws="$1"
+  _ws="$(canon_ws_path "$1")"
   _sd="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
   [ "$DRY" -eq 1 ] && { say "would record workspace: $_ws -> $_sd/workspace"; return 0; }
   mkdir -p "$_sd" 2>/dev/null || { say "could not create $_sd -- the workspace will not be remembered"; return 1; }

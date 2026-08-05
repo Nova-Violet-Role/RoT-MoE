@@ -28,44 +28,98 @@
         }
       ]
     },
-    "mutate_rotacquire.sh": {
-      "hash": "b0732bd9bc5f",
-      "indexed_at": "2026-07-31T19:33:48.633845+00:00",
+    "mutate_rotability.sh": {
+      "hash": "54f46b164d4a",
+      "indexed_at": "2026-08-04T09:56:21.125375+00:00",
       "language": "shell",
-      "lines": 225,
-      "mtime_ns": 1785525603820247900,
-      "size": 11028,
+      "lines": 223,
+      "mtime_ns": 1785790725579203900,
+      "size": 10051,
       "symbols": [
         {
           "lines": [
-            112,
-            140
+            93,
+            150
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotacquire.sh": {
+      "hash": "f29804b7398a",
+      "indexed_at": "2026-08-04T09:56:21.127618+00:00",
+      "language": "shell",
+      "lines": 261,
+      "mtime_ns": 1785790725588198700,
+      "size": 13185,
+      "symbols": [
+        {
+          "lines": [
+            133,
+            161
           ],
           "name": "run_mut",
           "type": "function"
         },
         {
           "lines": [
-            142,
-            191
+            163,
+            212
           ],
           "name": "run_mut_nth",
           "type": "function"
         }
       ]
     },
-    "mutate_rotgauge.sh": {
-      "hash": "d65695876089",
-      "indexed_at": "2026-08-03T17:36:32.624481+00:00",
+    "mutate_rotduplicate.sh": {
+      "hash": "96943475333c",
+      "indexed_at": "2026-08-04T23:51:58.419511+00:00",
       "language": "shell",
-      "lines": 236,
-      "mtime_ns": 1785742576047354000,
-      "size": 10734,
+      "lines": 308,
+      "mtime_ns": 1785879132759122900,
+      "size": 14043,
       "symbols": [
         {
           "lines": [
-            80,
-            152
+            100,
+            161
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotgates.sh": {
+      "hash": "7f584fec5a97",
+      "indexed_at": "2026-08-04T09:56:21.129912+00:00",
+      "language": "shell",
+      "lines": 219,
+      "mtime_ns": 1785790725595198800,
+      "size": 9628,
+      "symbols": [
+        {
+          "lines": [
+            94,
+            155
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotgauge.sh": {
+      "hash": "6dfb3a50d1d4",
+      "indexed_at": "2026-08-04T09:56:21.132326+00:00",
+      "language": "shell",
+      "lines": 288,
+      "mtime_ns": 1785790790554197000,
+      "size": 13699,
+      "symbols": [
+        {
+          "lines": [
+            101,
+            173
           ],
           "name": "run_mut",
           "type": "function"
@@ -73,26 +127,26 @@
       ]
     },
     "mutate_rotinstall.sh": {
-      "hash": "a3cf8826fd7b",
-      "indexed_at": "2026-07-31T19:17:29.126766+00:00",
+      "hash": "7ec57e1beeac",
+      "indexed_at": "2026-08-04T09:56:21.134689+00:00",
       "language": "shell",
-      "lines": 234,
-      "mtime_ns": 1785521801890954400,
-      "size": 10727,
+      "lines": 286,
+      "mtime_ns": 1785790790556196900,
+      "size": 13698,
       "symbols": [
         {
           "docstring": "Map error line numbers back to the enclosing declaration.  TWO KNOWN LIMITS, stated because an attribution that overstates its reach is the same defec",
           "lines": [
-            90,
-            100
+            111,
+            121
           ],
           "name": "attribute",
           "type": "function"
         },
         {
           "lines": [
-            102,
-            128
+            123,
+            149
           ],
           "name": "run_mut",
           "type": "function"
@@ -100,8 +154,8 @@
         {
           "docstring": "Occurrence-indexed, strictly LINE-ORIENTED variant.  It exists because I01/I09 were DISCARDED on the first run: their needle spanned two lines, and `g",
           "lines": [
-            144,
-            173
+            165,
+            194
           ],
           "name": "run_mut_nth",
           "type": "function"
@@ -109,25 +163,25 @@
       ]
     },
     "mutate_rotpath.sh": {
-      "hash": "751da061de00",
-      "indexed_at": "2026-07-31T19:17:29.278104+00:00",
+      "hash": "ebd0b8d44765",
+      "indexed_at": "2026-08-04T09:56:21.136825+00:00",
       "language": "shell",
-      "lines": 228,
-      "mtime_ns": 1785522057021045700,
-      "size": 10864,
+      "lines": 264,
+      "mtime_ns": 1785790725596198800,
+      "size": 13012,
       "symbols": [
         {
           "lines": [
-            112,
-            140
+            133,
+            161
           ],
           "name": "run_mut",
           "type": "function"
         },
         {
           "lines": [
-            142,
-            191
+            163,
+            212
           ],
           "name": "run_mut_nth",
           "type": "function"
@@ -135,25 +189,25 @@
       ]
     },
     "mutate_rotremind.sh": {
-      "hash": "b9482678398c",
-      "indexed_at": "2026-07-31T19:17:29.430983+00:00",
+      "hash": "d5a26b13affa",
+      "indexed_at": "2026-08-04T09:56:21.139118+00:00",
       "language": "shell",
-      "lines": 250,
-      "mtime_ns": 1785521801890954400,
-      "size": 12768,
+      "lines": 286,
+      "mtime_ns": 1785790725597198300,
+      "size": 14922,
       "symbols": [
         {
           "lines": [
-            112,
-            140
+            133,
+            161
           ],
           "name": "run_mut",
           "type": "function"
         },
         {
           "lines": [
-            142,
-            191
+            163,
+            212
           ],
           "name": "run_mut_nth",
           "type": "function"
@@ -161,17 +215,35 @@
       ]
     },
     "mutate_rotroute.sh": {
-      "hash": "1b483b46b806",
-      "indexed_at": "2026-07-31T19:17:29.584611+00:00",
+      "hash": "c4719e95fea3",
+      "indexed_at": "2026-08-04T09:56:21.140953+00:00",
       "language": "shell",
-      "lines": 175,
-      "mtime_ns": 1785521801890954400,
-      "size": 7954,
+      "lines": 227,
+      "mtime_ns": 1785790790557197000,
+      "size": 10919,
       "symbols": [
         {
           "lines": [
-            79,
-            109
+            100,
+            130
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotstem.sh": {
+      "hash": "e72a8b377c98",
+      "indexed_at": "2026-08-04T23:51:58.611314+00:00",
+      "language": "shell",
+      "lines": 274,
+      "mtime_ns": 1785882382832606900,
+      "size": 12449,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            164
           ],
           "name": "run_mut",
           "type": "function"
@@ -179,25 +251,25 @@
       ]
     },
     "mutate_rotvacuity.sh": {
-      "hash": "ec0f770e804d",
-      "indexed_at": "2026-07-31T19:17:29.736352+00:00",
+      "hash": "fcb15b63a3ed",
+      "indexed_at": "2026-08-04T09:56:21.143079+00:00",
       "language": "shell",
-      "lines": 225,
-      "mtime_ns": 1785521801890954400,
-      "size": 11131,
+      "lines": 261,
+      "mtime_ns": 1785790725598198900,
+      "size": 13288,
       "symbols": [
         {
           "lines": [
-            88,
-            116
+            109,
+            137
           ],
           "name": "run_mut",
           "type": "function"
         },
         {
           "lines": [
-            118,
-            167
+            139,
+            188
           ],
           "name": "run_mut_nth",
           "type": "function"
@@ -205,25 +277,25 @@
       ]
     },
     "mutate_rotverdict.sh": {
-      "hash": "6e4937b59229",
-      "indexed_at": "2026-08-01T01:04:17.945152+00:00",
+      "hash": "3cf86fcb40f8",
+      "indexed_at": "2026-08-04T09:56:21.145251+00:00",
       "language": "shell",
-      "lines": 236,
-      "mtime_ns": 1785545140076495300,
-      "size": 11891,
+      "lines": 272,
+      "mtime_ns": 1785790725598198900,
+      "size": 14048,
       "symbols": [
         {
           "lines": [
-            112,
-            140
+            133,
+            161
           ],
           "name": "run_mut",
           "type": "function"
         },
         {
           "lines": [
-            142,
-            191
+            163,
+            212
           ],
           "name": "run_mut_nth",
           "type": "function"
@@ -231,6 +303,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-03T17:36:32.633105+00:00",
+  "generated_at": "2026-08-04T23:51:58.611411+00:00",
   "version": "1.0"
 }

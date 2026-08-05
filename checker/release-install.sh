@@ -59,7 +59,18 @@ REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 # This repo has already shipped that exact defect once (a duplicate weight table
 # the binding checker was validating instead of the real one). So the map is now
 # PARSED from the packager, which is the only place it is defined.
-VARIANTS=$(sed -n 's/^VARIANTS="\(.*\)"$/\1/p' "$REPO/checker/release-package.sh" | head -1)
+# ASKED FOR, not grepped out. The line above was
+#   sed -n 's/^VARIANTS="\(.*\)"$/\1/p' checker/release-package.sh
+# which reads the packager's SOURCE TEXT. That survives only while the map is a
+# literal string, and it stopped being one when the packager began DERIVING the
+# three versions from plugin.json (a hardcoded triple went red on a correct
+# release bump). The sed then returned `core:$_MM.0 ...` verbatim and this gate
+# refused, hunting an archive named `rot-moe-$_MM.0-core.zip`.
+#
+# The single-source principle is unchanged and the implementation is now sound:
+# the packager is EXECUTED and prints the map it will actually use, so a future
+# change to how versions are derived reaches this file automatically.
+VARIANTS=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null | head -1)
 case "$VARIANTS" in
   *core:*|*lean:*|*unsealed:*) : ;;
   *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANTS')."

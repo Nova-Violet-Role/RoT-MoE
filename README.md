@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **205
+lens activities off disk, computes an `R/s+` gauge from them, and **244
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **72 applied, 72 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **89 applied, 89 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -283,7 +283,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   `nsil_overrides_tier1` — which proves both that the override lands *and* that
   it genuinely differs from the keyword result, the difference between a router
   and an `if`-chain.
-* **`lean/Proofs/RotStem.lean`** (10 theorems) — stem matching proved over an
+* **`lean/Proofs/RotStem.lean`** (13 theorems) — stem matching proved over an
   **arbitrary vocabulary**, so the theorems do not expire the next time a stem is
   added. `fires_iff` pins firing to genuine infix containment; `not_fires_nil`
   proves an empty stem list is not a wildcard; `fires_mono` and `fires_perm` say
@@ -291,6 +291,14 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   changes the outcome — the property that makes the word list safe to edit.
   `routeText_sound` is the headline: every routing result is either CONVERGENT or
   a lane whose own stems actually fired, so no lane can be reached by accident.
+  Since 0.7.0 it also specifies **the matcher itself**, which had never been
+  modelled: a stem must start a word. `firesWord_imp_fires` is what made that
+  change safe to ship — word-prefix firing implies substring firing for *every*
+  prompt and *every* class, so the new rule can only remove a false positive and
+  can never move a prompt onto a lane it was not already reaching.
+  `firesWord_strictly_weaker` proves the guarantee is not vacuous by exhibiting
+  a prompt the old matcher accepts and the new one rejects: **improve** does not
+  contain the stem `prove` at a word boundary.
 * **`lean/Proofs/RotPath.lean`** (12 theorems) — path canonicalisation, written
   *after* a real stranding bug: the two installer arms wrote different command
   strings for one install, and removal matches by exact string, so installing
@@ -1043,6 +1051,20 @@ Reproduce it yourself in one line:
 ```bash
 bash checker/bench-router.sh    # exit 0 = 5 passed; it can and does fail
 ```
+
+---
+
+## 📚 Two documents worth reading before you change anything
+
+* **[`docs/SCRUTINY-0.7.md`](docs/SCRUTINY-0.7.md)** — an adversarial reading of
+  this release by the person who wrote it. What could still be wrong, which
+  claims are **PROVED** versus merely **MEASURED**, the three cases where the
+  *instrument* was the broken thing, and the one where a check forbade a correct
+  future. It ends with what this packet does **not** establish, stated plainly.
+* **[`docs/GIT-WORKFLOW.md`](docs/GIT-WORKFLOW.md)** — how to work on this
+  repository without producing a false green. Baselines, reading exit codes
+  outside a pipe, the four edits a new checker requires, the release triple, and
+  a table of the traps that have actually bitten here.
 
 ---
 

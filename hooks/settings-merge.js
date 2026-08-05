@@ -25,8 +25,32 @@
 // application. Measured on the development machine, python/python3/py are all
 // absent; node is not a lucky dependency here, it is the platform.
 //
-// Usage:  node settings-merge.js <arm|disarm> <settings-path> <command-string>
+// Usage:  node settings-merge.js <arm|disarm|disarm-any> <settings-path> <command-string>
 // Exit:   0 changed · 10 nothing to do · 3 input invalid · 4 validation failed
+//
+// ----------------------------------------------------------------------------
+// WHY `disarm-any` EXISTS, and why it is a SEPARATE mode rather than a relaxed
+// `disarm`.
+//
+// `disarm` matches the command string EXACTLY, rebuilt from the directory the
+// uninstaller was run from. Measured consequence on a real machine: the entry in
+// settings.json pointed at the INSTALLED PLUGIN
+//
+//     .../.claude/plugins/cache/rot-moe/rot-moe/<ver>/hooks/rot-router.ps1
+//
+// while DISARM was run from a source checkout. It reported `nothing to remove`
+// and the entry stayed -- permanently, with the uninstaller exiting 0. An
+// uninstaller that cannot remove what the documented install produces is not an
+// uninstaller.
+//
+// The two modes are kept apart on purpose. Exact match is the one with the
+// proof (lean/Proofs/RotInstall.lean: `disarm_arm_id` under freshness, and
+// `disarm_arm_not_id` showing the hypothesis cannot be dropped); it is what
+// runs by default and it can only ever touch the string it wrote. `disarm-any`
+// is broader BY DESIGN and therefore opt-in: it removes every hook entry that
+// invokes a RoT MoE router script, whatever path or version it names. That is
+// exactly what a user with a stale or plugin-path entry needs, and exactly what
+// must never happen without being asked for.
 // ============================================================================
 
 "use strict";
@@ -34,7 +58,7 @@ const fs = require("fs");
 
 const [, , mode, file, cmd] = process.argv;
 if (!mode || !file || !cmd) {
-  console.error("usage: settings-merge.js <arm|disarm> <settings.json> <command>");
+  console.error("usage: settings-merge.js <arm|disarm|disarm-any> <settings.json> <command>");
   process.exit(2);
 }
 const EVENTS = ["UserPromptSubmit", "PreToolUse"];
@@ -80,7 +104,14 @@ if (mode === "arm") {
     touched.push(ev);
   }
   if (touched.length === 0) { console.log("  nothing to do -- already armed on every event"); process.exit(10); }
-} else if (mode === "disarm") {
+} else if (mode === "disarm" || mode === "disarm-any") {
+  // THE PREDICATE IS THE ONLY DIFFERENCE between the two modes. Written once,
+  // here, so the removal, the group-emptying rule and the container rule cannot
+  // drift between them -- two copies of this loop is how the broad mode would
+  // eventually acquire a behaviour the narrow one does not have.
+  const isOurs = (c) => mode === "disarm-any"
+    ? (typeof c === "string" && /rot-router\.(ps1|sh)/.test(c))
+    : (c === cmd);
   let removed = 0;
   for (const ev of Object.keys(s.hooks || {})) {
     const groups = s.hooks[ev];
@@ -89,12 +120,12 @@ if (mode === "arm") {
     let removedHere = 0;
     for (const g of groups) {
       if (!Array.isArray(g.hooks)) { keep.push(g); continue; }
-      const had = g.hooks.some(h => h.command === cmd);
+      const had = g.hooks.some(h => isOurs(h.command));
       const n = g.hooks.length;
-      // Remove ONLY our exact command string. An uninstaller that took a
+      // Remove ONLY what the predicate claims. An uninstaller that took a
       // neighbour with it would satisfy "the router is gone" perfectly while
       // destroying the user's setup.
-      g.hooks = g.hooks.filter(h => h.command !== cmd);
+      g.hooks = g.hooks.filter(h => !isOurs(h.command));
       removedHere += n - g.hooks.length;
       // Drop a group ONLY if WE emptied it. A group the user left empty stays
       // empty: tidying it is a change to a key this script did not come to touch.

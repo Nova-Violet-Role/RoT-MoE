@@ -69,10 +69,85 @@ ROUTER_SH="$(canon_path "$ROUTER_SH")"
 ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
 ROUTER_CMD="pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
 
+# --- flags -------------------------------------------------------------------
+# `--dry-run` was ACCEPTED AND SILENTLY IGNORED here while ARM_ROUTER honoured
+# it. Measured consequence on a live machine: the flag was passed to preview a
+# removal and this script deleted two real router hook entries instead. The
+# destructive half of a pair must not be the half missing the safety flag.
+#
+# An unknown argument is now a HARD ERROR rather than a no-op. Swallowing an
+# argument is what turned a simulation into a deletion, so "I did not understand
+# that" must never again read as "proceed".
+#
+# `--all` is the answer to the second measured defect: removal was keyed to the
+# command string rebuilt from THIS directory, so an entry pointing at the
+# installed plugin -- which is what the documented install produces -- could
+# never be removed from a source checkout. Exact match stays the default because
+# it is the one that cannot touch a string it did not write; `--all` is opt-in
+# and says plainly what it widens to.
+DRY=0
+ANY=0
+for _arg in "$@"; do
+  case "$_arg" in
+    --dry-run|-n) DRY=1 ;;
+    --all)        ANY=1 ;;
+    -h|--help)
+      echo "usage: DISARM_ROUTER.sh [--dry-run] [--all]"
+      echo "  --dry-run   show what WOULD be removed; settings.json is not written"
+      echo "  --all       remove EVERY hook entry invoking a RoT MoE router script,"
+      echo "              whatever path or version it names (plugin-cache entries"
+      echo "              included). Default removes only this directory's exact"
+      echo "              command string."
+      exit 0 ;;
+    *)
+      echo "DISARM_ROUTER: unknown argument '$_arg' -- refusing to run." >&2
+      echo "  (an ignored flag is how --dry-run once deleted live hook entries)" >&2
+      exit 2 ;;
+  esac
+done
+
+MODE=disarm
+[ "$ANY" -eq 1 ] && MODE=disarm-any
+
 echo "RoT MoE :: DISARM_ROUTER"
 echo "  settings   : $SETTINGS"
+echo "  match      : $([ "$ANY" -eq 1 ] && echo 'ANY RoT MoE router entry (--all)' || echo 'exact command string of this directory')"
+[ "$DRY" -eq 1 ] && echo "  mode       : DRY RUN -- nothing will be written"
 
 [ -f "$SETTINGS" ] || { echo "  no settings.json -- nothing to disarm"; exit 0; }
+
+# DRY RUN: perform the REAL removal against a COPY, report the delta, discard the
+# copy. The merge logic is therefore exercised for real -- a dry run that
+# predicts by a different code path than the one that acts is a dry run that can
+# disagree with the act, which is worse than no dry run at all.
+if [ "$DRY" -eq 1 ]; then
+  TMP="$(mktemp "${TMPDIR:-/tmp}/rotmoe-disarm-dry.XXXXXX")"
+  cp "$SETTINGS" "$TMP"
+  chmod u+w "$TMP" 2>/dev/null || true   # a read-only settings.json copies read-only
+  RC=0
+  node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$ROUTER_CMD" || RC=$?
+  if [ "$RC" -eq 10 ]; then
+    echo "  would remove: 0 router hook entries"
+  elif [ "$RC" -ne 0 ]; then
+    echo "  would FAIL with code $RC -- nothing would be written"
+  else
+    # NO arithmetic here, deliberately. `grep -c` exits 1 when the count is ZERO
+    # while still printing "0", so a `|| echo 0` fallback emits "0\n0"; that fed
+    # $(( )) a syntax error, bash aborted the whole guard block and execution
+    # FELL THROUGH into the destructive path the branch existed to prevent --
+    # measured: the dry run deleted the entries it was meant to preview. A
+    # safety branch must not contain a construct that can fail into the thing it
+    # guards against.
+    BEFORE=$(grep -c 'rot-router' "$SETTINGS" 2>/dev/null || true)
+    AFTER=$(grep -c 'rot-router' "$TMP" 2>/dev/null || true)
+    echo "  router lines: $BEFORE now -> $AFTER if disarmed"
+    echo "  --- would change ---"
+    diff -u "$SETTINGS" "$TMP" | sed 's/^/  /' || true
+  fi
+  rm -f "$TMP"
+  echo "  DRY RUN complete -- $SETTINGS was NOT modified."
+  exit 0
+fi
 
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP="$SETTINGS.pre-disarmrouter-$STAMP.bak"
@@ -81,14 +156,29 @@ echo "  backup     : $BACKUP"
 echo "  restore    : cp \"$BACKUP\" \"$SETTINGS\""
 
 RC=0
-node "$SELF_DIR/hooks/settings-merge.js" disarm "$SETTINGS" "$ROUTER_CMD" || RC=$?
+node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$ROUTER_CMD" || RC=$?
 
 if [ "$RC" -eq 4 ]; then
   cp "$BACKUP" "$SETTINGS"; echo "  AUTO-RESTORED from backup."; exit 4
 elif [ "$RC" -eq 3 ]; then
   echo "  settings.json was already invalid. Nothing written."; exit 3
 elif [ "$RC" -eq 10 ]; then
-  rm -f "$BACKUP"; echo "  nothing to remove -- backup removed."; exit 0
+  rm -f "$BACKUP"
+  echo "  nothing to remove -- backup removed."
+  # SAY SO WHEN THE ANSWER IS MISLEADING. `nothing to remove` while router
+  # entries are visibly present in the file is the exact shape of the measured
+  # defect: an entry installed from the plugin cache survived a full DISARM run
+  # from a source checkout, and the run exited 0. The count is cheap; silence
+  # here is what made the failure invisible.
+  if [ "$ANY" -eq 0 ] && grep -q 'rot-router' "$SETTINGS" 2>/dev/null; then
+    echo
+    echo "  BUT settings.json still contains RoT MoE router entries that do NOT"
+    echo "  match this directory's command string (a plugin-cache or older-version"
+    echo "  install). This run could not touch them. To remove those as well:"
+    echo "      bash DISARM_ROUTER.sh --all --dry-run   # look first"
+    echo "      bash DISARM_ROUTER.sh --all"
+  fi
+  exit 0
 elif [ "$RC" -ne 0 ]; then
   cp "$BACKUP" "$SETTINGS"; echo "  unexpected failure ($RC). AUTO-RESTORED."; exit "$RC"
 fi

@@ -92,6 +92,10 @@ release package|fast||bash checker/release-package.sh
 hook contract|fast||bash checker/hook-contract.sh
 workflow lint + drift|fast||bash checker/workflow-lint.sh
 cross-diff (both router arms)|fast||bash checker/cross-diff.sh
+router duplication (plugin + ARM must not stack)|fast||bash checker/router-duplication.sh
+disarm safety (--dry-run writes nothing, --all reaches plugin entries)|fast||bash checker/disarm-safety.sh
+remind measure (both arms, one tree, nested proof)|fast||bash checker/remind-measure.sh
+log replay (every gauge record recomputed from its own fields)|fast||bash checker/log-replay.sh
 benchmark|fast||bash checker/bench-router.sh
 gate split|fast||bash checker/gate-split.sh
 repo completeness|deep|README.md,CHANGELOG.md,STATUS.md,lean/|bash checker/repo-complete.sh

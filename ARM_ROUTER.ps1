@@ -33,7 +33,13 @@
 # =============================================================================
 
 [CmdletBinding()]
-param([switch] $DryRun)   # -DryRun: show the change, write nothing
+param(
+  [switch] $DryRun,   # -DryRun: show the change, write nothing
+  # -Force: arm even when the installed plugin already registers the router.
+  # That DUPLICATES it -- see the guard below, which exists because of a measured
+  # double-fire on a real machine.
+  [switch] $Force
+)
 $ErrorActionPreference = 'Stop'
 
 # CLAUDE_CONFIG_DIR FIRST -- it is the variable Claude Code itself reads to
@@ -98,6 +104,33 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
   Write-Output '  FATAL: node not found. Claude Code is a Node application, so if you'
   Write-Output '         can run Claude Code you have node -- check your PATH.'
   exit 2
+}
+
+# --- THE DOUBLE-FIRE GUARD (cross-arm parity with ARM_ROUTER.sh) -------------
+# MEASURED DEFECT, 2026-08-04. The plugin path and ARM_ROUTER are ADDITIVE, and
+# the documentation told the user to take both: hooks/hooks.json already binds
+# rot-router on UserPromptSubmit and PreToolUse via ${CLAUDE_PLUGIN_ROOT}, and
+# ARM_ROUTER writes an absolute-path entry for the same script on the same two
+# events. The router then fires TWICE per prompt -- two marker lines, two gauge
+# computations, twice the tokens, on every machine that followed the procedure.
+# Counted in a live transcript, one firing attributable to each source.
+#
+# Refusing is a SUCCESS: the user wanted the router armed and it already is.
+$Detect = Join-Path $SelfDir 'hooks/plugin-detect.js'
+if ((-not $Force) -and (Test-Path -LiteralPath $Settings) -and (Test-Path -LiteralPath $Detect)) {
+  $detectOut = & node $Detect $ClaudeDir 2>$null
+  if ($LASTEXITCODE -eq 0) {
+    $detectOut | ForEach-Object { Write-Output $_ }
+    Write-Output ''
+    Write-Output '  ALREADY ARMED BY THE INSTALLED PLUGIN -- nothing to do.'
+    Write-Output "  The plugin's hooks.json already binds the router on UserPromptSubmit"
+    Write-Output '  and PreToolUse. Adding a settings.json entry too would fire it TWICE'
+    Write-Output '  per prompt: two marker lines, two gauges, twice the tokens.'
+    Write-Output ''
+    Write-Output '  ARM_ROUTER is for installs that are NOT via the marketplace/plugin.'
+    Write-Output '  If you really want a second registration: ARM_ROUTER.ps1 -Force'
+    exit 0
+  }
 }
 
 if (-not (Test-Path -LiteralPath $Settings)) {
