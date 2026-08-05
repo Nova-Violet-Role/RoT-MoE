@@ -259,7 +259,23 @@ fi
 ctl () {   # ctl <label> <sed-expression>
   label="$1"; expr="$2"
   f="$TMP/ctl.log"; cp "$LOG_SH" "$f"
-  sed -i "$expr" "$f"
+  # `sed -i` IS NOT PORTABLE, and this is the exact failure it caused.
+  #
+  # GNU sed reads `-i` with an OPTIONAL suffix attached (`-i.bak`); BSD sed, as
+  # shipped on macOS, requires the suffix as a SEPARATE argument. So on macOS
+  #     sed -i "$expr" "$f"
+  # takes "$expr" as the backup suffix and "$f" as the script, which is not a
+  # valid sed program -- the command errors and THE FILE IS NEVER TOUCHED.
+  #
+  # MEASURED on macos-latest: all five controls reported
+  #     CONTROL DISCARDED: ... the corruption did not apply, so NOTHING was tested
+  # while ubuntu and windows were green. The harness was right and loud about it;
+  # this is what it was reporting. (It was only readable because the ::error::
+  # annotation added the commit before carried the message off the runner --
+  # the log itself needs admin rights.)
+  #
+  # The redirect form is POSIX and behaves identically on all three runners.
+  sed "$expr" "$f" > "$f.mut" && mv "$f.mut" "$f"
   # A CONTROL IS EVIDENCE ONLY IF THE CORRUPTION LANDED. `cmp -s` against the
   # original is the check, and a patch that did not apply is reported as
   # DISCARDED -- never folded into a pass. The two mean opposite things: a pass
