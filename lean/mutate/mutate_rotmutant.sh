@@ -259,6 +259,37 @@ run_mut M10 RotMutant \
   '  f.patches && (f.saysKilled || f.saysSurvived || f.saysDiscard)' \
   'repair_is_not_vacuous, the 32-shape difference #guard'
 
+# --- the RESTORE section (added after the 2026-08-06 near-miss) --------------
+# M11 -- `canRestore` stops looking at the size and just says yes, which is the
+# `find`-only check the shell used to rely on. If nothing dies, the size test is
+# decoration and the old advice was fine.
+run_mut M11 RotMutant \
+  'def canRestore (b : Artifact) : Bool := b.bytes != 0' \
+  'def canRestore (_b : Artifact) : Bool := true' \
+  'existence_is_not_restorability, copy_is_safe_iff_backup_nonempty'
+
+# M12 -- the safety predicate stops noticing that a non-empty file became empty.
+run_mut M12 RotMutant \
+  '  (before.bytes == 0) || (after.bytes != 0)' \
+  '  true' \
+  'empty_backup_restore_is_destructive, git_strictly_safer_on_the_measured_state, and the restore #guards'
+
+# M13 -- git restore starts depending on the BACKUP. This is the mutation that
+# tests whether `git_restore_ignores_the_backup` earns its place: it is proved by
+# `rfl` and depends on NO axioms, which is the vacuity smell, so it has to be
+# shown load-bearing against exactly this change or labelled decoration.
+#
+# NOTE ON THE NEEDLE, and it is the hazard this repository keeps re-learning:
+# the first version of M13 spanned TWO lines and came back
+# `needle occurs 2 times (expected 1) -- patch not applied`, because a multi-line
+# `grep -F -c` counts matching LINES, not occurrences of the pattern. It was
+# reported DISCARDED, never SURVIVED -- the harness refusing to draw a conclusion
+# from a patch that did not land. Single-line needles only.
+run_mut M13 RotMutant \
+  'def restoreFromGit (committed : Artifact) (_f _b : Artifact) : Artifact :=' \
+  'def restoreFromGit (_committed : Artifact) (_f b : Artifact) : Artifact := b --' \
+  'git_restore_ignores_the_backup, git_restore_is_total, git_strictly_safer_on_the_measured_state'
+
 echo
 # --- back to a VERIFIED green baseline ---------------------------------------
 # Every other suite in this directory ends by rebuilding after the final restore.

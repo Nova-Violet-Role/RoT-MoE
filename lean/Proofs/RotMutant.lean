@@ -363,4 +363,113 @@ def realSuiteEvidence : FileEvidence :=
                 saysDiscard := d, saysControl := c }
             (isHarnessLoose f != isHarness f) == (p && c && !k && !s && !d)
 
+/-! ## RESTORE — "a backup exists" is not "a backup can restore"
+
+MEASURED 2026-08-06, by following this repository's own advice.
+
+A `gate-all` run was killed by a wall-clock ceiling while a mutation suite had a
+mutant applied. The roll-up refused to proceed and printed its recovery
+instruction: *"Restore each file from its backup (`cp <f>.mutbak <f>`), delete
+the backups, and re-run."*
+
+Done literally, that left `hooks/prover-remind.sh` and `hooks/prover-remind.ps1`
+at **zero bytes** — and the backups were deleted in the same breath, so the only
+surviving copy was git's. Three gates went red with every measurement returning
+the empty string.
+
+The mistake is not clumsiness, it is a **conflated proposition**. `find` proves
+a backup *exists*. Restoring needs it to be *non-empty*, and a suite killed
+between creating `<f>.mutbak` and writing content into it satisfies the first
+and fails the second. `cp` from an empty source **destroys the target and exits
+0** — a destructive operation that reports success, which is the same shape as a
+fake green.
+
+This section proves the distinction the shell now implements. -/
+
+/-- A file, as a restore cares about it: how many bytes it carries. -/
+structure Artifact where
+  bytes : Nat
+  deriving DecidableEq, Repr
+
+/-- A backup **exists** if there is a file at the backup path at all. This is
+what `find` answers, and it is the weaker of the two questions. -/
+def existsOnDisk (_b : Artifact) : Bool := true
+
+/-- A backup **can restore** only if it carries content. -/
+def canRestore (b : Artifact) : Bool := b.bytes != 0
+
+/-- Copying `b` over `f`. The result is `b`, whatever `b` was. -/
+def restoreByCopy (_f b : Artifact) : Artifact := b
+
+/-- Restoring from version control. Modelled as producing the committed
+artifact, which is **independent of `b`** — that is the entire point. -/
+def restoreFromGit (committed : Artifact) (_f _b : Artifact) : Artifact :=
+  committed
+
+/-- A restore is **safe** when it does not reduce the file to nothing. Written
+in pure `Bool` rather than a coerced implication so that it EXECUTES: the
+`#guard`s below are the same statement run on the measured sizes. -/
+def restoreIsSafe (before after : Artifact) : Bool :=
+  (before.bytes == 0) || (after.bytes != 0)
+
+/-- **Existence does not imply restorability.** The two predicates come apart on
+the empty backup, which is exactly the artifact a killed suite leaves. If this
+were false the shell could keep using `find` alone. -/
+theorem existence_is_not_restorability :
+    ∃ b : Artifact, existsOnDisk b = true ∧ canRestore b = false :=
+  ⟨⟨0⟩, rfl, by decide⟩
+
+/-- **Copying from an empty backup DESTROYS a non-empty file.** The measured
+defect, stated over an arbitrary file rather than the two it happened to. -/
+theorem empty_backup_restore_is_destructive (f : Artifact) (h : 0 < f.bytes) :
+    (restoreByCopy f ⟨0⟩).bytes = 0 ∧ restoreIsSafe f (restoreByCopy f ⟨0⟩) = false := by
+  constructor
+  · rfl
+  · simp [restoreIsSafe, restoreByCopy]; omega
+
+/-- **Copying is safe exactly when the backup passes `canRestore`.** So the size
+check is not belt-and-braces: it is precisely the side condition. -/
+theorem copy_is_safe_iff_backup_nonempty (f b : Artifact) :
+    restoreIsSafe f (restoreByCopy f b) = true ↔ (0 < f.bytes → canRestore b = true) := by
+  simp only [restoreIsSafe, restoreByCopy, canRestore, Bool.or_eq_true,
+             beq_iff_eq, bne_iff_ne, ne_eq]
+  omega
+
+/-- **Git restores whatever was committed, no matter what the backup looks
+like.** This is why the advice now leads with `git checkout`: the recovery path
+does not depend on an artifact produced by the very kill being recovered from. -/
+theorem git_restore_ignores_the_backup (committed f b b' : Artifact) :
+    restoreFromGit committed f b = restoreFromGit committed f b' := rfl
+
+/-- **Git restore is total on a non-empty commit** — safe for every file and
+every backup, including the empty one. Contrast with
+`empty_backup_restore_is_destructive`, which needs no hypothesis to fail. -/
+theorem git_restore_is_total (committed : Artifact) (hc : 0 < committed.bytes)
+    (f b : Artifact) :
+    restoreIsSafe f (restoreFromGit committed f b) = true := by
+  simp [restoreIsSafe, restoreFromGit]; omega
+
+/-- **The orderings differ, and that is the whole recommendation.** There is a
+state — empty backup, non-empty commit — in which `git` is safe and `cp` is not.
+Without this the two advices would be interchangeable and the change to
+`gate-all.sh` would be cosmetic. -/
+theorem git_strictly_safer_on_the_measured_state :
+    ∃ (committed f b : Artifact),
+      restoreIsSafe f (restoreFromGit committed f b) = true ∧
+      restoreIsSafe f (restoreByCopy f b) = false :=
+  ⟨⟨29107⟩, ⟨29107⟩, ⟨0⟩, by decide, by decide⟩
+
+-- The two hooks, at their measured sizes. `cp` from the 0-byte backup erases
+-- both; `git checkout` returns them.
+#guard (restoreByCopy ⟨29107⟩ ⟨0⟩).bytes == 0        -- prover-remind.sh
+#guard (restoreByCopy ⟨23611⟩ ⟨0⟩).bytes == 0        -- prover-remind.ps1
+#guard (restoreFromGit ⟨29107⟩ ⟨0⟩ ⟨0⟩).bytes == 29107
+#guard !restoreIsSafe ⟨29107⟩ (restoreByCopy ⟨29107⟩ ⟨0⟩)
+#guard restoreIsSafe ⟨29107⟩ (restoreFromGit ⟨29107⟩ ⟨0⟩ ⟨0⟩)
+
+-- A NON-empty backup is a fine repair -- the rule is about size, not about
+-- backups being untrustworthy in general. Without this the law would be
+-- over-strict and someone would relax it wholesale.
+#guard restoreIsSafe ⟨29107⟩ (restoreByCopy ⟨29107⟩ ⟨29107⟩)
+
 end RotMoE
