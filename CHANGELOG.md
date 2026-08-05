@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **442 / 21** |
+| 14 | theorems / modules | 205 / 14 | **447 / 21** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **18 suites — 193 applied, 193 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **18 suites — 195 applied, 195 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -96,6 +96,54 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Fixed — a green CI leg that asserted nothing, from one missing `else`
+
+The repair to the Windows `tty guard` shipped with a defect **in the repair
+itself**, and run `31052104913` caught it: 145 success, **0 skipped**, 2 failure.
+
+An edit removed the `else` keyword from the step's `if / elif / else` allocator
+chain. The result is still **valid shell**, so `checker/workflow-lint.sh` passed
+it 144/144. What actually happened on the runners:
+
+| leg | behaviour | reported |
+|---|---|---|
+| ubuntu | GNU `script` branch ran, real pty | PASS, honestly |
+| windows | **neither branch ran** — `rc` was the exit of the failed `elif` *test* (0), `tty.out` never created | FAIL, `cat: tty.out: No such file or directory` |
+| macos | the fallback body had been absorbed into the BSD branch, so it ran **after** the pty probe and **overwrote its result** | **PASS — while asserting nothing about a terminal** |
+
+The Windows failure was loud and cost nothing. **The macOS pass is the serious
+one**: a leg reporting success having tested nothing is a fake green, and it is
+the same defect as a skipped step wearing a different hat.
+
+Three layers now stop it, because the text layer demonstrably cannot:
+
+1. **`ci.yml`** — each branch sets `ALLOC` and the step refuses when no branch
+   named itself (`FAIL: no pty-allocator branch ran -- the dispatch is not
+   exhaustive. Nothing was asserted. This is a skipped check, not a pass.`) or
+   when the named branch produced no `tty.out`.
+2. **`checker/workflow-lint.sh` R22** — asserts those guards exist, with a
+   control that removes the refusal from a copy and requires the rule to fire.
+3. **`lean/Proofs/RotGates.lean`** — `unselected_asserts_nothing`,
+   `selected_without_artifact_asserts_nothing`, `guard_is_exactly_assertion`
+   (the guard is *equivalent* to "this dispatch is evidence" — neither stricter
+   nor laxer), and `unselected_dispatch_is_as_green_as_a_skip`, which binds the
+   new law to the existing one: a leg that selected no branch is worth exactly
+   what `isGreen skipped` is worth.
+
+Stated as a limit rather than glossed: the Lean law catches *"no branch ran"*.
+It does **not** catch *"the wrong branch ran last"*, which is what happened on
+macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
+says so in a comment beside the macOS `#guard`.
+
+Mutants M09/M10 (**195 applied, 195 killed**). M10 exists because the two
+conjuncts of `dispatchAsserted` were each violated on a *different* platform in
+the same run, so dropping either would let one leg back through.
+
+Also fixed while in the file: two `grep -c … || printf 0` sites in
+`workflow-lint.sh` produced **two** zeros on no match (`grep -c` prints `0` *and*
+exits 1), making `[ -eq ]` fail with `integer expression expected`. Identical to
+a defect already recorded in `checker/ci-honesty.sh`.
 
 ### Fixed — our own recovery advice destroyed two shipped hooks
 
@@ -140,7 +188,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**193 applied, 193 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**195 applied, 195 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -213,7 +261,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**193 applied, 193
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**195 applied, 195
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -577,7 +625,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **442** machine-checked theorems across 21 modules (was 205 across 14),
+- **447** machine-checked theorems across 21 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
