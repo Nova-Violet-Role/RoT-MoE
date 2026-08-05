@@ -75,30 +75,84 @@ CHECKERS=$(ls checker/*.sh 2>/dev/null | wc -l | tr -d ' ')
 # to discount the whole table. Block comments are stripped (they NEST in Lean,
 # so a boolean flag is wrong), line comments are dropped, and the token must be
 # bounded by non-identifier characters -- `_` included.
+#
+# STRING LITERALS ARE STRIPPED TOO, and that is the THIRD case this function has
+# paid for. `RotLog.lean` models the router's stem table, and the FORGE lane
+# genuinely owns the stem "sorry" -- it is one of the words that routes a prompt
+# to the prover lane. The token therefore appears in the spec as DATA:
+#
+#   ("FORGE", ["run","build",...,"tactic","sorry","mathlib",...])
+#
+# and the counter reported `files containing sorry | 1` for a tree with none.
+# That number was about to be published on the front page of STATUS.md, where it
+# means "a proof was admitted rather than closed" -- the single most damaging
+# thing this project could say falsely about itself.
+#
+# A real `sorry` is a TACTIC or a TERM; it is never inside a string literal, so
+# excluding quoted text cannot hide one. Escapes are honoured (`\"` does not end
+# a string) so a literal containing a quote cannot desynchronise the scan and
+# silently swallow the code after it.
 count_token () {   # count_token <token> -> number of FILES with a real occurrence
   local tok="$1" n=0
   for f in lean/Proofs/*.lean; do
     [ -f "$f" ] || continue
-    if awk -v tok="$tok" '
-      BEGIN { depth = 0; found = 0 }
-      {
-        line = $0; out = ""; i = 1
-        while (i <= length(line)) {
-          two = substr(line, i, 2)
-          if (two == "/-") { depth++; i += 2; continue }
-          if (two == "-/") { if (depth > 0) depth--; i += 2; continue }
-          if (depth == 0) out = out substr(line, i, 1)
-          i++
-        }
-        sub(/--.*$/, "", out)
-        if (out ~ ("(^|[^A-Za-z0-9_])" tok "([^A-Za-z0-9_]|$)")) found = 1
-      }
-      END { exit (found ? 0 : 1) }' "$f"; then
+    if token_in_file "$tok" "$f"; then
       n=$((n + 1))
     fi
   done
   echo "$n"
 }
+
+# The scan itself, over ONE file, so it can be aimed at a fixture. Narrowing a
+# safety check without a control that proves it still fires is how a check
+# becomes decoration; the two fixtures below are that control.
+token_in_file () {   # token_in_file <token> <file> -> exit 0 if a REAL occurrence
+  local tok="$1" f="$2"
+  awk -v tok="$tok" '
+      BEGIN { depth = 0; found = 0 }
+      {
+        line = $0; out = ""; i = 1; instr = 0
+        while (i <= length(line)) {
+          ch  = substr(line, i, 1)
+          two = substr(line, i, 2)
+          if (instr) {
+            if (ch == "\\") { i += 2; continue }      # escaped char, skip both
+            if (ch == "\"") { instr = 0 }
+            i++; continue
+          }
+          if (two == "/-") { depth++; i += 2; continue }
+          if (two == "-/") { if (depth > 0) depth--; i += 2; continue }
+          if (depth == 0 && ch == "\"") { instr = 1; i++; continue }
+          if (depth == 0) out = out ch
+          i++
+        }
+        sub(/--.*$/, "", out)
+        if (out ~ ("(^|[^A-Za-z0-9_])" tok "([^A-Za-z0-9_]|$)")) found = 1
+      }
+      END { exit (found ? 0 : 1) }' "$f"
+}
+
+# --- CONTROL: the narrowed counter must still see a real admission -----------
+# String literals were excluded so that RotLog's stem table -- which legitimately
+# contains the WORD "sorry", because that word routes a prompt to the prover
+# lane -- stops being reported as an admitted proof. That exclusion is only safe
+# if the counter still fires on the thing it exists to catch. Both directions
+# are checked here, on every run, and a failure REFUSES to write STATUS.md
+# rather than publishing a number from an instrument that has stopped working.
+_ctl="$(mktemp -d "${TMPDIR:-/tmp}/svctl.XXXXXX")"
+printf 'theorem t : True := by\n  sorry\n'                     > "$_ctl/real.lean"
+printf 'def stems : List String := ["tactic", "sorry", "lake"]\n' > "$_ctl/quoted.lean"
+if ! token_in_file sorry "$_ctl/real.lean"; then
+  echo "CONTROL FAILED: the counter no longer detects a real 'sorry' tactic."
+  echo "Refusing to regenerate STATUS.md from an instrument that cannot fail."
+  rm -rf "$_ctl"; exit 1
+fi
+if token_in_file sorry "$_ctl/quoted.lean"; then
+  echo "CONTROL FAILED: the counter still reports a quoted \"sorry\" as an admission."
+  rm -rf "$_ctl"; exit 1
+fi
+rm -rf "$_ctl"
+
 SORRY=$(count_token sorry)
 NATIVE=$(count_token native_decide)
 

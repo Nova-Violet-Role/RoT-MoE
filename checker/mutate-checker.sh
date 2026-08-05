@@ -194,9 +194,14 @@ run H06 "$SH" \
   's  = 1.0 / (1.0 + exp(4.0 * (d - 0.5)));' \
   RED 'sigmoid slope sign flipped -- divergence now PENALISED instead of rewarded'
 
+# The needle moved when the stem was added: `route` now ASSIGNS the lane and prints
+# "<LANE LENS>|<stem>" once at the end, so the old `then echo "FORGE Claude"`
+# form no longer exists anywhere in the router. Left unedited this mutant would
+# have been DISCARDED -- the harness would have said so, loudly, which is the
+# only reason a moved needle is a nuisance here rather than a false green.
 run H07 "$SH" \
-  'if   fired "$_p" "$STEMS_FORGE";      then echo "FORGE Claude"' \
-  'if   fired "$_p" "$STEMS_CLINICAL";   then echo "CLINICAL AntiVenom"' \
+  'if   fired "$_p" "$STEMS_FORGE";      then _lane="FORGE Claude"' \
+  'if   fired "$_p" "$STEMS_CLINICAL";   then _lane="CLINICAL AntiVenom"' \
   RED 'TIER 1 priority reordered -- FORGE no longer wins its collisions'
 
 run H08 "$SH" \

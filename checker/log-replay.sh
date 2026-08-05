@@ -94,6 +94,25 @@ command -v node >/dev/null 2>&1 || { bad "node not found"; echo "  log-replay: F
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/rotlog.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
+# --- the stem table, dumped from the router itself ---------------------------
+# The replayer needs to know which lane owns which stem in order to certify a
+# route record. It must NOT carry its own copy: a second list here would be a
+# snapshot, and when the router's table changed the check would go on passing
+# while checking something that no longer exists. So it is read out of the
+# router's own STEMS_* assignments, in the router's own priority order.
+#
+# The parse is asserted, not assumed. If the assignment format ever changes this
+# produces the wrong number of rows and the gate REFUSES rather than certifying
+# route records against an empty table -- which would pass everything.
+STEMS="$TMP/stems.txt"
+sed -n "s/^STEMS_\([A-Z]*\)='\(.*\)'$/\1 \2/p" "$REPO/hooks/rot-router.sh" > "$STEMS"
+_lanes=$(wc -l < "$STEMS" | tr -d ' ')
+if [ "$_lanes" -ne 9 ]; then
+  bad "parsed $_lanes lanes out of hooks/rot-router.sh, expected 9 -- the stem table did not load, so route records would be certified against nothing"
+  echo "  log-replay: FAIL"; exit 1
+fi
+ok "stem table read from the router: $_lanes lanes, $(tr ' ' '\n' < "$STEMS" | grep -cv '^[A-Z]*$') stems"
+
 # --- the replayer ------------------------------------------------------------
 # Reads a log on argv[1]. Exits 0 if every record is self-consistent and the log
 # is well paired; 1 otherwise, naming the first offending line. This is the
@@ -106,6 +125,36 @@ const file = process.argv[2];
 const lines = fs.readFileSync(file, "utf8").split(/\r?\n/).filter(l => l.trim() !== "");
 let errs = [];
 const near = (a, b) => Math.abs(a - b) <= TOL;
+
+// THE STEM TABLE IS READ FROM THE ROUTER, NEVER COPIED HERE. A second list of
+// stems in this file would be a snapshot that drifts the day the router's table
+// changes, and it would drift SILENTLY -- the check would keep passing while
+// checking the wrong thing. Same defect the release-map rule (workflow-lint
+// rule 6) exists to forbid, so it is not repeated here.
+//
+// argv[3] is a two-column dump produced by the shell below straight out of
+// `hooks/rot-router.sh`'s own STEMS_* assignments: "<LANE> <stem> <stem> ...",
+// in the router's priority order. First lane to own a stem wins, which is
+// RotLog.Stemlog.first_owner_wins.
+const LANE_OF_STEM = {};
+{
+  const tbl = fs.readFileSync(process.argv[3], "utf8").split(/\r?\n/).filter(l => l.trim() !== "");
+  if (tbl.length !== 9) {
+    console.log("the stem table dumped from the router has " + tbl.length +
+                " lanes, not 9 -- the parse broke, so NOTHING would be checked");
+    process.exit(2);
+  }
+  for (const row of tbl) {
+    const parts = row.trim().split(/\s+/);
+    const lane = parts.shift();
+    for (const s of parts) if (!(s in LANE_OF_STEM)) LANE_OF_STEM[s] = lane;
+  }
+  if (Object.keys(LANE_OF_STEM).length < 50) {
+    console.log("only " + Object.keys(LANE_OF_STEM).length +
+                " stems parsed from the router -- refusing to certify against a stub table");
+    process.exit(2);
+  }
+}
 
 let prevGauge = null;      // the last gauge record seen, for pairing
 let nGauge = 0, nRoute = 0;
@@ -179,6 +228,33 @@ lines.forEach((l, idx) => {
                   prevGauge.Rs + " rounded to " + dec + " places (" + rounded + ")");
     }
     if (!r.lane || !r.lens) errs.push(where + ": route record missing lane or lens");
+
+    // RotLog.Stemlog.Auditable -- the ONLY clause here that certifies the
+    // ROUTING DECISION. Everything above audits the gauge; the route record used
+    // to carry lane, lens, Rs, chars and arm, every one of them checkable, and
+    // none of them an explanation. A report of "my proof prompt routed
+    // CONVERGENT" arrived with a fully replayable log in which the disputed fact
+    // was simply absent.
+    //
+    // RotLog.Stemlog.auditable_imp_vocabSafe is why this is also the PRIVACY
+    // check rather than a second one liable to be dropped: passing it entails
+    // the stem came from the router's closed table, so a log that certifies
+    // cannot simultaneously be carrying the user's text in that field.
+    if (typeof r.stem !== "string") {
+      errs.push(where + ": route record has no stem -- the routing decision is unexplained");
+    } else if (r.stem === "") {
+      // RotLog.Stemlog.empty_stem_iff_convergent
+      if (r.lane !== "CONVERGENT")
+        errs.push(where + ": lane " + r.lane + " fired while naming no stem -- unexplainable");
+    } else {
+      const owner = LANE_OF_STEM[r.stem];
+      if (owner === undefined)
+        errs.push(where + ": stem '" + r.stem + "' is not in the router's table -- " +
+                  "this log carries text the router could not have produced");
+      else if (owner !== r.lane)
+        errs.push(where + ": stem '" + r.stem + "' is owned by " + owner +
+                  " but the record says " + r.lane + " -- a mis-route");
+    }
     prevGauge = null;
   } else {
     errs.push(where + ": unknown record kind '" + r.kind + "'");
@@ -192,6 +268,38 @@ if (errs.length) { console.log(errs.slice(0, 6).join("\n")); process.exit(1); }
 console.log("records: " + nGauge + " gauge, " + nRoute + " route -- all recomputed");
 process.exit(0);
 JS
+
+# --- --audit: point the instrument at somebody else's log --------------------
+# THE GATE BELOW PROVES THE REPLAYER WORKS ON LOGS THIS SCRIPT GENERATED. That
+# is the right thing for CI and the wrong thing for the situation the log exists
+# for: a user whose router misbehaved, holding a file, with no way to ask
+# whether it is self-consistent. The instrument existed and was unreachable.
+#
+#   bash checker/log-replay.sh --audit /path/to/rotmoe.log
+#
+# Same replayer, same stem table read from the same router, no corpus and no
+# controls -- it is the audit alone. Exit 0 means every record recomputes, every
+# route line pairs with its gauge line, and every stem explains its lane.
+#
+# It deliberately does NOT regenerate anything or touch the tree: the one thing
+# a diagnostic must never do is alter the state being diagnosed.
+if [ "${1:-}" = "--audit" ]; then
+  _f="${2:-}"
+  if [ -z "$_f" ] || [ ! -f "$_f" ]; then
+    echo "usage: log-replay.sh --audit <logfile>"
+    echo "  audits a ROTMOE_DEBUG_LOG produced by either router arm."
+    exit 2
+  fi
+  if [ ! -s "$_f" ]; then
+    echo "  FAIL  $_f is empty -- there is nothing to audit"
+    exit 1
+  fi
+  echo "== auditing $_f ($(wc -l < "$_f" | tr -d ' ') records) against hooks/rot-router.sh =="
+  node "$TMP/replay.js" "$_f" "$STEMS"
+  _rc=$?
+  if [ "$_rc" -eq 0 ]; then echo "  log-replay --audit: PASS"; else echo "  log-replay --audit: FAIL"; fi
+  exit "$_rc"
+fi
 
 # --- 1. produce a real log from both arms ------------------------------------
 CORPUS='lake build the meter theorem
@@ -215,7 +323,7 @@ else
   bad "[sh] ROTMOE_DEBUG_LOG produced nothing -- the log is not being written at all"
 fi
 
-out="$(node "$TMP/replay.js" "$LOG_SH" 2>&1)"; rc=$?
+out="$(node "$TMP/replay.js" "$LOG_SH" "$STEMS" 2>&1)"; rc=$?
 [ "$rc" = 0 ] && ok "[sh] every record recomputes: $out" \
               || { bad "[sh] the log does not recompute"; echo "$out" | sed 's/^/        /'; }
 
@@ -232,7 +340,7 @@ EOF
   else
     bad "[ps1] ROTMOE_DEBUG_LOG produced nothing"
   fi
-  out="$(node "$TMP/replay.js" "$LOG_PS" 2>&1)"; rc=$?
+  out="$(node "$TMP/replay.js" "$LOG_PS" "$STEMS" 2>&1)"; rc=$?
   [ "$rc" = 0 ] && ok "[ps1] every record recomputes: $out" \
                 || { bad "[ps1] the log does not recompute"; echo "$out" | sed 's/^/        /'; }
 
@@ -287,7 +395,7 @@ ctl () {   # ctl <label> <sed-expression>
     bad "CONTROL DISCARDED: $label -- the corruption did not apply, so NOTHING was tested"
     return
   fi
-  node "$TMP/replay.js" "$f" >/dev/null 2>&1
+  node "$TMP/replay.js" "$f" "$STEMS" >/dev/null 2>&1
   rc=$?
   if [ ! -s "$f" ]; then
     bad "CONTROL DISCARDED: $label -- the mutated log is empty, so the RED is meaningless"
@@ -307,20 +415,45 @@ ctl "a tampered sum"       's/"sum":5\.97843/"sum":4.00000/'
 ctl "a wrong mu"           's/"mu":1\.15/"mu":1.55/'
 ctl "a wrong sigma"        's/"sigma":0\.8257/"sigma":0.5000/'
 
+# --- controls for the STEM clause -------------------------------------------
+# The four corruptions the routing audit exists to catch. Without these the
+# clause is an untested alarm: it passed on honest logs above, which proves only
+# that it does not fire spuriously.
+#
+# The corpus's first prompt is "lake build the meter theorem", so the FORGE
+# record carries stem "lake" -- that is the field these rewrite.
+#
+# 1. THE MIS-ROUTE. A real stem, attached to a lane that does not own it. This
+#    is the failure the whole section was built for: before the stem existed,
+#    such a record was indistinguishable from a correct one.
+ctl "a mis-routed record (FORGE claiming a CLINICAL stem)" 's/"stem":"build"/"stem":"debug"/'
+# 2. THE LEAK. Text that is not a stem at all. RotLog.Stemlog.auditable_imp_vocabSafe
+#    says the audit entails vocabulary safety; this is that theorem's control, and
+#    a green here is what makes the privacy claim testable rather than asserted.
+ctl "prompt text leaked into the stem field"              's/"stem":"build"/"stem":"acme merger q3"/'
+# 3. A lane that fired while naming nothing -- RotLog.Stemlog.empty_stem_iff_convergent.
+ctl "a fired lane with an empty stem"                     's/"stem":"build"/"stem":""/'
+# 4. THE FIELD REMOVED ENTIRELY, which is also what a log from a router older than
+#    router looks like. Rejecting it is deliberate: an old log cannot answer the
+#    question this gate asks, and silently certifying it would report "routing
+#    verified" about records in which the routing evidence does not exist. The
+#    honest outcome is a red that tells the reporter to re-capture.
+ctl "a route record with no stem field at all"            's/,"stem":"build"//'
+
 # Structural corruptions: an orphan route line, and a broken JSON line.
 f="$TMP/orphan.log"; grep '"kind":"route"' "$LOG_SH" | head -1 > "$f"
-node "$TMP/replay.js" "$f" >/dev/null 2>&1
+node "$TMP/replay.js" "$f" "$STEMS" >/dev/null 2>&1
 [ $? -ne 0 ] && ok "CONTROL: an orphan route record (truncated log) is REJECTED" \
              || bad "CONTROL: an orphan route record was ACCEPTED"
 
 f="$TMP/broken.log"; cp "$LOG_SH" "$f"; printf '{"kind":"gauge", NOT JSON\n' >> "$f"
-node "$TMP/replay.js" "$f" >/dev/null 2>&1
+node "$TMP/replay.js" "$f" "$STEMS" >/dev/null 2>&1
 [ $? -ne 0 ] && ok "CONTROL: a malformed line is REJECTED" \
              || bad "CONTROL: a malformed line was ACCEPTED"
 
 # And the positive control for the controls: the untouched log still passes, so
 # the four REDs above are attributable to the corruption and not to the harness.
-node "$TMP/replay.js" "$LOG_SH" >/dev/null 2>&1
+node "$TMP/replay.js" "$LOG_SH" "$STEMS" >/dev/null 2>&1
 [ $? -eq 0 ] && ok "CONTROL: the untouched log still passes (the REDs are the corruptions)" \
              || bad "CONTROL: the untouched log now fails -- the harness is broken"
 

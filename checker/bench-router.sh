@@ -253,6 +253,14 @@ else
   #
   # The CONVERGENT branch deliberately does not match: it emits the convening
   # MODEL, not a lens, and there is no lens to check it against.
+  # THE PATTERN BELOW READS `_lane="FORGE Claude"`, NOT `echo "FORGE Claude"`.
+  # It used to read the echo form, and when the stem change made `route` assign the
+  # lane and print "<LANE LENS>|<stem>" once at the end, this parsed ZERO pairs.
+  # The gate went RED with "the probe broke, not the README" -- which is exactly
+  # what should happen and is why that message exists: a parser that silently
+  # matched nothing would have reported nine lanes in perfect agreement while
+  # comparing an empty list. The row count guard below is the thing that turned
+  # a silent vacuous pass into a loud failure, and it earned its place here.
   lens_fail=0; lens_rows=0
   while read -r lane lens; do
     [ -z "${lane:-}" ] && continue
@@ -269,7 +277,7 @@ else
       lens_fail=1; note "README lane $lane does not name its router lens $lens"
     fi
   done <<INNER
-$(sed -n 's/.*echo "\([A-Z][A-Z]*\) \([A-Za-z][A-Za-z]*\)".*/\1 \2/p' "$ROUTER")
+$(sed -n 's/.*_lane="\([A-Z][A-Z]*\) \([A-Za-z][A-Za-z]*\)".*/\1 \2/p' "$ROUTER")
 INNER
   # -- control: rename a lens in a COPY of the README and it must be caught.
   # Without this, "9 rows match" could mean the matcher accepts anything.

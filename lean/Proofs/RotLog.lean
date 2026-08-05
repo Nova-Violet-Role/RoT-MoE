@@ -256,4 +256,195 @@ theorem wellPaired_discriminates :
   ⟨measured_rounding_accepted, fun rs => orphan_route_detected rs displayEps,
    mismatched_pair_detected⟩
 
+
+/-! ## §4 The stem is the reason — routing becomes auditable from the log alone
+
+Everything above audits the **gauge**: a `gauge` record carries every factor of
+its own sum, so the reported `R/s+` can be recomputed and a corrupted one is
+rejected. The `route` record had no such property, and the gap was not academic.
+
+Measured by trying to diagnose a mis-route from a log: the record carried
+`lane`, `lens`, `Rs`, `chars` and `arm`. Every field can be checked and **none of
+them explains the decision.** A user reporting "my proof prompt routed
+CONVERGENT" could hand over a complete, valid, fully-replayable log in which the
+one thing under dispute — *why that lane* — is absent. `chars` is the prompt's
+length precisely because the text must never enter the log, and that choice,
+which is right, is what left routing unfalsifiable.
+
+`hooks/rot-router.sh:139` and `hooks/rot-router.ps1:129` now return
+`"<LANE LENS>|<matched stem>"`, and the route record carries `stem`. A stem is
+the missing datum and it is the ONLY safe one: stems come from a closed table
+written in the router itself, so recording one leaks nothing about the user's
+text beyond which fixed vocabulary word occurred — which is exactly the routing
+decision, and nothing more.
+
+The theorem that makes this more than a new field is `auditable_imp_vocabSafe`:
+**a record cannot pass the audit while carrying text that is not a stem.** The
+privacy property is not a second check bolted on beside the correctness one and
+liable to be dropped — it is implied by it. -/
+
+namespace Stemlog
+
+/-- A lane's stem table: the lane name and the stems it owns, in priority order.
+Quoted from `hooks/rot-router.sh:57-65`; the ps1 arm's `$Tier1` is the same list
+and `checker/cross-diff.sh` is what keeps the two honest. -/
+abbrev Table := List (String × List String)
+
+/-- One routed turn as the log now records it. `chars` and `ts` are omitted:
+they are real fields, and neither participates in this property. Modelling them
+here would be decoration. -/
+structure RouteRec where
+  lane : String
+  stem : String
+  deriving DecidableEq, Repr
+
+/-- The router's decision, replayed from the table. `find?` returns the FIRST
+lane owning the stem, which is what makes the priority order load-bearing rather
+than cosmetic. -/
+def laneOfStem (t : Table) (s : String) : Option String :=
+  (t.find? (fun p => p.2.contains s)).map Prod.fst
+
+/-- Every stem the router can possibly emit. -/
+def vocab (t : Table) : List String := t.flatMap Prod.snd
+
+/-- A record is **auditable** when its stem explains its lane: an empty stem
+means no table fired, which is CONVERGENT and nothing else; a non-empty stem must
+be owned by the lane that was recorded. -/
+def Auditable (t : Table) (r : RouteRec) : Prop :=
+  if r.stem = "" then r.lane = "CONVERGENT" else laneOfStem t r.stem = some r.lane
+
+/-- The privacy property, stated as a predicate so it can be compared with the
+correctness one rather than asserted beside it. -/
+def VocabSafe (t : Table) (r : RouteRec) : Prop :=
+  r.stem = "" ∨ r.stem ∈ vocab t
+
+instance (t : Table) (r : RouteRec) : Decidable (Auditable t r) := by
+  unfold Auditable; infer_instance
+
+instance (t : Table) (r : RouteRec) : Decidable (VocabSafe t r) := by
+  unfold VocabSafe; infer_instance
+
+/-- A stem that resolves to a lane is a member of that lane's list. The bridge
+from `find?` back to membership, and the lemma everything else leans on. -/
+theorem laneOfStem_sound {t : Table} {s l : String} (h : laneOfStem t s = some l) :
+    ∃ ss : List String, (l, ss) ∈ t ∧ s ∈ ss := by
+  unfold laneOfStem at h
+  cases hf : t.find? (fun p => p.2.contains s) with
+  | none => rw [hf] at h; simp at h
+  | some p =>
+    rw [hf] at h
+    simp only [Option.map_some] at h
+    have hmem := List.mem_of_find?_eq_some hf
+    have hcond := List.find?_some hf
+    have hl : l = p.1 := (Option.some.inj h).symm
+    subst hl
+    exact ⟨p.2, by simpa using hmem, by simpa using hcond⟩
+
+/-- **The audit implies the privacy property.** A record cannot be certified
+correct while its `stem` carries text the router could never have produced — so
+the log's safety to paste into a public issue is not a separate check that could
+be dropped, it is a consequence of the one that certifies the routing. -/
+theorem auditable_imp_vocabSafe (t : Table) (r : RouteRec) (h : Auditable t r) :
+    VocabSafe t r := by
+  unfold Auditable at h
+  by_cases hs : r.stem = ""
+  · exact Or.inl hs
+  · rw [if_neg hs] at h
+    obtain ⟨ss, hss, hin⟩ := laneOfStem_sound h
+    exact Or.inr (List.mem_flatMap.mpr ⟨(r.lane, ss), hss, hin⟩)
+
+/-- The converse fails, which is why the audit is the stronger check: a stem can
+be perfectly in-vocabulary and still be attached to the wrong lane. This is the
+mis-route the log previously could not express at all. -/
+theorem vocabSafe_not_imp_auditable :
+    ∃ (t : Table) (r : RouteRec), VocabSafe t r ∧ ¬ Auditable t r := by
+  refine ⟨[("FORGE", ["prove"]), ("STEALTH", ["token"])],
+          { lane := "STEALTH", stem := "prove" }, Or.inr ?_, by decide⟩
+  decide
+
+/-- An empty stem is CONVERGENT and only CONVERGENT. A lane that claims to have
+fired while naming no stem is a contradiction in the record itself. -/
+theorem empty_stem_iff_convergent (t : Table) (r : RouteRec) (h : r.stem = "") :
+    Auditable t r ↔ r.lane = "CONVERGENT" := by
+  unfold Auditable; rw [if_pos h]
+
+/-- Priority is what `find?` encodes: if two lanes own the same stem, the FIRST
+wins and the second's entry is dead — reachable by no prompt. Stated over an
+arbitrary table so it stays true of whatever the router's list becomes. -/
+theorem first_owner_wins (a b : String) (sa sb : List String) (rest : Table)
+    (s : String) (ha : sa.contains s = true) :
+    laneOfStem ((a, sa) :: (b, sb) :: rest) s = some a := by
+  unfold laneOfStem
+  rw [List.find?_cons_of_pos (by simpa using ha)]
+  rfl
+
+/-- …and it is not vacuous: with the stem in the SECOND lane only, that lane is
+the answer, so `first_owner_wins` is about priority and not about the head of a
+list always winning. -/
+theorem second_owner_reachable (a b : String) (sb : List String) (s : String)
+    (hb : sb.contains s = true) :
+    laneOfStem [(a, []), (b, sb)] s = some b := by
+  unfold laneOfStem
+  rw [List.find?_cons_of_neg (by simp),
+      List.find?_cons_of_pos (by simpa using hb)]
+  rfl
+
+/-! ### The shipped table, as it stands today
+
+These are `#guard`s, not theorems, and the distinction is deliberate. The stem
+lists are a routing CHOICE that the project changes on purpose — `prove proof
+lemma lean qed` joined FORGE in 0.7.0. A theorem asserting today's words would
+go red on a correct future edit and the obvious repair would be to delete it.
+The theorems above are quantified over an arbitrary `Table` for exactly that
+reason; what follows pins the present, and is expected to move. -/
+
+/-- The nine tables, in the router's priority order. -/
+def shipped : Table :=
+  [("FORGE", ["run","build","install","deploy","reproduce","ship","lake","theorem",
+              "tactic","sorry","mathlib",".lean","prove","proof","lemma","lean","qed"]),
+   ("CLINICAL", ["debug","error","bug","fix","secur","audit","verif","test","cve",
+                 "segfault","crash","panic","leak","regress","traceback"]),
+   ("EXECUTIVE", ["decid","urgenc","strike","direct","declar","now","conclud"]),
+   ("EMPATHIC", ["emot","feel","grief","lonel","soul","story","human","tired","lost"]),
+   ("STRATEGIC", ["strateg","plan","goal","roadmap","priorit","legal","recommend","analyz"]),
+   ("CREATIVE", ["creativ","chaos","surreal","disrupt","paradox","dream","invent"]),
+   ("PREDICTIVE", ["futur","scenar","predict","trend","forec","likel","horizon","next"]),
+   ("STEALTH", ["encod","optim","token","compress","concise","byte","distill"]),
+   ("RECURSIVE", ["evolv","recurs","meta","architect","refactor","ontolog","hybrid"])]
+
+-- The four lanes measured live against the shipped router (2026-08-05):
+--   "prove this lemma"        -> FORGE      stem=prove
+--   "debug this error"        -> CLINICAL   stem=debug
+--   "refactor the meta layer" -> RECURSIVE  stem=meta
+--   "hello there"             -> CONVERGENT stem=
+example : Auditable shipped { lane := "FORGE",      stem := "prove" } := by decide
+example : Auditable shipped { lane := "CLINICAL",   stem := "debug" } := by decide
+example : Auditable shipped { lane := "RECURSIVE",  stem := "meta"  } := by decide
+example : Auditable shipped { lane := "CONVERGENT", stem := ""      } := by decide
+
+-- The mis-route the old record could not express: a real stem, the wrong lane.
+example : ¬ Auditable shipped { lane := "STEALTH", stem := "prove" } := by decide
+-- A CONVERGENT record that names a stem is self-contradictory.
+example : ¬ Auditable shipped { lane := "CONVERGENT", stem := "prove" } := by decide
+-- A lane that fired while naming nothing is rejected on the same clause.
+example : ¬ Auditable shipped { lane := "FORGE", stem := "" } := by decide
+-- Leaked prompt text cannot pass, which is `auditable_imp_vocabSafe` made concrete.
+example : ¬ Auditable shipped { lane := "FORGE", stem := "my secret project name" } := by decide
+example : ¬ VocabSafe shipped { lane := "FORGE", stem := "my secret project name" } := by decide
+
+/-- No stem is owned by two lanes today. A duplicate would not be a soundness
+bug — `first_owner_wins` says the second copy is simply dead — but a dead table
+entry is a routing intention that silently does nothing, so it is worth a red
+build. -/
+def noDuplicateStems (t : Table) : Bool :=
+  let v := vocab t
+  v.all (fun s => (v.filter (fun x => x == s)).length == 1)
+
+example : noDuplicateStems shipped = true := by decide
+
+-- Non-vacuity of the duplicate check: it says `false` on a table that has one.
+example : noDuplicateStems [("FORGE", ["lean"]), ("STEALTH", ["lean"])] = false := by decide
+
+end Stemlog
+
 end RotMoE.Log

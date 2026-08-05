@@ -119,36 +119,60 @@ convener () {
 # prompt and every stem class, so the change can only ever remove a false
 # positive -- it cannot invent a match and move a prompt onto a lane it was never
 # reaching. `firesWord_strictly_weaker` proves it is not vacuous.
+#
+# MATCHED_STEM: WHY THE ROUTER NOW SAYS *WHICH* STEM FIRED.
+#
+# The debug log records `chars`, never the prompt -- a log has to be safe to
+# paste into an issue. The cost of that, measured by trying to diagnose a
+# mis-route from a log: the lane is recorded and the REASON is not, so a report
+# of "my proof prompt routed CONVERGENT" is undiagnosable. Everything the log
+# carries can be checked and none of it explains the decision.
+#
+# A stem is the missing datum and it is safe to record, which is the whole point:
+# stems come from a CLOSED SET defined in this file, above. Emitting one leaks
+# nothing about the user's text beyond which fixed vocabulary word appeared --
+# and that is precisely what the routing decision is.
+#
+# It also makes the decision CHECKABLE from the log alone: the fired lane must be
+# the one lane whose table owns that stem. That catches a mis-wired table, a stem
+# duplicated across lanes, and a lane firing with a stem it does not own.
+# Specified in lean/Proofs/RotLog.lean.
 fired () {   # fired "<lowercased prompt>" "<stem list>" -> 0 if any stem starts a word
   _p="$1"; _s="$2"
+  MATCHED_STEM=''
   for _stem in $_s; do
     case "$_stem" in
       [!a-z0-9]*)
         # punctuation-led stem: plain substring, as before
-        case "$_p" in *"$_stem"*) return 0 ;; esac ;;
+        case "$_p" in *"$_stem"*) MATCHED_STEM="$_stem"; return 0 ;; esac ;;
       *)
         case "$_p" in
-          "$_stem"*)            return 0 ;;   # at the very start of the prompt
-          *[!a-z0-9]"$_stem"*)  return 0 ;;   # preceded by a non-word character
+          "$_stem"*)            MATCHED_STEM="$_stem"; return 0 ;;   # at the very start of the prompt
+          *[!a-z0-9]"$_stem"*)  MATCHED_STEM="$_stem"; return 0 ;;   # preceded by a non-word character
         esac ;;
     esac
   done
   return 1
 }
 
+# route emits "<LANE LENS>|<matched stem>". The separator is the LAST `|`, so a
+# convener model name containing one cannot swallow the stem. Callers that must
+# print the lane alone -- `--route`, whose output the cross-diff compares between
+# the two arms byte for byte -- strip the suffix; nothing about that output moved.
 route () {
   _p=$(printf '%s' "$1" | tr 'A-Z' 'a-z')
-  if   fired "$_p" "$STEMS_FORGE";      then echo "FORGE Claude"
-  elif fired "$_p" "$STEMS_CLINICAL";   then echo "CLINICAL AntiVenom"
-  elif fired "$_p" "$STEMS_EXECUTIVE";  then echo "EXECUTIVE Venom"
-  elif fired "$_p" "$STEMS_EMPATHIC";   then echo "EMPATHIC Violet"
-  elif fired "$_p" "$STEMS_STRATEGIC";  then echo "STRATEGIC Nova"
-  elif fired "$_p" "$STEMS_CREATIVE";   then echo "CREATIVE Carnage"
-  elif fired "$_p" "$STEMS_PREDICTIVE"; then echo "PREDICTIVE Chroma"
-  elif fired "$_p" "$STEMS_STEALTH";    then echo "STEALTH Soleil"
-  elif fired "$_p" "$STEMS_RECURSIVE";  then echo "RECURSIVE Eidolon"
-  else                                       echo "CONVERGENT $(convener)"
+  if   fired "$_p" "$STEMS_FORGE";      then _lane="FORGE Claude"
+  elif fired "$_p" "$STEMS_CLINICAL";   then _lane="CLINICAL AntiVenom"
+  elif fired "$_p" "$STEMS_EXECUTIVE";  then _lane="EXECUTIVE Venom"
+  elif fired "$_p" "$STEMS_EMPATHIC";   then _lane="EMPATHIC Violet"
+  elif fired "$_p" "$STEMS_STRATEGIC";  then _lane="STRATEGIC Nova"
+  elif fired "$_p" "$STEMS_CREATIVE";   then _lane="CREATIVE Carnage"
+  elif fired "$_p" "$STEMS_PREDICTIVE"; then _lane="PREDICTIVE Chroma"
+  elif fired "$_p" "$STEMS_STEALTH";    then _lane="STEALTH Soleil"
+  elif fired "$_p" "$STEMS_RECURSIVE";  then _lane="RECURSIVE Eidolon"
+  else                                       _lane="CONVERGENT $(convener)"; MATCHED_STEM=''
   fi
+  printf '%s|%s\n' "$_lane" "$MATCHED_STEM"
 }
 
 # --- THE GAUGE ---------------------------------------------------------------
@@ -289,7 +313,9 @@ hook_mode () {
     [ -z "$prompt" ] && prompt="$payload"
   fi
 
-  lane=$(route "$prompt")
+  _routed=$(route "$prompt")
+  lane=${_routed%|*}
+  _stem=${_routed##*|}
 
   # README.md:77 promises this line carries "a named lane AND A GAUGE READING".
   # For a long time it carried the lane only, and the comment that used to sit
@@ -337,8 +363,8 @@ hook_mode () {
   # comparable. `chars` not the prompt: a debug log must be safe to paste into
   # an issue, and the decision is what is under test, not the user's text.
   if [ -n "${ROTMOE_DEBUG_LOG:-}" ]; then
-    printf '{"kind":"route","ts":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"arm":"sh"}\n' \
-      "$(date -Is 2>/dev/null || date)" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" \
+    printf '{"kind":"route","ts":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh"}\n' \
+      "$(date -Is 2>/dev/null || date)" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" \
       >> "$ROTMOE_DEBUG_LOG" 2>/dev/null || true
   fi
   echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs"
@@ -382,6 +408,9 @@ done
 
 case "$MODE" in
   gauge) gauge "$VEC" "$BREADTH" "$M" "$C" "$T" ;;
-  route) route "$PROMPT" ;;
+  # `route` now returns "<LANE LENS>|<stem>"; --route prints the lane ALONE, so
+  # its output is byte-identical to every earlier version and the cross-diff
+  # against the ps1 arm compares the same string it always did.
+  route) _routed=$(route "$PROMPT"); echo "${_routed%|*}" ;;
   *)     echo "rot-router.sh: no mode given (--vector or --route)" >&2; exit 2 ;;
 esac

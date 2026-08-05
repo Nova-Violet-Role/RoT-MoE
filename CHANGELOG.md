@@ -61,9 +61,13 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **281 / 18** |
+| 14 | theorems / modules | 205 / 14 | **287 / 18** |
 | 15 | gates | 29 | **33** (22 fast, 11 deep) |
-| 16 | mutation suites | 10 suites | **14 suites — 116 applied, 116 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **15 suites — 126 applied, 126 killed**, 0 survived, 0 discarded |
+| 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
+| 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
+| 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
+| 20 | `files containing sorry` | **1**, and false: the counter matched the WORD in the router's stem table | **0**, string literals excluded, both directions controlled |
 
 Rows 1–8 are defects that **had already reached a live machine** while
 twenty-nine gates were green. Rows 9–12 are a routing fix that could not be made
@@ -264,7 +268,7 @@ red**, measured.
 
 ### Numbers
 
-- **281** machine-checked theorems across 18 modules (was 205 across 14),
+- **287** machine-checked theorems across 18 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **33** gates (was 29); 22 fast, 11 deep.
 - Every new theorem `#print axioms`-audited and `leanchecker`-re-verified.

@@ -114,14 +114,35 @@ function Test-StemFires([string] $p, [string] $stem) {
   return $false
 }
 
+# MATCHED_STEM -- the POSIX arm's `MATCHED_STEM`, and it must stay identical.
+#
+# The debug log records `chars`, never the prompt: a log has to be safe to paste
+# into an issue. The cost, measured by trying to diagnose a mis-route from one:
+# the lane is recorded and the REASON is not. A stem is the missing datum and it
+# is safe to emit -- stems come from a CLOSED SET defined in this file, so it
+# leaks nothing beyond which fixed vocabulary word appeared, which IS the
+# routing decision.
+#
+# `Invoke-Route` therefore returns "<LANE LENS>|<stem>" exactly as the POSIX
+# `route` does, and `--route` prints the lane alone so that output is unchanged.
+# Splitting on the LAST `|` keeps a convener model name containing one intact.
 function Invoke-Route([string] $Prompt) {
   $p = $Prompt.ToLowerInvariant()
   foreach ($lane in $Tier1) {
     foreach ($stem in $lane.Stems) {
-      if (Test-StemFires $p $stem) { return "$($lane.Mode) $($lane.Lead)" }
+      if (Test-StemFires $p $stem) { return "$($lane.Mode) $($lane.Lead)|$stem" }
     }
   }
-  return "CONVERGENT $(Get-Convener)"
+  return "CONVERGENT $(Get-Convener)|"
+}
+
+# Split the two fields on the LAST separator, so a model name containing `|`
+# cannot eat the stem. Used by both callers; a second inline split would be a
+# second source of truth for the same contract.
+function Split-Routed([string] $Routed) {
+  $i = $Routed.LastIndexOf('|')
+  if ($i -lt 0) { return @($Routed, '') }
+  return @($Routed.Substring(0, $i), $Routed.Substring($i + 1))
 }
 
 # --- THE GAUGE ---------------------------------------------------------------
@@ -197,7 +218,7 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
           (Format-Num $R 2), $band, (Format-Num $mean 3), $Br, $K, $lenses)
 }
 
-if ($Route)  { Write-Output (Invoke-Route $Route); exit 0 }
+if ($Route)  { $r = Split-Routed (Invoke-Route $Route); Write-Output $r[0]; exit 0 }
 if ($Vector) { Write-Output (Invoke-Gauge $Vector $Breadth $M $C $T); exit 0 }
 
 # --- HOOK MODE, and the defect it exists to fix ------------------------------
@@ -258,7 +279,10 @@ try {
 # M, C and T are the neutral element 1.0 because one stateless hook call cannot
 # measure memory residue, confidence or recency; that is stated, not hidden.
 # The index comes from $Names so a roster change moves both arms together.
-$lane  = Invoke-Route $prompt
+$__routed = Invoke-Route $prompt
+$__rparts = Split-Routed $__routed
+$lane  = $__rparts[0]
+$stem  = $__rparts[1]
 $lens  = ($lane -split ' ')[1]
 $acts  = @()
 $br    = 0
@@ -273,8 +297,8 @@ $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
 # issue, and the routing decision is what is under test, not the user's text.
 if ($env:ROTMOE_DEBUG_LOG) {
   $ms = [int]((Get-Date) - $__rotStart).TotalMilliseconds
-  Write-RotDebug ('{{"kind":"route","ts":"{0}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"arm":"ps1","ms":{5}}}' -f `
-    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $ms)
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","arm":"ps1","ms":{6}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms)
 }
 
 Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs)

@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **281
+lens activities off disk, computes an `R/s+` gauge from them, and **287
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **116 applied, 116 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **126 applied, 126 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -384,6 +384,25 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   load-bearing: dropping any one of them from `landed` kills theorems, measured.
   `checker/mutant-discipline.sh` then binds it to the shell, and it is the
   reason the empty-file false green found in our own suite cannot recur.
+* **`lean/Proofs/RotLog.lean`** (18 theorems) — **the debug log, and whether it
+  can be trusted.** The gauge half recomputes a record from its own fields:
+  `consistent_Rs_eq_gauge` derives `Rs` rather than believing it, and
+  `orphan_route_detected` refuses a truncated log that presents an unverifiable
+  number. The routing half is newer and closes a hole that was easy to miss —
+  the route record carried `lane`, `lens`, `Rs`, `chars` and `arm`, **every one
+  of them checkable and none of them an explanation.** A user could hand over a
+  complete, fully replayable log in which the disputed fact — *why that lane* —
+  simply was not present. The record now carries the **matched stem**, and
+  `Auditable` says the stem must be owned by the lane that fired.
+  The theorem worth reading is `auditable_imp_vocabSafe`: **passing the audit
+  entails the stem came from the router's closed table**, so "this log is safe
+  to paste into a public issue" is not a second promise that could quietly be
+  dropped — it is a consequence of the check that certifies the routing. Its
+  converse is proved false (`vocabSafe_not_imp_auditable`), which is what makes
+  the audit the stronger of the two. The shipped stem table appears here only as
+  `example`s, deliberately: the word lists are a routing choice the project
+  changes on purpose, so the theorems quantify over an arbitrary table and only
+  the executable rows pin today's values.
 
 ---
 
@@ -939,6 +958,45 @@ Because `gauge_separates` proves `M`, `C` and `T` factor out of the whole sum,
 the reported `R/s+` is recomputable by hand from those terms — and phase 5 of
 the benchmark does exactly that, then **corrupts a term and requires the check
 to fail**. A recomputation that cannot fail is arithmetic theatre.
+
+One routed turn also writes a `route` record, and it carries the **stem that
+fired**:
+
+```json
+{"kind":"route","lane":"FORGE","lens":"Claude","Rs":"0.66","chars":31,
+ "stem":"prove","arm":"sh"}
+```
+
+`chars` is the prompt's LENGTH and never its text, so a log stays safe to paste
+into an issue. That is right, and it was also the reason a mis-route
+could not be diagnosed: the record said *which* lane fired and nothing about
+*why*, so a complete, fully replayable log could arrive with the one disputed
+fact missing. The stem closes that without reopening the privacy question —
+stems come from a closed table written in the router, so the field can only ever
+hold one of 85 fixed words.
+
+**Audit a log — yours or a bug reporter's:**
+
+```bash
+bash checker/log-replay.sh --audit /tmp/rot.jsonl
+```
+
+Every gauge record is recomputed from its own fields, every route line must pair
+with the gauge line before it, and every stem must be owned by the lane it is
+attached to — checked against `hooks/rot-router.sh`'s **own** stem table, read
+at run time rather than copied. Exit 0 is a certification; anything else names
+the offending line:
+
+```
+line 2: stem 'token' is owned by STEALTH but the record says FORGE -- a mis-route
+```
+
+The privacy property is not a separate promise. `auditable_imp_vocabSafe`
+(`lean/Proofs/RotLog.lean`) proves that **passing this audit entails the stem
+came from the router's table**, so a log cannot be certified and be leaking
+prompt text at the same time. Four negative controls in the gate corrupt a real
+log in each of the four possible ways — wrong lane, leaked text, empty stem on a
+fired lane, missing field — and require a red for each.
 
 **Measured in a real 80-turn CTT coding session** (2026-08-04, plugin 0.6.1
 installed from the shipping archive into a separate Claude config, every prompt
