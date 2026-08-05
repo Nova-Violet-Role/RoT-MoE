@@ -52,7 +52,7 @@ TURN_TIMEOUT="${ROTMOE_TURN_TIMEOUT:-120}"
 
 PASS=0; FAIL=0
 ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad () { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad () { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=ctt-session::%s\n' "$*"; FAIL=$((FAIL+1)); }
 note() { printf '  ----  %s\n' "$*"; }
 
 # --- the conversation: REAL work on THIS repository --------------------------

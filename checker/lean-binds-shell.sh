@@ -37,7 +37,7 @@ SH="hooks/rot-router.sh"
 LEAN="lean/Proofs/RotGauge.lean"
 pass=0; fail=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
-bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=lean-binds-shell::%s\n' "$*"; fail=$((fail+1)); }
 
 echo "== Lean witness vs shipped weights =="
 

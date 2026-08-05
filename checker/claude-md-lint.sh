@@ -28,7 +28,7 @@ cd "$REPO"
 
 pass=0; fail=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
-bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=claude-md-lint::%s\n' "$*"; fail=$((fail+1)); }
 
 echo "== install-document lint =="
 

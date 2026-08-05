@@ -49,7 +49,7 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad () { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad () { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=bench-router::%s\n' "$*"; FAIL=$((FAIL+1)); }
 note() { printf '  ----  %s\n' "$*"; }
 
 ROUTER="hooks/rot-router.sh"

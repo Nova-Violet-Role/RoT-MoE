@@ -35,7 +35,7 @@ LEAN="lean/Proofs/RotAbility.lean"
 pass=0; fail=0
 
 ok()   { pass=$((pass+1)); echo "PASS  $1"; }
-bad()  { fail=$((fail+1)); echo "FAIL  $1"; }
+bad()  { fail=$((fail+1)); [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=profile-bind::%s\n' "$*"; echo "FAIL  $1"; }
 
 for f in "$SPEC" "$LEAN"; do
   [ -f "$f" ] || { echo "REFUSE: $f not found -- cannot measure"; exit 2; }

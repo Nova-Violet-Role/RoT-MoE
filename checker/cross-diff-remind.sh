@@ -37,7 +37,7 @@ CORPUS="checker/corpus-remind.txt"
 
 pass=0; fail=0; skip=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
-bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=cross-diff-remind::%s\n' "$*"; fail=$((fail+1)); }
 
 echo "== cross-diff: the two reminder arms =="
 

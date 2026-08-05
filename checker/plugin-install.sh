@@ -42,7 +42,7 @@ MARKER='RoT MoE :: TIER 1 ->'
 
 pass=0; fail=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
-bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=plugin-install::%s\n' "$*"; fail=$((fail+1)); }
 
 echo "== R17 (Windows half): plugin path + brand-new user =="
 echo "  scratch : $WORK"

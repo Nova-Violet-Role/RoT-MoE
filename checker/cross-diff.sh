@@ -31,7 +31,7 @@ CORPUS="$REPO/checker/corpus-gauge.txt"
 
 pass=0; fail=0; skip=0
 ok()   { echo "  PASS  $*"; pass=$((pass+1)); }
-bad()  { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad()  { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=cross-diff::%s\n' "$*"; fail=$((fail+1)); }
 
 PWSH=""
 for c in pwsh powershell; do command -v "$c" >/dev/null 2>&1 && { PWSH="$c"; break; }; done

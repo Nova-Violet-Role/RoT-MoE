@@ -46,7 +46,7 @@ LEAN_ROOT="${LEAN_ROOT:-$REPO/lean}"
 
 PASS=0; FAIL=0
 ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad () { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad () { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=axiom-audit::%s\n' "$*"; FAIL=$((FAIL+1)); }
 
 [ -d "$LEAN_ROOT/Proofs" ] || {
   echo "REFUSE: no Proofs/ under LEAN_ROOT=$LEAN_ROOT"; exit 2; }

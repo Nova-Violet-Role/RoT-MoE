@@ -68,7 +68,7 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad () { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad () { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=release-session::%s\n' "$*"; FAIL=$((FAIL+1)); }
 note() { printf '  ----  %s\n' "$*"; }
 
 command -v claude >/dev/null 2>&1 || { echo "SKIP: the claude CLI is not on PATH -- no session can be held"; exit 3; }

@@ -34,7 +34,7 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok   () { PASS=$((PASS+1)); printf '  PASS  %s\n' "$1"; }
-bad  () { FAIL=$((FAIL+1)); printf '  FAIL  %s\n' "$1"; }
+bad  () { FAIL=$((FAIL+1)); [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=marketplace-session::%s\n' "$*"; printf '  FAIL  %s\n' "$1"; }
 skip () { printf '  SKIP  %s\n' "$1"; }
 
 echo "== marketplace session: install as a stranger, prove the router runs =="

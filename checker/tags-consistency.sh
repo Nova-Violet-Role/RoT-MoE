@@ -40,7 +40,7 @@ cd "$REPO"
 
 pass=0; fail=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
-bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=tags-consistency::%s\n' "$*"; fail=$((fail+1)); }
 
 TAGS=".github/tags.txt"
 [ -f "$TAGS" ] || { echo "  FAIL  $TAGS missing -- there is no source of truth to check"; exit 1; }

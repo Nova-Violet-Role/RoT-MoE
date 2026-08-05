@@ -33,7 +33,7 @@ set -u
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 PASS=0; FAIL=0
 ok  () { PASS=$((PASS+1)); echo "  PASS  $*"; }
-bad () { FAIL=$((FAIL+1)); echo "  FAIL  $*"; }
+bad () { FAIL=$((FAIL+1)); [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=verdict-fresh::%s\n' "$*"; echo "  FAIL  $*"; }
 
 echo "== is the COMMITTED verdict current? =="
 

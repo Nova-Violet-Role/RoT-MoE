@@ -45,7 +45,7 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad() { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad() { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=mutant-discipline::%s\n' "$*"; FAIL=$((FAIL+1)); }
 
 SPEC="lean/Proofs/RotMutant.lean"
 [ -f "$SPEC" ] || { echo "REFUSE: $SPEC missing -- there is no spec to bind to"; exit 2; }

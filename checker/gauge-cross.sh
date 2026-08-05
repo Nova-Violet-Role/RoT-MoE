@@ -44,7 +44,7 @@ cd "$REPO"
 
 pass=0; fail=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
-bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=gauge-cross::%s\n' "$*"; fail=$((fail+1)); }
 
 WS="${LEAN_ROOT:-${ROTMOE_LEAN_WORKSPACE:-$REPO/lean}}"
 

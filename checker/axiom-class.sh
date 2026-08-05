@@ -71,7 +71,7 @@ cd "$LEANDIR" 2>/dev/null || { echo "REFUSE: no lean/ directory"; exit 2; }
 
 PASS=0; FAIL=0
 ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad () { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad () { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=axiom-class::%s\n' "$*"; FAIL=$((FAIL+1)); }
 note() { printf '  ----  %s\n' "$*"; }
 
 command -v lake >/dev/null 2>&1 || { echo "SKIP: lake is not on PATH -- install the toolchain (SETUP_LEAN)"; exit 3; }

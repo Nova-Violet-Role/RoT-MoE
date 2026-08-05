@@ -36,7 +36,7 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad () { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad () { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=deferred-closure::%s\n' "$*"; FAIL=$((FAIL+1)); }
 skip() { printf '  SKIP  %s\n' "$*"; }
 
 WF=".github/workflows/ci.yml"

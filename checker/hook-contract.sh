@@ -43,7 +43,7 @@ cd "$(dirname "$0")/.." || exit 2
 
 PASS=0; FAIL=0
 ok  () { PASS=$((PASS+1)); printf '  PASS  %s\n' "$1"; }
-bad () { FAIL=$((FAIL+1)); printf '  FAIL  %s\n' "$1"; }
+bad () { FAIL=$((FAIL+1)); [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=hook-contract::%s\n' "$*"; printf '  FAIL  %s\n' "$1"; }
 
 HJ="hooks/hooks.json"
 [ -f "$HJ" ] || { echo "REFUSE: $HJ is missing"; exit 2; }

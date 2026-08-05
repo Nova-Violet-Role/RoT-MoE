@@ -53,7 +53,7 @@ cd "$REPO"
 
 pass=0; fail=0
 ok()  { echo "  PASS  $*"; pass=$((pass+1)); }
-bad() { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=ci-dryrun::%s\n' "$*"; fail=$((fail+1)); }
 
 WF=".github/workflows/ci.yml"
 [ -f "$WF" ] || { echo "  FAIL  $WF missing -- there is no step list to dry-run"; exit 1; }

@@ -43,7 +43,7 @@ cd "$REPO"
 
 pass=0; fail=0; skip=0
 ok()   { echo "  PASS  $*"; pass=$((pass+1)); }
-bad()  { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad()  { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=router-duplication::%s\n' "$*"; fail=$((fail+1)); }
 note() { echo "        $*"; }
 
 echo "== router duplication: the plugin and ARM_ROUTER must not stack =="

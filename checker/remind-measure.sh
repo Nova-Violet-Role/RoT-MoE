@@ -48,7 +48,7 @@ PS1="hooks/prover-remind.ps1"
 
 pass=0; fail=0; skip=0
 ok()   { echo "  PASS  $*"; pass=$((pass+1)); }
-bad()  { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad()  { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=remind-measure::%s\n' "$*"; fail=$((fail+1)); }
 
 echo "== remind measure: both arms, one tree, including a NESTED proof =="
 

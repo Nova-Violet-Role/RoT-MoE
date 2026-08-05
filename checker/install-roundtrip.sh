@@ -34,7 +34,7 @@ S="$CLAUDE_DIR/settings.json"
 
 pass=0; fail=0
 ok()   { echo "  PASS  $*"; pass=$((pass+1)); }
-bad()  { echo "  FAIL  $*"; fail=$((fail+1)); }
+bad()  { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=install-roundtrip::%s\n' "$*"; fail=$((fail+1)); }
 h()    { echo; echo "== $* =="; }
 
 # --- the fixture ------------------------------------------------------------

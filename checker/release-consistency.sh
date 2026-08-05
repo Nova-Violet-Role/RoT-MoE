@@ -34,7 +34,7 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad() { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad() { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=release-consistency::%s\n' "$*"; FAIL=$((FAIL+1)); }
 
 PJ=".claude-plugin/plugin.json"
 CF="CITATION.cff"

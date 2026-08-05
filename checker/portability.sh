@@ -37,7 +37,7 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad() { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+bad() { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=portability::%s\n' "$*"; FAIL=$((FAIL+1)); }
 
 command -v git >/dev/null 2>&1 || { echo "REFUSE: git absent"; exit 2; }
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "REFUSE: not a git tree"; exit 2; }

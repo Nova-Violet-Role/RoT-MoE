@@ -1,215 +1,126 @@
-#!/bin/bash
-# CodeMap pre-commit hook
+#!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
 #
-# Keeps .codemap/ fully in step with every commit:
-#   * no index yet          -> `codemap init .` bootstraps it
-#   * added/modified files  -> `codemap update <file>` per file
-#   * deleted/renamed files -> pruned from the index (entry removed)
-#   * anything else stale   -> `codemap update --all` sweep
-# then stages whatever the index changed.
+# =============================================================================
+# PRE-COMMIT: refuse to record a commit on top of a red gate.
 #
-# Fixes four defects in the stock hook, each measured:
-#   1. it matched only .py/.ts/.js        -> missed Rust, Kotlin, Slint, UDL, TOML, ...
-#   2. it probed ./.codemap.json          -> the v1.3 manifest is .codemap/.codemap.json,
-#                                            so the hook exited 0 and never did anything
-#   3. it ran `git add .codemap.json`     -> wrong path, one file of a 580-file tree
-#   4. `update --all` never adds NEW files (it only re-hashes known ones) and still
-#      reports success -- so a fresh file looked indexed but was not
+# This hook exists because of a real failure, and the failure is worth stating
+# so nobody removes the hook thinking it is paranoia. The author ran the
+# checkers by hand, two returned 1, and the `git commit` in the same shell block
+# executed anyway -- it did not depend on their exit codes. The commit message
+# claimed verified work. Two gates were red.
 #
-# A full `codemap init .` is deliberately NOT used for routine commits: it rewrites
-# `indexed_at` on every entry, producing 580 changed files / 2673 changed lines even
-# when nothing actually changed. Per-file update + surgical prune keeps a commit's
-# index diff proportional to the commit itself (~2 files).
+# The lesson is not "be more careful". A rule you must remember is a rule you
+# will forget. It has to be a program that says no.
 #
-# Never blocks a commit: every failure path exits 0.
-
-REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
-cd "$REPO_ROOT" || exit 0
-
-SOURCE_RE='\.(py|pyi|ts|tsx|js|jsx|rs|kt|kts|go|java|swift|c|h|cpp|hpp|cc|hh|cxx|hxx|cs|dart|php|phtml|rb|rake|gemspec|sql|css|html|htm|md|markdown|ya?ml|slint|udl|webidl|toml|hs|lhs|cabal|xml|sh|bash|zsh|gradle)$'
-
-# --- resolve codemap even under a trimmed hook PATH ------------------------
-CODEMAP=$(command -v codemap 2>/dev/null)
-if [ -z "$CODEMAP" ] && [ -x "$HOME/.local/bin/codemap" ]; then
-    CODEMAP="$HOME/.local/bin/codemap"
-fi
-if [ -z "$CODEMAP" ]; then
-    echo "CodeMap: codemap not found on PATH, skipping index update"
-    exit 0
-fi
-
-# --- bootstrap: no index in this repo yet ----------------------------------
-if [ ! -f ".codemap/.codemap.json" ]; then
-    # Only bootstrap if this commit actually carries source worth indexing.
-    if ! git diff --cached --name-only -z --diff-filter=ACMR | grep -z -qiE "$SOURCE_RE"; then
-        exit 0
-    fi
-    echo "CodeMap: no index found, initialising..."
-    if "$CODEMAP" init . > /dev/null 2>&1; then
-        # -f so the index is staged even if some ignore rule ever matches inside .codemap/
-    # (several common patterns are unanchored and match at any depth).
-    git add -A -f .codemap 2>/dev/null
-        echo "CodeMap: index initialised and staged"
-    else
-        echo "CodeMap: init failed, committing without an index"
-    fi
-    exit 0
-fi
-
-# --- classify the staged change set (-M so renames are seen as R) ----------
+# -----------------------------------------------------------------------------
+# SECOND FAILURE, MEASURED 2026-07-31 -- and it is why the delegation below
+# exists at all.
 #
-# -z is NOT cosmetic. Without it git QUOTES any path that is not plain ASCII and
-# escapes it in octal, so a real path in this very repo arrives as
+# An UNRELATED TOOL OVERWROTE THIS FILE. A local indexing tool (CodeMap) ships
+# its own `pre-commit` and installs it by writing `.githooks/pre-commit`
+# wholesale. The gate above was gone -- 215 lines of index maintenance, ending
+# in `exit 0`, with a comment stating outright "Never blocks a commit: every
+# failure path exits 0". Every subsequent commit in this repo would have been
+# unguarded, and NOTHING about that state looks wrong: the hook is present, it
+# is executable, it prints a friendly message, and it always succeeds.
 #
-#     D  "Wiki/How to check/Tort\303\244.md"
+# `checker/workflow-lint.sh` caught it (`pre-commit exists but never calls
+# gate-all -- it guards nothing`). That is the negative control firing on a real
+# regression rather than on a planted one.
 #
-# -- surrounding quotes included, the "ä" replaced by \303\244. That string matches
-# nothing in the index, so the entry is never pruned and survives forever. With -z the
-# record separator is NUL, paths come through RAW, and a path may then contain spaces,
-# tabs, newlines or any UTF-8 without a second thought. Measured on this machine:
-# without -z, 1 deleted file -> 0 pruned; with -z -> 1 pruned.
+# The structural fix is not "put the gate back and hope". It is to make this
+# file OWNED by the repo and give every other tool a place to live that does not
+# collide with it:
 #
-# Record shape: CODE NUL path NUL, except renames/copies which are
-# CODE NUL oldpath NUL newpath NUL. Read the code first, then pull as many paths as
-# that code implies -- never assume a fixed field count.
-TOUCHED=$(mktemp) || exit 0
-GONE=$(mktemp) || { rm -f "$TOUCHED"; exit 0; }
-trap 'rm -f "$TOUCHED" "$GONE" "$TOUCHED.f" "$GONE.f"' EXIT
+#     .githooks/pre-commit          <- this file: the gate. Repo-owned.
+#     .githooks/pre-commit.d/*      <- everything else, run only AFTER the gate.
+#
+# If a tool clobbers this file again, workflow-lint goes red on the next run.
+# The guard against silent disarming is a check, not a convention.
+# -----------------------------------------------------------------------------
+#
+# ENABLE IT (once per clone -- git does not enable hooks automatically, by
+# design, since a hook is executable code arriving from a repository):
+#
+#     git config core.hooksPath .githooks
+#
+# BYPASS IT, when you genuinely mean to:
+#
+#     git commit --no-verify
+#
+# The bypass is deliberate and documented rather than hidden. A hook with no
+# escape hatch gets deleted the first time someone needs to commit a WIP branch,
+# and then it protects nothing at all.
+# =============================================================================
 
-while IFS= read -r -d '' CODE; do
-    case "$CODE" in
-        R*|C*)  # rename/copy: old path leaves the index, new path enters it
-             IFS= read -r -d '' PATH_A || break
-             IFS= read -r -d '' PATH_B || break
-             printf '%s\0' "$PATH_A" >> "$GONE"
-             printf '%s\0' "$PATH_B" >> "$TOUCHED"
-             ;;
-        D*)  IFS= read -r -d '' PATH_A || break
-             printf '%s\0' "$PATH_A" >> "$GONE" ;;
-        *)   IFS= read -r -d '' PATH_A || break
-             printf '%s\0' "$PATH_A" >> "$TOUCHED" ;;
-    esac
-done < <(git diff --cached --name-status -M -z --diff-filter=ACMRD 2>/dev/null)
+set -uo pipefail
 
-# Extension filter, NUL-in NUL-out. `-i` because a repo is free to ship `.PY`, `.RS`
-# or `.Kt`; the stock form silently skipped every one of them.
-filter_sources () {
-    if [ -s "$1" ]; then
-        grep -z -iE "$SOURCE_RE" "$1" 2>/dev/null | sort -z -u > "$1.f" || : > "$1.f"
-        mv "$1.f" "$1"
-    fi
-}
-filter_sources "$TOUCHED"
-filter_sources "$GONE"
+REPO="$(git rev-parse --show-toplevel)"
+cd "$REPO" || exit 1
 
-if [ ! -s "$TOUCHED" ] && [ ! -s "$GONE" ]; then
-    exit 0
+if [ ! -f checker/gate-all.sh ]; then
+  echo "pre-commit: checker/gate-all.sh is missing."
+  echo "Refusing rather than passing: a hook that cannot find its gates must not"
+  echo "report success, or it becomes a green light that checks nothing."
+  exit 1
 fi
 
-# --- prune deleted/renamed-away entries ------------------------------------
-# The CLI has no remove command, so call MapStore.remove_file() via the tool's own venv.
-PRUNED=0
-if [ -s "$GONE" ]; then
-    PRUNE_PY="$HOME/.claude/tools/codemap-ext/prune.py"
-    VENV_PY=""
-    for CANDIDATE in \
-        "$APPDATA/uv/tools/codemap/Scripts/python.exe" \
-        "$HOME/AppData/Roaming/uv/tools/codemap/Scripts/python.exe" \
-        "$HOME/.local/share/uv/tools/codemap/bin/python"
-    do
-        if [ -x "$CANDIDATE" ]; then VENV_PY="$CANDIDATE"; break; fi
-    done
-
-    if [ -n "$VENV_PY" ] && [ -f "$PRUNE_PY" ]; then
-        # Paths go through as an ARGUMENT VECTOR, never as a re-split string. The old form
-        # was `$(tr '\n' ' ' < "$GONE")` unquoted, which word-splits on every space:
-        # measured here, the two paths
-        #   Wiki/How to check/a.md
-        #   rust/src/lib.rs
-        # arrived as FOUR arguments ("Wiki/How", "to", "check/a.md", "rust/src/lib.rs"),
-        # so the real file was never pruned and three nonexistent ones were attempted.
-        # Reading NUL-delimited into an array is exact for every path a filesystem allows.
-        GONE_ARGS=()
-        while IFS= read -r -d '' G; do
-            [ -n "$G" ] && GONE_ARGS+=("$G")
-        done < "$GONE"
-        if [ "${#GONE_ARGS[@]}" -gt 0 ]; then
-            RESULT=$("$VENV_PY" "$PRUNE_PY" "$REPO_ROOT" "${GONE_ARGS[@]}" 2>/dev/null | tail -1)
-            case "$RESULT" in (''|*[!0-9]*) PRUNED=0 ;; (*) PRUNED=$RESULT ;; esac
-        fi
-    fi
-fi
-
-# --- re-index added/modified files (per file: --all cannot add new ones) ----
-UPDATED=0
-while IFS= read -r -d '' FILE; do
-    [ -n "$FILE" ] && [ -f "$FILE" ] || continue
-    if "$CODEMAP" update "$FILE" > /dev/null 2>&1; then
-        UPDATED=$((UPDATED + 1))
-    fi
-done < "$TOUCHED"
-
-# --- sweep anything that drifted outside this commit -----------------------
-"$CODEMAP" update --all > /dev/null 2>&1
-
-# --- periodic full rebuild -------------------------------------------------
-# Per-file update + prune keeps the index correct for anything git tells us about, but
-# it cannot see edits made outside a commit, files excluded then re-included, or newly
-# added parsers. A full `init` catches all of it. It is safe to run on a cadence because
-# the local idempotency patch makes a no-op rebuild byte-identical (measured: 580 files
-# of timestamp churn -> 0), so this costs a few seconds and produces no diff unless
-# something genuinely changed.
+# -----------------------------------------------------------------------------
+# THIRD FAILURE, MEASURED 2026-08-01 -- and it is why this runs `--staged`.
 #
-#   interval: git config codemap.initInterval <seconds>   (default 600 = 10 min)
-#             set to 0 to disable the periodic rebuild
-INTERVAL=$(git config --get codemap.initInterval 2>/dev/null)
-case "$INTERVAL" in (''|*[!0-9]*) INTERVAL=600 ;; esac
+# This hook ran the whole gate set. That set had grown to 587 SECONDS. Two
+# commits were killed by a wall-clock ceiling PART WAY THROUGH, and one of the
+# kills landed while `mutate-checker.sh` had a mutant applied -- leaving a live
+# mutant and four `.mutbak` files in the tree. A hook that cannot finish is a
+# hook that gets bypassed, and the bypass is where unverified commits come from.
+#
+# So the hook runs the tier that always applies plus the deep gates this commit
+# actually touches (`--staged`, measured at ~51 s for a fast-only commit). What
+# it must NOT do is pretend that is the full sweep -- see the closing message.
+# -----------------------------------------------------------------------------
+echo "pre-commit: gates for THIS commit's staged paths (bypass with --no-verify)"
+bash checker/gate-all.sh --staged
+rc=$?
 
-if [ "$INTERVAL" -gt 0 ]; then
-    STAMP="$(git rev-parse --git-dir)/codemap-last-init"
-    NOW=$(date +%s)
-    LAST=0
-    [ -f "$STAMP" ] && LAST=$(cat "$STAMP" 2>/dev/null)
-    case "$LAST" in (''|*[!0-9]*) LAST=0 ;; esac
-
-    if [ $((NOW - LAST)) -ge "$INTERVAL" ]; then
-        # A rebuild deletes .codemap/ and recreates it, so it is the one operation that can
-        # destroy the tracked index wholesale. That happens for real: `uv tool upgrade
-        # codemap` wipes site-packages and silently reverts the local parser patches, after
-        # which a rebuild drops every .slint/.udl/.toml/.xml/.sh/.gradle/.hs entry and the
-        # hook would stage the gutted result.
-        #
-        # Checked BEFORE rebuilding, so nothing is destroyed and nothing has to be rolled
-        # back. Only decisive when the parsers directory is actually found: if it cannot be
-        # located we are on an unknown layout and the rebuild proceeds as normal.
-        PARSERS_DIR=""
-        for CANDIDATE in \
-            "$APPDATA/uv/tools/codemap/Lib/site-packages/codemap/parsers" \
-            "$HOME/AppData/Roaming/uv/tools/codemap/Lib/site-packages/codemap/parsers" \
-            "$HOME/.local/share/uv/tools/codemap/lib/python3*/site-packages/codemap/parsers"
-        do
-            if [ -d "$CANDIDATE" ]; then PARSERS_DIR="$CANDIDATE"; break; fi
-        done
-
-        if [ -n "$PARSERS_DIR" ] && [ ! -f "$PARSERS_DIR/slint_parser.py" ]; then
-            echo "CodeMap: extension parsers are missing - skipping the full rebuild."
-            echo "CodeMap: run ~/.claude/tools/codemap-ext/apply.ps1 (a uv upgrade reverts them)"
-        elif "$CODEMAP" init . > /dev/null 2>&1; then
-            printf '%s' "$NOW" > "$STAMP"
-            REBUILT=1
-        fi
-    fi
+if [ "$rc" -ne 0 ]; then
+  echo
+  echo "=============================================================="
+  echo " COMMIT REFUSED -- at least one gate is red (gate-all exit $rc)."
+  echo
+  echo " Fix the gate, or commit with --no-verify if you are deliberately"
+  echo " recording work in progress. What you must NOT do is write a commit"
+  echo " message that claims the work is verified while a gate is red."
+  echo "=============================================================="
+  exit 1
 fi
 
-# --- stage whatever the index changed --------------------------------------
-if [ "$UPDATED" -gt 0 ] || [ "$PRUNED" -gt 0 ] || [ -n "$REBUILT" ]; then
-    # -f so the index is staged even if some ignore rule ever matches inside .codemap/
-    # (several common patterns are unanchored and match at any depth).
-    git add -A -f .codemap 2>/dev/null
-    SUMMARY="CodeMap: index refreshed ($UPDATED updated"
-    [ "$PRUNED" -gt 0 ] && SUMMARY="$SUMMARY, $PRUNED pruned"
-    [ -n "$REBUILT" ] && SUMMARY="$SUMMARY, full rebuild"
-    echo "$SUMMARY)"
+# Say what this run did NOT cover, in the same breath as the pass. A hook that
+# prints "all gates green" after a narrowed run teaches the reader that a commit
+# is fully verified when it is not -- which is the FULL=1 defect all over again,
+# this time delivered by the hook itself.
+echo "pre-commit: the gates for this commit are green."
+echo "            This was the STAGED set, not all 28. Before pushing:"
+echo "              bash checker/gate-all.sh          # all 28"
+echo "              bash checker/gate-all.sh --full   # + the session gates"
+
+# --- delegates: everything that is not the gate -----------------------------
+# Run in sorted order, AFTER the gate has passed, so an indexer can never stage
+# files that the gates did not see. A delegate that exits non-zero refuses the
+# commit too -- if it had nothing to say it should have said nothing.
+if [ -d .githooks/pre-commit.d ]; then
+  for d in .githooks/pre-commit.d/*; do
+    [ -f "$d" ] || continue
+    case "$d" in *.md|*.txt|*.bak) continue ;; esac
+    bash "$d"
+    drc=$?
+    if [ "$drc" -ne 0 ]; then
+      echo "pre-commit: delegate $(basename "$d") exited $drc -- COMMIT REFUSED."
+      exit 1
+    fi
+  done
 fi
 
 exit 0

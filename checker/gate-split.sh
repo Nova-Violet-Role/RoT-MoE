@@ -42,7 +42,7 @@ SH="checker/gate-all.sh"
 LN="lean/Proofs/RotGates.lean"
 pass=0; fail=0
 ok()  { pass=$((pass+1)); echo "  PASS  $1"; }
-bad() { fail=$((fail+1)); echo "  FAIL  $1"; }
+bad() { fail=$((fail+1)); [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=gate-split::%s\n' "$*"; echo "  FAIL  $1"; }
 
 for f in "$SH" "$LN"; do
   [ -f "$f" ] || { echo "REFUSING: $f not found -- one side of the binding is missing."; exit 2; }
