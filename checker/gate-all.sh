@@ -178,14 +178,44 @@ fires() {
 # certifying a tree whose state is unknown. Recovery is stated, not implied,
 # because the backups ARE the repair.
 # =============================================================================
+#
+# THE ADVICE ITSELF WAS A HAZARD -- MEASURED 2026-08-06, by following it.
+#
+# This block used to say: "Restore each file from its backup (cp <f>.mutbak <f>),
+# delete the backups, and re-run." Done literally after a ceiling-kill, that left
+# `hooks/prover-remind.sh` and `hooks/prover-remind.ps1` at ZERO BYTES -- and the
+# backups had just been deleted, so the only remaining copy was git's.
+#
+# The reason is structural, not clumsiness: **"a backup exists" and "a backup can
+# restore" are different propositions.** A suite killed between creating
+# `<f>.mutbak` and writing content into it leaves a file that satisfies the first
+# and fails the second, and `cp` of an empty source is DESTRUCTION that reports
+# success. `find` proves existence; only reading the size proves restorability.
+#
+# So the advice now leads with `git checkout`, which cannot be truncated by the
+# kill that produced this state, and each backup is SIZED before it is offered as
+# a repair. The Lean law is `lean/Proofs/RotMutant.lean` (`restoreIsSafe`,
+# `empty_backup_restore_is_destructive`, `git_restore_is_total`).
 leftover="$(find . -name '*.mutbak' -not -path './.git/*' 2>/dev/null)"
 if [ -n "$leftover" ]; then
   echo "REFUSING: a mutation suite did not finish -- these .mutbak files remain:"
-  printf '%s\n' "$leftover" | sed 's/^/    /'
+  printf '%s\n' "$leftover" | while IFS= read -r _b; do
+    [ -n "$_b" ] || continue
+    if [ -s "$_b" ]; then printf '    %s  (%s bytes)\n' "$_b" "$(wc -c <"$_b")"
+    else                  printf '    %s  *** EMPTY -- copying THIS would ERASE the file ***\n' "$_b"
+    fi
+  done
   echo
   echo "The tree may still carry a live mutant, and every gate below would be"
-  echo "measuring it instead of the baseline. Restore each file from its backup"
-  echo "(cp <f>.mutbak <f>), delete the backups, and re-run."
+  echo "measuring it instead of the baseline."
+  echo
+  echo "RESTORE FROM GIT, not from the backup:"
+  echo "    git checkout HEAD -- <file>      # then: rm <file>.mutbak"
+  echo
+  echo "A .mutbak is only a valid repair if it is NON-EMPTY -- a suite killed"
+  echo "between creating the backup and filling it leaves a 0-byte file, and"
+  echo "'cp' from it erases the original while reporting success. That happened"
+  echo "here on 2026-08-06 to two shipped hooks. Existence is not restorability."
   exit 2
 fi
 
