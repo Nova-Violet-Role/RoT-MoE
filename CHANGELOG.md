@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **303 / 20** |
+| 14 | theorems / modules | 205 / 14 | **418 / 21** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **17 suites — 146 applied, 146 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **18 suites — 187 applied, 187 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -79,7 +79,7 @@ caught a drift nobody was watching for.
 > exist **today**, and the newest section is scanned in full — a prior-versus-after
 > table lives inside it. Writing the previous release's total there would put a
 > correct historical number where the checker can only read it as a false present
-> claim. The PRIOR cells therefore say what *changed* (ten suites became twelve);
+> claim. The PRIOR cells therefore say what *changed* (ten suites became eighteen);
 > the settled totals stay in
 > [`CHANGELOG-ARCHIVE.md`](CHANGELOG-ARCHIVE.md), which is exempt as history.
 > The alternative — loosening the rule so it skips table rows — would have put a
@@ -96,6 +96,60 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Added — the Easter Egg section in `README.md`
+
+Documents where the RoT formulae came from, and proves it rather than asserting
+it. Backed by `RotEigenform.lean`: **113 theorems, 0 `sorry`, 0 warnings,
+`leanchecker` exit 0 with zero bytes, 41 of 41 mutants killed**, plus a corpus
+checker that re-derives every stated number from **498 real SINE presets**
+(SHA-256 pinned; negative control fails with 7 `FAIL`s when one file is removed).
+
+What it establishes, in one line each:
+
+- **The Ultimate Equation is a diff.** The original is the Book of Fairy quote at
+  `mathematics.md:105`; Saimonokuma's version adds four insertions, and each one
+  names a component that is now a theorem — the weights/quantization pair, the
+  goal, the sound equation, and the question mark.
+- **SINE's `lerpWithPow` and one term of `R/s+` are the same operator.**
+  `blend_mem` is proved once and bounds both a 2014 GPL entrainer and this
+  router. Same operator, different index set — beats indexed by time, the
+  ensemble by lens.
+- **The ✨ Nova-Violet Role Merging Law**, over ℚ: commutative, gains exactly ⅕
+  over the mean, strictly exceeds both parents in entropy, and inherits μ without
+  gain. Nova × Violet = λ 1.65, μ 1.00, H 0.50. Reported honestly: the law is
+  **not idempotent** — `merge a a` still gains.
+- **`R/s+` is dynamic, and cannot be constant.** Stated as monotonicity in the
+  inputs rather than as "0.66 ≠ 0.57", so retuning every weight leaves it true.
+- **🜏 EIGENFORM — the keystone.** `σ(½) = ½`: the quantizer has a fixed point,
+  and `eigenform_survives_infinite_recursion` proves `σ^[n](½) = ½` for every
+  `n`. **Three independent objects land on the same number** — the router's
+  fixed point, the Nova-Violet merged entropy, and the floor of SINE's frequency
+  table. `eigenform_binds_router_law_and_corpus` states it over `sigma`, `merge`
+  and `sineTable` so retuning any one falsifies it; mutants **E32** and **E39**
+  both kill it. Uniqueness is **not** claimed — the "strictly monotone hence
+  unique" argument is false, and it was caught by elaboration after being
+  written.
+- **The gauge CONVERGES.** `sigma_tendsto_one_atTop` and
+  `sigma_tendsto_zero_atBot` are limit theorems in `Filter`/`Topology`;
+  `gauge_term_bounded` bounds one lens below `2·λ·μ·M·C·T`; `ensemble_is_bounded`
+  bounds the finite sum. Infinite in input, convergent in output, finite in
+  outcome — which is the answer to the butterfly, not a caveat about it.
+- **Four verdicts, not two** — the `PROVED`/`REFUTED`/`MEASURED`/`OUT OF SCOPE`
+  map is the *catuṣkoṭi* of `PART 5:244`, and a two-valued map would have to file
+  `MEASURED` under `PROVED`.
+- **"Infinite" means finite-but-inexhaustible in all three corpora** — the
+  Egyptian numeral glossed *"Infinite/large number"* is 10⁷, Borges' Library is
+  25¹³¹²⁰⁰⁰, and `Lane` has nine inhabitants. `realities_must_collapse` proves
+  the compression is forced.
+
+Four defects are recorded in the section itself rather than quietly repaired,
+including one found *while writing it*: a theorem named
+*quantization-without-weights-is-flat* (written here without backticks because
+it no longer exists) that elaborated to `rfl` and asserted nothing. It is now
+`weights_are_what_discriminate` and proves the real
+dichotomy. A green theorem named for a true property is still worth nothing if
+it does not state it.
 
 ### The router fired TWICE on every prompt, and the install document caused it
 
@@ -393,7 +447,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **303** machine-checked theorems across 20 modules (was 205 across 14),
+- **418** machine-checked theorems across 21 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.

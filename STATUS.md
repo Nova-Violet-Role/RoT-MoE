@@ -10,20 +10,22 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-BEGIN -->
 | field | value |
 |---|---|
-| theorems | 303 |
-| modules | 20 |
-| mutation suites | 17 |
+| theorems | 418 |
+| modules | 21 |
+| mutation suites | 18 |
 | checkers | 47 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |
 | files containing `native_decide` | 0 |
 <!-- VERDICT-END -->
 
-Verified at 2026-08-02 08:04 UTC on commit
-`7c3d4129944ee5283eb3bd2328a62421c24339d6`, all gates green -- see the `CI` run for that commit.
-That line is PROVENANCE for the verdict above and is excluded from the
-comparison that decides whether to commit: a timestamp is evidence that
-time passed, never that anything was re-verified.
+Regenerated locally at 2026-08-05 17:49 UTC from
+`checker/status-verdict.sh` on commit `37fd5134ff6e83575d5c02d1417425134e8b69b2`, after the Easter Egg
+section added `lean/Proofs/RotEigenform.lean` and
+`lean/mutate/mutate_roteigenform.sh` to the tree. That line is PROVENANCE
+for the verdict above and is excluded from the comparison that decides
+whether to commit: a timestamp is evidence that time passed, never that
+anything was re-verified.
 
 This file changes only when the measurements change. `--allow-empty`
 is deliberately absent below, and the step that writes this file does
