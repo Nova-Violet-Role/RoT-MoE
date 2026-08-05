@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **430
+lens activities off disk, computes an `R/s+` gauge from them, and **436
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **187 applied, 187 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **190 applied, 190 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -260,26 +260,40 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 
 ### 📐 The ten modules
 
-* **`lean/Proofs/RotGates.lean`** (24 theorems) — **what may be deferred at a
+* **`lean/Proofs/RotGates.lean`** (30 theorems) — **what may be deferred at a
   commit, and what may never be skipped in CI.** Two regimes, and the module
   states both because they have opposite answers.
 
   **In CI: nothing may be skipped.** Measured on run `31035932155` — which
   concluded `success` — **eight steps were skipped**, and one of them was
   `tty guard`, a real check that had therefore never run on Windows or macOS.
-  `any_skip_is_dishonest` makes one skip sink a run for any step name;
+  `any_authored_skip_is_dishonest` makes one skip sink a run for any step name;
   `skipping_somewhere_is_still_dishonest` refuses the tempting excuse that
   running on another platform redeems it; `success_is_the_only_green` proves
   exactly one of the five GitHub outcomes is a pass, so `cancelled` and
-  `neutral` — both of which render as "not red" — are failures. `no_skip_is_implied`
-  derives the no-skip rule rather than assuming it, which is why there is no
-  clause an edit could relax. An earlier draft of this section classified steps
-  into `provision` and `verify` and *proved provisioning may skip*; that was the
-  law being weakened to fit the CI, and the `kind` field is gone so there is
-  nowhere left to put "this one does not count". The workflow was fixed instead:
-  all four `if: runner.os` steps now run everywhere and branch inside.
+  `neutral` — both of which render as "not red" — are failures.
+  `no_authored_skip_is_implied` derives the no-skip rule rather than assuming
+  it, which is why there is no clause an edit could relax. An earlier draft of
+  this section classified steps into `provision` and `verify` and *proved
+  provisioning may skip*; that was the law being weakened to fit the CI, and the
+  `kind` field is gone so there is nowhere left to put "this one does not
+  count". The workflow was fixed instead: all four `if: runner.os` steps now run
+  everywhere and branch inside. **Run `31045719329` measured the result: zero
+  skipped steps.**
+
+  **The one exemption, and why it cannot spread.** GitHub injects its own
+  scaffolding (`Set up job`, `Post <action>`), and it decides whether that
+  scaffolding runs. Those steps are exempt from the skip rule — and from
+  *nothing else*. `stepIsAcceptable` consults the scaffolding predicate in the
+  `skipped` arm only, and `scaffolding_failure_is_still_dishonest` proves a
+  `Post ` step that FAILS sinks the run for every possible name. The asymmetry
+  is load-bearing, not decorative: mutating the failure arm to consult the same
+  predicate kills nine theorems, and widening the predicate to match every name
+  kills the run witnesses.
+
   `checker/ci-honesty.sh` is the executable half — it reads the run for `HEAD`
-  over the API and fails on any skip, with three negative controls.
+  over the API and fails on any skip or any failure, with five negative
+  controls, two of which assert exactly this asymmetry.
 
   **At a commit: the split is deferral, not skipping.** The gate set had grown
   to **587 s**, so it is now split: cheap gates
@@ -517,7 +531,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-0.7.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 21 modules, 430 theorems, 17 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 21 modules, 436 theorems, 18 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-0.7.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your

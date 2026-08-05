@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **430 / 21** |
+| 14 | theorems / modules | 205 / 14 | **436 / 21** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **18 suites — 187 applied, 187 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **18 suites — 190 applied, 190 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -96,6 +96,82 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Fixed — the CI honesty law was strict in one direction and blind in the other
+
+Run `31045719329` measured the no-skip repair and it **held: zero skipped
+steps**, down from the eight that run `31035932155` carried while GitHub called
+it `success`. Two defects surfaced in the same audit, and both were ours.
+
+- **The Windows `tty guard` asserted something false.** Git Bash has no
+  `script`, so the Windows leg fed the router `/dev/null` and required a
+  non-zero exit, calling that "the same contract". It is not: empty stdin is not
+  a terminal, and the router correctly exits 0 on it (measured — exit 0, zero
+  bytes). The check failed loudly on a correct implementation, which is a defect
+  in the check.
+
+  `winpty` ships with Git Bash and was tried first; it needs a real console and
+  dies on a runner with
+  `ASSERT_CONDITION("wp != nullptr && cols > 0 && rows > 0")`. **A pty on that
+  leg is impossible, not merely awkward.** The leg now asserts the property that
+  *is* true there — on empty stdin the router must terminate, must not hang, and
+  must emit nothing — and the log says on that leg that it is narrower than the
+  pty probe. The pty refusal itself is still asserted on the Linux and macOS
+  legs of the same matrix. **Nothing skips; the step concludes `success` on all
+  three platforms.**
+
+- **`checker/ci-honesty.sh` exempted runner scaffolding from *both* rules.**
+  GitHub decides whether to run its own `Post <action>` cleanup, so exempting it
+  from the **skip** rule is right. Exempting it from the **failure** rule meant a
+  scaffolding step could conclude `failure` and the run would still be scored
+  honest — a fake green built into the anti-fake-green checker. The exemption is
+  now asymmetric: consulted for `skipped`, never for anything else.
+
+  *Correction on the record:* the first write-up of this defect claimed the run
+  actually had two failing `Post Run actions/checkout@v7` steps. It did not.
+  That came from parsing the jobs list with `paste - -`, which pairs lines
+  offset by one and glued a job-level conclusion onto a step name. Re-measured
+  against the API: **zero** Post steps failed. The hole was read out of the
+  code, not observed firing, and both `RotGates.lean` and the checker now say so
+  rather than carrying the tidier false story.
+
+### Added — the asymmetry, proved
+
+`lean/Proofs/RotGates.lean` grows from 24 to **30 theorems**. `runIsHonest` is
+no longer `allGreen`; it is `List.all stepIsAcceptable`, which branches on the
+outcome and consults `Step.isScaffolding` in the `skipped` arm **only**.
+
+| theorem | what it forbids |
+|---|---|
+| `scaffolding_failure_is_still_dishonest` | a `Post <anything>` step that fails, for every name |
+| `post_checkout_failure_is_dishonest` | the concrete pair the old checker would have passed |
+| `scaffolding_skip_is_tolerated` | the exemption being unreachable, which would collapse the two rules into one |
+| `scaffolding_matters_only_for_skips` | the exemption ever affecting a non-skipped outcome — it cannot leak |
+| `honest_run_has_no_failure` | any failure anywhere, with no hypothesis |
+| `honest_run_authored_step_is_green` | an authored step concluding anything but `success` |
+
+`any_skip_is_dishonest` → `any_authored_skip_is_dishonest` and
+`no_skip_is_implied` → `no_authored_skip_is_implied`. **Both gained a
+hypothesis, and that is a real narrowing, so it is stated plainly rather than
+buried:** the old versions quantified over every name and so declared a skipped
+`Post Run actions/checkout` dishonest too. That was stricter than reality —
+GitHub skips its own cleanup as normal operation — and a law that calls normal
+operation dishonest is a law someone later deletes. The authored case, which is
+the case the rule exists for, admits no exemption and is unchanged.
+
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**190 applied, 190
+killed** repo-wide, was 187):
+
+- **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
+  nine theorems including both new failure theorems.
+- **M07** tolerates every skip. Killed the authored-skip theorems and the
+  `31035932155` witness.
+- **M08** widens the predicate to `"".isPrefixOf`, making every step
+  scaffolding. Killed the run witnesses — the narrowness of the predicate is the
+  only thing keeping the skip exemption honest.
+
+`ci-honesty.sh` gains two negative controls asserting the asymmetry in both
+directions: a failing scaffolding step must be caught, a skipped one must not.
 
 ### Added — the Easter Egg section in `README.md`
 
@@ -447,7 +523,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **430** machine-checked theorems across 21 modules (was 205 across 14),
+- **436** machine-checked theorems across 21 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
