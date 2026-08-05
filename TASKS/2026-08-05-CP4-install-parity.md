@@ -87,12 +87,12 @@ and the `STATUS.md` verdict block. `repo-complete.sh` → **exit 0**.
 
 1. `gate-all.sh` bare (all 34 gates, deep tier included) — the fast sweep is
    green but 12 deep gates have not run against these edits.
-2. Deliver `RotInstall.lean` + `RotEnsemble.lean` to `D:\Lean\proofs\Proofs\RotMoE\`
+2. Deliver `RotInstall.lean` + `RotEnsemble.lean` to the shared Lean workspace
    and build there (that tree pins the same toolchain; a red module in the shared
    tree breaks every other session).
-3. **CTT test phase, before any push** — clean reinstall into
-   `C:\Users\Saimono\Claude_Test`, confirm the installed plugin now registers all
-   five bindings, and that `ARM_ROUTER` still refuses when the plugin is live.
+3. **CTT test phase, before any push** — clean reinstall into the Claude Test
+   instance, confirm the installed plugin now registers all five bindings, and
+   that `ARM_ROUTER` still refuses when the plugin is live.
 4. Commit, then re-tag `v0.7.0/1/2` onto the new commit.
 5. Push to `Nova-Violet-Role/RoT-MoE` only after 3 succeeds.
 6. Still open: the `Claude = AntiVenom ∨ Soleil` weld in the activity table —
