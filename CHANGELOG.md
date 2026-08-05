@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **287 / 18** |
+| 14 | theorems / modules | 205 / 14 | **294 / 18** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **15 suites — 126 applied, 126 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **16 suites — 136 applied, 136 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -253,8 +253,72 @@ covering both directions — the prompts that must now fire and the near-misses
 that must not. Reverting the matcher to a substring test turns **12 of them
 red**, measured.
 
+### The install section told three tiers to download archives that do not exist
+
+`README.md` said `rot-moe-0.5.1-lean.zip` while `checker/release-package.sh`
+built `rot-moe-0.7.1-lean.zip`. Three links, all wrong, **for two minor
+versions, with every gate green** — nothing in the repository had ever compared
+the names. The release map moved from a hand-written line to a computed one and
+the prose quoting it did not follow.
+
+That is not a wrong number in a table. It is the **first instruction a new
+reader follows**, and it fails with a 404 that reads as an abandoned project.
+
+- The install section was rewritten. It had four methods in an order that buried
+  the one that works: `ARM_ROUTER --dry-run` first (the path that edits your
+  `settings.json`), then `--plugin-dir`, then a heading marked "start here"
+  arriving third. Now one ordered page — `/plugin install`, the three tiers,
+  `--plugin-dir` from a clone, then `ARM_ROUTER` marked as the advanced path.
+- Tiers are named **Router · Router + Lean · Router + Lean + Extra**, and each
+  row says what the archive actually contains, read from the packager's own
+  `CORE_PATHS` / `LEAN_EXTRA` / `UNSEALED_EXTRA` rather than described from
+  memory. Measured: core 37 files with no `lean/` and no `checker/`; lean 137;
+  unsealed 138 — lean plus `UNSEALED.md` exactly.
+- The three transcript lines were **re-measured**: each archive rebuilt,
+  unzipped, and its own `rot-router.sh` run on the same payload.
+- `checker/readme-variants.sh` is new and prevents recurrence. It asks the
+  packager for its map (`--print-variants`, never by grepping its source) and
+  checks **both** directions across `README.md`, `RELEASE.md` and `docs/*.md`.
+  Requiring the right names to be present does not remove the wrong ones, and
+  this README had correct prose and dead links in the same section. Registered
+  **fast tier**: a deep gate would let this ship again on any commit that did
+  not touch the release paths, and a README edit is exactly such a commit.
+
+### `SHA256SUMS.txt` was promised by the README and never written by anything
+
+`grep -c sha256 checker/release-package.sh` returned **zero** while `README.md`
+said every archive verifies against the sums file published beside it. A
+documented verification step with no artifact behind it is worse than none: the
+reader who tries it finds nothing and cannot tell an unpublished checksum from a
+tampered download.
+
+The packager now emits it, last, after every other assertion has passed — so
+sums can never exist for an artifact it refused to bless — and **refuses** if no
+`sha256sum`/`shasum` is on PATH rather than shipping archives with no checksums
+while the docs claim otherwise. Control: appending one byte to an archive makes
+`-c` fail; restoring makes it verify.
+
+Two self-inflicted faults were found writing it, both of the kind that fake a
+pass. The well-formedness pattern rejected all three good lines because GNU
+`sha256sum` writes `<hash> *<name>` in binary mode — the check was wrong, not
+the output. And the tamper control extracted the filename with
+`awk '{print $2}'`, which yields `*rot-moe-0.7.0-core.zip` **with** the star, so
+every `cp`/`mv` would have addressed a file that does not exist and the control
+would have "passed" while touching nothing.
+
 ### New Lean modules
 
+- `RotVariants.lean` (7) — a published document is *sound* when the archive
+  names it carries are exactly those the packager builds, both directions
+  (`sound_iff_setEq`). The obvious one-directional repair would have **missed
+  the defect above entirely**, because a half-finished edit adds the new links
+  and keeps the old: `covers_does_not_imply_clean` is that argument as a
+  theorem. `version_drift_breaks_soundness` and `new_tier_needs_a_link` are
+  quantified over an arbitrary release map, so they hold for a tier not yet
+  invented. 10 mutants, 10 killed — one of which had to be **retargeted upward**
+  after surviving: flipping a single link in the stale list does not make it
+  sound, because `covers` still fails on the other two. The theorem was stronger
+  than the mutant, which is recorded rather than treated as licence to weaken it.
 - `RotDuplicate.lean` (9) — what actually fires is the **concatenation of two
   registries**, so `RotInstall`'s idempotence, which is true, cannot see a
   duplicate that lives across both. `unguarded_duplicates` counts 2;
@@ -268,7 +332,7 @@ red**, measured.
 
 ### Numbers
 
-- **287** machine-checked theorems across 18 modules (was 205 across 14),
+- **294** machine-checked theorems across 19 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.

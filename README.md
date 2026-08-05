@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **287
+lens activities off disk, computes an `R/s+` gauge from them, and **294
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **126 applied, 126 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **136 applied, 136 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -404,6 +404,20 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   changes on purpose, so the theorems quantify over an arbitrary table and only
   the executable rows pin today's values.
 
+* **`lean/Proofs/RotVariants.lean`** (7 theorems) — **the download links name
+  the archives that exist.** A published document is *sound* when the set of
+  archive names it carries is exactly the set the packager builds — both
+  directions, which is what `sound_iff_setEq` states. Neither half alone is the
+  property: `covers_does_not_imply_clean` shows a document can name every
+  archive that exists and still carry a dead one, and
+  `clean_does_not_imply_covers` shows it can be free of dead links while leaving
+  a tier with no download at all. `version_drift_breaks_soundness` and
+  `new_tier_needs_a_link` are quantified over an arbitrary release map, so they
+  hold for a tier this project has not invented yet; concrete name sets appear
+  only as `example`s. The binding to the real files is
+  `checker/readme-variants.sh`, which reads the packager's own
+  `--print-variants` and scans `README.md`, `RELEASE.md` and `docs/*.md`.
+
 ---
 
 ## 🫀 The four organs
@@ -476,7 +490,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-0.7.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 18 modules, 287 theorems, 15 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 19 modules, 294 theorems, 16 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-0.7.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -504,8 +518,7 @@ Those lines are **re-measured, not edited** — the only way a transcript in a
 README stays a measurement instead of becoming a drawing of one. The archive
 names above are checked against the packager's own map by
 `checker/readme-variants.sh`, because a download link naming a version that was
-never released is a broken instruction for every reader, and this page carried
-three of them for two minor versions.
+never released is a broken instruction for every reader.
 
 ### 🛠️ From a clone, without installing
 

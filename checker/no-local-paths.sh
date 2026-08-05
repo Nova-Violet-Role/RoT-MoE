@@ -143,16 +143,28 @@ EOF
   [ "$_skipped" -gt 0 ] && echo "skipped $_skipped hit(s) in git-ignored files (never published)"
 
   # Now read the verdict on the two plants.
-  if printf '%s' "$raw" | grep -qF '.rotmoe-nolocal-control.txt'; then
-    _kept_ok=1
-  else
-    _kept_ok=0
+  #
+  # VIA A FILE, NOT A PIPE INTO `grep -q`. The first version wrote
+  # `printf '%s' "$raw" | grep -qF ...` and `checker/portability.sh` rule 7
+  # rejected it: `grep -q` exits at the first match, the writer takes SIGPIPE,
+  # and under `set -o pipefail` the pipeline reports 141 -- so a SUCCESSFUL match
+  # can read as a failure, depending on the platform's pipe buffer. This file
+  # does not currently set pipefail, which is exactly why the rule is enforced
+  # repo-wide: the hazard arrives silently the day someone adds it.
+  #
+  # Caught by CI and NOT by the local sweep -- `portability` is a DEEP gate and
+  # the fast sweep skips those by design. That is not a false green, it is a
+  # reminder that a fast sweep is a subset and the deep gates run before a push.
+  _ctlout="${TMPDIR:-/tmp}/rotmoe-ctl.$$"
+  printf '%s' "$raw" > "$_ctlout"
+  _kept_ok=0
+  [ "$(grep -cF '.rotmoe-nolocal-control.txt' "$_ctlout")" -gt 0 ] && _kept_ok=1
+  _skip_ok=1
+  if [ -d "$ROOT/TASKS" ]; then
+    _tasks_hits=$(grep -F '.rotmoe-nolocal-control.txt' "$_ctlout" | grep -cF 'TASKS')
+    [ "$_tasks_hits" -gt 0 ] && _skip_ok=0
   fi
-  if [ -d "$ROOT/TASKS" ] && printf '%s' "$raw" | grep -F '.rotmoe-nolocal-control.txt' | grep -qF 'TASKS'; then
-    _skip_ok=0
-  else
-    _skip_ok=1
-  fi
+  rm -f "$_ctlout"
   if [ "$_kept_ok" -ne 1 ]; then
     echo "FAIL: CONTROL -- a NON-ignored file carrying a machine-local path was not seen."
     echo "The sweep has stopped catching the thing it exists for. Refusing to report clean."
