@@ -75,7 +75,17 @@ cd "$REPO"
 
 pass=0; fail=0; skip=0
 ok()   { echo "  PASS  $*"; pass=$((pass+1)); }
-bad()  { echo "  FAIL  $*"; fail=$((fail+1)); }
+# See the long note on the same function in checker/hook-footprint.sh: an
+# unauthenticated caller cannot read CI logs (403, admin rights), so a failure
+# that only exists in the log is a failure nobody outside the org can diagnose.
+# This checker failed on macos-latest ALONE -- passing on ubuntu, windows and the
+# development machine -- and the public annotation said only "Process completed
+# with exit code 1". `::error::` lines become annotations, which are public.
+bad()  {
+  echo "  FAIL  $*"
+  [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=log-replay::%s\n' "$*"
+  fail=$((fail+1))
+}
 
 echo "== log replay: every gauge record recomputed from its own fields =="
 

@@ -58,7 +58,27 @@ cd "$REPO"
 
 PASS=0; FAIL=0
 ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
-bad () { printf '  FAIL  %s\n' "$*"; FAIL=$((FAIL+1)); }
+# A FAILURE MUST BE READABLE WITHOUT ADMIN RIGHTS ON THE REPOSITORY.
+#
+# MEASURED 2026-08-05: this checker went red in CI's `lean` job while passing in
+# every `checkers` job and on the development machine. The run's log is behind
+# `actions/runs/<id>/logs`, which answers **403 "Must have admin rights to
+# Repository"** to an unauthenticated caller -- so the only public evidence was
+# the check-run annotation, and it read, in full:
+#
+#     failure: Process completed with exit code 1.
+#
+# That is a checker reporting a defect nobody can act on. `::error::` lines ARE
+# lifted into annotations, and annotations ARE public on a public repository, so
+# echoing each failure there costs one line and makes every future red run
+# diagnosable from outside the org.
+#
+# Guarded on GITHUB_ACTIONS so local output is unchanged.
+bad () {
+  printf '  FAIL  %s\n' "$*"
+  [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=hook-footprint::%s\n' "$*"
+  FAIL=$((FAIL+1))
+}
 
 HOOKS="hooks/rot-router.sh hooks/rot-router.ps1 hooks/prover-remind.sh hooks/prover-remind.ps1"
 for h in $HOOKS; do [ -f "$h" ] || { echo "REFUSE: shipped hook missing: $h"; exit 2; }; done
