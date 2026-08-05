@@ -62,7 +62,7 @@ evidence.
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
 | 14 | theorems / modules | 205 / 14 | **287 / 18** |
-| 15 | gates | 29 | **33** (22 fast, 11 deep) |
+| 15 | gates | 29 | **35** (23 fast, 12 deep) |
 | 16 | mutation suites | 10 suites | **15 suites — 126 applied, 126 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
@@ -270,7 +270,8 @@ red**, measured.
 
 - **287** machine-checked theorems across 18 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
-- **33** gates (was 29); 22 fast, 11 deep.
+- **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
+  deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
 - Every new theorem `#print axioms`-audited and `leanchecker`-re-verified.
 
 ---

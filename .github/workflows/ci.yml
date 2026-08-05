@@ -389,6 +389,14 @@ jobs:
         shell: bash
         run: bash checker/workflow-lint.sh
 
+      # The README told three tiers to download `rot-moe-0.5.x-*.zip` while the
+      # packager built `0.7.x` -- for two minor versions, with every gate green.
+      # A dead download link is the first instruction a new reader follows, so it
+      # fails earlier and louder than any wrong number in a table would.
+      - name: README download links name archives the packager builds
+        shell: bash
+        run: bash checker/readme-variants.sh
+
       - name: live-session smoke (skips without the CLI)
         shell: bash
         run: |

@@ -430,88 +430,28 @@ only when it can name a file, a module or a number of minutes.
 
 ## 🚀 Install
 
-**Look before you leap.** This installs a hook that runs on every prompt you
-submit and before every tool call, by editing `~/.claude/settings.json`. So the
-first command is the one that writes nothing:
-
-```sh
-bash ARM_ROUTER.sh --dry-run        # pwsh: ARM_ROUTER.ps1 -DryRun
-```
-
-That runs the entire merge against a copy and prints exactly what would change.
-When you are satisfied:
-
-```sh
-bash ARM_ROUTER.sh                  # backs up first, prints the restore command
-bash DISARM_ROUTER.sh               # removes only what it installed
-```
-
-Or install it as a plugin, with no `settings.json` edit at all:
-
-```sh
-claude --plugin-dir /path/to/RoT-MoE
-```
-
-### The one-liner: `/plugin install`  ← start here
-
-The repository is its own marketplace, so Claude Code can fetch and wire it for
-you — no clone, no `ARM_ROUTER`, no editing your settings:
+**One command installs it. Everything else on this page is for a reason you do
+not have yet.**
 
 ```sh
 claude plugin marketplace add Nova-Violet-Role/RoT-MoE
 claude plugin install rot-moe@rot-moe
 ```
 
-or, inside a session, two slash commands:
+That is the whole installation. No clone, no `ARM_ROUTER`, and **nothing of
+yours is edited** — the hooks live inside the plugin, not in your
+`settings.json`. Inside a session the same two steps are slash commands:
 
 ```
 /plugin marketplace add Nova-Violet-Role/RoT-MoE
 /plugin install rot-moe@rot-moe
 ```
 
-Then `/plugin` lists it, `/plugin disable rot-moe` turns it off for a session,
-and `/plugin uninstall rot-moe` removes it. Nothing of yours is edited: the hooks
-live in the plugin, not in your `settings.json`.
+`/plugin` lists it · `/plugin disable rot-moe` turns it off for a session ·
+`/plugin uninstall rot-moe` removes it, hooks and all.
 
-#### Which variant do I install?
-
-**For `/plugin install`, there is only one answer, and that is the honest part:
-you get the router.** All three release variants carry the *same* plugin surface
-— same hooks, same agent, same commands — so there is nothing to choose between
-at install time. The variants differ only in material Claude Code does not load.
-
-| you want | do this |
-|---|---|
-| the router, working, in one minute | `/plugin install rot-moe@rot-moe` — nothing else needed |
-| the router **and** the Lean 4 proof corpus + checkers | download **`rot-moe-0.5.1-lean.zip`** from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases) |
-| the above **and** `native_decide` unsealed + the axiom classifier | download **`rot-moe-0.5.2-unsealed.zip`** |
-| the router alone as a file you can read end to end | download **`rot-moe-0.5.0-core.zip`** |
-
-Every archive verifies against the `SHA256SUMS.txt` published beside it.
-
-A downloaded archive installs without unzipping:
-
-```sh
-claude --plugin-dir rot-moe-0.5.1-lean.zip
-```
-
-Measured for all three archives — each one fires the router on the first prompt:
-
-```
-0.5.0  core      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.5.1  lean      -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-0.5.2  unsealed  -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-```
-
-Those three lines are **re-measured, not edited.** The archives were rebuilt
-from the current tree, unzipped, and their own `rot-router.sh` was run on the
-same payload — which is the only way a transcript in a README stays a
-measurement instead of becoming a drawing of one.
-
-The hooks come from `hooks/hooks.json` and resolve through
-`${CLAUDE_PLUGIN_ROOT}`, so the router arms itself on install and unarms itself
-on `/plugin uninstall`. Measured end to end against a **scratch config dir**, so
-the live `~/.claude` was never opened:
+Measured end to end against a **scratch config dir**, so a live `~/.claude` was
+never opened:
 
 ```
 claude plugin marketplace add   -> Successfully added marketplace: rot-moe
@@ -521,16 +461,89 @@ one prompt, --debug hooks       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
                                    Registered 5 hooks from 1 plugins
 ```
 
-**What this does *not* give you, stated plainly:** `/plugin install` delivers the
-**router** — hooks, the agent, the commands. It does not deliver the Lean corpus,
-the checkers or `SETUP_LEAN`, because those are not plugin components and Claude
-Code never loads them. The three release archives are **download tiers for
-humans**, not three different plugins: their plugin surface is identical. If you
-want the proofs and the verification scripts, take the `0.5.1` or `0.5.2` zip
-from [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases).
+Five bindings across three events, from `hooks/hooks.json`, resolved through
+`${CLAUDE_PLUGIN_ROOT}`. `checker/plugin-install.sh` exercises this from a
+config directory that has no `settings.json` at all — the case every first-time
+user hits.
 
-Both paths are exercised by `checker/plugin-install.sh`, including from a config
-directory with no `settings.json` — the case every first-time user hits.
+### 📦 The three release tiers — and why installing gives you the same router
+
+**Whichever tier you take, the plugin surface is identical**: same hooks, same
+agent, same commands. Claude Code loads plugin components and nothing else, so
+the tiers cannot differ in what the router *does*. They differ in **what else is
+in the archive for you to read, run and re-verify.**
+
+| tier | archive | what it adds |
+|---|---|---|
+| **Router** | `rot-moe-0.7.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
+| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 18 modules, 287 theorems, 15 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean + Extra** | `rot-moe-0.7.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
+
+Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
+own machine. Take **Router + Lean + Extra** if you want the policy argument as
+well as the proofs.
+
+Every archive verifies against the `SHA256SUMS.txt` published beside it on
+[Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases), and installs
+**without unzipping**:
+
+```sh
+claude --plugin-dir rot-moe-0.7.1-lean.zip
+```
+
+Measured — each archive rebuilt from this tree, unzipped, and **its own**
+`rot-router.sh` run on the same payload:
+
+```
+rot-moe-0.7.0-core           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+rot-moe-0.7.1-lean           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+rot-moe-0.7.2-unsealed       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+```
+
+Those lines are **re-measured, not edited** — the only way a transcript in a
+README stays a measurement instead of becoming a drawing of one. The archive
+names above are checked against the packager's own map by
+`checker/readme-variants.sh`, because a download link naming a version that was
+never released is a broken instruction for every reader, and this page carried
+three of them for two minor versions.
+
+### 🛠️ From a clone, without installing
+
+```sh
+claude --plugin-dir /path/to/RoT-MoE
+```
+
+Loads the working tree directly. This is the development path: edit a hook, run
+`claude`, see the change. Nothing is written to your configuration.
+
+### ⚙️ `ARM_ROUTER.sh` — only if you cannot use plugins
+
+This is the **advanced** path and it is the one that edits
+`~/.claude/settings.json`. Use it when the plugin mechanism is unavailable to
+you; otherwise prefer `/plugin install` above.
+
+Look before you leap — the first command writes nothing:
+
+```sh
+bash ARM_ROUTER.sh --dry-run        # pwsh: ARM_ROUTER.ps1 -DryRun
+```
+
+It runs the entire merge against a copy and prints exactly what would change.
+When you are satisfied:
+
+```sh
+bash ARM_ROUTER.sh                  # backs up first, prints the restore command
+bash DISARM_ROUTER.sh               # removes ONLY what it installed
+```
+
+`DISARM_ROUTER` is scoped to this project's own entries: anything you added
+yourself is left exactly where it is, which `checker/disarm-safety.sh` proves by
+planting foreign entries and requiring them to survive.
+
+**Do not run both.** If the plugin is installed and you arm the router as well,
+every hook fires twice. `ARM_ROUTER.sh` detects a live plugin install and
+**refuses** rather than doubling you up — measured in the test terminal, where it
+declined exactly as designed.
 
 ### 🔧 Requirements
 

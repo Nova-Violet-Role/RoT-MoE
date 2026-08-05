@@ -234,6 +234,13 @@ def shipped : List Gate :=
   , f "release package"
   , f "hook contract"
   , f "workflow lint + drift"
+  -- FAST, and the tier is the whole point of this one. It guards the FIRST
+  -- INSTRUCTION a new reader follows: the README told three tiers to download
+  -- `rot-moe-0.5.x-*.zip` while the packager built `0.7.x`, for two minor
+  -- versions, with every gate green. A deep tier would have let that ship again
+  -- on any commit that did not touch the release paths -- and a README edit is
+  -- exactly such a commit.
+  , f "README download links vs the packager"
   , f "cross-diff (both router arms)"
   -- Four gates joined on 2026-08-04, all FAST, and the tier is a decision worth
   -- recording. Each one guards a defect that had already reached a live machine:
@@ -274,10 +281,10 @@ def shipped : List Gate :=
 -- parity` on 2026-08-05, deep tier, after the two documented install paths were
 -- measured to deliver DIFFERENT products (plugin 5 bindings / 3 events,
 -- ARM_ROUTER 2 bindings / 2 events -- no installer had ever wired prover-remind).
-#guard shipped.length = 34
+#guard shipped.length = 35
 
 -- Twenty-two run on every commit.
-#guard (fastSet shipped).length = 22
+#guard (fastSet shipped).length = 23
 
 -- Twelve are escalated by path (`install parity` joined 2026-08-05).
 #guard (deepSet shipped).length = 12
@@ -301,17 +308,24 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 27
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 28
 
 -- A commit that touches nothing runs exactly the fast set.
-#guard (stagedRun shipped []).length = 22
+--
+-- All four numbers below moved by exactly +1 on 2026-08-05 for one reason: the
+-- `README download links vs the packager` gate joined the FAST tier. A fast gate
+-- is in every run by construction, so every one of these measurements shifts
+-- together -- and if they had NOT all moved together, that would be the
+-- interesting result, because it would mean the new gate is not actually
+-- unconditional. They follow the table; they never lead it.
+#guard (stagedRun shipped []).length = 23
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 25
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 26
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 23
+#guard (stagedRun shipped ["README.md".toList]).length = 24
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.
