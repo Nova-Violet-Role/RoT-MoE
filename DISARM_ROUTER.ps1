@@ -57,6 +57,18 @@ function ConvertTo-PosixPath([string] $p) {
 $RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
 
+# EXACT MODE MUST KNOW EVERY STRING THE INSTALLER WRITES -- same block, same
+# reason, as DISARM_ROUTER.sh. Measured 2026-08-05: once ARM_ROUTER began wiring
+# prover-remind on three events, exact removal took the router and left all three
+# reminder entries behind, with no documented way to remove them. The cross-arm
+# round trip in install-roundtrip.sh is what caught it, on the PowerShell side
+# only -- the POSIX arm had already been fixed, which is exactly how two arms of
+# one contract drift.
+$RemindPs1 = Join-Path $SelfDir 'hooks/prover-remind.ps1'
+$RemindSh  = Join-Path $SelfDir 'hooks/prover-remind.sh'
+$RemindCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
+             '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
+
 $Mode = if ($All) { 'disarm-any' } else { 'disarm' }
 
 Write-Output 'RoT MoE :: DISARM_ROUTER (PowerShell arm)'
@@ -84,6 +96,9 @@ if ($DryRun) {
   $before = @(Select-String -LiteralPath $Settings -Pattern 'rot-router' -SimpleMatch).Count
   & node $Merge $Mode $Tmp $RouterCmd | Out-Null
   $rc = $LASTEXITCODE
+  & node $Merge $Mode $Tmp $RemindCmd | Out-Null
+  $rc2 = $LASTEXITCODE
+  if ($rc -eq 10 -and $rc2 -ne 10) { $rc = $rc2 }
   if ($rc -eq 10) {
     Write-Output '  would remove: 0 router hook entries'
   } elseif ($rc -ne 0) {
@@ -105,6 +120,11 @@ Write-Output ('  restore    : Copy-Item "' + $Backup + '" "' + $Settings + '" -F
 
 & node $Merge $Mode $Settings $RouterCmd
 $rc = $LASTEXITCODE
+& node $Merge $Mode $Settings $RemindCmd
+$rc2 = $LASTEXITCODE
+# A run that removed only the reminder still CHANGED the file; reporting
+# `nothing to remove` there would be a false all-clear.
+if ($rc -eq 10 -and $rc2 -ne 10) { $rc = $rc2 }
 
 switch ($rc) {
   4 { Copy-Item -LiteralPath $Backup -Destination $Settings -Force

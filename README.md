@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **244
+lens activities off disk, computes an `R/s+` gauge from them, and **269
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **89 applied, 89 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **101 applied, 101 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -308,7 +308,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   moves. `normalize_idem`, `normalize_posix_id` (a Linux path is never
   rewritten), and `normalize_not_alpha_drive` — which replaced a **false**
   theorem the compiler refused, recorded in the source rather than quietly fixed.
-* **`lean/Proofs/RotInstall.lean`** (15 theorems) — arming never disarms you.
+* **`lean/Proofs/RotInstall.lean`** (23 theorems) — arming never disarms you.
   `arm_preserves_all_scalars` and `arm_preserves_unrelated_events`, quantified
   over **all keys**, so your `permissions`, your `env`, and every key not yet
   invented survive. `arm_idempotent`, `arm_appends` (your hooks keep their

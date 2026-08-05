@@ -56,12 +56,32 @@
 "use strict";
 const fs = require("fs");
 
-const [, , mode, file, cmd] = process.argv;
+const [, , mode, file, cmd, eventsArg] = process.argv;
 if (!mode || !file || !cmd) {
-  console.error("usage: settings-merge.js <arm|disarm|disarm-any> <settings.json> <command>");
+  console.error("usage: settings-merge.js <arm|disarm|disarm-any> <settings.json> <command> [events-csv]");
   process.exit(2);
 }
-const EVENTS = ["UserPromptSubmit", "PreToolUse"];
+
+// THE EVENT LIST IS A PARAMETER, and it became one for a MEASURED reason.
+//
+// It was hardcoded to the router's two events. That was correct for the router
+// and silently wrong for everything else the plugin registers: comparing
+// `hooks/hooks.json` against what this engine writes showed the plugin binding
+// FIVE hooks across THREE events (router on UserPromptSubmit + PreToolUse,
+// prover-remind on those two AND PostToolUse) while ARM_ROUTER produced TWO.
+//
+// So a user installing by hand lost the entire proof-reminder organ, including
+// the only PostToolUse binding, and nothing reported it -- the installer was
+// structurally incapable of writing a third event.
+//
+// Default preserved so every existing call site behaves exactly as before.
+const EVENTS = (eventsArg && eventsArg.trim())
+  ? eventsArg.split(",").map(s => s.trim()).filter(Boolean)
+  : ["UserPromptSubmit", "PreToolUse"];
+if (!EVENTS.length) {
+  console.error("  FATAL: an empty event list would arm nothing and report success.");
+  process.exit(3);
+}
 
 // --- read, preserving every encoding decision the file already made ---------
 const raw = fs.readFileSync(file, "utf8");
@@ -109,8 +129,15 @@ if (mode === "arm") {
   // here, so the removal, the group-emptying rule and the container rule cannot
   // drift between them -- two copies of this loop is how the broad mode would
   // eventually acquire a behaviour the narrow one does not have.
+  // BOTH SHIPPED HOOKS, not just the router. `--all` promises to remove every
+  // RoT MoE entry whatever path it names; once ARM_ROUTER also wires
+  // prover-remind, a predicate that only knows the router would leave the
+  // reminder behind on every uninstall -- an entry the user cannot remove by any
+  // documented means, which is the exact defect `disarm-any` was created to fix.
+  // Widening it here rather than at the call sites keeps one definition of
+  // "ours" for both arms.
   const isOurs = (c) => mode === "disarm-any"
-    ? (typeof c === "string" && /rot-router\.(ps1|sh)/.test(c))
+    ? (typeof c === "string" && /(rot-router|prover-remind)\.(ps1|sh)/.test(c))
     : (c === cmd);
   let removed = 0;
   for (const ev of Object.keys(s.hooks || {})) {

@@ -267,4 +267,201 @@ the shipped `hooks/hooks.json` still says so is the checker's job, not Lean's �
 Lean cannot read that file. -/
 example : armEvents = ["UserPromptSubmit", "PreToolUse"] := rfl
 
+/-! ## The install PLAN — many hooks, and the parity between install paths
+
+WHY THIS SECTION EXISTS. Everything above models the installer as *one command
+string*, because that is all `ARM_ROUTER` ever wrote. That was not a
+simplification of the product — it was a faithful model of a **defect**.
+
+MEASURED 2026-08-05, by comparing the two documented ways to install RoT MoE:
+
+    marketplace/plugin  ->  3 events, 5 bindings (rot-router x2, prover-remind x3)
+    ARM_ROUTER.sh/.ps1  ->  2 events, 2 bindings (rot-router only)
+
+No installer in the tree had ever wired `prover-remind`. A hand install therefore
+produced a *different product*: no proof reminder at all, and no `PostToolUse`
+binding of any kind. Every installer theorem above still held, because each was
+about the router — which was present the whole time.
+
+So the model grows a **plan**: a list of (command, events) pairs. The theorems
+below are the ones that would have caught it, and they are stated over an
+arbitrary plan so they keep catching it for the sixth hook as well as the second.
+-/
+
+/-- One registration: a command string and the events it binds to. -/
+abbrev Binding := String × List String
+
+/-- Arm one binding on its own event list. Generalises `arm`, which was
+hard-wired to `armEvents`. -/
+def armOn (evs : List String) (cmd : String) (s : Settings) : Settings where
+  scalar := s.scalar
+  hookEvents := fun k => if k ∈ evs then addOnce cmd (s.hookEvents k) else s.hookEvents k
+
+/-- Arm every binding of a plan, left to right. -/
+def armPlan : List Binding → Settings → Settings
+  | [],            s => s
+  | (c, evs) :: r, s => armPlan r (armOn evs c s)
+
+/-- Remove every command named by a plan, wherever it appears. This is what the
+uninstaller must be given: the defect was that it was given a *smaller* plan than
+the installer used. -/
+def disarmPlan (p : List Binding) (s : Settings) : Settings where
+  scalar := s.scalar
+  hookEvents := fun k => (s.hookEvents k).filter (fun c => !(p.any (fun b => b.1 == c)))
+
+/-- **An event no binding names receives nothing.**
+
+THIS IS THE THEOREM THAT WOULD HAVE CAUGHT THE DEFECT. `ARM_ROUTER` could not
+express a third event, so `PostToolUse` was untouched — and untouched is exactly
+what this says, for every plan that omits it. The plugin bound a hook there; the
+installer left the key as it found it; nothing in the repository compared them.
+
+Quantified over all plans and all events, so it does not expire when the hook
+list changes. -/
+theorem armPlan_untouched_event :
+    ∀ (p : List Binding) (s : Settings) (k : String),
+      (∀ b ∈ p, k ∉ b.2) → (armPlan p s).hookEvents k = s.hookEvents k := by
+  intro p
+  induction p with
+  | nil => intro s k _; rfl
+  | cons b r ih =>
+      intro s k h
+      obtain ⟨c, evs⟩ := b
+      have hb : k ∉ evs := h (c, evs) List.mem_cons_self
+      have hr : ∀ b ∈ r, k ∉ b.2 := fun b hb' => h b (List.mem_cons_of_mem _ hb')
+      have hrec := ih (armOn evs c s) k hr
+      -- `simp` must not unfold `armOn` before the induction hypothesis lands:
+      -- once it does, `hrec` no longer matches the goal it was made for.
+      simp only [armPlan]
+      rw [hrec]
+      simp [armOn, hb]
+
+/-- **Uninstalling with the plan that installed removes every command in it.**
+
+The residue-free half of the contract, for all plans at once. -/
+theorem disarmPlan_removes_its_own (p : List Binding) (s : Settings) (k c : String)
+    (hc : ∃ b ∈ p, b.1 = c) : c ∉ (disarmPlan p s).hookEvents k := by
+  obtain ⟨b, hbp, hbc⟩ := hc
+  simp only [disarmPlan, List.mem_filter, not_and]
+  intro _
+  simp only [Bool.not_eq_true, Bool.not_eq_false']
+  exact List.any_eq_true.mpr ⟨b, hbp, by simp [hbc]⟩
+
+/-- **A command installed but NOT named in the uninstall plan SURVIVES.**
+
+This is the measured failure, as a theorem rather than an anecdote: exact-mode
+`DISARM_ROUTER` knew one command string, the installer had written two, and the
+three `prover-remind` entries stayed on disk with no documented way to remove
+them. `install-roundtrip.sh` caught it the same hour the installer changed.
+
+Stated as an implication over arbitrary plans, so it also forbids the next
+version of the same mistake. -/
+theorem disarmPlan_leaves_what_it_was_not_told (p q : List Binding)
+    (s : Settings) (k c : String)
+    (hin : c ∈ (armPlan p s).hookEvents k)
+    (hq : ∀ b ∈ q, b.1 ≠ c) : c ∈ (disarmPlan q (armPlan p s)).hookEvents k := by
+  simp only [disarmPlan, List.mem_filter]
+  refine ⟨hin, ?_⟩
+  -- The guard is `!(q.any …)`, so the goal is that no binding of `q` names `c`.
+  -- `hq` says exactly that; `simp` discharges the Bool/Prop bridge.
+  simp only [Bool.not_eq_true', List.any_eq_false, beq_eq_false_iff_ne]
+  intro b hbq
+  simpa using hq b hbq
+
+/-- **A whole plan preserves every scalar key, whatever the plan is.**
+
+The single-command `arm` had this theorem from the first day
+(`arm_preserves_all_scalars`); the plan did not, and the mutation suite is what
+said so: wiping `scalar` inside `armOn` killed nothing, because no theorem
+mentioned it. A new definition inherits none of the old guarantees, and
+"obviously it still holds" is exactly the reasoning this repository does not
+accept. Induction over the plan, so it covers five bindings and fifty. -/
+theorem armPlan_preserves_all_scalars :
+    ∀ (p : List Binding) (s : Settings) (k : String),
+      (armPlan p s).scalar k = s.scalar k := by
+  intro p
+  induction p with
+  | nil => intro s k; rfl
+  | cons b r ih =>
+      intro s k
+      obtain ⟨c, evs⟩ := b
+      simp only [armPlan]
+      exact ih (armOn evs c s) k
+
+/-- **And so does the uninstaller.** Same reason, same gap: `disarmPlan` is a new
+definition, so it needs its own statement. -/
+theorem disarmPlan_preserves_all_scalars (p : List Binding) (s : Settings) (k : String) :
+    (disarmPlan p s).scalar k = s.scalar k := rfl
+
+/-- **A plan touches no event outside the union of its bindings' event lists.**
+
+The counterpart of `arm_preserves_unrelated_events` for plans. Without it, a plan
+that armed every event in existence would satisfy everything above. -/
+theorem armPlan_preserves_unrelated_events (p : List Binding) (s : Settings) (k : String)
+    (h : ∀ b ∈ p, k ∉ b.2) : (armPlan p s).hookEvents k = s.hookEvents k :=
+  armPlan_untouched_event p s k h
+
+/-! ### The shipped plan, pinned as data
+
+`#guard` rather than a theorem, deliberately: this is a snapshot of what the
+product registers *today*, and the general theorems above are what must not
+expire. `checker/install-parity.sh` is the instrument that binds these values to
+`hooks/hooks.json` and to what `ARM_ROUTER` actually writes — Lean cannot read
+either file. -/
+
+/-- An untouched configuration. -/
+def emptySettings : Settings := { scalar := fun _ => none, hookEvents := fun _ => [] }
+
+/-- The router: two events. -/
+def routerBinding : Binding := ("rot-router", ["UserPromptSubmit", "PreToolUse"])
+
+/-- The reminder: three, and the third is the one no installer could reach. -/
+def remindBinding : Binding :=
+  ("prover-remind", ["UserPromptSubmit", "PreToolUse", "PostToolUse"])
+
+/-- What the plugin registers, and now what `ARM_ROUTER` writes too. -/
+def shippedPlan : List Binding := [routerBinding, remindBinding]
+
+/-- The plan as it stood before the fix — the router alone. -/
+def routerOnlyPlan : List Binding := [routerBinding]
+
+-- Five bindings across three events, matching `hooks/hooks.json`.
+#guard ((armPlan shippedPlan emptySettings).hookEvents "UserPromptSubmit").length == 2
+#guard ((armPlan shippedPlan emptySettings).hookEvents "PreToolUse").length == 2
+#guard ((armPlan shippedPlan emptySettings).hookEvents "PostToolUse").length == 1
+
+-- THE DEFECT, reproduced: the old plan reaches two events and leaves the third
+-- empty. This is the parity gap the plugin never had.
+#guard ((armPlan routerOnlyPlan emptySettings).hookEvents "PostToolUse").length == 0
+
+-- THE UNINSTALL DEFECT, reproduced: uninstalling with the old plan leaves the
+-- reminder behind on the events it did reach.
+#guard ((disarmPlan routerOnlyPlan (armPlan shippedPlan emptySettings)).hookEvents
+          "PostToolUse") == ["prover-remind"]
+#guard ((disarmPlan routerOnlyPlan (armPlan shippedPlan emptySettings)).hookEvents
+          "UserPromptSubmit") == ["prover-remind"]
+
+-- AND THE FIX: the full plan leaves nothing, on every event it ever touched.
+#guard ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
+          "UserPromptSubmit") == []
+#guard ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
+          "PreToolUse") == []
+#guard ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
+          "PostToolUse") == []
+
+/-- **Every event the plugin declares is reached by the shipped plan.**
+
+Concrete, and `checker/install-parity.sh` is what binds it to the two real files.
+The general statement it instantiates is `armPlan_untouched_event`, which is what
+makes such a failure *diagnosable* rather than merely detectable. -/
+theorem shipped_plan_reaches_every_declared_event :
+    ∀ k ∈ ["UserPromptSubmit", "PreToolUse", "PostToolUse"],
+      (armPlan shippedPlan emptySettings).hookEvents k ≠ [] := by decide
+
+/-- **The old plan did not** — the same statement, false for the router alone, so
+the one above is not vacuously true of any plan whatsoever. -/
+theorem router_only_plan_missed_an_event :
+    ¬ (∀ k ∈ ["UserPromptSubmit", "PreToolUse", "PostToolUse"],
+        (armPlan routerOnlyPlan emptySettings).hookEvents k ≠ []) := by decide
+
 end RotMoE.Install

@@ -69,6 +69,22 @@ ROUTER_SH="$(canon_path "$ROUTER_SH")"
 ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
 ROUTER_CMD="pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
 
+# EXACT MODE MUST KNOW EVERY STRING THE INSTALLER WRITES.
+#
+# MEASURED 2026-08-05, caught by install-roundtrip the moment ARM_ROUTER started
+# wiring the reminder: exact `disarm` matches ONE command string, so it removed
+# the router and left all three prover-remind entries behind. The round trip then
+# failed against the pre-install file -- residue the user could not remove by any
+# documented means, which is precisely the defect `--all` was invented for and
+# which had just been reintroduced for a second hook.
+#
+# Exact mode stays exact: these are the strings THIS tree would have written,
+# rebuilt the same way ARM_ROUTER builds them. Nothing heuristic, nothing that
+# could reach an entry the installer did not create.
+REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
+REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
+REMIND_CMD="pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
+
 # --- flags -------------------------------------------------------------------
 # `--dry-run` was ACCEPTED AND SILENTLY IGNORED here while ARM_ROUTER honoured
 # it. Measured consequence on a live machine: the flag was passed to preview a
@@ -126,6 +142,11 @@ if [ "$DRY" -eq 1 ]; then
   chmod u+w "$TMP" 2>/dev/null || true   # a read-only settings.json copies read-only
   RC=0
   node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$ROUTER_CMD" || RC=$?
+  # Second pass for the reminder: see REMIND_CMD above. `10` means that half was
+  # not present, which is not a failure of the pass that did remove something.
+  RC2=0
+  node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$REMIND_CMD" || RC2=$?
+  { [ "$RC" -eq 10 ] && [ "$RC2" -ne 10 ]; } && RC=$RC2
   if [ "$RC" -eq 10 ]; then
     echo "  would remove: 0 router hook entries"
   elif [ "$RC" -ne 0 ]; then
@@ -157,6 +178,11 @@ echo "  restore    : cp \"$BACKUP\" \"$SETTINGS\""
 
 RC=0
 node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$ROUTER_CMD" || RC=$?
+RC2=0
+node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$REMIND_CMD" || RC2=$?
+# If the router half was absent but the reminder half was removed, the run DID
+# change the file; reporting `nothing to remove` would be a false all-clear.
+{ [ "$RC" -eq 10 ] && [ "$RC2" -ne 10 ]; } && RC=$RC2
 
 if [ "$RC" -eq 4 ]; then
   cp "$BACKUP" "$SETTINGS"; echo "  AUTO-RESTORED from backup."; exit 4

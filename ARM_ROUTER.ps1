@@ -95,6 +95,18 @@ function ConvertTo-PosixPath([string] $p) {
 # which is what makes that a tested claim rather than an intention.
 $RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
+$EventsCsv = 'UserPromptSubmit,PreToolUse'
+
+# The reminder, on the THREE events the plugin binds it to. Measured parity gap:
+# the plugin registered 5 bindings across 3 events, this installer wrote 2, and
+# no installer in the tree had ever wired prover-remind at all. See the same
+# block in ARM_ROUTER.sh -- the two arms must stay character-identical here or
+# each installs an entry the other cannot remove.
+$RemindPs1 = Join-Path $SelfDir 'hooks/prover-remind.ps1'
+$RemindSh  = Join-Path $SelfDir 'hooks/prover-remind.sh'
+$RemindCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
+             '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
+$RemindEventsCsv = 'UserPromptSubmit,PreToolUse,PostToolUse'
 
 Write-Output 'RoT MoE :: ARM_ROUTER (PowerShell arm)'
 Write-Output ('  config dir : ' + $ClaudeDir)
@@ -160,8 +172,22 @@ Write-Output ('  backup     : ' + $Backup)
 Write-Output ('  restore    : Copy-Item "' + $Backup + '" "' + $Settings + '" -Force')
 
 # --- rules 2,3,4,5: the shared engine ---------------------------------------
-& node $Merge arm $Settings $RouterCmd
+& node $Merge arm $Settings $RouterCmd $EventsCsv
 $rc = $LASTEXITCODE
+
+# The reminder is armed on the same terms as the router: if it cannot be written
+# the whole install is rolled back, because a settings.json carrying half the
+# hooks is a state no uninstall path was designed for.
+if ($rc -eq 0 -or $rc -eq 10) {
+  & node $Merge arm $Settings $RemindCmd $RemindEventsCsv
+  $rrc = $LASTEXITCODE
+  if ($rrc -eq 4 -or $rrc -eq 3) {
+    Copy-Item -LiteralPath $Backup -Destination $Settings -Force
+    Write-Output ('  AUTO-RESTORED from backup: the reminder could not be armed (exit ' + $rrc + ').')
+    exit $rrc
+  }
+  if ($rrc -eq 0) { $rc = 0 }
+}
 
 switch ($rc) {
   4 { Copy-Item -LiteralPath $Backup -Destination $Settings -Force

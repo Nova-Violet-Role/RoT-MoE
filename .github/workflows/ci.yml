@@ -101,6 +101,15 @@ jobs:
         shell: bash
         run: bash checker/install-roundtrip.sh
 
+      # THE TWO INSTALL PATHS MUST DELIVER THE SAME PRODUCT. Measured defect:
+      # the plugin registered 5 hook bindings across 3 events while ARM_ROUTER
+      # wrote 2 across 2, so a hand install silently lacked the whole proof
+      # reminder. Every installer test in the repo passed throughout, because
+      # each asserted things about the router -- which was present.
+      - name: install parity (plugin registration vs ARM_ROUTER)
+        shell: bash
+        run: bash checker/install-parity.sh
+
       # THE RELEASE ARTIFACTS, BUILT AND THEN INSTALLED FROM THE ZIP.
       # These two run in this order and only in this order: release-install.sh
       # REFUSES (exit 2) if the archives are not on disk, because installing a

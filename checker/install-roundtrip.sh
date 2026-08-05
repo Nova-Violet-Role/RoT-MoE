@@ -117,9 +117,40 @@ hasbom "$S" && ok "BOM state preserved" || bad "BOM was stripped"
 [ "$(jget "$S" hooks.SessionStart)" = "$(jget "$WORK/pre-install.json" hooks.SessionStart)" ] \
   && ok "untouched event unchanged" || bad "untouched event changed"
 
-# the user's own empty group must still be there -- not ours to tidy
-[ "$(jget "$S" hooks.PostToolUse)" = "$(jget "$WORK/pre-install.json" hooks.PostToolUse)" ] \
-  && ok "user's empty group left alone" || bad "user's empty group was tidied"
+# THE USER'S OWN EMPTY GROUP MUST STILL BE THERE -- not ours to tidy.
+#
+# This check USED to compare the whole PostToolUse key against pre-install, and
+# that was a dated assertion rather than the invariant it was named for: it
+# encoded "the installer never touches PostToolUse", which was true only while
+# ARM_ROUTER wired the router alone. The moment the installer began registering
+# prover-remind on the three events the plugin binds it to -- a correct change,
+# closing a real parity gap -- this went red, and the obvious repair (delete the
+# check) would have destroyed the coverage of the thing it actually guards.
+#
+# What matters is that OUR edit is additive: the user's group survives verbatim,
+# and everything else under that key is ours. Stated that way it holds however
+# many events the installer grows into.
+_pre_g=$(node -e '
+  const s=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").replace(/^﻿/,""));
+  process.stdout.write(JSON.stringify((s.hooks&&s.hooks.PostToolUse)||[]));' "$WORK/pre-install.json")
+_post_ok=$(node -e '
+  const fs=require("fs");
+  const rd=p=>JSON.parse(fs.readFileSync(p,"utf8").replace(/^﻿/,""));
+  const pre=(rd(process.argv[1]).hooks||{}).PostToolUse||[];
+  const post=(rd(process.argv[2]).hooks||{}).PostToolUse||[];
+  const key=g=>JSON.stringify(g);
+  const preKeys=pre.map(key);
+  // every pre-existing group survives, byte-for-byte
+  const survived=preKeys.every(k=>post.some(g=>key(g)===k));
+  // every group we added invokes only RoT MoE hooks
+  const extras=post.filter(g=>!preKeys.includes(key(g)));
+  const oursOnly=extras.every(g=>(g.hooks||[]).every(h=>
+    /(rot-router|prover-remind)\.(ps1|sh)/.test(h.command||"")));
+  process.stdout.write(survived&&oursOnly?"yes":"no");' \
+  "$WORK/pre-install.json" "$S")
+[ "$_post_ok" = "yes" ] \
+  && ok "user's empty group left alone (installer edit is additive)" \
+  || bad "user's empty group was tidied, or a non-RoT group appeared"
 
 # and the router must actually be there (non-vacuity: an installer that does
 # nothing passes every check above)

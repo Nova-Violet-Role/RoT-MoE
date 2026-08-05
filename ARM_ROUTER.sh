@@ -149,6 +149,15 @@ ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
 # first arm, POSIX falls through to the second.
 ROUTER_CMD="pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
 EVENTS='UserPromptSubmit PreToolUse'
+EVENTS_CSV='UserPromptSubmit,PreToolUse'
+
+# The reminder ships in the same tree and is registered by the PLUGIN on three
+# events. The hand install has to match it or the two paths deliver different
+# products -- see the block at the merge call for the measurement.
+REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
+REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
+REMIND_CMD="pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
+REMIND_EVENTS_CSV='UserPromptSubmit,PreToolUse,PostToolUse'
 
 echo "RoT MoE :: ARM_ROUTER"
 echo "  config dir : $CLAUDE_DIR"
@@ -223,7 +232,40 @@ MERGE_RC=0
 # deliberately duplicated: for the router, two agreeing implementations ARE the
 # evidence; for the installer there is nothing to cross-check and byte
 # divergence between arms would be pure risk.
-node "$SELF_DIR/hooks/settings-merge.js" arm "$SETTINGS" "$ROUTER_CMD" || MERGE_RC=$?
+node "$SELF_DIR/hooks/settings-merge.js" arm "$SETTINGS" "$ROUTER_CMD" "$EVENTS_CSV" || MERGE_RC=$?
+
+# THE REMINDER IS PART OF THE INSTALL, and leaving it out was a measured defect.
+#
+# MEASURED 2026-08-05 by comparing `hooks/hooks.json` -- what a marketplace
+# install registers -- against what this script writes:
+#
+#   plugin install : 3 events, 5 bindings (router x2, prover-remind x3)
+#   ARM_ROUTER     : 2 events, 2 bindings (router only)
+#
+# A grep for `prover-remind` across both installer arms, both Lean setup scripts
+# and settings-merge.js returned NOTHING: no installer had ever wired it. So the
+# two documented ways to install the same product gave different products, and
+# the hand-installed one silently lacked the entire proof-reminder organ -- the
+# component whose 55x staleness error this very release fixed. A user on that
+# path would never have seen a reminder at all.
+#
+# The reminder binds on THREE events. PostToolUse is the one the router does not
+# use and the one an installer built around the router could not express until
+# the event list became a parameter.
+if [ "$MERGE_RC" -eq 0 ] || [ "$MERGE_RC" -eq 10 ]; then
+  REMIND_RC=0
+  node "$SELF_DIR/hooks/settings-merge.js" arm "$SETTINGS" "$REMIND_CMD" \
+       "$REMIND_EVENTS_CSV" || REMIND_RC=$?
+  # A reminder failure must not be quieter than a router failure: the same
+  # restore-and-refuse path applies, because a half-armed settings.json is worse
+  # than an unarmed one.
+  if [ "$REMIND_RC" -eq 4 ] || [ "$REMIND_RC" -eq 3 ]; then
+    cp "$BACKUP" "$SETTINGS"
+    echo "  AUTO-RESTORED from backup: the reminder could not be armed (exit $REMIND_RC)."
+    exit "$REMIND_RC"
+  fi
+  [ "$REMIND_RC" -eq 0 ] && MERGE_RC=0
+fi
 
 # rule 4: auto-restore on any validation failure.
 if [ "$MERGE_RC" -eq 4 ]; then

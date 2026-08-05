@@ -258,18 +258,22 @@ def shipped : List Gate :=
   , d "mutate the checker" ["checker/", "hooks/"]
   , d "portability" ["checker/", "hooks/", "ARM_ROUTER", "DISARM_ROUTER", ".githooks/"]
   , d "installer round trip" ["ARM_ROUTER", "DISARM_ROUTER", "checker/install", ".claude-plugin/"]
+  , d "install parity" ["ARM_ROUTER", "DISARM_ROUTER", "hooks/hooks.json", "hooks/settings-merge.js"]
   , d "release install" ["checker/release", ".claude-plugin/"]
   ]
 
--- Thirty-three gates: `profile binding` joined on 2026-08-03, deep tier; the
--- four installer/measurement/log gates on 2026-08-04, fast tier.
-#guard shipped.length = 33
+-- Thirty-four gates: `profile binding` joined on 2026-08-03, deep tier; the
+-- four installer/measurement/log gates on 2026-08-04, fast tier; `install
+-- parity` on 2026-08-05, deep tier, after the two documented install paths were
+-- measured to deliver DIFFERENT products (plugin 5 bindings / 3 events,
+-- ARM_ROUTER 2 bindings / 2 events -- no installer had ever wired prover-remind).
+#guard shipped.length = 34
 
 -- Twenty-two run on every commit.
 #guard (fastSet shipped).length = 22
 
--- Ten are escalated by path.
-#guard (deepSet shipped).length = 11
+-- Twelve are escalated by path (`install parity` joined 2026-08-05).
+#guard (deepSet shipped).length = 12
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

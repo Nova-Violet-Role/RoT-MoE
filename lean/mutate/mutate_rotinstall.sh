@@ -195,7 +195,7 @@ run_mut_nth() {
 
 echo "=== RotInstall mutation suite ==="
 
-run_mut_nth I01 1 2 \
+run_mut_nth I01 1 4 \
   '  scalar := s.scalar' \
   '  scalar := fun _ => none' \
   'arm_preserves_all_scalars (installer wipes every scalar key)'
@@ -235,7 +235,7 @@ run_mut I08 \
   '  if c ∈ l then l else [c] ++ l' \
   'arm_appends (router PREPENDED -- users hooks now fire after ours)'
 
-run_mut_nth I09 2 2 \
+run_mut_nth I09 2 4 \
   '  scalar := s.scalar' \
   '  scalar := fun _ => none' \
   'disarm_preserves_all_scalars -- the axiom-free theorem, on trial for vacuity'
@@ -245,6 +245,55 @@ run_mut I10 \
   'def armEvents : List String := ["UserPromptSubmit"]' \
   'PREDICTED SURVIVOR of the theorems (all quantify over armEvents, not its contents) but MUST kill the pinning example at the foot of the file'
 
+
+# --- THE PLAN MUTANTS -------------------------------------------------------
+# Added 2026-08-05 with the install-plan section. A new definition inherits none
+# of the old theorems' coverage: when `armOn` and `disarmPlan` first appeared,
+# wiping their `scalar` field killed NOTHING, because no theorem named them. The
+# suite reported it as two DISCARDED needles (`scalar := s.scalar` had gone from
+# two occurrences to four) -- which is the harness saying "I tested nothing",
+# not "the code is fine". Both readings had to be repaired: the counts below,
+# and the missing theorems in the module.
+
+run_mut_nth I11 3 4 \
+  '  scalar := s.scalar' \
+  '  scalar := fun _ => none' \
+  'armPlan_preserves_all_scalars (arming a PLAN wipes every scalar key)'
+
+run_mut_nth I12 4 4 \
+  '  scalar := s.scalar' \
+  '  scalar := fun _ => none' \
+  'disarmPlan_preserves_all_scalars (uninstalling a PLAN wipes every scalar key)'
+
+# The event list of a binding is what the installer could not express before the
+# fix. If `armOn` ignores it and arms every event, `armPlan_untouched_event`
+# must die -- that theorem IS the parity guarantee.
+run_mut I13 \
+  '  hookEvents := fun k => if k ∈ evs then addOnce cmd (s.hookEvents k) else s.hookEvents k' \
+  '  hookEvents := fun k => addOnce cmd (s.hookEvents k)' \
+  'armPlan_untouched_event (a plan arms EVERY event, ignoring its binding lists)'
+
+# The uninstaller that removes nothing. `disarmPlan_removes_its_own` is the
+# theorem that forbids the residue the round trip caught on disk.
+run_mut I14 \
+  '  hookEvents := fun k => (s.hookEvents k).filter (fun c => !(p.any (fun b => b.1 == c)))' \
+  '  hookEvents := fun k => s.hookEvents k' \
+  'disarmPlan_removes_its_own (plan uninstall is a no-op -- the measured residue)'
+
+# THE SHIPPED PLAN ITSELF. Dropping the reminder reproduces the exact defect
+# this section documents, and the concrete guards plus
+# `shipped_plan_reaches_every_declared_event` must all fail.
+run_mut I15 \
+  'def shippedPlan : List Binding := [routerBinding, remindBinding]' \
+  'def shippedPlan : List Binding := [routerBinding]' \
+  'shipped_plan_reaches_every_declared_event + the PostToolUse guards (the measured parity gap, restored)'
+
+# And the third event alone -- the one no installer could reach. This is the
+# narrowest possible statement of the original bug.
+run_mut I16 \
+  '  ("prover-remind", ["UserPromptSubmit", "PreToolUse", "PostToolUse"])' \
+  '  ("prover-remind", ["UserPromptSubmit", "PreToolUse"])' \
+  'the PostToolUse guards (reminder loses the event the plugin binds it to)'
 cp "$BAK" "$F"
 rm -f "$OLEAN"
 ( cd "$LEAN_ROOT" && lake build Proofs.RotInstall ) > "$LOG/baseline.log" 2>&1
