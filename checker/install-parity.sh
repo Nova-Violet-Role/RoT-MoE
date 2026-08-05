@@ -43,7 +43,15 @@ set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 PASS=0; FAIL=0
 ok  () { PASS=$((PASS+1)); printf '  PASS  %s\n' "$1"; }
-bad () { FAIL=$((FAIL+1)); printf '  FAIL  %s\n' "$1"; }
+# `::error::` becomes a check-run annotation, and annotations are PUBLIC on a
+# public repository while `actions/runs/<id>/logs` answers 403 without admin
+# rights. Measured the hard way: this gate's first CI run went red on ubuntu and
+# the only readable evidence was "Process completed with exit code 1".
+bad () {
+  FAIL=$((FAIL+1))
+  printf '  FAIL  %s\n' "$1"
+  [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=install-parity::%s\n' "$1"
+}
 
 echo "== install parity: plugin registration vs ARM_ROUTER =="
 
@@ -81,7 +89,7 @@ ok "plugin registrations read: $(wc -l < "$WORK/plugin.txt" | tr -d ' ') (event,
 
 # --- 2. what ARM_ROUTER writes ----------------------------------------------
 mkdir -p "$WORK/home/.claude"
-CLAUDE_DIR="$WORK/home/.claude" sh "$REPO/ARM_ROUTER.sh" > "$WORK/arm.log" 2>&1
+CLAUDE_DIR="$WORK/home/.claude" bash "$REPO/ARM_ROUTER.sh" > "$WORK/arm.log" 2>&1
 ARM_RC=$?
 if [ "$ARM_RC" -ne 0 ]; then
   bad "ARM_ROUTER.sh exited $ARM_RC on a clean config"
@@ -133,7 +141,7 @@ done
 # Parity is not only about arming. An installer that writes what its uninstaller
 # cannot remove strands the user, and that is a defect this repository has
 # already shipped once.
-CLAUDE_DIR="$WORK/home/.claude" sh "$REPO/DISARM_ROUTER.sh" > "$WORK/disarm.log" 2>&1
+CLAUDE_DIR="$WORK/home/.claude" bash "$REPO/DISARM_ROUTER.sh" > "$WORK/disarm.log" 2>&1
 DIS_RC=$?
 LEFT=$(grep -cE 'rot-router|prover-remind' "$WORK/home/.claude/settings.json" 2>/dev/null || true)
 if [ "$DIS_RC" -eq 0 ] && [ "${LEFT:-0}" -eq 0 ]; then
@@ -145,7 +153,10 @@ fi
 # --- 5. NEGATIVE CONTROL -----------------------------------------------------
 # A comparison that cannot fail proves nothing. Drop one pair from the plugin
 # side and the diff must go red.
-head -n -1 "$WORK/plugin.txt" > "$WORK/plugin.short.txt"
+# `sed '$d'`, not `head -n -1`: the negative count is a GNU extension and BSD
+# head on macOS rejects it, which would turn the CONTROL -- the one assertion
+# that proves this gate can fail at all -- into a platform-dependent error.
+sed '$d' "$WORK/plugin.txt" > "$WORK/plugin.short.txt"
 if diff -q "$WORK/plugin.short.txt" "$WORK/armed.txt" >/dev/null 2>&1; then
   bad "CONTROL DEAD: removing a registration did not change the comparison"
 else
