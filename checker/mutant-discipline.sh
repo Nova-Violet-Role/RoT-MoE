@@ -91,8 +91,70 @@ done
 # 15, and the two dropped are exactly those two -- every genuine harness reports
 # killed/survived/discarded and is still selected. That is a classifier repair,
 # not a relaxation of the discipline: nothing that reports a kill escapes.
-harnesses="$(grep -lE 'sed -i|perl -0?pi|(sed|awk|perl)[^|]*> *"' checker/*.sh lean/mutate/*.sh 2>/dev/null \
-             | xargs grep -lE 'killed|survived|discard' 2>/dev/null | sort -u)"
+# NARROWED A THIRD TIME, 2026-08-06, and for the third time because the rule
+# failed a correct script. Both filters above read RAW TEXT -- comments included
+# -- while the property check below reads `sed 's/#.*$//'`, code only. That
+# asymmetry means a file is CLASSIFIED by its prose and JUDGED by its code.
+#
+# Measured: checker/workflow-lint.sh acquired the comment
+#
+#     # was killed at the harness ceiling four commits running.
+#
+# and the word `killed` inside that sentence promoted a YAML linter -- which
+# mutates nothing and produces no mutant of anything -- into a mutation harness
+# that then failed for missing all four disciplines. Nothing about its behaviour
+# had changed; one English word had.
+#
+# The repair is to classify on the same text the judgement reads. A genuine
+# harness reports killed/survived/discarded from its CODE, so none is lost; only
+# files that merely TALK about killing are released. Verified by the control
+# below, which requires every lean/mutate/*.sh to still be selected.
+# MEASURED before changing it, both ways, because the previous two narrowings
+# were also justified by measurement:
+#
+#   lean/mutate/mutate_rotability.sh -- kill-reporting in CODE: 11 lines
+#                                       patch tool in CODE:      0 lines
+#   checker/workflow-lint.sh         -- kill-reporting in CODE:  0 lines
+#                                       patch tool in CODE:      2 lines
+#
+# A genuine suite may DELEGATE its patching to a shared helper, so demanding the
+# patch tool in its own code drops it. What no genuine suite delegates is the
+# verdict: it reports the kill itself. So the patch-tool signal stays on raw
+# text, and only the kill-reporting filter reads code.
+# WIDENED at the same time, and this is the part that mattered. The pattern above
+# requires the patch tool and its redirect on ONE line. Eleven suites under
+# lean/mutate/ apply their mutant with a MULTI-LINE awk block whose redirect sits
+# lines below the `awk`, so they matched nothing and were never audited at all --
+# while the gate printed "16 patch-applying harness(es) audited" and passed.
+# A gate auditing the wrong files is the fake green this repository exists to
+# refuse, so lean/mutate/ is now a harness directory BY CONSTRUCTION: everything
+# in it that reports a kill is audited, however it happens to apply its patch.
+_cand="$(grep -lE 'sed -i|perl -0?pi|(sed|awk|perl)[^|]*> *"' checker/*.sh 2>/dev/null
+         ls lean/mutate/*.sh 2>/dev/null)"
+harnesses=""
+for _f in $_cand; do
+  sed 's/#.*$//' "$_f" | grep -qE 'killed|survived|discard' || continue
+  harnesses="$harnesses$_f
+"
+done
+harnesses="$(printf '%s' "$harnesses" | sort -u)"
+
+# CONTROL: the classifier must not have shed a real harness. Every suite under
+# lean/mutate/ applies a patch and judges a kill -- if the repair above dropped
+# even one, this checker would be measuring less while still printing PASS.
+# Scoped to `mutate_*.sh`, the naming convention for a SUITE. lean/mutate/ also
+# holds small tools (attribute_mut.sh, 26 lines) that judge no kill and report
+# none; demanding their classification would be the same defect this file has
+# already repaired three times -- a rule failing a correct script.
+_missing=0
+for _m in lean/mutate/mutate_*.sh; do
+  [ -f "$_m" ] || continue
+  case "$harnesses" in
+    *"$_m"*) ;;
+    *) bad "CONTROL: $_m applies patches but the classifier dropped it"; _missing=$((_missing+1)) ;;
+  esac
+done
+[ "$_missing" -eq 0 ] && ok "CONTROL: every lean/mutate suite is still classified as a harness"
 [ -n "$harnesses" ] || { echo "REFUSE: found no mutation harness at all -- this checker would pass vacuously"; exit 2; }
 
 n_h=0

@@ -34,30 +34,63 @@ bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error
 echo "== workflow lint =="
 
 # --- 1. do they parse? ------------------------------------------------------
+#
+# THE DETECTION USED TO BE COMPUTED AND THEN IGNORED. `YAML_OK=1` meant "node
+# can require js-yaml locally", but every parse below still went through
+# `npx --yes`, which re-resolves against the registry on EVERY call. Measured
+# 2026-08-06: six such calls took the gate from seconds to over 300 s and it
+# was killed at the harness ceiling four commits running.
+#
+# That is worse than slow. A gate that reaches the network to do its work is
+# flaky by construction, it goes red for reasons that have nothing to do with
+# the tree, and a gate that goes red for no reason is the one people disable --
+# which is precisely how a fake green is born.
+#
+# Same parser, same files, same controls; it just stops asking the internet for
+# permission when the parser is already on this machine.
 YAML_OK=0
-if node -e 'require("js-yaml")' >/dev/null 2>&1; then YAML_OK=1
-elif npx --yes --quiet js-yaml --help >/dev/null 2>&1; then YAML_OK=2; fi
+YAML_MODE=""
+if node -e 'require("js-yaml")' >/dev/null 2>&1; then
+  YAML_OK=1; YAML_MODE="node -e require(js-yaml)"
+elif command -v js-yaml >/dev/null 2>&1; then
+  YAML_OK=1; YAML_MODE="js-yaml on PATH"
+elif npx --yes --quiet js-yaml --help >/dev/null 2>&1; then
+  YAML_OK=2; YAML_MODE="npx js-yaml (network)"
+fi
+
+# One entry point, so the four call sites cannot drift apart again.
+yamlparse() {
+  case "$YAML_MODE" in
+    "node -e require(js-yaml)")
+      node -e 'const y=require("js-yaml"),f=require("fs");y.load(f.readFileSync(process.argv[1],"utf8"))' "$1" ;;
+    "js-yaml on PATH") js-yaml "$1" >/dev/null ;;
+    *)                 npx --yes --quiet js-yaml "$1" >/dev/null ;;
+  esac
+}
 
 if [ "$YAML_OK" -eq 0 ]; then
   echo "  SKIP  no YAML parser available -- workflows NOT parsed. Not a pass."
 else
+  echo "  ----  YAML parser: $YAML_MODE"
   for wf in .github/workflows/*.yml; do
-    if npx --yes --quiet js-yaml "$wf" >/dev/null 2>&1; then
+    if yamlparse "$wf" >/dev/null 2>&1; then
       ok "parses: $wf"
     else
       bad "DOES NOT PARSE: $wf"
-      npx --yes --quiet js-yaml "$wf" 2>&1 | head -3 | sed 's/^/        /'
+      yamlparse "$wf" 2>&1 | head -3 | sed 's/^/        /'
     fi
   done
 
   # NEGATIVE CONTROL: the parser must reject something. A linter that passes
-  # everything is not a linter.
+  # everything is not a linter. This also proves the FAST path above is a real
+  # parser and not a stub that returns 0 -- if the local mode accepted this
+  # file, the control would fail here.
   BADF="$(mktemp "${TMPDIR:-/tmp}/badwf.XXXXXX").yml"
   printf 'name: broken\non:\n  push:\njobs:\n  x:\n    steps:\n      - run: echo hi\n     bad_indent: true\n' > "$BADF"
-  if npx --yes --quiet js-yaml "$BADF" >/dev/null 2>&1; then
+  if yamlparse "$BADF" >/dev/null 2>&1; then
     bad "CONTROL DEAD: the parser accepted deliberately broken YAML"
   else
-    ok "CONTROL: deliberately broken YAML was rejected"
+    ok "CONTROL: deliberately broken YAML was rejected ($YAML_MODE)"
   fi
   rm -f "$BADF"
 fi
@@ -217,7 +250,7 @@ $2
 
 WF_TEXT="$(cat .github/workflows/*.yml)"
 for c in checker/*.sh; do
-  base="$(basename "$c")"
+  base="${c##*/}"
   if contains "$WF_TEXT" "$base"; then
     ok "wired into a workflow: $base"
   elif [ -n "$(except_reason "$base")" ]; then
@@ -337,7 +370,7 @@ if [ -f checker/gate-all.sh ]; then
   gate_listed="$(grep -oE 'checker/[a-z-]+\.sh' checker/gate-all.sh | sed 's|checker/||' | sort -u)"
   uncovered=0
   for c in checker/*.sh; do
-    b="$(basename "$c")"
+    b="${c##*/}"
     if contains_line "$gate_listed" "$b"; then
       continue
     elif [ -n "$(gate_except_reason "$b")" ]; then
@@ -356,7 +389,7 @@ if [ -f checker/gate-all.sh ]; then
   # themselves, since being run by a non-gate would be no coverage at all.
   exercisers=0
   for g in checker/verdict-stability.sh checker/verdict-schedule-sim.sh; do
-    gb="$(basename "$g")"
+    gb="${g##*/}"
     if [ -f "$g" ] && grep -q 'status-verdict\.sh' "$g" \
        && contains_line "$gate_listed" "$gb"; then
       exercisers=$((exercisers+1))
@@ -416,7 +449,7 @@ if [ -n "$ENUM_MOD" ]; then
 fi
 
 for m in lean/Proofs/*.lean; do
-  mod="$(basename "$m" .lean)"
+  mod="${m##*/}"; mod="${mod%.lean}"
   if contains "$WF_TEXT" "Proofs.$mod"; then
     ok "CI builds Proofs.$mod (named explicitly)"
   elif contains_line "$MOD_ENUMERATED" "$mod"; then
@@ -432,7 +465,7 @@ done
 _narrow="$( ( cd lean 2>/dev/null && ls Proofs/RotG*.lean 2>/dev/null ) | sed 's#^Proofs/##; s#\.lean$##' )"
 _missed=0
 for m in lean/Proofs/*.lean; do
-  contains_line "$_narrow" "$(basename "$m" .lean)" || _missed=$((_missed+1))
+  contains_line "$_narrow" "$(m2=${m##*/}; printf %s "${m2%.lean}")" || _missed=$((_missed+1))
 done
 if [ "$_missed" -eq 0 ]; then
   bad "CONTROL DEAD: a narrow glob appears to cover every module -- coverage is not being measured"
@@ -460,7 +493,7 @@ MUT_ENUMERATED="$( [ -n "$ENUM_MUT" ] && ( cd lean 2>/dev/null && eval "$ENUM_MU
 [ -n "$ENUM_MUT" ] && ok "CI enumerates its mutation suites from disk ($ENUM_MUT)"
 
 for s in lean/mutate/*.sh; do
-  base="$(basename "$s")"
+  base="${s##*/}"
   if contains "$WF_TEXT" "$base"; then
     ok "CI runs $base"
   elif contains_line "$MUT_ENUMERATED" "$base"; then
@@ -505,7 +538,7 @@ done
 mut_defects=0
 for h in lean/mutate/mutate_*.sh lean/mutate/generalization_probe.sh; do
   [ -f "$h" ] || continue
-  b="$(basename "$h")"
+  b="${h##*/}"
   grep -qE 'LEAN_ROOT|LEAN_DIR' "$h" \
     || { bad "$b does not resolve its workspace from LEAN_ROOT -- it will build in whatever directory it is called from"; mut_defects=$((mut_defects+1)); }
   grep -qE 'preflight|FATAL|SKIP' "$h" \
