@@ -236,7 +236,15 @@ while [ "$n" -le "$TO" ]; do
   ran=$((ran+1))
   if [ "$rc" -ne 0 ]; then
     failed=$((failed+1))
-    note "turn $n: claude exit $rc (timeout or error) -- recorded, not hidden"
+    # THE CLI WRITES THE REASON INTO THE JSON EVEN WHEN IT EXITS NON-ZERO, and
+    # this line used to throw it away. Measured 2026-08-06: twenty consecutive
+    # turns reported nothing but "exit 1 (timeout or error)", and the actual
+    # cause -- `Not logged in - Please run /login` -- was sitting in `.result`
+    # of every one of them. Twenty mute failures cost a diagnosis that the
+    # first turn already had. A failure that does not say WHY is a failure you
+    # will misattribute.
+    why=$(node -e 'try{const j=require(process.argv[1]);const r=String(j.result||j.error||"").replace(/\s+/g," ").trim();console.log(r?r.slice(0,120):"(no reason in the payload)")}catch(e){console.log("(no JSON payload -- the turn produced nothing)")}' "$out" 2>/dev/null)
+    note "turn $n: claude exit $rc -- ${why:-(no reason available)}"
   else
     newsid=$(node -e 'try{const j=require(process.argv[1]);console.log(j.session_id||"")}catch(e){console.log("")}' "$out" 2>/dev/null)
     [ -n "$newsid" ] && { SID="$newsid"; printf '%s' "$SID" > "$SIDF"; }
@@ -278,6 +286,38 @@ fi
 # `--report` already refuses an empty corpus, but that is a LATER, SEPARATE
 # invocation. A scheduled collection step that never reaches it would have been
 # green forever.
+# --- REFUSAL: EVERY TURN FAILED -------------------------------------------
+# THIS IS THE HOLE THE REFUSAL BELOW DID NOT COVER, and it was live.
+#
+# Measured 2026-08-06: the CTT credential had gone stale (`expiresAt: 0`), all
+# TWENTY turns returned `Not logged in - Please run /login`, and this script
+# exited **0**. The refusal below asks "were any route records written?" -- and
+# twenty were, because the router hook fires on prompt submission, BEFORE the
+# turn reaches the API and dies. The evidence counter increments in the FAILURE
+# PATH, so a pass condition resting on it is satisfied by total failure.
+#
+# That is the same defect class this suite exists to catch, living in the suite
+# itself, and it is proved rather than described in `Proofs/RotObserve.lean` §9:
+#   side_effect_verdict_cannot_see_total_failure -- a verdict reading only the
+#     side effect is IDENTICAL whether every turn succeeded or every turn failed
+#   success_aware_verdict_detects_total_failure  -- and one that reads outcomes
+#     does detect it
+#
+# A session suite in which no session happened has measured nothing. It does not
+# matter how many records the hook managed to write on the way down.
+if [ "$ran" -gt 0 ] && [ "$failed" -eq "$ran" ]; then
+  echo "REFUSE: every one of $ran turn(s) FAILED."
+  echo "        $_new route record(s) were still written -- the hook fires when the"
+  echo "        prompt is submitted, so records prove the hook ran, NOT that the"
+  echo "        session worked. This is not a pass."
+  echo "        The per-turn lines above now carry the CLI's own reason; read the"
+  echo "        first one. A stale CTT credential reports:"
+  echo "          Not logged in - Please run /login"
+  echo "        Refresh it by cloning the live credential into the CTT config dir,"
+  echo "        which is what checker/marketplace-session.sh already does."
+  exit 2
+fi
+
 if [ "$ran" -gt 0 ] && [ "$_new" -eq 0 ]; then
   echo "REFUSE: $ran turn(s) ran and NOT ONE route record was written."
   echo "        The session produced no measurement, so this is not a pass."
