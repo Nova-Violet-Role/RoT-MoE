@@ -133,7 +133,16 @@ _cand="$(grep -lE 'sed -i|perl -0?pi|(sed|awk|perl)[^|]*> *"' checker/*.sh 2>/de
          ls lean/mutate/*.sh 2>/dev/null)"
 harnesses=""
 for _f in $_cand; do
-  sed 's/#.*$//' "$_f" | grep -qE 'killed|survived|discard' || continue
+  # NOT `sed ... | grep -q`. This file runs under `set -o pipefail`, and `grep -q`
+  # exits at the FIRST match, which kills `sed` with SIGPIPE and makes the whole
+  # pipeline report failure -- so a MATCHING file is silently dropped. It is a
+  # race, so it is platform-dependent: measured green on Git Bash here and RED in
+  # CI on ubuntu (run 31116857127), where it dropped mutate_roteigenform.sh and
+  # one other, auditing 21 harnesses instead of 23 while still printing PASS for
+  # the ones it kept. `grep -c` consumes all input, so there is no SIGPIPE.
+  _hits="$(sed 's/#.*$//' "$_f" | grep -cE 'killed|survived|discard')"
+  : "${_hits:=0}"
+  [ "$_hits" -gt 0 ] || continue
   harnesses="$harnesses$_f
 "
 done
