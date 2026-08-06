@@ -16,9 +16,9 @@
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
-[![Pure Router](https://img.shields.io/badge/v0.8.0-Pure%20Router-0969da?style=flat-square)](#-v080--pure-router)
-[![Router + Lean](https://img.shields.io/badge/v0.8.1-Router%20%2B%20Lean%204-1a7f37?style=flat-square)](#-v081--router--lean-4)
-[![Unsealed](https://img.shields.io/badge/v0.8.2-Router%20%2B%20Lean%20%2B%20Extra-8250df?style=flat-square)](#-v082--router--lean--extra)
+[![Pure Router](https://img.shields.io/badge/v0.9.0-Pure%20Router-0969da?style=flat-square)](#-v090--pure-router)
+[![Router + Lean](https://img.shields.io/badge/v0.9.1-Router%20%2B%20Lean%204-1a7f37?style=flat-square)](#-v091--router--lean-4)
+[![Unsealed](https://img.shields.io/badge/v0.9.2-Router%20%2B%20Lean%20%2B%20Extra-8250df?style=flat-square)](#-v092--router--lean--extra)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
 [![Theorems](https://img.shields.io/badge/theorems-154-2C3E50?style=flat-square)](#)
 
@@ -34,18 +34,18 @@ released together. The version you pick is the variant you want:
 
 | version | variant | you get |
 |---|---|---|
-| **`v0.8.0`** | **Pure Router** | the plugin, alone. No Lean, no fetcher, **no network at all** |
-| **`v0.8.1`** | **Router + Lean 4** | the above **plus the full Lean 4 toolchain** — the workshop these proofs were built in |
-| **`v0.8.2`** | **Router + Lean + Extra** | the above **plus `native_decide` unsealed**, and the instrument that keeps that honest |
+| **`v0.9.0`** | **Pure Router** | the plugin, alone. No Lean, no fetcher, **no network at all** |
+| **`v0.9.1`** | **Router + Lean 4** | the above **plus the full Lean 4 toolchain** — the workshop these proofs were built in |
+| **`v0.9.2`** | **Router + Lean + Extra** | the above **plus `native_decide` unsealed**, and the instrument that keeps that honest |
 
 Each is a strict superset of the one before it, and that is **asserted against
 the archives** — a file that vanished from a larger tier fails the build.
 
-**Take `v0.8.0` — Pure Router.** It is the plugin. It routes, it gauges, it
+**Take `v0.9.0` — Pure Router.** It is the plugin. It routes, it gauges, it
 reminds, and it never touches the network. If you are here to *use* RoT MoE,
 that is the whole product and you are done in a minute.
 
-**Take `v0.8.1` — Router + Lean 4** if you want **the machine that makes the
+**Take `v0.9.1` — Router + Lean 4** if you want **the machine that makes the
 theorems**, not just the theorems.
 
 Re-checking our 154 proofs is the *smallest* thing it does — it is the demo, not
@@ -67,7 +67,7 @@ something you can **argue with**:
   — build → `#print axioms` → `leanchecker`, then mutate it and prove the theorem
   dies — arrives as working, running scripts you can point at your own code.
 
-**Take `v0.8.2` — Router + Lean + Extra** if you want the discipline in *your*
+**Take `v0.9.2` — Router + Lean + Extra** if you want the discipline in *your*
 hands rather than enforced on you. It unseals `native_decide` for your own
 proofs and ships `checker/axiom-class.sh`, which sorts every theorem into
 **KERNEL** (the kernel checked it), **COMPILER** (it was *executed*, not proved)
@@ -75,15 +75,15 @@ or **BROKEN** (`sorryAx`). Full detail in `UNSEALED.md`, which ships only in
 this variant.
 
 > All three contain the identical router, the identical gauge, the identical
-> hooks. `v0.8.0` is the product. **`v0.8.1` is the product plus the workshop it
-> was built in. `v0.8.2` hands you the keys to the workshop's locked drawer, and
+> hooks. `v0.9.0` is the product. **`v0.9.1` is the product plus the workshop it
+> was built in. `v0.9.2` hands you the keys to the workshop's locked drawer, and
 > a torch to check what you took out of it.**
 
 ---
 
-## 📦 `v0.8.0` — Pure Router
+## 📦 `v0.9.0` — Pure Router
 
-**`rot-moe-0.8.0-core.zip`**
+**`rot-moe-0.9.0-core.zip`**
 
 | | |
 |---|---|
@@ -100,9 +100,9 @@ licences · `CLAUDE.md` · `README.md`
 
 ---
 
-## 🔬 `v0.8.1` — Router + Lean 4
+## 🔬 `v0.9.1` — Router + Lean 4
 
-**`rot-moe-0.8.1-lean.zip`**
+**`rot-moe-0.9.1-lean.zip`**
 
 > Every asset carries **its own variant's version**, inside the manifest as well
 > as in the file name — asserted, so an archive can never contradict its own
@@ -127,9 +127,9 @@ licences · `CLAUDE.md` · `README.md`
 
 ---
 
-## ⚗️ `v0.8.2` — Router + Lean + Extra
+## ⚗️ `v0.9.2` — Router + Lean + Extra
 
-**`rot-moe-0.8.2-unsealed.zip`**
+**`rot-moe-0.9.2-unsealed.zip`**
 
 First, a correction, because the shape of this tier was proposed on a premise
 that measurement did not support:
@@ -141,7 +141,7 @@ that measurement did not support:
 > that can be declined — they are what `leanc` *is*, the C backend Lean compiles
 > through. All of them arrive together, in every toolchain `elan` installs.
 
-So `native_decide` is **already available in `v0.8.1`**. It is not withheld by
+So `native_decide` is **already available in `v0.9.1`**. It is not withheld by
 leaving a tool out; it is withheld by **policy**. Here is the measurement behind
 that policy, run on the pinned toolchain, same statement for each tactic:
 
@@ -165,13 +165,13 @@ people:
 | ✅ **Pro** | **`native_decide` unlocked** for *your* proofs — goals too large for `decide` close in seconds instead of blowing `maxRecDepth` |
 | ✅ **Pro** | An axiom-classification gate that **separates** kernel-checked theorems from compiler-trusted ones, and refuses to let the second kind be counted in the headline number |
 | ✅ **Pro** | `bv_decide` documented as the honest heavy hammer: same power on bitvector goals, at `propext`, with a certificate the kernel rechecks |
-| ✅ **Pro** | Everything in `v0.8.1` — the toolchain, the corpus, the mutation suites |
+| ✅ **Pro** | Everything in `v0.9.1` — the toolchain, the corpus, the mutation suites |
 | ⚠️ **Con** | **A `native_decide` theorem is not proved, it is executed.** You are trusting the compiler, the runtime and your own CPU, none of which the kernel inspects |
 | ⚠️ **Con** | `leanchecker` gives you a **false sense of coverage** here: exit 0 means the proof terms are valid, not that a computation was checked |
 | ⚠️ **Con** | The 183 theorems in this repository **stay `native_decide`-free**. Unsealing applies to your work, not ours — the headline count would otherwise stop meaning what it says |
-| ⚠️ **Con** | Nothing new is downloaded. `v0.8.1` already has the binaries; `v0.8.2` changes what the gates *permit* and hands you the instrument — it does not add a compiler |
+| ⚠️ **Con** | Nothing new is downloaded. `v0.9.1` already has the binaries; `v0.9.2` changes what the gates *permit* and hands you the instrument — it does not add a compiler |
 
-**Contains:** everything in `v0.8.1` **plus** `UNSEALED.md` — the page that names
+**Contains:** everything in `v0.9.1` **plus** `UNSEALED.md` — the page that names
 the trade in full, and the only file that distinguishes this variant.
 
 Measured on this corpus by the tool itself: **154 KERNEL, 0 COMPILER, 0 BROKEN.**
@@ -189,7 +189,7 @@ Stated as a list because it is easier to check than a paragraph:
 
 * **No telemetry.** No phone-home, no analytics, no identifier.
 * **No `sudo`, ever.** If it ever asks for root, it is wrong and you should stop it.
-* **No system directory.** Nothing outside the plugin folder and — for `v0.8.1`,
+* **No system directory.** Nothing outside the plugin folder and — for `v0.9.1`,
   only with your consent — the install root you named.
 * **No silent download.** `SETUP_LEAN` **refuses by default**, exit 2. Consent is
   not a default: `--dry-run` prints the plan and creates nothing.
@@ -211,7 +211,7 @@ network call, and it plants one to prove it can fail.
 
 ```sh
 # 1. unzip wherever you keep plugins
-unzip rot-moe-0.8.0-core.zip -d rot-moe
+unzip rot-moe-0.9.0-core.zip -d rot-moe
 
 # 2. arm it (writes ONE hook entry into your Claude Code settings)
 cd rot-moe && ./ARM_ROUTER.sh          # Windows: .\ARM_ROUTER.ps1
@@ -220,7 +220,7 @@ cd rot-moe && ./ARM_ROUTER.sh          # Windows: .\ARM_ROUTER.ps1
 ./DISARM_ROUTER.sh                     # Windows: .\DISARM_ROUTER.ps1
 ```
 
-**`v0.8.1` only — the optional toolchain, after you have read what it does:**
+**`v0.9.1` only — the optional toolchain, after you have read what it does:**
 
 ```sh
 ./SETUP_LEAN.sh                 # REFUSES. exit 2. consent is not a default

@@ -17,22 +17,22 @@ not be buried.
 
 ## The three numbers are not a roadmap
 
-`0.8.0`, `0.8.1` and `0.8.2` are **released together, on the same commit**. The
-version *is* the variant. Nothing in `0.8.1` supersedes `0.8.0`; it adds a
-Lean 4 workshop on top of it. Nothing in `0.8.2` fixes `0.8.1`; it unseals a
-tactic that `0.8.1` withholds **by policy**, and ships the instrument that keeps
+`0.9.0`, `0.9.1` and `0.9.2` are **released together, on the same commit**. The
+version *is* the variant. Nothing in `0.9.1` supersedes `0.9.0`; it adds a
+Lean 4 workshop on top of it. Nothing in `0.9.2` fixes `0.9.1`; it unseals a
+tactic that `0.9.1` withholds **by policy**, and ships the instrument that keeps
 that honest.
 
 | pick | if you want |
 |---|---|
-| `0.8.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
-| `0.8.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
-| `0.8.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
+| `0.9.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
+| `0.9.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
+| `0.9.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
 
 The patch digit **is** the tier, and it has been for every release in
 [`CHANGELOG-ARCHIVE.md`](CHANGELOG-ARCHIVE.md): `0` core, `1` lean, `2` unsealed.
 `.claude-plugin/plugin.json` carries the `.2` by convention, so a **directory- or
-git-sourced** marketplace install reports `0.8.2` — it is installing the tree,
+git-sourced** marketplace install reports `0.9.2` — it is installing the tree,
 and the tree is the unsealed superset. The `.0` and `.1` tiers are what the three
 `.release/` archives carve out of it, which is why
 `checker/release-package.sh` builds all three from one commit and now derives
@@ -46,7 +46,7 @@ Every row was **measured on the shipped code**, before and after. This table is
 the whole release in one screen; the sections beneath it give each row its
 evidence.
 
-| # | what | PRIOR (0.6.2, measured) | AFTER (0.8.x, measured) |
+| # | what | PRIOR (0.6.2, measured) | AFTER (0.9.x, measured) |
 |---|---|---|---|
 | 1 | router firings per prompt, documented install | **2** — plugin *and* `settings.json` both bind it | **1** — `ARM_ROUTER` detects the plugin and refuses |
 | 2 | `DISARM_ROUTER --dry-run` | flag **ignored**; entries deleted for real | previews against a copy, writes **nothing** |
@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **473 / 22** |
+| 14 | theorems / modules | 205 / 14 | **478 / 22** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **19 suites — 206 applied, 206 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **19 suites — 209 applied, 209 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -87,7 +87,7 @@ caught a drift nobody was watching for.
 
 ---
 
-## [0.8.0] · [0.8.1] · [0.8.2] — 2026-08-06
+## [0.9.0] · [0.9.1] · [0.9.2] — 2026-08-06
 
 Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 `2` unsealed.
@@ -97,7 +97,7 @@ twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
 
-### Added — `Proofs/RotObserve.lean`: four readings that report less than the truth
+### Added — `Proofs/RotObserve.lean`: five readings that report less than the truth
 
 Written **after** publishing, from the install of the published `0.8.2` into a
 real second Claude configuration and a 20-turn session held against it. Four
@@ -111,8 +111,9 @@ channel read as evidence of absence*:
 | `validate` piped to `head` reported `rc=0` on a 4-error manifest | "the artifact is valid" | the tool exits **1**; `head` exits 0 |
 | `plugin update rot-moe` → `Plugin "rot-moe" not found` | "the plugin is not installed" | installed and enabled; the *query* was unqualified |
 | `marker seen in 0 transcript(s)` over 20 turns | "the hook never fired" | 39 route + 39 gauge records logged |
+| `plugin update` → `already at the latest version (0.8.2)`, exit 0 | "the install carries the fix" | cache held a stale `ctt-session.sh`, `README.md`, `CHANGELOG.md`, and no `RotObserve.lean` |
 
-**18 theorems, 8 mutants, 8 killed, 0 survived, 0 discarded.** The module states
+**23 theorems, 11 mutants, 11 killed, 0 survived, 0 discarded.** The module states
 each silence as a property of the *instrument*, so it is documented rather than
 rediscovered as a panic:
 
@@ -134,9 +135,29 @@ rediscovered as a panic:
   only thing the internal-only seal permits. `markers_zero_iff_all_sealed` gives
   the checker's note its actual meaning: it reports the **seal**, not the router.
 
+- `force_update_at_same_version_reaches_no_install` — **this one changes how a
+  release is shipped.** Measured after force-updating the tree without moving the
+  version: `claude plugin update rot-moe@rot-moe` answered *"already at the
+  latest version (0.8.2)"* at **exit 0**, while the installed cache still held
+  the old `checker/ctt-session.sh`, an old `README.md`, an old `CHANGELOG.md` and
+  no `RotObserve.lean` at all. Nothing was broken — the updater compares the
+  version **string**, and the string had not moved. The theorem is quantified
+  over every version and every pair of differing contents, so it is a statement
+  about the mechanism rather than about the tag that was measured.
+  `only_a_moved_version_is_visible` gives the repair; `fresh_install_is_always_current`
+  and `reinstall_succeeds_where_update_is_blind` record the path that *does*
+  deliver — uninstall + install refreshed every stale file under the same `0.8.2`.
+
 `blind_reading_cannot_decide` is labelled in-file as a **repackaging, not a
 discovery** — `#print axioms` reports it depends on nothing, the signature of a
 near-tautology, and its worth is entirely in the instances.
+
+> **Operational consequence, stated because it is not obvious.** A force-updated
+> tag at an unchanged version reaches **new** installs only. Anyone who already
+> has the plugin will be told they are current and will receive nothing. That is
+> not a defect in this project and not one in the CLI; it is what version-string
+> comparison means. The honest options are a version bump or an explicit
+> reinstall, and the theorem now says which is which.
 
 Verified with all three instruments in both trees: `lake build` exit 0 with zero
 warnings, 18 × `#print axioms` showing no `sorryAx`, `leanchecker` exit 0 with
@@ -223,7 +244,7 @@ the "repair" someone reaches for when a cancelled run blocks a release.
 
 ### Verified — the CTT round-trip, and four theorems confirmed against a live install
 
-Before this release was tagged, the packaged `0.8.1` Lean variant was installed
+Before this release was tagged, the packaged `0.9.1` Lean variant was installed
 into a **separate Claude Code instance** kept for pre-publish testing — a full
 clone with its own `.claude` directory, credentials and plugin cache — and driven
 end to end. (The absolute path is deliberately not printed here: `no machine-local
@@ -318,7 +339,7 @@ The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
 
 Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
 modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
-473 theorems.
+478 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
@@ -359,7 +380,7 @@ It does **not** catch *"the wrong branch ran last"*, which is what happened on
 macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
 says so in a comment beside the macOS `#guard`.
 
-Mutants M09/M10 (**206 applied, 206 killed**). M10 exists because the two
+Mutants M09/M10 (**209 applied, 209 killed**). M10 exists because the two
 conjuncts of `dispatchAsserted` were each violated on a *different* platform in
 the same run, so dropping either would let one leg back through.
 
@@ -411,7 +432,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**206 applied, 206 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**209 applied, 209 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -484,7 +505,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**206 applied, 206
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**209 applied, 209
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -711,7 +732,7 @@ red**, measured.
 ### The install section told three tiers to download archives that do not exist
 
 `README.md` said `rot-moe-0.5.1-lean.zip` while `checker/release-package.sh`
-built `rot-moe-0.8.1-lean.zip`. Three links, all wrong, **for two minor
+built `rot-moe-0.9.1-lean.zip`. Three links, all wrong, **for two minor
 versions, with every gate green** — nothing in the repository had ever compared
 the names. The release map moved from a hand-written line to a computed one and
 the prose quoting it did not follow.
@@ -757,7 +778,7 @@ Two self-inflicted faults were found writing it, both of the kind that fake a
 pass. The well-formedness pattern rejected all three good lines because GNU
 `sha256sum` writes `<hash> *<name>` in binary mode — the check was wrong, not
 the output. And the tamper control extracted the filename with
-`awk '{print $2}'`, which yields `*rot-moe-0.8.0-core.zip` **with** the star, so
+`awk '{print $2}'`, which yields `*rot-moe-0.9.0-core.zip` **with** the star, so
 every `cp`/`mv` would have addressed a file that does not exist and the control
 would have "passed" while touching nothing.
 
@@ -848,9 +869,9 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **473** machine-checked theorems across 22 modules (was 205 across 14),
+- **478** machine-checked theorems across 22 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
-- **35** gates (was 29); 23 fast, 12 deep. The 0.8.0 line said "33 (22 fast, 11
+- **35** gates (was 29); 23 fast, 12 deep. The 0.9.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
 - Every new theorem `#print axioms`-audited and `leanchecker`-re-verified.
 
