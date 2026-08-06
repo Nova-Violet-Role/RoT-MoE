@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **449 / 21** |
+| 14 | theorems / modules | 205 / 14 | **455 / 21** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **18 suites — 195 applied, 195 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **18 suites — 198 applied, 198 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -96,6 +96,67 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Fixed — a `paths:` filter does not restrain a tag push, and the run it wasted concluded `cancelled`
+
+Found **while publishing this release**, by auditing the runs the tag pushes
+themselves triggered — which is the audit everyone skips, because the release is
+already out by then.
+
+`.github/workflows/tag-manager.yml` declared a push trigger filtered to
+`.github/tags.txt` and **no `branches:`**. Pushing `v0.8.0`, `v0.8.1` and
+`v0.8.2` in one command fired **three** runs of it, on a commit that does not
+touch that file at all:
+
+```
+git show --stat --name-only 4a783a9 | grep -c "tags.txt"   ->  0
+```
+
+A path filter cannot be evaluated for a tag ref — there is no base to diff
+against — so it restrains nothing. Only `branches:` excludes tags.
+
+**The wasted runs were not the damage; the conclusion was.** That workflow holds
+a single concurrency group with `cancel-in-progress: false`, and GitHub keeps at
+most **one** pending run per group. The first ran, the second pended, and the
+third's arrival **cancelled the second**. Tag `v0.8.1` therefore carried a run
+concluding `cancelled` with `total_count: 0` — zero jobs ever dispatched.
+
+`cancelled` is exactly what `checker/ci-honesty.sh:186-190` refuses. And tag
+`v0.7.0` carries the same scar, which is how one structural defect passed for
+bad luck twice.
+
+**Why a cancelled run is uniquely dangerous, stated precisely:** it has *zero
+failing steps*. Every step-level rule is **vacuously satisfied** by a run that
+never started. Only the run-level check can see it — which is why the run
+conclusion is checked separately from the steps, and why that separation is now
+a theorem rather than a convention.
+
+| layer | what it does |
+|---|---|
+| `tag-manager.yml` | `branches: [main]` added, with the measurement recorded in place |
+| `checker/workflow-lint.sh` **R23** | every `push:` trigger carrying `paths:` must also constrain `branches:` — with **two** controls: the defective shape is detected, and a correct trigger is *not* flagged |
+| `lean/Proofs/RotGates.lean` | six theorems, below |
+
+| theorem | claim |
+|---|---|
+| `paths_do_not_restrain_a_tag` | a branch-less trigger fires on **every** tag, for **every** path list — quantified, so no path list can save it |
+| `branches_exclude_every_tag` | any **non-empty** `branches` excludes every tag — the fix stated generally, not as "`[main]` works" |
+| `the_fix_keeps_main` | the repair does not silence the intended trigger — a fix that muted the branch runs too would be a regression wearing a fix's clothes |
+| `runConcludedHonestly` + `cancelled_is_not_honest` | only the literal `success` is green |
+| `only_success_is_honest` | quantified over **any** string: nothing else passes, including conclusions GitHub has not invented yet |
+| `empty_run_is_vacuously_step_clean` | `runIsHonest [] = true` — the vacuity spelled out, so nobody mistakes an all-green step list for evidence |
+
+Three mutants (M11 / M12 / M13) → **13/13 killed** in that suite. M12 is the one
+that matters: it widens the whitelist to admit `cancelled`, which is precisely
+the "repair" someone reaches for when a cancelled run blocks a release.
+`only_success_is_honest` makes that impossible to land quietly.
+
+> **A harness note worth keeping.** All three mutants were `DISCARDED` on their
+> first run with `needle=1 repl=1`, because each replacement *extended* its
+> needle (`X` → `X || Y`) and the post-check requires the needle to be **absent**
+> afterwards. That is the harness being right: an edit whose before-text is still
+> in the file is not a clean mutation, and a suite that scored those as
+> `SURVIVED` would have reported three robust theorems while testing nothing.
 
 ### Verified — the CTT round-trip, and four theorems confirmed against a live install
 
@@ -194,7 +255,7 @@ The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
 
 Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
 modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
-449 theorems.
+455 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
@@ -235,7 +296,7 @@ It does **not** catch *"the wrong branch ran last"*, which is what happened on
 macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
 says so in a comment beside the macOS `#guard`.
 
-Mutants M09/M10 (**195 applied, 195 killed**). M10 exists because the two
+Mutants M09/M10 (**198 applied, 198 killed**). M10 exists because the two
 conjuncts of `dispatchAsserted` were each violated on a *different* platform in
 the same run, so dropping either would let one leg back through.
 
@@ -287,7 +348,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**195 applied, 195 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**198 applied, 198 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -360,7 +421,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**195 applied, 195
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**198 applied, 198
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -724,7 +785,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **449** machine-checked theorems across 21 modules (was 205 across 14),
+- **455** machine-checked theorems across 21 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.8.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
