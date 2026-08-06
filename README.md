@@ -326,7 +326,7 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   changes the outcome — the property that makes the word list safe to edit.
   `routeText_sound` is the headline: every routing result is either CONVERGENT or
   a lane whose own stems actually fired, so no lane can be reached by accident.
-  Since 0.7.0 it also specifies **the matcher itself**, which had never been
+  Since 0.8.0 it also specifies **the matcher itself**, which had never been
   modelled: a stem must start a word. `firesWord_imp_fires` is what made that
   change safe to ship — word-prefix firing implies substring firing for *every*
   prompt and *every* class, so the new rule can only remove a false positive and
@@ -543,9 +543,9 @@ in the archive for you to read, run and re-verify.**
 
 | tier | archive | what it adds |
 |---|---|---|
-| **Router** | `rot-moe-0.7.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-0.7.1-lean.zip` | ⊕ `lean/` — 21 modules, 449 theorems, 18 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
-| **Router + Lean + Extra** | `rot-moe-0.7.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
+| **Router** | `rot-moe-0.8.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
+| **Router + Lean** | `rot-moe-0.8.1-lean.zip` | ⊕ `lean/` — 21 modules, 449 theorems, 18 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean + Extra** | `rot-moe-0.8.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
 own machine. Take **Router + Lean + Extra** if you want the policy argument as
@@ -556,16 +556,16 @@ Every archive verifies against the `SHA256SUMS.txt` published beside it on
 **without unzipping**:
 
 ```sh
-claude --plugin-dir rot-moe-0.7.1-lean.zip
+claude --plugin-dir rot-moe-0.8.1-lean.zip
 ```
 
 Measured — each archive rebuilt from this tree, unzipped, and **its own**
 `rot-router.sh` run on the same payload:
 
 ```
-rot-moe-0.7.0-core           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-rot-moe-0.7.1-lean           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-rot-moe-0.7.2-unsealed       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+rot-moe-0.8.0-core           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+rot-moe-0.8.1-lean           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+rot-moe-0.8.2-unsealed       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
 ```
 
 Those lines are **re-measured, not edited** — the only way a transcript in a

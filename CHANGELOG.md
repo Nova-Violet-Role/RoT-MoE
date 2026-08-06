@@ -17,22 +17,22 @@ not be buried.
 
 ## The three numbers are not a roadmap
 
-`0.7.0`, `0.7.1` and `0.7.2` are **released together, on the same commit**. The
-version *is* the variant. Nothing in `0.7.1` supersedes `0.7.0`; it adds a
-Lean 4 workshop on top of it. Nothing in `0.7.2` fixes `0.7.1`; it unseals a
-tactic that `0.7.1` withholds **by policy**, and ships the instrument that keeps
+`0.8.0`, `0.8.1` and `0.8.2` are **released together, on the same commit**. The
+version *is* the variant. Nothing in `0.8.1` supersedes `0.8.0`; it adds a
+Lean 4 workshop on top of it. Nothing in `0.8.2` fixes `0.8.1`; it unseals a
+tactic that `0.8.1` withholds **by policy**, and ships the instrument that keeps
 that honest.
 
 | pick | if you want |
 |---|---|
-| `0.7.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
-| `0.7.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
-| `0.7.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
+| `0.8.0` Pure Router | the nine-lane router and nothing else. No Lean, no toolchain, no network. |
+| `0.8.1` Router + Lean 4 | the same router **plus the machine that makes the theorems** — bounded installer, official hosts, your own proved repos. |
+| `0.8.2` Router + Lean + Extra | all of the above with `native_decide` unsealed, and `checker/axiom-class.sh` to tell KERNEL from COMPILER trust. |
 
 The patch digit **is** the tier, and it has been for every release in
 [`CHANGELOG-ARCHIVE.md`](CHANGELOG-ARCHIVE.md): `0` core, `1` lean, `2` unsealed.
 `.claude-plugin/plugin.json` carries the `.2` by convention, so a **directory- or
-git-sourced** marketplace install reports `0.7.2` — it is installing the tree,
+git-sourced** marketplace install reports `0.8.2` — it is installing the tree,
 and the tree is the unsealed superset. The `.0` and `.1` tiers are what the three
 `.release/` archives carve out of it, which is why
 `checker/release-package.sh` builds all three from one commit and now derives
@@ -46,7 +46,7 @@ Every row was **measured on the shipped code**, before and after. This table is
 the whole release in one screen; the sections beneath it give each row its
 evidence.
 
-| # | what | PRIOR (0.6.2, measured) | AFTER (0.7.x, measured) |
+| # | what | PRIOR (0.6.2, measured) | AFTER (0.8.x, measured) |
 |---|---|---|---|
 | 1 | router firings per prompt, documented install | **2** — plugin *and* `settings.json` both bind it | **1** — `ARM_ROUTER` detects the plugin and refuses |
 | 2 | `DISARM_ROUTER --dry-run` | flag **ignored**; entries deleted for real | previews against a copy, writes **nothing** |
@@ -87,7 +87,7 @@ caught a drift nobody was watching for.
 
 ---
 
-## [0.7.0] · [0.7.1] · [0.7.2] — 2026-08-04
+## [0.8.0] · [0.8.1] · [0.8.2] — 2026-08-06
 
 Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 `2` unsealed.
@@ -96,6 +96,61 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Verified — the CTT round-trip, and four theorems confirmed against a live install
+
+Before this release was tagged, the packaged `0.8.1` Lean variant was installed
+into a **separate Claude Code instance** kept for pre-publish testing — a full
+clone with its own `.claude` directory, credentials and plugin cache — and driven
+end to end. (The absolute path is deliberately not printed here: `no machine-local
+paths` refused this paragraph when it named one, which is the gate behaving
+correctly.) Measured, in order:
+
+| step | result |
+|---|---|
+| `ARM_ROUTER.sh` against the CTT instance | **refused** — the plugin already registers the router; arming again would fire it twice per prompt |
+| `ARM_ROUTER.sh` against a clean scratch `HOME` | 124 B → 1515 B; **5 bindings across 3 events** (2 / 2 / 1) |
+| every pre-existing scalar (`effortLevel`, `skipDangerousModePermissionPrompt`, `permissions.defaultMode`) | preserved byte for byte |
+| second `ARM_ROUTER.sh` | settings hash **identical** — idempotent |
+| `DISARM_ROUTER.sh` | `hooks` key gone entirely, **zero residue**, scalars unchanged |
+
+Those four rows are the empirical counterpart of `arm_adds_the_hooks`,
+`arm_preserves_all_scalars`, `arm_idempotent`, `disarm_removes` and
+`disarm_preserves_all_scalars` in `lean/Proofs/RotInstall.lean` — and the 2 / 2 / 1
+counts are exactly the `example`s converted from `#guard` in this release.
+
+The router was then run **from the CTT plugin cache**, under CTT's own `HOME`:
+
+| prompt | lane | `R/s+` | Lean `#guard` |
+|---|---|---|---|
+| `prove this lemma in lean` | FORGE Claude | 0.66 | `routerReading 8 == 0.66427` |
+| `fix the failing test` | CLINICAL AntiVenom | 0.57 | `routerReading 2 == 0.57318` |
+| `how do I feel about this` | EMPATHIC Violet | 0.31 | `routerReading 1 == 0.31386` |
+| `compress the output` | STEALTH Soleil | 0.39 | `routerReading 6 == 0.38607` |
+
+Every one agrees with the spec at the two decimals the route record carries.
+This is the binding that makes `RotEnsemble.lean` a specification of the shipped
+router rather than a self-consistent model: the numbers were re-measured through
+an actual plugin installation, not recomputed in Lean.
+
+**Stated as a limit:** the CTT plugin cache is a snapshot taken at `bc1272d`.
+`hooks/rot-router.sh` and `hooks/hooks.json` in it are **byte-identical** to the
+current tree, so the routing evidence above is evidence about today's code; only
+`.claude-plugin/plugin.json` differs, and only in the theorem-count metadata.
+
+### Fixed — a warning inside a green log: git CRLF advisory ×4
+
+`checker/verdict-schedule-sim.sh` builds scratch git trees. On a Windows runner
+git printed, four times into a fully passing log:
+
+    warning: in the working copy of 'STATUS.md', LF will be replaced by CRLF
+
+Every check in that step passed, so nothing was broken — which is precisely why
+it is worth removing. A green log that contains warnings teaches everyone reading
+it to skim past warnings. The scratch trees now set `core.autocrlf false`; the
+simulator's subject is the scheduling rule, not line endings, and the real
+repository is untouched. Re-measured on Windows: **10 passed, 0 failed, 0
+warnings**.
 
 ### Fixed — 70 build warnings that no gate was reading, and one understated theorem
 
@@ -532,7 +587,7 @@ red**, measured.
 ### The install section told three tiers to download archives that do not exist
 
 `README.md` said `rot-moe-0.5.1-lean.zip` while `checker/release-package.sh`
-built `rot-moe-0.7.1-lean.zip`. Three links, all wrong, **for two minor
+built `rot-moe-0.8.1-lean.zip`. Three links, all wrong, **for two minor
 versions, with every gate green** — nothing in the repository had ever compared
 the names. The release map moved from a hand-written line to a computed one and
 the prose quoting it did not follow.
@@ -578,7 +633,7 @@ Two self-inflicted faults were found writing it, both of the kind that fake a
 pass. The well-formedness pattern rejected all three good lines because GNU
 `sha256sum` writes `<hash> *<name>` in binary mode — the check was wrong, not
 the output. And the tamper control extracted the filename with
-`awk '{print $2}'`, which yields `*rot-moe-0.7.0-core.zip` **with** the star, so
+`awk '{print $2}'`, which yields `*rot-moe-0.8.0-core.zip` **with** the star, so
 every `cp`/`mv` would have addressed a file that does not exist and the control
 would have "passed" while touching nothing.
 
@@ -671,7 +726,7 @@ for people who cannot use plugins.
 
 - **449** machine-checked theorems across 21 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
-- **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
+- **35** gates (was 29); 23 fast, 12 deep. The 0.8.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
 - Every new theorem `#print axioms`-audited and `leanchecker`-re-verified.
 
