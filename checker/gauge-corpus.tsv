@@ -1,0 +1,36 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# THE GAUGE CORPUS -- one file, two consumers, and neither may drift from Lean.
+#
+# Columns: vector | breadth | M | C | T | expected R/s+ (2dp)
+#
+# `expected` is NOT a hand-written constant and must never be edited to make a
+# checker pass. It is what `RotGauge.gaugeF` evaluates to, and
+# `checker/gauge-cross.sh` FAILS in the lean job if this column and Lean
+# disagree -- so the only legitimate way to change a number here is to change
+# the model and re-derive it.
+#
+# Why the file exists at all: `gauge-cross.sh` needs a built Lean workspace, so
+# in the `checkers` job it could only ever print
+# "SKIPPED: no built Lean workspace -- NOT a pass" and exit 0. That step could
+# not pass on ubuntu, macos or windows -- it could only skip, on every run, for
+# the whole cycle. An instrument that cannot pass is not an instrument.
+#
+# Splitting the arms fixes it honestly rather than by deletion:
+#   * the LEAN arm is platform-independent (the same .olean everywhere), so the
+#     lean job verifies Lean == hook == this file, once;
+#   * the HOOK arm is NOT (awk, shell, and a decimal comma under some locales),
+#     so `checker/gauge-hook-corpus.sh` diffs the running hook against this file
+#     on all three platforms, where it can genuinely PASS and FAIL.
+#
+# Rows cover shapes that behave differently, not nine variants of one: the
+# all-quiet floor, one active lens, two active lenses, everything active, and
+# two rows whose modifiers are not the defaults.
+0,0,0,0,0,0,0,0,0	0	1.05	0.7	0.8	0.09
+0,0,0,0,0,0,1,0,1	1	1.05	0.7	0.8	0.49
+0,1,0,0,0,0,0,0,0	1	1.05	0.7	0.8	0.18
+1,1,1,1,1,1,1,1,1	1	1.05	0.7	0.8	0.19
+0,0,1,0,0,0,0,0,1	1	1.05	1.0	0.93	0.97
+1,0,1,0,1,0,1,0,1	1	1.00	0.9	1.00	0.92

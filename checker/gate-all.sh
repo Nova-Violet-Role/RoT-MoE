@@ -104,6 +104,7 @@ repo completeness|deep|README.md,CHANGELOG.md,STATUS.md,lean/|bash checker/repo-
 cross-diff (both reminder arms)|deep|hooks/prover-remind|bash checker/cross-diff-remind.sh
 verdict stability|deep|STATUS.md,checker/verdict|bash checker/verdict-stability.sh
 gauge cross|deep|hooks/rot-router,lean/Proofs/RotGauge.lean|bash checker/gauge-cross.sh
+gauge hook corpus|fast||bash checker/gauge-hook-corpus.sh
 profile binding|deep|engine/rot-lean.md,lean/Proofs/RotAbility.lean|bash checker/profile-bind.sh
 axiom audit|deep|lean/|bash checker/axiom-audit.sh
 axiom class|deep|lean/|bash checker/axiom-class.sh

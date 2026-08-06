@@ -96,12 +96,22 @@ fi
 # differently rather than nine variations of the same one: the all-quiet floor,
 # a single active lens, two active lenses, everything active, and a row whose
 # modifiers are not the defaults.
-CORPUS='0,0,0,0,0,0,0,0,0 0 1.05 0.7 0.8
-0,0,0,0,0,0,1,0,1 1 1.05 0.7 0.8
-0,1,0,0,0,0,0,0,0 1 1.05 0.7 0.8
-1,1,1,1,1,1,1,1,1 1 1.05 0.7 0.8
-0,0,1,0,0,0,0,0,1 1 1.05 1.0 0.93
-1,0,1,0,1,0,1,0,1 1 1.00 0.9 1.00'
+#
+# READ FROM checker/gauge-corpus.tsv, not inlined here. The rows used to live in
+# this string, which meant the platform-side checker could not share them: it
+# would have had to copy them, and a copied corpus drifts the day one side is
+# edited. One file, two consumers.
+#
+# This job is also the only one that can VERIFY the file: it has Lean. The
+# `expected` column is checked against the Lean value below, so the corpus
+# cannot quietly freeze a wrong number for gauge-hook-corpus.sh to agree with.
+CORPUS_FILE="$REPO/checker/gauge-corpus.tsv"
+if [ ! -f "$CORPUS_FILE" ]; then
+  echo "  FAIL  the corpus is missing: $CORPUS_FILE"
+  echo "        Not a skip: the file is committed, so its absence is a broken packet."
+  exit 1
+fi
+CORPUS="$(awk -F'\t' '$1 !~ /^#/ && NF >= 6 { print $1, $2, $3, $4, $5, $6 }' "$CORPUS_FILE")"
 
 shell_gauge () {   # shell_gauge <vec> <breadth> <M> <C> <T> -> "0.49"
   sh hooks/rot-router.sh --vector "$1" --breadth "$2" --M "$3" --C "$4" --T "$5" 2>/dev/null \
@@ -115,7 +125,7 @@ LEANF="$SCRATCH/cross.lean"
 {
   echo 'import Proofs.RotGauge'
   echo 'open RotMoE'
-  while read -r vec br M C T; do
+  while read -r vec br M C T want; do
     [ -z "$vec" ] && continue
     echo "#eval round2 (gaugeF [$vec] $br $M $C $T)"
   done <<EOF
@@ -139,7 +149,7 @@ LEANV=()
 while IFS= read -r _v; do LEANV+=("$_v"); done < <(grep -oE '^-?[0-9]+\.[0-9]+' "$SCRATCH/lean.out")
 
 i=0
-while read -r vec br M C T; do
+while read -r vec br M C T want; do
   [ -z "$vec" ] && continue
   sv="$(shell_gauge "$vec" "$br" "$M" "$C" "$T")"
   lv="${LEANV[$i]:-<none>}"
@@ -152,6 +162,13 @@ while read -r vec br M C T; do
     ok "row $i: hook $sv == Lean $lvr   [$vec] b=$br M=$M C=$C T=$T"
   else
     bad "row $i: hook $sv != Lean $lvr   [$vec] b=$br M=$M C=$C T=$T -- the mirror and the router DISAGREE"
+  fi
+  # THE CORPUS IS RE-DERIVED HERE, and this is the step that keeps
+  # gauge-hook-corpus.sh honest on the platforms with no Lean. If someone edits
+  # an expected value to make that checker pass, this fails: the number has to
+  # come from the model, not from what makes a run green.
+  if [ "$want" != "$lvr" ]; then
+    bad "row $i: checker/gauge-corpus.tsv says $want but Lean says $lvr -- the corpus has DRIFTED from the model; re-derive it, never hand-edit it"
   fi
 done <<EOF
 $CORPUS

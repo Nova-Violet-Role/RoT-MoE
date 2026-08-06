@@ -371,17 +371,34 @@ jobs:
         shell: bash
         run: bash checker/verdict-schedule-sim.sh
 
-      # The Float mirror in RotGauge.lean carries "-- hook reported 0.49"
-      # comments. Those were hand-written claims of agreement that nothing
-      # re-measured. This runs BOTH arms and diffs them; it SKIPS (exit 3),
-      # never passes, when there is no built Lean workspace.
-      - name: gauge cross-check -- Lean mirror vs the running hook
+      # THIS STEP USED TO BE `gauge-cross.sh`, AND IT COULD ONLY EVER SKIP.
+      #
+      # gauge-cross needs a built Lean workspace. This job has none, so the step
+      # printed "SKIPPED: no built Lean workspace -- NOT a pass" and exited 0 on
+      # ubuntu, macos AND windows, every single run. The label was honest and the
+      # step was still a hole: it had NO REACHABLE PASS. A step that cannot pass
+      # cannot fail either, and three of those in a green run are three lies of
+      # omission. Found by reading the run's log.zip.
+      #
+      # Not repaired by deleting it, and not by installing a mathlib toolchain on
+      # three platforms to recompute a platform-INDEPENDENT number. The two arms
+      # are split by what they actually depend on:
+      #
+      #   * the LEAN arm is the same .olean and the same Float on every runner,
+      #     so the `lean` job verifies Lean == hook == corpus, once, where a skip
+      #     is already a hard failure;
+      #   * the HOOK arm is awk in a POSIX shell and is emphatically NOT
+      #     platform-independent -- a decimal-comma locale turning 0.49 into 0,49
+      #     is a failure mode this repository has already been bitten by, which
+      #     is why the locale step above exists.
+      #
+      # So this runs the HOOK against checker/gauge-corpus.tsv, whose expected
+      # values the lean job re-derives from Lean and FAILS on if they drift.
+      # There is no exit 3 in that checker: it has no reason to skip and is not
+      # given one.
+      - name: gauge hook corpus -- the running hook vs the Lean-verified values
         shell: bash
-        run: |
-          set +e
-          LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/gauge-cross.sh; rc=$?
-          [ "$rc" -eq 3 ] && { echo "SKIPPED: no built Lean workspace -- NOT a pass"; exit 0; }
-          exit $rc
+        run: bash checker/gauge-hook-corpus.sh
 
       # The three lane profiles in RotAbility.lean (creativeLam, empathicLam,
       # predictiveLam) are TRANSCRIBED from engine/rot-lean.md §4. Until
@@ -691,10 +708,29 @@ jobs:
 
       - name: hook contract -- run the command strings hooks.json registers
         run: bash checker/hook-contract.sh
-      # Runs the marketplace install + a real session. CI HAS NO CREDENTIALS, so
-      # this exits 3 = SKIP here and is reported as such -- a skip is never a pass.
-      # It is enforced locally by gate-all --full, where auth exists. Registered
-      # in CI anyway so the checker cannot drift into being run by nothing.
+      # THE ONE REMAINING SKIP IN THIS WORKFLOW, and it is a boundary rather than
+      # an omission. Stated plainly so nobody has to rediscover it:
+      #
+      # This runs the marketplace install AND a real authenticated session. The
+      # install half needs no auth and is already covered in CI by
+      # `plugin-install.sh` above, which now RUNS. The session half needs the
+      # maintainer's own Claude credentials, and the only way to give a public
+      # runner those is to put them in repository secrets -- a security decision
+      # that is the maintainer's to make, not a checker's, and not one to be
+      # taken to turn a log line green.
+      #
+      # What is NOT acceptable is faking it: a planted credentials file would
+      # make this step exit 0 while proving nothing about a real session. So it
+      # exits 3 and says so, and 3 is never counted as a pass.
+      #
+      # It IS enforced, twice, off this runner: `gate-all --full` locally where
+      # auth exists, and a separate CTT Claude Code instance, which installs the
+      # published artifact as a stranger before any version ships.
+      # Registered here anyway so the checker cannot drift into being run by
+      # nothing at all -- which is how gauge-cross spent a whole cycle skipping.
+      #
+      # Every OTHER exit-3 gate in this file has been converted to a hard
+      # failure or given a corpus so it can genuinely run.
       - name: marketplace session -- install as a stranger (SKIPs without auth)
         run: |
           rc=0; bash checker/marketplace-session.sh || rc=$?
