@@ -61,9 +61,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **455 / 21** |
+| 14 | theorems / modules | 205 / 14 | **473 / 22** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **18 suites — 198 applied, 198 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **19 suites — 206 applied, 206 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -96,6 +96,69 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Added — `Proofs/RotObserve.lean`: four readings that report less than the truth
+
+Written **after** publishing, from the install of the published `0.8.2` into a
+real second Claude configuration and a 20-turn session held against it. Four
+times in one afternoon an observation reported less than the truth, and three of
+the four invited the same wrong inference — *absence of evidence in a lossy
+channel read as evidence of absence*:
+
+| measured | the wrong inference it invited | the truth |
+|---|---|---|
+| `settings.json` byte-identical before and after the plugin install | "the install did nothing" | three hook events bound; the router fired 39 times |
+| `validate` piped to `head` reported `rc=0` on a 4-error manifest | "the artifact is valid" | the tool exits **1**; `head` exits 0 |
+| `plugin update rot-moe` → `Plugin "rot-moe" not found` | "the plugin is not installed" | installed and enabled; the *query* was unqualified |
+| `marker seen in 0 transcript(s)` over 20 turns | "the hook never fired" | 39 route + 39 gauge records logged |
+
+**18 theorems, 8 mutants, 8 killed, 0 survived, 0 discarded.** The module states
+each silence as a property of the *instrument*, so it is documented rather than
+rediscovered as a panic:
+
+- `settings_alone_cannot_decide_armed` — two installs can agree on every byte of
+  `settings.json` and disagree on whether the router runs. The durable form: the
+  file is not a sufficient observation of armedness.
+- `guard_still_leaves_it_armed` — `ARM_ROUTER` refusing to write is not failing
+  to work. After the guard runs the router is armed on **every** branch, which is
+  why the refusal against an already-plugged host is correct.
+- `green_filter_masks_every_failure` — quantified over the exit code, not stated
+  about the `1` that was measured: **no** status survives a filter that always
+  succeeds. `piped_reading_is_blind` follows — the reading cannot tell success
+  from any failure.
+- `bare_name_never_resolves` — a length argument over arbitrary names, so it
+  holds for every plugin rather than for the one that was typed; and
+  `lookup_failure_is_not_absence` closes the inference.
+- `any_number_of_firings_can_be_invisible` — for **every** `n` there is a run
+  with `n` firings and zero markers. 39-and-0 was not a coincidence; it is the
+  only thing the internal-only seal permits. `markers_zero_iff_all_sealed` gives
+  the checker's note its actual meaning: it reports the **seal**, not the router.
+
+`blind_reading_cannot_decide` is labelled in-file as a **repackaging, not a
+discovery** — `#print axioms` reports it depends on nothing, the signature of a
+near-tautology, and its worth is entirely in the instances.
+
+Verified with all three instruments in both trees: `lake build` exit 0 with zero
+warnings, 18 × `#print axioms` showing no `sorryAx`, `leanchecker` exit 0 with
+zero bytes (control: a module with no oleans exits 1).
+
+### Verified — the published `0.8.1` archive, installed and driven through the real CLI
+
+Not the local `.release/` build: the asset was **downloaded from the release**
+and its SHA256 compared against the published `SHA256SUMS.txt` —
+`459246a47d3ebebe3254c9f3ab828c8a0d24efa7288286e648919890445662a2`, identical.
+The bytes users get are the bytes that were built.
+
+- `claude plugin validate` on the downloaded tree: **exit 0**, zero errors.
+  Controls: a mangled manifest key → exit 1 with 4 errors, invalid JSON → exit 1.
+  The validator can fail, which is the only reason its pass counts.
+- `claude plugin update rot-moe@rot-moe` moved the test configuration
+  **0.7.2 → 0.8.2** at exit 0; the installed cache's `rot-router.sh` and
+  `hooks.json` are **byte-identical** to the tree.
+- A **20-turn session** against the installed plugin: 39 route records and 39
+  gauge records, every one `K=9` with nine lens terms, R/s+ recomputed from those
+  terms on **all 39** to within 2e-5, and **8 distinct lanes** reached in real
+  conversation. `checker/ctt-session.sh --report`: 4 passed, 0 failed.
 
 ### Fixed — a `paths:` filter does not restrain a tag push, and the run it wasted concluded `cancelled`
 
@@ -255,7 +318,7 @@ The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
 
 Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
 modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
-455 theorems.
+473 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
@@ -296,7 +359,7 @@ It does **not** catch *"the wrong branch ran last"*, which is what happened on
 macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
 says so in a comment beside the macOS `#guard`.
 
-Mutants M09/M10 (**198 applied, 198 killed**). M10 exists because the two
+Mutants M09/M10 (**206 applied, 206 killed**). M10 exists because the two
 conjuncts of `dispatchAsserted` were each violated on a *different* platform in
 the same run, so dropping either would let one leg back through.
 
@@ -348,7 +411,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**198 applied, 198 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**206 applied, 206 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -421,7 +484,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**198 applied, 198
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**206 applied, 206
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -785,7 +848,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **455** machine-checked theorems across 21 modules (was 205 across 14),
+- **473** machine-checked theorems across 22 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.8.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
