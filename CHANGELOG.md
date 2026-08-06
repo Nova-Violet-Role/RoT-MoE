@@ -52,9 +52,9 @@ not about collisions.
 Build exit 0 with **zero warnings**; axioms `propext, Classical.choice, Quot.sound`
 (`provenance_iff_same_tree`: `propext` alone), no `sorryAx`; `leanchecker` exit 0,
 zero bytes; delivered green to the shared Lean workspace. Mutants **M12–M14**
-added — **218 applied, 218 killed**, 0 survived, 0 discarded.
+added — **221 applied, 221 killed**, 0 survived, 0 discarded.
 
-Counts move to **491 theorems / 22 modules / 19 suites / 218 mutants**.
+Counts move to **495 theorems / 22 modules / 19 suites / 221 mutants**.
 
 ---
 
@@ -96,8 +96,72 @@ one, `auditPasses = true` over **22** judged items, `controlHolds = false`.
 
 Mutants **M15–M17** — the control neutered to `true`, the audit made to judge
 everything, and the control weakened from `all` to `any`, which is the plausible
-version someone writes by accident. All three killed: **218 applied, 218 killed**,
+version someone writes by accident. All three killed: **221 applied, 221 killed**,
 0 survived, 0 discarded.
+
+---
+
+## Twenty failed turns, exit 0 — the evidence counter incremented in the failure path
+
+The CTT re-test after the gauge work came back green. It should not have.
+
+```
+turn 1..20: claude exit 1 (timeout or error) -- recorded, not hidden
+ran 20 turn(s), 20 failed; route records written this run: 20
+CTT_EXIT=0
+```
+
+**Twenty of twenty turns failed and `checker/ctt-session.sh` exited 0.** Its
+refusal asked a reasonable-sounding question — *were any route records written?*
+— and twenty had been. The router hook fires when the prompt is **submitted**,
+before the turn reaches the API and dies. So the counter the verdict rested on
+**increments in the failure path**, and a pass condition built on it is satisfied
+by total failure.
+
+This is not the §7 defect repeated. There the verdict was blind to items it never
+selected; here every turn *was* selected, and the signal read cannot tell success
+from failure. Both end in a green run; only one is fixed by a control over
+selection.
+
+**The cause of the failures was sitting in every payload.** The CLI writes its
+reason into the JSON even when it exits non-zero, and the per-turn line threw it
+away — twenty mute `exit 1`s for a diagnosis the *first* turn already had:
+
+```
+turn 1: claude exit 1 -- Failed to authenticate: OAuth session expired
+                         and could not be refreshed
+```
+
+The CTT credential had gone stale (`expiresAt: 0`, a 281-byte stub against the
+live 509). Refreshed by cloning the live credential into the CTT config dir —
+the mechanism `marketplace-session.sh` already uses — and backed up first.
+
+Both halves are now fixed: the reason is surfaced per turn, and a run in which
+**no turn succeeded** refuses at exit 2 regardless of how many records the hook
+wrote on the way down.
+
+Measured after the repair: **20 turns, 0 failed, 32 route records, 0 trace
+leaks.** Negative control, run end to end by planting the stale credential back:
+exit **2**, *"every one of 1 turn(s) FAILED — 1 route record(s) were still
+written"*, then restored to exit 0. The control demonstrates the exact hole: a
+record was written for a turn that failed.
+
+`RotObserve.lean` §9 states it over arbitrary runs rather than over twenty:
+
+| theorem | what it settles |
+|---|---|
+| `total_failure_passes_the_side_effect_verdict` | the measured run exactly — 20 failed, 20 recorded, verdict **true** |
+| `side_effect_verdict_is_blind_to_outcomes` | two runs with the same records get the same verdict **whatever** their outcomes — re-reading that log line can never reveal it |
+| `success_aware_verdict_detects_total_failure` | reading outcomes does detect it, for any run |
+| `success_aware_verdict_still_passes_a_real_run` | and it is a test, not a refusal — the over-correction is excluded |
+
+`#eval` reproduces the incident: `sideEffectVerdict = true` and
+`successAwareVerdict = false` on the same 20 failed-but-recorded turns, with
+`recordsOf = 20`.
+
+Mutants **M21–M23**: the repair reverted to the blind verdict, the blind verdict
+taught to read outcomes, and the over-correction that refuses everything. All
+killed — **221 applied, 221 killed**, 0 survived, 0 discarded.
 
 ---
 
@@ -157,7 +221,7 @@ now registered in the fast tier. 156 passed, 0 failed.
 
 Mutants **M18–M20**: the always-skipping step given a reachable outcome, the
 corpus re-derivation neutered to `true`, and the new step made unable to fail.
-All killed — **218 applied, 218 killed**, 0 survived, 0 discarded.
+All killed — **221 applied, 221 killed**, 0 survived, 0 discarded.
 
 **One skip remains in CI, and it is a boundary, not an omission.**
 `marketplace-session.sh` needs the maintainer's own Claude credentials for its
@@ -215,9 +279,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **491 / 22** |
+| 14 | theorems / modules | 205 / 14 | **495 / 22** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **19 suites — 218 applied, 218 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **19 suites — 221 applied, 221 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -493,12 +557,12 @@ The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
 
 Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
 modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
-491 theorems.
+495 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
 The repair to the Windows `tty guard` shipped with a defect **in the repair
-itself**, and run `31052104913` caught it: 145 success, **0 skipped**, 2 failure.
+itself**, and run `31052104953` caught it: 145 success, **0 skipped**, 2 failure.
 
 An edit removed the `else` keyword from the step's `if / elif / else` allocator
 chain. The result is still **valid shell**, so `checker/workflow-lint.sh` passed
@@ -534,7 +598,7 @@ It does **not** catch *"the wrong branch ran last"*, which is what happened on
 macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
 says so in a comment beside the macOS `#guard`.
 
-Mutants M09/M10 (**218 applied, 218 killed**). M10 exists because the two
+Mutants M09/M10 (**221 applied, 221 killed**). M10 exists because the two
 conjuncts of `dispatchAsserted` were each violated on a *different* platform in
 the same run, so dropping either would let one leg back through.
 
@@ -586,7 +650,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**218 applied, 218 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**221 applied, 221 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -659,7 +723,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**218 applied, 218
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**221 applied, 221
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -1023,7 +1087,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **491** machine-checked theorems across 22 modules (was 205 across 14),
+- **495** machine-checked theorems across 22 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.9.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
