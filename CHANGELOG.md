@@ -52,9 +52,52 @@ not about collisions.
 Build exit 0 with **zero warnings**; axioms `propext, Classical.choice, Quot.sound`
 (`provenance_iff_same_tree`: `propext` alone), no `sorryAx`; `leanchecker` exit 0,
 zero bytes; delivered green to the shared Lean workspace. Mutants **M12–M14**
-added — **212 applied, 212 killed**, 0 survived, 0 discarded.
+added — **215 applied, 215 killed**, 0 survived, 0 discarded.
 
-Counts move to **483 theorems / 22 modules / 19 suites / 212 mutants**.
+Counts move to **487 theorems / 22 modules / 19 suites / 215 mutants**.
+
+---
+
+## An audit that silently narrows its own scope — `grep -q` under `pipefail`
+
+CI run 31118671400's predecessor caught something the pre-commit tier could not:
+`checker/mutant-discipline.sh` audited **21** harnesses on ubuntu and **23** here,
+and reported PASS both times.
+
+The cause is a shell trap this repository had already recorded in another form.
+The selector was `sed 's/#.*$//' "$f" | grep -qE 'killed|survived|discard'` inside
+a script running `set -o pipefail`. **`grep -q` exits at the first match**, `sed`
+is then killed by SIGPIPE, and `pipefail` reports the whole pipeline as failed —
+so `|| continue` skipped a file that *matched*. It is a race between `sed`
+finishing and `grep` exiting, which is why it is platform-dependent: measured
+`rc=0` on Git Bash here, and it dropped two suites on ubuntu.
+
+`grep -c` consumes all of its input, so there is no SIGPIPE and no race. The count
+is then tested explicitly, with `: "${_hits:=0}"` because `grep -c` prints `0`
+**and** exits 1 when there is no match — the second half of the same trap.
+
+It was caught only because the classifier repair shipped with a CONTROL asserting
+every `mutate_*.sh` suite is still selected. Without it this was a green run
+auditing two fewer harnesses than it claimed.
+
+The general shape is now proved rather than described, in `RotObserve.lean` §7 —
+a gate reports PASS over the items it *selected*, and selection can silently lose
+items:
+
+| theorem | what it settles |
+|---|---|
+| `passing_audit_can_hide_a_failure` | a passing audit does **not** mean every candidate passed |
+| `the_verdict_cannot_see_the_drop` | the verdict is identical whether the dropped item would pass or fail — re-reading it can never reveal the gap |
+| `control_detects_the_drop` | a control over a known-required set **does** detect it |
+| `control_holds_when_nothing_is_dropped` | and that control can pass, so it is a test and not a refusal |
+
+`#eval` reproduces the measured shape exactly: 23 required, a selector that loses
+one, `auditPasses = true` over **22** judged items, `controlHolds = false`.
+
+Mutants **M15–M17** — the control neutered to `true`, the audit made to judge
+everything, and the control weakened from `all` to `any`, which is the plausible
+version someone writes by accident. All three killed: **215 applied, 215 killed**,
+0 survived, 0 discarded.
 
 ---
 
@@ -104,9 +147,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **483 / 22** |
+| 14 | theorems / modules | 205 / 14 | **487 / 22** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **19 suites — 212 applied, 212 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **19 suites — 215 applied, 215 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -382,7 +425,7 @@ The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
 
 Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
 modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
-483 theorems.
+487 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
@@ -423,7 +466,7 @@ It does **not** catch *"the wrong branch ran last"*, which is what happened on
 macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
 says so in a comment beside the macOS `#guard`.
 
-Mutants M09/M10 (**212 applied, 212 killed**). M10 exists because the two
+Mutants M09/M10 (**215 applied, 215 killed**). M10 exists because the two
 conjuncts of `dispatchAsserted` were each violated on a *different* platform in
 the same run, so dropping either would let one leg back through.
 
@@ -475,7 +518,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**212 applied, 212 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**215 applied, 215 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -548,7 +591,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**212 applied, 212
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**215 applied, 215
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -912,7 +955,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **483** machine-checked theorems across 22 modules (was 205 across 14),
+- **487** machine-checked theorems across 22 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.9.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
