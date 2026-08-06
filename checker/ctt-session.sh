@@ -202,8 +202,13 @@ esac
 cd "$SANDBOX" || { echo "REFUSE: cannot enter session sandbox"; exit 2; }
 note "session cwd: $SANDBOX (outside the repo -- turns cannot edit it)"
 
+# RECORDS BEFORE THE RUN. A collection pass that collects NOTHING must not be
+# able to exit 0 -- see the refusal at the end of this file for why.
+_before=$(grep -c '"kind":"route"' "$LOG" 2>/dev/null)
+: "${_before:=0}"
+
 n="$FROM"
-fired=0; ran=0
+fired=0; ran=0; failed=0
 SID=""
 [ -f "$SIDF" ] && SID=$(cat "$SIDF" 2>/dev/null)
 
@@ -230,6 +235,7 @@ while [ "$n" -le "$TO" ]; do
   rc=$?
   ran=$((ran+1))
   if [ "$rc" -ne 0 ]; then
+    failed=$((failed+1))
     note "turn $n: claude exit $rc (timeout or error) -- recorded, not hidden"
   else
     newsid=$(node -e 'try{const j=require(process.argv[1]);console.log(j.session_id||"")}catch(e){console.log("")}' "$out" 2>/dev/null)
@@ -239,6 +245,48 @@ while [ "$n" -le "$TO" ]; do
   n=$((n+1))
 done
 
-note "ran $ran turn(s); marker seen in $fired transcript(s)"
+_after=$(grep -c '"kind":"route"' "$LOG" 2>/dev/null)
+: "${_after:=0}"
+_new=$((_after - _before))
+
+note "ran $ran turn(s), $failed failed; route records written this run: $_new (corpus: $_after)"
+
+# THE MARKER COUNT IS NOT A FIRING COUNT, and reporting it bare invited exactly
+# the wrong inference -- measured 2026-08-06, when `marker seen in 0
+# transcript(s)` printed in all four chunks of a run whose debug log held 39
+# route and 39 gauge records.
+#
+# The router injects its lane as CONTEXT and the internal-only seal forbids the
+# model from printing it, so zero is the CORRECT value and any other number is a
+# leak. `Proofs/RotObserve.lean` proves both halves:
+#   markers_zero_iff_all_sealed          -- 0 markers <-> every turn stayed sealed
+#   any_number_of_firings_can_be_invisible -- for EVERY n, n firings can show 0
+# so this line reports the seal, never the router.
+if [ "$fired" -eq 0 ]; then
+  note "trace leaks: 0 -- the internal-only seal held on all $ran turn(s) (0 is the PASS value here)"
+else
+  note "trace leaks: $fired transcript(s) printed the marker -- the seal LEAKED, investigate"
+fi
+
+# --- REFUSAL: a collection pass that collected nothing is not a success -------
+# Measured 2026-08-06: the CTT credential had expired (`loggedIn: false`), and
+# every turn would have returned exit 1 with not one record written. This script
+# ended in an unconditional `exit 0`, so that run would have reported success
+# while measuring NOTHING -- the same defect this suite exists to catch, living
+# in the suite itself.
+#
+# `--report` already refuses an empty corpus, but that is a LATER, SEPARATE
+# invocation. A scheduled collection step that never reaches it would have been
+# green forever.
+if [ "$ran" -gt 0 ] && [ "$_new" -eq 0 ]; then
+  echo "REFUSE: $ran turn(s) ran and NOT ONE route record was written."
+  echo "        The session produced no measurement, so this is not a pass."
+  echo "        $failed of $ran turn(s) exited non-zero."
+  echo "        Most likely: the CTT credential expired. Check with"
+  echo "          CLAUDE_CONFIG_DIR=\"\$CTT\" claude auth status"
+  echo "        A collection run that collects nothing must never exit 0."
+  exit 2
+fi
+
 note "run --report when the full range is collected"
 exit 0
