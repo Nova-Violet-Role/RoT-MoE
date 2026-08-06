@@ -397,14 +397,47 @@ jobs:
         shell: bash
         run: bash checker/mutate-checker.sh
 
-      # These SKIP (exit 3) when the claude CLI is absent, which it is on a
-      # bare runner. A skip is reported as a skip; it is never a pass.
-      - name: plugin + fresh-user install (skips without the CLI)
+      # INSTALL THE CLI SO THE CLI-GATED CHECKERS RUN INSTEAD OF SKIPPING.
+      #
+      # Measured on run 31092203143: `plugin-install.sh` and
+      # `live-session-smoke.sh` printed "SKIPPED: claude CLI absent -- NOT a
+      # pass" on ALL THREE runners -- six skipped checkers in one green run.
+      # `checker/live-session-smoke.sh:57` meanwhile tells its reader:
+      #
+      #     "This is a SKIP, not a PASS: the packet is unproven in a live
+      #      session on this machine. CI installs the CLI and runs it there."
+      #
+      # CI did not. A comment that promises coverage which does not exist is
+      # worse than no comment, because it stops anyone from looking.
+      #
+      # Neither checker needs credentials. `plugin-install.sh` was measured at
+      # exit 0 with the CLI present and no auth at all, and
+      # `live-session-smoke.sh:215` already skips ONLY its credential phase,
+      # by name, while still running ARM_ROUTER, DISARM_ROUTER and the rest.
+      - name: install the claude CLI -- the CLI-gated checkers must RUN
+        shell: bash
+        run: |
+          set +e
+          npm install -g @anthropic-ai/claude-code >/dev/null 2>&1
+          if ! command -v claude >/dev/null 2>&1; then
+            echo "::error::the claude CLI did not install. The CLI-gated checkers"
+            echo "::error::would SKIP, and a skip is never a pass -- failing instead."
+            exit 1
+          fi
+          echo "claude CLI: $(claude --version)"
+
+      # No longer skippable: the step above guarantees the CLI, so an exit 3
+      # here means the guard itself broke and must be seen, not absorbed.
+      - name: plugin + fresh-user install (MUST run -- the CLI is installed)
         shell: bash
         run: |
           set +e
           bash checker/plugin-install.sh; rc=$?
-          [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
+          if [ "$rc" -eq 3 ]; then
+            echo "::error::plugin-install.sh reported the CLI absent AFTER the install"
+            echo "::error::step succeeded. That is a broken guard, not a skip."
+            exit 1
+          fi
           exit $rc
 
       # Catches a checker that CI never runs -- the repo would look more
@@ -426,12 +459,16 @@ jobs:
         shell: bash
         run: bash checker/readme-variants.sh
 
-      - name: live-session smoke (skips without the CLI)
+      - name: live-session smoke (MUST run -- the CLI is installed)
         shell: bash
         run: |
           set +e
           bash checker/live-session-smoke.sh; rc=$?
-          [ "$rc" -eq 3 ] && { echo "SKIPPED: claude CLI absent -- NOT a pass"; exit 0; }
+          if [ "$rc" -eq 3 ]; then
+            echo "::error::live-session-smoke.sh reported the CLI absent AFTER the"
+            echo "::error::install step succeeded. Broken guard, not a skip."
+            exit 1
+          fi
           exit $rc
 
       # THIS ONE DOES RUN HERE, and the distinction is the point of the note
@@ -461,10 +498,16 @@ jobs:
       # and their results are reported by hand with the turn counts.
       #
       # SAME PROPERTY, PRE-EXISTING, RECORDED RATHER THAN HIDDEN: the
-      # "plugin + fresh-user install" and "live-session smoke" steps above also
-      # skip on every public runner for the same reason. They are left as they
-      # were -- changing them is a separate decision -- but nobody should read
-      # their green as evidence that a session ran.
+      # "plugin + fresh-user install" and "live-session smoke" steps above USED
+      # TO skip on every public runner for the same reason. That was fixed on
+      # 2026-08-06 by installing the CLI in this job: both now RUN, and an
+      # exit 3 from either is treated as a broken guard and fails the build.
+      #
+      # What still cannot run anywhere but a credentialed machine is the LIVE
+      # TURN itself. `live-session-smoke.sh:215` skips that one phase by name
+      # while executing everything around it, so its green now means "the
+      # install, ARM_ROUTER and DISARM_ROUTER were exercised" -- which is a
+      # great deal more than it meant when the whole script was skipped.
 
       # The guard the development machine cannot test. `script` allocates a real
       # pty, so stdin IS a terminal and the router must refuse rather than block.
