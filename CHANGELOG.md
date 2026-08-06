@@ -52,9 +52,9 @@ not about collisions.
 Build exit 0 with **zero warnings**; axioms `propext, Classical.choice, Quot.sound`
 (`provenance_iff_same_tree`: `propext` alone), no `sorryAx`; `leanchecker` exit 0,
 zero bytes; delivered green to the shared Lean workspace. Mutants **M12–M14**
-added — **215 applied, 215 killed**, 0 survived, 0 discarded.
+added — **218 applied, 218 killed**, 0 survived, 0 discarded.
 
-Counts move to **487 theorems / 22 modules / 19 suites / 215 mutants**.
+Counts move to **491 theorems / 22 modules / 19 suites / 218 mutants**.
 
 ---
 
@@ -96,8 +96,76 @@ one, `auditPasses = true` over **22** judged items, `controlHolds = false`.
 
 Mutants **M15–M17** — the control neutered to `true`, the audit made to judge
 everything, and the control weakened from `all` to `any`, which is the plausible
-version someone writes by accident. All three killed: **215 applied, 215 killed**,
+version someone writes by accident. All three killed: **218 applied, 218 killed**,
 0 survived, 0 discarded.
+
+---
+
+## A step that could only SKIP — the last real skip in CI is closed
+
+Three lines in every green run, on ubuntu, macos and windows:
+
+```
+SKIPPED: no built Lean workspace -- NOT a pass
+```
+
+`gauge-cross.sh` compares the Lean `Float` mirror against the running hook, and
+needs a built Lean workspace. The `checkers` job has none. The label was honest,
+and the step was still a hole — **it had no reachable PASS**. A step that cannot
+pass cannot fail either, so those three lines carried exactly as much information
+as a blank line, in a run reported green.
+
+**Not repaired by deleting it, and not by installing a mathlib toolchain on three
+platforms.** The two arms differ in what they depend on, and that is the whole
+fix:
+
+| arm | depends on | so it runs |
+|---|---|---|
+| Lean mirror | the same `.olean` on every runner — **platform-independent** | once, in the `lean` job, where a skip is already a hard failure |
+| running hook | `awk` in a POSIX shell, and the locale — **not** platform-independent | on all three platforms, against a recorded corpus |
+
+New: `checker/gauge-corpus.tsv` (six rows, chosen for shapes that behave
+differently) and `checker/gauge-hook-corpus.sh`, which has **no exit 3 at all**.
+Measured on Windows: 9 passed, 0 failed. Negative control: a single corrupted
+expectation is caught at exit 1, naming the row. A decimal comma is reported *as*
+a decimal comma, because that is a failure mode this repository has already been
+bitten by.
+
+**The corpus cannot become a snapshot.** `gauge-cross.sh` now reads the same file
+and re-derives every expected value from Lean, failing if they disagree:
+
+```
+FAIL  row 5: checker/gauge-corpus.tsv says 0.98 but Lean says 0.97
+      -- the corpus has DRIFTED from the model; re-derive it, never hand-edit it
+```
+
+Measured in both directions: drift → exit 1, restored → exit 0. So the only way
+to change a number in that file is to change the model.
+
+`workflow-lint` then caught the next mistake immediately — *"`gauge-hook-corpus.sh`
+is never run by `gate-all` — the local commit gate is WEAKER than CI"* — and it is
+now registered in the fast tier. 156 passed, 0 failed.
+
+`RotObserve.lean` §8 proves why the split is sound rather than convenient:
+
+| theorem | what it settles |
+|---|---|
+| `a_step_that_only_skips_is_not_evidence` | a step whose outcome never varies distinguishes **nothing** — not a weak check, not a check |
+| `agreement_with_a_corpus_says_nothing_about_the_model` | hook-matches-corpus can hold while **both** differ from the model |
+| `verified_corpus_transfers_to_the_model` | re-deriving the corpus is exactly what makes the platform check transfer |
+| `the_corpus_step_is_evidence` | the replacement reaches **both** outcomes, so it can fail as well as pass |
+
+Mutants **M18–M20**: the always-skipping step given a reachable outcome, the
+corpus re-derivation neutered to `true`, and the new step made unable to fail.
+All killed — **218 applied, 218 killed**, 0 survived, 0 discarded.
+
+**One skip remains in CI, and it is a boundary, not an omission.**
+`marketplace-session.sh` needs the maintainer's own Claude credentials for its
+live turn. Putting those in repository secrets is a security decision that
+belongs to the maintainer, and planting a fake credentials file would make the
+step exit 0 while proving nothing — the precise fake green this project refuses.
+It exits 3, says so, and is enforced off the runner twice: `gate-all --full`
+locally, and the CTT instance before any version ships.
 
 ---
 
@@ -147,9 +215,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **487 / 22** |
+| 14 | theorems / modules | 205 / 14 | **491 / 22** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **19 suites — 215 applied, 215 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **19 suites — 218 applied, 218 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -425,7 +493,7 @@ The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
 
 Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
 modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
-487 theorems.
+491 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
@@ -466,7 +534,7 @@ It does **not** catch *"the wrong branch ran last"*, which is what happened on
 macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
 says so in a comment beside the macOS `#guard`.
 
-Mutants M09/M10 (**215 applied, 215 killed**). M10 exists because the two
+Mutants M09/M10 (**218 applied, 218 killed**). M10 exists because the two
 conjuncts of `dispatchAsserted` were each violated on a *different* platform in
 the same run, so dropping either would let one leg back through.
 
@@ -518,7 +586,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**215 applied, 215 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**218 applied, 218 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -591,7 +659,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**215 applied, 215
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**218 applied, 218
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -955,7 +1023,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **487** machine-checked theorems across 22 modules (was 205 across 14),
+- **491** machine-checked theorems across 22 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.9.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
