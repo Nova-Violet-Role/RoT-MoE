@@ -217,6 +217,54 @@ run_mut M08 \
   'def firings (ts : List Turn) : Nat := (ts.filter (fun t => t.markerInTranscript)).length' \
   'any_number_of_firings_can_be_invisible'
 
+# --- section 5: version string vs content -----------------------------------
+
+# M09 -- the updater becomes content-aware. If this were true, a force-updated
+# tag at an unchanged version WOULD reach existing installs, and the measured
+# staleness of the CTT cache would have been impossible.
+run_mut M09 \
+  '  installed.version == published.version' \
+  '  installed.content == published.content' \
+  'force_update_at_same_version_reaches_no_install, update_verdict_cannot_decide_currency, only_a_moved_version_is_visible'
+
+# M10 -- the defect promoted to a definition: being current MEANS having the
+# same version string. This is precisely what `already at the latest version`
+# asserts, and it is what the measurement refuted.
+run_mut M10 \
+  '  installed.content == published.content' \
+  '  installed.version == published.version' \
+  'force_update_at_same_version_reaches_no_install, update_verdict_cannot_decide_currency, reinstall_succeeds_where_update_is_blind'
+
+# M11 -- a fresh install stops being content-addressed. The one path measured to
+# actually deliver the new bytes (uninstall + install) would no longer do so.
+run_mut M11 \
+  'def freshInstall (published : Artifact) : Artifact := published' \
+  'def freshInstall (published : Artifact) : Artifact := ⟨published.version, "stale"⟩' \
+  'fresh_install_is_always_current, reinstall_succeeds_where_update_is_blind'
+
+# --- LEAVE THE WORKSPACE USABLE --------------------------------------------
+# Measured 2026-08-06: the source is restored from the backup, but the LAST
+# mutant's build failed by design and produced no .olean, so the module's
+# artifact stays MISSING after the suite exits. The next tool to look at it does
+# not see "restored" -- it sees a module that cannot be imported:
+#
+#   axiom audit -> "the axiom probe did not elaborate (rc=1) ... object file
+#                   Proofs/RotObserve.olean of module Proofs.RotObserve does not exist"
+#   leanchecker -> reads the same absence as KERNEL REJECTED
+#
+# Restoring the SOURCE is not restoring the STATE. Rebuild, and say so out loud
+# if the rebuild fails, because that would mean the restore itself was bad.
+echo
+printf 'restoring baseline artifact ... '
+if ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotObserve ) >"$LOG/restore.log" 2>&1; then
+  echo "OK (baseline rebuilt, .olean present)"
+else
+  echo "FAILED -- the restored source does NOT build. The tree is left BROKEN."
+  echo "         Run: git checkout HEAD -- $F"
+  tail -5 "$LOG/restore.log"
+  exit 2
+fi
+
 echo
 echo "=== RotObserve: $killed killed, $survived survived, $discarded discarded ==="
 [ "$discarded" -gt 0 ] && echo "NOTE: discarded mutants tested NOTHING -- fix the needles, do not count them as survivors."

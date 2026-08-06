@@ -252,6 +252,81 @@ theorem a_marker_means_a_leak (ts : List Turn) (h : markers ts ≠ 0) :
     have := hc t ht
     simpa using this))
 
+/-! ## 5. "Already at the latest version" is a claim about a STRING
+
+Measured 2026-08-06, after force-updating the tree without changing the version:
+`claude plugin update rot-moe@rot-moe` answered
+`✔ rot-moe is already at the latest version (0.8.2)` at **exit 0**, while the
+installed cache held a `checker/ctt-session.sh` whose SHA256 differed from the
+tree's, a stale `README.md`, a stale `CHANGELOG.md`, and no `RotObserve.lean` at
+all.
+
+Nothing was broken. The updater compares the version *string*, and the string had
+not moved. This is the fourth section's lesson aimed at distribution: **a
+force-updated tag at an unchanged version reaches no existing install, and the
+tool actively reassures the user that it did.** -/
+
+/-- A published artifact as the two things a user can compare: the version they
+are shown, and the content they actually receive. -/
+structure Artifact where
+  version : String
+  content : String
+  deriving DecidableEq, Repr
+
+/-- What `plugin update` compares. -/
+def updateSaysCurrent (installed published : Artifact) : Bool :=
+  installed.version == published.version
+
+/-- What actually determines whether the user has the fix. -/
+def isCurrent (installed published : Artifact) : Bool :=
+  installed.content == published.content
+
+/-- **A force-update at an unchanged version reaches nobody.** Quantified over
+every version and every pair of differing contents, so it is a statement about
+the release *mechanism* and not about the one tag that was measured. -/
+theorem force_update_at_same_version_reaches_no_install
+    (v c₁ c₂ : String) (h : c₁ ≠ c₂) :
+    updateSaysCurrent ⟨v, c₁⟩ ⟨v, c₂⟩ = true ∧ isCurrent ⟨v, c₁⟩ ⟨v, c₂⟩ = false := by
+  constructor
+  · simp [updateSaysCurrent]
+  · simpa [isCurrent] using h
+
+/-- Consequently the updater's verdict cannot decide currency: it is the blind
+reading of section 1, wearing a version number. -/
+theorem update_verdict_cannot_decide_currency :
+    ∃ i₁ i₂ p : Artifact,
+      updateSaysCurrent i₁ p = updateSaysCurrent i₂ p ∧ isCurrent i₁ p ≠ isCurrent i₂ p := by
+  refine ⟨⟨"0.8.2", "old"⟩, ⟨"0.8.2", "new"⟩, ⟨"0.8.2", "new"⟩, ?_, ?_⟩
+  · simp [updateSaysCurrent]
+  · simp [isCurrent]
+
+/-- The repair, stated as the property that makes it work: only a version that
+actually MOVES is visible to an installed copy. -/
+theorem only_a_moved_version_is_visible
+    (v₁ v₂ c₁ c₂ : String) (h : v₁ ≠ v₂) :
+    updateSaysCurrent ⟨v₁, c₁⟩ ⟨v₂, c₂⟩ = false := by
+  simpa [updateSaysCurrent] using h
+
+/-- A fresh install is content-addressed: it takes what is published, so it is
+current by construction whatever the version says. Measured: uninstall followed
+by install delivered the new `ctt-session.sh`, `README.md` and `RotObserve.lean`
+under the very same `0.8.2`. -/
+def freshInstall (published : Artifact) : Artifact := published
+
+theorem fresh_install_is_always_current (p : Artifact) :
+    isCurrent (freshInstall p) p = true := by
+  simp [isCurrent, freshInstall]
+
+/-- So the two paths genuinely differ, and the difference is not cosmetic: for
+any real content change there is a state where updating reports success and
+changes nothing, while reinstalling delivers it. -/
+theorem reinstall_succeeds_where_update_is_blind
+    (v c₁ c₂ : String) (h : c₁ ≠ c₂) :
+    isCurrent ⟨v, c₁⟩ ⟨v, c₂⟩ = false ∧ isCurrent (freshInstall ⟨v, c₂⟩) ⟨v, c₂⟩ = true := by
+  refine ⟨?_, ?_⟩
+  · simpa [isCurrent] using h
+  · simp [isCurrent, freshInstall]
+
 /-! ## The common shape
 
 All four are the same theorem wearing different clothes: a projection that
