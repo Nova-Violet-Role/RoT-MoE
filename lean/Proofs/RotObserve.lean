@@ -558,4 +558,78 @@ def corpusStep (hook : Nat) : Outcome :=
 theorem the_corpus_step_is_evidence : distinguishes corpusStep := by
   exact ⟨49, 50, by decide⟩
 
+/-! ## §9 — when the evidence counter increments in the failure path
+
+MEASURED 2026-08-06, in this repository's own session suite.
+
+`checker/ctt-session.sh` ran twenty turns against the CTT instance. All twenty
+returned `Not logged in - Please run /login`, because the cloned credential had
+gone stale. **The checker exited 0.**
+
+Its refusal asked the reasonable-sounding question *"were any route records
+written?"* — and twenty had been. The router hook fires when the prompt is
+**submitted**, before the turn reaches the API and dies. So the counter the
+verdict rested on increments in the *failure* path, and a pass condition built
+on it is satisfied by total failure. Twenty failed turns, zero measurement, exit
+0.
+
+This is not the same defect as §7. There the verdict was blind to items it never
+selected; here every item *was* selected, and the verdict reads a signal that
+cannot tell success from failure. Both produce a green run; only one is fixed by
+a control over the selection. -/
+
+/-- One session turn: whether it actually succeeded, and whether it left a
+record. They are independent, which is the entire problem. -/
+structure SessionTurn where
+  /-- Did the turn complete successfully? -/
+  ok : Bool
+  /-- Did the hook write a route record for it? -/
+  record : Bool
+  deriving DecidableEq, Repr
+
+/-- The hook writes on submission, so a record says nothing about the outcome. -/
+def recordsOf (ts : List SessionTurn) : Nat :=
+  ((ts.map (fun t => t.record)).filter id).length
+
+/-- The verdict as it was: "some record was written". -/
+def sideEffectVerdict (ts : List SessionTurn) : Bool := recordsOf ts != 0
+
+/-- The verdict as it must be: a session suite in which no session succeeded has
+measured nothing, however many records the hook wrote on the way down. -/
+def successAwareVerdict (ts : List SessionTurn) : Bool :=
+  ts.any (fun t => t.ok) && recordsOf ts != 0
+
+/-- **The measured run, exactly.** Twenty turns, every one failed, every one
+recorded — and the old verdict passes. -/
+theorem total_failure_passes_the_side_effect_verdict :
+    sideEffectVerdict (List.replicate 20 { ok := false, record := true }) = true := by
+  decide
+
+/-- The durable statement, quantified over runs rather than about twenty:
+**a verdict reading only the side effect cannot distinguish any two runs with the
+same records**, whatever their outcomes. Re-reading that log line can never
+reveal the failure — which is why nobody noticed. -/
+theorem side_effect_verdict_is_blind_to_outcomes (ts us : List SessionTurn)
+    (h : ts.map (fun t => t.record) = us.map (fun t => t.record)) :
+    sideEffectVerdict ts = sideEffectVerdict us := by
+  have hrec : recordsOf ts = recordsOf us := by
+    simp only [recordsOf, h]
+  simp [sideEffectVerdict, hrec]
+
+/-- The repair, stated over an arbitrary run: if no turn succeeded, the
+success-aware verdict is false — records or no records. -/
+theorem success_aware_verdict_detects_total_failure (ts : List SessionTurn)
+    (h : ∀ t ∈ ts, t.ok = false) : successAwareVerdict ts = false := by
+  simp only [successAwareVerdict, Bool.and_eq_false_imp]
+  intro hany
+  simp only [List.any_eq_true] at hany
+  obtain ⟨t, ht, hok⟩ := hany
+  exact absurd (h t ht) (by simp [hok])
+
+/-- And it is a test, not a refusal: a run with a successful turn and a record
+still passes. Without this the "fix" would be a checker that never passes. -/
+theorem success_aware_verdict_still_passes_a_real_run :
+    successAwareVerdict [{ ok := true, record := true }] = true := by
+  decide
+
 end RotObserve

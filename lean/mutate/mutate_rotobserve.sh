@@ -319,6 +319,32 @@ run_mut M20 \
   '  Outcome.pass' \
   'the_corpus_step_is_evidence'
 
+# --- §9, the evidence counter that increments in the failure path -----------
+
+# M21 -- the repair reverted: drop the "did any turn succeed" conjunct and the
+# success-aware verdict IS the blind one. This is the exact line that was
+# missing on 2026-08-06, so if the theorem survives it, the theorem is not
+# guarding the fix.
+run_mut M21 \
+  '  ts.any (fun t => t.ok) && recordsOf ts != 0' \
+  '  recordsOf ts != 0' \
+  'success_aware_verdict_detects_total_failure'
+
+# M22 -- the blind verdict taught to read outcomes. Then total failure would NOT
+# pass it, and the theorem recording the measured green must die.
+run_mut M22 \
+  'def sideEffectVerdict (ts : List SessionTurn) : Bool := recordsOf ts != 0' \
+  'def sideEffectVerdict (ts : List SessionTurn) : Bool := ts.any (fun t => t.ok)' \
+  'total_failure_passes_the_side_effect_verdict'
+
+# M23 -- the over-correction: a verdict that refuses everything. It would satisfy
+# "detects total failure" while being useless, which is why the pass-a-real-run
+# theorem exists to kill it.
+run_mut M23 \
+  '  ts.any (fun t => t.ok) && recordsOf ts != 0' \
+  '  false' \
+  'success_aware_verdict_still_passes_a_real_run'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's

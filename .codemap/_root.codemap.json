@@ -404,12 +404,12 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "99e5e6c91bf3",
-      "indexed_at": "2026-08-06T18:15:16.938352+00:00",
+      "hash": "3f0b0c76580b",
+      "indexed_at": "2026-08-06T19:18:14.442407+00:00",
       "language": "markdown",
-      "lines": 1033,
-      "mtime_ns": 1786038751146491500,
-      "size": 61316,
+      "lines": 1097,
+      "mtime_ns": 1786042830272779200,
+      "size": 64481,
       "symbols": [
         {
           "docstring": "**Found while publishing 0.9.x, and it was already uploaded.** `release-package.sh` builds the archives **from the working tree** and computes `SHA256",
@@ -430,10 +430,19 @@
           "type": "section"
         },
         {
-          "docstring": "Three lines in every green run, on ubuntu, macos and windows:",
+          "docstring": "The CTT re-test after the gauge work came back green. It should not have.",
           "lines": [
             104,
-            171
+            167
+          ],
+          "name": "Twenty failed turns, exit 0 \u2014 the evidence counter incremented in the failure path",
+          "type": "section"
+        },
+        {
+          "docstring": "Three lines in every green run, on ubuntu, macos and windows:",
+          "lines": [
+            168,
+            235
           ],
           "name": "A step that could only SKIP \u2014 the last real skip in CI is closed",
           "type": "section"
@@ -441,8 +450,8 @@
         {
           "docstring": "`0.9.0`, `0.9.1` and `0.9.2` are **released together, on the same commit**. The version *is* the variant. Nothing in `0.9.1` supersedes `0.9.0`; it ad",
           "lines": [
-            172,
-            196
+            236,
+            260
           ],
           "name": "The three numbers are not a roadmap",
           "type": "section"
@@ -450,8 +459,8 @@
         {
           "docstring": "Every row was **measured on the shipped code**, before and after. This table is the whole release in one screen; the sections beneath it give each row",
           "lines": [
-            197,
-            243
+            261,
+            307
           ],
           "name": "PRIOR \u2192 AFTER, at a glance",
           "type": "section"
@@ -461,8 +470,8 @@
             {
               "docstring": "Written **after** publishing, from the install of the published `0.8.2` into a real second Claude configuration and a 20-turn session held against it.",
               "lines": [
-                254,
-                319
+                318,
+                383
               ],
               "name": "Added \u2014 `Proofs/RotObserve.lean`: five readings that report less than the truth",
               "type": "subsection"
@@ -470,8 +479,8 @@
             {
               "docstring": "Not the local `.release/` build: the asset was **downloaded from the release** and its SHA256 compared against the published `SHA256SUMS.txt` \u2014 `45924",
               "lines": [
-                320,
-                337
+                384,
+                401
               ],
               "name": "Verified \u2014 the published `0.8.1` archive, installed and driven through the real CLI",
               "type": "subsection"
@@ -479,8 +488,8 @@
             {
               "docstring": "Found **while publishing this release**, by auditing the runs the tag pushes themselves triggered \u2014 which is the audit everyone skips, because the rel",
               "lines": [
-                338,
-                398
+                402,
+                462
               ],
               "name": "Fixed \u2014 a `paths:` filter does not restrain a tag push, and the run it wasted concluded `cancelled`",
               "type": "subsection"
@@ -488,8 +497,8 @@
             {
               "docstring": "Before this release was tagged, the packaged `0.9.1` Lean variant was installed into a **separate Claude Code instance** kept for pre-publish testing",
               "lines": [
-                399,
-                439
+                463,
+                503
               ],
               "name": "Verified \u2014 the CTT round-trip, and four theorems confirmed against a live install",
               "type": "subsection"
@@ -497,8 +506,8 @@
             {
               "docstring": "`checker/verdict-schedule-sim.sh` builds scratch git trees. On a Windows runner git printed, four times into a fully passing log:",
               "lines": [
-                440,
-                453
+                504,
+                517
               ],
               "name": "Fixed \u2014 a warning inside a green log: git CRLF advisory \u00d74",
               "type": "subsection"
@@ -506,17 +515,17 @@
             {
               "docstring": "`lake build` exited 0 on every platform and **printed 70 warnings**, in a job whose conclusion was `success`. Nothing failed, so nothing looked wrong.",
               "lines": [
-                454,
-                497
+                518,
+                561
               ],
               "name": "Fixed \u2014 70 build warnings that no gate was reading, and one understated theorem",
               "type": "subsection"
             },
             {
-              "docstring": "The repair to the Windows `tty guard` shipped with a defect **in the repair itself**, and run `31052104913` caught it: 145 success, **0 skipped**, 2 f",
+              "docstring": "The repair to the Windows `tty guard` shipped with a defect **in the repair itself**, and run `31052104953` caught it: 145 success, **0 skipped**, 2 f",
               "lines": [
-                498,
-                545
+                562,
+                609
               ],
               "name": "Fixed \u2014 a green CI leg that asserted nothing, from one missing `else`",
               "type": "subsection"
@@ -524,8 +533,8 @@
             {
               "docstring": "`checker/gate-all.sh` refuses to run when a mutation suite left `.mutbak` files behind, because the tree may carry a live mutant. That refusal is corr",
               "lines": [
-                546,
-                599
+                610,
+                663
               ],
               "name": "Fixed \u2014 our own recovery advice destroyed two shipped hooks",
               "type": "subsection"
@@ -533,8 +542,8 @@
             {
               "docstring": "Run `31045719329` measured the no-skip repair and it **held: zero skipped steps**, down from the eight that run `31035932155` carried while GitHub cal",
               "lines": [
-                600,
-                637
+                664,
+                701
               ],
               "name": "Fixed \u2014 the CI honesty law was strict in one direction and blind in the other",
               "type": "subsection"
@@ -542,8 +551,8 @@
             {
               "docstring": "`lean/Proofs/RotGates.lean` grows from 24 to **30 theorems**. `runIsHonest` is no longer `allGreen`; it is `List.all stepIsAcceptable`, which branches",
               "lines": [
-                638,
-                675
+                702,
+                739
               ],
               "name": "Added \u2014 the asymmetry, proved",
               "type": "subsection"
@@ -551,8 +560,8 @@
             {
               "docstring": "Documents where the RoT formulae came from, and proves it rather than asserting it. Backed by `RotEigenform.lean`: **113 theorems, 0 `sorry`, 0 warnin",
               "lines": [
-                676,
-                729
+                740,
+                793
               ],
               "name": "Added \u2014 the Easter Egg section in `README.md`",
               "type": "subsection"
@@ -560,8 +569,8 @@
             {
               "docstring": "Measured on the author's machine: two marker lines, two gauge computations, twice the tokens, every turn. The packet reaches a session by two routes a",
               "lines": [
-                730,
-                751
+                794,
+                815
               ],
               "name": "The router fired TWICE on every prompt, and the install document caused it",
               "type": "subsection"
@@ -569,8 +578,8 @@
             {
               "docstring": "Counted: `grep -cE '\\-\\-dry-run|DRY'` gave **15** in `ARM_ROUTER.sh` and **0** in `DISARM_ROUTER.sh`. The destructive half of the pair was the half wi",
               "lines": [
-                752,
-                766
+                816,
+                830
               ],
               "name": "`DISARM_ROUTER --dry-run` was accepted, ignored, and deleted live entries",
               "type": "subsection"
@@ -578,8 +587,8 @@
             {
               "docstring": "`\"$PROOFS_DIR\"/*.lean` and `Get-ChildItem -Filter '*.lean'` with no `-Recurse`. File proofs by subject and the newest file either arm can see is whate",
               "lines": [
-                767,
-                774
+                831,
+                838
               ],
               "name": "The proof scan was one level deep \u2014 in both arms",
               "type": "subsection"
@@ -587,8 +596,8 @@
             {
               "docstring": "`env \u2192 RECORDED \u2192 bundled corpus` reads like three answers. Only `SETUP_LEAN` ever writes RECORDED, so for a marketplace install the middle step is pe",
               "lines": [
-                775,
-                791
+                839,
+                855
               ],
               "name": "The workspace chain had a step nothing wrote",
               "type": "subsection"
@@ -596,8 +605,8 @@
             {
               "docstring": "`cross-diff-remind.sh` compares the two arms' **decision**; its own header says what it does not cover is \"that both arms measure the same things off",
               "lines": [
-                792,
-                802
+                856,
+                866
               ],
               "name": "The measurement half had no instrument, so defects lived there",
               "type": "subsection"
@@ -605,8 +614,8 @@
             {
               "docstring": "| gate | what it makes impossible | |---|---| | `router-duplication.sh` | arming on top of a live plugin registration | | `disarm-safety.sh` | a dry r",
               "lines": [
-                803,
-                814
+                867,
+                878
               ],
               "name": "Four new gates, all fast tier",
               "type": "subsection"
@@ -614,8 +623,8 @@
             {
               "docstring": "`bench-router.sh` already summed the logged `term` values and checked `\u03a3term / K = Rs`. What it cannot see is everything upstream of `term`: a record",
               "lines": [
-                815,
-                825
+                879,
+                889
               ],
               "name": "The debug log is now re-derived, not merely summed",
               "type": "subsection"
@@ -623,8 +632,8 @@
             {
               "docstring": "`RotLog.WellPaired` first asserted that a route record carries the **same** `Rs` as its gauge record. The shipped router does not do that: the gauge l",
               "lines": [
-                826,
-                840
+                890,
+                904
               ],
               "name": "A spec that was wrong, said plainly",
               "type": "subsection"
@@ -632,8 +641,8 @@
             {
               "docstring": "Measured on the shipped router before the change:",
               "lines": [
-                841,
-                885
+                905,
+                949
               ],
               "name": "`prove this lemma` did not reach FORGE \u2014 and could not be made to",
               "type": "subsection"
@@ -641,8 +650,8 @@
             {
               "docstring": "`README.md` said `rot-moe-0.5.1-lean.zip` while `checker/release-package.sh` built `rot-moe-0.9.1-lean.zip`. Three links, all wrong, **for two minor v",
               "lines": [
-                886,
-                916
+                950,
+                980
               ],
               "name": "The install section told three tiers to download archives that do not exist",
               "type": "subsection"
@@ -650,8 +659,8 @@
             {
               "docstring": "`grep -c sha256 checker/release-package.sh` returned **zero** while `README.md` said every archive verifies against the sums file published beside it.",
               "lines": [
-                917,
-                938
+                981,
+                1002
               ],
               "name": "`SHA256SUMS.txt` was promised by the README and never written by anything",
               "type": "subsection"
@@ -659,8 +668,8 @@
             {
               "docstring": "`docs/GIT-WORKFLOW.md` \u00a74.3 said *\"never force-push, never rewrite published history \u2014 tags are consumed by the marketplace.\"* The first half is right",
               "lines": [
-                939,
-                976
+                1003,
+                1040
               ],
               "name": "The tag rule was a blanket where the hazard has a boundary",
               "type": "subsection"
@@ -668,17 +677,17 @@
             {
               "docstring": "- `RotTag.lean` (9) \u2014 the rule above, stated so it can be checked instead of remembered. `released_tag_never_moves` is the durable form: a published t",
               "lines": [
-                977,
-                1023
+                1041,
+                1087
               ],
               "name": "New Lean modules",
               "type": "subsection"
             },
             {
-              "docstring": "- **491** machine-checked theorems across 22 modules (was 205 across 14), 0 `sorry`, 0 `native_decide`, 0 build warnings. - **35** gates (was 29); 23",
+              "docstring": "- **495** machine-checked theorems across 22 modules (was 205 across 14), 0 `sorry`, 0 `native_decide`, 0 build warnings. - **35** gates (was 29); 23",
               "lines": [
-                1024,
-                1034
+                1088,
+                1098
               ],
               "name": "Numbers",
               "type": "subsection"
@@ -686,8 +695,8 @@
           ],
           "docstring": "Three archives, one tree. The patch digit is the tier: `0` core, `1` lean, `2` unsealed.",
           "lines": [
-            244,
-            1034
+            308,
+            1098
           ],
           "name": "[0.9.0] \u00b7 [0.9.1] \u00b7 [0.9.2] \u2014 2026-08-06",
           "type": "section"
@@ -992,11 +1001,11 @@
       ]
     },
     "README.md": {
-      "hash": "f65ec1cf3942",
-      "indexed_at": "2026-08-06T18:15:16.943278+00:00",
+      "hash": "ae1cc422e5b7",
+      "indexed_at": "2026-08-06T19:18:14.447275+00:00",
       "language": "markdown",
       "lines": 1864,
-      "mtime_ns": 1786038644504491400,
+      "mtime_ns": 1786042702254778000,
       "size": 107388,
       "symbols": [
         {
@@ -1689,11 +1698,11 @@
       ]
     },
     "STATUS.md": {
-      "hash": "fb8044ef99a2",
-      "indexed_at": "2026-08-06T18:15:16.943799+00:00",
+      "hash": "026e85a0cbaf",
+      "indexed_at": "2026-08-06T19:18:14.447846+00:00",
       "language": "markdown",
       "lines": 31,
-      "mtime_ns": 1786038798688492200,
+      "mtime_ns": 1786043388904011500,
       "size": 1173,
       "symbols": []
     },
@@ -1762,6 +1771,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-06T18:15:16.947134+00:00",
+  "generated_at": "2026-08-06T19:18:14.449021+00:00",
   "version": "1.0"
 }
