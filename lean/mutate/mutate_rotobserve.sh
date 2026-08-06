@@ -242,6 +242,31 @@ run_mut M11 \
   'def freshInstall (published : Artifact) : Artifact := ⟨published.version, "stale"⟩' \
   'fresh_install_is_always_current, reinstall_succeeds_where_update_is_blind'
 
+# --- §6, the release-provenance gap (MEASURED during the 0.9.x publication) ---
+
+# M12 -- the digest stops being computed from the archive that was built. This is
+# the honest-looking version of the defect: a digest published beside bytes it
+# does not describe. If integrity were doing real work, this must break it.
+run_mut M12 \
+  'def package (tree : String) : Release := ⟨tree, digestOf tree⟩' \
+  'def package (tree : String) : Release := ⟨tree, "sha256-of-something-else"⟩' \
+  'packaging_always_passes_integrity, integrity_cannot_detect_the_wrong_tree, redownload_re_runs_the_blind_check'
+
+# M13 -- provenance is asserted rather than checked: the archive is declared to
+# come from the tag without comparing anything. Exactly the fake green the
+# publication nearly shipped, promoted to a definition.
+run_mut M13 \
+  '  r.archive == (package tag).archive' \
+  '  (tag.length == tag.length)' \
+  'integrity_cannot_detect_the_wrong_tree, redownload_re_runs_the_blind_check, provenance_iff_same_tree'
+
+# M14 -- the integrity check inverted. It would then FAIL on a correctly packaged
+# release, which is the opposite failure and just as fatal.
+run_mut M14 \
+  'def integrityHolds (r : Release) : Bool := digestOf r.archive == r.digest' \
+  'def integrityHolds (r : Release) : Bool := ! (digestOf r.archive == r.digest)' \
+  'packaging_always_passes_integrity, integrity_cannot_detect_the_wrong_tree'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's

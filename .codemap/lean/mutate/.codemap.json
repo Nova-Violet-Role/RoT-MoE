@@ -11,17 +11,17 @@
       "symbols": []
     },
     "generalization_probe.sh": {
-      "hash": "e93f31305885",
-      "indexed_at": "2026-08-03T17:36:32.623573+00:00",
+      "hash": "ee0f576486be",
+      "indexed_at": "2026-08-06T15:14:32.400742+00:00",
       "language": "shell",
-      "lines": 240,
-      "mtime_ns": 1785736493089416900,
-      "size": 11047,
+      "lines": 260,
+      "mtime_ns": 1786027592169887400,
+      "size": 12174,
       "symbols": [
         {
           "lines": [
             91,
-            114
+            134
           ],
           "name": "probe",
           "type": "function"
@@ -235,12 +235,12 @@
       ]
     },
     "mutate_rotobserve.sh": {
-      "hash": "4fec5c2ccd2e",
-      "indexed_at": "2026-08-06T11:27:16.728756+00:00",
+      "hash": "d75d05b0d7c5",
+      "indexed_at": "2026-08-06T15:14:32.570678+00:00",
       "language": "shell",
-      "lines": 272,
-      "mtime_ns": 1786013973076627900,
-      "size": 12778,
+      "lines": 297,
+      "mtime_ns": 1786025397727399500,
+      "size": 14194,
       "symbols": [
         {
           "lines": [
@@ -429,6 +429,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-06T11:27:16.728844+00:00",
+  "generated_at": "2026-08-06T15:14:32.570769+00:00",
   "version": "1.0"
 }

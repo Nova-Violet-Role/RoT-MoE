@@ -91,6 +91,26 @@ pass=0; fail=0
 probe () {   # probe <name> <expect: OK|NOCOMPILE> <description> <lean source>
   local name="$1" expect="$2" desc="$3" src="$4"
   printf '%s\n' "$src" > "$TMP/$name.lean"
+  # DISCIPLINE, added 2026-08-06 when this probe was audited for the first time.
+  # It had escaped checker/mutant-discipline.sh entirely: that gate classified
+  # harnesses by a single-line `sed|awk ... > "file"` regex, and this file plants
+  # whole sources instead, so it was never checked while the gate reported
+  # "16 harnesses audited" and passed.
+  #
+  # Both failures below are real here, not ceremonial:
+  #   - AN EMPTY .lean FILE COMPILES GREEN. A plant that silently wrote nothing
+  #     would be scored PASS for every `expect=OK` probe.
+  #   - a truncated or partially written plant compiles as something OTHER than
+  #     the variant being probed, so its verdict describes the wrong source.
+  # Neither is a kill or a survival: it is a DISCARD, and it is never a pass.
+  if [ ! -s "$TMP/$name.lean" ]; then
+    echo "  DISCARD  $name -- the planted source is EMPTY (an empty .lean compiles); not a pass"
+    fail=$((fail+1)); return
+  fi
+  if ! printf '%s\n' "$src" | cmp -s - "$TMP/$name.lean"; then
+    echo "  DISCARD  $name -- the plant did not land intact; not a pass"
+    fail=$((fail+1)); return
+  fi
   lake env lean "$TMP/$name.lean" > "$TMP/$name.log" 2>&1
   local rc=$?
   if [ "$expect" = "OK" ]; then

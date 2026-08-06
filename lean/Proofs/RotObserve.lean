@@ -355,4 +355,85 @@ theorem arming_is_an_instance :
   blind_reading_cannot_decide (fun b => b.bySettings) armed
     ⟨false, true⟩ ⟨false, false⟩ rfl (by simp [armed])
 
+/-! ## §6 — a checksum agreeing with its archive is not provenance
+
+MEASURED 2026-08-06, during the 0.9.x publication, and it very nearly shipped.
+
+`release-package.sh` builds the archives **from the working tree** and computes
+`SHA256SUMS.txt` **from those archives**, in one pass. The working tree held two
+uncommitted files, so the uploaded `rot-moe-0.9.1-lean.zip` measured 855097 B
+against a tag whose tree produces 854497 B.
+
+Nothing was red. The published digest matched the published archive exactly,
+because both had been regenerated together — a self-consistent pair describing a
+tree that **no tag points at**. Downloading the asset and recomputing its SHA256
+(which I did, and it MATCHED) re-verifies that same pair and cannot detect the
+substitution. Integrity and provenance are different questions, and only one of
+them was being asked.
+
+`digestOf` is modelled as a deterministic function of the archive bytes. Nothing
+below assumes it is injective, collision-free, or cryptographic — the gap proved
+here is not a hash weakness. It survives a *perfect* hash. -/
+
+/-- What a release publishes: the bytes attached, and the digest published beside
+them. -/
+structure Release where
+  archive : String
+  digest  : String
+  deriving DecidableEq, Repr
+
+/-- A digest is any deterministic function of the bytes. -/
+def digestOf (a : String) : String := a
+
+/-- `release-package.sh`: build from a tree, then digest **that build**. -/
+def package (tree : String) : Release := ⟨tree, digestOf tree⟩
+
+/-- The check that was run: recompute the digest of the published archive and
+compare it to the published digest. -/
+def integrityHolds (r : Release) : Bool := digestOf r.archive == r.digest
+
+/-- The check that was actually needed: the archive is the one the TAG's tree
+builds. -/
+def provenanceHolds (tag : String) (r : Release) : Bool :=
+  r.archive == (package tag).archive
+
+/-- Integrity is satisfied **by construction**, for whatever tree was packaged.
+It is therefore incapable of reporting that the wrong tree was packaged: it is a
+tautology about the packaging step, not evidence about the release. -/
+theorem packaging_always_passes_integrity (tree : String) :
+    integrityHolds (package tree) = true := by
+  simp [integrityHolds, package, digestOf]
+
+/-- THE MEASURED DEFECT. Package the working tree `w` while the tag names `t`:
+the published pair verifies, and the provenance it is trusted to establish is
+false. Both halves at once, for every pair of distinct trees. -/
+theorem integrity_cannot_detect_the_wrong_tree (t w : String) (h : t ≠ w) :
+    integrityHolds (package w) = true ∧ provenanceHolds t (package w) = false := by
+  refine ⟨by simp [integrityHolds, package, digestOf], ?_⟩
+  simp only [provenanceHolds, package, beq_eq_false_iff_ne]
+  exact h.symm
+
+/-- Re-downloading the asset and recomputing does not close the gap: it re-runs
+the same self-consistent check on the same pair. Verifying the download is
+`integrityHolds`, and `integrityHolds` was just shown blind. -/
+theorem redownload_re_runs_the_blind_check (t w : String) (h : t ≠ w) :
+    integrityHolds (package w) = integrityHolds (package t) ∧
+      provenanceHolds t (package w) = false ∧
+      provenanceHolds t (package t) = true := by
+  refine ⟨by simp [integrityHolds, package, digestOf], ?_, by simp [provenanceHolds]⟩
+  simp only [provenanceHolds, package, beq_eq_false_iff_ne]
+  exact h.symm
+
+/-- The repair that was applied: rebuild from the tagged tree. Then provenance
+holds — and note this is the ONLY way it holds, by `integrity_cannot_detect_the_wrong_tree`. -/
+theorem rebuilding_from_the_tag_restores_provenance (tag : String) :
+    provenanceHolds tag (package tag) = true := by
+  simp [provenanceHolds]
+
+/-- Provenance is exactly tree equality: it is decidable, and it is the whole
+question. Stated over arbitrary trees so it cannot expire when the bytes move. -/
+theorem provenance_iff_same_tree (tag tree : String) :
+    provenanceHolds tag (package tree) = true ↔ tree = tag := by
+  simp [provenanceHolds, package]
+
 end RotObserve

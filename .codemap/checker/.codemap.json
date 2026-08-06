@@ -574,12 +574,12 @@
       ]
     },
     "mutant-discipline.sh": {
-      "hash": "81001e4d8e59",
-      "indexed_at": "2026-08-05T13:16:35.048846+00:00",
+      "hash": "7d65ba773f11",
+      "indexed_at": "2026-08-06T15:14:32.756442+00:00",
       "language": "shell",
-      "lines": 197,
-      "mtime_ns": 1785903877952674200,
-      "size": 9136,
+      "lines": 259,
+      "mtime_ns": 1786027604413888900,
+      "size": 12488,
       "symbols": []
     },
     "mutate-checker.sh": {
@@ -1123,18 +1123,27 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "4b820621be12",
-      "indexed_at": "2026-08-06T02:52:53.084690+00:00",
+      "hash": "10f8c9e8d7ec",
+      "indexed_at": "2026-08-06T15:14:32.759678+00:00",
       "language": "shell",
-      "lines": 1187,
-      "mtime_ns": 1785984207655061500,
-      "size": 60652,
+      "lines": 1220,
+      "mtime_ns": 1786025118568836900,
+      "size": 62147,
       "symbols": [
+        {
+          "docstring": "One entry point, so the four call sites cannot drift apart again.",
+          "lines": [
+            62,
+            69
+          ],
+          "name": "yamlparse",
+          "type": "function"
+        },
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
           "lines": [
-            168,
-            180
+            201,
+            213
           ],
           "name": "except_reason",
           "type": "function"
@@ -1142,16 +1151,16 @@
         {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            201,
-            206
+            234,
+            239
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            207,
-            216
+            240,
+            249
           ],
           "name": "contains_line",
           "type": "function"
@@ -1159,8 +1168,8 @@
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            262,
-            269
+            295,
+            302
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -1168,16 +1177,16 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            326,
-            335
+            359,
+            368
           ],
           "name": "gate_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            408,
-            412
+            441,
+            445
           ],
           "name": "enum_mods",
           "type": "function"
@@ -1185,24 +1194,24 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            449,
-            453
+            482,
+            486
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            586,
-            610
+            619,
+            643
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            666,
-            677
+            699,
+            710
           ],
           "name": "perms_of",
           "type": "function"
@@ -1210,8 +1219,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            795,
-            802
+            828,
+            835
           ],
           "name": "probe_r20",
           "type": "function"
@@ -1219,8 +1228,8 @@
         {
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
-            922,
-            937
+            955,
+            970
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -1228,16 +1237,16 @@
         {
           "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
           "lines": [
-            1133,
-            1135
+            1166,
+            1168
           ],
           "name": "_r23_onblock",
           "type": "function"
         },
         {
           "lines": [
-            1136,
-            1138
+            1169,
+            1171
           ],
           "name": "_r23_count",
           "type": "function"
@@ -1245,6 +1254,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-06T09:57:42.859017+00:00",
+  "generated_at": "2026-08-06T15:14:32.767608+00:00",
   "version": "1.0"
 }
