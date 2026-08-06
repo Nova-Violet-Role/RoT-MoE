@@ -1100,6 +1100,87 @@ else
   bad "$_CI is missing -- R22 cannot be evaluated, and that is not a pass"
 fi
 
+# --- R23: a `push:` trigger with `paths:` MUST also constrain `branches:` -----
+#
+# MEASURED 2026-08-06. `.github/workflows/tag-manager.yml` declared
+#
+#     push:
+#       paths: [".github/tags.txt"]
+#
+# with no `branches:`. Pushing v0.8.0 / v0.8.1 / v0.8.2 in one command fired
+# THREE runs of it, on a commit that does not touch `.github/tags.txt`
+# (`git show --stat --name-only 4a783a9 | grep -c tags.txt` -> 0). A path filter
+# cannot be evaluated for a tag ref, so it restrains nothing; only `branches:`
+# excludes tags.
+#
+# The damage was the CONCLUSION, not the wasted minutes. That workflow holds one
+# concurrency group with `cancel-in-progress: false`, and GitHub keeps at most
+# ONE pending run per group -- so the third push cancelled the second, and tag
+# v0.8.1 carried a run concluding `cancelled` with ZERO jobs. `cancelled` is
+# exactly what checker/ci-honesty.sh refuses. Tag v0.7.0 has the same scar,
+# which is how one structural defect passed for bad luck twice.
+#
+# Proved in lean/Proofs/RotGates.lean: `paths_do_not_restrain_a_tag` (a
+# branch-less trigger fires on EVERY tag, for every path list) and
+# `branches_exclude_every_tag` (any non-empty branches list excludes them all).
+echo
+echo "-- push triggers constrain branches (R23) --"
+_R23TMP="$(mktemp -d)"
+# NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it
+# is right to: with `pipefail` set, grep -q exits at its first match and the
+# SIGPIPE it delivers to the writer makes the pipeline's status
+# platform-dependent. Every probe below reads a FILE.
+_r23_onblock() {  # $1 = workflow file, $2 = destination for its `on:` block
+  awk '/^on:/{f=1;next} /^[a-z_]+:/{f=0} f' "$1" > "$2"
+}
+_r23_count() {    # $1 = file, $2 = ERE -> prints a count, never empty
+  local _n; _n=$(grep -cE "$2" "$1" 2>/dev/null); printf '%s' "${_n:-0}"
+}
+_r23_seen=0
+for _wf in .github/workflows/*.yml; do
+  [ -f "$_wf" ] || continue
+  # The `on:` block only. A `paths:` under `jobs:` or inside a step is not a
+  # trigger filter and must not be mistaken for one.
+  _r23_onblock "$_wf" "$_R23TMP/on.txt"
+  [ "$(_r23_count "$_R23TMP/on.txt" '^[[:space:]]+push:')" -gt 0 ] || continue
+  _r23_seen=$((_r23_seen+1))
+  _haspaths=$(_r23_count "$_R23TMP/on.txt" '^[[:space:]]+paths:')
+  _hasbr=$(_r23_count "$_R23TMP/on.txt" '^[[:space:]]+branches:')
+  if [ "$_haspaths" -gt 0 ] && [ "$_hasbr" -eq 0 ]; then
+    bad "$(basename "$_wf"): push has paths: but no branches: -- it fires on EVERY tag push"
+  else
+    ok "$(basename "$_wf"): push trigger constrains branches (or filters no paths)"
+  fi
+done
+if [ "$_r23_seen" -eq 0 ]; then
+  bad "R23 examined no workflow with a push trigger -- the rule is not covering anything"
+else
+  ok "R23 examined $_r23_seen workflow(s) with a push: trigger"
+fi
+# CONTROL: the rule must be able to FIRE. Rebuild the defective shape and run
+# the SAME predicate over it. Without this, R23 passing means nothing.
+printf 'on:\n  push:\n    paths:\n      - ".github/tags.txt"\n  workflow_dispatch:\n\njobs:\n  x:\n    runs-on: ubuntu-latest\n' > "$_R23TMP/bad.yml"
+_r23_onblock "$_R23TMP/bad.yml" "$_R23TMP/badon.txt"
+_bp=$(_r23_count "$_R23TMP/badon.txt" '^[[:space:]]+paths:')
+_bb=$(_r23_count "$_R23TMP/badon.txt" '^[[:space:]]+branches:')
+if [ "$_bp" -gt 0 ] && [ "$_bb" -eq 0 ]; then
+  ok "CONTROL: the branch-less push trigger IS detected -- R23 can fire"
+else
+  bad "CONTROL DEAD: R23 did not flag a paths-only push trigger (paths=$_bp branches=$_bb)"
+fi
+# CONTROL 2: adding branches: must CLEAR it, or the rule is a constant `bad`
+# that would block a correct workflow -- the failure mode this repo calls a
+# spec that forbids a correct future.
+printf 'on:\n  push:\n    branches: [main]\n    paths:\n      - ".github/tags.txt"\n' > "$_R23TMP/good.yml"
+_r23_onblock "$_R23TMP/good.yml" "$_R23TMP/goodon.txt"
+_gb=$(_r23_count "$_R23TMP/goodon.txt" '^[[:space:]]+branches:')
+if [ "$_gb" -gt 0 ]; then
+  ok "CONTROL: adding branches: clears R23 -- the rule is not a constant failure"
+else
+  bad "CONTROL DEAD: R23 flags a CORRECT trigger -- it would block a valid workflow"
+fi
+rm -rf "$_R23TMP"
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

@@ -30,6 +30,22 @@ on:
   schedule:
     - cron: "0 7 * * 1,3,5"   # Mon / Wed / Fri, 07:00 UTC
   push:
+    # `branches:` IS LOAD-BEARING -- without it this workflow runs on every TAG
+    # push, and MEASURED 2026-08-06 it did exactly that.
+    #
+    # Pushing v0.8.0, v0.8.1, v0.8.2 in one command fired three runs of this
+    # workflow, on a commit (4a783a9) that does not touch `.github/tags.txt` at
+    # all. A `paths:` filter cannot be evaluated for a tag ref, so it does not
+    # restrain one; only `branches:` excludes tags.
+    #
+    # The damage was not the wasted runs, it was the CONCLUSION. The single
+    # concurrency group below keeps at most ONE pending run: the first ran, the
+    # second pended, and the arrival of the third CANCELLED the second. Tag
+    # `v0.8.1` therefore carries a run whose conclusion is `cancelled` with ZERO
+    # jobs dispatched -- and `cancelled` is precisely what checker/ci-honesty.sh
+    # refuses to read as success. The same thing happened to `v0.7.0`, which is
+    # how a recurring structural defect looked like bad luck twice.
+    branches: [main]
     paths:
       - ".github/tags.txt"
   workflow_dispatch:
