@@ -436,4 +436,57 @@ theorem provenance_iff_same_tree (tag tree : String) :
     provenanceHolds tag (package tree) = true ↔ tree = tag := by
   simp [provenanceHolds, package]
 
+/-! ## §7 — an audit that silently narrows its own scope
+
+MEASURED 2026-08-06 in CI run 31118671400's predecessor: `mutant-discipline.sh`
+selected harnesses with `sed ... | grep -qE ...` under `set -o pipefail`.
+`grep -q` exits at the FIRST match, `sed` dies of SIGPIPE, and pipefail reports
+the PIPELINE as failed — so a file that MATCHED was skipped. It is a race, so it
+is platform-dependent: green on Git Bash here, and on ubuntu it audited **21**
+harnesses while claiming the discipline of all of them. 23 were required.
+
+The general shape, which outlives that one bug: **a gate reports PASS over the
+items it SELECTED, and selection can silently lose items.** The verdict is then
+true of a subset and read as true of the whole. This is the same defect as §6 in
+a different costume — an instrument agreeing with itself rather than with the
+world — so it is proved here rather than described in a comment. -/
+
+/-- An audit judges only what its selector kept. -/
+def auditPasses (sel judge : Nat → Bool) (xs : List Nat) : Bool :=
+  (xs.filter sel).all judge
+
+/-- The control that saved the real run: every REQUIRED item must be selected. -/
+def controlHolds (sel : Nat → Bool) (required : List Nat) : Bool := required.all sel
+
+/-- A passing audit does NOT mean every candidate passed: the ones the selector
+dropped were never judged. This is exactly what a green run auditing 21 of 23
+harnesses was asserting. -/
+theorem passing_audit_can_hide_a_failure :
+    ∃ (xs : List Nat) (sel judge : Nat → Bool),
+      auditPasses sel judge xs = true ∧ xs.all judge = false := by
+  exact ⟨[0, 1], (fun n => n == 0), (fun n => n == 0), by decide, by decide⟩
+
+/-- And it hides it *silently*: the audit's verdict is unchanged whether the
+dropped item would have passed or failed, so no amount of re-reading the verdict
+can reveal the gap. -/
+theorem the_verdict_cannot_see_the_drop (judge : Nat → Bool) :
+    auditPasses (fun n => n == 0) judge [0] =
+      auditPasses (fun n => n == 0) judge [0, 1] := by
+  simp [auditPasses]
+
+/-- A control over a KNOWN-REQUIRED set does detect it: if a required item is
+dropped, the control is false. This is why the repair shipped with one, and why
+the CI failure was a caught defect rather than a hidden one. -/
+theorem control_detects_the_drop (sel : Nat → Bool) (required : List Nat) (x : Nat)
+    (hx : x ∈ required) (hdrop : sel x = false) : controlHolds sel required = false := by
+  simp only [controlHolds, Bool.eq_false_iff, ne_eq, List.all_eq_true]
+  intro h
+  exact absurd (h x hx) (by simp [hdrop])
+
+/-- The control is not vacuous in the other direction: when nothing is dropped it
+holds, so it is a test that can pass as well as fail. -/
+theorem control_holds_when_nothing_is_dropped (sel : Nat → Bool) (required : List Nat)
+    (h : ∀ x ∈ required, sel x = true) : controlHolds sel required = true := by
+  simpa [controlHolds, List.all_eq_true] using h
+
 end RotObserve

@@ -267,6 +267,32 @@ run_mut M14 \
   'def integrityHolds (r : Release) : Bool := ! (digestOf r.archive == r.digest)' \
   'packaging_always_passes_integrity, integrity_cannot_detect_the_wrong_tree'
 
+# --- §7, the audit that silently narrows its own scope ----------------------
+
+# M15 -- the control stops checking anything. This is the state the checker was
+# in before 14382b0: no control at all, and a classifier free to drop harnesses
+# without anyone noticing.
+run_mut M15 \
+  'def controlHolds (sel : Nat → Bool) (required : List Nat) : Bool := required.all sel' \
+  'def controlHolds (_sel : Nat → Bool) (_required : List Nat) : Bool := true' \
+  'control_detects_the_drop'
+
+# M16 -- the audit judges every candidate instead of only the selected ones.
+# If that were true there would be no gap to prove, so both §7 theorems about
+# the gap must die.
+run_mut M16 \
+  '  (xs.filter sel).all judge' \
+  '  xs.all judge' \
+  'passing_audit_can_hide_a_failure, the_verdict_cannot_see_the_drop'
+
+# M17 -- the control weakened from ALL to ANY: it would pass as long as ONE
+# required harness was selected. That is the plausible wrong version, and the
+# one most likely to be written by accident.
+run_mut M17 \
+  'def controlHolds (sel : Nat → Bool) (required : List Nat) : Bool := required.all sel' \
+  'def controlHolds (sel : Nat → Bool) (required : List Nat) : Bool := required.any sel' \
+  'control_detects_the_drop, control_holds_when_nothing_is_dropped'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's
