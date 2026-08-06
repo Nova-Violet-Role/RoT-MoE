@@ -115,6 +115,13 @@ git init -q --bare "$BARE"
 (
   cd "$TREE"
   git init -q; git config user.name sim; git config user.email sim@local
+  # core.autocrlf off. On a Windows runner git otherwise prints, FOUR TIMES,
+  #   warning: in the working copy of 'STATUS.md', LF will be replaced by CRLF
+  # into a log whose every check PASSES. This simulator's subject is the
+  # SCHEDULING rule, not line endings, so the conversion is pure noise -- and a
+  # warning sitting inside a green log is the thing this repository refuses to
+  # let anyone get used to. Scratch tree only; the real repo is untouched.
+  git config core.autocrlf false
   git add -A >/dev/null 2>&1; git commit -qm "base" >/dev/null 2>&1
   git branch -M main
   git remote add origin "$BARE"
@@ -267,6 +274,13 @@ mkdir -p "$CTREE"; cp -r "$TREE"/. "$CTREE"/ 2>/dev/null
 rm -rf "$CTREE/.git"; git init -q --bare "$CBARE"
 (
   cd "$CTREE"; git init -q; git config user.name sim; git config user.email sim@local
+  # core.autocrlf off. On a Windows runner git otherwise prints, FOUR TIMES,
+  #   warning: in the working copy of 'STATUS.md', LF will be replaced by CRLF
+  # into a log whose every check PASSES. This simulator's subject is the
+  # SCHEDULING rule, not line endings, so the conversion is pure noise -- and a
+  # warning sitting inside a green log is the thing this repository refuses to
+  # let anyone get used to. Scratch tree only; the real repo is untouched.
+  git config core.autocrlf false
   git add -A >/dev/null 2>&1; git commit -qm base >/dev/null 2>&1
   git remote add origin "$CBARE"; git push -q origin HEAD:refs/heads/main 2>/dev/null
 )
