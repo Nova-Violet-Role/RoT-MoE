@@ -61,7 +61,7 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **447 / 21** |
+| 14 | theorems / modules | 205 / 14 | **449 / 21** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
 | 16 | mutation suites | 10 suites | **18 suites — 195 applied, 195 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
@@ -96,6 +96,50 @@ Three archives, one tree. The patch digit is the tier: `0` core, `1` lean,
 twenty-nine gates were green.** That is the only sentence of this entry that
 matters, and it is the reason four of the additions below are gates rather than
 features.
+
+### Fixed — 70 build warnings that no gate was reading, and one understated theorem
+
+`lake build` exited 0 on every platform and **printed 70 warnings**, in a job
+whose conclusion was `success`. Nothing failed, so nothing looked wrong. Measured
+from the run archive and reproduced locally at the identical count — 60 in
+`RotEnsemble.lean`, 10 in `RotInstall.lean`.
+
+**One of them was a real weakness in a theorem, not a style complaint.**
+`activity_vector_determined_by_eight` took eight hypotheses and its proof used
+**two**. The linter said six binders were never referenced; the honest reading is
+that the theorem was *understated*, because Claude's activity is fixed by
+AntiVenom and Soleil alone. Renaming the binders to `_h1 …` would have silenced
+the warning and preserved the weaker claim, so instead:
+
+* `activity_vector_determined_by_two` — the strong statement,
+* `activity_vector_determined_by_eight` — kept for anyone searching for it, now
+  **derived** from the two-hypothesis version so the file cannot drift back,
+* `six_lenses_may_differ_and_claude_still_agrees` — an explicit pair of signal
+  states differing on all six free lenses while Claude is forced to agree, so the
+  gap is exhibited rather than asserted.
+
+Two further over-assumptions came from the same sweep: `bump_at` and `bump_ne`
+were dragging in `[Fintype ι]` they never used (now `omit`ted — they hold for
+infinite index types), and `quiet_entropy_is_zero_at_any_breadth` carried a
+`[Fintype ι]` that `allQuiet = fun _ => false` never needed.
+
+The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
+**two different ways, because the right fix differs**:
+
+* `RotInstall.lean` — nine `#guard`s became `example … := by decide`. Strictly
+  better: same computation, but each leaves a proof term for `leanchecker`. This
+  is the conversion `RotDorks.lean` already made.
+* `RotEnsemble.lean` — that conversion is **impossible** there. The values are
+  `Float` and the kernel cannot reduce them; `decide` fails with
+  `instDecidableEqBool (routerReading 0 == 0.47142) true did not reduce to
+  isTrue or isFalse`. `#guard` in the interpreter is the only instrument, so the
+  linter is disabled *in that file* with the measurement quoted in place — and
+  with a negative control proving the guards still bite: flipping `0.47142` to
+  `0.47143` fails the build.
+
+Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
+modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
+449 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
@@ -625,7 +669,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **447** machine-checked theorems across 21 modules (was 205 across 14),
+- **449** machine-checked theorems across 21 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.7.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
