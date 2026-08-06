@@ -15,6 +15,49 @@ not be buried.
 
 ---
 
+## A checksum that agrees with its archive is not provenance
+
+**Found while publishing 0.9.x, and it was already uploaded.** `release-package.sh`
+builds the archives **from the working tree** and computes `SHA256SUMS.txt` **from
+those archives**, in one pass. The tree still held two uncommitted files, so the
+published `rot-moe-0.9.1-lean.zip` measured **855097 B** against a tag whose tree
+builds **854497 B**.
+
+Nothing was red. The published digest matched the published archive perfectly,
+because both had been regenerated together — a self-consistent pair describing a
+tree that **no tag points at**. Downloading the asset and recomputing its SHA256
+re-runs that same pair and cannot see the substitution. It was caught by comparing
+the uploaded byte size against the size measured at package time: 598 bytes.
+
+Repaired by stashing the two files, rebuilding on the clean tree, deleting every
+published asset and re-uploading. Verified end to end afterwards: the downloaded
+`v0.9.1` (854497 B) hashes to `481974a7a2dfec10…`, equal to its published
+`SHA256SUMS.txt`.
+
+`lean/Proofs/RotObserve.lean` §6 states the gap rather than the incident, so it
+cannot expire when the bytes move:
+
+| theorem | what it settles |
+|---|---|
+| `packaging_always_passes_integrity` | integrity holds **by construction** for whatever tree was packaged — it is a tautology about packaging, not evidence about the release |
+| `integrity_cannot_detect_the_wrong_tree` | for every pair of distinct trees: the digest verifies **and** provenance is false |
+| `redownload_re_runs_the_blind_check` | re-downloading and recomputing repeats the same blind check; it distinguishes nothing |
+| `rebuilding_from_the_tag_restores_provenance` | the repair that was actually applied |
+| `provenance_iff_same_tree` | provenance **is** tree equality — quantified over trees, so no constant can date it |
+
+`digestOf` is only assumed deterministic. Nothing here is a hash weakness: the gap
+survives a *perfect* hash, because it is a question about which tree was packaged,
+not about collisions.
+
+Build exit 0 with **zero warnings**; axioms `propext, Classical.choice, Quot.sound`
+(`provenance_iff_same_tree`: `propext` alone), no `sorryAx`; `leanchecker` exit 0,
+zero bytes; delivered green to the shared Lean workspace. Mutants **M12–M14**
+added — **212 applied, 212 killed**, 0 survived, 0 discarded.
+
+Counts move to **483 theorems / 22 modules / 19 suites / 212 mutants**.
+
+---
+
 ## The three numbers are not a roadmap
 
 `0.9.0`, `0.9.1` and `0.9.2` are **released together, on the same commit**. The
@@ -61,9 +104,9 @@ evidence.
 | 11 | `improve the documentation` | would hit `prove` if the stem were added | **CONVERGENT** — stems must start a word |
 | 12 | `add a prefix to the name` | **CLINICAL** — `fix` fired inside "prefix" | **CONVERGENT** |
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
-| 14 | theorems / modules | 205 / 14 | **478 / 22** |
+| 14 | theorems / modules | 205 / 14 | **483 / 22** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **19 suites — 209 applied, 209 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **19 suites — 212 applied, 212 killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |
@@ -339,7 +382,7 @@ The remaining 46 were `mathlibStandardSet` objecting to `#`-commands. Handled in
 
 Result: `lake build` **exit 0, zero warnings, zero errors** across all 21
 modules; `leanchecker` re-verifies both changed modules at exit 0 / 0 bytes.
-478 theorems.
+483 theorems.
 
 ### Fixed — a green CI leg that asserted nothing, from one missing `else`
 
@@ -380,7 +423,7 @@ It does **not** catch *"the wrong branch ran last"*, which is what happened on
 macOS — that is caught by R22 requiring one `ALLOC` per branch, and the module
 says so in a comment beside the macOS `#guard`.
 
-Mutants M09/M10 (**209 applied, 209 killed**). M10 exists because the two
+Mutants M09/M10 (**212 applied, 212 killed**). M10 exists because the two
 conjuncts of `dispatchAsserted` were each violated on a *different* platform in
 the same run, so dropping either would let one leg back through.
 
@@ -432,7 +475,7 @@ attributed before it is believed.
 | `git_restore_is_total` | safe for every file and every backup, given a non-empty commit |
 | `git_strictly_safer_on_the_measured_state` | a state exists where git is safe and `cp` is not — so the change is not cosmetic |
 
-Mutants M11–M13 (**209 applied, 209 killed**, was 190). M13 exists specifically
+Mutants M11–M13 (**212 applied, 212 killed**, was 190). M13 exists specifically
 because `git_restore_ignores_the_backup` is proved by `rfl` and depends on **no
 axioms** — the vacuity smell — so it had to be shown load-bearing against a
 `restoreFromGit` that reads the backup, or labelled decoration. It dies.
@@ -505,7 +548,7 @@ GitHub skips its own cleanup as normal operation — and a law that calls normal
 operation dishonest is a law someone later deletes. The authored case, which is
 the case the rule exists for, admits no exemption and is unchanged.
 
-Three mutants added to `lean/mutate/mutate_rotgates.sh` (**209 applied, 209
+Three mutants added to `lean/mutate/mutate_rotgates.sh` (**212 applied, 212
 killed** repo-wide, was 187):
 
 - **M06** re-opens the hole — the failure arm consults `isScaffolding`. Killed
@@ -869,7 +912,7 @@ for people who cannot use plugins.
 
 ### Numbers
 
-- **478** machine-checked theorems across 22 modules (was 205 across 14),
+- **483** machine-checked theorems across 22 modules (was 205 across 14),
   0 `sorry`, 0 `native_decide`, 0 build warnings.
 - **35** gates (was 29); 23 fast, 12 deep. The 0.9.0 line said "33 (22 fast, 11
   deep)" and the deep tier already held 12 -- a prose figure nothing recounted.
