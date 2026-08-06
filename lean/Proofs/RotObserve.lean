@@ -489,4 +489,73 @@ theorem control_holds_when_nothing_is_dropped (sel : Nat → Bool) (required : L
     (h : ∀ x ∈ required, sel x = true) : controlHolds sel required = true := by
   simpa [controlHolds, List.all_eq_true] using h
 
+/-! ## §8 — a step that can only SKIP, and the corpus that repairs it
+
+MEASURED 2026-08-06 in CI run 31092203143 and again in 31116857127: the
+`checkers` job ran `gauge-cross.sh`, which needs a built Lean workspace, on
+three platforms that have none. It printed `SKIPPED: no built Lean workspace --
+NOT a pass` and exited 0 every time, on every runner, for the whole cycle. The
+label was honest; the step was still a hole, because it had **no reachable
+PASS**.
+
+The repair is not deletion and not a mathlib toolchain on three platforms to
+recompute a platform-independent number. It is a split by what each arm depends
+on: the Lean arm is verified once where Lean exists, and its values are written
+to `checker/gauge-corpus.tsv`, which the hook is then checked against everywhere.
+
+That split is only sound because of one step people are tempted to omit —
+re-deriving the corpus from the model. Without it, hook-agrees-with-corpus is
+two artifacts agreeing with each other and saying nothing about the model. That
+is §6's defect again, so it is proved rather than trusted. -/
+
+/-- What a CI step can report. -/
+inductive Outcome where
+  | pass | fail | skip
+  deriving DecidableEq, Repr
+
+/-- The step as it was: whatever the world does, it skips. -/
+def alwaysSkips (_world : Nat) : Outcome := Outcome.skip
+
+/-- A step is evidence only if two different worlds can drive it to different
+outcomes. -/
+def distinguishes (step : Nat → Outcome) : Prop := ∃ a b, step a ≠ step b
+
+/-- A step that can only skip distinguishes NOTHING — it is not a weak check,
+it is not a check. Its log line is the same whether the packet is correct or
+broken, which is why three of them sat in a green run unnoticed. -/
+theorem a_step_that_only_skips_is_not_evidence : ¬ distinguishes alwaysSkips := by
+  rintro ⟨a, b, hab⟩
+  exact hab rfl
+
+/-- The platform check: the running hook against the recorded corpus. -/
+def hookMatchesCorpus (hook corpus : Nat) : Bool := hook == corpus
+
+/-- The lean job's obligation: the corpus is what the model says. -/
+def corpusMatchesModel (corpus model : Nat) : Bool := corpus == model
+
+/-- WITHOUT the re-derivation, agreement is worthless: the hook can match the
+corpus exactly while both differ from the model. This is the failure the corpus
+file would introduce if `gauge-cross.sh` did not check it. -/
+theorem agreement_with_a_corpus_says_nothing_about_the_model :
+    ∃ hook corpus model : Nat,
+      hookMatchesCorpus hook corpus = true ∧ (hook == model) = false := by
+  exact ⟨1, 1, 2, by decide, by decide⟩
+
+/-- WITH it, the platform check transfers to the model: this is precisely what
+makes the split honest rather than a way to stop running the real check. -/
+theorem verified_corpus_transfers_to_the_model (hook corpus model : Nat)
+    (hcorpus : hookMatchesCorpus hook corpus = true)
+    (hmodel : corpusMatchesModel corpus model = true) : hook = model := by
+  simp only [hookMatchesCorpus, beq_iff_eq] at hcorpus
+  simp only [corpusMatchesModel, beq_iff_eq] at hmodel
+  exact hcorpus.trans hmodel
+
+/-- And the replacement step is real: unlike `alwaysSkips`, it reaches different
+outcomes for different worlds, so it can fail as well as pass. -/
+def corpusStep (hook : Nat) : Outcome :=
+  if hookMatchesCorpus hook 49 then Outcome.pass else Outcome.fail
+
+theorem the_corpus_step_is_evidence : distinguishes corpusStep := by
+  exact ⟨49, 50, by decide⟩
+
 end RotObserve

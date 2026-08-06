@@ -293,6 +293,32 @@ run_mut M17 \
   'def controlHolds (sel : Nat → Bool) (required : List Nat) : Bool := required.any sel' \
   'control_detects_the_drop, control_holds_when_nothing_is_dropped'
 
+# --- §8, the step that could only skip --------------------------------------
+
+# M18 -- the always-skipping step given a reachable outcome. If that were the
+# real shape there would be nothing to prove, so the theorem must die.
+run_mut M18 \
+  'def alwaysSkips (_world : Nat) : Outcome := Outcome.skip' \
+  'def alwaysSkips (world : Nat) : Outcome := if world == 0 then Outcome.pass else Outcome.skip' \
+  'a_step_that_only_skips_is_not_evidence'
+
+# M19 -- the corpus re-derivation neutered to `true`. This is THE mutation that
+# matters: it is exactly what happens if gauge-cross.sh stops checking the
+# corpus against Lean, and the theorem that says the platform check transfers to
+# the model must stop holding.
+run_mut M19 \
+  'def corpusMatchesModel (corpus model : Nat) : Bool := corpus == model' \
+  'def corpusMatchesModel (_corpus _model : Nat) : Bool := true' \
+  'verified_corpus_transfers_to_the_model'
+
+# M20 -- the replacement step made unable to fail, i.e. the exact defect it was
+# written to remove. A step that always passes is the same kind of decoration as
+# one that always skips.
+run_mut M20 \
+  '  if hookMatchesCorpus hook 49 then Outcome.pass else Outcome.fail' \
+  '  Outcome.pass' \
+  'the_corpus_step_is_evidence'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's

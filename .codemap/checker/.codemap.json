@@ -326,18 +326,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "44807147d261",
-      "indexed_at": "2026-08-05T22:42:16.631757+00:00",
+      "hash": "eec467b79222",
+      "indexed_at": "2026-08-06T18:15:16.946288+00:00",
       "language": "shell",
-      "lines": 356,
-      "mtime_ns": 1785968547619318600,
-      "size": 17233,
+      "lines": 357,
+      "mtime_ns": 1786039389087260600,
+      "size": 17291,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            149,
-            164
+            150,
+            165
           ],
           "name": "fires",
           "type": "function"
@@ -373,19 +373,38 @@
       ]
     },
     "gauge-cross.sh": {
-      "hash": "57c61ab340a8",
-      "indexed_at": "2026-08-05T13:16:35.031537+00:00",
+      "hash": "8ee832dfb24b",
+      "indexed_at": "2026-08-06T18:15:16.947041+00:00",
       "language": "shell",
-      "lines": 184,
-      "mtime_ns": 1785903877385674300,
-      "size": 8309,
+      "lines": 201,
+      "mtime_ns": 1786037922190409800,
+      "size": 9410,
       "symbols": [
         {
           "lines": [
-            106,
-            109
+            116,
+            119
           ],
           "name": "shell_gauge",
+          "type": "function"
+        }
+      ]
+    },
+    "gauge-hook-corpus.sh": {
+      "hash": "9c6e32fe7ca4",
+      "indexed_at": "2026-08-06T18:15:17.270214+00:00",
+      "language": "shell",
+      "lines": 126,
+      "mtime_ns": 1786037862905486800,
+      "size": 5881,
+      "symbols": [
+        {
+          "docstring": "The hook arm. `sh`, not bash, because that is how the router is invoked.",
+          "lines": [
+            59,
+            62
+          ],
+          "name": "hook_gauge",
           "type": "function"
         }
       ]
@@ -1254,6 +1273,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-06T16:07:03.748408+00:00",
+  "generated_at": "2026-08-06T18:15:17.403027+00:00",
   "version": "1.0"
 }
