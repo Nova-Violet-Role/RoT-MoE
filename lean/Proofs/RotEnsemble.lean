@@ -56,6 +56,35 @@ comments; the router's own scalars had never been pinned at all.
 -/
 import Proofs.RotGauge
 
+-- MATHLIB STYLE LINTER, DISABLED WITH A REASON AND A NEGATIVE CONTROL.
+--
+-- `mathlibStandardSet` forbids `#`-commands because Mathlib is a LIBRARY: a
+-- `#guard` there re-runs at import time for every downstream user. This file is
+-- a SPECIFICATION, and its `#guard`s are the instrument binding the spec to the
+-- shell's measured readings.
+--
+-- They cannot become `example ... := by decide`, which is this repository's
+-- preferred fix -- `Proofs/RotDorks.lean:35-41` records exactly that conversion,
+-- made so a proof term would survive for `leanchecker`. It is unavailable here
+-- because the readings are `Float`, and Float is opaque to the kernel. Measured:
+--
+--   example : routerReading 0 == 0.47142 := by decide
+--   error: Tactic `decide` failed for proposition
+--     (routerReading 0 == 0.47142) = true
+--   because its `Decidable` instance
+--     instDecidableEqBool (routerReading 0 == 0.47142) true
+--   did not reduce to `isTrue` or `isFalse`.
+--
+-- So `#guard`, evaluated by the interpreter, is the ONLY instrument that can
+-- check these values at all. Disabling the linter removes a STYLE complaint and
+-- not a check: a `#guard` that stops holding is still a build ERROR. Verified by
+-- negative control with this option in force -- flipping one expected digit
+-- (0.47142 -> 0.47143) fails the build with
+--   error: Proofs/RotEnsemble.lean:118:0: Expression
+--     routerReading 0 == 0.47143
+--   did not evaluate to `true`
+set_option linter.hashCommand false
+
 namespace RotMoE.Ensemble
 
 open RotMoE
@@ -124,9 +153,15 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 def bump (L : ι → Lens) (j : ι) (l : Lens) : ι → Lens :=
   fun i => if i = j then l else L i
 
+-- `omit [Fintype ι]`: replacing ONE weight needs decidable equality and nothing
+-- else. The section variable was being dragged in automatically, and the linter
+-- was right to say so -- a theorem that assumes finiteness it never uses is
+-- weaker than the one actually proved. It holds for an infinite index type too.
+omit [Fintype ι] in
 theorem bump_at (L : ι → Lens) (j : ι) (l : Lens) : bump L j l j = l := by
   simp [bump]
 
+omit [Fintype ι] in
 theorem bump_ne (L : ι → Lens) {j i : ι} (l : Lens) (h : i ≠ j) :
     bump L j l i = L i := by
   simp [bump, h]
@@ -233,8 +268,12 @@ substitutes — the two are the same number by arithmetic, not by accident.
 Stated as a theorem so the next reader is not left to rediscover it, and stated
 over an arbitrary positive breadth rather than the single value that happened to
 be mutated. -/
+-- `[Fintype ι]` was an OVER-ASSUMPTION and is gone: `allQuiet` is
+-- `fun _ => false` for any type at all (`Proofs/RotGauge.lean:203`), so nothing
+-- here needs the index set to be finite. The linter caught a hypothesis the
+-- proof never used, which makes the theorem strictly stronger than it was.
 theorem quiet_entropy_is_zero_at_any_breadth
-    {ι : Type*} [Fintype ι] (b : ℕ) (i : ι) :
+    {ι : Type*} (b : ℕ) (i : ι) :
     entropyAt (allQuiet ι) b i = 0 := by
   simp [entropyAt, actR, allQuiet]
 
@@ -300,21 +339,21 @@ structure Signals where
 deriving DecidableEq, Repr
 
 /-- Activity of each lens, transcribed from `rot-lean-inject.ps1:425-433`. -/
-def actNova      (s : Signals) : Bool := s.openAlarms
-def actViolet    (s : Signals) : Bool := s.resumeeUtc
+def actNova (s : Signals) : Bool := s.openAlarms
+def actViolet (s : Signals) : Bool := s.resumeeUtc
 def actAntiVenom (s : Signals) : Bool := s.proofUtc
-def actVenom     (s : Signals) : Bool := s.head
-def actCarnage   (s : Signals) : Bool := s.bigBreadth
-def actChroma    (s : Signals) : Bool := s.dirty
-def actSoleil    (s : Signals) : Bool := s.srcUtc || s.workUtc
-def actEidolon   (s : Signals) : Bool := s.toolUtc
-def actClaude    (s : Signals) : Bool := s.srcUtc || s.proofUtc || s.workUtc
+def actVenom (s : Signals) : Bool := s.head
+def actCarnage (s : Signals) : Bool := s.bigBreadth
+def actChroma (s : Signals) : Bool := s.dirty
+def actSoleil (s : Signals) : Bool := s.srcUtc || s.workUtc
+def actEidolon (s : Signals) : Bool := s.toolUtc
+def actClaude (s : Signals) : Bool := s.srcUtc || s.proofUtc || s.workUtc
 
 /-- **THE NINTH LENS IS A FUNCTION OF TWO OTHERS.** Not "usually agrees with" --
 equal, for every possible signal state. -/
 theorem claude_is_antivenom_or_soleil (s : Signals) :
     actClaude s = (actAntiVenom s || actSoleil s) := by
-  cases s; simp [actClaude, actAntiVenom, actSoleil, Bool.or_assoc, Bool.or_comm,
+  cases s; simp [actClaude, actAntiVenom, actSoleil, Bool.or_comm,
     Bool.or_left_comm]
 
 /-- Consequence 1: a turn where either of those two fired can never read as
@@ -324,16 +363,52 @@ theorem claude_cannot_be_quiet_alone (s : Signals)
   rw [claude_is_antivenom_or_soleil]
   rcases h with h | h <;> simp [h]
 
-/-- Consequence 2, stated as the thing a reader should check: the nine
-activities are NOT independent, so the vector is determined by eight bits. Any
-claim that the ensemble carries nine independent measurements is false. -/
-theorem activity_vector_determined_by_eight (s t : Signals)
-    (h1 : actNova s = actNova t) (h2 : actViolet s = actViolet t)
-    (h3 : actAntiVenom s = actAntiVenom t) (h4 : actVenom s = actVenom t)
-    (h5 : actCarnage s = actCarnage t) (h6 : actChroma s = actChroma t)
-    (h7 : actSoleil s = actSoleil t) (h8 : actEidolon s = actEidolon t) :
+/-- **Consequence 2, and the eight-hypothesis version was UNDERSTATED.**
+
+Claude's activity is not merely *implied by the other eight* — it is fixed by
+**two** of them. `mathlibStandardSet` flagged six binders as never referenced,
+which is exactly the signature of a theorem assuming more than its proof needs,
+and the honest response is to state the strong version rather than to rename the
+binders and move on.
+
+Agreeing on AntiVenom and Soleil is already enough; Nova, Violet, Venom,
+Carnage, Chroma and Eidolon may differ freely. -/
+theorem activity_vector_determined_by_two (s t : Signals)
+    (hAV : actAntiVenom s = actAntiVenom t) (hSol : actSoleil s = actSoleil t) :
     actClaude s = actClaude t := by
-  rw [claude_is_antivenom_or_soleil, claude_is_antivenom_or_soleil, h3, h7]
+  rw [claude_is_antivenom_or_soleil, claude_is_antivenom_or_soleil, hAV, hSol]
+
+/-- The original eight-hypothesis reading, kept because it is what a reader
+looking for "the vector is determined by eight bits" will search for — but now
+DERIVED from the two-hypothesis version, so the file cannot drift back into
+presenting the weaker statement as the strongest known.
+
+The six unused binders are named `_` to say plainly that they are not used:
+the theorem is true without them. -/
+theorem activity_vector_determined_by_eight (s t : Signals)
+    (_h1 : actNova s = actNova t) (_h2 : actViolet s = actViolet t)
+    (h3 : actAntiVenom s = actAntiVenom t) (_h4 : actVenom s = actVenom t)
+    (_h5 : actCarnage s = actCarnage t) (_h6 : actChroma s = actChroma t)
+    (h7 : actSoleil s = actSoleil t) (_h8 : actEidolon s = actEidolon t) :
+    actClaude s = actClaude t :=
+  activity_vector_determined_by_two s t h3 h7
+
+/-- **The gap is real, not a technicality.** Two signal states can disagree on
+all six of the unused lenses and still be forced to agree on Claude. If the
+eight-hypothesis form were the strongest truth, no such pair could exist. -/
+theorem six_lenses_may_differ_and_claude_still_agrees :
+    ∃ s t : Signals,
+      actNova s ≠ actNova t ∧ actViolet s ≠ actViolet t ∧
+      actVenom s ≠ actVenom t ∧ actCarnage s ≠ actCarnage t ∧
+      actChroma s ≠ actChroma t ∧ actEidolon s ≠ actEidolon t ∧
+      actAntiVenom s = actAntiVenom t ∧ actSoleil s = actSoleil t ∧
+      actClaude s = actClaude t := by
+  -- fields: openAlarms resumeeUtc proofUtc head bigBreadth dirty srcUtc workUtc toolUtc
+  -- The six free lenses are flipped; proofUtc, srcUtc and workUtc are held, which
+  -- pins AntiVenom, Soleil and therefore Claude.
+  refine ⟨⟨true,  true,  false, true,  true,  true,  false, false, true⟩,
+          ⟨false, false, false, false, false, false, false, false, false⟩,
+          ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> decide
 
 /-! Consequence 3, executable: of the 512 vectors the gauge would accept, exactly
 256 are reachable. The count is computed, not asserted. -/
@@ -380,7 +455,7 @@ is, it is not the hybrid the specification defines. -/
 
 /-- The spec's fusion arithmetic, quoted, not re-derived. -/
 def lamHybrid (l₁ l₂ : Float) : Float := (l₁ + l₂) / 2.0 + 0.2
-def muHybrid  (m₁ m₂ : Float) : Float := max m₁ m₂
+def muHybrid (m₁ m₂ : Float) : Float := max m₁ m₂
 
 /-! AntiVenom x Soleil under the spec own rule. -/
 
@@ -541,7 +616,7 @@ Real-valued so these are facts about the operator, not about IEEE doubles. -/
 
 /-- The fusion rules over `ℝ`. -/
 noncomputable def lamFuse (l₁ l₂ : ℝ) : ℝ := (l₁ + l₂) / 2 + 1/5
-noncomputable def muFuse  (m₁ m₂ : ℝ) : ℝ := max m₁ m₂
+noncomputable def muFuse (m₁ m₂ : ℝ) : ℝ := max m₁ m₂
 
 /-- **μ HAS AN EIGENFORM.** Fusing a lens's μ with itself returns it unchanged:
 `μ` is idempotent under Symbiogenesis, so it is a fixed point of the recursion. -/
@@ -718,7 +793,7 @@ theorem own_signal_differs_from_current :
 -- no tool ran). Current fires, the gated form does NOT, the own signal is free.
 #guard actClaude      ⟨false, false, true, false, false, false, false, false, false⟩ = true
 #guard actClaudeGated ⟨false, false, true, false, false, false, false, false, false⟩ = false
-#guard actClaudeOwn   ⟨⟨false, false, true, false, false, false, false, false, false⟩, false⟩ = false
+#guard actClaudeOwn ⟨⟨false, false, true, false, false, false, false, false, false⟩, false⟩ = false
 -- And on a turn where a tool DID run, the gate opens.
 #guard actClaudeGated ⟨false, false, true, false, false, false, false, false, true⟩ = true
 

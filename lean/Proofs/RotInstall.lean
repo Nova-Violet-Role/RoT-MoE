@@ -364,7 +364,7 @@ theorem disarmPlan_leaves_what_it_was_not_told (p q : List Binding)
   refine ⟨hin, ?_⟩
   -- The guard is `!(q.any …)`, so the goal is that no binding of `q` names `c`.
   -- `hq` says exactly that; `simp` discharges the Bool/Prop bridge.
-  simp only [Bool.not_eq_true', List.any_eq_false, beq_eq_false_iff_ne]
+  simp only [Bool.not_eq_true', List.any_eq_false]
   intro b hbq
   simpa using hq b hbq
 
@@ -425,29 +425,41 @@ def shippedPlan : List Binding := [routerBinding, remindBinding]
 /-- The plan as it stood before the fix — the router alone. -/
 def routerOnlyPlan : List Binding := [routerBinding]
 
+-- These were nine `#guard`s. They are now kernel-checked `example`s: the SAME
+-- computation, but each leaves a proof term behind for `leanchecker` to
+-- re-verify, and the mathlib style linter stops objecting to `#`-commands.
+-- This is the conversion `Proofs/RotDorks.lean:35-41` made for the same reason.
+-- It is available here and NOT in `Proofs/RotEnsemble.lean` for one concrete
+-- reason: these values are `List`/`Nat`/`String`, which the kernel reduces,
+-- whereas the router readings are `Float`, which it cannot.
+
 -- Five bindings across three events, matching `hooks/hooks.json`.
-#guard ((armPlan shippedPlan emptySettings).hookEvents "UserPromptSubmit").length == 2
-#guard ((armPlan shippedPlan emptySettings).hookEvents "PreToolUse").length == 2
-#guard ((armPlan shippedPlan emptySettings).hookEvents "PostToolUse").length == 1
+example : ((armPlan shippedPlan emptySettings).hookEvents "UserPromptSubmit").length == 2 := by
+  decide
+example : ((armPlan shippedPlan emptySettings).hookEvents "PreToolUse").length == 2 := by
+  decide
+example : ((armPlan shippedPlan emptySettings).hookEvents "PostToolUse").length == 1 := by
+  decide
 
 -- THE DEFECT, reproduced: the old plan reaches two events and leaves the third
 -- empty. This is the parity gap the plugin never had.
-#guard ((armPlan routerOnlyPlan emptySettings).hookEvents "PostToolUse").length == 0
+example : ((armPlan routerOnlyPlan emptySettings).hookEvents "PostToolUse").length == 0 := by
+  decide
 
 -- THE UNINSTALL DEFECT, reproduced: uninstalling with the old plan leaves the
 -- reminder behind on the events it did reach.
-#guard ((disarmPlan routerOnlyPlan (armPlan shippedPlan emptySettings)).hookEvents
-          "PostToolUse") == ["prover-remind"]
-#guard ((disarmPlan routerOnlyPlan (armPlan shippedPlan emptySettings)).hookEvents
-          "UserPromptSubmit") == ["prover-remind"]
+example : ((disarmPlan routerOnlyPlan (armPlan shippedPlan emptySettings)).hookEvents
+             "PostToolUse") == ["prover-remind"] := by decide
+example : ((disarmPlan routerOnlyPlan (armPlan shippedPlan emptySettings)).hookEvents
+             "UserPromptSubmit") == ["prover-remind"] := by decide
 
 -- AND THE FIX: the full plan leaves nothing, on every event it ever touched.
-#guard ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
-          "UserPromptSubmit") == []
-#guard ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
-          "PreToolUse") == []
-#guard ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
-          "PostToolUse") == []
+example : ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
+             "UserPromptSubmit") == [] := by decide
+example : ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
+             "PreToolUse") == [] := by decide
+example : ((disarmPlan shippedPlan (armPlan shippedPlan emptySettings)).hookEvents
+             "PostToolUse") == [] := by decide
 
 /-- **Every event the plugin declares is reached by the shipped plan.**
 
