@@ -637,6 +637,110 @@ def run31035932155_repaired : Run :=
 -- One skip is enough. Not a majority, not a threshold -- one.
 #guard !runIsHonest (⟨"anything", .skipped⟩ :: run31035932155_repaired)
 
+/-! ### A `paths:` filter does not restrain a TAG push — and the run it wastes
+    can conclude `cancelled`
+
+MEASURED 2026-08-06, while publishing `v0.8.0 / v0.8.1 / v0.8.2`.
+
+`.github/workflows/tag-manager.yml` declared
+
+    push:
+      paths: [".github/tags.txt"]
+
+with no `branches:`. Pushing three tags in one command fired **three** runs of
+that workflow, on commit `4a783a9`, which does not touch `.github/tags.txt` at
+all (`git show --stat --name-only 4a783a9 | grep -c tags.txt` → **0**). A path
+filter cannot be evaluated for a tag ref, so it restrains nothing; only
+`branches:` excludes tags.
+
+The wasted runs were not the damage. The workflow holds a **single** concurrency
+group with `cancel-in-progress: false`, and GitHub keeps at most ONE pending run
+per group: the first ran, the second pended, and the third's arrival
+**cancelled the second**. Tag `v0.8.1` therefore carried a run concluding
+`cancelled` with **zero jobs dispatched** — and `cancelled` is exactly what
+`runConcludedHonestly` refuses. `v0.7.0` had the same scar, which is how a
+structural defect passed for bad luck twice. -/
+
+/-- A git ref, to the only depth that matters here. -/
+inductive Ref where
+  | branch (name : String)
+  | tag (name : String)
+  deriving DecidableEq, Repr
+
+/-- A `push:` trigger as the workflow file declares it. `branches = []` means the
+key is **absent**, which is the defect: absent is not "match nothing", it is
+"match everything, including tags". -/
+structure PushTrigger where
+  branches : List String
+  paths : List String
+  deriving DecidableEq, Repr
+
+/-- **Does this push trigger fire on this ref?**
+
+The asymmetry is the whole point and it is not intuitive: `paths` is consulted
+only for a branch. For a tag there is no base to diff against, so the filter is
+skipped and the trigger fires -- unless `branches` is present, which excludes
+tag refs outright. -/
+def triggerFires (t : PushTrigger) (r : Ref) : Bool :=
+  match r with
+  | Ref.branch n => t.branches.isEmpty || t.branches.contains n
+  | Ref.tag _    => t.branches.isEmpty
+
+/-- **THE DEFECT, stated generally.** A trigger with no `branches:` fires on
+EVERY tag, whatever its `paths:` list says — so no path filter can save it. -/
+theorem paths_do_not_restrain_a_tag (paths : List String) (tagName : String) :
+    triggerFires ⟨[], paths⟩ (Ref.tag tagName) = true := by
+  simp [triggerFires]
+
+/-- **THE FIX, stated generally.** Any non-empty `branches:` excludes every tag,
+for every path list and every tag name. -/
+theorem branches_exclude_every_tag
+    (b : String) (bs paths : List String) (tagName : String) :
+    triggerFires ⟨b :: bs, paths⟩ (Ref.tag tagName) = false := by
+  simp [triggerFires]
+
+/-- **The fix does not break the intended trigger.** `main` still fires. A repair
+that silenced the tag runs by also silencing the branch runs would be a
+regression dressed as a fix. -/
+theorem the_fix_keeps_main (paths : List String) :
+    triggerFires ⟨["main"], paths⟩ (Ref.branch "main") = true := by
+  simp [triggerFires]
+
+/-- The run-level rule, mirroring `checker/ci-honesty.sh:186-190` exactly: only
+the literal string `success` is green. `cancelled`, `neutral`, `skipped` and
+`timed_out` are all refused, and so is anything new GitHub invents — the
+definition is a whitelist of one, not a blacklist that a future conclusion could
+slip past. -/
+def runConcludedHonestly (conclusion : String) : Bool := conclusion == "success"
+
+/-- **A cancelled run is not a pass**, and it must be said separately because a
+`cancelled` conclusion has ZERO failing steps — every step-level rule is
+vacuously satisfied by a run that never dispatched a job. -/
+theorem cancelled_is_not_honest : runConcludedHonestly "cancelled" = false := by
+  decide
+
+/-- The whitelist is genuinely a whitelist: **no** conclusion other than
+`success` passes, including ones that do not exist yet. Quantified over the
+string rather than enumerated, so a new GitHub conclusion cannot slip through a
+gap in a list of cases. -/
+theorem only_success_is_honest (c : String) :
+    runConcludedHonestly c = true → c = "success" := by
+  intro h
+  simpa [runConcludedHonestly] using h
+
+/-- **Zero steps is not evidence.** The measured run had `total_count: 0`, so
+`r.all stepIsAcceptable` is `true` on the empty list. This is exactly why
+`ci-honesty.sh` checks the run conclusion SEPARATELY from the steps, and the
+theorem records that an all-green step list proves nothing on its own. -/
+theorem empty_run_is_vacuously_step_clean :
+    runIsHonest ([] : List Step) = true := by
+  decide
+
+-- The three tag pushes of 2026-08-06, as the file was and as it now is.
+#guard  triggerFires ⟨[], [".github/tags.txt"]⟩ (Ref.tag "v0.8.1")      -- fired
+#guard !triggerFires ⟨["main"], [".github/tags.txt"]⟩ (Ref.tag "v0.8.1") -- cannot
+#guard  triggerFires ⟨["main"], [".github/tags.txt"]⟩ (Ref.branch "main")
+
 /-! ### A dispatch that selects NO branch is a skip wearing a different hat
 
 MEASURED 2026-08-06, on the very step written to abolish skips.

@@ -231,6 +231,42 @@ run_mut M10 \
   '  | Option.some _ => true' \
   'selected_without_artifact_asserts_nothing, guard_is_exactly_assertion'
 
+# --- M11 / M12 / M13: the tag-trigger law (measured defect, 2026-08-06) -------
+#
+# NOTE ON SHAPE, learned by getting it wrong here first. The post-check above
+# requires the needle to be ABSENT after the edit. A replacement that merely
+# EXTENDS the needle (`X` -> `X || Y`) still contains it, so all three of these
+# were DISCARDED on their first run with `needle=1 repl=1`. That is the harness
+# being right: an edit whose before-text is still present is not a clean
+# mutation. Each replacement below is disjoint from its needle.
+
+# M11 destroys the asymmetry that IS the defect -- a tag no longer fires when
+# `branches` is absent. Under that (wrong, intuitive) model a `paths`-only
+# trigger would not run on a tag, which is exactly what the three tag pushes of
+# 2026-08-06 disproved.
+run_mut M11 \
+  '  | Ref.tag _    => t.branches.isEmpty' \
+  '  | Ref.tag _    => t.branches.contains "v0.8.1"' \
+  'paths_do_not_restrain_a_tag, branches_exclude_every_tag'
+
+# M13 breaks the FIX rather than the defect: the branch arm stops firing at all.
+# If no theorem dies, then nothing is checking that the repair kept `main`
+# working -- a fix that silences the tag runs by silencing everything.
+run_mut M13 \
+  '  | Ref.branch n => t.branches.isEmpty || t.branches.contains n' \
+  '  | Ref.branch n => false' \
+  'the_fix_keeps_main'
+
+# M12 widens the run-conclusion whitelist so that the conclusion measured on tag
+# v0.8.1 would pass. This is the mutation that matters most: it is the exact
+# shape of the "repair" someone reaches for when a cancelled run blocks a
+# release. `only_success_is_honest` exists to make that impossible to land
+# quietly, and this mutant is what proves it does.
+run_mut M12 \
+  'def runConcludedHonestly (conclusion : String) : Bool := conclusion == "success"' \
+  'def runConcludedHonestly (conclusion : String) : Bool := conclusion != "failure"' \
+  'cancelled_is_not_honest, only_success_is_honest'
+
 echo
 # --- RESTORE THE BASELINE ---------------------------------------------------
 # The EXIT trap restores the SOURCE, but the last mutant deleted the .olean and

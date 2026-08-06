@@ -1123,12 +1123,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "ef1ba6f8b424",
-      "indexed_at": "2026-08-05T23:26:58.983563+00:00",
+      "hash": "4b820621be12",
+      "indexed_at": "2026-08-06T02:52:53.084690+00:00",
       "language": "shell",
-      "lines": 1106,
-      "mtime_ns": 1785971447620239900,
-      "size": 56540,
+      "lines": 1187,
+      "mtime_ns": 1785984207655061500,
+      "size": 60652,
       "symbols": [
         {
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
@@ -1224,10 +1224,27 @@
           ],
           "name": "_reads_packager_text",
           "type": "function"
+        },
+        {
+          "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
+          "lines": [
+            1133,
+            1135
+          ],
+          "name": "_r23_onblock",
+          "type": "function"
+        },
+        {
+          "lines": [
+            1136,
+            1138
+          ],
+          "name": "_r23_count",
+          "type": "function"
         }
       ]
     }
   },
-  "generated_at": "2026-08-06T01:29:15.554691+00:00",
+  "generated_at": "2026-08-06T02:52:53.092525+00:00",
   "version": "1.0"
 }
