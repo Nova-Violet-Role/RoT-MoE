@@ -100,6 +100,122 @@ Counts move to **504 theorems / 22 modules / 19 suites / 226 mutants**.
 
 ---
 
+## A SIGKILL left a mutated router on disk, one `git add -A` from being published
+
+Measured three times in one session on 2026-08-07. A commit whose gate run
+exceeded a wall-clock ceiling had its **entire process tree SIGKILLed**. The
+mutation checker's `trap ... EXIT INT TERM` is correct and did not help:
+**SIGKILL cannot be trapped**. What was left on disk:
+
+```
+hooks/rot-router.sh          MUTATED -- STEMS_STEALTH missing 'token compress'
+hooks/rot-router.sh.mutbak   the only surviving copy of the original
+```
+
+A live mutant in a **shipped** hook. `git add -A` at that moment would have
+published a router that no longer routes STEALTH on `token` or `compress`, with
+a commit message describing a fix.
+
+### Recovery cannot depend on a signal handler
+
+| where | what changed |
+|---|---|
+| `checker/mutate-checker.sh` | recovers **at start-up**: a `.mutbak` present before this run made one means the last run died, so the backup is the truth — restore it, say so loudly, continue |
+| `checker/repo-complete.sh` | **refuses any commit** while a `.mutbak` exists, and prints the restore command |
+| `lean/mutate/mutate_rotobserve.sh` | `MUT_ONLY="M45 M46"` runs a chunk; a filtered run prints **PARTIAL** and exits 3, never 0 |
+
+The restore instruction is deliberate and it is the opposite of a cleanup:
+**never delete a stray `.mutbak`.** The backup *is* the original. Deleting it
+promotes the mutant to the real file — the one irreversible move available here.
+
+The chunking exists because the suite reached 48 mutants and each rebuilds the
+module, so a full pass outgrew the ceiling that caused the kill in the first
+place. A chunk that could pass for a suite would be far worse than the timeout,
+hence exit 3 and a banner naming how many mutants were **never applied**.
+
+### `RotObserve` §16 — nine theorems on interrupted mutation
+
+| theorem | what it settles |
+|---|---|
+| `recoverable_before_backup` / `recoverable_after_backup` | interruption before or between the two steps is harmless |
+| `backup_then_mutate_is_recoverable` | **backup first** and every interruption point is survivable |
+| `mutate_then_backup_can_lose_the_original` | the other order loses it outright — the order is not a style choice |
+| `restore_recovers` | restoring returns exactly the original |
+| `restore_idem` | recovering twice is safe, so start-up recovery may run on an already-repaired tree |
+| `restore_clears_the_backup` | a repaired tree cannot be mistaken for an interrupted one |
+| `dropping_the_backup_loses_the_original` | deleting a stray backup destroys the last copy |
+| `save_mutate_restore_round_trips` | the whole cycle returns the tree exactly as it was |
+
+`#eval` on the measured bytes: `{live := 22614}` → mutate → `{live := 22620,
+backup := some 22614}` → restore → `{live := 22614, backup := none}`; and
+`dropBackup` on that middle state leaves `{live := 22620, backup := none}` —
+the original gone. Mutants **M45–M48**, all killed, after M48 was first reported
+**DISCARDED** by the harness's own did-it-apply check for inserting two
+definitions instead of one.
+
+Counts: **539 theorems / 22 modules / 19 suites / 246 mutants**.
+
+---
+
+## `hook 0.09 != corpus 0.09` — the gate was right and its message was useless
+
+CI run 31148233876, `checkers (windows-latest)`, step "gauge hook corpus": six
+rows failed, every one of them reporting two values that **render identically**.
+Ubuntu and macOS passed the same commit.
+
+The runner checks out with `core.autocrlf=true`. There was no `.gitattributes`,
+so `checker/gauge-corpus.tsv` arrived with CRLF, the last tab-separated field
+became `0.09\r`, and the comparison against the hook's `0.09` correctly failed.
+A carriage return has no glyph, so the diagnostic printed the difference away.
+
+**The gate was not wrong. The instrument could see a difference it could not
+show** — and that cost an hour that the bytes would have given away instantly.
+
+### Three layers, because one is not enough
+
+| layer | what it does |
+|---|---|
+| `.gitattributes` (new) | `* text=auto eol=lf` — the working tree is LF on every platform, so a checker reads the bytes that were committed |
+| `checker/gauge-hook-corpus.sh` | strips CR from **every** field, not just the last, and escapes CR/TAB in failure messages so two different values can never print alike |
+| `checker/portability.sh` phase 7 | refuses any file carrying CRLF **in the index**, with a control that plants one, plus an assertion that `.gitattributes` still pins `eol=lf` |
+
+`git add --renormalize .` fixed **16 files that were already committed with
+CRLF** — 13 `.codemap` JSONs, both EUPL licence texts, and
+`checker/corpus-remind.txt`. No attribute can repair those; the bytes are in the
+index and every clone gets them.
+
+Phase 7 distinguishes two cases on purpose. CRLF **in the index** is a failure:
+it reaches every clone and no setting undoes it. CRLF **in the working tree over
+an LF index** is only a NOTE, because git normalises it on `add` and nothing
+wrong can reach the index — failing there would turn a legitimate local
+generator into a red build and invite deleting the check, which is how real
+coverage gets destroyed.
+
+### `RotObserve` §15 — six theorems on the two halves of the repair
+
+| theorem | what it settles |
+|---|---|
+| `shown_can_hide_a_real_difference` | a terminal CAN render two different fields identically — the defect, as a property |
+| `stripCell_ignores_trailing_cr` | normalisation recovers the comparison, for every field |
+| `stripCell_ignores_cr_anywhere` | CR mid-record too — why the checker strips every field, not the last |
+| `stripCell_faithful` | **normalisation never invents agreement**: CR-free fields that normalise equal WERE equal |
+| `stripCell_idem` | stripping twice is stripping once, so defensive normalisation cannot change a verdict |
+| `escape_injective` | different fields print differently — the property the repaired message needed |
+
+`stripCell_faithful` is the one that matters. Stripping bytes before a
+comparison is one careless step from disarming the gate, and that theorem is
+what says the repair is not a weakening.
+
+Build exit 0 with **zero warnings in both trees** — the `simp` sets are squeezed
+from `simp?` because mathlib's flexible-simp linter rightly refuses a proof that
+rests on whatever `simp` does next release. `leanchecker` exit 0. `#eval`
+reproduces the CI defect: `shown` equal while the fields differ, `stripCell`
+equal, `escape` different. Mutants **M41–M44**, all killed.
+
+Counts: **530 theorems / 22 modules / 19 suites / 242 mutants**.
+
+---
+
 ## The A/B ran: the pre-registered endpoints came back NULL, and cost fell 31.6%
 
 **80 paired turns with the plugin armed against 80 with it disabled**, same 80

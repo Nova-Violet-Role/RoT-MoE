@@ -1071,4 +1071,314 @@ example : improved (fun a => if a.mechanism then 101 else 148) := by
   unfold improved treated control
   decide
 
+/-! ## §15 — a mismatch that renders identically
+
+Measured 2026-08-07, CI run 31148233876, `checkers (windows-latest)`, step
+"gauge hook corpus". Six rows failed like this:
+
+```
+FAIL  row 1: hook 0.09 != corpus 0.09
+```
+
+The gate was **right**. GitHub's Windows runner checks out with
+`core.autocrlf=true`, so every corpus line arrived with a trailing CR, the last
+tab-separated field was `0.09\r`, and it genuinely differed from the hook's
+`0.09`. Ubuntu and macOS passed the same commit.
+
+What the gate could not do was **show** the difference. A terminal renders CR as
+no glyph at all, so the failure message printed two identical-looking numbers
+and the diagnosis cost an hour that the bytes would have given away instantly.
+
+Two separate obligations fall out, and they pull in opposite directions:
+
+1. **Normalisation must recover the comparison** -- stripping CR has to make
+   `0.09\r` and `0.09` compare equal, or the checker stays broken.
+2. **Normalisation must not invent agreement** -- it must never merge two values
+   that really do differ, or the fix has disarmed the gate. That is the more
+   dangerous half, and it is why `stripCell_faithful` is here.
+
+And one about the message itself: a diagnostic that maps two different inputs to
+the same output cannot be trusted to report a difference, however loudly it
+fails. `escape_injective` is the property the repaired message needs. -/
+
+/-- One character of a corpus field, cut down to the alphabet the gauge corpus
+actually uses: digits, a decimal point, and the carriage return that broke it. -/
+inductive Cell where
+  /-- A decimal digit. -/
+  | digit : Fin 10 → Cell
+  /-- The decimal point. -/
+  | dot : Cell
+  /-- Carriage return: the byte with no glyph. -/
+  | cr : Cell
+  deriving DecidableEq, Repr
+
+/-- A corpus field, as bytes. -/
+abbrev Field := List Cell
+
+/-- What a terminal SHOWS. CR produces no glyph, so it simply is not there. -/
+def shown (f : Field) : Field := f.filter (fun c => c != Cell.cr)
+
+/-- The checker's normalisation, which is the same operation -- deliberately
+named apart, because they are different claims about the same function: one is
+what the screen does to you, the other is what you do about it. -/
+def stripCell (f : Field) : Field := f.filter (fun c => c != Cell.cr)
+
+/-- A field with no carriage return in it. -/
+def crFree (f : Field) : Prop := ∀ c ∈ f, c ≠ Cell.cr
+
+instance (f : Field) : Decidable (crFree f) := by
+  unfold crFree; infer_instance
+
+/-- **The screen can hide a real difference.** Two fields that are not equal can
+render identically -- which is exactly what `0.09 != 0.09` was. -/
+theorem shown_can_hide_a_real_difference :
+    ∃ a b : Field, a ≠ b ∧ shown a = shown b := by
+  refine ⟨[Cell.dot], [Cell.dot, Cell.cr], ?_, ?_⟩ <;> decide
+
+/-- **Normalisation recovers the comparison.** A trailing CR makes no difference
+once it is stripped -- the first obligation, for every field. -/
+theorem stripCell_ignores_trailing_cr (f : Field) :
+    stripCell (f ++ [Cell.cr]) = stripCell f := by
+  simp [stripCell, List.filter_append]
+
+/-- More strongly: CR anywhere is irrelevant, not only at the end. The Windows
+checkout put one at the end of every line, but a mid-record CR must not corrupt
+an argument either -- which is why the checker strips every field, not the last. -/
+theorem stripCell_ignores_cr_anywhere (f g : Field) :
+    stripCell (f ++ Cell.cr :: g) = stripCell (f ++ g) := by
+  simp [stripCell, List.filter_append]
+
+/-- Stripping a field that has no CR changes nothing. -/
+theorem stripCell_id_of_crFree {f : Field} (h : crFree f) : stripCell f = f := by
+  unfold stripCell
+  apply List.filter_eq_self.mpr
+  intro c hc
+  simp [h c hc]
+
+/-- **Normalisation does not invent agreement.** If two CR-free fields normalise
+to the same thing, they WERE the same thing. This is the theorem that keeps the
+repair from being a disarmament: stripping CR cannot make a genuine mismatch
+pass. -/
+theorem stripCell_faithful {a b : Field} (ha : crFree a) (hb : crFree b)
+    (h : stripCell a = stripCell b) : a = b := by
+  rw [stripCell_id_of_crFree ha, stripCell_id_of_crFree hb] at h
+  exact h
+
+/-- Stripping is idempotent, so a doubly-normalised comparison is the same
+comparison -- a checker may strip defensively without changing its verdict. -/
+theorem stripCell_idem (f : Field) : stripCell (stripCell f) = stripCell f := by
+  simp [stripCell, List.filter_filter]
+
+/-- The output alphabet of a failure message: glyphs that are all visible. -/
+inductive Glyph where
+  /-- A digit, printed as itself. -/
+  | digit : Fin 10 → Glyph
+  /-- The decimal point. -/
+  | dot : Glyph
+  /-- A literal backslash, which starts an escape. -/
+  | backslash : Glyph
+  /-- The letter `r`, as in `\r`. -/
+  | rLetter : Glyph
+  deriving DecidableEq, Repr
+
+/-- How one byte is printed in a failure message. CR becomes the two visible
+glyphs `\r`; nothing else emits a backslash, which is what makes the code
+prefix-free and therefore readable back. -/
+def esc : Cell → List Glyph
+  | Cell.digit n => [Glyph.digit n]
+  | Cell.dot     => [Glyph.dot]
+  | Cell.cr      => [Glyph.backslash, Glyph.rLetter]
+
+/-- A whole field, escaped for display. -/
+def escape (f : Field) : List Glyph := f.flatMap esc
+
+/-- **The escaped message cannot hide a difference.** Different fields print
+differently -- so a failure message built this way can always be trusted to
+show what actually differed. This is the property `0.09 != 0.09` lacked. -/
+-- The `simp only` sets below are SQUEEZED, not hand-guessed: mathlib's
+-- flexible-simp linter refuses a bare `simp ... at hb ⊢` whose result a later
+-- `exact` depends on, and it is right to -- the proof would then rest on
+-- whatever simp happens to do next release. These lists came from `simp?`.
+theorem escape_injective : ∀ a b : Field, escape a = escape b → a = b := by
+  intro a
+  induction a with
+  | nil =>
+    intro b hb
+    cases b with
+    | nil => rfl
+    | cons y ys =>
+      cases y <;>
+        simp only [escape, List.flatMap_nil, List.flatMap_cons, esc,
+          List.cons_append, List.nil_append, List.nil_eq, reduceCtorEq] at hb
+  | cons x xs ih =>
+    intro b hb
+    cases b with
+    | nil =>
+      cases x <;>
+        simp only [escape, List.flatMap_cons, esc, List.cons_append,
+          List.nil_append, List.flatMap_nil, reduceCtorEq] at hb
+    | cons y ys =>
+      cases x <;> cases y <;>
+        simp only [escape, List.flatMap_cons, esc, List.cons_append,
+          List.nil_append, List.cons.injEq, Glyph.digit.injEq, Cell.digit.injEq,
+          reduceCtorEq, false_and] at hb ⊢ <;>
+        exact ⟨hb.1, ih ys (by simpa [escape] using hb.2)⟩
+
+/-- The measured pair, as the corpus and the runner actually had them:
+`0.09` against `0.09\r`. -/
+def field009 : Field :=
+  [Cell.digit 0, Cell.dot, Cell.digit 0, Cell.digit 9]
+
+/-- The same field as the Windows checkout delivered it. -/
+def field009cr : Field := field009 ++ [Cell.cr]
+
+/-- The two are genuinely different -- the gate was correct to fail. -/
+example : field009 ≠ field009cr := by decide
+
+/-- They render identically -- which is why the message was useless. -/
+example : shown field009 = shown field009cr := by decide
+
+/-- Normalised, they agree, so the repaired checker passes on this input. -/
+example : stripCell field009 = stripCell field009cr := by decide
+
+/-- Escaped, they differ, so the repaired MESSAGE would have named the byte. -/
+example : escape field009 ≠ escape field009cr := by decide
+
+/-- And the control that keeps `stripCell` honest: a real mismatch survives
+normalisation. `0.09` against `0.19` does not become equal just because the
+checker strips carriage returns. -/
+example :
+    stripCell field009 ≠
+      stripCell [Cell.digit 0, Cell.dot, Cell.digit 1, Cell.digit 9] := by decide
+
+/-! ## §16 — an interrupted mutation run, and why the backup comes first
+
+Measured 2026-08-07, three times in one session. A commit whose gate run exceeded
+a wall-clock ceiling had its entire process tree **SIGKILLed**. The mutation
+checker has a `trap ... EXIT INT TERM` that restores every file it touched, and
+that trap is correct — but SIGKILL cannot be trapped. What was left on disk:
+
+```
+hooks/rot-router.sh        MUTATED: STEMS_STEALTH missing 'token compress'
+hooks/rot-router.sh.mutbak the only surviving copy of the original
+```
+
+A live mutant in a **shipped** hook, one `git add -A` away from being published
+as the real router.
+
+Three facts fall out, and each is a property rather than an anecdote:
+
+* recovery must not depend on a signal handler, because one signal ignores them;
+* the backup must be written **before** the mutation, or an interruption in
+  between destroys the original;
+* a stray backup must be **restored, never deleted** — deleting it promotes the
+  mutant to the truth, and that is the one irreversible move available.
+
+`checker/mutate-checker.sh` now recovers at start-up and `checker/repo-complete.sh`
+refuses a commit while any `.mutbak` exists. -/
+
+/-- The contents of one file, abstractly. -/
+abbrev Blob := Nat
+
+/-- What is on disk: the working file, and the backup if one has been written. -/
+structure Disk where
+  /-- The file a build or a commit would read. -/
+  live : Blob
+  /-- The saved original, if any. -/
+  backup : Option Blob
+  deriving DecidableEq, Repr
+
+/-- Write the backup. -/
+def saveBackup (d : Disk) : Disk := { d with backup := some d.live }
+
+/-- Overwrite the live file with the mutant. -/
+def applyMutant (d : Disk) (m : Blob) : Disk := { d with live := m }
+
+/-- Put the original back and drop the backup. -/
+def restore (d : Disk) : Disk :=
+  match d.backup with
+  | some b => { live := b, backup := none }
+  | none   => d
+
+/-- The original is recoverable from this state: either the live file is already
+it, or the backup holds it. -/
+def recoverable (d : Disk) (orig : Blob) : Prop :=
+  d.live = orig ∨ d.backup = some orig
+
+/-- **Backup first, and every interruption point is survivable.** After
+`saveBackup` then `applyMutant`, the original is still recoverable — which is
+what let the tree be repaired after the SIGKILL. -/
+theorem backup_then_mutate_is_recoverable (d : Disk) (m : Blob) :
+    recoverable (applyMutant (saveBackup d) m) d.live := by
+  right; rfl
+
+/-- Recoverable before the backup is even written -- the live file is still the
+original, so an interruption there is harmless too. -/
+theorem recoverable_before_backup (d : Disk) : recoverable d d.live := by
+  left; rfl
+
+/-- Recoverable immediately after the backup, before any mutation. -/
+theorem recoverable_after_backup (d : Disk) : recoverable (saveBackup d) d.live := by
+  left; rfl
+
+/-- **Mutate first and an interruption loses the original.** With no prior
+backup, the state after a mutation does not contain the original anywhere --
+this is the order the checker must never use. -/
+theorem mutate_then_backup_can_lose_the_original :
+    ∃ (d : Disk) (m : Blob),
+      d.backup = none ∧ m ≠ d.live ∧ ¬ recoverable (applyMutant d m) d.live := by
+  refine ⟨{ live := 1, backup := none }, 2, rfl, by decide, ?_⟩
+  intro h
+  rcases h with h | h <;> simp [applyMutant] at h
+
+/-- Restoring from a backup returns exactly the original. -/
+theorem restore_recovers (d : Disk) (orig : Blob) (h : d.backup = some orig) :
+    (restore d).live = orig := by
+  simp [restore, h]
+
+/-- **Restore is idempotent**, so recovering twice is safe -- the start-up
+recovery may run on a tree a trap already repaired. -/
+theorem restore_idem (d : Disk) : restore (restore d) = restore d := by
+  cases h : d.backup <;> simp [restore, h]
+
+/-- Restoring leaves no backup behind, so the next run cannot mistake a repaired
+tree for an interrupted one. -/
+theorem restore_clears_the_backup (d : Disk) : (restore d).backup = none := by
+  cases h : d.backup <;> simp [restore, h]
+
+/-- Deleting the backup instead of restoring it. -/
+def dropBackup (d : Disk) : Disk := { d with backup := none }
+
+/-- **Deleting a stray backup makes the mutant permanent.** From a mutated state
+whose original lives only in the backup, dropping the backup destroys the last
+copy — the irreversible mistake, stated so no cleanup script can be written that
+way by accident. -/
+theorem dropping_the_backup_loses_the_original (d : Disk) (m : Blob)
+    (hne : m ≠ d.live) :
+    ¬ recoverable (dropBackup (applyMutant (saveBackup d) m)) d.live := by
+  intro h
+  rcases h with h | h
+  · exact hne h
+  · simp [dropBackup] at h
+
+/-- And the whole cycle, executed: save, mutate, restore returns the original
+and leaves nothing behind. -/
+theorem save_mutate_restore_round_trips (d : Disk) (m : Blob) :
+    restore (applyMutant (saveBackup d) m) = { live := d.live, backup := none } := by
+  simp [restore, applyMutant, saveBackup]
+
+/-- The measured case, as bytes: the router at 22614, the mutant at 22620. -/
+example :
+    restore (applyMutant (saveBackup { live := 22614, backup := none }) 22620)
+      = { live := 22614, backup := none } := by decide
+
+/-- And the failure that actually happened: interrupted after the mutation, the
+live file is the MUTANT -- but the original is still there to be recovered. -/
+example :
+    (applyMutant (saveBackup { live := 22614, backup := none }) 22620).live = 22620
+    ∧ recoverable (applyMutant (saveBackup { live := 22614, backup := none }) 22620) 22614 := by
+  constructor
+  · rfl
+  · right; rfl
+
 end RotObserve

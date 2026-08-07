@@ -280,7 +280,23 @@ def shipped : List Gate :=
   , d "profile binding" ["engine/rot-lean.md", "lean/Proofs/RotAbility.lean"]
   , d "axiom audit" ["lean/"]
   , d "axiom class" ["lean/"]
-  , d "mutate the checker" ["checker/", "hooks/"]
+  -- NARROWED 2026-08-07, and the comment above about dead triggers is exactly
+  -- why this needs justifying rather than just doing. The trigger was
+  -- `checker/`, the whole directory. This gate mutates the four SHIPPED HOOKS
+  -- and requires cross-diff.sh and cross-diff-remind.sh to go red for each, so
+  -- what it actually measures is: the hooks, those two checkers, the corpora
+  -- they read, and the harness itself. A change to `checker/portability.sh`
+  -- cannot affect whether cross-diff detects a mutated hook.
+  --
+  -- The cost of the over-broad trigger was not theoretical: at 198 s it is the
+  -- single most expensive gate, and firing it on every checker edit pushed the
+  -- staged run past the wall-clock ceiling of the agent that runs it -- which
+  -- is how a SIGKILL came to leave a live mutant in a shipped hook twice in one
+  -- session. A trigger wider than the property it guards costs real coverage
+  -- somewhere else.
+  --
+  -- Every path this gate READS is listed. It still runs unconditionally in CI.
+  , d "mutate the checker" ["hooks/", "checker/cross-diff.sh", "checker/cross-diff-remind.sh", "checker/mutate-checker.sh", "checker/corpus-gauge.txt", "checker/corpus-remind.txt"]
   -- `lean/` joined 2026-08-05. The gate asserts that EVERY tracked `.sh` carries
   -- the exec bit in the index, but its trigger named only four path prefixes --
   -- so a new harness under `lean/mutate/` could never escalate the gate that

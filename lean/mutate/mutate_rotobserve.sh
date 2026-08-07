@@ -88,8 +88,32 @@ trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"' EXIT
 
 killed=0; survived=0; discarded=0
 
+# --- OPTIONAL FILTER, AND WHY A PARTIAL RUN MUST LOOK PARTIAL ----------------
+# The suite is 48 mutants and each one rebuilds the module, so a full pass
+# outgrew the wall-clock ceiling of the agent that runs it -- and MEASURED
+# 2026-08-07, being killed at that ceiling left a MUTATED RotObserve.lean on
+# disk beside its .mutbak. Chunking is the fix; pretending a chunk is the suite
+# would be much worse than the timeout.
+#
+#   MUT_ONLY="M45 M46"   run only those, everything else SKIPPED
+#
+# A filtered run prints a PARTIAL banner and exits 3, never 0. Nothing that
+# consumes this output -- the CHANGELOG count, repo-complete's cross-check, CI
+# -- can mistake four killed mutants for forty-eight.
+skipped=0
+filtered=0
+[ -n "${MUT_ONLY:-}" ] && filtered=1
+
 run_mut() {
   local id="$1" needle="$2" repl="$3" expect="$4"
+
+  if [ -n "${MUT_ONLY:-}" ]; then
+    case " $MUT_ONLY " in
+      *" $id "*) : ;;
+      *) skipped=$((skipped+1)); return ;;
+    esac
+  fi
+
   cp "$BAK" "$F"
 
   local n
@@ -485,6 +509,66 @@ run_mut M40 \
   '(ps.filter (fun p => decide (p.1 ≤ p.2))).length' \
   'all_ties_leave_no_sign_count'
 
+# --- §15, the mismatch that renders identically ------------------------------
+
+# M41 -- the screen stops hiding CR. If rendering were faithful, the whole
+# section would be unnecessary: `0.09 != 0.09` could not have happened.
+run_mut M41 \
+  'def shown (f : Field) : Field := f.filter (fun c => c != Cell.cr)' \
+  'def shown (f : Field) : Field := f' \
+  'shown_can_hide_a_real_difference'
+
+# M42 -- normalisation inverted: keep ONLY the carriage returns. A checker that
+# stripped this way would compare two empty fields and pass everything.
+run_mut M42 \
+  'def stripCell (f : Field) : Field := f.filter (fun c => c != Cell.cr)' \
+  'def stripCell (f : Field) : Field := f.filter (fun c => c == Cell.cr)' \
+  'stripCell_faithful'
+
+# M43 -- the escape drops CR instead of showing it, which is precisely the
+# useless failure message this section exists to replace.
+run_mut M43 \
+  '  | Cell.cr      => [Glyph.backslash, Glyph.rLetter]' \
+  '  | Cell.cr      => []' \
+  'escape_injective'
+
+# M44 -- the control example weakened to compare a field with itself. A control
+# that cannot fail is not a control, and this proves the one in §15 is real.
+run_mut M44 \
+  '      stripCell [Cell.digit 0, Cell.dot, Cell.digit 1, Cell.digit 9] := by decide' \
+  '      stripCell [Cell.digit 0, Cell.dot, Cell.digit 0, Cell.digit 9] := by decide' \
+  'stripCell_faithful'
+
+# --- §16, the interrupted mutation run ---------------------------------------
+
+# M45 -- the backup step becomes a no-op, which is exactly "mutate first". The
+# original then exists nowhere the moment the mutant is written.
+run_mut M45 \
+  'def saveBackup (d : Disk) : Disk := { d with backup := some d.live }' \
+  'def saveBackup (d : Disk) : Disk := d' \
+  'backup_then_mutate_is_recoverable'
+
+# M46 -- restore leaves the backup behind, so the next run sees a repaired tree
+# as an interrupted one and recovers forever.
+run_mut M46 \
+  '  | some b => { live := b, backup := none }' \
+  '  | some b => { live := b, backup := some b }' \
+  'restore_clears_the_backup'
+
+# M47 -- dropping the backup becomes harmless, which would make "rm the stray
+# .mutbak" a safe cleanup. It is the one irreversible move there is.
+run_mut M47 \
+  'def dropBackup (d : Disk) : Disk := { d with backup := none }' \
+  'def dropBackup (d : Disk) : Disk := d' \
+  'dropping_the_backup_loses_the_original'
+
+# M48 -- recoverability demands BOTH copies instead of either, so a correctly
+# backed-up mutant would read as unrecoverable and the guard would fire always.
+run_mut M48 \
+  '  d.live = orig ∨ d.backup = some orig' \
+  '  d.live = orig ∧ d.backup = some orig' \
+  'backup_then_mutate_is_recoverable'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's
@@ -509,6 +593,12 @@ else
 fi
 
 echo
+if [ "$filtered" -eq 1 ]; then
+  echo "=== RotObserve: PARTIAL RUN (MUT_ONLY='$MUT_ONLY') -- $killed killed, $survived survived, $discarded discarded, $skipped SKIPPED ==="
+  echo "NOT a suite result. $skipped mutants were never applied and prove nothing."
+  [ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && exit 3
+  exit 1
+fi
 echo "=== RotObserve: $killed killed, $survived survived, $discarded discarded ==="
 [ "$discarded" -gt 0 ] && echo "NOTE: discarded mutants tested NOTHING -- fix the needles, do not count them as survivors."
 [ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && exit 0
