@@ -142,12 +142,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "1dfba9479c2c",
-      "indexed_at": "2026-08-07T16:43:58.517382+00:00",
+      "hash": "2249e992b545",
+      "indexed_at": "2026-08-07T18:50:01.498995+00:00",
       "language": "shell",
-      "lines": 487,
-      "mtime_ns": 1786120979496989200,
-      "size": 26055,
+      "lines": 498,
+      "mtime_ns": 1786127021669863400,
+      "size": 26813,
       "symbols": [
         {
           "docstring": "CONVERGENT is the only lane with no lead LENS -- by design, it is the lane where all nine co-reason and none leads. It used to print the literal \"none",
@@ -188,7 +188,7 @@
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
             264,
-            488
+            499
           ],
           "name": "hook_mode",
           "type": "function"
@@ -196,8 +196,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            457,
-            464
+            468,
+            475
           ],
           "name": "need_value",
           "type": "function"
@@ -214,6 +214,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-07T17:12:52.178400+00:00",
+  "generated_at": "2026-08-07T18:50:01.502821+00:00",
   "version": "1.0"
 }

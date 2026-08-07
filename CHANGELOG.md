@@ -150,6 +150,79 @@ the same model family is not an instrument.
   regeneration only adds columns. A corpus edited to be more flattering would
   have shown up right there.
 
+## A defensive sanitiser switched rotation off on macOS — and only macOS
+
+CI run `31202010565` failed on **one leg of three**:
+
+```
+FAIL  sh: log grew to       24 lines with cap 5 -- unbounded
+```
+
+The rotation is correct and proved. It never ran, because of the step *before*
+it. BSD `wc -l` prints `"      24"`; GNU prints `"24"`. The router's guard
+rejected anything non-numeric and fell back to `0`, so the count was always
+zero, `n > cap` was always false, and the log grew without bound. ubuntu and
+windows passed throughout.
+
+**The bug was not in the rotation. It was in reading the number that decides
+whether to rotate** — and it presented as a platform difference rather than a
+logic error. A guard written to be defensive is what disabled the feature.
+
+The fix does not learn which `wc` is present: `tr -dc '0-9'` keeps the digits
+and tolerates whatever padding arrives. Same conclusion as the step-log probe
+above, reached independently on the same day: **do not encode the other side's
+formatting, tolerate it.**
+
+### The defect is now reproducible on every platform
+
+A platform bug findable only on that platform is a bug found by users. Phase 5
+of `checker/debug-channel.sh` puts a padding `wc` at the front of `PATH` and
+runs the real hook through it.
+
+- With the fix: `5 <= 5`, bounded.
+- With the fix reverted: **24 lines against cap 5** — the same number macOS
+  reported, reproduced on this machine.
+- The stub itself is verified to actually pad; if it does not, the phase reports
+  that it proves nothing rather than passing.
+
+### `RotDebugLog.lean` §R — the count parser
+
+| theorem | what it settles |
+|---|---|
+| `strict_padded_is_zero` | the shipped guard reads a padded count as **zero** — the one value that makes every `n > cap` false |
+| `tolerant_ignores_padding` | the repair is padding-invariant for **every** width |
+| `strict_never_rotates` | the CI failure as a theorem, quantified over length rather than fixed at the 24 observed |
+| `tolerant_still_rotates` | the repair still fires when it should — not a disabled feature |
+| `tolerant_does_not_always_exceed` | control: it is not the constant "yes" |
+
+`tolerant_ignores_padding` was first proved by induction on the padding width;
+the build reported the induction hypothesis unused. That is a report about the
+theorem, not the script — the filter erases every space at once, so the width
+was never part of the argument. Simplified rather than silenced.
+
+Mutants **D10–D12, all killed.**
+
+### Three attempts to write those mutants, and what each one taught
+
+- D12's needle contained `' '` — a literal space character — which ends a
+  single-quoted shell string. Third time this trap has fired this session.
+- An inline `node -e` wrote a literal `\n` instead of a newline. My own notes
+  say to use a file; I did not, and paid for it.
+- The block was inserted **inside an open `printf '…'` string**, because the
+  anchor I reused does not exist in this suite and the fallback lives inside
+  that printf. `bash -n` caught it.
+
+Then the suite reported **D10–D12 DISCARDED, needle occurs 2 times**. Cause:
+this suite's `run_mut` is `id needle repl expect` with **no module argument**,
+and I passed one, so `RotDebugLog` became the needle. The harness was right and
+said so instead of scoring three phantom passes.
+
+**`checker/mutant-needles.sh` had validated my intent rather than the suite's
+signature** — it saw a token matching a module name and helpfully treated it as
+a module. It now checks arity consistency: if some invocations in a suite carry
+a module token and others do not, one group is being mis-parsed. Re-planting the
+error makes it fail; removing it returns exit 0.
+
 ## A suite where every mutant DISCARDS looks diligent and proves nothing
 
 `checker/mutant-discipline.sh` proves every suite refuses to score a mutant

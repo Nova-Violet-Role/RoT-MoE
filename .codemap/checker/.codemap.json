@@ -291,12 +291,12 @@
       ]
     },
     "debug-channel.sh": {
-      "hash": "e8be16b438f6",
-      "indexed_at": "2026-08-07T16:11:17.007932+00:00",
+      "hash": "21518188817d",
+      "indexed_at": "2026-08-07T18:50:01.496076+00:00",
       "language": "shell",
-      "lines": 213,
-      "mtime_ns": 1786118743380204400,
-      "size": 9723,
+      "lines": 260,
+      "mtime_ns": 1786127021669863400,
+      "size": 11749,
       "symbols": [
         {
           "docstring": "Runs one arm. $1 = arm name, $2 = log path, $3.. = env assignments handled by the caller through the environment. Prints stdout, stderr goes to $WORK/",
@@ -677,12 +677,12 @@
       "symbols": []
     },
     "mutant-needles.sh": {
-      "hash": "2f4361c2bd43",
-      "indexed_at": "2026-08-07T17:53:20.178001+00:00",
+      "hash": "c125e5b7f0e7",
+      "indexed_at": "2026-08-07T18:50:01.497053+00:00",
       "language": "shell",
-      "lines": 291,
-      "mtime_ns": 1786124290279547100,
-      "size": 13113,
+      "lines": 324,
+      "mtime_ns": 1786127351980519000,
+      "size": 14608,
       "symbols": [
         {
           "lines": [
@@ -1366,6 +1366,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T17:53:20.311044+00:00",
+  "generated_at": "2026-08-07T18:50:01.500209+00:00",
   "version": "1.0"
 }
