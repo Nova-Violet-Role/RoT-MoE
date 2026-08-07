@@ -7,11 +7,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\""
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
           },
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\""
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
           }
         ]
       }
@@ -22,11 +24,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\""
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
           },
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\""
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
           }
         ]
       }
@@ -37,7 +41,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\""
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
           }
         ]
       }

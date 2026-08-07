@@ -75,6 +75,11 @@ if (!mode || !file || !cmd) {
 // structurally incapable of writing a third event.
 //
 // Default preserved so every existing call site behaves exactly as before.
+// ONE DEFINITION OF THE BOUND, used by the arm path below and asserted by
+// checker/hook-timeout.sh against hooks/hooks.json. Two copies of a number are
+// two numbers, and the install paths are required to agree.
+const HOOK_TIMEOUT_SECONDS = 1200;
+
 const EVENTS = (eventsArg && eventsArg.trim())
   ? eventsArg.split(",").map(s => s.trim()).filter(Boolean)
   : ["UserPromptSubmit", "PreToolUse"];
@@ -120,7 +125,23 @@ if (mode === "arm") {
     // APPEND a NEW group. Appending into an existing group would mutate an
     // object the user owns; adding one leaves every existing group untouched
     // and lands at the END, so the user's own hooks keep firing first.
-    s.hooks[ev].push({ matcher: "*", hooks: [{ type: "command", command: cmd }] });
+    // TIMEOUT IS NOT OPTIONAL, and omitting it is what silenced the router.
+    //
+    // Claude Code applies a 30 s default when no `timeout` is given, and a hook
+    // killed at its limit contributes NOTHING -- no partial output, no marker,
+    // no gauge. The failure is silent by construction: the turn proceeds
+    // normally and the only trace is in the debug view, which is why it went
+    // unnoticed until the maintainer opened it by accident (CTRL+O) and saw the
+    // router timing out on real prompts.
+    //
+    // The nine lenses are computed per turn over the prompt AND the reply, so
+    // the work is proportional to the traffic, not constant. A bound chosen for
+    // a trivial script is the wrong shape of bound for this one.
+    //
+    // 1200 s matches HOOK_TIMEOUT_SECONDS below and the plugin's hooks.json, so
+    // the two install paths deliver the same product -- the rule this file
+    // already enforces for the command string is now enforced for the bound.
+    s.hooks[ev].push({ matcher: "*", hooks: [{ type: "command", command: cmd, timeout: HOOK_TIMEOUT_SECONDS }] });
     touched.push(ev);
   }
   if (touched.length === 0) { console.log("  nothing to do -- already armed on every event"); process.exit(10); }
