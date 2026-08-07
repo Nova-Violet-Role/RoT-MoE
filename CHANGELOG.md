@@ -100,6 +100,65 @@ Counts move to **504 theorems / 22 modules / 19 suites / 226 mutants**.
 
 ---
 
+## Atomicity is not enough: the atomic write dropped the exec bit and CI caught it
+
+Run on `6791683`: `mutate the checker` failed on **ubuntu-latest and
+macos-latest** with
+
+```
+H00  META-CONTROL FAILED: the checker goes red on a NO-OP edit.
+```
+
+`checkers (windows-latest)` passed the same commit, and that asymmetry is the
+whole diagnosis. Making the mutation writes atomic used `> "$f.mtmp" && mv -f`.
+A shell redirect **creates** the temp at `0666 & ~umask` = `0644`, and `mv`
+carries the **temp's** mode onto the target — so `hooks/rot-router.sh` arrived
+non-executable, `checker/cross-diff.sh:52` runs it directly, the call produced
+nothing, and the meta-control asserting that a no-op edit leaves the checker
+green went red. Windows has no exec bit, so the platform this was developed on
+could not see it.
+
+Every mutant below H00 still reported KILLED. That is exactly what H00 exists to
+expose: **with the baseline broken, those kills measured nothing.**
+
+The repair keeps the rename and carries the mode:
+
+```sh
+cp -p "$f" "$f.mtmp"      # clone the ORIGINAL's mode into the temp
+cat raw > "$f.mtmp"       # truncate in place -- a redirect does NOT change
+                          # the mode of a file that already exists
+mv -f "$f.mtmp" "$f"      # one rename, correct mode
+```
+
+All four write sites use that shape, and the harness now reports a mutant that
+loses the exec bit as **DISCARDED — harness bug**, never as a finding about the
+hook.
+
+### `RotObserve` §17 — seven theorems on what a rename carries
+
+| theorem | what it settles |
+|---|---|
+| `fresh_temp_drops_the_exec_bit` | replacing via a fresh temp yields a non-executable file, whatever the contents |
+| `naive_atomic_replace_can_break_an_executable` | the bug exists — there is such a file |
+| `cloned_temp_preserves_the_exec_bit` | **the repair**, for every file and every content |
+| `cloned_temp_still_writes` | and it actually writes — a mode-preserving no-op would be the opposite failure |
+| `cloned_temp_changes_only_the_content` | the general form: a clone changes **only** the content, so a future field cannot quietly escape |
+| `restore_via_clone_preserves_exec` | the restore path too, not just the mutation |
+| `naive_replace_is_harmless_when_nothing_is_executable` | records that "it worked on my machine" was **true** and useless |
+
+The lesson generalises past file modes: **a replacement carries every attribute
+of the replacement, not of the thing replaced.** Anything the original had and
+the new object was not given is lost at the instant of the swap — so the temp
+must be built *from* the original, never from nothing.
+
+`#eval` reproduces the failure: naive → `{ content := 22620, exec := false }`,
+cloned → `{ content := 22620, exec := true }`. Build exit 0, zero warnings both
+trees, `leanchecker` exit 0, mutants **M49–M51** all killed.
+
+Counts: **546 theorems / 22 modules / 19 suites / 249 mutants**.
+
+---
+
 ## A SIGKILL left a mutated router on disk, one `git add -A` from being published
 
 Measured three times in one session on 2026-08-07. A commit whose gate run
