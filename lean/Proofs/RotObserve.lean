@@ -1367,7 +1367,12 @@ theorem save_mutate_restore_round_trips (d : Disk) (m : Blob) :
     restore (applyMutant (saveBackup d) m) = { live := d.live, backup := none } := by
   simp [restore, applyMutant, saveBackup]
 
-/-- The measured case, as bytes: the router at 22614, the mutant at 22620. -/
+/-- The measured case, as bytes, **as observed on 2026-08-04**: the router at
+22614, the mutant at 22620. The pair is an INSTANCE of the round-trip property,
+not a claim about the file's current size -- `rot-router.sh` is 26055 bytes
+today, after the debug-channel repair, and the theorem is unaffected because it
+never depended on the value. Dated here rather than silently left to rot, since
+a doc comment stating a stale measurement is the cheapest kind of false claim. -/
 example :
     restore (applyMutant (saveBackup { live := 22614, backup := none }) 22620)
       = { live := 22614, backup := none } := by decide

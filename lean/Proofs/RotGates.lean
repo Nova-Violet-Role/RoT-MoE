@@ -260,6 +260,15 @@ def shipped : List Gate :=
   -- exactly such a commit.
   , f "README download links vs the packager"
   , f "cross-diff (both router arms)"
+  -- FAST, and the tier is the point. This gate guards the router's own debug
+  -- channel, and the defect it caught was a SILENT one: a lost record left no
+  -- trace, so "the router never fired" and "the log was unwritable" produced
+  -- identical evidence. A deep tier keyed on `hooks/` would still have run it
+  -- on the commit that introduced the fix -- and then never again on the
+  -- commits most likely to break it, which are the ones that touch a path or a
+  -- permission somewhere else entirely. It is also the cheapest kind of check
+  -- there is: three hook invocations against a scratch directory.
+  , f "debug channel (marker + rotation, both arms, vs RotDebugLog.lean)"
   -- Four gates joined on 2026-08-04, all FAST, and the tier is a decision worth
   -- recording. Each one guards a defect that had already reached a live machine:
   -- the double-fire, the dry run that deleted, the one-level proof scan, the
@@ -319,10 +328,10 @@ def shipped : List Gate :=
 -- `CI honesty` on 2026-08-05, deep tier, after run 31035932155 concluded
 -- `success` with EIGHT skipped steps -- one of them `tty guard`, a real check
 -- that had never run on Windows or macOS.
-#guard shipped.length = 39
+#guard shipped.length = 40
 
 -- Twenty-three run on every commit.
-#guard (fastSet shipped).length = 26
+#guard (fastSet shipped).length = 27
 
 -- Thirteen are escalated by path (`CI honesty` joined 2026-08-05).
 #guard (deepSet shipped).length = 13
@@ -346,7 +355,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 31
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 32
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -356,14 +365,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 26
+#guard (stagedRun shipped []).length = 27
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 29
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 30
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 27
+#guard (stagedRun shipped ["README.md".toList]).length = 28
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.
