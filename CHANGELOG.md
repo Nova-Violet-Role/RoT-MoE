@@ -206,6 +206,34 @@ literal newline. That is the second escaping failure of the session — the firs
 turned mutation needles into literal `\n` and scored nine DISCARDED. The fix is
 one less level of nesting, not more backslashes.
 
+### `RotAttribute` §5 — the universal claim, refuted in Lean by our own data
+
+Nine theorems, all `decide` over the measured lane table, all delivered and
+kernel-re-checked (`lake env leanchecker Proofs.RotMoe.RotAttribute` → exit 0).
+
+| theorem | what it settles |
+|---|---|
+| `not_every_lane_shrinks` | **"the router shortens the answer" is FALSE** — EMPATHIC refutes it |
+| `empathic_routes_longer` | the counterexample is exhibited, not asserted |
+| `nine_lanes_shrink` | the true statement is a *count* (9), strictly weaker than the universal |
+| `pooled_direction_hides_a_real_exception` | pooled −34.8% and the exception hold simultaneously |
+| `every_measured_lane_is_scored` | every lane in the shipped table carries samples |
+| `an_unsampled_lane_is_not_scored` | negative control: the coverage predicate can return false |
+| `a_report_covers_exactly_what_it_sampled` | quantified over *any* table, so a future corpus inherits it |
+| `coverage_hypothesis_is_load_bearing` | that hypothesis is not decoration |
+
+**Every one of these reports `does not depend on any axioms`.** That is not
+strength, it is what a computation over closed data looks like — so the axiom
+list proves nothing here and mutation had to do the work instead. Five mutants
+A10–A14 were added; the suite runs **14 killed, 0 survived, 0 discarded**.
+A13 reproduces the CI failure inside Lean: a lane present in the table with no
+prompts behind it.
+
+`measuredRoutedMeanTokens` moved 447 → 440 and the control 678 → 675 **in the
+same edit** as the corpus, the CHANGELOG table and the A08/A09 mutation needles
+— which had gone stale the instant the corpus grew and would have scored
+DISCARDED.
+
 ## Why a null can belong to the analysis instead of the world — `RotAttribute`
 
 The retraction above is not an anecdote, it is three theorems.
