@@ -201,11 +201,14 @@ theorem primaries_can_tie_while_the_turn_differs :
           { q := 0, narr := 0, outTok := 678 }, rfl, ?_⟩
   decide
 
-/-- The measured pair, kept as an executable record: 447 vs 678 mean output
-tokens per turn, routed against control, on `claude-opus-5[1m]`. -/
-def measuredRoutedMeanTokens : Nat := 447
-/-- Control arm, same 80 prompts. -/
-def measuredControlMeanTokens : Nat := 678
+/-- The measured pair, kept as an executable record: 440 vs 675 mean output
+tokens per turn, routed against control, on `claude-opus-5[1m]`, over the
+88-pair corpus. Was 447/678 at 80 pairs; the corpus grew by eight prompts to
+cover two lanes that had no samples, and this constant moved in the same edit
+as `bench/ab-metrics.jsonl` and the CHANGELOG table. -/
+def measuredRoutedMeanTokens : Nat := 440
+/-- Control arm, same 88 prompts. -/
+def measuredControlMeanTokens : Nat := 675
 
 /-- The direction of the measured effect, pinned so a later edit that flips it
 has to flip this too. This is a record of a MEASUREMENT, not a proof that the
@@ -238,5 +241,104 @@ def poolValues (d : List Sample) : List ℚ := d.map erase
 /-- Pooling a stratified dataset is exactly erasure, which is why the cost is
 the same. -/
 theorem pooling_is_erasure (d : List Sample) : poolValues d = d.map erase := rfl
+
+/-! ## §5 Lane coverage, and the universal claim the data refutes
+
+§3 said "score per lane". Doing that raised two questions the pooled figure
+could not even ask, and both are settled here against the measured table.
+
+**Question 1: what does a lane with no samples entitle you to say?** Nothing —
+and the checker has to be the kind of instrument that says so out loud. The
+first per-lane run reported `EMPATHIC, STRATEGIC` uncovered and FAILED. That
+was the correct verdict, not a defect to be tuned away.
+
+**Question 2: is "the router shortens the answer" true?** No. It is true of nine
+lanes and false of the tenth, and `not_every_lane_shrinks` below refutes the
+universal from the measured data itself. -/
+
+/-- One lane's paired result. `n` is the number of prompt pairs that routed
+here; `routed` and `control` are mean output tokens per turn. -/
+structure LaneResult where
+  name : String
+  n : Nat
+  routed : Nat
+  control : Nat
+deriving DecidableEq, Repr
+
+/-- A lane is SCORED only if something was sampled in it. A lane at `n = 0` has
+no verdict of any kind — not "no effect", not "unchanged": no verdict. -/
+def scored (r : LaneResult) : Bool := 0 < r.n
+
+/-- The measured per-lane table, 88 pairs, `hooks/rot-router.sh --route`
+labelling both arms. Mean output tokens per turn. -/
+def measuredLanes : List LaneResult :=
+  [ { name := "FORGE",      n := 36, routed := 525, control := 751 },
+    { name := "CONVERGENT", n := 16, routed := 322, control := 404 },
+    { name := "CLINICAL",   n := 8,  routed := 495, control := 758 },
+    { name := "PREDICTIVE", n := 4,  routed := 680, control := 996 },
+    { name := "CREATIVE",   n := 4,  routed := 248, control := 376 },
+    { name := "EXECUTIVE",  n := 4,  routed := 227, control := 513 },
+    { name := "RECURSIVE",  n := 4,  routed := 248, control := 939 },
+    { name := "STEALTH",    n := 4,  routed := 536, control := 852 },
+    { name := "STRATEGIC",  n := 4,  routed := 485, control := 1062 },
+    { name := "EMPATHIC",   n := 4,  routed := 256, control := 220 } ]
+
+/-- How many lanes the routed arm shortened. -/
+def shrinkCount (rs : List LaneResult) : Nat :=
+  (rs.filter (fun r => decide (r.routed < r.control))).length
+
+/-- Every lane in the shipped table carries samples, so every lane has a
+verdict. This is the property the checker enforces; it is stated over the list
+rather than over ten hard-coded names, so an eleventh lane is covered the day it
+exists. -/
+theorem every_measured_lane_is_scored :
+    ∀ r ∈ measuredLanes, scored r = true := by decide
+
+/-- The instrument can fail. A lane at `n = 0` is not scored, so
+`every_measured_lane_is_scored` is a real constraint rather than a tautology
+about non-empty lists. -/
+theorem an_unsampled_lane_is_not_scored :
+    scored { name := "EMPATHIC", n := 0, routed := 0, control := 0 } = false := by
+  decide
+
+/-- **The universal is FALSE.** "The router makes the model emit less" does not
+hold: EMPATHIC routes longer, 256 against 220. Anyone quoting the pooled −34.8%
+as a property of the router is quoting nine lanes and dropping the tenth. -/
+theorem not_every_lane_shrinks :
+    ¬ (∀ r ∈ measuredLanes, r.routed < r.control) := by decide
+
+/-- The exception is exhibited, not merely asserted to exist. -/
+theorem empathic_routes_longer :
+    ∃ r ∈ measuredLanes, r.control < r.routed := by decide
+
+/-- Nine of the ten lanes do shrink. The true statement is a count, and it is
+strictly weaker than the universal above — which is the entire point. -/
+theorem nine_lanes_shrink : shrinkCount measuredLanes = 9 := by decide
+
+/-- And the pooled direction agrees with the majority of lanes while
+contradicting one of them. This is the mild form of the §2 reversal: pooling did
+not flip the answer here, it flattened an exception the profiles PREDICT —
+EMPATHIC raises Violet to 2.3 and damps compression. A router that shortened
+every lane uniformly would be evidence the profiles do not do what they say. -/
+theorem pooled_direction_hides_a_real_exception :
+    measuredRoutedMeanTokens < measuredControlMeanTokens ∧
+    ¬ (∀ r ∈ measuredLanes, r.routed < r.control) := by
+  exact ⟨by decide, not_every_lane_shrinks⟩
+
+/-- Coverage is a property of the REPORT, not of the router: a report may only
+range over lanes it sampled. Quantified over an arbitrary table, so it stays
+true of every future corpus rather than of this one. -/
+theorem a_report_covers_exactly_what_it_sampled (rs : List LaneResult)
+    (h : ∀ r ∈ rs, scored r = true) (r : LaneResult) (hr : r ∈ rs) : 0 < r.n := by
+  have := h r hr
+  simpa [scored] using this
+
+/-- Negative control for that theorem: drop the hypothesis and the conclusion
+fails, so the hypothesis is load-bearing rather than decorative. -/
+theorem coverage_hypothesis_is_load_bearing :
+    ∃ rs : List LaneResult, ∃ r ∈ rs, ¬ (0 < r.n) := by
+  refine ⟨[{ name := "EMPATHIC", n := 0, routed := 0, control := 0 }],
+          { name := "EMPATHIC", n := 0, routed := 0, control := 0 }, ?_, by decide⟩
+  simp
 
 end RotAttribute

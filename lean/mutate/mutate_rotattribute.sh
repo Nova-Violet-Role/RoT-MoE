@@ -263,7 +263,7 @@ run_mut A07 \
 # tokens than the control. This is the mutant that guards the number itself, so
 # a later edit cannot quietly reverse what the experiment found.
 run_mut A08 \
-  'def measuredRoutedMeanTokens : Nat := 447' \
+  'def measuredRoutedMeanTokens : Nat := 440' \
   'def measuredRoutedMeanTokens : Nat := 700' \
   'measured_routed_emits_fewer_tokens'
 
@@ -271,9 +271,56 @@ run_mut A08 \
 # round 1 published, so if this survives the module cannot tell the corrected
 # result from the wrong one.
 run_mut A09 \
-  'def measuredControlMeanTokens : Nat := 678' \
-  'def measuredControlMeanTokens : Nat := 447' \
+  'def measuredControlMeanTokens : Nat := 675' \
+  'def measuredControlMeanTokens : Nat := 440' \
   'measured_routed_emits_fewer_tokens'
+
+# --- SECTION 5: lane coverage and the refuted universal ----------------------
+# These exist because section 5 is proved ENTIRELY by `decide` over closed
+# data, so every theorem in it reports `does not depend on any axioms`. An
+# empty axiom list is NOT evidence of strength -- it is what a computation
+# looks like. Mutation is the only instrument that separates a load-bearing
+# decide from a decorative one, so each mutant breaks one datum and names the
+# theorem that must notice.
+
+run_mut A10 \
+  '{ name := "EMPATHIC",   n := 4,  routed := 256, control := 220 } ]' \
+  '{ name := "EMPATHIC",   n := 4,  routed := 256, control := 999 } ]' \
+  'not_every_lane_shrinks'
+
+# Make EMPATHIC shrink and the one lane refuting the universal is gone, so
+# the false claim -- the router shortens EVERY lane -- becomes provable.
+
+run_mut A11 \
+  'def scored (r : LaneResult) : Bool := 0 < r.n' \
+  'def scored (r : LaneResult) : Bool := true' \
+  'an_unsampled_lane_is_not_scored'
+
+# A lane with zero samples would report as scored: precisely the overclaim
+# the per-lane checker FAIL exists to prevent.
+
+run_mut A12 \
+  '(rs.filter (fun r => decide (r.routed < r.control))).length' \
+  '(rs.filter (fun r => decide (r.control < r.routed))).length' \
+  'nine_lanes_shrink'
+
+run_mut A13 \
+  '{ name := "EMPATHIC",   n := 4,  routed := 256, control := 220 } ]' \
+  '{ name := "EMPATHIC",   n := 0,  routed := 256, control := 220 } ]' \
+  'every_measured_lane_is_scored'
+
+# A13 is the CI failure reproduced in Lean: a lane present in the table with
+# no prompts behind it. The first per-lane run hit exactly this on EMPATHIC
+# and STRATEGIC, and it was closed by MEASURING, not by relaxing the check.
+
+run_mut A14 \
+  '  have := h r hr' \
+  '  clear h; have : True := trivial' \
+  'a_report_covers_exactly_what_it_sampled'
+
+# A14 removes the coverage hypothesis from the proof that USES it. If the
+# theorem still closes, the hypothesis was decoration.
+
 
 echo
 printf 'restoring baseline artifact ... '
