@@ -816,6 +816,13 @@ jobs:
       - name: mutation discipline -- RotMutant.lean binds every harness
         run: bash checker/mutant-discipline.sh
 
+      # The INVERSE of mutation discipline. Discipline proves each suite refuses
+      # to score a mutant whose patch did not apply; this proves the needles
+      # still EXIST, so a suite cannot quietly become all-DISCARDED when someone
+      # edits the line a needle quotes. Static -- no build, no mutation.
+      - name: mutant needles -- no suite may be entirely DISCARDED
+        run: bash checker/mutant-needles.sh
+
       # The other end of ci-dryrun.sh. That gate runs what it can of this
       # step list in a clean tree and DEFERS anything needing a toolchain, a
       # download, root or a pty -- printing "DEFERRED IS NOT PASSED", which is

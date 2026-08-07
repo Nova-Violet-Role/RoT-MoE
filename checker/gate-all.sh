@@ -85,6 +85,7 @@ release consistency|fast||bash checker/release-consistency.sh
 tag consistency|fast||bash checker/tags-consistency.sh
 verdict freshness|fast||bash checker/verdict-fresh.sh
 mutation discipline|fast||bash checker/mutant-discipline.sh
+mutant needles (every needle still exists; no suite all-DISCARDED)|fast||bash checker/mutant-needles.sh
 dorks|fast||bash checker/dorks.sh
 hook footprint|fast||bash checker/hook-footprint.sh
 hook timeout|fast||bash checker/hook-timeout.sh
