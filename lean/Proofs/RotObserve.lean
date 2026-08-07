@@ -844,4 +844,90 @@ theorem out_of_band_alarm_is_exact (h : Hook) :
     outOfBandDetects h = true ↔ h = .permissive := by
   cases h <;> simp [outOfBandDetects]
 
+/-! ## §13 — a bound below the cost turns a working component into a silent one
+
+MEASURED 2026-08-07 by the maintainer, and found only by accident: opening the
+debug view (CTRL+O) showed the router **timing out** on real prompts.
+
+Neither install path declared a `timeout`, so the platform default of 30 s
+applied. A hook that reaches its limit is killed, and a killed hook contributes
+**nothing** — no marker, no lane, no gauge, no partial output. The turn proceeds
+normally and the transcript looks exactly as it would if no hook were installed
+at all.
+
+That is the whole trap, and it is the reason every earlier "the router did not
+fire here" reading has to be treated as suspect: **silenced and absent produce
+the same observable.** No amount of staring at the output distinguishes them.
+
+The work is proportional to the traffic — nine lens activities computed per turn
+over the prompt and the reply — so a bound chosen for a trivial script is the
+wrong *shape* of bound, not merely a small one.
+
+The theorems below say what the repair has to satisfy, and deliberately never
+mention 1200. `checker/hook-timeout.sh` enforces the same two properties on the
+shipped files: the bound must EXCEED the default it replaces, and both install
+paths must declare the SAME bound. A number can move; these cannot. -/
+
+/-- Work whose cost is whatever the turn demands. -/
+structure Work where
+  /-- Time the hook needs, in the same units as the bound. -/
+  cost : Nat
+  deriving DecidableEq, Repr
+
+/-- Does the hook finish inside its bound? -/
+def completes (bound : Nat) (w : Work) : Bool := decide (w.cost ≤ bound)
+
+/-- What an observer sees. `none` is the empty observation. -/
+def hookOutput (bound : Nat) (w : Work) : Option String :=
+  if completes bound w then some "marker" else none
+
+/-- What an observer sees when no hook is installed at all. -/
+def absentOutput : Option String := none
+
+/-- **A killed hook emits nothing** — for every bound and every work. -/
+theorem killed_hook_emits_nothing (b : Nat) (w : Work) (h : completes b w = false) :
+    hookOutput b w = none := by
+  simp [hookOutput, h]
+
+/-- **Silenced is indistinguishable from absent.** The observation produced by a
+hook that ran and was killed is *equal* to the observation produced by no hook
+at all, so no observer of the output can tell the two apart. This is why the
+defect survived every session log. -/
+theorem silenced_is_indistinguishable_from_absent (b : Nat) (w : Work)
+    (h : completes b w = false) : hookOutput b w = absentOutput := by
+  simp [hookOutput, absentOutput, h]
+
+/-- Raising the bound never loses an observation: completion is monotone. -/
+theorem completion_is_monotone (b b' : Nat) (w : Work) (hb : b ≤ b')
+    (h : completes b w = true) : completes b' w = true := by
+  simp only [completes, decide_eq_true_eq] at h ⊢
+  exact Nat.le_trans h hb
+
+/-- **Adequacy is a relation, not a number.** Whenever the bound covers the cost
+the marker is hookOutput — stated for every bound and every work, so no particular
+value is frozen into the specification. -/
+theorem an_adequate_bound_is_observed (b : Nat) (w : Work) (h : w.cost ≤ b) :
+    hookOutput b w = some "marker" := by
+  simp [hookOutput, completes, h]
+
+/-- The measured instance: work costing more than the platform default is
+silent under it and observable under a larger bound. Concrete on purpose — it
+records what happened — while the general statements above carry the spec. -/
+theorem the_default_silenced_real_work :
+    hookOutput 30 ⟨600⟩ = none ∧ hookOutput 1200 ⟨600⟩ = some "marker" := by
+  constructor <;> decide
+
+/-- **Why both install paths must agree.** For ANY two different bounds there is
+work they disagree about, so shipping two bounds ships two products. This is the
+theorem behind the agreement phase of `checker/hook-timeout.sh`. -/
+theorem different_bounds_are_different_products (b₁ b₂ : Nat) (h : b₁ < b₂) :
+    ∃ w : Work, hookOutput b₁ w ≠ hookOutput b₂ w := by
+  refine ⟨⟨b₁ + 1⟩, ?_⟩
+  have h₁ : completes b₁ ⟨b₁ + 1⟩ = false := by
+    simp [completes]
+  have h₂ : completes b₂ ⟨b₁ + 1⟩ = true := by
+    simp only [completes, decide_eq_true_eq]
+    exact h
+  simp [hookOutput, h₁, h₂]
+
 end RotObserve

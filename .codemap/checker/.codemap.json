@@ -326,18 +326,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "eec467b79222",
-      "indexed_at": "2026-08-06T18:15:16.946288+00:00",
+      "hash": "ddd974e73772",
+      "indexed_at": "2026-08-07T04:14:50.284577+00:00",
       "language": "shell",
-      "lines": 357,
-      "mtime_ns": 1786039389087260600,
-      "size": 17291,
+      "lines": 358,
+      "mtime_ns": 1786074606540370300,
+      "size": 17339,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            150,
-            165
+            151,
+            166
           ],
           "name": "fires",
           "type": "function"
@@ -470,6 +470,15 @@
           "type": "function"
         }
       ]
+    },
+    "hook-timeout.sh": {
+      "hash": "398ff27ff640",
+      "indexed_at": "2026-08-07T04:14:50.610777+00:00",
+      "language": "shell",
+      "lines": 165,
+      "mtime_ns": 1786074564468369200,
+      "size": 7644,
+      "symbols": []
     },
     "install-parity.sh": {
       "hash": "7418166e35e0",
@@ -1273,6 +1282,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T03:36:17.146147+00:00",
+  "generated_at": "2026-08-07T04:14:50.737821+00:00",
   "version": "1.0"
 }

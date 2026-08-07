@@ -421,6 +421,38 @@ run_mut M32 \
   '  | .gate, _ => true' \
   'gate_admits_exactly_green'
 
+# --- §13, a bound below the cost silences a working component ---------------
+
+# M33 -- the observation inverted. A completed hook would emit nothing and a
+# killed one would emit the marker, so both the adequacy theorem and the
+# measured instance must die.
+run_mut M33 \
+  '  if completes bound w then some "marker" else none' \
+  '  if completes bound w then none else some "marker"' \
+  'an_adequate_bound_is_observed'
+
+# M34 -- "no hook installed" made to emit a marker. The indistinguishability
+# theorem is then false: silence would no longer look like absence, and the
+# whole reason the defect hid for weeks would evaporate.
+run_mut M34 \
+  'def absentOutput : Option String := none' \
+  'def absentOutput : Option String := some "marker"' \
+  'silenced_is_indistinguishable_from_absent'
+
+# M35 -- the witness weakened to work BOTH bounds complete. The two products
+# then agree on it, so the existence claim behind the agreement check dies.
+run_mut M35 \
+  '  refine ⟨⟨b₁ + 1⟩, ?_⟩' \
+  '  refine ⟨⟨b₁⟩, ?_⟩' \
+  'different_bounds_are_different_products'
+
+# M36 -- the comparison reversed, so a hook "completes" only when its cost
+# EXCEEDS the bound. Monotonicity and adequacy both rest on this direction.
+run_mut M36 \
+  'def completes (bound : Nat) (w : Work) : Bool := decide (w.cost ≤ bound)' \
+  'def completes (bound : Nat) (w : Work) : Bool := decide (bound ≤ w.cost)' \
+  'completion_is_monotone'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's

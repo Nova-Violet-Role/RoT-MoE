@@ -230,6 +230,12 @@ def shipped : List Gate :=
   , f "mutation discipline"
   , f "dorks"
   , f "hook footprint"
+  -- FAST because it reads two files in this repository and compares them to
+  -- each other. A hook with no declared timeout is killed at the platform
+  -- default and contributes nothing, which is indistinguishable from never
+  -- having fired -- so this must run on every commit, not only when hooks/ is
+  -- touched: the bound can be broken by editing the merge script alone.
+  , f "hook timeout"
   -- FAST, and deliberately so. It replaced a `checkers`-job step that could only
   -- ever SKIP (gauge-cross needs a Lean workspace that job has not got), so it
   -- must run on EVERY commit rather than only when a trigger path is touched --
@@ -290,10 +296,10 @@ def shipped : List Gate :=
 -- `CI honesty` on 2026-08-05, deep tier, after run 31035932155 concluded
 -- `success` with EIGHT skipped steps -- one of them `tty guard`, a real check
 -- that had never run on Windows or macOS.
-#guard shipped.length = 37
+#guard shipped.length = 38
 
 -- Twenty-three run on every commit.
-#guard (fastSet shipped).length = 24
+#guard (fastSet shipped).length = 25
 
 -- Thirteen are escalated by path (`CI honesty` joined 2026-08-05).
 #guard (deepSet shipped).length = 13
@@ -317,7 +323,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 29
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 30
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -327,14 +333,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 24
+#guard (stagedRun shipped []).length = 25
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 27
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 28
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 25
+#guard (stagedRun shipped ["README.md".toList]).length = 26
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.
