@@ -57,9 +57,17 @@ for f in "$SH" "$PS1" "$RSH" "$RPS1"; do
       echo "RECOVERED: $f differed from a leftover $f.mutbak -- a previous run was"
       echo "           interrupted mid-mutation. Restoring the backup as the baseline."
     fi
-    cp "$f.mutbak" "$f"
+    # Atomic, for the same reason as `restore` below: a kill inside a plain `cp`
+    # truncates the destination, and here the destination is a shipped hook.
+    cp "$f.mutbak" "$f.rtmp" && mv -f "$f.rtmp" "$f"
     rm -f "$f.mutbak"
   fi
+  # A leftover .rtmp/.mtmp is the HALF that was being written when a previous
+  # run died. It is disposable by construction -- the rename never happened, so
+  # the real file still holds whichever complete version it had. This is the one
+  # kind of leftover it IS safe to delete, and the distinction from .mutbak (the
+  # only copy of an original, never delete) is the whole point of the two names.
+  rm -f "$f.rtmp" "$f.mtmp"
 done
 
 for f in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$f" "$f.mutbak"; done
@@ -80,8 +88,8 @@ for f in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$f" "$f.mutbak"; done
 # kept as well; running it twice is harmless, and the trap must not be the only
 # thing standing between a normal run and a clean tree.
 trap 'for _tf in "$SH" "$PS1" "$RSH" "$RPS1"; do
-        [ -f "$_tf.mutbak" ] && cp "$_tf.mutbak" "$_tf"
-        rm -f "$_tf.mutbak"
+        [ -f "$_tf.mutbak" ] && { cp "$_tf.mutbak" "$_tf.rtmp" && mv -f "$_tf.rtmp" "$_tf"; }
+        rm -f "$_tf.mutbak" "$_tf.rtmp" "$_tf.mtmp"
       done' EXIT INT TERM
 
 killed=0; survived=0; discarded=0
@@ -97,7 +105,16 @@ killed=0; survived=0; discarded=0
 # existed in the last file of the list, the harness would have mutated the WRONG
 # FILE and reported the result as if it had mutated the right one. `local` on
 # the loop variable is the fix; the rename is what makes it obvious.
-restore () { local _rf; for _rf in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$_rf.mutbak" "$_rf"; done; }
+# ATOMIC, and the reason is measured. 2026-08-07: a SIGKILL landing inside a
+# plain `cp` left hooks/prover-remind.sh and .ps1 at ZERO BYTES -- the
+# destination had been truncated and not yet rewritten, and the .mutbak was
+# already gone, so nothing on disk held the original. Only the pre-commit
+# zero-byte guard stopped an empty hook from being committed.
+#
+# Writing to a temp file and renaming makes the swap ONE filesystem operation:
+# an interruption leaves the OLD content or the NEW content, never a truncated
+# file. lean/Proofs/RotObserve.lean §16 states it as a property.
+restore () { local _rf; for _rf in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$_rf.mutbak" "$_rf.rtmp" && mv -f "$_rf.rtmp" "$_rf"; done; }
 
 # run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker]
 # The 7th argument names the checker to run; it defaults to the router
@@ -114,7 +131,7 @@ run () {
   awk -v needle="$needle" -v repl="$repl" '{
     p = index($0, needle)
     if (p > 0) { $0 = substr($0,1,p-1) repl substr($0, p+length(needle)) }
-    print }' "$f.mutbak" > "$f"
+    print }' "$f.mutbak" > "$f.mtmp" && mv -f "$f.mtmp" "$f"
   if [ "$(grep -F -c -- "$needle" "$f")" -ne 0 ] || [ "$(grep -F -c -- "$repl" "$f")" -lt 1 ]; then
     echo "$id  DISCARDED  post-check failed -- patch NOT applied"
     discarded=$((discarded+1)); restore; return
