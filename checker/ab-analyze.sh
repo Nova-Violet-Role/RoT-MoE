@@ -67,7 +67,7 @@ for(const arm of [["a",a],["b",b]]){
 const errs=recs.filter(r=>r.err===1).length;
 if(errs) problems.push(errs+" record(s) carry err=1 and were counted as data");
 for(const r of recs){
-  for(const k of ["dur","cost_micro","len","q","hedge","narr","leak"])
+  for(const k of ["dur","cost_micro","len","outTok","q","hedge","narr","leak"])
     if(typeof r[k]!=="number"||r[k]<0) problems.push("arm "+r.arm+" turn "+r.turn+": bad field "+k);
 }
 if(problems.length){ console.log("PROBLEMS\n  "+problems.slice(0,8).join("\n  ")); process.exit(1); }
@@ -176,7 +176,41 @@ function metrics(j){
     hedge: HEDGE.reduce((a,w)=>a+(low.split(w.toLowerCase()).length-1),0),
     narr: NARRATE.reduce((a,w)=>a+(t.split(w).length-1),0),
     leak: LEAK.reduce((a,w)=>a+(t.split(w).length-1),0),
+    // ROUTER-OBSERVABLE ENDPOINTS, and the reason they are here is a defect in
+    // the round-1 analysis. MEASURED 2026-08-07: this analyser reported the run
+    // NULL on every primary, because it only ever looked at coarse counters and
+    // the CHARACTER length of the final answer. The raw transcripts carried
+    // `modelUsage` the whole time -- output TOKENS, per model -- and the paired
+    // difference there is -34.1% (routed fewer on 64 of 80, sign test
+    // p = 5.9e-8) on claude-opus-5[1m]. A null that came from not looking is
+    // worse than a red result; it retires a real effect.
+    //
+    // `model` is recorded for the same reason: a verdict over records with no
+    // configuration field cannot be attributed to any configuration, and cannot
+    // be stratified afterwards. lean/Proofs/RotAttribute.lean states that as a
+    // theorem.
+    outTok: mainOutputTokens(j),
+    model: mainModel(j),
   };
+}
+
+// The model that did the WORK, by output tokens -- not merely the first key.
+// A run can touch a small model incidentally (measured: one 17-token haiku call
+// across 160 turns) and naming that as the model would misattribute the whole
+// experiment.
+function mainModel(j){
+  const mu=j.modelUsage||{};
+  let best="unknown", bestTok=-1;
+  for(const [m,u] of Object.entries(mu)){
+    const t=Number(u.outputTokens||0);
+    if(t>bestTok){bestTok=t;best=m;}
+  }
+  return best;
+}
+function mainOutputTokens(j){
+  const mu=j.modelUsage||{};
+  const m=mainModel(j);
+  return Number((mu[m]||{}).outputTokens||0);
 }
 const ma=paired.map(i=>metrics(A[i])), mb=paired.map(i=>metrics(B[i]));
 const sum=(xs,k)=>xs.reduce((a,x)=>a+x[k],0);
@@ -214,6 +248,7 @@ line("1 is_error","err");
 line("3 duration ms","dur",x=>Math.round(x).toString());
 line("4 cost usd","cost",x=>x.toFixed(4));
 line("5 length chars","len",x=>Math.round(x).toString());
+line("5b output TOKENS","outTok",x=>Math.round(x).toString());
 console.log("");
 console.log("2 tool calls: 0 in both arms by AMENDMENT 2 -- uninformative BY DESIGN, not omitted.");
 const leakA=sum(ma,"leak"), leakB=sum(mb,"leak");

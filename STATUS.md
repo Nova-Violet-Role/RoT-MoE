@@ -10,9 +10,9 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-BEGIN -->
 | field | value |
 |---|---|
-| theorems | 567 |
-| modules | 23 |
-| mutation suites | 20 |
+| theorems | 578 |
+| modules | 24 |
+| mutation suites | 21 |
 | checkers | 51 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |

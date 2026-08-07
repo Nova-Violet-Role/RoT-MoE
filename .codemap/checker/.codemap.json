@@ -2,12 +2,12 @@
   "directory": "checker",
   "files": {
     "ab-analyze.sh": {
-      "hash": "925dc3b65268",
-      "indexed_at": "2026-08-07T07:13:51.893187+00:00",
+      "hash": "8a0fad10f780",
+      "indexed_at": "2026-08-07T13:42:32.269962+00:00",
       "language": "shell",
-      "lines": 239,
-      "mtime_ns": 1786085521340298300,
-      "size": 10812,
+      "lines": 274,
+      "mtime_ns": 1786107980115745200,
+      "size": 12422,
       "symbols": []
     },
     "axiom-audit.sh": {
@@ -1300,6 +1300,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T10:24:03.425341+00:00",
+  "generated_at": "2026-08-07T13:42:32.270075+00:00",
   "version": "1.0"
 }

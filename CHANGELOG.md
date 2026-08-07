@@ -23,6 +23,105 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+## The A/B was not null — my analysis was blind, and here is the retraction
+
+**I published a null result that the data does not support.** The 80×2 A/B run
+was reported as "null on every pre-registered primary". Two defects in the
+*analysis*, both mine, both found on 2026-08-07 by re-reading the raw
+transcripts that the committed corpus had been derived from:
+
+**1. The configuration was dropped in derivation, not missing from the run.**
+`bench/ab-metrics.jsonl` carried `arm, turn, err, dur, cost_micro, len, q,
+hedge, narr, leak` — no model, no effort, no thinking level. I described this as
+"the experiment never recorded the model". That was wrong. Every raw turn
+carries `modelUsage`, and it says the same thing 160 times:
+
+| | measured |
+|---|---|
+| model, all 80 turns, **both arms** | `claude-opus-5[1m]` |
+| incidental other model | one 17-token `claude-haiku-4-5` call, across the whole corpus |
+
+The run was on the strongest available configuration. The corpus simply threw
+the field away, and I read the absence as a property of the experiment.
+
+**2. The metrics that were examined were not the metrics that moved.** The three
+primaries genuinely tied. Output **tokens** — computable from the very same
+transcripts, never extracted — did not:
+
+| endpoint | routed | unrouted | delta | paired sign count | two-sided sign test |
+|---|---|---|---|---|---|
+| output tokens / turn | **447** | **678** | **−34.1%** | routed fewer on **64 of 80**, 0 ties | **p = 5.9 × 10⁻⁸** |
+| cost / turn | $0.1013 | $0.1481 | −31.6% | cheaper on **75 of 80** | p < 10⁻¹² |
+| duration / turn | 10 144 ms | 13 454 ms | −24.6% | faster on 51 of 80 | — |
+| trailing question | 0.000 | 0.000 | — | 80 ties | — |
+| self-narration | 0.000 | 0.000 | — | 80 ties | — |
+| hedging tokens | 0.037 | 0.000 | **worse routed** | worse on 3, better on 0 | — |
+
+Negative control for the test itself: a 41/80 split gives p = 0.911, so the
+instrument can return "no effect" and does.
+
+**What this does and does not license.** It licenses: *on `claude-opus-5[1m]`,
+across 80 paired prompts, the routed arm produced a third fewer output tokens,
+cost a third less and finished a quarter faster, with no measured change in
+error rate, trailing questions or self-narration, and slightly more hedging.*
+It does not license any statement about answer **quality** — nothing here
+measures that, and no proxy was substituted for it, because a proxy scored by
+the same model family is not an instrument.
+
+**Fixes, so the defect cannot recur silently:**
+
+* `checker/ab-analyze.sh` now derives `model` per turn (by output tokens, not by
+  first key — one incidental 17-token call must not name the experiment) and
+  reports `5b output TOKENS` beside the character length it used to trust.
+* `bench/ab-metrics.jsonl` regenerated from the raw corpus with `outTok` and
+  `model` added. **The 1280 shared-field comparisons against the previous file
+  differ in zero places** — every published figure is reproduced exactly; the
+  regeneration only adds columns. A corpus edited to be more flattering would
+  have shown up right there.
+
+## Why a null can belong to the analysis instead of the world — `RotAttribute`
+
+The retraction above is not an anecdote, it is three theorems.
+`lean/Proofs/RotAttribute.lean`, 24th module, states the failure modes so the
+harness is checked against them rather than against my memory of what went
+wrong.
+
+| theorem | what it settles |
+|---|---|
+| `erased_summary_is_blind` | **every** summary function agrees on two datasets that erase to the same list — a dropped column is not merely hard to recover, the verdict is provably independent of it |
+| `erasure_hides_information_a_lane_aware_reading_has` | the load-bearing form: two datasets no erased summary can separate, that a lane-aware reading separates outright |
+| `routed_wins_lane1` / `routed_wins_lane2` | the routed arm strictly wins in **both** strata |
+| `pooling_reverses_every_stratum` | …and strictly **loses** pooled. Simpson's paradox, as a checked instance, not a citation |
+| `stratified_and_pooled_disagree` | the three above as one statement |
+| `balanced_pooling_agrees_with_the_strata` | **the control** — same values, equal stratum sizes, and pooling now agrees. This is what pins the reversal on the imbalance |
+| `primaries_can_tie_while_the_turn_differs` | two turns identical on every primary and different in output tokens: exactly the shape that produced the false null |
+| `measured_routed_emits_fewer_tokens` | 447 < 678, pinned so a later edit cannot quietly reverse the finding |
+
+Executed, not just elaborated: `#eval` gives `(10, 20)` and `(100, 110)` per
+stratum, `(91, 29)` pooled — routed worse — and `(55, 65)` once balanced —
+routed better. Same numbers throughout; only the group sizes change.
+
+**`balanced_pooling_agrees_with_the_strata` exists because a mutant survived.**
+A05 originally rebalanced one arm and expected the paradox to collapse. It
+survived, correctly: a one-sided rebalance relocates the imbalance rather than
+removing it, so the module had demonstrated an effect without demonstrating its
+cause. The repair went into the *module* — the balanced control was added — and
+A05 now breaks that control instead. A surviving mutant that changes the
+mathematics is the suite working, not the suite failing.
+
+Suite `lean/mutate/mutate_rotattribute.sh`, mutants A01–A09: erasure keeps the
+lane (A01); the lane-aware reading is blinded too (A02); routed stops winning
+lane 1 (A03) or lane 2 (A04); the balance control is broken (A05); `mean`
+becomes a size-blind sum (A06); the projection is widened so the primaries can
+no longer tie (A07); the measured direction is flipped (A08); the two measured
+means are made equal — the very verdict round 1 published (A09). **All nine
+killed, none survived, none discarded.** Its first run scored 9 DISCARDED
+because the generator emitted literal `\n` where line continuations belonged;
+the harness reported that as a defect in itself rather than as nine robust
+theorems, which is the only reason the second run means anything.
+
+Counts move to **24 modules, 578 theorems, 21 mutation suites, 270 mutants**.
+
 ## A test that creates its own precondition — green on three platforms
 
 **Measured in CI run 31116857127, and it had been green the whole cycle.**

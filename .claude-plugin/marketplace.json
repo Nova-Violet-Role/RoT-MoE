@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "rot-moe",
-  "description": "RoT MoE - a nine-lens Mixture-of-Experts router with a measured R/s+ divergence gauge, specified in Lean 4 and bound to the shipped hooks by an executable checker. 567 machine-checked theorems, zero sorry, kernel re-verified.",
+  "description": "RoT MoE - a nine-lens Mixture-of-Experts router with a measured R/s+ divergence gauge, specified in Lean 4 and bound to the shipped hooks by an executable checker. 578 machine-checked theorems, zero sorry, kernel re-verified.",
   "owner": {
     "name": "Saimonokuma",
     "url": "https://github.com/Nova-Violet-Role"
