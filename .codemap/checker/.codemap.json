@@ -234,12 +234,12 @@
       ]
     },
     "ctt-session.sh": {
-      "hash": "a165d0fb7885",
-      "indexed_at": "2026-08-06T19:18:14.448938+00:00",
+      "hash": "fa9306cf6d65",
+      "indexed_at": "2026-08-07T03:36:17.135995+00:00",
       "language": "shell",
-      "lines": 332,
-      "mtime_ns": 1786041584697753700,
-      "size": 17503,
+      "lines": 379,
+      "mtime_ns": 1786072133710088400,
+      "size": 20277,
       "symbols": [
         {
           "docstring": "--- the conversation: REAL work on THIS repository -------------------------- Every prompt names something that exists on disk. The lane each is expec",
@@ -528,12 +528,12 @@
       "symbols": []
     },
     "live-session-smoke.sh": {
-      "hash": "1fe71a354271",
-      "indexed_at": "2026-08-05T13:16:35.043269+00:00",
+      "hash": "45af30a5c316",
+      "indexed_at": "2026-08-06T19:45:20.704816+00:00",
       "language": "shell",
-      "lines": 252,
-      "mtime_ns": 1785903877791674200,
-      "size": 12444,
+      "lines": 292,
+      "mtime_ns": 1786045504054707200,
+      "size": 14816,
       "symbols": [
         {
           "lines": [
@@ -1142,12 +1142,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "10f8c9e8d7ec",
-      "indexed_at": "2026-08-06T15:14:32.759678+00:00",
+      "hash": "ebfe1df95a78",
+      "indexed_at": "2026-08-07T03:36:17.139020+00:00",
       "language": "shell",
-      "lines": 1220,
-      "mtime_ns": 1786025118568836900,
-      "size": 62147,
+      "lines": 1250,
+      "mtime_ns": 1786070785601248700,
+      "size": 63826,
       "symbols": [
         {
           "docstring": "One entry point, so the four call sites cannot drift apart again.",
@@ -1196,16 +1196,16 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            359,
-            368
+            389,
+            398
           ],
           "name": "gate_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            441,
-            445
+            471,
+            475
           ],
           "name": "enum_mods",
           "type": "function"
@@ -1213,24 +1213,24 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            482,
-            486
+            512,
+            516
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            619,
-            643
+            649,
+            673
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            699,
-            710
+            729,
+            740
           ],
           "name": "perms_of",
           "type": "function"
@@ -1238,8 +1238,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            828,
-            835
+            858,
+            865
           ],
           "name": "probe_r20",
           "type": "function"
@@ -1247,8 +1247,8 @@
         {
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
-            955,
-            970
+            985,
+            1000
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -1256,16 +1256,16 @@
         {
           "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
           "lines": [
-            1166,
-            1168
+            1196,
+            1198
           ],
           "name": "_r23_onblock",
           "type": "function"
         },
         {
           "lines": [
-            1169,
-            1171
+            1199,
+            1201
           ],
           "name": "_r23_count",
           "type": "function"
@@ -1273,6 +1273,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-06T19:18:14.451980+00:00",
+  "generated_at": "2026-08-07T03:36:17.146147+00:00",
   "version": "1.0"
 }

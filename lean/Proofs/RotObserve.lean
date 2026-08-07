@@ -632,4 +632,216 @@ theorem success_aware_verdict_still_passes_a_real_run :
     successAwareVerdict [{ ok := true, record := true }] = true := by
   decide
 
+/-! ## §10 — a test that manufactures its own precondition
+
+MEASURED 2026-08-06 in CI run 31116857127, on all three platforms at once.
+
+`checker/live-session-smoke.sh` guarded its authenticated phase with
+
+```sh
+[ -f "$HOME/.claude/.credentials.json" ] && HAVE_CREDS=1
+ls "$HOME/.claude"/*.json >/dev/null 2>&1 && HAVE_CREDS=1     # <- this line
+```
+
+The glob matches **`settings.json`** — a file this same script's own
+`ARM_ROUTER.sh` call creates a few lines earlier. So on a runner with no
+credentials at all, the detector reported *present*, the phase ran, the session
+could not authenticate, and CI logged:
+
+```
+PARTIAL the router line appeared 1 time(s) but the session exited 1.
+```
+
+green, because `PARTIAL` incremented neither counter.
+
+Two distinct defects met in three lines. The verdict half is §9 — the marker is
+written by the hook on submission, so it is present in the failure path. The
+half stated here is different and worth its own name: **the detector's predicate
+was satisfied by an artifact the test itself produces**, so after setup it is
+constant, and a constant detector detects nothing. -/
+
+/-- What the runner actually has, versus what the setup leaves lying around. -/
+structure Precondition where
+  /-- The real requirement: a usable credential. -/
+  hasCredential : Bool
+  /-- An artifact the test's own setup creates, unrelated to the requirement. -/
+  hasOwnArtifact : Bool
+  deriving DecidableEq, Repr
+
+/-- The detector as written: satisfied by either. -/
+def looseDetector (e : Precondition) : Bool := e.hasCredential || e.hasOwnArtifact
+
+/-- The detector as it must be: only the requirement counts. -/
+def strictDetector (e : Precondition) : Bool := e.hasCredential
+
+/-- Running the setup, which creates the artifact. -/
+def afterSetup (e : Precondition) : Precondition := { e with hasOwnArtifact := true }
+
+/-- **After its own setup the loose detector is `true` for every world.** It is
+not a weak precondition check; past that line it is not a check at all. -/
+theorem loose_detector_is_constant_after_setup (e : Precondition) :
+    looseDetector (afterSetup e) = true := by
+  simp [looseDetector, afterSetup]
+
+/-- The measured consequence: a runner with NO credential is reported ready. -/
+theorem loose_detector_cannot_see_a_missing_credential :
+    ∃ e : Precondition, e.hasCredential = false ∧ looseDetector (afterSetup e) = true := by
+  exact ⟨⟨false, false⟩, by decide, by decide⟩
+
+/-- The repair, and the property that makes something a detector at all: it is
+**invariant under the test's own setup**, so what it reports is a fact about the
+environment rather than about having run. -/
+theorem strict_detector_survives_setup (e : Precondition) :
+    strictDetector (afterSetup e) = e.hasCredential := by
+  simp [strictDetector, afterSetup]
+
+/-- And it still distinguishes the two worlds, so it is a test and not a
+constant in the other direction. -/
+theorem strict_detector_is_evidence :
+    strictDetector ⟨true, true⟩ ≠ strictDetector ⟨false, true⟩ := by decide
+
+/-! ## §11 — there is no such thing as a one-way link
+
+Asked directly: *"we need just a 1 way symlink that only updates based on the
+original, not the other way around."*
+
+The intent is exactly right and the mechanism cannot deliver it. A link is
+**shared identity**: reads and writes both resolve to the same object, so a
+session that refreshes its OAuth token writes the live credential. That is not a
+property of any particular filesystem — it is what a link means.
+
+What *does* deliver the intent is what the maintainer's `CTT` launcher already
+does and what `checker/ctt-session.sh` now mirrors: **copy on every launch.**
+The copy propagates the original forward and nothing backward.
+
+Below, `live` and `test` are the two credential slots. A LINK makes them one
+slot; a COPY makes `test` a snapshot refreshed at launch. The theorems say which
+one has the property that was asked for. -/
+
+/-- The two credential slots. -/
+structure Creds where
+  /-- The maintainer's real credential. -/
+  live : Nat
+  /-- What the test instance reads. -/
+  test : Nat
+  deriving DecidableEq, Repr
+
+/-- Linked: `test` IS `live`, so a write to either is a write to both. -/
+def writeThroughLink (_c : Creds) (v : Nat) : Creds := { live := v, test := v }
+
+/-- Copied: the test slot is refreshed FROM live at launch. -/
+def refreshCopy (c : Creds) : Creds := { c with test := c.live }
+
+/-- A write performed by the test session, under the copy discipline. -/
+def writeInTest (c : Creds) (v : Nat) : Creds := { c with test := v }
+
+/-- **A link cannot be one-way.** Whatever the test session writes, the live
+credential now holds it. This is the property that was asked for and it is
+unobtainable from a link, for every value. -/
+theorem a_link_propagates_backwards (c : Creds) (v : Nat) :
+    (writeThroughLink c v).live = v := rfl
+
+/-- Concretely: the live credential is changed by a test-side write. -/
+theorem a_link_lets_the_test_overwrite_the_live_credential :
+    ∃ c : Creds, ∃ v : Nat, (writeThroughLink c v).live ≠ c.live := by
+  exact ⟨⟨1, 1⟩, 2, by decide⟩
+
+/-- **The copy is the one-way link.** Nothing the test session writes reaches
+`live` — for every prior state and every written value. -/
+theorem a_copy_never_propagates_backwards (c : Creds) (v : Nat) :
+    (writeInTest c v).live = c.live := rfl
+
+/-- And it is not one-way by being inert: the refresh does carry the live value
+forward, which is the half that keeps the credential from going stale. -/
+theorem a_copy_carries_the_original_forward (c : Creds) :
+    (refreshCopy c).test = c.live := rfl
+
+/-- The two halves together, stated as the isolation property the CTT design
+depends on: after a refresh and any amount of test-side writing, `live` is
+untouched and the test started from `live`. -/
+theorem refresh_then_write_preserves_the_live_credential (c : Creds) (v : Nat) :
+    (writeInTest (refreshCopy c) v).live = c.live
+    ∧ (refreshCopy c).test = c.live := ⟨rfl, rfl⟩
+
+/-! ## §12 — a check reachable only through the thing it checks
+
+MEASURED 2026-08-06 21:41:17, and it is the **second** occurrence: an unrelated
+local tool wrote `.githooks/pre-commit` wholesale, replacing the repository's
+commit gate with its own index-maintenance hook whose header states outright
+`Never blocks a commit: every failure path exits 0`. `core.hooksPath` is
+`.githooks`, so from that moment the commit gate was disarmed.
+
+Dating saved the record: the overwrite is 21:41:17 and the last commit is
+21:32:29, so every commit actually recorded had run the real gate.
+
+`checker/workflow-lint.sh` DOES detect the substitution — measured in both
+directions, exit 1 with three named failures against the planted hook, exit 0
+and 156 passed against the real one. That is not the gap.
+
+The gap is **reachability**. Locally that detector runs because the pre-commit
+gate invokes it — so when the gate is the thing that has been replaced, the
+detector is precisely what stops running. A guard that audits itself through
+itself is silent in exactly the state it exists to report.
+
+The theorems below say it in general: replacing a guard with a permissive twin
+makes admission uninformative, an in-band detector cannot see it, and only a
+verifier whose execution does not depend on the guard can. -/
+
+/-- The state a commit gate is supposed to judge. -/
+structure Tree where
+  /-- Whether the checks actually pass. -/
+  green : Bool
+  deriving DecidableEq, Repr
+
+/-- Which hook is installed. -/
+inductive Hook where
+  /-- The repository's gate. -/
+  | gate
+  /-- Any hook that never refuses -- here, the tool that overwrote it. -/
+  | permissive
+  deriving DecidableEq, Repr
+
+/-- Does the commit get recorded? -/
+def admits : Hook → Tree → Bool
+  | .gate, t => t.green
+  | .permissive, _ => true
+
+/-- An audit invoked BY the hook: it runs only if the real gate is installed. -/
+def inBandDetects : Hook → Bool
+  | .gate => false          -- correctly reports "nothing wrong"
+  | .permissive => false    -- never runs, so it reports nothing at all
+
+/-- An audit whose execution does not depend on the hook -- CI on the committed
+tree, or any verifier run out of band. -/
+def outOfBandDetects : Hook → Bool
+  | .gate => false
+  | .permissive => true
+
+/-- The gate is a real gate: it admits exactly the green trees. -/
+theorem gate_admits_exactly_green (t : Tree) : admits .gate t = t.green := rfl
+
+/-- The replacement admits everything, for every tree. -/
+theorem permissive_admits_everything (t : Tree) : admits .permissive t = true := rfl
+
+/-- **So admission stops carrying information.** A red tree is recorded. -/
+theorem swap_makes_admission_uninformative :
+    ∃ t : Tree, t.green = false ∧ admits .permissive t = true := by
+  exact ⟨⟨false⟩, by decide, by decide⟩
+
+/-- **The catch-22, stated exactly.** The in-band audit reports nothing wrong in
+BOTH worlds — it is indistinguishable from a working audit, and it is silent in
+the one case that matters. -/
+theorem in_band_detector_is_blind_to_its_own_replacement :
+    inBandDetects .gate = inBandDetects .permissive := rfl
+
+/-- The out-of-band verifier separates the two worlds, which is what makes it a
+detector rather than a constant. -/
+theorem out_of_band_detector_sees_the_replacement :
+    outOfBandDetects .gate ≠ outOfBandDetects .permissive := by decide
+
+/-- And it fires on exactly the bad world -- no false alarm on the good one. -/
+theorem out_of_band_alarm_is_exact (h : Hook) :
+    outOfBandDetects h = true ↔ h = .permissive := by
+  cases h <;> simp [outOfBandDetects]
+
 end RotObserve

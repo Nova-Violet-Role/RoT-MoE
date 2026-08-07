@@ -345,6 +345,82 @@ run_mut M23 \
   '  false' \
   'success_aware_verdict_still_passes_a_real_run'
 
+# --- §10, the detector satisfied by the test's own setup --------------------
+
+# M24 -- the loose detector tightened. Then it would NOT be constant after
+# setup, and the theorem recording the measured CI defect must die.
+run_mut M24 \
+  'def looseDetector (e : Precondition) : Bool := e.hasCredential || e.hasOwnArtifact' \
+  'def looseDetector (e : Precondition) : Bool := e.hasCredential' \
+  'loose_detector_is_constant_after_setup'
+
+# M25 -- the strict detector loosened back to the shipped defect. This is the
+# exact line that was deleted from live-session-smoke.sh, so the invariance
+# theorem must not survive it.
+# NOTE THE SHAPE OF THIS NEEDLE. The obvious mutation -- widening the body to
+# `e.hasCredential || e.hasOwnArtifact` -- was DISCARDED on the first run,
+# because the replacement CONTAINS the needle, so the post-check that verifies
+# the needle is gone can never pass. That is the M11-M13 trap this repository
+# already recorded, and it reports as `discarded`, never as `survived`.
+# Reading the detector off the wrong field is disjoint and tests the same thing.
+run_mut M25 \
+  'def strictDetector (e : Precondition) : Bool := e.hasCredential' \
+  'def strictDetector (e : Precondition) : Bool := e.hasOwnArtifact' \
+  'strict_detector_survives_setup'
+
+# --- §11, link versus copy --------------------------------------------------
+
+# M26 -- the link made to behave like a copy. If that were true a link WOULD be
+# one-way and the theorem saying it is not must fail.
+run_mut M26 \
+  'def writeThroughLink (_c : Creds) (v : Nat) : Creds := { live := v, test := v }' \
+  'def writeThroughLink (c : Creds) (v : Nat) : Creds := { c with test := v }' \
+  'a_link_lets_the_test_overwrite_the_live_credential'
+
+# M27 -- the copy made to write back, which is precisely what a symlink would
+# do. The isolation property must die with it.
+run_mut M27 \
+  'def writeInTest (c : Creds) (v : Nat) : Creds := { c with test := v }' \
+  'def writeInTest (_c : Creds) (v : Nat) : Creds := { live := v, test := v }' \
+  'a_copy_never_propagates_backwards'
+
+# M28 -- the refresh neutered so it carries nothing forward. Then the copy would
+# be one-way by being inert, which is the useless version of the design.
+run_mut M28 \
+  'def refreshCopy (c : Creds) : Creds := { c with test := c.live }' \
+  'def refreshCopy (c : Creds) : Creds := c' \
+  'a_copy_carries_the_original_forward'
+
+# --- §12, a check reachable only through the thing it checks ----------------
+
+# M29 -- the permissive hook made to refuse red trees. Then a swapped hook would
+# be harmless and the theorem recording the measured disarm must die.
+run_mut M29 \
+  '  | .permissive, _ => true' \
+  '  | .permissive, _ => t.green' \
+  'swap_makes_admission_uninformative'
+
+# M30 -- the out-of-band verifier blinded. It then agrees with the in-band one
+# in both worlds, so the theorem that it SEPARATES them must fail.
+run_mut M30 \
+  '  | .permissive => true' \
+  '  | .permissive => false' \
+  'out_of_band_detector_sees_the_replacement'
+
+# M31 -- the in-band audit made to fire when replaced, which is exactly the
+# capability it does not have. The blindness theorem must die.
+run_mut M31 \
+  '  | .permissive => false    -- never runs, so it reports nothing at all' \
+  '  | .permissive => true     -- pretends it still runs' \
+  'in_band_detector_is_blind_to_its_own_replacement'
+
+# M32 -- the real gate turned permissive. If this survived, `admits .gate` would
+# not be a gate at all.
+run_mut M32 \
+  '  | .gate, t => t.green' \
+  '  | .gate, _ => true' \
+  'gate_admits_exactly_green'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's
