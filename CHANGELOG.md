@@ -100,6 +100,87 @@ Counts move to **504 theorems / 22 modules / 19 suites / 226 mutants**.
 
 ---
 
+## The A/B ran: the pre-registered endpoints came back NULL, and cost fell 31.6%
+
+**80 paired turns with the plugin armed against 80 with it disabled**, same 80
+prompts in the same order, same config directory, tools off in both arms.
+Protocol frozen in advance, with three amendments each recorded before the data
+they affect. Arm A verified routed (111 route records); arm B verified unrouted
+(**zero**). 80/80 valid turns per arm, zero errors in either.
+
+### The pre-registered primary endpoints did not support the hypothesis
+
+| endpoint | routed | unrouted | 80 paired |
+|---|---|---|---|
+| trailing question | 0.000 | 0.000 | 80 ties |
+| self-narration | 0.000 | 0.000 | 80 ties |
+| hedging tokens | 0.037 | 0.000 | routed **worse** on 3, better on 0 |
+
+Written plainly because the protocol required it in advance: **the claim that
+routing improves these three voice properties is not what the data shows.**
+
+Two of the three could not have shown anything -- the unrouted arm already
+scored zero, so there was no room to improve. That is a defect in the ENDPOINT,
+not a result about the router, and `RotObserve` §14 now proves the distinction
+rather than leaving it as an excuse.
+
+### A secondary metric moved hard, and it stays secondary
+
+| metric | routed | unrouted | delta | paired sign count |
+|---|---|---|---|---|
+| cost per turn | $0.1013 | $0.1481 | **-31.6%** | cheaper on **75 of 80** |
+| response length | 584 ch | 762 ch | -23.4% | shorter on 67 of 80 |
+| duration | 10.1 s | 13.5 s | -24.6% | faster on 51 of 80 |
+| is_error | 0 | 0 | -- | 80 ties |
+
+75 of 80 is not noise. It is also not a result this protocol may claim, because
+cost was pre-registered as descriptive. Promoting a metric to the headline after
+watching it move is the exact laundering the pre-registration exists to stop, so
+it is recorded as the hypothesis for a round 2 that names it primary in advance.
+
+**Not measured: whether the answers are as good.** The only rater available is
+the model that wrote them. Cheaper and shorter is an improvement only if the
+content survived, and nothing here establishes that. Round 2 needs a mechanical
+groundedness proxy -- does the answer name the file, lemma or constant it was
+asked about -- so brevity cannot be bought with emptiness.
+
+### Three defects the run found, none of which a theorem would have
+
+1. **CTT was running a router killed at 30 s.** Starting an hour earlier would
+   have made arm A a second arm B and produced a false null.
+2. **The first disarm did nothing.** Emptying `installed_plugins.json` left the
+   plugin firing: 16 turns, **39 route records**. Caught only by the harness's
+   own "arm B must be zero" control, and those turns were deleted. The real
+   switch is `enabledPlugins`; arm B now uses `claude plugin disable`.
+3. **A benchmark turn executed `checker/axiom-audit.sh` against this repo.**
+   Run 1 of arm A was discarded and archived for it, with the reason recorded
+   before any answer text was read.
+
+`checker/ab-session.sh` collects and refuses a pass on an empty collection;
+`checker/ab-analyze.sh` computes only the frozen metric list; `bench/ab-prompts.txt`
+holds the 80 prompts so neither arm can drift from the other.
+
+### `RotObserve` §14 -- seven theorems about what an endpoint can attribute
+
+| theorem | what it settles |
+|---|---|
+| `floor_endpoint_cannot_improve` | a control arm at zero admits no improvement -- for every endpoint |
+| `improvement_requires_room` | the positive form, checkable BEFORE collecting data |
+| `equal_arms_attribute_nothing` | a tie is not weak evidence in either direction |
+| `control_at_least_treated_attributes_nothing` | the metric-9 case: 9 routed vs 12 unrouted attributes exactly nothing |
+| `attributable_le_difference` | the control count bounds what the mechanism can be blamed for |
+| `an_endpoint_can_be_worse_when_treated` | the design must be able to express a loss, or it is not a test |
+| `all_ties_leave_no_sign_count` | 80 ties is the same evidence as one tie: none |
+
+Build exit 0, zero warnings; axioms `propext`/`Quot.sound` (`Classical.choice`
+for the list theorem), no `sorryAx`; `leanchecker` exit 0. `#eval` reproduces the
+measured numbers: attributable 0 for the leak metric, 3 for hedging, `(0,0)`
+sign counts on 80 ties. Mutants **M37-M40**, all killed.
+
+Counts: **523 theorems / 22 modules / 19 suites / 238 mutants**.
+
+---
+
 ## The router was being killed at 30 seconds, and a killed hook is silent
 
 **Measured 2026-08-07 by the maintainer, found by accident.** Opening the debug
@@ -152,8 +233,7 @@ a missing bound, a disagreeing pair, or a pointless one. 9 passed, 0 failed.
 Build exit 0, zero warnings; axioms `propext` (and `Classical.choice`/`Quot.sound`
 for the existence proof), no `sorryAx`; `leanchecker` exit 0. `#eval` confirms
 `hookOutput 30 ⟨600⟩ = none` and that it compares **equal** to `absentOutput`.
-Mutants **M33–M36**, all killed: **234 applied, 234 killed**, 0 survived, 0
-discarded. The gate table and `RotGates.lean` both gain the new checker — 38
+Mutants **M33–M36**, all killed, 0 survived, 0 discarded. The gate table and `RotGates.lean` both gain the new checker — 38
 gates, 25 fast — and `gate-split` confirms shell and Lean still agree, 12/12.
 
 Counts move to **516 theorems / 22 modules / 19 suites / 234 mutants / 50 checkers**.
