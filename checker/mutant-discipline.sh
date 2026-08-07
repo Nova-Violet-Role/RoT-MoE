@@ -263,6 +263,54 @@ case "$full" in *discard*) : ;; *) hit=1 ;; esac
                  || bad "CONTROL DEAD: the complete form was rejected; the rule forbids correct harnesses"
 rm -rf "$ctl_dir"
 
+
+# --- PHASE: A KILL MUST BE ATTRIBUTABLE -------------------------------------
+# MEASURED in CI run 31180174433 (2026-08-07), green the whole cycle.
+# mutate_rotgauge.sh wrote its build logs to a hard-coded /d/tmp/mut, a Windows
+# drive path. On the Linux runner:
+#
+#   mkdir: cannot create directory '/d': Permission denied
+#   mutate_rotgauge.sh: line 128: /d/tmp/mut/M01.log: No such file or directory
+#   M01  KILLED     exit=1  MODULE DEAD
+#
+# When a redirection target cannot be opened, bash does NOT run the command and
+# returns 1. The suite read that as a red build and scored a kill. All twelve
+# mutants were recorded KILLED on a runner where lake never ran once, and the
+# job passed -- twelve fake kills published as evidence the theorems hold.
+#
+# Both rules are checked on EVERY suite, not on the one that failed: a fix
+# applied only where the defect was found is not a fix.
+echo
+echo "== a kill must be attributable: no build log, no finding =="
+_LOGPAT='^[[:space:]]*LOG=("?/[a-zA-Z]/|"?[A-Za-z]:|"?[$]HOME|"?~)'
+for s in "$REPO"/lean/mutate/mutate_*.sh; do
+  b=$(basename "$s")
+  if grep -nE "$_LOGPAT" "$s" >/dev/null 2>&1; then
+    bad "$b: LOG= is a machine-local absolute path -- unwritable elsewhere, and then every mutant becomes a false KILL"
+  else
+    ok "$b: log directory is portable"
+  fi
+  if grep -q 'produced NO log' "$s"; then
+    ok "$b: refuses to score a kill when the build produced no log"
+  else
+    bad "$b: a non-zero exit with NO build log would be scored KILLED -- that is how twelve fake kills were published"
+  fi
+done
+
+# CONTROL: both predicates must be able to FAIL, or their passes are decoration.
+_ctl=$(mktemp -d "${TMPDIR:-/tmp}/mdctl.XXXXXX")
+printf 'LOG=/d/tmp/mut
+if [ x -ne 0 ]; then killed=1; fi
+' > "$_ctl/mutate_fake.sh"
+_c1=0; _c2=0
+grep -nE "$_LOGPAT" "$_ctl/mutate_fake.sh" >/dev/null 2>&1 && _c1=1
+grep -q 'produced NO log' "$_ctl/mutate_fake.sh" || _c2=1
+[ "$_c1" -eq 1 ] && ok "CONTROL: the exact /d/tmp/mut form IS detected" \
+                 || bad "CONTROL DEAD: the path rule did not fire on the form that actually shipped"
+[ "$_c2" -eq 1 ] && ok "CONTROL: a suite with no attributability guard IS rejected" \
+                 || bad "CONTROL DEAD: the guard rule accepts a harness that has no guard"
+rm -rf "$_ctl"
+
 printf '\n== mutation discipline: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

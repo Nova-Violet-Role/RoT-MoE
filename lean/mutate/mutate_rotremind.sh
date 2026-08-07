@@ -152,6 +152,15 @@ run_mut () {  # run_mut <id> <needle> <replacement> <description>
     echo "  $id SURVIVED  -- $desc"
     echo "       NOTHING CAUGHT THIS. The theorems above it are decorative."
     survived=$((survived+1))
+  # ATTRIBUTABILITY. A non-zero exit is evidence that the theorems died
+  # only if a build actually ran. A failed redirect, a missing toolchain
+  # or a killed process each give non-zero with NO log. MEASURED in CI
+  # run 31180174433: a sibling suite scored twelve kills exactly that
+  # way, on a runner where lake never ran once, and the job was GREEN.
+  elif [ ! -s /tmp/mut_$id.log ]; then
+    echo "  $id DISCARDED -- build produced NO log; lake did not run, so"
+    echo "       nothing was learned. Harness fault, not a dead theorem."
+    discarded=$((discarded+1))
   else
     dead=$(grep -oE '^error: Proofs/RotRemind.lean:[0-9]+' /tmp/mut_$id.log | head -3 | tr '\n' ' ')
     echo "  $id killed    -- $desc"
@@ -203,6 +212,15 @@ run_mut_nth () {  # run_mut_nth <id> <needle> <repl> <occurrence> <total> <desc>
     echo "  $id SURVIVED  -- $desc"
     echo "       NOTHING CAUGHT THIS. The theorems above it are decorative."
     survived=$((survived+1))
+  # ATTRIBUTABILITY. A non-zero exit is evidence that the theorems died
+  # only if a build actually ran. A failed redirect, a missing toolchain
+  # or a killed process each give non-zero with NO log. MEASURED in CI
+  # run 31180174433: a sibling suite scored twelve kills exactly that
+  # way, on a runner where lake never ran once, and the job was GREEN.
+  elif [ ! -s /tmp/mut_$id.log ]; then
+    echo "  $id DISCARDED -- build produced NO log; lake did not run, so"
+    echo "       nothing was learned. Harness fault, not a dead theorem."
+    discarded=$((discarded+1))
   else
     dead=$(grep -oE '^error: Proofs/RotRemind.lean:[0-9]+' /tmp/mut_$id.log | head -3 | tr '\n' ' ')
     echo "  $id killed    -- $desc"

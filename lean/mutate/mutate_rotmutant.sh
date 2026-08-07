@@ -133,6 +133,23 @@ run_mut() {
   ( cd "$_WSDIR" && lake build "Proofs.$mod" ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
+  # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
+  # A non-zero exit proves the theorems died only if a build actually happened.
+  # A failed redirection, a missing toolchain or a killed process each give a
+  # non-zero status with NO build log, and each would otherwise be filed as a
+  # kill. MEASURED in CI run 31180174433: mutate_rotgauge.sh wrote its logs to a
+  # hard-coded /d/tmp/mut, mkdir was refused on the Linux runner, bash declined
+  # to run each build because the redirect could not be opened, and all twelve
+  # mutants were scored KILLED without lake running once. The job was green.
+  #
+  # No log, or an empty one, means nothing was learned. DISCARDED -- which
+  # cannot exit 0 -- rather than a finding.
+  if [ ! -s "$LOG/$id.log" ]; then
+    echo "$id  DISCARDED  build produced NO log (exit=$ec) -- lake did not run,"
+    echo "                so this is a harness fault, not a dead theorem."
+    discarded=$((discarded+1)); cp "$BAK" "$F"; return
+  fi
+
   if [ "$ec" -eq 0 ]; then
     echo "$id  SURVIVED   (build still exit 0)  expected to kill: $expect"
     survived=$((survived+1))
@@ -291,6 +308,52 @@ run_mut M13 RotMutant \
   'git_restore_ignores_the_backup, git_restore_is_total, git_strictly_safer_on_the_measured_state'
 
 echo
+
+# M14 -- attributability is switched off: every verifier observation counts as
+# evidence, which is precisely the rule that published twelve fake kills.
+run_mut M14 RotMutant \
+  'def attributable (v : Verify) : Bool := v.producedLog' \
+  'def attributable (_v : Verify) : Bool := true' \
+  'unattributable_is_never_killed, naive_rule_manufactures_a_kill'
+
+# M15 -- the evidence check is removed from the classifier, restoring the
+# shipped rule verbatim. The module must notice that its own repair is gone.
+run_mut M15 RotMutant \
+  '  else if !attributable v then Outcome.discarded' \
+  '  else if false then Outcome.discarded' \
+  'naive_rule_manufactures_a_kill, unattributable_is_never_killed'
+
+# M16 -- the recorded CI observation is edited to say a log WAS produced. The
+# false kill then stops being false, and the measurement is quietly erased.
+run_mut M16 RotMutant \
+  'def ciVerify : Verify := { buildExit := 1, producedLog := false }' \
+  'def ciVerify : Verify := { buildExit := 1, producedLog := true }' \
+  'naive_rule_manufactures_a_kill'
+
+# M17 -- THE BLANKET REFUSAL. Attributability is inverted: no observation ever
+# counts as evidence, so the guard discards everything and the suite can never
+# kill again. A theorem that only FORBIDS unattributable kills is satisfied by
+# exactly this, which is why the two non-vacuity theorems exist -- they must
+# die here or they are not doing the work they claim.
+#
+# Its first form needled `else if v.buildExit == 0 then Outcome.survived`,
+# which appears in BOTH classifiers; the suite reported DISCARDED (needle x2)
+# rather than pretending, and the mutant was retargeted instead of the count
+# being explained away.
+run_mut M17 RotMutant \
+  'def attributable (v : Verify) : Bool := v.producedLog' \
+  'def attributable (_v : Verify) : Bool := false' \
+  'a_real_kill_survives_the_new_guard, a_survivor_is_still_a_survivor'
+
+# M18 -- THE MISTAKE I MADE, RE-INSTALLED. The exhaustive theorem first
+# carried a third disjunct on the assumption that a zero exit status was
+# harmless; `decide` refuted it, because with no evidence the shipped rule
+# reports SURVIVED on a build that never ran. Putting it back must fail.
+run_mut M18 RotMutant \
+  '      ↔ (landed r = false ∨ log = true) := by' \
+  '      ↔ (landed r = false ∨ log = true ∨ be.val = 0) := by' \
+  'rules_differ_exactly_on_missing_evidence'
+
 # --- back to a VERIFIED green baseline ---------------------------------------
 # Every other suite in this directory ends by rebuilding after the final restore.
 # This one did not: it was derived with `head -165` from a sibling, and the tail

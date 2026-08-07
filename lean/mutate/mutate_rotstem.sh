@@ -133,6 +133,23 @@ run_mut() {
   ( cd "$_WSDIR" && lake build "Proofs.$mod" ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
+  # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
+  # A non-zero exit proves the theorems died only if a build actually happened.
+  # A failed redirection, a missing toolchain or a killed process each give a
+  # non-zero status with NO build log, and each would otherwise be filed as a
+  # kill. MEASURED in CI run 31180174433: mutate_rotgauge.sh wrote its logs to a
+  # hard-coded /d/tmp/mut, mkdir was refused on the Linux runner, bash declined
+  # to run each build because the redirect could not be opened, and all twelve
+  # mutants were scored KILLED without lake running once. The job was green.
+  #
+  # No log, or an empty one, means nothing was learned. DISCARDED -- which
+  # cannot exit 0 -- rather than a finding.
+  if [ ! -s "$LOG/$id.log" ]; then
+    echo "$id  DISCARDED  build produced NO log (exit=$ec) -- lake did not run,"
+    echo "                so this is a harness fault, not a dead theorem."
+    discarded=$((discarded+1)); cp "$BAK" "$F"; return
+  fi
+
   if [ "$ec" -eq 0 ]; then
     echo "$id  SURVIVED   (build still exit 0)  expected to kill: $expect"
     survived=$((survived+1))

@@ -139,6 +139,17 @@ run_mut() {
   rm -f "$OLEAN"
   ( cd "$LEAN_ROOT" && lake build Proofs.RotInstall ) > "$LOG/$id.log" 2>&1
   local ec=$?
+  # ATTRIBUTABILITY. A non-zero exit proves the theorems died only if a build
+  # actually ran. MEASURED in CI run 31180174433: a sibling suite scored twelve
+  # kills on a runner where lake never ran once, because its redirect target
+  # could not be created and bash declined to run the command. No log means
+  # nothing was learned -- DISCARDED, which cannot exit 0.
+  if [ ! -s "$LOG/$id.log" ]; then
+    echo "$id  DISCARDED  build produced NO log (exit=$ec) -- lake did not run,"
+    echo "                so this is a harness fault, not a dead theorem."
+    discarded=$((discarded+1)); cp "$BAK" "$F"; return
+  fi
+
   if [ "$ec" -eq 0 ]; then
     echo "$id  SURVIVED   expected: $expect"; survived=$((survived+1))
   else
@@ -184,6 +195,17 @@ run_mut_nth() {
   rm -f "$OLEAN"
   ( cd "$LEAN_ROOT" && lake build Proofs.RotInstall ) > "$LOG/$id.log" 2>&1
   local ec=$?
+  # ATTRIBUTABILITY. A non-zero exit proves the theorems died only if a build
+  # actually ran. MEASURED in CI run 31180174433: a sibling suite scored twelve
+  # kills on a runner where lake never ran once, because its redirect target
+  # could not be created and bash declined to run the command. No log means
+  # nothing was learned -- DISCARDED, which cannot exit 0.
+  if [ ! -s "$LOG/$id.log" ]; then
+    echo "$id  DISCARDED  build produced NO log (exit=$ec) -- lake did not run,"
+    echo "                so this is a harness fault, not a dead theorem."
+    discarded=$((discarded+1)); cp "$BAK" "$F"; return
+  fi
+
   if [ "$ec" -eq 0 ]; then
     echo "$id  SURVIVED   expected: $expect"; survived=$((survived+1))
   else

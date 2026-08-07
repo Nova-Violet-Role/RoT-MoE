@@ -472,4 +472,131 @@ theorem git_strictly_safer_on_the_measured_state :
 -- over-strict and someone would relax it wholesale.
 #guard restoreIsSafe ⟨29107⟩ (restoreByCopy ⟨29107⟩ ⟨29107⟩)
 
+/-! ## §N A KILL NEEDS EVIDENCE THAT THE VERIFIER RAN
+
+Everything above is about the PATCH: whether the mutant was validly produced.
+The defect below is one step later and slipped straight past it, because the
+patch landed perfectly.
+
+MEASURED in CI run 31180174433 (2026-08-07), green the whole cycle.
+`mutate_rotgauge.sh` wrote its build logs to a hard-coded `/d/tmp/mut` — a
+Windows drive path. On the Linux runner:
+
+```
+mkdir: cannot create directory '/d': Permission denied
+mutate_rotgauge.sh: line 128: /d/tmp/mut/M01.log: No such file or directory
+M01  KILLED     exit=1  MODULE DEAD
+```
+
+When a redirection target cannot be opened, **bash does not run the command**
+and returns 1. The suite read that 1 as "the build went red" and recorded a
+kill. All twelve mutants were scored KILLED on a runner where `lake` never ran
+once, and the job passed. Twelve fake kills, published as evidence.
+
+So the harness needs a fourth observable, and it is not about the patch: did
+the verifier actually produce anything? -/
+
+/-- What the harness observes after running the verifier. -/
+structure Verify where
+  /-- The status the harness read after invoking the build. -/
+  buildExit : Nat
+  /-- Did the build produce a log at all? `false` means the process never ran:
+  a refused redirection, a missing toolchain, a killed process. -/
+  producedLog : Bool
+  deriving DecidableEq, Repr
+
+/-- A verdict is attributable only when the verifier left evidence behind. -/
+def attributable (v : Verify) : Bool := v.producedLog
+
+/-- The rule the suites now implement: the patch must have landed, the verifier
+must have RUN, and only then does its exit status mean anything. -/
+def classifyBuild (r : Run) (v : Verify) : Outcome :=
+  if !landed r then Outcome.discarded
+  else if !attributable v then Outcome.discarded
+  else if v.buildExit == 0 then Outcome.survived
+  else Outcome.killed
+
+/-- The rule that shipped: read the exit status and believe it. -/
+def naiveClassifyBuild (r : Run) (v : Verify) : Outcome :=
+  if !landed r then Outcome.discarded
+  else if v.buildExit == 0 then Outcome.survived
+  else Outcome.killed
+
+/-- The exact CI shape: a patch that landed, a build that never ran, status 1. -/
+def ciRun : Run := { toolExit := 0, empty := false, changed := true }
+/-- …and the verifier observation that went with it. -/
+def ciVerify : Verify := { buildExit := 1, producedLog := false }
+
+/-- **The false kill, reproduced.** The shipped rule calls it a kill; the
+repaired rule discards it. This is the twelve-fold defect in one line. -/
+theorem naive_rule_manufactures_a_kill :
+    naiveClassifyBuild ciRun ciVerify = Outcome.killed
+    ∧ classifyBuild ciRun ciVerify = Outcome.discarded := by
+  constructor <;> rfl
+
+/-- **The general guarantee**, not merely the one case: if the verifier left no
+evidence, no run is ever scored killed — whatever the patch did and whatever
+status was read. -/
+theorem unattributable_is_never_killed (r : Run) (v : Verify)
+    (h : v.producedLog = false) : classifyBuild r v ≠ Outcome.killed := by
+  unfold classifyBuild attributable
+  by_cases hl : landed r
+  · simp [hl, h]
+  · simp [hl]
+
+/-- And the converse direction, so the rule is not merely cautious: a kill
+carries all three facts with it. A theorem that only forbade kills would be
+satisfied by a harness that never kills anything. -/
+theorem killed_carries_its_evidence (r : Run) (v : Verify)
+    (h : classifyBuild r v = Outcome.killed) :
+    landed r = true ∧ v.producedLog = true ∧ v.buildExit ≠ 0 := by
+  unfold classifyBuild attributable at h
+  by_cases hl : landed r
+  · by_cases hp : v.producedLog
+    · by_cases he : v.buildExit == 0
+      · simp [hl, hp, he] at h
+      · refine ⟨hl, hp, ?_⟩
+        simpa using he
+    · simp [hl, hp] at h
+  · simp [hl] at h
+
+/-- Non-vacuity: the repaired rule still kills. A guard that discarded
+everything would satisfy the theorem above and prove nothing. -/
+theorem a_real_kill_survives_the_new_guard :
+    classifyBuild ciRun { buildExit := 1, producedLog := true } = Outcome.killed := by
+  rfl
+
+/-- And it still recognises a survivor. -/
+theorem a_survivor_is_still_a_survivor :
+    classifyBuild ciRun { buildExit := 0, producedLog := true } = Outcome.survived := by
+  rfl
+
+/-- Exhaustive over every observable combination the harness can present, with
+the exit status bounded. **The two rules agree exactly when the patch did not
+land or the verifier left evidence** — and nowhere else.
+
+The first form of this theorem carried a third disjunct, `be.val = 0`, on the
+assumption that a zero status was harmless. `decide` refuted it, which is the
+whole reason the statement is exhaustive rather than argued: when the patch
+landed and no evidence exists, the shipped rule reports **survived** on a build
+that never ran, and that verdict is exactly as unfounded as the twelve kills.
+Only the kills were noticed because only they were flattering. -/
+theorem rules_differ_exactly_on_missing_evidence
+    (te be : Fin 4) (emp chg log : Bool) :
+    let r : Run := { toolExit := te.val, empty := emp, changed := chg }
+    let v : Verify := { buildExit := be.val, producedLog := log }
+    (classifyBuild r v = naiveClassifyBuild r v)
+      ↔ (landed r = false ∨ log = true) := by
+  revert te be emp chg log
+  decide
+
+/-- The unfounded SURVIVOR, stated on its own so it cannot be forgotten: with no
+evidence and a zero status, the shipped rule declares the theorem robust. -/
+theorem naive_rule_also_manufactures_a_survivor :
+    naiveClassifyBuild ciRun { buildExit := 0, producedLog := false }
+      = Outcome.survived
+    ∧ classifyBuild ciRun { buildExit := 0, producedLog := false }
+      = Outcome.discarded := by
+  constructor <;> rfl
+
 end RotMoE

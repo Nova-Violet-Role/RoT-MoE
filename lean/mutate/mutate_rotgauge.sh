@@ -21,9 +21,32 @@ set -u
 F=${LEAN_ROOT:-.}/Proofs/RotGauge.lean
 BAK="$F.mutbak"
 OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotGauge.olean
-LOG=/d/tmp/mut
+# THE LOG DIRECTORY, AND WHY IT IS NOT A LITERAL ANY MORE.
+# This read `LOG=/d/tmp/mut` -- a Windows drive path that exists on the author's
+# machine and nowhere else. MEASURED in CI run 31180174433 (2026-08-07), on the
+# ubuntu runner:
+#
+#   mkdir: cannot create directory '/d': Permission denied
+#   mutate/mutate_rotgauge.sh: line 128: /d/tmp/mut/M01.log: No such file...
+#   M01  KILLED     exit=1  MODULE DEAD
+#
+# When a redirection target cannot be created, bash does NOT run the command and
+# sets $? to 1. This suite read that 1 as "the build went red" and scored a
+# KILL. All twelve mutants were recorded killed on a runner where lake never
+# ran once, and the job went GREEN. That is a manufactured green of exactly the
+# kind this repository exists to prevent, produced by its own harness.
+#
+# Two independent repairs, because the path was only the proximate cause:
+#   1. the directory is now a real temporary one, as in every sibling suite;
+#   2. a kill must be ATTRIBUTABLE -- see the build-log check in run_mut. A red
+#      exit with no build log is a harness fault (DISCARDED), never a finding.
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutgauge.XXXXXX")"
 
-mkdir -p "$LOG"
+if [ ! -d "$LOG" ] || [ ! -w "$LOG" ]; then
+  echo "FATAL: could not create a writable log directory (\"$LOG\")."
+  echo "Refusing to run: unwritable logs turn every mutant into a false KILL."
+  exit 2
+fi
 # --- PREFLIGHT: no green baseline, no attributable kills --------------------
 # Added 2026-07-31 after two SIBLING suites were caught scoring 11 kills
 # without ever opening a source file: their builds failed because the
@@ -127,6 +150,20 @@ run_mut() {
   rm -f "$OLEAN"
   ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotGauge ) > "$LOG/$id.log" 2>&1
   local ec=$?
+
+  # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
+  # A non-zero exit is only evidence that the THEOREMS died if a build actually
+  # took place. A failed redirection, a missing toolchain or a killed process
+  # all produce a non-zero status with no build log, and every one of them
+  # would otherwise be filed as a kill. Measured 2026-08-07: twelve were.
+  #
+  # No log, or an empty one, means lake produced nothing -- so nothing about
+  # the theorems was learned. DISCARDED, and the run cannot exit 0.
+  if [ ! -s "$LOG/$id.log" ]; then
+    echo "$id  DISCARDED  build produced NO log (exit=$ec) -- lake did not run,"
+    echo "                so this is a harness fault, not a dead theorem."
+    discarded=$((discarded+1)); cp "$BAK" "$F"; return
+  fi
 
   if [ "$ec" -eq 0 ]; then
     echo "$id  SURVIVED   (build still exit 0)  expected to kill: $expect"
