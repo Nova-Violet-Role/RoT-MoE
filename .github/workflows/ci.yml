@@ -505,6 +505,35 @@ jobs:
           fi
           exit $rc
 
+      # The marketplace install path, in the ONLY jobs that can reach it. The
+      # lean job registers the same checker but has no CLI, so there it can
+      # only ever skip -- and until run 31187881399 it skipped while the log
+      # blamed missing credentials, a cause that had not been tested.
+      #
+      # Here the CLI IS installed a few steps above, so exit 4 ("no claude CLI")
+      # cannot be a fact about the environment: it means the install step
+      # silently produced nothing. That is a FAILURE, exactly as the sibling
+      # rule for live-session-smoke treats its own 3.
+      #
+      # Exit 3 remains a skip on this runner and always will: credentials are a
+      # decided boundary (see the note in the lean job), enforced locally with
+      # `gate-all --full` and in the CTT instance before anything ships.
+      - name: marketplace session -- CLI present, so "no CLI" is a FAILURE
+        shell: bash
+        run: |
+          set +e
+          bash checker/marketplace-session.sh; rc=$?
+          if [ "$rc" -eq 4 ]; then
+            echo "::error::marketplace-session.sh reports the CLI absent AFTER the"
+            echo "::error::install step succeeded. Broken install, not a skip."
+            exit 1
+          fi
+          if [ "$rc" -eq 3 ]; then
+            echo "SKIP (3): no credentials on the runner -- never counted as a pass"
+            exit 0
+          fi
+          exit $rc
+
       # THIS ONE DOES RUN HERE, and the distinction is the point of the note
       # below. `ctt-session.sh --report` does not hold a session -- it ANALYSES
       # the committed corpus in bench/, which is the evidence behind the
@@ -752,10 +781,22 @@ jobs:
       #
       # Every OTHER exit-3 gate in this file has been converted to a hard
       # failure or given a corpus so it can genuinely run.
+      #
+      # ATTRIBUTION FIX (run 31187881399). This step used to print
+      # "SKIP (3): no credentials on the runner" whatever the cause, and the
+      # log of that run shows it doing so directly beneath the checker's own
+      # "no claude CLI on PATH" line. The cause reported was not the cause
+      # observed. marketplace-session.sh now separates them -- 3 no
+      # credentials, 4 no CLI -- so the log names the thing that was missing.
+      #
+      # This job does NOT install the CLI, so 4 is expected here and is a
+      # skip. In any job that DID install it, 4 means the install broke and
+      # must fail; that rule is applied at the matrix copy of this step.
       - name: marketplace session -- install as a stranger (SKIPs without auth)
         run: |
           rc=0; bash checker/marketplace-session.sh || rc=$?
           if [ "$rc" -eq 3 ]; then echo "SKIP (3): no credentials on the runner -- never counted as a pass"; exit 0; fi
+          if [ "$rc" -eq 4 ]; then echo "SKIP (4): no claude CLI in THIS job -- never counted as a pass, and NOT a credential skip"; exit 0; fi
           exit "$rc"
 
       # The Lean spec must GOVERN the shell. lean/Proofs/RotMutant.lean proves

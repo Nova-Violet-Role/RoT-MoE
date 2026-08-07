@@ -27,7 +27,10 @@
 # this gate reads. A model-mediated observable would have made this test flaky
 # and the flakiness would eventually have been "fixed" by deleting it.
 #
-# Exit: 0 pass, 1 fail, 2 refuse, 3 SKIP (never a pass).
+# Exit: 0 pass, 1 fail, 2 refuse, 3 SKIP no credentials, 4 SKIP no CLI.
+# 3 and 4 are both skips and NEITHER is ever a pass -- but they are different
+# skips, and the workflow treats them differently: 4 is a hard failure in any
+# job that installed the CLI. See the block at the CLI check for why.
 set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
@@ -39,7 +42,28 @@ skip () { printf '  SKIP  %s\n' "$1"; }
 
 echo "== marketplace session: install as a stranger, prove the router runs =="
 
-command -v claude >/dev/null 2>&1 || { skip "no claude CLI on PATH -- cannot test the install path"; exit 3; }
+# TWO CAUSES, TWO EXIT CODES. Both of these used to exit 3, and the workflow
+# printed "SKIP (3): no credentials on the runner" for either -- so a run where
+# the CLI was simply absent was filed in the log under a cause that had not been
+# tested. Measured on run 31187881399, the lean job printed BOTH lines at once:
+#
+#   SKIP  no claude CLI on PATH -- cannot test the install path
+#   SKIP (3): no credentials on the runner -- never counted as a pass
+#
+# That is the same defect class as the twelve fake RotGauge kills: a real
+# condition reported under the wrong cause, in a way that reads as understood.
+# A skip is only honest if it names the thing that was actually missing.
+#
+#   3 = no credentials. A DECIDED BOUNDARY (ci.yml:737) -- credentials never go
+#       in repository secrets, so this can never be closed on a public runner
+#       and is enforced locally and in CTT instead.
+#   4 = no CLI. NOT a boundary, an environment gap. Any job that installs the
+#       CLI can close it, and a job that installed it and still gets 4 has a
+#       BROKEN INSTALL and must fail rather than skip.
+command -v claude >/dev/null 2>&1 || {
+  skip "no claude CLI on PATH -- cannot test the install path (exit 4, NOT a credential skip)"
+  exit 4
+}
 SRC_CRED="${CLAUDE_CRED_SRC:-$HOME/.claude/.credentials.json}"
 [ -f "$SRC_CRED" ] || { skip "no credentials to clone -- a real session needs auth (CI has none)"; exit 3; }
 

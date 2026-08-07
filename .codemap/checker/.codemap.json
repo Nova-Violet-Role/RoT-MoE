@@ -630,18 +630,18 @@
       ]
     },
     "marketplace-session.sh": {
-      "hash": "269455b1af72",
-      "indexed_at": "2026-08-05T13:16:35.047566+00:00",
+      "hash": "6dd099320dd7",
+      "indexed_at": "2026-08-07T15:34:01.896650+00:00",
       "language": "shell",
-      "lines": 171,
-      "mtime_ns": 1785903877878672800,
-      "size": 8565,
+      "lines": 195,
+      "mtime_ns": 1786116404741575000,
+      "size": 9944,
       "symbols": [
         {
           "docstring": "--- the lane table: prompt -> the lane the router must choose --------------- WHY THE LANE AND NOT JUST THE MARKER. This gate used to run the same pro",
           "lines": [
-            77,
-            90
+            101,
+            114
           ],
           "name": "lane_table",
           "type": "function"
@@ -1329,6 +1329,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T14:48:05.182568+00:00",
+  "generated_at": "2026-08-07T15:34:01.896733+00:00",
   "version": "1.0"
 }

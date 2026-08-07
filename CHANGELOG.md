@@ -150,6 +150,39 @@ the same model family is not an instrument.
   regeneration only adds columns. A corpus edited to be more flattering would
   have shown up right there.
 
+## A skip that named the wrong cause — `marketplace-session.sh`
+
+Run `31187881399` printed these two lines consecutively in the lean job:
+
+```
+  SKIP  no claude CLI on PATH -- cannot test the install path
+SKIP (3): no credentials on the runner -- never counted as a pass
+```
+
+The cause reported was **not** the cause observed. Both conditions exited 3, and
+the workflow's message for 3 names credentials — so a run that skipped for a
+missing CLI was filed under a boundary that had never been reached. This is the
+same defect class as the twelve fake RotGauge kills: a real condition reported
+under the wrong cause, in a form that reads as understood.
+
+**Fix:** two causes, two codes, and they mean opposite things about whether the
+gap can ever be closed.
+
+| code | cause | can it be closed? |
+|---|---|---|
+| 3 | no credentials | **No** — a decided boundary (`ci.yml:737`), enforced locally with `gate-all --full` and in CTT |
+| 4 | no CLI | **Yes** — an environment gap; any job that installs the CLI closes it |
+
+And the consequence that makes the distinction load-bearing: the checker is now
+also registered in the **checkers matrix**, where the CLI *is* installed a few
+steps earlier. There, exit 4 cannot be a fact about the environment — it means
+the install produced nothing — so it is a **hard failure**, mirroring the rule
+`live-session-smoke` already applies to its own 3.
+
+Three negative controls, all measured: normal run → **0** (8 passed, 0 failed,
+so the checker can genuinely pass); `PATH` stripped of the CLI → **4**;
+`CLAUDE_CRED_SRC` pointed at a missing file → **3**. `workflow-lint` 163 passed.
+
 ## Every lane scored on its own effect — and one lane goes the other way
 
 A single pooled figure was never the right reading, and `RotAttribute` proves
