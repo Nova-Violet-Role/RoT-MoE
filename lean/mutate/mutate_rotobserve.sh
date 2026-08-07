@@ -569,6 +569,29 @@ run_mut M48 \
   '  d.live = orig ∧ d.backup = some orig' \
   'backup_then_mutate_is_recoverable'
 
+# --- §17, atomicity that loses the mode --------------------------------------
+
+# M49 -- the fresh temp is given the exec bit, so the CI failure this section
+# records could not have happened. If this survives, the section is fiction.
+run_mut M49 \
+  'def freshTemp (c : Blob) : Entry := { content := c, exec := false }' \
+  'def freshTemp (c : Blob) : Entry := { content := c, exec := true }' \
+  'fresh_temp_drops_the_exec_bit'
+
+# M50 -- the clone stops carrying the original's attributes, i.e. the repair is
+# undone and cloning becomes just another fresh temp.
+run_mut M50 \
+  'def clonedTemp (orig : Entry) (c : Blob) : Entry := { orig with content := c }' \
+  'def clonedTemp (_orig : Entry) (c : Blob) : Entry := { content := c, exec := false }' \
+  'cloned_temp_preserves_the_exec_bit'
+
+# M51 -- the rename keeps the TARGET instead of the temp. That would make every
+# write a silent no-op: contents never change, and no mutant would ever kill.
+run_mut M51 \
+  'def renameOver (_target : Entry) (temp : Entry) : Entry := temp' \
+  'def renameOver (target : Entry) (_temp : Entry) : Entry := target' \
+  'cloned_temp_still_writes'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's

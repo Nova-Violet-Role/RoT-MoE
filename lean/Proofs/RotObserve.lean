@@ -1381,4 +1381,111 @@ example :
   · rfl
   · right; rfl
 
+/-! ## §17 — atomicity is not enough: the replacement must carry the mode
+
+§16 says a write should be a temp file plus a rename, so an interruption leaves
+the old content or the new content and never a truncated file. That is true, and
+implementing it naively broke CI.
+
+Measured 2026-08-07, run on `6791683`. The mutation harness wrote
+`… > "$f.mtmp" && mv -f "$f.mtmp" "$f"`. A shell redirect **creates** the temp
+at `0666 & ~umask` = `0644`, and `mv` carries the **temp's** mode onto the
+target — so `hooks/rot-router.sh` arrived non-executable. `checker/cross-diff.sh:52`
+runs it directly, the call produced nothing, and H00 — the meta-control asserting
+that a NO-OP edit leaves the checker green — went red on ubuntu and macos.
+
+`checkers (windows-latest)` passed the same commit, because Windows has no
+executable bit. An atomicity fix that traded one corruption for another, on a
+platform I cannot observe locally.
+
+The lesson generalises past file modes: **a replacement carries every attribute
+of the replacement, not of the thing replaced.** Anything the old object had and
+the new one was not given is silently lost at the moment of the swap. So the
+temp must be built *from* the original, never from nothing. -/
+
+/-- A file as the filesystem sees it: contents, and whether it may be executed. -/
+structure Entry where
+  /-- The bytes. -/
+  content : Blob
+  /-- The executable bit. -/
+  exec : Bool
+  deriving DecidableEq, Repr
+
+/-- A fresh temp created by a shell redirect: the caller's default mode, which
+does **not** include the executable bit. -/
+def freshTemp (c : Blob) : Entry := { content := c, exec := false }
+
+/-- A temp created by `cp -p` from the original and then truncated in place: a
+redirect onto an EXISTING file does not change its mode, so the clone keeps it. -/
+def clonedTemp (orig : Entry) (c : Blob) : Entry := { orig with content := c }
+
+/-- `mv -f temp target` — the target becomes the temp, wholesale. This is the
+step that loses whatever the temp was not given. -/
+def renameOver (_target : Entry) (temp : Entry) : Entry := temp
+
+/-- **The bug, as a property.** Replacing an executable file via a fresh temp
+produces a non-executable file, whatever the contents. -/
+theorem fresh_temp_drops_the_exec_bit (orig : Entry) (c : Blob) (_h : orig.exec = true) :
+    (renameOver orig (freshTemp c)).exec = false := by
+  simp [renameOver, freshTemp]
+
+/-- Stated the way it bit: there EXISTS an executable file whose atomic
+replacement is no longer executable. `0.09`-style silent breakage, but for a
+shipped hook. -/
+theorem naive_atomic_replace_can_break_an_executable :
+    ∃ e : Entry, e.exec = true ∧ (renameOver e (freshTemp 22620)).exec = false := by
+  exact ⟨{ content := 22614, exec := true }, rfl, rfl⟩
+
+/-- **The repair.** Cloning the original's mode into the temp preserves the bit
+through the rename, for every file and every new content. -/
+theorem cloned_temp_preserves_the_exec_bit (orig : Entry) (c : Blob) :
+    (renameOver orig (clonedTemp orig c)).exec = orig.exec := by
+  simp [renameOver, clonedTemp]
+
+/-- And it still does the job: the contents really are replaced. A mode-
+preserving write that failed to write would be the opposite failure. -/
+theorem cloned_temp_still_writes (orig : Entry) (c : Blob) :
+    (renameOver orig (clonedTemp orig c)).content = c := by
+  simp [renameOver, clonedTemp]
+
+/-- The general statement, and the one worth keeping: cloning preserves EVERY
+attribute the original had except the content. Stated as equality of the whole
+entry with only `content` updated, so a future field cannot quietly escape it —
+the theorem fails to compile rather than silently narrowing. -/
+theorem cloned_temp_changes_only_the_content (orig : Entry) (c : Blob) :
+    renameOver orig (clonedTemp orig c) = { orig with content := c } := by
+  simp [renameOver, clonedTemp]
+
+/-- Restoring a backup must preserve the mode too, not just the mutation. The
+harness restores four shipped hooks on every exit path; a restore that dropped
+the bit would leave the tree broken after a perfectly successful run. -/
+theorem restore_via_clone_preserves_exec (live backup : Entry) :
+    (renameOver live (clonedTemp live backup.content)).exec = live.exec := by
+  simp [renameOver, clonedTemp]
+
+/-- A non-executable file is unharmed by the naive path — which is exactly why
+this went unnoticed on Windows, where nothing is executable in this sense. The
+theorem is here to record that "it worked on my machine" was TRUE and useless. -/
+theorem naive_replace_is_harmless_when_nothing_is_executable
+    (orig : Entry) (c : Blob) (h : orig.exec = false) :
+    (renameOver orig (freshTemp c)).exec = orig.exec := by
+  simp [renameOver, freshTemp, h]
+
+/-- The measured case: the router, executable, at 22614 bytes, mutated to 22620.
+The naive path yields a mutant that cannot be run; the cloned path yields one
+that can. -/
+example :
+    (renameOver { content := 22614, exec := true } (freshTemp 22620)).exec = false
+    ∧ (renameOver { content := 22614, exec := true }
+        (clonedTemp { content := 22614, exec := true } 22620)).exec = true := by
+  decide
+
+/-- Both paths agree on the CONTENT, which is why only the mode betrayed it and
+why every mutant still "killed" while the baseline was broken. -/
+example :
+    (renameOver { content := 22614, exec := true } (freshTemp 22620)).content
+      = (renameOver { content := 22614, exec := true }
+          (clonedTemp { content := 22614, exec := true } 22620)).content := by
+  decide
+
 end RotObserve
