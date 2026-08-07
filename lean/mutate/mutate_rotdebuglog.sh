@@ -268,7 +268,37 @@ run_mut D09 \
 
 
 echo
-printf 'restoring baseline artifact ... '
+
+# --- CountParse: the guard that switched rotation off on macOS -------------
+# CI run 31202010565 failed on macOS only. BSD wc -l pads its output, the
+# router rejected non-numeric input and fell back to 0, so the log grew to 24
+# lines against a cap of 5. These keep the repair load-bearing.
+
+# The strict guard stops rejecting non-digits, so the padded and unpadded
+# readings coincide and the macOS defect becomes unstateable.
+run_mut D10 \
+  '  if s.all Char.isDigit then value s else 0' \
+  '  value s' \
+  'strict_padded_is_zero'
+
+# The tolerant guard stops filtering. It is then exactly as fragile as the
+# guard that shipped -- the repair undone.
+run_mut D11 \
+  '  value (s.filter Char.isDigit)' \
+  '  value s' \
+  'tolerant_ignores_padding'
+
+# pad becomes the identity: BSD wc is modelled as never padding, which is the
+# assumption under which the bug is invisible. It was invisible for that reason.
+run_mut D12 \
+  '  List.replicate k ' \
+  '  List.replicate 0 ' \
+  'strict_padded_is_zero'
+
+printf '
+
+
+restoring baseline artifact ... '
 if ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotDebugLog ) >"$LOG/restore.log" 2>&1; then
   echo "OK (baseline rebuilt, .olean present)"
 else

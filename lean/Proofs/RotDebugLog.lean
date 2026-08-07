@@ -227,4 +227,94 @@ theorem tolerance_alone_is_insufficient (c : HookContract)
     (h : c.marksLostAppend = false) : contractHolds c = false := by
   simp [contractHolds, h]
 
+/-! ## §R THE COUNT THE ROTATION READS, AND A GUARD THAT SWITCHED IT OFF
+
+Added 2026-08-07 after CI run `31202010565` failed on **macOS only**.
+
+The rotation above is correct and proved. It never ran on macOS, because of the
+step *before* it: the router asks `wc -l` how long the log is, and BSD `wc`
+answers `"      24"` where GNU answers `"24"`. The guard rejected anything
+non-numeric and fell back to `0`, so the count was always zero, the comparison
+`n > cap` was always false, and the log grew unbounded — 24 lines against a cap
+of 5, while ubuntu and windows passed.
+
+**A sanitiser written to be defensive is what disabled the feature.** That is
+the shape worth recording: the bug was not in the rotation, it was in the
+*reading of the number* that decides whether to rotate, and it presented as a
+platform difference rather than as a logic error.
+
+The lesson generalises past `wc`, so the theorems below are stated about
+padding in general rather than about macOS: **do not encode the other side's
+formatting, tolerate it** — the same conclusion as the step-log probe in
+`RotLog` §StepProbe, reached independently on the same day. -/
+
+namespace CountParse
+
+/-- The digit value of a character list, left to right. -/
+def value : List Char → Nat :=
+  List.foldl (fun acc c => acc * 10 + (c.toNat - '0'.toNat)) 0
+
+/-- **The guard that shipped.** Anything that is not entirely digits reads as
+zero. Safe-looking, and catastrophic when the producer pads. -/
+def strict (s : List Char) : Nat :=
+  if s.all Char.isDigit then value s else 0
+
+/-- **The repaired guard.** Keep the digits, ignore the rest. It never has to
+know which `wc` produced the text. -/
+def tolerant (s : List Char) : Nat :=
+  value (s.filter Char.isDigit)
+
+/-- What BSD `wc` does: pad on the left. -/
+def pad (k : Nat) (s : List Char) : List Char :=
+  List.replicate k ' ' ++ s
+
+/-- **The strict guard reads a padded count as zero.** Not "less accurately" —
+as *zero*, which is the value that makes every `n > cap` test false. -/
+theorem strict_padded_is_zero (s : List Char) (k : Nat) (hk : 0 < k) :
+    strict (pad k s) = 0 := by
+  unfold strict pad
+  have : (List.replicate k ' ' ++ s).all Char.isDigit = false := by
+    cases k with
+    | zero => omega
+    | succ n => simp [List.replicate]
+  simp [this]
+
+/-- **The tolerant guard is padding-invariant** — for every amount of padding,
+so no future change to the padding width can break it. -/
+theorem tolerant_ignores_padding (s : List Char) (k : Nat) :
+    tolerant (pad k s) = tolerant s := by
+  -- No induction on `k`. The first proof used it and the build reported the
+  -- induction hypothesis unused -- a report about the THEOREM, not the script:
+  -- the filter erases every space at once, so the padding width was never part
+  -- of the argument. Kept simple rather than silenced.
+  unfold tolerant pad
+  simp [List.filter_append]
+
+/-- **The consequence, stated where it bites.** With the strict guard on padded
+input the rotation condition is false however long the log is, so a log of any
+length survives unrotated. This is the CI failure as a theorem, quantified over
+the length rather than fixed at the 24 that was observed. -/
+theorem strict_never_rotates (cap : Nat) (hcap : 0 < cap) (k : Nat) (hk : 0 < k)
+    (s : List Char) : ¬ (strict (pad k s) > cap) := by
+  rw [strict_padded_is_zero s k hk]
+  omega
+
+/-- And the tolerant guard does fire once the log is genuinely over the cap,
+padded or not — otherwise the repair would have been to disable rotation, which
+is the fake-green version of this fix. -/
+theorem tolerant_still_rotates :
+    tolerant (pad 6 ['2', '4']) > 5 := by decide
+
+/-- Negative control: the tolerant guard is not the constant "yes". A short log
+still reads short, so rotation stays off when it should. -/
+theorem tolerant_does_not_always_exceed :
+    ¬ (tolerant (pad 6 ['3']) > 5) := by decide
+
+/-- Executable evidence in the exact shape measured: GNU output, BSD output. -/
+example : strict "24".toList = 24 := by decide
+example : strict "      24".toList = 0 := by decide
+example : tolerant "      24".toList = 24 := by decide
+
+end CountParse
+
 end RotDebugLog
