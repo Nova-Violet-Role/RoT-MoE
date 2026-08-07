@@ -100,6 +100,66 @@ Counts move to **504 theorems / 22 modules / 19 suites / 226 mutants**.
 
 ---
 
+## The router was being killed at 30 seconds, and a killed hook is silent
+
+**Measured 2026-08-07 by the maintainer, found by accident.** Opening the debug
+view (CTRL+O) showed the router **timing out** on real prompts. Neither install
+path declared a `timeout`, so Claude Code's default of 30 s applied — and a hook
+that reaches its limit is killed outright. It contributes nothing: no marker, no
+lane, no gauge, not even a partial line.
+
+**The observable is identical to having no hook installed at all.** That is why
+this survived every session log and every transcript sweep, and it means earlier
+readings of the form "the router did not fire here" cannot be trusted; they are
+consistent with a router that fired and was killed. `RotObserve` §13 states it:
+`silenced_is_indistinguishable_from_absent` proves the two observations are
+*equal*, not merely similar.
+
+The work is proportional to the traffic — nine lens activities computed per turn
+over the prompt **and** the reply — so a bound sized for a trivial script is the
+wrong shape of bound, not just a small one.
+
+**Both install paths now declare 1200 s**: the five entries in
+`hooks/hooks.json` (marketplace) and `HOOK_TIMEOUT_SECONDS` in
+`hooks/settings-merge.js` (hand install), which previously appended entries with
+no bound at all.
+
+`checker/hook-timeout.sh` is new, and it deliberately **does not pin 1200**:
+
+| phase | what it asserts |
+|---|---|
+| declared | every shipped hook entry carries a numeric `timeout` |
+| single | one bound across all events, not one per event |
+| used | the constant is written into the entry, not merely defined |
+| agreement | the two install paths are compared **to each other**, never to a literal |
+| adequacy | the bound exceeds the 30 s default it exists to replace |
+| controls | stripped timeouts detected; a bound equal to the default rejected; two different bounds distinguished |
+
+So the number may legitimately move to 900 or 1800 and the checker still refuses
+a missing bound, a disagreeing pair, or a pointless one. 9 passed, 0 failed.
+
+`RotObserve` §13 — six theorems, none of which mention 1200:
+
+| theorem | what it settles |
+|---|---|
+| `killed_hook_emits_nothing` | a hook past its bound emits nothing, for every bound and every work |
+| `silenced_is_indistinguishable_from_absent` | that observation **equals** the no-hook observation |
+| `completion_is_monotone` | raising the bound never loses an observation |
+| `an_adequate_bound_is_observed` | whenever the bound covers the cost, the marker appears |
+| `the_default_silenced_real_work` | the measured instance: 600 s of work is silent at 30 s, observed at 1200 s |
+| `different_bounds_are_different_products` | for **any** two distinct bounds there is work they disagree on — the theorem behind the agreement phase |
+
+Build exit 0, zero warnings; axioms `propext` (and `Classical.choice`/`Quot.sound`
+for the existence proof), no `sorryAx`; `leanchecker` exit 0. `#eval` confirms
+`hookOutput 30 ⟨600⟩ = none` and that it compares **equal** to `absentOutput`.
+Mutants **M33–M36**, all killed: **234 applied, 234 killed**, 0 survived, 0
+discarded. The gate table and `RotGates.lean` both gain the new checker — 38
+gates, 25 fast — and `gate-split` confirms shell and Lean still agree, 12/12.
+
+Counts move to **516 theorems / 22 modules / 19 suites / 234 mutants / 50 checkers**.
+
+---
+
 ## The commit gate was overwritten again — and the audit for it cannot run
 
 **Second occurrence, measured 2026-08-06 21:41:17.** An unrelated local tool
@@ -142,8 +202,8 @@ Two repairs, one of them out of band by construction:
 
 Build exit 0 with **zero warnings**; `out_of_band_alarm_is_exact` rests on
 `propext`, the rest on nothing beyond it, no `sorryAx`; `leanchecker` exit 0, zero
-bytes; delivered green to the shared workspace. Mutants **M29–M32** — **230
-applied, 230 killed**, 0 survived, 0 discarded.
+bytes; delivered green to the shared workspace. Mutants **M29–M32** — all killed,
+0 survived, 0 discarded.
 
 Counts move to **510 theorems / 22 modules / 19 suites / 230 mutants**.
 
