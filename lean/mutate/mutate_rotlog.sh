@@ -275,6 +275,41 @@ echo
 #
 # A harness that leaves the tree unbuildable has not finished, whatever its
 # summary says.
+
+
+# --- StepProbe: the CI-red incident of 2026-08-07 ---------------------------
+# A gate went RED on a correct commit because the step-log probe guessed how
+# GitHub rewrites '/' in a filename. These four mutants are what keep the
+# repair load-bearing rather than a comment about a past outage.
+
+# The wildcard removed: the probe goes back to demanding a literal slash, which
+# is what no sanitised filename ever contains. This is the CI-red defect itself.
+run_mut L11 RotLog \
+  'then Pat.any else Pat.lit c' \
+  'then Pat.lit c else Pat.lit c' \
+  'wildProbe_patMatches_any_substitution'
+
+# A wildcard that swallows the rest of the string. Matches everything from that
+# point on, so a truncated or wrong filename would pass.
+run_mut L12 RotLog \
+  '  | Pat.any :: ps, _ :: ds => patMatches ps ds' \
+  '  | Pat.any :: ps, _ :: ds => true' \
+  'wildProbe_rejects_a_truncated_name'
+
+# Literals stop being compared. The probe then matches any name of the right
+# length -- a green that means nothing.
+run_mut L13 RotLog \
+  '  | Pat.lit c :: ps, d :: ds => (c == d) && patMatches ps ds' \
+  '  | Pat.lit c :: ps, d :: ds => patMatches ps ds' \
+  'wildProbe_still_rejects_a_different_name'
+
+# The runner is modelled as rewriting NOTHING, which is the assumption that made
+# the old probe look correct. If sanitisation is a no-op the bug is invisible.
+run_mut L14 RotLog \
+  'then sub else c' \
+  'then c else c' \
+  'guessProbe_misses_when_the_guess_is_wrong'
+
 for m in $MODULES; do
   cp "Proofs/$m.lean.mutbak" "Proofs/$m.lean" 2>/dev/null
 done

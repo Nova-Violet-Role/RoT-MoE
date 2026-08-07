@@ -447,4 +447,116 @@ example : noDuplicateStems [("FORGE", ["lean"]), ("STEALTH", ["lean"])] = false 
 
 end Stemlog
 
+/-! ## §N A LOG FILENAME THE RUNNER REWRITES, AND A PROBE THAT MUST SURVIVE IT
+
+Added 2026-08-07, after a CI run went RED on a correct commit.
+
+`checker/deferred-closure.sh` proves a declared workflow step actually ran by
+finding its per-step log. GitHub stores that log under a SANITISED filename: the
+step
+
+    A/B corpus -- published figures re-derived from bench/ab-metrics.jsonl
+
+is written as `31_A_B corpus -- ... bench_ab-metrics.jsonl.txt`. The probe
+replaced `/` with a SPACE, so it searched for `A B corpus` and found nothing —
+and reported the step silently skipped. It had run in all three matrix legs.
+
+Measured against the real archive: old probe **0** matches, new probe **3**.
+Across 60 declared steps, 3 contain a slash and exactly 1 was invisible.
+
+**The spec was wrong, not the code.** The tempting repairs — delete the step,
+or rename it to avoid the slash — would destroy real coverage to satisfy a
+broken matcher. The durable fix is to stop guessing the substitute.
+
+This section states why the wildcard is right WITHOUT naming `_`. Freezing the
+rewrite as "slash becomes underscore" would be exactly the dated-constant defect
+this repo keeps finding: true today, false the day GitHub changes it, and red on
+a commit that did nothing wrong. -/
+
+namespace StepProbe
+
+/-- A pattern element: a literal character, or a wildcard that patMatches anything.
+The wildcard is what the probe puts where the runner is free to rewrite. -/
+inductive Pat where
+  /-- Matches exactly this character. -/
+  | lit : Char → Pat
+  /-- Matches any character at all. -/
+  | any : Pat
+deriving DecidableEq, Repr
+
+/-- Does the pattern match the string, position by position? -/
+def patMatches : List Pat → List Char → Bool
+  | [], [] => true
+  | Pat.lit c :: ps, d :: ds => (c == d) && patMatches ps ds
+  | Pat.any :: ps, _ :: ds => patMatches ps ds
+  | _, _ => false
+
+/-- The runner's rewrite: it may replace `/` with ANY character, and leaves
+everything else alone. `sub` is deliberately universally quantified below --
+this model never learns what the substitute is. -/
+def sanitize (sub : Char) : List Char → List Char :=
+  List.map (fun c => if c = '/' then sub else c)
+
+/-- The repaired probe: a wildcard exactly where the name had a slash. -/
+def wildProbe : List Char → List Pat :=
+  List.map (fun c => if c = '/' then Pat.any else Pat.lit c)
+
+/-- The old probe: it GUESSED the substitute, and guessed a space. -/
+def guessProbe (guess : Char) : List Char → List Pat :=
+  List.map (fun c => if c = '/' then Pat.lit guess else Pat.lit c)
+
+/-- **The property worth shipping.** The wildcard probe patMatches the sanitised
+filename for EVERY substitute character and every step name. The checker cannot
+be broken by a change to GitHub's rewriting, because it never depended on it. -/
+theorem wildProbe_patMatches_any_substitution (sub : Char) (name : List Char) :
+    patMatches (wildProbe name) (sanitize sub name) = true := by
+  induction name with
+  | nil => rfl
+  | cons c cs ih =>
+    by_cases h : c = '/'
+    · subst h; simpa [wildProbe, sanitize, patMatches] using ih
+    · simpa [wildProbe, sanitize, patMatches, h] using ih
+
+/-- **Why the old probe failed**, stated as the general fact rather than as the
+one incident: a probe that guesses the substitute misses whenever the guess is
+wrong. This is refutation by exhibited counterexample, and it is the theorem the
+repair had to satisfy. -/
+theorem guessProbe_misses_when_the_guess_is_wrong :
+    patMatches (guessProbe ' ' ['A', '/', 'B']) (sanitize '_' ['A', '/', 'B']) = false := by
+  decide
+
+/-- And the guess-based probe is not uniformly broken -- it works when the guess
+happens to be right, which is precisely why the defect stayed hidden until a
+step name with a slash appeared. A check that fails only on some inputs is the
+hardest kind to notice. -/
+theorem guessProbe_works_only_by_luck :
+    patMatches (guessProbe '_' ['A', '/', 'B']) (sanitize '_' ['A', '/', 'B']) = true := by
+  decide
+
+/-- Negative control: the wildcard is not a free pass. A probe still has to
+match the LITERAL characters, so a genuinely absent step is still detected --
+which is the only reason a green from this checker means anything. -/
+theorem wildProbe_still_rejects_a_different_name :
+    patMatches (wildProbe ['A', '/', 'B']) (sanitize '_' ['X', '/', 'B']) = false := by
+  decide
+
+/-- The wildcard does not weaken length discipline either: a truncated filename
+is not matched. Together with the control above, this is what keeps
+`wildProbe_patMatches_any_substitution` from being satisfied by a matcher that
+simply returns `true`. -/
+theorem wildProbe_rejects_a_truncated_name :
+    patMatches (wildProbe ['A', '/', 'B']) ['A', '_'] = false := by
+  decide
+
+/-- Executable evidence, in the shape the incident actually had. -/
+example : patMatches (wildProbe "A/B corpus".toList) (sanitize '_' "A/B corpus".toList) = true := by
+  decide
+
+example :
+    patMatches (guessProbe ' ' "A/B corpus".toList)
+      (sanitize '_' "A/B corpus".toList) = false := by
+  decide
+
+end StepProbe
+
 end RotMoE.Log

@@ -254,7 +254,20 @@ while IFS= read -r name; do
   # sorryAx" is stored as "axiom audit --.txt", so a 28-character probe
   # containing `#print` matched nothing and called a green step missing. Cut
   # where the runner cuts, then take a short prefix.
-  probe=$(printf '%s' "$name" | sed 's/#.*$//; s|/| |g' | cut -c1-20 \
+  # `/` BECOMES `_`, NOT A SPACE. Measured in run 31193273932, which went RED on
+  # a correct commit: the step "A/B corpus -- published figures re-derived from
+  # bench/ab-metrics.jsonl" is stored as
+  #     31_A_B corpus -- published figures re-derived from bench_ab-metrics.jsonl.txt
+  # so a probe built with a space read "A B corpus" and matched nothing. The step
+  # had run in all three matrix legs -- `ab-analyze.sh` appears three times in
+  # each job log -- and the gate called it silently skipped.
+  #
+  # This is the failure mode the header warns about: the spec was wrong, not the
+  # code, and the tempting "repair" is to delete the step or rename it to avoid
+  # the slash. Instead the probe now uses `.`, the regex wildcard, so it matches
+  # whatever GitHub substitutes -- `_` today, anything tomorrow -- without this
+  # file having to know. The trailing escape sed maps `.` to `.`, so it survives.
+  probe=$(printf '%s' "$name" | sed 's/#.*$//; s|/|.|g' | cut -c1-20 \
           | sed 's/[ ]*$//' | sed 's/[][\\\\.*^$/]/./g')
   if ! find "$WORK/x" -name '*.txt' | sed 's|.*/||' | grep -c "$probe" >/dev/null; then
     bad "no runner log for step: $name"
@@ -268,6 +281,32 @@ elif [ "$checked" -eq 0 ]; then
   bad "no step names parsed out of $WF -- this closure would be vacuous"
 elif [ "$missing" -eq 0 ]; then
   ok "all $checked declared step(s) have a log from the runner -- nothing silently skipped"
+fi
+
+# --- 3b. CONTROL: a step name containing `/` must still be matched -----------
+#
+# This control exists because its absence cost a red CI run on a correct commit
+# (31193273932). Every declared step whose name contains a slash is the exact
+# population the old probe could not see, so it is checked EXPLICITLY rather
+# than left to whether one happens to be in the sample.
+SLASHED=$(sed -n 's/^      - name: //p' "$WFSNAP" | grep -c '/' || true)
+if [ "$STEPLOGS" -lt "$DECLARED" ]; then
+  : # step coverage already reported as a SKIP; the control cannot run either
+elif [ "$SLASHED" -eq 0 ]; then
+  # Not a pass. If no declared step has a slash, this control proves nothing,
+  # and saying so is the difference between a checked property and an assumed one.
+  echo "  ----  CONTROL VACUOUS: no declared step name contains '/' -- slash handling UNTESTED here"
+else
+  slashfail=0
+  while IFS= read -r sname; do
+    [ -n "$sname" ] || continue
+    sprobe=$(printf '%s' "$sname" | sed 's/#.*$//; s|/|.|g' | cut -c1-20 \
+             | sed 's/[ ]*$//' | sed 's/[][\\\\.*^$/]/./g')
+    find "$WORK/x" -name '*.txt' | sed 's|.*/||' | grep -c "$sprobe" >/dev/null \
+      || { bad "CONTROL: step with '/' in its name still unmatched: $sname"; slashfail=1; }
+  done < <(sed -n 's/^      - name: //p' "$WFSNAP" | grep '/')
+  [ "$slashfail" -eq 0 ] && \
+    ok "CONTROL: all $SLASHED step name(s) containing '/' are matched -- GitHub rewrites it, the probe tolerates it"
 fi
 
 # --- 4. the archive must be CLEAN --------------------------------------------
