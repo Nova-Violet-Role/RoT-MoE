@@ -629,18 +629,18 @@
       "symbols": []
     },
     "mutate-checker.sh": {
-      "hash": "bc8dd05c9bf6",
-      "indexed_at": "2026-08-07T09:33:03.857819+00:00",
+      "hash": "aad95eb6c5b2",
+      "indexed_at": "2026-08-07T10:24:03.425260+00:00",
       "language": "shell",
-      "lines": 367,
-      "mtime_ns": 1786094345674257900,
-      "size": 18050,
+      "lines": 389,
+      "mtime_ns": 1786097472515638200,
+      "size": 19493,
       "symbols": [
         {
           "docstring": "run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker] The 7th argument names the checker to run; it defaults to the router cross",
           "lines": [
             122,
-            155
+            177
           ],
           "name": "run",
           "type": "function"
@@ -1300,6 +1300,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T09:33:03.862729+00:00",
+  "generated_at": "2026-08-07T10:24:03.425341+00:00",
   "version": "1.0"
 }

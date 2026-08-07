@@ -59,7 +59,7 @@ for f in "$SH" "$PS1" "$RSH" "$RPS1"; do
     fi
     # Atomic, for the same reason as `restore` below: a kill inside a plain `cp`
     # truncates the destination, and here the destination is a shipped hook.
-    cp "$f.mutbak" "$f.rtmp" && mv -f "$f.rtmp" "$f"
+    cp -p "$f" "$f.rtmp" && cat "$f.mutbak" > "$f.rtmp" && mv -f "$f.rtmp" "$f"
     rm -f "$f.mutbak"
   fi
   # A leftover .rtmp/.mtmp is the HALF that was being written when a previous
@@ -88,7 +88,7 @@ for f in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$f" "$f.mutbak"; done
 # kept as well; running it twice is harmless, and the trap must not be the only
 # thing standing between a normal run and a clean tree.
 trap 'for _tf in "$SH" "$PS1" "$RSH" "$RPS1"; do
-        [ -f "$_tf.mutbak" ] && { cp "$_tf.mutbak" "$_tf.rtmp" && mv -f "$_tf.rtmp" "$_tf"; }
+        [ -f "$_tf.mutbak" ] && { cp -p "$_tf" "$_tf.rtmp" && cat "$_tf.mutbak" > "$_tf.rtmp" && mv -f "$_tf.rtmp" "$_tf"; }
         rm -f "$_tf.mutbak" "$_tf.rtmp" "$_tf.mtmp"
       done' EXIT INT TERM
 
@@ -114,7 +114,7 @@ killed=0; survived=0; discarded=0
 # Writing to a temp file and renaming makes the swap ONE filesystem operation:
 # an interruption leaves the OLD content or the NEW content, never a truncated
 # file. lean/Proofs/RotObserve.lean §16 states it as a property.
-restore () { local _rf; for _rf in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$_rf.mutbak" "$_rf.rtmp" && mv -f "$_rf.rtmp" "$_rf"; done; }
+restore () { local _rf; for _rf in "$SH" "$PS1" "$RSH" "$RPS1"; do cp -p "$_rf" "$_rf.rtmp" && cat "$_rf.mutbak" > "$_rf.rtmp" && mv -f "$_rf.rtmp" "$_rf"; done; }
 
 # run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker]
 # The 7th argument names the checker to run; it defaults to the router
@@ -131,7 +131,29 @@ run () {
   awk -v needle="$needle" -v repl="$repl" '{
     p = index($0, needle)
     if (p > 0) { $0 = substr($0,1,p-1) repl substr($0, p+length(needle)) }
-    print }' "$f.mutbak" > "$f.mtmp" && mv -f "$f.mtmp" "$f"
+    print }' "$f.mutbak" > "$f.mtmp.raw"
+  # MODE-PRESERVING, and the reason is a CI failure I caused. MEASURED
+  # 2026-08-07, run on 6791683: making these writes atomic with a bare
+  # `> tmp && mv` dropped the EXECUTABLE BIT. A redirect creates the temp at
+  # 0666 & ~umask = 0644, and `mv` carries the TEMP's mode onto the target -- so
+  # hooks/rot-router.sh arrived non-executable, cross-diff.sh runs it directly
+  # (checker/cross-diff.sh:52), and H00 -- the meta-control asserting a NO-OP
+  # edit leaves the checker GREEN -- went red on ubuntu and macos.
+  #
+  # Windows CI passed the same commit, because Windows has no exec bit. An
+  # atomicity fix that silently traded one corruption for another, invisible on
+  # the platform I develop on.
+  #
+  # `cp -p` first clones the ORIGINAL's mode into the temp; the redirect then
+  # truncates that existing file, which does NOT change its mode; `mv` carries
+  # the correct mode across. Still one rename, still atomic.
+  cp -p "$f" "$f.mtmp" && cat "$f.mtmp.raw" > "$f.mtmp" && rm -f "$f.mtmp.raw" && mv -f "$f.mtmp" "$f"
+  # And the guard, because the failure above was silent for a whole CI cycle:
+  # if the original was executable, the mutant must be too.
+  if [ -x "$f.mutbak" ] && [ ! -x "$f" ]; then
+    echo "$id  DISCARDED  the mutation DROPPED THE EXEC BIT on $f -- harness bug, not a finding"
+    discarded=$((discarded+1)); restore; return
+  fi
   if [ "$(grep -F -c -- "$needle" "$f")" -ne 0 ] || [ "$(grep -F -c -- "$repl" "$f")" -lt 1 ]; then
     echo "$id  DISCARDED  post-check failed -- patch NOT applied"
     discarded=$((discarded+1)); restore; return
