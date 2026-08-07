@@ -88,6 +88,7 @@ mutation discipline|fast||bash checker/mutant-discipline.sh
 dorks|fast||bash checker/dorks.sh
 hook footprint|fast||bash checker/hook-footprint.sh
 hook timeout|fast||bash checker/hook-timeout.sh
+A/B corpus vs published figures|fast||bash checker/ab-analyze.sh
 Lean witness vs shipped weights|fast||bash checker/lean-binds-shell.sh
 release package|fast||bash checker/release-package.sh
 hook contract|fast||bash checker/hook-contract.sh

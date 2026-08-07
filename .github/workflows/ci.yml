@@ -417,6 +417,12 @@ jobs:
       # so the spec could be retuned and the theorems would keep proving things
       # about numbers nobody ships. This is pure text-vs-text and needs no Lean
       # workspace, so it never skips.
+      # The A/B figures the CHANGELOG publishes are re-derived here from the
+      # committed per-turn corpus. No credential and no session: the collector
+      # (bench/ab-session.sh) needs those, the audit does not. If a published
+      # mean, delta or sign count drifts from the corpus, this step fails.
+      - name: A/B corpus -- published figures re-derived from bench/ab-metrics.jsonl
+        run: bash checker/ab-analyze.sh
       - name: profile binding -- Lean lane tables vs the spec they came from
         shell: bash
         run: bash checker/profile-bind.sh

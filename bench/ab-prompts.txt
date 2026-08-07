@@ -1,0 +1,80 @@
+In this repo, what does hooks/rot-router.sh compute for each lens? One line.
+lake build Proofs.RotAbility is green -- what does every_ability_effect_holds actually prove?
+debug why checker/profile-bind.sh would fail if engine/rot-lean.md changed a lambda
+audit lean/mutate/mutate_rotability.sh for a mutant that could silently not apply
+plan which theorem in RotGauge.lean to generalize next, and prioritize it
+compress the docstring of RotAbility.lean to fewer tokens without losing meaning
+forecast what breaks first if we add a tenth lens to the roster
+invent a surreal analogy for what the sigmoid does to divergence
+decide now: should predictiveLam live in RotAbility or its own module? Conclude.
+refactor the meta architecture: should abilityEffect be a typeclass? Evolve it.
+I feel worn out by this refactor, it has been a long day on these proofs
+fix the sorry -- is there any sorry left in lean/Proofs, and how would you check?
+Recall: what was the first thing I asked you about in this session?
+Name one file we have discussed earlier in this conversation.
+run checker/gate-all.sh --fast mentally: which gate catches a stale theorem count?
+security review: does hooks/rot-router.sh ever execute data from the prompt?
+what is the R/s+ formula K on this head, and why does it matter
+distill the CHANGELOG 0.6.0 entry into three bullets, byte-efficient
+predict the next regression this repo will hit, based on its history
+declare the release decision for 0.6.x -- ship or hold, and why
+In this repo, what does hooks/rot-router.sh compute for each lens? One line.
+lake build Proofs.RotAbility is green -- what does every_ability_effect_holds actually prove?
+debug why checker/profile-bind.sh would fail if engine/rot-lean.md changed a lambda
+audit lean/mutate/mutate_rotability.sh for a mutant that could silently not apply
+plan which theorem in RotGauge.lean to generalize next, and prioritize it
+compress the docstring of RotAbility.lean to fewer tokens without losing meaning
+forecast what breaks first if we add a tenth lens to the roster
+invent a surreal analogy for what the sigmoid does to divergence
+decide now: should predictiveLam live in RotAbility or its own module? Conclude.
+refactor the meta architecture: should abilityEffect be a typeclass? Evolve it.
+I feel worn out by this refactor, it has been a long day on these proofs
+fix the sorry -- is there any sorry left in lean/Proofs, and how would you check?
+Recall: what was the first thing I asked you about in this session?
+Name one file we have discussed earlier in this conversation.
+run checker/gate-all.sh --fast mentally: which gate catches a stale theorem count?
+security review: does hooks/rot-router.sh ever execute data from the prompt?
+what is the R/s+ formula K on this head, and why does it matter
+distill the CHANGELOG 0.6.0 entry into three bullets, byte-efficient
+predict the next regression this repo will hit, based on its history
+declare the release decision for 0.6.x -- ship or hold, and why
+In this repo, what does hooks/rot-router.sh compute for each lens? One line.
+lake build Proofs.RotAbility is green -- what does every_ability_effect_holds actually prove?
+debug why checker/profile-bind.sh would fail if engine/rot-lean.md changed a lambda
+audit lean/mutate/mutate_rotability.sh for a mutant that could silently not apply
+plan which theorem in RotGauge.lean to generalize next, and prioritize it
+compress the docstring of RotAbility.lean to fewer tokens without losing meaning
+forecast what breaks first if we add a tenth lens to the roster
+invent a surreal analogy for what the sigmoid does to divergence
+decide now: should predictiveLam live in RotAbility or its own module? Conclude.
+refactor the meta architecture: should abilityEffect be a typeclass? Evolve it.
+I feel worn out by this refactor, it has been a long day on these proofs
+fix the sorry -- is there any sorry left in lean/Proofs, and how would you check?
+Recall: what was the first thing I asked you about in this session?
+Name one file we have discussed earlier in this conversation.
+run checker/gate-all.sh --fast mentally: which gate catches a stale theorem count?
+security review: does hooks/rot-router.sh ever execute data from the prompt?
+what is the R/s+ formula K on this head, and why does it matter
+distill the CHANGELOG 0.6.0 entry into three bullets, byte-efficient
+predict the next regression this repo will hit, based on its history
+declare the release decision for 0.6.x -- ship or hold, and why
+In this repo, what does hooks/rot-router.sh compute for each lens? One line.
+lake build Proofs.RotAbility is green -- what does every_ability_effect_holds actually prove?
+debug why checker/profile-bind.sh would fail if engine/rot-lean.md changed a lambda
+audit lean/mutate/mutate_rotability.sh for a mutant that could silently not apply
+plan which theorem in RotGauge.lean to generalize next, and prioritize it
+compress the docstring of RotAbility.lean to fewer tokens without losing meaning
+forecast what breaks first if we add a tenth lens to the roster
+invent a surreal analogy for what the sigmoid does to divergence
+decide now: should predictiveLam live in RotAbility or its own module? Conclude.
+refactor the meta architecture: should abilityEffect be a typeclass? Evolve it.
+I feel worn out by this refactor, it has been a long day on these proofs
+fix the sorry -- is there any sorry left in lean/Proofs, and how would you check?
+Recall: what was the first thing I asked you about in this session?
+Name one file we have discussed earlier in this conversation.
+run checker/gate-all.sh --fast mentally: which gate catches a stale theorem count?
+security review: does hooks/rot-router.sh ever execute data from the prompt?
+what is the R/s+ formula K on this head, and why does it matter
+distill the CHANGELOG 0.6.0 entry into three bullets, byte-efficient
+predict the next regression this repo will hit, based on its history
+declare the release decision for 0.6.x -- ship or hold, and why
