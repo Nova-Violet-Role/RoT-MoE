@@ -116,15 +116,20 @@ transcripts, never extracted — did not:
 
 | endpoint | routed | unrouted | delta | paired sign count | two-sided sign test |
 |---|---|---|---|---|---|
-| output tokens / turn | **447** | **678** | **−34.1%** | routed fewer on **64 of 80**, 0 ties | **p = 5.9 × 10⁻⁸** |
-| cost / turn | $0.1013 | $0.1481 | −31.6% | cheaper on **75 of 80** | p < 10⁻¹² |
-| duration / turn | 10 144 ms | 13 454 ms | −24.6% | faster on 51 of 80 | — |
-| trailing question | 0.000 | 0.000 | — | 80 ties | — |
-| self-narration | 0.000 | 0.000 | — | 80 ties | — |
-| hedging tokens | 0.037 | 0.000 | **worse routed** | worse on 3, better on 0 | — |
+| output tokens / turn | **440** | **675** | **−34.8%** | routed fewer on **69 of 88**, 0 ties | **p = 7.8 × 10⁻⁸** |
+| cost per turn | $0.1168 | $0.1648 | **-29.1%** | cheaper on **83 of 88** | p < 10⁻¹² |
+| duration / turn | 10 230 ms | 13 474 ms | −24.1% | faster on 56 of 88 | p = 0.014 |
+| trailing question | 0.000 | 0.000 | — | all ties | — |
+| self-narration | 0.000 | 0.000 | — | all ties | — |
+| hedging tokens | 0.034 | 0.000 | **worse routed** | worse on 3, better on 0 | — |
 
-Negative control for the test itself: a 41/80 split gives p = 0.911, so the
+Negative control for the test itself: a 45/88 split gives p = 0.915, so the
 instrument can return "no effect" and does.
+
+**The corpus is 88 pairs, not 80.** Eight prompts were added — see the per-lane
+section below — and the original 80 were re-derived unchanged: **1600
+shared-field comparisons, zero differences.** The figures above therefore move
+because the corpus grew, never because a number was edited to fit a sentence.
 
 **What this does and does not license.** It licenses: *on `claude-opus-5[1m]`,
 across 80 paired prompts, the routed arm produced a third fewer output tokens,
@@ -144,6 +149,62 @@ the same model family is not an instrument.
   differ in zero places** — every published figure is reproduced exactly; the
   regeneration only adds columns. A corpus edited to be more flattering would
   have shown up right there.
+
+## Every lane scored on its own effect — and one lane goes the other way
+
+A single pooled figure was never the right reading, and `RotAttribute` proves
+why: `pooling_reverses_every_stratum` exhibits a checked instance where the
+pooled verdict contradicts **every** stratum, and
+`balanced_pooling_agrees_with_the_strata` pins that on unequal stratum sizes.
+This corpus has lanes of size 4 to 36. That is precisely the shape the theorem
+warns about, so the lanes are now scored separately.
+
+**The lane is not new data.** It is a function of the prompt, and the shipped
+router computes it — `hooks/rot-router.sh --route`. Both arms can therefore be
+labelled offline from two committed files, and CI re-derives the whole table
+with no session and no credential.
+
+| lane | n | routed | control | delta | routed fewer | sign p |
+|---|---|---|---|---|---|---|
+| FORGE | 36 | 525 | 751 | −30.1% | 28/36 | 1.2e-3 |
+| CONVERGENT | 16 | 322 | 404 | −20.5% | 11/16 | 0.21 |
+| CLINICAL | 8 | 495 | 758 | −34.7% | 7/8 | 0.070 |
+| PREDICTIVE | 4 | 680 | 996 | −31.8% | 4/4 | 0.125 |
+| CREATIVE | 4 | 248 | 376 | −34.0% | 3/4 | 0.625 |
+| EXECUTIVE | 4 | 227 | 513 | −55.7% | 4/4 | 0.125 |
+| RECURSIVE | 4 | 248 | 939 | −73.6% | 4/4 | 0.125 |
+| STEALTH | 4 | 536 | 852 | −37.1% | 3/4 | 0.625 |
+| STRATEGIC | 4 | 485 | 1062 | −54.3% | 4/4 | 0.125 |
+| **EMPATHIC** | 4 | **256** | **220** | **+16.1%** | **1/4** | 0.625 |
+
+**Nine of ten lanes favour the routed arm; the lane-level sign test is
+p = 2.0 × 10⁻³.** Only FORGE reaches significance on its own — the small lanes
+hold four turns and cannot, whatever they show. What they can do is agree, and
+that is the weaker claim being made here, labelled as weaker.
+
+**EMPATHIC is the exception and it is the most informative row in the table.**
+It is the one lane where the router makes the answer *longer*. That is what the
+EMPATHIC profile is for — Violet at λ 2.3, Carnage at 1.8, compression damped —
+so a router that shortened everything uniformly would be evidence the profiles
+do **not** do what they claim. The effect is directional, not global. Anyone
+selling "the router makes Claude terser" is describing nine lanes and ignoring
+the tenth.
+
+**Two lanes had no prompts at all, and the checker said so.** The first per-lane
+run reported `lanes with NO prompt in the corpus: EMPATHIC, STRATEGIC` and
+**failed**. An ability with no sample is an ability that was not scored, and a
+claim ranging over it would be an overclaim — so the gap was closed by
+measuring, never by narrowing the check: eight prompts were added (four per
+lane, each verified against the shipped router *before* being written), and both
+arms were collected with their validity controls passing — **9 route records in
+the routed arm, 0 in the control**.
+
+`checker/ab-lanes.js` is a real file rather than a `node -e` string because the
+inline form died on escaping: the generator, the shell heredoc and the node
+argument each consumed one backslash, and `split("\n")` reached node as a
+literal newline. That is the second escaping failure of the session — the first
+turned mutation needles into literal `\n` and scored nine DISCARDED. The fix is
+one less level of nesting, not more backslashes.
 
 ## Why a null can belong to the analysis instead of the world — `RotAttribute`
 

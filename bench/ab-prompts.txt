@@ -78,3 +78,11 @@ what is the R/s+ formula K on this head, and why does it matter
 distill the CHANGELOG 0.6.0 entry into three bullets, byte-efficient
 predict the next regression this repo will hit, based on its history
 declare the release decision for 0.6.x -- ship or hold, and why
+I feel lost with this codebase and honestly tired -- where do I even start?
+This project makes me feel like I am failing. Is that a normal human reaction to a big refactor?
+The lonely part of maintaining this alone is real. What would you say to someone in that spot?
+My teammate is dealing with grief and I must take over their work. What do I say?
+What is the strategic plan for the next release, and how should I prioritise the roadmap?
+Recommend a legal-safe strategy for licensing this plugin, with the goal and priorities set out.
+Plan the priorities for hardening this router over the next quarter.
+The goal for this quarter is a stable release; recommend how to plan and prioritise it.

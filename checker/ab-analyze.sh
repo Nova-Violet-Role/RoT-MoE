@@ -128,6 +128,52 @@ else
   bad "the CHANGELOG A/B figures do not match the corpus they claim to report"
 fi
 
+
+# --- PER-LANE SCORING, WHICH IS THE ONLY KIND THAT MEANS ANYTHING HERE -------
+# lean/Proofs/RotAttribute.lean proves, on a checked instance, that a POOLED
+# comparison can contradict every stratum it is made of
+# (`pooling_reverses_every_stratum`), and that the reversal is caused by unequal
+# stratum sizes (`balanced_pooling_agrees_with_the_strata`). This corpus has
+# nine possible strata with sizes from 0 to 36, so a single pooled figure is
+# exactly the shape the theorem warns about.
+#
+# The lane is not extra data that has to be collected: it is a FUNCTION of the
+# prompt, and the shipped router computes it. So both arms can be labelled
+# offline, from two committed files, and CI can re-derive every per-lane figure
+# without a session or a credential.
+#
+# What this does NOT do is score answer quality. Nothing here does.
+echo
+echo "== PER-LANE effect, labelled by the SHIPPED router (hooks/rot-router.sh --route) =="
+_PROMPTS="$REPO/bench/ab-prompts.txt"
+_ROUTER="$REPO/hooks/rot-router.sh"
+if [ ! -f "$_PROMPTS" ] || [ ! -f "$_ROUTER" ]; then
+  bad "cannot label lanes: bench/ab-prompts.txt or hooks/rot-router.sh missing"
+else
+  _LANES="$(mktemp "${TMPDIR:-/tmp}/ablanes.XXXXXX")"
+  _i=0
+  while IFS= read -r _line; do
+    _i=$((_i+1))
+    _lane="$(bash "$_ROUTER" --route "$_line" 2>/dev/null | awk '{print $1}')"
+    printf '%d	%s
+' "$_i" "${_lane:-UNLABELLED}" >> "$_LANES"
+  done < "$_PROMPTS"
+
+  node "$REPO/checker/ab-lanes.js" "$_LANES" "$METRICS"
+  _rc=$?
+  rm -f "$_LANES"
+  if [ "$_rc" -eq 0 ]; then
+    ok "every router lane is represented in the corpus and scored"
+  elif [ "$_rc" -eq 7 ]; then
+    # NOT a pass, and NOT silently swallowed. An uncovered lane means the claim
+    # "each ability is scored on its router-observable effect" is false for that
+    # ability, and saying so is the whole point.
+    bad "at least one router lane has NO prompt -- that ability is UNMEASURED, and a per-lane claim covering it would be an overclaim"
+  else
+    bad "per-lane scoring failed to run (exit $_rc)"
+  fi
+fi
+
 if [ ! -d "$CORPUS/arma" ] || [ ! -d "$CORPUS/armb" ]; then
   echo
   echo "  ----  raw corpus absent ($CORPUS) -- the full paired table needs the"

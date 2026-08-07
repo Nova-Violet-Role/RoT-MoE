@@ -78,6 +78,14 @@
 {"arm":"a","turn":78,"err":0,"dur":5291,"cost_micro":88755,"len":607,"outTok":276,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
 {"arm":"a","turn":79,"err":0,"dur":5474,"cost_micro":88250,"len":606,"outTok":223,"model":"claude-opus-5[1m]","q":0,"hedge":1,"narr":0,"leak":0}
 {"arm":"a","turn":80,"err":0,"dur":4081,"cost_micro":87056,"len":405,"outTok":183,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"a","turn":81,"err":0,"dur":10541,"cost_micro":1440547,"len":545,"outTok":356,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":1}
+{"arm":"a","turn":82,"err":0,"dur":8800,"cost_micro":87049,"len":693,"outTok":210,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"a","turn":83,"err":0,"dur":12919,"cost_micro":88843,"len":569,"outTok":332,"model":"claude-opus-5[1m]","q":0,"hedge":1,"narr":0,"leak":0}
+{"arm":"a","turn":84,"err":0,"dur":5231,"cost_micro":84975,"len":407,"outTok":124,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"a","turn":85,"err":0,"dur":16014,"cost_micro":93085,"len":658,"outTok":522,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"a","turn":86,"err":0,"dur":16354,"cost_micro":197348,"len":814,"outTok":685,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"a","turn":87,"err":0,"dur":7550,"cost_micro":88839,"len":669,"outTok":242,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"a","turn":88,"err":0,"dur":11333,"cost_micro":94984,"len":764,"outTok":491,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
 {"arm":"b","turn":1,"err":0,"dur":55852,"cost_micro":555483,"len":525,"outTok":3194,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":1}
 {"arm":"b","turn":2,"err":0,"dur":26688,"cost_micro":193565,"len":659,"outTok":1066,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
 {"arm":"b","turn":3,"err":0,"dur":32032,"cost_micro":356663,"len":744,"outTok":1611,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
@@ -158,3 +166,11 @@
 {"arm":"b","turn":78,"err":0,"dur":8550,"cost_micro":105078,"len":1129,"outTok":503,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
 {"arm":"b","turn":79,"err":0,"dur":10262,"cost_micro":104934,"len":966,"outTok":414,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
 {"arm":"b","turn":80,"err":0,"dur":5463,"cost_micro":102420,"len":757,"outTok":336,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"b","turn":81,"err":0,"dur":9095,"cost_micro":1660529,"len":561,"outTok":200,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"b","turn":82,"err":0,"dur":5429,"cost_micro":97605,"len":652,"outTok":207,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"b","turn":83,"err":0,"dur":7691,"cost_micro":98611,"len":758,"outTok":240,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"b","turn":84,"err":0,"dur":6695,"cost_micro":98850,"len":774,"outTok":233,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"b","turn":85,"err":0,"dur":19397,"cost_micro":121699,"len":1370,"outTok":1143,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
+{"arm":"b","turn":86,"err":0,"dur":29660,"cost_micro":336439,"len":1682,"outTok":1408,"model":"claude-opus-5[1m]","q":0,"hedge":1,"narr":0,"leak":0}
+{"arm":"b","turn":87,"err":0,"dur":12651,"cost_micro":116150,"len":1795,"outTok":691,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":1}
+{"arm":"b","turn":88,"err":0,"dur":18775,"cost_micro":124777,"len":1674,"outTok":1007,"model":"claude-opus-5[1m]","q":0,"hedge":0,"narr":0,"leak":0}
