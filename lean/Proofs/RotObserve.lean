@@ -930,4 +930,145 @@ theorem different_bounds_are_different_products (b₁ b₂ : Nat) (h : b₁ < b�
     exact h
   simp [hookOutput, h₁, h₂]
 
+/-! ## §14 — what an endpoint can and cannot attribute
+
+Measured 2026-08-07, from the A/B run itself: 80 paired turns with the plugin
+armed against 80 with it disabled, same prompts, tools off in both arms.
+
+Two of the three pre-registered primary endpoints came back **0.000 in both
+arms, 80 ties**. That is not a null result about the router -- it is an endpoint
+that had no room to move. The third, a leak counter, fired **9 times in the
+routed arm and 12 in the UNROUTED one**, where the mechanism it claims to detect
+did not exist at all.
+
+Both are properties of the METRIC, not of the router, and both are decidable
+facts about the numbers rather than opinions about the outcome. So they are
+stated here as theorems, where they cannot be quietly forgotten the next time a
+flat result invites the conclusion "the mechanism does nothing".
+
+**What this section does NOT do.** It does not rescue the router. The primary
+endpoints are still null and the pre-registered hypothesis is still
+unsupported. What it settles is which of those nulls are *evidence about the
+router* and which are *evidence about the instrument* -- a distinction the
+experiment needs before round 2 picks new endpoints. -/
+
+/-- An experimental arm: the mechanism under test is present, or it is not. -/
+structure Arm where
+  mechanism : Bool
+  deriving DecidableEq, Repr
+
+/-- The treated arm and the control arm, named so the theorems read as claims
+about an experiment rather than about a boolean. -/
+def treated : Arm := ⟨true⟩
+def control : Arm := ⟨false⟩
+
+/-- An endpoint counts occurrences of something in an arm. -/
+abbrev Endpoint := Arm → Nat
+
+/-- An endpoint SEPARATES the arms when it takes different values on them.
+Separation is the whole of what a mechanical endpoint can offer; anything more
+is interpretation laid on top of it. -/
+def separates (m : Endpoint) : Prop := m treated ≠ m control
+
+/-- The endpoint improved: fewer occurrences with the mechanism than without. -/
+def improved (m : Endpoint) : Prop := m treated < m control
+
+/-- **A floor endpoint cannot improve.** If the control arm already scores zero,
+no mechanism can lower it, and a tie proves nothing about the mechanism.
+
+This is the trailing-question and self-narration result exactly: both were 0.000
+in the unrouted arm across all 80 turns. Reporting those as "the router did not
+help" reads a fact about the endpoint as a fact about the router. -/
+theorem floor_endpoint_cannot_improve (m : Endpoint) (h : m control = 0) :
+    ¬ improved m := by
+  unfold improved
+  omega
+
+/-- The positive form, and the one a protocol should be checked against BEFORE
+collecting data: an endpoint can only show an improvement if the control arm
+leaves room for one. -/
+theorem improvement_requires_room (m : Endpoint) (h : improved m) : 0 < m control := by
+  unfold improved at h
+  omega
+
+/-- Equal values attribute nothing -- in either direction. A tie is not weak
+evidence for the mechanism and not weak evidence against it. -/
+theorem equal_arms_attribute_nothing (m : Endpoint) (h : m treated = m control) :
+    ¬ separates m := by
+  unfold separates
+  exact fun hne => hne h
+
+/-- How much of an endpoint's count can be laid at the mechanism's door:
+the excess over what appears with the mechanism absent, and never less than 0. -/
+def attributable (m : Endpoint) : Nat := m treated - m control
+
+/-- **The metric-9 theorem.** When the control arm scores at least as high as
+the treated arm, NOTHING is attributable to the mechanism -- whatever the raw
+count. Measured: 9 routed against 12 unrouted, so the attributable share is 0
+and the "leak detector" was reading prompt echo. -/
+theorem control_at_least_treated_attributes_nothing (m : Endpoint)
+    (h : m control ≥ m treated) : attributable m = 0 := by
+  unfold attributable
+  omega
+
+/-- And the general shape: whatever the control arm scores is a ceiling on how
+much of the treated arm's count the mechanism can be blamed for. -/
+theorem attributable_le_difference (m : Endpoint) :
+    attributable m + m control ≥ m treated := by
+  unfold attributable
+  omega
+
+/-- An endpoint may come out WORSE in the treated arm. The hedging count did:
+three turns with the router, none without. The design must be able to express
+that, or it is not a test. -/
+theorem an_endpoint_can_be_worse_when_treated :
+    ∃ m : Endpoint, m control < m treated := by
+  refine ⟨fun a => if a.mechanism then 3 else 0, ?_⟩
+  decide
+
+/-- A paired comparison: per prompt, the treated count and the control count. -/
+abbrev Pairs := List (Nat × Nat)
+
+/-- Pairs where the treated arm scored strictly lower. -/
+def wins (ps : Pairs) : Nat := (ps.filter (fun p => decide (p.1 < p.2))).length
+
+/-- Pairs where the treated arm scored strictly higher. -/
+def losses (ps : Pairs) : Nat := (ps.filter (fun p => decide (p.2 < p.1))).length
+
+/-- **Every pair a tie means an empty sign count, whatever the sample size.**
+Eighty ties is the same evidence as one tie: none. Sample size does not convert
+a floor endpoint into a measurement. -/
+theorem all_ties_leave_no_sign_count (ps : Pairs) (h : ∀ p ∈ ps, p.1 = p.2) :
+    wins ps = 0 ∧ losses ps = 0 := by
+  refine ⟨?_, ?_⟩
+  · unfold wins
+    simp only [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+    intro p hp
+    have hp' := h p hp
+    simp [hp']
+  · unfold losses
+    simp only [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+    intro p hp
+    have hp' := h p hp
+    simp [hp']
+
+/-- The measured trailing-question endpoint, as a concrete witness: zero in both
+arms, so by `floor_endpoint_cannot_improve` no improvement was reachable. -/
+example : ¬ improved (fun _ => 0) := floor_endpoint_cannot_improve _ rfl
+
+/-- The measured leak endpoint: 9 treated, 12 control, nothing attributable. -/
+example : attributable (fun a => if a.mechanism then 9 else 12) = 0 :=
+  control_at_least_treated_attributes_nothing _ (by decide)
+
+/-- And the control that keeps the previous example honest -- an endpoint that
+DOES separate the arms, so the machinery above is not trivially true of
+everything. Cost per turn, in tenths of a cent: 101 routed, 148 unrouted. -/
+example : separates (fun a => if a.mechanism then 101 else 148) := by
+  unfold separates treated control
+  decide
+
+example : improved (fun a => if a.mechanism then 101 else 148) := by
+  unfold improved treated control
+  decide
+
 end RotObserve

@@ -453,6 +453,38 @@ run_mut M36 \
   'def completes (bound : Nat) (w : Work) : Bool := decide (bound ≤ w.cost)' \
   'completion_is_monotone'
 
+# --- §14, what an endpoint can attribute ------------------------------------
+
+# M37 -- attribution turned into a SUM. The excess over the control arm becomes
+# a total, so the leak metric that measured 9 treated against 12 control would
+# report 21 "attributable" occurrences of a mechanism that was switched off.
+run_mut M37 \
+  'def attributable (m : Endpoint) : Nat := m treated - m control' \
+  'def attributable (m : Endpoint) : Nat := m treated + m control' \
+  'control_at_least_treated_attributes_nothing'
+
+# M38 -- "improved" reversed, so scoring HIGHER with the mechanism counts as a
+# win. Both floor theorems rest on the direction of this comparison.
+run_mut M38 \
+  'def improved (m : Endpoint) : Prop := m treated < m control' \
+  'def improved (m : Endpoint) : Prop := m control < m treated' \
+  'floor_endpoint_cannot_improve'
+
+# M39 -- separation redefined as EQUALITY: identical arms would then "separate",
+# which is the precise inversion of what a paired endpoint means.
+run_mut M39 \
+  'def separates (m : Endpoint) : Prop := m treated ≠ m control' \
+  'def separates (m : Endpoint) : Prop := m treated = m control' \
+  'equal_arms_attribute_nothing'
+
+# M40 -- the win predicate loosened to include ties. Eighty tied pairs would
+# then read as eighty wins, which is exactly the false positive the sign-count
+# theorem exists to forbid.
+run_mut M40 \
+  '(ps.filter (fun p => decide (p.1 < p.2))).length' \
+  '(ps.filter (fun p => decide (p.1 ≤ p.2))).length' \
+  'all_ties_leave_no_sign_count'
+
 # --- LEAVE THE WORKSPACE USABLE --------------------------------------------
 # Measured 2026-08-06: the source is restored from the backup, but the LAST
 # mutant's build failed by design and produced no .olean, so the module's

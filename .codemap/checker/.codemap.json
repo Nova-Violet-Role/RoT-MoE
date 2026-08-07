@@ -1,6 +1,15 @@
 {
   "directory": "checker",
   "files": {
+    "ab-analyze.sh": {
+      "hash": "925dc3b65268",
+      "indexed_at": "2026-08-07T07:13:51.893187+00:00",
+      "language": "shell",
+      "lines": 239,
+      "mtime_ns": 1786085521340298300,
+      "size": 10812,
+      "symbols": []
+    },
     "axiom-audit.sh": {
       "hash": "c429698047f1",
       "indexed_at": "2026-08-05T13:16:35.004041+00:00",
@@ -326,18 +335,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "ddd974e73772",
-      "indexed_at": "2026-08-07T04:14:50.284577+00:00",
+      "hash": "fe4c880e9bb9",
+      "indexed_at": "2026-08-07T07:13:51.600383+00:00",
       "language": "shell",
-      "lines": 358,
-      "mtime_ns": 1786074606540370300,
-      "size": 17339,
+      "lines": 359,
+      "mtime_ns": 1786085650086305800,
+      "size": 17404,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            151,
-            166
+            152,
+            167
           ],
           "name": "fires",
           "type": "function"
@@ -1282,6 +1291,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T04:14:50.737821+00:00",
+  "generated_at": "2026-08-07T07:13:52.054886+00:00",
   "version": "1.0"
 }

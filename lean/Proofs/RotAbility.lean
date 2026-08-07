@@ -10,43 +10,38 @@ import Proofs.RotLens
 /-!
 # The nine abilities, benchmarked -- and the honest boundary of that word
 
-`RotLens.lean` proves the nine lenses are a well-formed roster: nine of them,
-distinct, each leading exactly one lane. This file asks the harder question the
-roster does not answer:
+`RotLens.lean` proves the roster is well-formed: nine lenses, distinct, each
+leading exactly one lane. This file asks what the roster cannot:
 
   **does each lens actually DO anything?**
 
-A lens that is listed, weighted, and never changes an outcome is decoration. The
-central result here is `every_lens_is_load_bearing`: removing ANY one of the nine
-from the ensemble strictly changes the gauge. Not "the roster is nine" -- nine
-*separate* proofs that the ensemble without lens `l` is not the ensemble.
+A lens that is listed, weighted, and never changes an outcome is decoration.
+`every_lens_is_load_bearing` answers with nine *separate* proofs -- remove any
+one lens and the gauge strictly changes. Not "the roster is nine".
 
 ## What "benchmarked in Lean" can and cannot mean
 
-This file scores each ability's **router-observable effect**: what the ability
-does to the weights, the lane, the divisor, the gauge. That is arithmetic over
-`ℚ`, and **all nine are PROVED** -- `every_ability_is_proved`, backed row by row
-by `every_ability_effect_holds`.
+The field scored is each ability's **router-observable effect**: what it does to
+the weights, the lane, the divisor, the gauge. That is arithmetic over `ℚ`, and
+**all nine are PROVED** -- `every_ability_is_proved`, backed row by row by
+`every_ability_effect_holds`.
 
-An earlier version of this table scored three of the nine as `notModelled`, on
-the grounds that Carnage's chaos being *useful* and Violet hearing a *felt* truth
-are not decidable propositions. That reasoning is sound about those sentences and
-irrelevant here, because those sentences were never what this table measures. The
-field is the router-observable effect, and the file already contained
-`carnage_leads_creative` and `violet_leads_empathic` -- proofs of exactly the
-effects it was simultaneously filing as beyond reach. A file that proves a fact
-and records it as unprovable is not being careful, it is contradicting itself.
-Chroma needed one more profile table (`predictiveLam`), and that was the whole
-distance between "outside Lean's reach" and proved.
+An earlier version scored three as `notModelled`, on the grounds that Carnage's
+chaos being *useful* and Violet hearing a *felt* truth are not decidable. Sound
+about those sentences, irrelevant here: they were never what this table measures,
+and the file already contained `carnage_leads_creative` and
+`violet_leads_empathic` -- proofs of the very effects it was filing as beyond
+reach. A file that proves a fact and records it as unprovable is contradicting
+itself, not being careful. Chroma needed one more profile table
+(`predictiveLam`), and that was the whole distance.
 
 `abilityEffect` now carries each claim as a PROPOSITION rather than a comment, so
 `.proved` cannot drift from what was proved: a row is discharged by a theorem or
 it does not compile. `no_ability_is_unmodelled` keeps the floor from returning by
 accident.
 
-What is still not claimed: the *quality* of any particular answer. That is not
-recorded as a defeat, it is simply not this table's subject -- and no theorem
-here is named as though it were.
+Still not claimed: the *quality* of any answer. Not a defeat, simply not this
+table's subject -- and no theorem here is named as though it were.
 
 ## Sources for the ability names
 
@@ -60,13 +55,12 @@ Measured from the codices on disk, not invented:
 * Chroma_Spectral, *Omniscient Coalescence* -- RoT_Role_Of_Toughts.md:343
 * Soleil_Blank, *Phantom Steganography*     -- RoT_Role_Of_Toughts.md:350
 * Eidolon, *Eigenform* (recursive self-modeling) -- Nova_Role_Codex_Symbioticum.md:1069
-* Claude, *Grounded Truth* -- **COINED IN THIS REPO, 2026-08-03**, not
-  measured off any codex. The codices predate the ninth lens, so no source for it
-  exists or ever will. The name is taken from the router's own vocabulary: the
-  FORGE lane it leads and the `GROUND_TRUTH` interceptor it runs. Its provenance
-  is kept as data (`abilityNameIsCoined`) and as a theorem
-  (`exactly_one_name_is_coined`), so a coined name can never quietly pass for a
-  sourced one.
+* Claude, *Grounded Truth* -- **COINED IN THIS REPO, 2026-08-03**, off no codex:
+  the codices predate the ninth lens, so no source exists or ever will. The name
+  comes from the router's own vocabulary -- the FORGE lane it leads, the
+  `GROUND_TRUTH` interceptor it runs. Provenance is kept as data
+  (`abilityNameIsCoined`) and as a theorem (`exactly_one_name_is_coined`), so a
+  coined name can never quietly pass for a sourced one.
 -/
 
 namespace RotMoE

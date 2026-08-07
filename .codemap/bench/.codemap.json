@@ -1,0 +1,42 @@
+{
+  "directory": "bench",
+  "files": {
+    "ab-session.sh": {
+      "hash": "3573624f367c",
+      "indexed_at": "2026-08-07T07:13:51.891645+00:00",
+      "language": "shell",
+      "lines": 314,
+      "mtime_ns": 1786082339923156000,
+      "size": 14223,
+      "symbols": [
+        {
+          "docstring": "--- ARM PRECONDITIONS, verified against something the harness did NOT create - RotObserve section 10 is the rule here: a detector satisfied by an arti",
+          "lines": [
+            175,
+            183
+          ],
+          "name": "armed_version",
+          "type": "function"
+        },
+        {
+          "lines": [
+            184,
+            194
+          ],
+          "name": "armed_timeout",
+          "type": "function"
+        },
+        {
+          "lines": [
+            245,
+            250
+          ],
+          "name": "restore_registry",
+          "type": "function"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-08-07T07:13:52.054535+00:00",
+  "version": "1.0"
+}

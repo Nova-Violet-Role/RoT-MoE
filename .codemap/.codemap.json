@@ -103,6 +103,7 @@
     ".github",
     ".github\\workflows",
     "agents",
+    "bench",
     "checker",
     "docs",
     "engine",
@@ -110,12 +111,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-07T04:14:50.742931+00:00",
+  "generated_at": "2026-08-07T07:13:52.059758+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-07T04:14:50.729902+00:00",
-    "total_files": 101,
-    "total_symbols": 696
+    "last_full_index": "2026-08-07T07:13:52.046176+00:00",
+    "total_files": 103,
+    "total_symbols": 706
   },
   "version": "1.0"
 }
