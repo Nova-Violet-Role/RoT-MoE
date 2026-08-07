@@ -150,6 +150,68 @@ the same model family is not an instrument.
   regeneration only adds columns. A corpus edited to be more flattering would
   have shown up right there.
 
+## CI went red on a correct commit — the spec was wrong, not the change
+
+Run `31193273932` (`4fb410a`) **failed**, and the failure was the gate's fault.
+
+`checker/deferred-closure.sh` proves a declared workflow step actually ran by
+finding its per-step log in the archive. It reported:
+
+```
+FAIL  no runner log for step: A/B corpus -- published figures re-derived from bench/ab-metrics.jsonl
+```
+
+The step had run — in **all three** matrix legs; `ab-analyze.sh` appears three
+times in each job log. GitHub stores the per-step log under a *sanitised*
+filename, rewriting `/` as `_`:
+
+```
+31_A_B corpus -- published figures re-derived from bench_ab-metrics.jsonl.txt
+```
+
+The probe replaced `/` with a **space**, searched for `A B corpus`, and found
+nothing. Measured against the real archive: old probe **0** matches, new probe
+**3**. Across the 60 declared steps at that commit, 3 contain a slash and
+exactly **1** was invisible.
+
+This is the failure shape this repo keeps warning about: a check that goes red
+on a correct commit, where the obvious repair — delete the step, or rename it to
+dodge the slash — **destroys real coverage to satisfy a broken matcher**.
+
+It also means my own CP21 audit was incomplete. I checked that run for errors,
+warnings and skips and called it green; I did not check that every *declared*
+step produced evidence. The gate caught what my audit method could not.
+
+### The fix does not learn GitHub's substitute — it stops needing to know
+
+The probe now uses `.`, the regex wildcard, at slash positions. `_` today,
+anything tomorrow, and this file never has to be edited. Hard-coding `_` would
+have been the same dated-constant defect one layer down.
+
+`lean/Proofs/RotLog.lean` §N, five theorems and two executable examples:
+
+| theorem | what it settles |
+|---|---|
+| `wildProbe_patMatches_any_substitution` | matches for **every** substitute char and every name — quantified, so no rewrite can break it |
+| `guessProbe_misses_when_the_guess_is_wrong` | why the old probe failed, as a general fact |
+| `guessProbe_works_only_by_luck` | it worked when the guess happened to be right — why the defect hid so long |
+| `wildProbe_still_rejects_a_different_name` | the wildcard is not a free pass |
+| `wildProbe_rejects_a_truncated_name` | …and does not weaken length discipline |
+
+`#eval` confirms `sanitize '%'` also matches — the durability is executable, not
+just asserted. Mutants **L11–L14, all killed**.
+
+Two of those four were first reported **DISCARDED — needle occurs 0 times**,
+because the needles contained `'/'` and a single quote terminates a
+single-quoted shell string. The harness said so instead of scoring them
+`SURVIVED`; that attributability guard was added earlier this cycle and this is
+the first time it caught a real mistake of mine. Re-cut with quote-free needles:
+4 killed.
+
+A control was added for the population that was invisible: **every declared step
+whose name contains `/` is now matched explicitly**, and if no such step exists
+the control announces itself VACUOUS rather than passing.
+
 ## The router's debug channel could not report its own failure
 
 The goal names one thing this repo did not check: the router's `*.log` debug

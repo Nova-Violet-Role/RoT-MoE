@@ -10,7 +10,7 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-BEGIN -->
 | field | value |
 |---|---|
-| theorems | 606 |
+| theorems | 611 |
 | modules | 25 |
 | mutation suites | 22 |
 | checkers | 52 |
