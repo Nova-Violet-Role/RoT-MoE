@@ -136,6 +136,15 @@
         }
       ]
     },
+    "ci-audit-freshness.sh": {
+      "hash": "a281cf998c2a",
+      "indexed_at": "2026-08-07T20:26:05.270421+00:00",
+      "language": "shell",
+      "lines": 142,
+      "mtime_ns": 1786133304442432300,
+      "size": 6453,
+      "symbols": []
+    },
     "ci-dryrun.sh": {
       "hash": "f7c111c93fa8",
       "indexed_at": "2026-08-05T13:16:35.013431+00:00",
@@ -383,18 +392,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "f59a22b34cc5",
-      "indexed_at": "2026-08-07T17:53:19.801647+00:00",
+      "hash": "b8474e284bc2",
+      "indexed_at": "2026-08-07T20:26:04.950986+00:00",
       "language": "shell",
-      "lines": 361,
-      "mtime_ns": 1786124639927277200,
-      "size": 17729,
+      "lines": 362,
+      "mtime_ns": 1786134101474303000,
+      "size": 17900,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            154,
-            169
+            155,
+            170
           ],
           "name": "fires",
           "type": "function"
@@ -1235,12 +1244,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "ebfe1df95a78",
-      "indexed_at": "2026-08-07T03:36:17.139020+00:00",
+      "hash": "ed9a6258ad37",
+      "indexed_at": "2026-08-07T20:26:04.954167+00:00",
       "language": "shell",
-      "lines": 1250,
-      "mtime_ns": 1786070785601248700,
-      "size": 63826,
+      "lines": 1278,
+      "mtime_ns": 1786134052052303000,
+      "size": 65490,
       "symbols": [
         {
           "docstring": "One entry point, so the four call sites cannot drift apart again.",
@@ -1255,24 +1264,33 @@
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
           "lines": [
             201,
-            213
+            221
           ],
           "name": "except_reason",
           "type": "function"
         },
         {
+          "docstring": "AN EXEMPTION MUST NOT BE A HIDING PLACE.  The reason above is honest, but \"not run by CI\" and \"not run at all\" look identical from here, and the secon",
+          "lines": [
+            230,
+            235
+          ],
+          "name": "exempt_must_be_reachable",
+          "type": "function"
+        },
+        {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            234,
-            239
+            256,
+            261
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            240,
-            249
+            262,
+            271
           ],
           "name": "contains_line",
           "type": "function"
@@ -1280,8 +1298,8 @@
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            295,
-            302
+            323,
+            330
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -1289,16 +1307,16 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            389,
-            398
+            417,
+            426
           ],
           "name": "gate_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            471,
-            475
+            499,
+            503
           ],
           "name": "enum_mods",
           "type": "function"
@@ -1306,24 +1324,24 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            512,
-            516
+            540,
+            544
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            649,
-            673
+            677,
+            701
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            729,
-            740
+            757,
+            768
           ],
           "name": "perms_of",
           "type": "function"
@@ -1331,8 +1349,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            858,
-            865
+            886,
+            893
           ],
           "name": "probe_r20",
           "type": "function"
@@ -1340,8 +1358,8 @@
         {
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
-            985,
-            1000
+            1013,
+            1028
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -1349,16 +1367,16 @@
         {
           "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
           "lines": [
-            1196,
-            1198
+            1224,
+            1226
           ],
           "name": "_r23_onblock",
           "type": "function"
         },
         {
           "lines": [
-            1199,
-            1201
+            1227,
+            1229
           ],
           "name": "_r23_count",
           "type": "function"
@@ -1366,6 +1384,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T18:50:01.500209+00:00",
+  "generated_at": "2026-08-07T20:26:05.448675+00:00",
   "version": "1.0"
 }

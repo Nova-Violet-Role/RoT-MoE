@@ -150,6 +150,64 @@ the same model family is not an instrument.
   regeneration only adds columns. A corpus edited to be more flattering would
   have shown up right there.
 
+## Three CI runs reported the same error because the fix was never pushed
+
+The user asked whether I was reading the CI archive correctly, since the same
+line kept coming back:
+
+```
+FAIL  sh: log grew to       24 lines with cap 5 -- unbounded
+```
+
+The reading was correct. The **landing** was not.
+
+| | |
+|---|---|
+| diagnosis | correct on the first archive — BSD `wc` padding |
+| fix written and locally verified | yes — reverting it reproduced 24-against-5 exactly |
+| fix on the remote | **absent for three consecutive runs** |
+
+`git commit` was killed three times by a wall-clock ceiling. Each kill left the
+pre-commit gate running as an orphan, so the commit never happened — and I read
+the timeouts as "slow" rather than "did not land". Runs `e66a6bc`, `783fb2f`
+and the one quoted all tested a tree **without the repair**, so they could only
+report the identical failure. They were right; I was reporting a fix that
+existed on one machine.
+
+Measured after the push: remote head `e8b8dc1`, `tr -dc` present — checked
+against the remote rather than against `origin/main`, which was itself stale
+because pushing by full URL does not move the tracking ref. That stale ref
+briefly produced a *correct answer for the wrong reason*, which is its own
+hazard.
+
+### `checker/ci-audit-freshness.sh` — the alarm that was missing
+
+It answers one question: **does the CI run I am reading contain the commits I
+think it does?** Pointed at the run I misread, it fails and names them:
+
+```
+FAIL  the run PREDATES 3 local commit(s) -- its failures cannot reflect them:
+        e8b8dc1 rot-router: tolerate a padded count ...
+        0655b29 CountParse: the guard that READ the count ...
+        b425947 Docs: a defensive sanitiser switched rotation off ...
+----  a red run here says nothing about a fix that is not in it.
+```
+
+It also reads `refs/heads/main` from the remote directly, so "committed" is
+never mistaken for "pushed". The failure mode is *not* "unpushed commits exist"
+— that is normal. It is claiming a fix is in effect while the audited run
+predates it.
+
+**Not registered in `ci.yml`, deliberately.** Inside a CI job local HEAD is the
+run's own commit, so the check would pass by construction on every run forever.
+A step that cannot fail is decoration. It runs on the development machine, where
+the defect actually occurs.
+
+Three of my four `RotGates` guard values for this gate were wrong when written
+by hand and were corrected by **measuring** them (`deepSet` 13→14, and the
+staged sets for `RotGauge.lean`/`README.md` unchanged, not bumped — the gate is
+deep and triggers only on `hooks/`, `checker/`, `.github/workflows/`).
+
 ## A defensive sanitiser switched rotation off on macOS — and only macOS
 
 CI run `31202010565` failed on **one leg of three**:
