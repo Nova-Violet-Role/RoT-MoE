@@ -400,6 +400,17 @@ jobs:
         shell: bash
         run: bash checker/gauge-hook-corpus.sh
 
+      # A HOOK WITH NO DECLARED TIMEOUT IS KILLED AT 30 s AND CONTRIBUTES
+      # NOTHING -- no marker, no lane, no gauge. Measured 2026-08-07: neither
+      # install path declared one, so the router was being silenced on real
+      # prompts and the only trace was in the debug view. This asserts the bound
+      # is declared, exceeds the default it replaces, and is IDENTICAL on both
+      # install paths. It never pins a particular number, so the value may move
+      # without editing the check.
+      - name: hook timeout -- declared, adequate, same on both install paths
+        shell: bash
+        run: bash checker/hook-timeout.sh
+
       # The three lane profiles in RotAbility.lean (creativeLam, empathicLam,
       # predictiveLam) are TRANSCRIBED from engine/rot-lean.md §4. Until
       # 2026-08-03 nothing bound them: the router never executes a lane profile,
