@@ -23,6 +23,72 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+## Twelve fake kills, green in CI for the whole cycle
+
+**Found by reading the full `log.zip` of run `31180174433`, which concluded
+`success`.** The lean job's mutation step contained this:
+
+```
+mkdir: cannot create directory '/d': Permission denied
+mutate/mutate_rotgauge.sh: line 128: /d/tmp/mut/M01.log: No such file or directory
+M01  KILLED     exit=1  MODULE DEAD (no olean: every theorem in it is unusable)
+```
+
+`mutate_rotgauge.sh:24` read `LOG=/d/tmp/mut` — a Windows drive path, the only
+suite of twenty-one not using `mktemp`. On a Linux runner `/d` cannot be
+created, so the redirection target does not exist; **when bash cannot open a
+redirect it does not run the command and returns 1.** The suite read that 1 as
+"the build went red" and recorded a kill. All twelve RotGauge mutants were
+scored `KILLED` on a runner where `lake` never ran once, the suite printed
+`12 killed, 0 survived, 0 discarded`, and the job passed.
+
+Nothing about the theorems was learned, and the repository published the
+opposite.
+
+**Three repairs, because the path was only the proximate cause.**
+
+1. **The path.** `mktemp -d`, as in every sibling suite, plus a start-up check
+   that the directory exists and is writable — measured: it now exits 2 on the
+   CI condition instead of manufacturing kills.
+2. **The class, in all 21 suites.** A non-zero exit is evidence only if a build
+   actually ran. Every suite now refuses to score a kill when the build produced
+   no log, reporting `DISCARDED` — which cannot exit 0. Verified by planting the
+   exact CI condition: **9 DISCARDED, exit 1**, where the old code gave *12
+   KILLED, exit 0*. Both suite shapes were then re-run unplanted and still kill
+   for real (`RotGauge` 12/0/0, `RotAcquire` 5/0/0, `RotAttribute` 9/0/0).
+3. **The rule, enforced.** `checker/mutant-discipline.sh` gained a phase that
+   fails any suite with a machine-local `LOG=` path or without the
+   attributability guard, with two negative controls proving both predicates can
+   fire on the exact form that shipped. **34 → 79 passed.**
+
+**And the rule is now a theorem, not a habit.** `lean/Proofs/RotMutant.lean`
+already modelled whether a *patch* landed; this defect is one step later, and
+the patch had landed perfectly.
+
+| theorem | what it settles |
+|---|---|
+| `naive_rule_manufactures_a_kill` | the CI observation, reproduced: shipped rule → `killed`, repaired rule → `discarded` |
+| `unattributable_is_never_killed` | **general**: no evidence, no kill — for every run and every status |
+| `killed_carries_its_evidence` | the converse, so the guard cannot degenerate into "never kill anything" |
+| `a_real_kill_survives_the_new_guard` / `a_survivor_is_still_a_survivor` | non-vacuity: it still kills, and still recognises a survivor |
+| `rules_differ_exactly_on_missing_evidence` | exhaustive over every observable combination, kernel-checked |
+
+`rules_differ_exactly_on_missing_evidence` **refuted its own first version.** It
+was stated with a third disjunct, `be.val = 0`, on my assumption that a zero
+status was harmless; `decide` proved that false. With no evidence, the shipped
+rule reports **survived** — a claim of robustness about a build that never ran,
+exactly as unfounded as the twelve kills. Only the kills were noticed, because
+only the kills looked like work. `naive_rule_also_manufactures_a_survivor` now
+records that half explicitly.
+
+Suite `mutate_rotmutant.sh` grows M14–M18: attributability switched off (M14),
+the evidence check deleted so the shipped rule returns verbatim (M15), the
+recorded CI observation edited to erase the measurement (M16), the guard turned
+into a blanket refusal (M17), and **my own refuted disjunct put back** (M18).
+All five killed. M17's first needle matched two lines and the suite reported
+`DISCARDED (needle x2)` rather than guessing — it was retargeted, not explained
+away.
+
 ## The A/B was not null — my analysis was blind, and here is the retraction
 
 **I published a null result that the data does not support.** The 80×2 A/B run

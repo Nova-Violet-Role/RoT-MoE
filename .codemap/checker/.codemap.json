@@ -620,12 +620,12 @@
       ]
     },
     "mutant-discipline.sh": {
-      "hash": "ba95f9c6df31",
-      "indexed_at": "2026-08-06T16:07:03.748329+00:00",
+      "hash": "e2307dd2d2e4",
+      "indexed_at": "2026-08-07T14:20:02.053348+00:00",
       "language": "shell",
-      "lines": 268,
-      "mtime_ns": 1786031957253250900,
-      "size": 13100,
+      "lines": 316,
+      "mtime_ns": 1786111540133390600,
+      "size": 15389,
       "symbols": []
     },
     "mutate-checker.sh": {
@@ -1300,6 +1300,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T13:42:32.270075+00:00",
+  "generated_at": "2026-08-07T14:20:02.078035+00:00",
   "version": "1.0"
 }

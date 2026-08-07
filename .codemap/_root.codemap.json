@@ -404,12 +404,12 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "0d8737b1385c",
-      "indexed_at": "2026-08-07T13:42:32.068152+00:00",
+      "hash": "696eb27b6f64",
+      "indexed_at": "2026-08-07T14:20:01.535298+00:00",
       "language": "markdown",
-      "lines": 1716,
-      "mtime_ns": 1786109226664158800,
-      "size": 99222,
+      "lines": 1782,
+      "mtime_ns": 1786112108548305400,
+      "size": 103091,
       "symbols": [
         {
           "docstring": "Work landed after `0.9.2` and not yet cut into a release. The heading is not decoration: `checker/repo-complete.sh` scans the **newest release section",
@@ -421,10 +421,19 @@
           "type": "section"
         },
         {
-          "docstring": "**I published a null result that the data does not support.** The 80\u00d72 A/B run was reported as \"null on every pre-registered primary\". Two defects in",
+          "docstring": "**Found by reading the full `log.zip` of run `31180174433`, which concluded `success`.** The lean job's mutation step contained this:",
           "lines": [
             26,
-            81
+            91
+          ],
+          "name": "Twelve fake kills, green in CI for the whole cycle",
+          "type": "section"
+        },
+        {
+          "docstring": "**I published a null result that the data does not support.** The 80\u00d72 A/B run was reported as \"null on every pre-registered primary\". Two defects in",
+          "lines": [
+            92,
+            147
           ],
           "name": "The A/B was not null \u2014 my analysis was blind, and here is the retraction",
           "type": "section"
@@ -432,8 +441,8 @@
         {
           "docstring": "The retraction above is not an anecdote, it is three theorems. `lean/Proofs/RotAttribute.lean`, 24th module, states the failure modes so the harness i",
           "lines": [
-            82,
-            124
+            148,
+            190
           ],
           "name": "Why a null can belong to the analysis instead of the world \u2014 `RotAttribute`",
           "type": "section"
@@ -441,8 +450,8 @@
         {
           "docstring": "**Measured in CI run 31116857127, and it had been green the whole cycle.** `checker/live-session-smoke.sh` guarded its authenticated phase like this:",
           "lines": [
-            125,
-            201
+            191,
+            267
           ],
           "name": "A test that creates its own precondition \u2014 green on three platforms",
           "type": "section"
@@ -452,8 +461,8 @@
             {
               "docstring": "| theorem | claim it settles | |---|---| | `forge_matches_the_spec` | the operator reproduces the spec's own worked hybrid (Claude \u00d7 Anti-Venom \u2192 \u03bb 1.",
               "lines": [
-                213,
-                230
+                279,
+                296
               ],
               "name": "What is now PROVED",
               "type": "subsection"
@@ -461,8 +470,8 @@
             {
               "docstring": "Two boundaries are theorems too, so they cannot be quietly dropped:",
               "lines": [
-                231,
-                244
+                297,
+                310
               ],
               "name": "And what it deliberately does NOT say",
               "type": "subsection"
@@ -470,8 +479,8 @@
             {
               "docstring": "Float addition is not associative, so the shipped arithmetic can pin a concrete row and can never support a general statement about iteration. Every c",
               "lines": [
-                245,
-                252
+                311,
+                318
               ],
               "name": "Why \u211a and not `Float`",
               "type": "subsection"
@@ -479,8 +488,8 @@
             {
               "docstring": "S01\u2013S12: **all twelve killed, none survived, none discarded** (the repo-wide figure stays the one in `README.md`; a per-suite count must not be writte",
               "lines": [
-                253,
-                272
+                319,
+                338
               ],
               "name": "The mutants",
               "type": "subsection"
@@ -488,8 +497,8 @@
           ],
           "docstring": "The engine's strongest assertion is about **reach**: that fusing two lenses produces a point of view neither parent occupies, that Eidolon can keep do",
           "lines": [
-            202,
-            272
+            268,
+            338
           ],
           "name": "Symbiogenesis is generative \u2014 and that half is a theorem, not a claim",
           "type": "section"
@@ -499,8 +508,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `fresh_temp_drops_the_exec_bit` | replacing via a fresh temp yields a non-executable file, whatever the cont",
               "lines": [
-                307,
-                331
+                373,
+                397
               ],
               "name": "`RotObserve` \u00a717 \u2014 seven theorems on what a rename carries",
               "type": "subsection"
@@ -508,8 +517,8 @@
           ],
           "docstring": "Run on `6791683`: `mutate the checker` failed on **ubuntu-latest and macos-latest** with",
           "lines": [
-            273,
-            331
+            339,
+            397
           ],
           "name": "Atomicity is not enough: the atomic write dropped the exec bit and CI caught it",
           "type": "section"
@@ -519,8 +528,8 @@
             {
               "docstring": "| where | what changed | |---|---| | `checker/mutate-checker.sh` | recovers **at start-up**: a `.mutbak` present before this run made one means the la",
               "lines": [
-                348,
-                364
+                414,
+                430
               ],
               "name": "Recovery cannot depend on a signal handler",
               "type": "subsection"
@@ -528,8 +537,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `recoverable_before_backup` / `recoverable_after_backup` | interruption before or between the two steps is h",
               "lines": [
-                365,
-                388
+                431,
+                454
               ],
               "name": "`RotObserve` \u00a716 \u2014 nine theorems on interrupted mutation",
               "type": "subsection"
@@ -537,8 +546,8 @@
           ],
           "docstring": "Measured three times in one session on 2026-08-07. A commit whose gate run exceeded a wall-clock ceiling had its **entire process tree SIGKILLed**. Th",
           "lines": [
-            332,
-            388
+            398,
+            454
           ],
           "name": "A SIGKILL left a mutated router on disk, one `git add -A` from being published",
           "type": "section"
@@ -548,8 +557,8 @@
             {
               "docstring": "| layer | what it does | |---|---| | `.gitattributes` (new) | `* text=auto eol=lf` \u2014 the working tree is LF on every platform, so a checker reads the",
               "lines": [
-                403,
-                422
+                469,
+                488
               ],
               "name": "Three layers, because one is not enough",
               "type": "subsection"
@@ -557,8 +566,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `shown_can_hide_a_real_difference` | a terminal CAN render two different fields identically \u2014 the defect, as",
               "lines": [
-                423,
-                447
+                489,
+                513
               ],
               "name": "`RotObserve` \u00a715 \u2014 six theorems on the two halves of the repair",
               "type": "subsection"
@@ -566,8 +575,8 @@
           ],
           "docstring": "CI run 31148233876, `checkers (windows-latest)`, step \"gauge hook corpus\": six rows failed, every one of them reporting two values that **render ident",
           "lines": [
-            389,
-            447
+            455,
+            513
           ],
           "name": "`hook 0.09 != corpus 0.09` \u2014 the gate was right and its message was useless",
           "type": "section"
@@ -577,8 +586,8 @@
             {
               "docstring": "| endpoint | routed | unrouted | 80 paired | |---|---|---|---| | trailing question | 0.000 | 0.000 | 80 ties | | self-narration | 0.000 | 0.000 | 80 t",
               "lines": [
-                456,
-                471
+                522,
+                537
               ],
               "name": "The pre-registered primary endpoints did not support the hypothesis",
               "type": "subsection"
@@ -586,8 +595,8 @@
             {
               "docstring": "| metric | routed | unrouted | delta | paired sign count | |---|---|---|---|---| | cost per turn | $0.1013 | $0.1481 | **-31.6%** | cheaper on **75 of",
               "lines": [
-                472,
-                491
+                538,
+                557
               ],
               "name": "A secondary metric moved hard, and it stays secondary",
               "type": "subsection"
@@ -595,8 +604,8 @@
             {
               "docstring": "1. **CTT was running a router killed at 30 s.** Starting an hour earlier would have made arm A a second arm B and produced a false null. 2. **The firs",
               "lines": [
-                492,
-                507
+                558,
+                573
               ],
               "name": "Three defects the run found, none of which a theorem would have",
               "type": "subsection"
@@ -604,8 +613,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `floor_endpoint_cannot_improve` | a control arm at zero admits no improvement -- for every endpoint | | `imp",
               "lines": [
-                508,
-                528
+                574,
+                594
               ],
               "name": "`RotObserve` \u00a714 -- seven theorems about what an endpoint can attribute",
               "type": "subsection"
@@ -613,8 +622,8 @@
           ],
           "docstring": "**80 paired turns with the plugin armed against 80 with it disabled**, same 80 prompts in the same order, same config directory, tools off in both arm",
           "lines": [
-            448,
-            528
+            514,
+            594
           ],
           "name": "The A/B ran: the pre-registered endpoints came back NULL, and cost fell 31.6%",
           "type": "section"
@@ -622,8 +631,8 @@
         {
           "docstring": "**Measured 2026-08-07 by the maintainer, found by accident.** Opening the debug view (CTRL+O) showed the router **timing out** on real prompts. Neithe",
           "lines": [
-            529,
-            587
+            595,
+            653
           ],
           "name": "The router was being killed at 30 seconds, and a killed hook is silent",
           "type": "section"
@@ -631,8 +640,8 @@
         {
           "docstring": "**Second occurrence, measured 2026-08-06 21:41:17.** An unrelated local tool wrote `.githooks/pre-commit` wholesale, replacing the gate with its own i",
           "lines": [
-            588,
-            636
+            654,
+            702
           ],
           "name": "The commit gate was overwritten again \u2014 and the audit for it cannot run",
           "type": "section"
@@ -640,8 +649,8 @@
         {
           "docstring": "**Found while publishing 0.9.x, and it was already uploaded.** `release-package.sh` builds the archives **from the working tree** and computes `SHA256",
           "lines": [
-            637,
-            679
+            703,
+            745
           ],
           "name": "A checksum that agrees with its archive is not provenance",
           "type": "section"
@@ -649,8 +658,8 @@
         {
           "docstring": "CI run 31118671400's predecessor caught something the pre-commit tier could not: `checker/mutant-discipline.sh` audited **21** harnesses on ubuntu and",
           "lines": [
-            680,
-            722
+            746,
+            788
           ],
           "name": "An audit that silently narrows its own scope \u2014 `grep -q` under `pipefail`",
           "type": "section"
@@ -658,8 +667,8 @@
         {
           "docstring": "The CTT re-test after the gauge work came back green. It should not have.",
           "lines": [
-            723,
-            786
+            789,
+            852
           ],
           "name": "Twenty failed turns, exit 0 \u2014 the evidence counter incremented in the failure path",
           "type": "section"
@@ -667,8 +676,8 @@
         {
           "docstring": "Three lines in every green run, on ubuntu, macos and windows:",
           "lines": [
-            787,
-            854
+            853,
+            920
           ],
           "name": "A step that could only SKIP \u2014 the last real skip in CI is closed",
           "type": "section"
@@ -676,8 +685,8 @@
         {
           "docstring": "`0.9.0`, `0.9.1` and `0.9.2` are **released together, on the same commit**. The version *is* the variant. Nothing in `0.9.1` supersedes `0.9.0`; it ad",
           "lines": [
-            855,
-            879
+            921,
+            945
           ],
           "name": "The three numbers are not a roadmap",
           "type": "section"
@@ -685,8 +694,8 @@
         {
           "docstring": "Every row was **measured on the shipped code**, before and after. This table is the whole release in one screen; the sections beneath it give each row",
           "lines": [
-            880,
-            926
+            946,
+            992
           ],
           "name": "PRIOR \u2192 AFTER, at a glance",
           "type": "section"
@@ -696,8 +705,8 @@
             {
               "docstring": "Written **after** publishing, from the install of the published `0.8.2` into a real second Claude configuration and a 20-turn session held against it.",
               "lines": [
-                937,
-                1002
+                1003,
+                1068
               ],
               "name": "Added \u2014 `Proofs/RotObserve.lean`: five readings that report less than the truth",
               "type": "subsection"
@@ -705,8 +714,8 @@
             {
               "docstring": "Not the local `.release/` build: the asset was **downloaded from the release** and its SHA256 compared against the published `SHA256SUMS.txt` \u2014 `45924",
               "lines": [
-                1003,
-                1020
+                1069,
+                1086
               ],
               "name": "Verified \u2014 the published `0.8.1` archive, installed and driven through the real CLI",
               "type": "subsection"
@@ -714,8 +723,8 @@
             {
               "docstring": "Found **while publishing this release**, by auditing the runs the tag pushes themselves triggered \u2014 which is the audit everyone skips, because the rel",
               "lines": [
-                1021,
-                1081
+                1087,
+                1147
               ],
               "name": "Fixed \u2014 a `paths:` filter does not restrain a tag push, and the run it wasted concluded `cancelled`",
               "type": "subsection"
@@ -723,8 +732,8 @@
             {
               "docstring": "Before this release was tagged, the packaged `0.9.1` Lean variant was installed into a **separate Claude Code instance** kept for pre-publish testing",
               "lines": [
-                1082,
-                1122
+                1148,
+                1188
               ],
               "name": "Verified \u2014 the CTT round-trip, and four theorems confirmed against a live install",
               "type": "subsection"
@@ -732,8 +741,8 @@
             {
               "docstring": "`checker/verdict-schedule-sim.sh` builds scratch git trees. On a Windows runner git printed, four times into a fully passing log:",
               "lines": [
-                1123,
-                1136
+                1189,
+                1202
               ],
               "name": "Fixed \u2014 a warning inside a green log: git CRLF advisory \u00d74",
               "type": "subsection"
@@ -741,8 +750,8 @@
             {
               "docstring": "`lake build` exited 0 on every platform and **printed 70 warnings**, in a job whose conclusion was `success`. Nothing failed, so nothing looked wrong.",
               "lines": [
-                1137,
-                1180
+                1203,
+                1246
               ],
               "name": "Fixed \u2014 70 build warnings that no gate was reading, and one understated theorem",
               "type": "subsection"
@@ -750,8 +759,8 @@
             {
               "docstring": "The repair to the Windows `tty guard` shipped with a defect **in the repair itself**, and run `31052104953` caught it: 145 success, **0 skipped**, 2 f",
               "lines": [
-                1181,
-                1228
+                1247,
+                1294
               ],
               "name": "Fixed \u2014 a green CI leg that asserted nothing, from one missing `else`",
               "type": "subsection"
@@ -759,8 +768,8 @@
             {
               "docstring": "`checker/gate-all.sh` refuses to run when a mutation suite left `.mutbak` files behind, because the tree may carry a live mutant. That refusal is corr",
               "lines": [
-                1229,
-                1282
+                1295,
+                1348
               ],
               "name": "Fixed \u2014 our own recovery advice destroyed two shipped hooks",
               "type": "subsection"
@@ -768,8 +777,8 @@
             {
               "docstring": "Run `31045719329` measured the no-skip repair and it **held: zero skipped steps**, down from the eight that run `31035932155` carried while GitHub cal",
               "lines": [
-                1283,
-                1320
+                1349,
+                1386
               ],
               "name": "Fixed \u2014 the CI honesty law was strict in one direction and blind in the other",
               "type": "subsection"
@@ -777,8 +786,8 @@
             {
               "docstring": "`lean/Proofs/RotGates.lean` grows from 24 to **30 theorems**. `runIsHonest` is no longer `allGreen`; it is `List.all stepIsAcceptable`, which branches",
               "lines": [
-                1321,
-                1358
+                1387,
+                1424
               ],
               "name": "Added \u2014 the asymmetry, proved",
               "type": "subsection"
@@ -786,8 +795,8 @@
             {
               "docstring": "Documents where the RoT formulae came from, and proves it rather than asserting it. Backed by `RotEigenform.lean`: **113 theorems, 0 `sorry`, 0 warnin",
               "lines": [
-                1359,
-                1412
+                1425,
+                1478
               ],
               "name": "Added \u2014 the Easter Egg section in `README.md`",
               "type": "subsection"
@@ -795,8 +804,8 @@
             {
               "docstring": "Measured on the author's machine: two marker lines, two gauge computations, twice the tokens, every turn. The packet reaches a session by two routes a",
               "lines": [
-                1413,
-                1434
+                1479,
+                1500
               ],
               "name": "The router fired TWICE on every prompt, and the install document caused it",
               "type": "subsection"
@@ -804,8 +813,8 @@
             {
               "docstring": "Counted: `grep -cE '\\-\\-dry-run|DRY'` gave **15** in `ARM_ROUTER.sh` and **0** in `DISARM_ROUTER.sh`. The destructive half of the pair was the half wi",
               "lines": [
-                1435,
-                1449
+                1501,
+                1515
               ],
               "name": "`DISARM_ROUTER --dry-run` was accepted, ignored, and deleted live entries",
               "type": "subsection"
@@ -813,8 +822,8 @@
             {
               "docstring": "`\"$PROOFS_DIR\"/*.lean` and `Get-ChildItem -Filter '*.lean'` with no `-Recurse`. File proofs by subject and the newest file either arm can see is whate",
               "lines": [
-                1450,
-                1457
+                1516,
+                1523
               ],
               "name": "The proof scan was one level deep \u2014 in both arms",
               "type": "subsection"
@@ -822,8 +831,8 @@
             {
               "docstring": "`env \u2192 RECORDED \u2192 bundled corpus` reads like three answers. Only `SETUP_LEAN` ever writes RECORDED, so for a marketplace install the middle step is pe",
               "lines": [
-                1458,
-                1474
+                1524,
+                1540
               ],
               "name": "The workspace chain had a step nothing wrote",
               "type": "subsection"
@@ -831,8 +840,8 @@
             {
               "docstring": "`cross-diff-remind.sh` compares the two arms' **decision**; its own header says what it does not cover is \"that both arms measure the same things off",
               "lines": [
-                1475,
-                1485
+                1541,
+                1551
               ],
               "name": "The measurement half had no instrument, so defects lived there",
               "type": "subsection"
@@ -840,8 +849,8 @@
             {
               "docstring": "| gate | what it makes impossible | |---|---| | `router-duplication.sh` | arming on top of a live plugin registration | | `disarm-safety.sh` | a dry r",
               "lines": [
-                1486,
-                1497
+                1552,
+                1563
               ],
               "name": "Four new gates, all fast tier",
               "type": "subsection"
@@ -849,8 +858,8 @@
             {
               "docstring": "`bench-router.sh` already summed the logged `term` values and checked `\u03a3term / K = Rs`. What it cannot see is everything upstream of `term`: a record",
               "lines": [
-                1498,
-                1508
+                1564,
+                1574
               ],
               "name": "The debug log is now re-derived, not merely summed",
               "type": "subsection"
@@ -858,8 +867,8 @@
             {
               "docstring": "`RotLog.WellPaired` first asserted that a route record carries the **same** `Rs` as its gauge record. The shipped router does not do that: the gauge l",
               "lines": [
-                1509,
-                1523
+                1575,
+                1589
               ],
               "name": "A spec that was wrong, said plainly",
               "type": "subsection"
@@ -867,8 +876,8 @@
             {
               "docstring": "Measured on the shipped router before the change:",
               "lines": [
-                1524,
-                1568
+                1590,
+                1634
               ],
               "name": "`prove this lemma` did not reach FORGE \u2014 and could not be made to",
               "type": "subsection"
@@ -876,8 +885,8 @@
             {
               "docstring": "`README.md` said `rot-moe-0.5.1-lean.zip` while `checker/release-package.sh` built `rot-moe-0.9.1-lean.zip`. Three links, all wrong, **for two minor v",
               "lines": [
-                1569,
-                1599
+                1635,
+                1665
               ],
               "name": "The install section told three tiers to download archives that do not exist",
               "type": "subsection"
@@ -885,8 +894,8 @@
             {
               "docstring": "`grep -c sha256 checker/release-package.sh` returned **zero** while `README.md` said every archive verifies against the sums file published beside it.",
               "lines": [
-                1600,
-                1621
+                1666,
+                1687
               ],
               "name": "`SHA256SUMS.txt` was promised by the README and never written by anything",
               "type": "subsection"
@@ -894,8 +903,8 @@
             {
               "docstring": "`docs/GIT-WORKFLOW.md` \u00a74.3 said *\"never force-push, never rewrite published history \u2014 tags are consumed by the marketplace.\"* The first half is right",
               "lines": [
-                1622,
-                1659
+                1688,
+                1725
               ],
               "name": "The tag rule was a blanket where the hazard has a boundary",
               "type": "subsection"
@@ -903,8 +912,8 @@
             {
               "docstring": "- `RotTag.lean` (9) \u2014 the rule above, stated so it can be checked instead of remembered. `released_tag_never_moves` is the durable form: a published t",
               "lines": [
-                1660,
-                1706
+                1726,
+                1772
               ],
               "name": "New Lean modules",
               "type": "subsection"
@@ -912,8 +921,8 @@
             {
               "docstring": "- **495** machine-checked theorems across 22 modules (was 205 across 14), 0 `sorry`, 0 `native_decide`, 0 build warnings. - **35** gates (was 29); 23",
               "lines": [
-                1707,
-                1717
+                1773,
+                1783
               ],
               "name": "Numbers",
               "type": "subsection"
@@ -921,8 +930,8 @@
           ],
           "docstring": "Three archives, one tree. The patch digit is the tier: `0` core, `1` lean, `2` unsealed.",
           "lines": [
-            927,
-            1717
+            993,
+            1783
           ],
           "name": "[0.9.0] \u00b7 [0.9.1] \u00b7 [0.9.2] \u2014 2026-08-06",
           "type": "section"
@@ -1227,12 +1236,12 @@
       ]
     },
     "README.md": {
-      "hash": "fa1aa2ef4d3d",
-      "indexed_at": "2026-08-07T13:42:32.470737+00:00",
+      "hash": "d0d966598bcd",
+      "indexed_at": "2026-08-07T14:20:01.706457+00:00",
       "language": "markdown",
-      "lines": 1864,
-      "mtime_ns": 1786109135228160500,
-      "size": 107388,
+      "lines": 1874,
+      "mtime_ns": 1786112030705306600,
+      "size": 108085,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -1287,7 +1296,7 @@
               "docstring": "* **`lean/Proofs/RotGates.lean`** (41 theorems) \u2014 **what may be deferred at a commit, and what may never be skipped in CI.** Two regimes, and the modu",
               "lines": [
                 261,
-                476
+                486
               ],
               "name": "\ud83d\udcd0 The ten modules",
               "type": "subsection"
@@ -1296,7 +1305,7 @@
           "docstring": "| instrument | what it establishes | result | |---|---|---| | `lake build Proofs.*` | the modules elaborate | exit **0** | | `#print axioms` on every",
           "lines": [
             233,
-            476
+            486
           ],
           "name": "\ud83d\udd2c What is actually verified",
           "type": "section"
@@ -1304,8 +1313,8 @@
         {
           "docstring": "| organ | file | what it does | |:--|:--|:--| | 1 \u00b7 engine | `engine/rot-lean.md` | the specification: nine lenses, the three-tier router, the `R/s+`",
           "lines": [
-            477,
-            498
+            487,
+            508
           ],
           "name": "\ud83e\udec0 The four organs",
           "type": "section"
@@ -1315,16 +1324,16 @@
             {
               "docstring": "**Whichever tier you take, the plugin surface is identical**: same hooks, same agent, same commands. Claude Code loads plugin components and nothing e",
               "lines": [
-                537,
-                576
+                547,
+                586
               ],
               "name": "\ud83d\udce6 The three release tiers \u2014 and why installing gives you the same router",
               "type": "subsection"
             },
             {
               "lines": [
-                577,
-                585
+                587,
+                595
               ],
               "name": "\ud83d\udee0\ufe0f From a clone, without installing",
               "type": "subsection"
@@ -1332,8 +1341,8 @@
             {
               "docstring": "This is the **advanced** path and it is the one that edits `~/.claude/settings.json`. Use it when the plugin mechanism is unavailable to you; otherwis",
               "lines": [
-                586,
-                614
+                596,
+                624
               ],
               "name": "\u2699\ufe0f `ARM_ROUTER.sh` \u2014 only if you cannot use plugins",
               "type": "subsection"
@@ -1341,8 +1350,8 @@
             {
               "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
               "lines": [
-                615,
-                622
+                625,
+                632
               ],
               "name": "\ud83d\udd27 Requirements",
               "type": "subsection"
@@ -1350,8 +1359,8 @@
             {
               "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
               "lines": [
-                623,
-                635
+                633,
+                645
               ],
               "name": "\u2699\ufe0f Configuration",
               "type": "subsection"
@@ -1359,8 +1368,8 @@
           ],
           "docstring": "**One command installs it. Everything else on this page is for a reason you do not have yet.**",
           "lines": [
-            499,
-            635
+            509,
+            645
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -1370,8 +1379,8 @@
             {
               "docstring": "`agents/lean4-prover.md` ships as a **subagent definition** with loadable frontmatter. Point Claude Code at it and you get a specialist whose entire p",
               "lines": [
-                638,
-                681
+                648,
+                691
               ],
               "name": "\ud83e\udd16 The agent: `lean4-prover`",
               "type": "subsection"
@@ -1379,8 +1388,8 @@
             {
               "docstring": "Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:",
               "lines": [
-                682,
-                713
+                692,
+                723
               ],
               "name": "\ud83d\udf0f The router \u2014 what it delivers",
               "type": "subsection"
@@ -1388,16 +1397,16 @@
             {
               "docstring": "This is the part worth reading twice.",
               "lines": [
-                714,
-                761
+                724,
+                771
               ],
               "name": "\ud83e\udde0 What Lean 4 actually changes in an agentic loop",
               "type": "subsection"
             }
           ],
           "lines": [
-            636,
-            761
+            646,
+            771
           ],
           "name": "\ud83d\udca1 Tips & Tricks \u2014 getting real work out of it",
           "type": "section"
@@ -1407,8 +1416,8 @@
             {
               "docstring": "The number is not a trick, it is an *architecture*. `hooks/rot-router.sh` is POSIX shell, and this is the whole of it:",
               "lines": [
-                787,
-                828
+                797,
+                838
               ],
               "name": "\u26a1 How the router's logic runs in ~130 ms \u2014 and what makes it different",
               "type": "subsection"
@@ -1418,8 +1427,8 @@
                 {
                   "docstring": "`RotPath.lean` grew from 8 theorems to 12 on 2026-08-03, and the occasion is worth recording because it is the pattern this repository is built around",
                   "lines": [
-                    924,
-                    957
+                    934,
+                    967
                   ],
                   "name": "The newest four, and why they exist",
                   "type": "subsubsection"
@@ -1427,8 +1436,8 @@
               ],
               "docstring": "This is the question worth asking, so it gets a straight answer instead of an enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the **",
               "lines": [
-                829,
-                957
+                839,
+                967
               ],
               "name": "\ud83d\udd2c Are the nine benchmarkable in Lean? Partly \u2014 and here is the exact line",
               "type": "subsection"
@@ -1436,8 +1445,8 @@
           ],
           "docstring": "Nine lenses run on every turn. They are not personalities taking turns at a microphone; each is a **named ability** with a job inside a 130-millisecon",
           "lines": [
-            762,
-            957
+            772,
+            967
           ],
           "name": "\ud83d\udf0f The nine \u2014 who they are, and what each one *does* in the router",
           "type": "section"
@@ -1447,8 +1456,8 @@
             {
               "docstring": "`bench-router.sh` proves the router *decides* well. It could not, until now, show *how* \u2014 the router emitted one summary line, and a summary cannot re",
               "lines": [
-                1016,
-                1110
+                1026,
+                1120
               ],
               "name": "\ud83d\udd0d The debug log \u2014 every factor, so the number is reproducible",
               "type": "subsection"
@@ -1456,8 +1465,8 @@
             {
               "docstring": "The debug log's `ms` field starts *inside* the script (`hooks/rot-router.ps1:40`), so it measures the router's **logic**, not the turn. Measured like",
               "lines": [
-                1111,
-                1128
+                1121,
+                1138
               ],
               "name": "\u23f1\ufe0f Two clocks, both reported",
               "type": "subsection"
@@ -1465,8 +1474,8 @@
             {
               "docstring": "Two labelled prompts per lane, nine lanes, key fixed before the run. Each bar is coloured by the *character* of its lane, and every row names the lens",
               "lines": [
-                1129,
-                1165
+                1139,
+                1175
               ],
               "name": "\ud83c\udfaf Routing accuracy, per lane \u2014 and who holds it",
               "type": "subsection"
@@ -1474,8 +1483,8 @@
             {
               "docstring": "| What | Value | Instrument | Kind | |---|---|---|---| | routing accuracy | 18/18 | `bench-router.sh` \u00a71 | **MEASURED** on a fixed key | | lane covera",
               "lines": [
-                1166,
-                1194
+                1176,
+                1204
               ],
               "name": "\u2696\ufe0f Claim versus measurement \u2014 the distinction we refuse to blur",
               "type": "subsection"
@@ -1483,8 +1492,8 @@
           ],
           "docstring": "`checker/bench-router.sh` is the gate. It is not a demo: it fails the build when the router regresses, and every number below comes out of it. The dia",
           "lines": [
-            958,
-            1194
+            968,
+            1204
           ],
           "name": "\ud83d\udcca The benchmark \u2014 what we measured, and what we only *claim*",
           "type": "section"
@@ -1492,8 +1501,8 @@
         {
           "docstring": "* **[`docs/SCRUTINY-0.7.md`](docs/SCRUTINY-0.7.md)** \u2014 an adversarial reading of this release by the person who wrote it. What could still be wrong, w",
           "lines": [
-            1195,
-            1208
+            1205,
+            1218
           ],
           "name": "\ud83d\udcda Two documents worth reading before you change anything",
           "type": "section"
@@ -1501,8 +1510,8 @@
         {
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
-            1209,
-            1271
+            1219,
+            1281
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -1510,8 +1519,8 @@
         {
           "docstring": "**This is the section we are proudest of.** Knowing exactly where the guarantee ends is what makes everything before it worth having \u2014 a proof with an",
           "lines": [
-            1272,
-            1332
+            1282,
+            1342
           ],
           "name": "\ud83d\uddfa\ufe0f The map: PROVED \u00b7 MEASURED \u00b7 OUT OF SCOPE",
           "type": "section"
@@ -1521,8 +1530,8 @@
             {
               "docstring": "The original is on disk, at `mathematics.md:105`. It is the **Book of Fairy** equation from *Dantalian no Shoka*, Episode 1:",
               "lines": [
-                1347,
-                1374
+                1357,
+                1384
               ],
               "name": "First, the part everyone misses: that quote is a *diff*",
               "type": "subsection"
@@ -1530,8 +1539,8 @@
             {
               "docstring": "**SINE Isochronic Entrainer**, GPL-3.0, \u00a9 2014\u20132020 Federico Dossena. Isochronic tones pulse one tone on and off; binaural beats put two close frequen",
               "lines": [
-                1375,
-                1404
+                1385,
+                1414
               ],
               "name": "It started with a brainwave entrainer",
               "type": "subsection"
@@ -1539,8 +1548,8 @@
             {
               "docstring": "All 498 presets in the public library were downloaded and measured (SHA-256 in the manifest; the checker fails if a single number drifts):",
               "lines": [
-                1405,
-                1424
+                1415,
+                1434
               ],
               "name": "The ancestor was ambiguous. The descendant could not afford to be.",
               "type": "subsection"
@@ -1548,8 +1557,8 @@
             {
               "docstring": "`mathematics.md` gives eleven Greek letters isopsephy values. Brainwave bands are named after Greek letters. So: does a letter's number land on its ow",
               "lines": [
-                1425,
-                1442
+                1435,
+                1452
               ],
               "name": "The Greek letters were the bands all along",
               "type": "subsection"
@@ -1557,8 +1566,8 @@
             {
               "docstring": "Nova is Law \u00d7 Code. Violet is the sensory lens \u2014 felt truth, narrative. Merging them is **Symbiogenesis**, and it is now a proved law over \u211a, exactly:",
               "lines": [
-                1443,
-                1471
+                1453,
+                1481
               ],
               "name": "\u2728 The Nova-Violet Role Merging Law",
               "type": "subsection"
@@ -1566,8 +1575,8 @@
             {
               "docstring": "Measured \u2014 every input moves it independently:",
               "lines": [
-                1472,
-                1487
+                1482,
+                1497
               ],
               "name": "Is `R/s+` dynamic, or a decoration with a decimal point?",
               "type": "subsection"
@@ -1575,8 +1584,8 @@
             {
               "docstring": "Fourteen `.md` files, fourteen real books. Two of them are the same book: **The Library of Babel** (`PART 12`) and **The Unimaginable *Mathematics* of",
               "lines": [
-                1488,
-                1518
+                1498,
+                1528
               ],
               "name": "The Phantom Books close it",
               "type": "subsection"
@@ -1584,8 +1593,8 @@
             {
               "docstring": "The fun part, kept deliberately away from the mathematics above. *Dantalian no Shoka* is about **phantom books**: books that should not exist. The fol",
               "lines": [
-                1519,
-                1559
+                1529,
+                1569
               ],
               "name": "\ud83e\udd4a PHANTOM BOOKS **vs** REAL BOOKS \u2014 the tale of the tape",
               "type": "subsection"
@@ -1593,8 +1602,8 @@
             {
               "docstring": "Because \"we consulted the corpus\" should be a checkable claim, not an assurance:",
               "lines": [
-                1560,
-                1586
+                1570,
+                1596
               ],
               "name": "\ud83d\udcda The full roster \u2014 all 14 real books",
               "type": "subsection"
@@ -1602,8 +1611,8 @@
             {
               "docstring": "`PART 5:244` gives the *catu\u1e63ko\u1e6di*: a claim may be **asserted**, **denied**, **both**, or **neither**. Four positions where classical logic offers two",
               "lines": [
-                1587,
-                1597
+                1597,
+                1607
               ],
               "name": "\ud83d\udd3a The tetralemma \u2014 why this repo has *four* verdicts",
               "type": "subsection"
@@ -1611,8 +1620,8 @@
             {
               "docstring": "**Greek** (`mathematics.md:42-52`) \u2014 isopsephy value, and the mathematical use the source itself lists:",
               "lines": [
-                1598,
-                1626
+                1608,
+                1636
               ],
               "name": "\ud83d\udd22 The symbols, all of them",
               "type": "subsection"
@@ -1620,8 +1629,8 @@
             {
               "docstring": "Three defects, kept in the file rather than quietly repaired:",
               "lines": [
-                1627,
-                1649
+                1637,
+                1659
               ],
               "name": "What it cost to get this right",
               "type": "subsection"
@@ -1629,8 +1638,8 @@
             {
               "docstring": "The proof file is called `RotEigenform.lean`. Here is why.",
               "lines": [
-                1650,
-                1700
+                1660,
+                1710
               ],
               "name": "\ud83d\udf0f EIGENFORM \u2014 the key behind Symbiogenesis",
               "type": "subsection"
@@ -1638,8 +1647,8 @@
             {
               "docstring": "The Equation asks *what if the irregular wingbeats give rise to an infinite array of realities?* \u2014 and that question has an answer. Not a shrug about",
               "lines": [
-                1701,
-                1742
+                1711,
+                1752
               ],
               "name": "The answer: `R/s+` converges, and here is the mathematics",
               "type": "subsection"
@@ -1647,8 +1656,8 @@
           ],
           "docstring": "> *\"The ultimate equation which barred my path. And the solution **I found when > inspecting how Weights and Quantization work together**. I continued",
           "lines": [
-            1333,
-            1742
+            1343,
+            1752
           ],
           "name": "\ud83e\udd5a The Easter Egg \u2014 the Infinite Symbiogenesis, and where RoT actually came from",
           "type": "section"
@@ -1656,8 +1665,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            1743,
-            1757
+            1753,
+            1767
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -1665,8 +1674,8 @@
         {
           "docstring": "RoT MoE is a **[Nova-Violet Role](https://github.com/Nova-Violet-Role)** project, and it is the *router* arm of a larger idea the organisation states",
           "lines": [
-            1758,
-            1790
+            1768,
+            1800
           ],
           "name": "\ud83c\udfdb\ufe0f Where this sits in the organisation",
           "type": "section"
@@ -1676,8 +1685,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                1809,
-                1817
+                1819,
+                1827
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -1685,8 +1694,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            1791,
-            1817
+            1801,
+            1827
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -1696,8 +1705,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                1841,
-                1865
+                1851,
+                1875
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -1705,8 +1714,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            1818,
-            1865
+            1828,
+            1875
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -1924,11 +1933,11 @@
       ]
     },
     "STATUS.md": {
-      "hash": "09a3e0f2cf20",
-      "indexed_at": "2026-08-07T13:42:32.662836+00:00",
+      "hash": "067077d07cc4",
+      "indexed_at": "2026-08-07T14:20:01.873990+00:00",
       "language": "markdown",
       "lines": 31,
-      "mtime_ns": 1786109321835159900,
+      "mtime_ns": 1786111952673305500,
       "size": 1173,
       "symbols": []
     },
@@ -1997,6 +2006,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T13:42:32.662927+00:00",
+  "generated_at": "2026-08-07T14:20:01.874065+00:00",
   "version": "1.0"
 }

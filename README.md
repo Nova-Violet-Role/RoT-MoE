@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **578
+lens activities off disk, computes an `R/s+` gauge from them, and **585
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **270 applied, 270 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **275 applied, 275 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -406,12 +406,22 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
   real case it applies to. The gauge witnesses use the **shipping** FORGE
   weights rather than convenient toy values — and `checker/lean-binds-shell.sh`
   fails the build if those numbers ever drift from `hooks/rot-router.sh`.
-* **`lean/Proofs/RotMutant.lean`** (23 theorems) — **the harness that judges the
+* **`lean/Proofs/RotMutant.lean`** (30 theorems) — **the harness that judges the
   other harnesses.** Every mutation suite here reports `killed / survived /
   discarded`, and the dangerous confusion is between the last two: a patch that
   silently *failed to apply* leaves the build green, and a naive harness records
   that as `survived` — which reads as "the theorem is robust" when it means
   "nothing was tested". This module makes the distinction a function.
+
+  It also settles a defect one step further down the pipeline, found in this
+  repository's own CI: a kill is only evidence if the **verifier ran**. When a
+  build's log cannot be written, `bash` never starts the command and returns 1 —
+  and a harness that trusts that status records a kill against a build that
+  never happened. `unattributable_is_never_killed` forbids it in general,
+  `killed_carries_its_evidence` keeps the rule from degenerating into a blanket
+  refusal, and `rules_differ_exactly_on_missing_evidence` is checked
+  exhaustively by the kernel. It also refuted the first version of itself: a
+  zero status with no evidence is an unfounded **survivor**, not a harmless one.
   `landed` is `toolExit = 0 ∧ ¬empty ∧ changed`, and `not_landed_discarded`,
   `tool_failed_never_killed`, `empty_never_killed`, `unchanged_never_killed`
   and `discarded_never_counts` prove a run that did not land can never be
@@ -544,7 +554,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-0.9.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-0.9.1-lean.zip` | ⊕ `lean/` — 24 modules, 578 theorems, 21 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-0.9.1-lean.zip` | ⊕ `lean/` — 24 modules, 585 theorems, 21 mutation suites — ⊕ `checker/` (47 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-0.9.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
