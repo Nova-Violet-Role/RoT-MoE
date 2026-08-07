@@ -290,6 +290,25 @@
         }
       ]
     },
+    "debug-channel.sh": {
+      "hash": "e8be16b438f6",
+      "indexed_at": "2026-08-07T16:11:17.007932+00:00",
+      "language": "shell",
+      "lines": 213,
+      "mtime_ns": 1786118743380204400,
+      "size": 9723,
+      "symbols": [
+        {
+          "docstring": "Runs one arm. $1 = arm name, $2 = log path, $3.. = env assignments handled by the caller through the environment. Prints stdout, stderr goes to $WORK/",
+          "lines": [
+            56,
+            63
+          ],
+          "name": "run_arm",
+          "type": "function"
+        }
+      ]
+    },
     "deferred-closure.sh": {
       "hash": "a5294c963f01",
       "indexed_at": "2026-08-05T13:16:35.022703+00:00",
@@ -364,18 +383,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "35e9afa81802",
-      "indexed_at": "2026-08-07T09:33:03.175953+00:00",
+      "hash": "4ead9755f4e5",
+      "indexed_at": "2026-08-07T16:11:16.663345+00:00",
       "language": "shell",
-      "lines": 359,
-      "mtime_ns": 1786094452080258800,
-      "size": 17523,
+      "lines": 360,
+      "mtime_ns": 1786117775387219100,
+      "size": 17625,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            152,
-            167
+            153,
+            168
           ],
           "name": "fires",
           "type": "function"
@@ -1329,6 +1348,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T15:34:01.896733+00:00",
+  "generated_at": "2026-08-07T16:11:17.172938+00:00",
   "version": "1.0"
 }

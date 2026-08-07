@@ -10,10 +10,10 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-BEGIN -->
 | field | value |
 |---|---|
-| theorems | 593 |
-| modules | 24 |
-| mutation suites | 21 |
-| checkers | 51 |
+| theorems | 606 |
+| modules | 25 |
+| mutation suites | 22 |
+| checkers | 52 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |
 | files containing `native_decide` | 0 |

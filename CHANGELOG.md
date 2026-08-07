@@ -150,6 +150,96 @@ the same model family is not an instrument.
   regeneration only adds columns. A corpus edited to be more flattering would
   have shown up right there.
 
+## The router's debug channel could not report its own failure
+
+The goal names one thing this repo did not check: the router's `*.log` debug
+output. It turns out the channel existed and worked — and could lie by omission.
+
+`hooks/rot-router.sh` appended each record with `2>/dev/null || true`. The
+tolerance is **correct**: a hook that failed a user's turn over a debug file
+would be a far worse defect. What was wrong is that the tolerance was *total*:
+
+| world | records an observer finds |
+|---|---|
+| the router never fired | 0 |
+| the router fired N times, path unwritable | 0 |
+
+Indistinguishable — the same missing-evidence class as the twelve fake RotGauge
+kills. And it mattered concretely: the A/B arm-validity control **is** a count
+of route records, so "9 routed, 0 unrouted" is the evidence that the experiment
+measured the router at all. A silent channel would have made a broken path read
+as *the router never fired*.
+
+### `lean/Proofs/RotDebugLog.lean` — 12 theorems, then the shell
+
+| theorem | what it settles |
+|---|---|
+| `silent_channel_is_ambiguous` | the two worlds above are identical to a reader |
+| `..._at_every_volume` | quantified over N — not an artefact of one number |
+| `marker_resolves_the_ambiguity` | one bit separates them |
+| `quiet_and_unmarked_means_it_never_fired` | zero + no marker ⟹ genuinely quiet, ∀ worlds |
+| `lost_evidence_is_always_marked` | no silent loss remains |
+| `marker_is_not_always_set` | the bit can stay false… |
+| `an_always_on_marker_would_not_distinguish` | …which is why "warn every turn" is not a fix |
+| `rotate_keeps_the_newest` | a bounded log keeps the **newest** record |
+| `rotate_below_cap_is_identity` | under the cap nothing is discarded |
+| `taking_the_front_loses_the_newest` | truncating from the front is refuted |
+| `shipped_hook_failed_the_contract` | the pre-repair hook **fails**, stated so it cannot read as passing |
+| `tolerance_alone_is_insufficient` | "it already has `|| true`" is not an answer |
+
+`rotate_keeps_the_newest` was first stated with an extra hypothesis `rs ≠ []`,
+and the build warned it went unreferenced. That is a report about the *theorem*:
+retention holds for the empty log too, so the hypothesis was over-assumption.
+**Dropped, not silenced with `_`.** `0 < cap` is genuinely needed — at cap 0 the
+newest record is lost, which is what the bound must forbid.
+
+Mutation: **D01–D09, 9 killed, 0 survived, 0 discarded.** Necessary, because
+almost every theorem here reports `does not depend on any axioms` — that is what
+`decide` over closed data looks like, not strength.
+
+### What the shell actually did, measured
+
+Fixing only the obvious writer was not enough. **The channel has two writers** —
+the awk in `gauge` emits `"kind":"gauge"`, the block below emits
+`"kind":"route"` — and patching the second left the first printing
+
+```
+awk: ... fatal: cannot redirect to `...': No such file or directory
+```
+
+straight into the user's session. One channel now gets **one preflight and one
+marker bit**, which is also what the Lean models: `observe` returns a single
+`marker`, not one per writer.
+
+Two more things the negative control exposed:
+
+- `2>/dev/null` must come **before** the `>>`. Redirections apply left to right,
+  and the "No such file or directory" for a failed append is emitted by the
+  *shell*, not by printf — with the order reversed it escapes to the transcript.
+- R/s+ used to degrade to `n/a` when the log was unwritable, because the awk
+  writer died mid-gauge. **A debug-log failure no longer corrupts routing.**
+
+Both arms now behave identically: same marker string, same rotation, newest
+record retained, zero stderr. `cross-diff` 79 passed.
+
+### `checker/debug-channel.sh` — the binding, with its own controls
+
+A theorem about a `World` constrains `rot-router.sh` through nothing at all
+unless something runs the real hook. 17 assertions across both arms, on all
+three OSes, plus **two negative controls that plant a broken hook**: one with
+the marker deleted (must be rejected), one with rotation disabled (the log must
+then grow past the cap — measured 16 > 2). An alarm nobody has tripped on
+purpose is an untested alarm.
+
+`workflow-lint` caught a real bug in that checker as it was written:
+`tail | grep -q` under `pipefail` returns **141** on a *match*, because `grep -q`
+closes the pipe and `tail` takes SIGPIPE. A matching line would have been read
+as a failure.
+
+Registered as a **fast** gate (`RotGates.lean`, count 39 → 40): the defect it
+guards is filesystem behaviour, and the commits most likely to break it are the
+ones that touch a path or a permission somewhere else entirely.
+
 ## A skip that named the wrong cause — `marketplace-session.sh`
 
 Run `31187881399` printed these two lines consecutively in the lean job:
