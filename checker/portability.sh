@@ -486,6 +486,85 @@ else
 fi
 rm -f "$ctl5"
 
+# --- PHASE 7: no tracked text file may carry CRLF ----------------------------
+# MEASURED, run 31148233876, `checkers (windows-latest)`: the Windows runner
+# checks out with core.autocrlf=true, so `checker/gauge-corpus.tsv` arrived with
+# a CR on every line, the last field became `0.09\r`, and six comparisons failed
+# with `hook 0.09 != corpus 0.09` -- byte-different, rendering identical.
+#
+# `.gitattributes` now pins the working tree to LF, which is the real fix. This
+# phase is what makes the fix CHECKABLE: if the attribute file is deleted,
+# weakened, or fails to cover a new extension, a CRLF file reaches the gates and
+# this says so by name -- rather than a downstream checker failing with a
+# message no one can read.
+#
+# `git ls-files --eol` is the right instrument: it reports the INDEX and
+# WORKTREE line endings per tracked file, so it sees the actual bytes rather
+# than guessing from a file name.
+echo
+echo "-- phase 7: line endings (the Windows checkout defect) --"
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  # THE INDEX is what fails: an `i/crlf` file arrives with CRLF in EVERY clone,
+  # on every platform, and no attribute can undo it -- the bytes are committed.
+  # That is the hard rule.
+  crlf_index="$(git ls-files --eol 2>/dev/null \
+    | awk '$1 ~ /^i\/crlf/ { print $NF }' | head -20)"
+  if [ -z "$crlf_index" ]; then
+    ok "no tracked file carries CRLF in the INDEX -- every clone gets LF"
+  else
+    n=$(printf '%s\n' "$crlf_index" | grep -c .)
+    bad "$n tracked file(s) carry CRLF in the index -- every clone gets CRLF and a byte comparison fails unreadably:"
+    printf '%s\n' "$crlf_index" | sed 's/^/        /'
+    echo "        repair: git add --renormalize ."
+  fi
+
+  # A WORKTREE CRLF over an LF index is a different animal and must NOT fail.
+  # A generator that writes CRLF locally is legitimate: `.gitattributes` makes
+  # git normalise it on `add`, so nothing wrong ever reaches the index. Failing
+  # here would make a correct workflow go red and invite deleting the check --
+  # the exact way real coverage gets destroyed. Report it, do not refuse it.
+  crlf_work="$(git ls-files --eol 2>/dev/null \
+    | awk '$1 ~ /^i\/lf/ && $2 ~ /^w\/crlf/ { print $NF }' | head -5)"
+  if [ -n "$crlf_work" ]; then
+    echo "  ----  NOTE: $(printf '%s\n' "$crlf_work" | grep -c .) file(s) are CRLF in the working tree over an LF index."
+    echo "        git normalises these on add; nothing reaches the index. Not a failure."
+  fi
+
+  # CONTROL: the scan must be able to SEE a CRLF file, or its green means
+  # nothing. Plant one, ask git how it reads it, remove it.
+  ctl7="$(mktemp "${TMPDIR:-/tmp}/rotmoe-s7.XXXXXX")"
+  printf 'a\r\nb\r\n' > "$ctl7"
+  # No `| grep -q` here: under `set -o pipefail` grep -q exits on the first
+  # match, the writer takes SIGPIPE, and the pipeline reports 141 -- so a
+  # SUCCESSFUL match would read as a failure. This repository's own
+  # workflow-lint caught that in this very control, which is the argument for
+  # having it. Capture first, match the string afterwards.
+  ctl7_eol="$(git ls-files --eol --others -- "$ctl7" 2>/dev/null || true)"
+  ctl7_cr="$(od -c < "$ctl7" | grep -c '\\r' || true)"
+  case "$ctl7_eol" in
+    *w/crlf*) ok "CONTROL: a planted CRLF file IS visible to git ls-files --eol" ;;
+    *)
+      if [ "${ctl7_cr:-0}" -gt 0 ]; then
+        ok "CONTROL: a planted CRLF file IS visible (CR bytes confirmed on disk)"
+      else
+        bad "CONTROL DEAD: the phase-7 scan cannot see a CRLF file at all"
+      fi
+      ;;
+  esac
+  rm -f "$ctl7"
+
+  # And the attribute file itself must exist and pin eol=lf. Without it the
+  # phase above passes on Linux while Windows still gets CRLF -- green on the
+  # platform that was never affected.
+  if [ -f .gitattributes ] && grep -qE '^\*[[:space:]]+text=auto[[:space:]]+eol=lf' .gitattributes; then
+    ok ".gitattributes pins the working tree to LF on every platform"
+  else
+    bad ".gitattributes does not pin '* text=auto eol=lf' -- Windows will check out CRLF"
+  fi
+else
+  bad "not a git worktree -- phase 7 cannot read line endings and is NOT a pass"
+fi
+
 printf '\n== portability: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

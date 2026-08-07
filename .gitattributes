@@ -1,0 +1,57 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# LINE ENDINGS ARE PART OF THE CONTRACT, and this file did not exist until a
+# Windows CI leg proved it.
+#
+# MEASURED, run 31148233876, `checkers (windows-latest)`, step "gauge hook
+# corpus": six rows failed with messages of the form
+#
+#     FAIL  row 1: hook 0.09 != corpus 0.09
+#
+# The two values are byte-DIFFERENT and render IDENTICALLY. GitHub's Windows
+# runner checks out with `core.autocrlf=true`, so every line of
+# `checker/gauge-corpus.tsv` arrived with a trailing CR, the last tab-separated
+# field became `0.09\r`, and a string comparison against the hook's `0.09`
+# failed. Ubuntu and macOS passed the same commit. The gate was correct: the
+# strings really did differ. What it could not do was SHOW the difference.
+#
+# Three things were wrong and all three are fixed. This file is the first:
+# the working tree is now LF on every platform, so the data a checker reads is
+# the data that was committed. The second is in `checker/gauge-hook-corpus.sh`,
+# which now strips CR when parsing and escapes invisible bytes in its failure
+# message. The third is `checker/portability.sh`, which now refuses a tracked
+# text file containing CRLF at all.
+#
+# Belt and braces on purpose. A contributor who clones with a different
+# autocrlf setting, or an editor that rewrites a file, must not be able to turn
+# a data file into a phantom mismatch -- and if one does, the message must name
+# the byte instead of printing two identical-looking numbers.
+# =============================================================================
+
+# Every text file: normalised to LF in the repository AND in the working tree.
+# `eol=lf` is the half that matters here -- `text=auto` alone still hands
+# Windows a CRLF checkout.
+* text=auto eol=lf
+
+# Data a checker parses. Called out explicitly rather than left to `text=auto`
+# heuristics: these are the files whose bytes a gate compares.
+*.tsv  text eol=lf
+*.jsonl text eol=lf
+*.json text eol=lf
+
+# Shell must be LF everywhere. A `.sh` with CRLF fails on Linux with
+# `bad interpreter: /usr/bin/env bash^M` -- a defect that reads like a missing
+# interpreter and is really a line ending.
+*.sh   text eol=lf
+
+# PowerShell is CRLF-tolerant and is authored on Windows; leave it LF too so
+# the two installer arms are byte-comparable.
+*.ps1  text eol=lf
+
+# Binary: never touched, never diffed as text.
+*.zip  binary
+*.png  binary
+*.olean binary

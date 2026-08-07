@@ -639,6 +639,29 @@ else
 fi
 rm -rf "$_actl"
 
+# --- A LIVE MUTANT MUST NEVER REACH A COMMIT ---------------------------------
+# MEASURED 2026-08-07: a gate run was SIGKILLed at a wall-clock ceiling while
+# checker/mutate-checker.sh had `hooks/rot-router.sh` mutated. SIGKILL is
+# untrappable, so the restore handler never ran and the tree kept a router with
+# two STEALTH stems deleted, beside four `.mutbak` files holding the originals.
+# `git add -A` at that moment would have published the mutant as the router.
+#
+# `.mutbak` in the tree therefore means exactly one thing: a mutation run died,
+# and the ORIGINAL IS IN THE BACKUP. This refuses the commit and says how to
+# recover -- restore, never delete. Deleting the backup makes the mutant
+# permanent, which is the one irreversible mistake available here.
+# The properties are in lean/Proofs/RotObserve.lean §16.
+mutbaks="$(find . -name '*.mutbak' -not -path './.git/*' 2>/dev/null | head -10)"
+if [ -z "$mutbaks" ]; then
+  ok "no .mutbak in the tree -- no mutation run died holding an original"
+else
+  n=$(printf '%s\n' "$mutbaks" | grep -c .)
+  bad "$n .mutbak file(s) present: a mutation run was INTERRUPTED and a MUTANT may be live:"
+  printf '%s\n' "$mutbaks" | sed 's/^/        /'
+  echo "        RESTORE, do not delete:  for b in \$(find . -name '*.mutbak'); do cp \"\$b\" \"\${b%.mutbak}\" && rm \"\$b\"; done"
+  echo "        Deleting a .mutbak promotes the mutant to the real file."
+fi
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

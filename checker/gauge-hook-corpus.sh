@@ -63,9 +63,32 @@ hook_gauge () {   # hook_gauge <vec> <breadth> <M> <C> <T> -> "0.49"
 
 # Rows, comments stripped. Not `mapfile`: bash 4.0+ only, and macOS ships
 # bash 3.2.57 as /bin/bash -- the same reason gauge-cross.sh avoids it.
+# INVISIBLE BYTES, MADE VISIBLE. Measured on windows-latest, run 31148233876:
+# the corpus was checked out with core.autocrlf=true, every `want` carried a
+# trailing CR, and six rows failed with `hook 0.09 != corpus 0.09` -- a true
+# mismatch that RENDERS IDENTICALLY. An hour of the fix went into discovering
+# that the gate was right and its message was useless.
+#
+# `.gitattributes` now pins the working tree to LF, so this should never fire
+# again. It stays anyway: a contributor with a different autocrlf setting, or
+# an editor that rewrites the file, must not be able to manufacture a phantom
+# mismatch -- and if a mismatch IS real, the message must name the byte.
+# The properties this relies on are in lean/Proofs/RotObserve.lean §15.
+show () {   # escape CR, LF and TAB so two different strings cannot print alike
+  printf '%s' "$1" | sed -e 's/\r/\\r/g' -e 's/\t/\\t/g'
+}
+strip_cr () { printf '%s' "$1" | tr -d '\r'; }
+
 rows=0
+crlf_seen=0
 while IFS=$'\t' read -r vec br M C T want; do
   case "$vec" in ''|\#*) continue ;; esac
+  # Strip CR from EVERY field, not only the last: a CR mid-record would be
+  # passed to the hook as part of an argument and corrupt the input rather
+  # than the comparison.
+  case "$want$vec$br$M$C$T" in *$'\r'*) crlf_seen=1 ;; esac
+  vec="$(strip_cr "$vec")"; br="$(strip_cr "$br")"; M="$(strip_cr "$M")"
+  C="$(strip_cr "$C")";     T="$(strip_cr "$T")";  want="$(strip_cr "$want")"
   rows=$((rows+1))
   got="$(hook_gauge "$vec" "$br" "$M" "$C" "$T")"
   if [ -z "$got" ]; then
@@ -77,11 +100,19 @@ while IFS=$'\t' read -r vec br M C T want; do
     # the hook's own consumers parse this number. Name it when it is what
     # happened, so the next reader is not left guessing at a digit mismatch.
     case "$got" in
-      *,*) bad "row $rows: hook produced '$got' -- DECIMAL COMMA. The locale is leaking into the gauge; expected $want" ;;
-      *)   bad "row $rows: hook $got != corpus $want   [$vec] b=$br M=$M C=$C T=$T -- the router and the Lean-verified value DISAGREE" ;;
+      *,*) bad "row $rows: hook produced '$(show "$got")' -- DECIMAL COMMA. The locale is leaking into the gauge; expected $(show "$want")" ;;
+      *)   bad "row $rows: hook '$(show "$got")' != corpus '$(show "$want")'   [$vec] b=$br M=$M C=$C T=$T -- the router and the Lean-verified value DISAGREE" ;;
     esac
   fi
 done < "$CORPUS_FILE"
+
+# Report the CRLF checkout even when every row then PASSED. A checker that
+# silently repairs its input hides the condition that will break the next
+# checker along, which does not know to strip anything.
+if [ "$crlf_seen" -eq 1 ]; then
+  echo "  ----  NOTE: the corpus was checked out with CRLF; fields were stripped before"
+  echo "        comparison. .gitattributes should have prevented this -- see portability.sh."
+fi
 
 if [ "$rows" -eq 0 ]; then
   bad "the corpus produced NO rows -- an empty corpus makes this checker vacuous"

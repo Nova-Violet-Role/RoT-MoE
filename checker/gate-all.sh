@@ -110,7 +110,7 @@ gauge hook corpus|fast||bash checker/gauge-hook-corpus.sh
 profile binding|deep|engine/rot-lean.md,lean/Proofs/RotAbility.lean|bash checker/profile-bind.sh
 axiom audit|deep|lean/|bash checker/axiom-audit.sh
 axiom class|deep|lean/|bash checker/axiom-class.sh
-mutate the checker|deep|checker/,hooks/|bash checker/mutate-checker.sh
+mutate the checker|deep|hooks/,checker/cross-diff.sh,checker/cross-diff-remind.sh,checker/mutate-checker.sh,checker/corpus-gauge.txt,checker/corpus-remind.txt|bash checker/mutate-checker.sh
 portability|deep|checker/,hooks/,lean/,ARM_ROUTER,DISARM_ROUTER,.githooks/|bash checker/portability.sh
 installer round trip|deep|ARM_ROUTER,DISARM_ROUTER,checker/install,.claude-plugin/|bash checker/install-roundtrip.sh
 install parity|deep|ARM_ROUTER,DISARM_ROUTER,hooks/hooks.json,hooks/settings-merge.js|bash checker/install-parity.sh

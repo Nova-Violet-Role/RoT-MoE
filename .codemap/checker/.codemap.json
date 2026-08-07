@@ -335,12 +335,12 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "fe4c880e9bb9",
-      "indexed_at": "2026-08-07T07:13:51.600383+00:00",
+      "hash": "35e9afa81802",
+      "indexed_at": "2026-08-07T09:33:03.175953+00:00",
       "language": "shell",
       "lines": 359,
-      "mtime_ns": 1786085650086305800,
-      "size": 17404,
+      "mtime_ns": 1786094452080258800,
+      "size": 17523,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
@@ -400,12 +400,12 @@
       ]
     },
     "gauge-hook-corpus.sh": {
-      "hash": "9c6e32fe7ca4",
-      "indexed_at": "2026-08-06T18:15:17.270214+00:00",
+      "hash": "90859dc1a1c1",
+      "indexed_at": "2026-08-07T09:33:03.341947+00:00",
       "language": "shell",
-      "lines": 126,
-      "mtime_ns": 1786037862905486800,
-      "size": 5881,
+      "lines": 157,
+      "mtime_ns": 1786089000647012200,
+      "size": 7681,
       "symbols": [
         {
           "docstring": "The hook arm. `sh`, not bash, because that is how the router is invoked.",
@@ -414,6 +414,15 @@
             62
           ],
           "name": "hook_gauge",
+          "type": "function"
+        },
+        {
+          "docstring": "Rows, comments stripped. Not `mapfile`: bash 4.0+ only, and macOS ships bash 3.2.57 as /bin/bash -- the same reason gauge-cross.sh avoids it. INVISIBL",
+          "lines": [
+            77,
+            79
+          ],
+          "name": "show",
           "type": "function"
         }
       ]
@@ -620,18 +629,18 @@
       "symbols": []
     },
     "mutate-checker.sh": {
-      "hash": "04240532e6c7",
-      "indexed_at": "2026-08-05T13:16:35.051206+00:00",
+      "hash": "bc8dd05c9bf6",
+      "indexed_at": "2026-08-07T09:33:03.857819+00:00",
       "language": "shell",
-      "lines": 350,
-      "mtime_ns": 1785918854813668100,
-      "size": 16724,
+      "lines": 367,
+      "mtime_ns": 1786094345674257900,
+      "size": 18050,
       "symbols": [
         {
           "docstring": "run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker] The 7th argument names the checker to run; it defaults to the router cross",
           "lines": [
-            105,
-            138
+            122,
+            155
           ],
           "name": "run",
           "type": "function"
@@ -657,12 +666,12 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "828653b1a2ba",
-      "indexed_at": "2026-08-05T13:16:35.056425+00:00",
+      "hash": "75cbc66fc1f5",
+      "indexed_at": "2026-08-07T09:33:03.509645+00:00",
       "language": "shell",
-      "lines": 491,
-      "mtime_ns": 1785903878125673100,
-      "size": 25481,
+      "lines": 570,
+      "mtime_ns": 1786090992145783600,
+      "size": 29589,
       "symbols": [
         {
           "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
@@ -902,12 +911,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "fe049bdd199c",
-      "indexed_at": "2026-08-05T13:16:35.078008+00:00",
+      "hash": "63b2f0ce9915",
+      "indexed_at": "2026-08-07T09:33:03.677351+00:00",
       "language": "shell",
-      "lines": 645,
-      "mtime_ns": 1785922117725362800,
-      "size": 33122,
+      "lines": 668,
+      "mtime_ns": 1786091860005420200,
+      "size": 34532,
       "symbols": [
         {
           "lines": [
@@ -1291,6 +1300,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T07:13:52.054886+00:00",
+  "generated_at": "2026-08-07T09:33:03.862729+00:00",
   "version": "1.0"
 }
