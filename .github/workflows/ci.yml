@@ -275,6 +275,15 @@ jobs:
         shell: bash
         run: bash checker/cross-diff.sh
 
+      # The router's own debug channel, against lean/Proofs/RotDebugLog.lean.
+      # Runs on all three OSes because the failure it guards is filesystem
+      # behaviour -- an unwritable path -- and that is exactly the kind of thing
+      # that differs between Windows, Linux and macOS. Both arms are exercised
+      # wherever pwsh exists; where it does not, the ps1 arm is reported as a
+      # SKIP and never as a pass.
+      - name: debug channel -- a lost record must be MARKED, and the log bounded
+        run: bash checker/debug-channel.sh
+
       # Organ 4 has two arms for the same reason the router does, so it gets the
       # same instrument. The runner has PowerShell, so this is a real comparison
       # here rather than the POSIX-only degraded mode.

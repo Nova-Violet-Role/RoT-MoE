@@ -357,17 +357,88 @@ hook_mode () {
     _i=$((_i+1))
   done
   _vec=${_vec#,}
+
+  # PREFLIGHT THE DEBUG CHANNEL ONCE, BEFORE ANY WRITER TOUCHES IT.
+  #
+  # Measured 2026-08-07: this log has TWO writers, not one -- the awk in
+  # `gauge` emits `"kind":"gauge"`, and the block below emits `"kind":"route"`.
+  # Patching only the second left the first printing
+  #     awk: ... fatal: cannot redirect to `...': No such file or directory
+  # straight into the user's session. One channel gets ONE test and ONE marker
+  # bit, which is also what lean/Proofs/RotDebugLog.lean models: `observe`
+  # returns a single `marker`, not one per writer.
+  #
+  # `: >> file` appends nothing and creates the file if it can, so it is a
+  # writability probe with no record cost and no risk of a partial line.
+  _dbg_lost=0
+  if [ -n "${ROTMOE_DEBUG_LOG:-}" ]; then
+    if : 2>/dev/null >> "$ROTMOE_DEBUG_LOG"; then
+      :
+    else
+      # Unwritable. Blank the variable so the awk writer never attempts it --
+      # a hook must not spray a fatal into a transcript over a debug file.
+      _dbg_lost=1
+      ROTMOE_DEBUG_LOG=''
+    fi
+  fi
+
   _rs=$(gauge "$_vec" "$_br" 1 1 1 | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
   [ -z "$_rs" ] && _rs='n/a'
   # One record per ROUTED TURN, matching the ps1 arm's shape so the two logs are
   # comparable. `chars` not the prompt: a debug log must be safe to paste into
   # an issue, and the decision is what is under test, not the user's text.
+  # DEBUG CHANNEL. Governed by lean/Proofs/RotDebugLog.lean, which proves three
+  # things this block must satisfy:
+  #
+  #   * the write stays TOLERANT -- a debug file must never fail a user's turn,
+  #     so `|| true` is deliberate and stays;
+  #   * a LOST append must leave a mark -- `lost_evidence_is_always_marked`.
+  #     Without it, "the router never fired" and "the router fired and the log
+  #     was unwritable" produce identical evidence (`silent_channel_is_ambiguous`,
+  #     and `..._at_every_volume` for any traffic level). That is the same
+  #     missing-evidence class as the twelve fake RotGauge kills;
+  #   * the file is BOUNDED, discarding the OLDEST -- `rotate_keeps_the_newest`.
+  #     Keeping the front instead is refuted by `taking_the_front_loses_the_newest`.
+  #     Not hypothetical: ~/.claude holds a 1.4 GB and a 1.1 GB log written by
+  #     the same unbounded append pattern.
+  #
+  # The marker goes to the router's OWN stdout, not to a sidecar file: if the
+  # log path is unwritable, a file beside it very likely is too, and a marker
+  # that can fail the same way as the thing it reports is not a marker.
   if [ -n "${ROTMOE_DEBUG_LOG:-}" ]; then
-    printf '{"kind":"route","ts":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh"}\n' \
-      "$(date -Is 2>/dev/null || date)" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" \
-      >> "$ROTMOE_DEBUG_LOG" 2>/dev/null || true
+    # `2>/dev/null` comes BEFORE the append on purpose. Redirections are applied
+    # left to right, and the "No such file or directory" for a failed `>>` is
+    # emitted by the SHELL, not by printf -- with the order reversed it escapes
+    # to the transcript before stderr has been silenced. Measured, not assumed.
+    if printf '{"kind":"route","ts":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh"}\n' \
+         "$(date -Is 2>/dev/null || date)" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" \
+         2>/dev/null >> "$ROTMOE_DEBUG_LOG"
+    then
+      # Bound the file. `tail -n` keeps the LAST cap lines, which is the
+      # `rotate` of the Lean module: drop from the front, retain the newest.
+      _cap="${ROTMOE_DEBUG_LOG_MAX:-5000}"
+      case "$_cap" in (*[!0-9]*|'') _cap=5000 ;; esac
+      if [ "$_cap" -gt 0 ] 2>/dev/null; then
+        _n=$(wc -l < "$ROTMOE_DEBUG_LOG" 2>/dev/null || echo 0)
+        case "$_n" in (*[!0-9]*|'') _n=0 ;; esac
+        if [ "$_n" -gt "$_cap" ]; then
+          _tmp="$ROTMOE_DEBUG_LOG.rot.$$"
+          if tail -n "$_cap" "$ROTMOE_DEBUG_LOG" > "$_tmp" 2>/dev/null; then
+            mv -f "$_tmp" "$ROTMOE_DEBUG_LOG" 2>/dev/null || rm -f "$_tmp" 2>/dev/null || true
+          else
+            rm -f "$_tmp" 2>/dev/null || true
+          fi
+        fi
+      fi
+    else
+      _dbg_lost=1
+    fi
   fi
-  echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs"
+  if [ "$_dbg_lost" -eq 1 ]; then
+    echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs | debug-log UNWRITABLE (record lost)"
+  else
+    echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs"
+  fi
   exit 0
 }
 

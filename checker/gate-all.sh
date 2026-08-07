@@ -96,6 +96,7 @@ workflow lint + drift|fast||bash checker/workflow-lint.sh
 CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential|deep|.github/workflows/|bash checker/ci-honesty.sh
 README download links vs the packager|fast||bash checker/readme-variants.sh
 cross-diff (both router arms)|fast||bash checker/cross-diff.sh
+debug channel (marker + rotation, both arms, vs RotDebugLog.lean)|fast||bash checker/debug-channel.sh
 router duplication (plugin + ARM must not stack)|fast||bash checker/router-duplication.sh
 disarm safety (--dry-run writes nothing, --all reaches plugin entries)|fast||bash checker/disarm-safety.sh
 remind measure (both arms, one tree, nested proof)|fast||bash checker/remind-measure.sh

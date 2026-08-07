@@ -176,10 +176,44 @@ function Format-Num([double] $x, [int] $d) {
 #
 # Failure here must never break a turn: the hook's job is to route, not to log.
 # Every write is wrapped, and a failed write is silently dropped.
+# Governed by lean/Proofs/RotDebugLog.lean. The tolerance below is deliberate
+# and stays -- `catch { }` is what keeps a debug file from failing a user's
+# turn. What was WRONG was that the tolerance was total: a dropped write left
+# no trace, so "the router never fired" and "the router fired and the log was
+# unwritable" produced identical evidence (`silent_channel_is_ambiguous`).
+# One marker bit per channel fixes that (`lost_evidence_is_always_marked`),
+# and the bit must be able to stay false (`marker_is_not_always_set`) or it
+# would distinguish nothing.
+$script:RotDebugLost = $false
+
 function Write-RotDebug([string] $Line) {
   $p = $env:ROTMOE_DEBUG_LOG
   if (-not $p) { return }
-  try { Add-Content -LiteralPath $p -Value $Line -Encoding utf8 -ErrorAction Stop } catch { }
+  try {
+    Add-Content -LiteralPath $p -Value $Line -Encoding utf8 -ErrorAction Stop
+  } catch {
+    $script:RotDebugLost = $true
+    return
+  }
+  # Bound the file, discarding the OLDEST -- `rotate_keeps_the_newest`. Keeping
+  # the front instead is refuted by `taking_the_front_loses_the_newest`, and the
+  # hazard is measured, not theoretical: ~/.claude holds a 1.4 GB and a 1.1 GB
+  # log grown by exactly this append pattern with no bound.
+  try {
+    $capRaw = $env:ROTMOE_DEBUG_LOG_MAX
+    $cap = 5000
+    if ($capRaw -and ($capRaw -match '^\d+$')) { $cap = [int]$capRaw }
+    if ($cap -gt 0) {
+      $lines = @(Get-Content -LiteralPath $p -ErrorAction Stop)
+      if ($lines.Count -gt $cap) {
+        $keep = $lines[($lines.Count - $cap)..($lines.Count - 1)]
+        Set-Content -LiteralPath $p -Value $keep -Encoding utf8 -ErrorAction Stop
+      }
+    }
+  } catch {
+    # Rotation is best effort. A log that could not be trimmed is still a log,
+    # and this must never escalate into failing the turn.
+  }
 }
 
 function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [double] $T) {
@@ -301,5 +335,13 @@ if ($env:ROTMOE_DEBUG_LOG) {
     (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms)
 }
 
-Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs)
+# The marker rides the router's own stdout, not a sidecar file: if the log path
+# is unwritable, a file beside it very likely is too, and a marker that fails
+# the same way as the thing it reports is not a marker. Byte-identical to the
+# sh arm's line so cross-diff keeps comparing the same string.
+if ($script:RotDebugLost) {
+  Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs + " | debug-log UNWRITABLE (record lost)")
+} else {
+  Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs)
+}
 exit 0
