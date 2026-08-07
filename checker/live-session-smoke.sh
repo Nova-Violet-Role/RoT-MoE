@@ -211,26 +211,66 @@ echo "-- phase 3: DOES THE OUTPUT REACH THE MODEL? --"
 # default.
 LIVE_SETTINGS="$HOME/.claude/settings.json"
 LIVE_BEFORE=$(wc -c < "$LIVE_SETTINGS" 2>/dev/null || echo 0)
+# CREDENTIALS ARE `.credentials.json` OR AN API KEY. NOTHING ELSE.
+#
+# This read `ls "$HOME/.claude"/*.json && HAVE_CREDS=1`, which matches
+# **settings.json** -- a file THIS SCRIPT's own `ARM_ROUTER.sh` call creates a
+# few lines below. So a runner with no credentials whatsoever reported
+# HAVE_CREDS=1, ran a session that could not authenticate, and exited 1.
+#
+# Measured in CI run 31116857127, on all three platforms:
+#     PARTIAL the router line appeared 1 time(s) but the session exited 1.
+# and the job was GREEN, because PARTIAL incremented neither counter.
+#
+# A test that manufactures its own precondition is not a test. The glob is gone.
 HAVE_CREDS=0
 [ -f "$HOME/.claude/.credentials.json" ] && HAVE_CREDS=1
-ls "$HOME/.claude"/*.json >/dev/null 2>&1 && HAVE_CREDS=1
+[ -n "${ANTHROPIC_API_KEY:-}" ] && HAVE_CREDS=1
 
 if [ "$HAVE_CREDS" -eq 0 ]; then
   echo "  SKIP  no credentials found -- context delivery UNVERIFIED (not passed)"
 else
   bash "$REPO/ARM_ROUTER.sh" > "$WORK/arm3.log" 2>&1
+  # ONE RETRY WITH A DOUBLED BUDGET, and it does not weaken the claim.
+  #
+  # A timeout is not evidence of a defect -- a busy machine changes the pacing,
+  # measured here at ${SESSION_TIMEOUT}s while the router itself fired 12 times
+  # perfectly. It is not evidence of success either, so it cannot be shrugged
+  # off the way the old PARTIAL branch did.
+  #
+  # The pass condition is UNCHANGED: the session must COMPLETE and carry the
+  # line. All the retry does is refuse to call a slow machine a defect on the
+  # first sample, and refuse to call it a pass on the second.
   timeout "$SESSION_TIMEOUT" claude -p "$PROMPT" \
     --settings "$SETTINGS" --debug hooks --debug-file "$WORK/ctx.debug" \
     > "$WORK/ctx.out" 2> "$WORK/ctx.err"
   CTX_RC=$?
+  if [ "$CTX_RC" -eq 124 ]; then
+    echo "  session[ctx] exit=124 at ${SESSION_TIMEOUT}s -- retrying ONCE at $((SESSION_TIMEOUT*2))s before calling it"
+    timeout "$((SESSION_TIMEOUT*2))" claude -p "$PROMPT" \
+      --settings "$SETTINGS" --debug hooks --debug-file "$WORK/ctx.debug" \
+      > "$WORK/ctx.out" 2> "$WORK/ctx.err"
+    CTX_RC=$?
+  fi
   echo "  session[ctx] exit=$CTX_RC (real credentials, scratch --settings)"
   CTX_HIT=$(grep -cF "$MARKER" "$WORK/ctx.debug" "$WORK/ctx.out" 2>/dev/null | awk -F: '{s+=$2} END{print s+0}')
   if [ "$CTX_RC" -eq 0 ] && [ "$CTX_HIT" -gt 0 ]; then
     ok "session COMPLETED (exit 0) and carried the router line $CTX_HIT time(s)"
   elif [ "$CTX_HIT" -gt 0 ]; then
-    echo "  PARTIAL the router line appeared $CTX_HIT time(s) but the session exited $CTX_RC."
-    echo "          Firing is established; context DELIVERY is not. Reported as"
-    echo "          PARTIAL rather than PASS, because those are different claims."
+    # THIS BRANCH USED TO INCREMENT NEITHER COUNTER, so a session that FAILED
+    # left the run green. The label was honest -- "firing is established;
+    # delivery is not" -- and the verdict still treated it as a non-failure,
+    # which is the whole defect: the marker is written by the hook when the
+    # prompt is submitted, BEFORE the session can die, so it is present in the
+    # failure path and cannot testify to anything about the outcome.
+    #
+    # We have credentials here (the branch requires them), so a non-zero exit is
+    # a real problem and is now counted as one. Inconclusive is not a pass.
+    if [ "$CTX_RC" -eq 124 ]; then
+      bad "the session TIMED OUT at ${SESSION_TIMEOUT}s -- the router line appeared $CTX_HIT time(s), but context DELIVERY is unproven. Evidence absent is not evidence of success."
+    else
+      bad "the session EXITED $CTX_RC with credentials present -- the router line appeared $CTX_HIT time(s), which the hook writes on submission and so proves only that the hook ran. Context DELIVERY is unproven."
+    fi
   else
     bad "the router line never appeared in a completed session"
   fi

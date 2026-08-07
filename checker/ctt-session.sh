@@ -178,6 +178,53 @@ note "corpus: $LOG"
 export CLAUDE_CONFIG_DIR="$CTT"
 export ROTMOE_DEBUG_LOG="$LOG"
 
+# MIRROR THE `CTT` LAUNCHER, because a harness that does not is testing
+# something else and calling it CTT.
+#
+# The maintainer's PowerShell profile defines `function CTT` and it does three
+# things this script was doing only one of. Both gaps were measured, not guessed:
+#
+# 1. IT RE-COPIES THE CREDENTIAL ON EVERY LAUNCH. Its own comment says why:
+#    "Credentials are a SNAPSHOT and the live ones refresh, so a cloned copy goes
+#    stale and the session dies on 'OAuth session expired'". This script assumed
+#    the file was current, so it inherited whatever the last launch left behind
+#    -- measured 2026-08-06 as a 281-byte stub with expiresAt 0, and twenty
+#    turns died on it.
+#
+#    A SYMLINK IS THE WRONG FIX and was reverted after being tried. The profile
+#    is explicit: "NOT symlinked, unlike GGF... CTT exists precisely so a
+#    /plugin install cannot contaminate the real one", and the copy is described
+#    as "a one-way read of the live file; nothing in the test tree is ever
+#    written back". Claude Code REWRITES .credentials.json when it refreshes a
+#    token, so a symlink would let a test session write the live credential --
+#    breaking exactly the one-way property the isolation depends on.
+#
+# 2. IT CLEARS THE PROXY ENV. Measured in this shell: ANTHROPIC_BASE_URL held a
+#    populated loopback endpoint, so every "CTT" turn this harness ran went
+#    through a local proxy instead of the isolated path the launcher creates.
+#    The turns were real; the ENVIRONMENT was not the one being certified.
+#
+#    ONE MACHINE'S VARIABLE NAMES DO NOT BELONG IN A SHIPPED CHECKER, and this
+#    repository enforces that: `checker/patterns-forbidden.txt` lists the
+#    maintainer's private env flag, and the first draft of this block hardcoded
+#    it -- the `no machine-local paths` gate refused the commit, correctly.
+#    Generic names are cleared below; anything site-specific is named by the
+#    operator through ROTMOE_CTT_UNSET (a space-separated list), so fidelity to
+#    a particular launcher is configuration rather than something baked into an
+#    artifact every user downloads.
+_live_cred="$HOME/.claude/.credentials.json"
+if [ -f "$_live_cred" ]; then
+  cp "$_live_cred" "$CTT/.credentials.json" 2>/dev/null \
+    && note "credential refreshed from the live file (one-way read, as the CTT launcher does)"
+else
+  note "no live credential to refresh from -- turns will report their own reason"
+fi
+unset ANTHROPIC_BASE_URL ROLLING_CONTEXT_PORT ROLLING_CONTEXT_UPSTREAM \
+      ROLLING_CONTEXT_TRIGGER ROLLING_CONTEXT_TARGET
+_extra=0
+for _v in ${ROTMOE_CTT_UNSET:-}; do unset "$_v"; _extra=$((_extra+1)); done
+note "proxy env cleared -- the session does not go through a local proxy ($_extra site-specific var(s) also cleared)"
+
 # THE SESSION MUST NOT RUN INSIDE THIS REPOSITORY. Measured 2026-08-04, the hard
 # way: the first full 80-turn run was launched with the repo as cwd, and turn 6
 # ("compress the docstring of RotAbility.lean") did precisely what it was asked

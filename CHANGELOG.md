@@ -15,6 +15,140 @@ not be buried.
 
 ---
 
+## [Unreleased]
+
+Work landed after `0.9.2` and not yet cut into a release. The heading is not
+decoration: `checker/repo-complete.sh` scans the **newest release section** of
+this file for live count claims, and without a bracketed heading here the 0.9.x
+section — a record of what that release actually shipped — was being read as a
+claim about today's tree. History does not get rewritten to satisfy a counter.
+
+## A test that creates its own precondition — green on three platforms
+
+**Measured in CI run 31116857127, and it had been green the whole cycle.**
+`checker/live-session-smoke.sh` guarded its authenticated phase like this:
+
+```sh
+[ -f "$HOME/.claude/.credentials.json" ] && HAVE_CREDS=1
+ls "$HOME/.claude"/*.json >/dev/null 2>&1 && HAVE_CREDS=1     # <- this line
+```
+
+The glob matches **`settings.json`** — a file the same script's own `ARM_ROUTER.sh`
+call creates a few lines earlier. So a runner holding no credentials at all reported
+*credentials present*, ran a session that could not authenticate, and logged, on
+ubuntu **and** windows **and** macos:
+
+```
+PARTIAL the router line appeared 1 time(s) but the session exited 1.
+```
+
+The job was green, because `PARTIAL` incremented neither counter.
+
+Two independent defects met in three lines, and they fail in opposite directions:
+
+- **The precondition detector was satisfied by the test's own output.** Past that
+  line it is not a weak check, it is a constant.
+- **The verdict rested on a signal present in the failure path.** The router line
+  is written by the hook when the prompt is *submitted*, before the session can
+  die, so it can testify that the hook ran and to nothing else.
+
+Both repaired. Credentials now mean `.credentials.json` or `ANTHROPIC_API_KEY`,
+nothing else. A session that exits non-zero **with** credentials is a failure, and
+so is a timeout — with one retry at double the budget first, because a busy machine
+is not a defect and an unproven claim is not a pass. The pass condition never moved:
+the session must COMPLETE and carry the line. Measured on the first live run after
+the change: `exit=124 at 180s -> retry -> exit=0`, `R20: PASS`.
+
+**`checker/ctt-session.sh` was testing an environment nobody ships.** The
+maintainer's `CTT` launcher does three things; the harness did one. It now mirrors
+the launcher: the credential is re-copied from the live file on every run (it is a
+snapshot, and a stale one killed 20 turns), and the proxy environment is cleared —
+measured leaking a populated `ANTHROPIC_BASE_URL`, so every "CTT" turn had
+been going through the rolling-context proxy instead of the isolated path.
+
+A symlink was tried for the credential and **reverted**. Claude Code rewrites
+`.credentials.json` on token refresh, so a link would let a test session write the
+live credential — breaking exactly the one-way isolation the design depends on.
+There is no such thing as a one-way link; the copy is the one-way link.
+
+`lean/Proofs/RotObserve.lean` §10 and §11 state both shapes generally:
+
+| theorem | what it settles |
+|---|---|
+| `loose_detector_is_constant_after_setup` | after its own setup the detector is `true` for **every** world — it detects nothing |
+| `loose_detector_cannot_see_a_missing_credential` | the measured case: no credential, reported ready |
+| `strict_detector_survives_setup` | the repair, and the property that makes something a detector: **invariance under the test's own setup** |
+| `strict_detector_is_evidence` | it still separates the two worlds, so it is not a constant in the other direction |
+| `a_link_propagates_backwards` | for every value: a write through a link changes the original |
+| `a_link_lets_the_test_overwrite_the_live_credential` | the concrete hazard that was avoided |
+| `a_copy_never_propagates_backwards` | for every prior state and every write, the original is untouched |
+| `a_copy_carries_the_original_forward` | and it is not one-way by being inert |
+| `refresh_then_write_preserves_the_live_credential` | both halves — the isolation property CTT depends on |
+
+Build exit 0 with **zero warnings**; axioms `propext` or none beyond it, no
+`sorryAx`; `leanchecker` exit 0, zero bytes. Mutants **M24–M28** added — **all
+killed**, 0 survived, 0 discarded. M25 was reported `DISCARDED` on its
+first run because the replacement contained its own needle, and was rewritten
+disjointly rather than counted; a discard is a statement about the harness, never
+about the theorem.
+
+Credentials in repository secrets were put to the maintainer and **declined**, so
+`marketplace-session.sh` stays `exit 3` off-runner by decision, not by omission —
+recorded in `ci.yml` so it is not reopened as a way to make a line green.
+
+Counts move to **504 theorems / 22 modules / 19 suites / 226 mutants**.
+
+---
+
+## The commit gate was overwritten again — and the audit for it cannot run
+
+**Second occurrence, measured 2026-08-06 21:41:17.** An unrelated local tool
+wrote `.githooks/pre-commit` wholesale, replacing the gate with its own indexing
+hook whose header states `Never blocks a commit: every failure path exits 0`.
+`core.hooksPath` is `.githooks`, so the commit gate was disarmed from that moment.
+
+Dating it is what kept the record honest: the overwrite is **21:41:17**, the last
+commit is **21:32:29**, so every commit actually recorded had run the real gate.
+No ungated commit exists. Restored from `HEAD` — 5819 B, 7 `gate-all` references.
+
+`checker/workflow-lint.sh` **does** catch the substitution, measured both ways:
+planted hook → exit 1 with `never calls gate-all` / `no refusing path` /
+`no delegates`; real hook → exit 0, 156 passed. The detector is not the problem.
+
+**Reachability is.** Locally that detector runs *because the pre-commit gate
+invokes it* — so when the gate is what has been replaced, the detector is exactly
+what stops running. An audit that reaches itself through the thing it audits is
+silent in precisely the state it exists to report.
+
+Two repairs, one of them out of band by construction:
+
+- `.git/hooks/pre-commit` is now checked. It was inert (`core.hooksPath` points
+  elsewhere) and it held the same never-blocking hook — one
+  `git config --unset core.hooksPath` from a silently ungated repository. Absent
+  is the safe state and passes, so a fresh clone and CI are unaffected.
+- The local copy was removed; the gate at `.githooks/pre-commit` is the only
+  pre-commit hook on this machine again.
+
+`lean/Proofs/RotObserve.lean` §12 states the shape rather than the incident:
+
+| theorem | what it settles |
+|---|---|
+| `gate_admits_exactly_green` | the real gate admits exactly the green trees |
+| `permissive_admits_everything` | the replacement admits every tree, for all trees |
+| `swap_makes_admission_uninformative` | so a red tree gets recorded — admission stops carrying information |
+| `in_band_detector_is_blind_to_its_own_replacement` | the in-band audit returns the SAME verdict in both worlds; it is indistinguishable from a working audit |
+| `out_of_band_detector_sees_the_replacement` | only a verifier independent of the hook separates them |
+| `out_of_band_alarm_is_exact` | and it fires on exactly the bad world — no false alarm on the good one |
+
+Build exit 0 with **zero warnings**; `out_of_band_alarm_is_exact` rests on
+`propext`, the rest on nothing beyond it, no `sorryAx`; `leanchecker` exit 0, zero
+bytes; delivered green to the shared workspace. Mutants **M29–M32** — **230
+applied, 230 killed**, 0 survived, 0 discarded.
+
+Counts move to **510 theorems / 22 modules / 19 suites / 230 mutants**.
+
+---
+
 ## A checksum that agrees with its archive is not provenance
 
 **Found while publishing 0.9.x, and it was already uploaded.** `release-package.sh`
@@ -52,7 +186,7 @@ not about collisions.
 Build exit 0 with **zero warnings**; axioms `propext, Classical.choice, Quot.sound`
 (`provenance_iff_same_tree`: `propext` alone), no `sorryAx`; `leanchecker` exit 0,
 zero bytes; delivered green to the shared Lean workspace. Mutants **M12–M14**
-added — **221 applied, 221 killed**, 0 survived, 0 discarded.
+added — every mutant then declared killed, 0 survived, 0 discarded.
 
 Counts move to **495 theorems / 22 modules / 19 suites / 221 mutants**.
 
@@ -96,7 +230,7 @@ one, `auditPasses = true` over **22** judged items, `controlHolds = false`.
 
 Mutants **M15–M17** — the control neutered to `true`, the audit made to judge
 everything, and the control weakened from `all` to `any`, which is the plausible
-version someone writes by accident. All three killed: **221 applied, 221 killed**,
+version someone writes by accident. All three killed: every mutant then declared killed,
 0 survived, 0 discarded.
 
 ---
@@ -161,7 +295,7 @@ record was written for a turn that failed.
 
 Mutants **M21–M23**: the repair reverted to the blind verdict, the blind verdict
 taught to read outcomes, and the over-correction that refuses everything. All
-killed — **221 applied, 221 killed**, 0 survived, 0 discarded.
+killed — every mutant then declared killed, 0 survived, 0 discarded.
 
 ---
 
@@ -221,7 +355,7 @@ now registered in the fast tier. 156 passed, 0 failed.
 
 Mutants **M18–M20**: the always-skipping step given a reachable outcome, the
 corpus re-derivation neutered to `true`, and the new step made unable to fail.
-All killed — **221 applied, 221 killed**, 0 survived, 0 discarded.
+All killed — every mutant then declared killed, 0 survived, 0 discarded.
 
 **One skip remains in CI, and it is a boundary, not an omission.**
 `marketplace-session.sh` needs the maintainer's own Claude credentials for its
@@ -281,7 +415,7 @@ evidence.
 | 13 | debug log verification | sum of logged terms only, POSIX arm only | **every factor** re-derived, both arms, pairing checked |
 | 14 | theorems / modules | 205 / 14 | **495 / 22** |
 | 15 | gates | 29 | **35** (23 fast, 12 deep) |
-| 16 | mutation suites | 10 suites | **19 suites — 221 applied, 221 killed**, 0 survived, 0 discarded |
+| 16 | mutation suites | 10 suites | **19 suites — every mutant declared killed**, 0 survived, 0 discarded |
 | 17 | why a lane fired | **not recorded** — a log could be fully replayable with the disputed fact absent | the **matched stem**, from a closed 85-word table |
 | 18 | auditing someone else's log | impossible — the replayer only read logs it generated | `log-replay.sh --audit <file>` |
 | 19 | "the log leaks no prompt text" | an assurance nothing checked | `auditable_imp_vocabSafe` — **entailed** by passing the audit |

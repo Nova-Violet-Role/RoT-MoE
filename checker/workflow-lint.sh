@@ -333,6 +333,36 @@ if [ -f checker/gate-all.sh ]; then
       *) bad "CONTROL DEAD: the gateless hook was NOT rejected (verdict: '$cv') -- this phase is decoration" ;;
     esac
     rm -f "$CTL"
+
+    # THE FALLBACK PATH IS A LOADED GUN, and nothing was watching it.
+    #
+    # `core.hooksPath = .githooks` is what makes the gate above the one git
+    # runs. `.git/hooks/pre-commit` is then inert -- until the day that config
+    # is unset, reset by a tool, or absent in a fresh clone someone re-points.
+    # Measured here 2026-08-07: that inert file held an indexing hook whose own
+    # header reads "Never blocks a commit: every failure path exits 0". One
+    # `git config --unset core.hooksPath` away from a silently ungated repo.
+    #
+    # This check is OUT OF BAND on purpose. `RotObserve` §12 is the reason: the
+    # in-band audit runs only when the real gate is installed, so it is silent
+    # in exactly the state it exists to report
+    # (`in_band_detector_is_blind_to_its_own_replacement`). Only a verifier that
+    # does not depend on the hook can separate the two worlds
+    # (`out_of_band_detector_sees_the_replacement`).
+    #
+    # Absent is the SAFE state and passes -- a fresh clone has no .git/hooks
+    # override, and CI is exactly that case, so this does not fire there.
+    if [ -f .git/hooks/pre-commit ]; then
+      fv="$(hook_verdict .git/hooks/pre-commit)"
+      case "$fv" in
+        *NO_GATE*|*NO_REFUSAL*)
+          bad ".git/hooks/pre-commit exists and never refuses -- if core.hooksPath is ever unset, THAT becomes the gate and every commit is admitted. Delete it or make it the gate (verdict:$fv )" ;;
+        *)
+          ok ".git/hooks/pre-commit is itself a gate -- the fallback path is not a way around the gate" ;;
+      esac
+    else
+      ok "no .git/hooks/pre-commit -- the fallback path holds no permissive hook"
+    fi
   else
     bad ".githooks/pre-commit missing -- the red-gate commit can happen again"
   fi

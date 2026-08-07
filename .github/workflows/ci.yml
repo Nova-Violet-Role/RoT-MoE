@@ -715,9 +715,13 @@ jobs:
       # install half needs no auth and is already covered in CI by
       # `plugin-install.sh` above, which now RUNS. The session half needs the
       # maintainer's own Claude credentials, and the only way to give a public
-      # runner those is to put them in repository secrets -- a security decision
-      # that is the maintainer's to make, not a checker's, and not one to be
-      # taken to turn a log line green.
+      # runner those is to put them in repository secrets.
+      #
+      # THAT QUESTION WAS PUT TO THE MAINTAINER AND ANSWERED: **no.** Credentials
+      # do not go into repository secrets; authenticated testing happens locally
+      # and in the CTT instance. So this is not an open item awaiting a decision
+      # -- it is a decided boundary, and the decision is recorded here so nobody
+      # reopens it looking for a way to make the line green.
       #
       # What is NOT acceptable is faking it: a planted credentials file would
       # make this step exit 0 while proving nothing about a real session. So it
