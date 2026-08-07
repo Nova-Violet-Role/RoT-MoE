@@ -205,6 +205,53 @@ else
   bad "control: could not plant the rotation-disabled copy"
 fi
 
+# --- phase 5: BSD `wc` PADS, AND THAT ONCE DISABLED ROTATION ENTIRELY --------
+#
+# CI run 31202010565 went red on macOS only: the log grew to 24 lines against a
+# cap of 5, while ubuntu and windows passed. Cause: BSD `wc -l` prints
+# "      24", GNU prints "24", and the router's guard rejected anything
+# non-numeric and fell back to 0 -- so the count was always 0, the comparison
+# always false, and rotation never ran. A defensive sanitiser silently switched
+# the feature off on one platform.
+#
+# Phase 3 above can only catch that ON a BSD machine. This phase makes the
+# defect reproducible EVERYWHERE by putting a padding `wc` at the front of PATH,
+# which is what the developer machine lacked. A platform bug that can only be
+# found on the platform is a bug found by users.
+PADDIR="$WORK/padbin"
+mkdir -p "$PADDIR"
+cat > "$PADDIR/wc" <<'PADWC'
+#!/bin/sh
+# BSD-style: pad the count into an 8-wide field, like macOS does.
+real=$(command -p wc "$@")
+printf '%8s\n' "$(printf '%s' "$real" | tr -dc '0-9')"
+PADWC
+chmod +x "$PADDIR/wc"
+# The control must itself be verified: if this fake wc does not actually pad,
+# the phase proves nothing and must say so rather than pass.
+padout=$(printf 'a\nb\n' | PATH="$PADDIR:$PATH" wc -l 2>/dev/null)
+case "$padout" in
+  " "*)
+    LOG5="$WORK/pad.jsonl"
+    : > "$LOG5"
+    i=1
+    while [ "$i" -le 12 ]; do
+      printf '{"prompt":"lake build %d"}' "$i" | \
+        PATH="$PADDIR:$PATH" ROTMOE_DEBUG_LOG="$LOG5" ROTMOE_DEBUG_LOG_MAX=5 \
+        bash "$SH" >/dev/null 2>&1
+      i=$((i+1))
+    done
+    l5=$(wc -l < "$LOG5" 2>/dev/null | tr -dc '0-9')
+    [ -n "$l5" ] || l5=0
+    if [ "$l5" -le 5 ]; then
+      ok "sh: rotation still bounds the log when wc PADS its count ($l5 <= 5) -- the macOS defect cannot return"
+    else
+      bad "sh: with a padding wc the log grew to $l5 against cap 5 -- this is CI run 31202010565 reproduced locally"
+    fi ;;
+  *)
+    bad "control: the padding wc stub did not pad ('$padout') -- phase 5 proves nothing, and that is not a pass" ;;
+esac
+
 [ "$HAVE_PS" -eq 1 ] || inf "pwsh absent: the ps1 arm was NOT exercised here -- that is a SKIP, never a pass"
 
 echo

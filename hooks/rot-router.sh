@@ -419,8 +419,19 @@ hook_mode () {
       _cap="${ROTMOE_DEBUG_LOG_MAX:-5000}"
       case "$_cap" in (*[!0-9]*|'') _cap=5000 ;; esac
       if [ "$_cap" -gt 0 ] 2>/dev/null; then
-        _n=$(wc -l < "$ROTMOE_DEBUG_LOG" 2>/dev/null || echo 0)
-        case "$_n" in (*[!0-9]*|'') _n=0 ;; esac
+        # BSD `wc -l` PADS ITS OUTPUT: macOS returns "      24", not "24".
+        # The guard below used to reject anything non-numeric and fall back to
+        # 0 -- so on macOS the count was always 0, the comparison was always
+        # false, and ROTATION NEVER RAN. Measured in CI run 31202010565: the log
+        # grew to 24 lines against a cap of 5 while ubuntu and windows passed,
+        # because GNU wc emits no padding. A sanitiser written to be defensive
+        # is what silently disabled the feature on one platform.
+        #
+        # `tr -dc` keeps only digits, which handles the padding without having
+        # to know which wc is present -- the same reasoning as the step-log
+        # probe: do not encode the other side's formatting, tolerate it.
+        _n=$(wc -l < "$ROTMOE_DEBUG_LOG" 2>/dev/null | tr -dc '0-9')
+        [ -n "$_n" ] || _n=0
         if [ "$_n" -gt "$_cap" ]; then
           _tmp="$ROTMOE_DEBUG_LOG.rot.$$"
           if tail -n "$_cap" "$ROTMOE_DEBUG_LOG" > "$_tmp" 2>/dev/null; then

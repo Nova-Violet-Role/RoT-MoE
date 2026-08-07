@@ -229,6 +229,39 @@ for (const r of records) {
   } else if (count > 1) { multi++; }
 }
 
+// ARITY CONSISTENCY WITHIN A SUITE.
+//
+// This checker learned the hard way that it validated my INTENT rather than the
+// suite's SIGNATURE. RotDebugLog's `run_mut` is `id needle repl expect` -- no
+// module argument -- and three mutants were written with one. The token
+// "RotDebugLog" became the needle, occurred twice, and all three DISCARDED.
+// This file said they were fine, because it saw a token matching a module name
+// and helpfully treated it as a module.
+//
+// A suite is internally consistent or it is not. If some invocations carry a
+// module token and others do not, one of the two groups is being mis-parsed by
+// the harness itself -- and that is exactly the mistake that produced three
+// silent discards.
+{
+  const shapeBySuite = new Map();
+  for (const r of records) {
+    const hasMod = r.args[1] !== undefined && proofs.includes(r.args[1]);
+    const e = shapeBySuite.get(r.suite) || { withMod: 0, without: 0, ids: [] };
+    if (hasMod) e.withMod++; else e.without++;
+    e.ids.push((hasMod ? "+" : "-") + r.args[0]);
+    shapeBySuite.set(r.suite, e);
+  }
+  let mixed = 0;
+  for (const [f, e] of shapeBySuite) {
+    if (e.withMod > 0 && e.without > 0) {
+      bad(f + ": MIXED call shapes -- " + e.withMod + " invocation(s) pass a module token and " +
+          e.without + " do not. One group is being mis-parsed by the harness.");
+      mixed++;
+    }
+  }
+  if (mixed === 0) ok("every suite uses ONE call shape -- no invocation is silently mis-parsed by arity");
+}
+
 // Coverage of THIS checker, asserted. An earlier cut silently examined 260 of
 // 293 mutants and printed a clean summary -- the same shape as the defect it
 // hunts.
