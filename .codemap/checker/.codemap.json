@@ -137,12 +137,12 @@
       ]
     },
     "ci-audit-freshness.sh": {
-      "hash": "a281cf998c2a",
-      "indexed_at": "2026-08-07T20:26:05.270421+00:00",
+      "hash": "8bd4f63aa9ef",
+      "indexed_at": "2026-08-07T21:10:55.683526+00:00",
       "language": "shell",
-      "lines": 142,
-      "mtime_ns": 1786133304442432300,
-      "size": 6453,
+      "lines": 175,
+      "mtime_ns": 1786136813913333800,
+      "size": 8151,
       "symbols": []
     },
     "ci-dryrun.sh": {
@@ -1384,6 +1384,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T20:26:05.448675+00:00",
+  "generated_at": "2026-08-07T21:10:55.683759+00:00",
   "version": "1.0"
 }

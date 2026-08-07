@@ -209,7 +209,29 @@ except_reason () {   # except_reason <basename> -> prints reason, or nothing
 # every local commit via .githooks/pre-commit, and the phase below asserts that
 # every gate it lists is a real, present checker -- so it cannot silently rot.
     gate-all.sh)       printf '%s' "aggregator for the pre-commit hook; CI runs each gate as its own named step" ;;
+# ci-audit-freshness compares the audited run against LOCAL HEAD. Inside a CI job
+# local HEAD *is* the run's own commit, so the comparison would pass by
+# construction on every run forever -- a step that cannot fail, which is the
+# decoration this repo refuses to ship. The defect it catches lives on the
+# development machine, in the gap between writing a fix and landing it: three
+# consecutive runs reported an identical failure while the repair sat
+# uncommitted here. It runs from gate-all.sh, and the phase below asserts that.
+    ci-audit-freshness.sh) printf '%s' "compares a run against LOCAL HEAD; in CI that is trivially itself, so it runs from gate-all.sh instead" ;;
   esac
+}
+
+# AN EXEMPTION MUST NOT BE A HIDING PLACE.
+#
+# The reason above is honest, but "not run by CI" and "not run at all" look
+# identical from here, and the second is how a checker quietly dies. So every
+# exempt checker must be reachable from SOMEWHERE: either gate-all.sh's table or
+# an explicit note that it is informational. Without this, adding a name to the
+# case block above would silently remove a check from the repository.
+exempt_must_be_reachable () {   # <basename> -> 0 if reachable, else 1
+  case "$1" in
+    preflight.sh|workflow-lint.sh|gate-all.sh) return 0 ;;   # wired as CI steps / self
+  esac
+  grep -q -- "checker/$1" "$REPO/checker/gate-all.sh" 2>/dev/null
 }
 
 # NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.
@@ -254,7 +276,13 @@ for c in checker/*.sh; do
   if contains "$WF_TEXT" "$base"; then
     ok "wired into a workflow: $base"
   elif [ -n "$(except_reason "$base")" ]; then
-    echo "  NOTE  exempt: $base -- $(except_reason "$base")"
+    if exempt_must_be_reachable "$base"; then
+      echo "  NOTE  exempt: $base -- $(except_reason "$base")"
+    else
+      bad "EXEMPT BUT UNREACHABLE: $base is excused from CI and is not in gate-all.sh either"
+      echo "        An exemption is a statement about WHERE it runs, never that it"
+      echo "        stopped running. This one runs nowhere."
+    fi
   else
     bad "NOT RUN BY ANY WORKFLOW: $base"
     echo "        The repo looks more verified than it is. Wire it up, or add it"
