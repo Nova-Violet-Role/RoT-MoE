@@ -150,6 +150,79 @@ the same model family is not an instrument.
   regeneration only adds columns. A corpus edited to be more flattering would
   have shown up right there.
 
+## A suite where every mutant DISCARDS looks diligent and proves nothing
+
+`checker/mutant-discipline.sh` proves every suite refuses to score a mutant
+whose patch did not apply — it reports DISCARDED. That is the per-mutant rule.
+Nothing checked the **inverse**:
+
+> A suite in which *every* mutant discards is not a careful suite.
+> It is zero evidence, and the only trace is a number in a summary nobody diffs.
+
+`0 killed, 9 discarded` reads as diligence. It is indistinguishable from having
+run nothing. Two of my own mutants discarded on 2026-08-07 and were caught only
+because I read the output.
+
+### `checker/mutant-needles.sh` — static, no build, runs on every commit
+
+A needle goes stale the moment someone edits the line it quotes, and that edit is
+usually in a commit with nothing to do with mutation testing.
+
+**Result of the audit this file was written to perform: 22 suites, 296 of 296
+invocations replayed, 0 dead needles, no suite entirely discarded.** Control:
+planting a needle that cannot exist makes it fail; removing it returns exit 0.
+
+### Four wrong answers before the right one, all recorded
+
+Getting here required admitting the approach was wrong three times:
+
+| attempt | verdict |
+|---|---|
+| line-based single-quote match | **false positive** on E10/V08 (the `'"'"'` idiom is three chunks the shell joins into one word) |
+| chunk-splitting tokeniser | **false negative** on the same two — took the first fragment as the needle |
+| word-concatenating tokeniser | **false positive** on P01, double-quoted, where `\\\\` collapses to `\\` |
+| replay under `bash` | correct |
+
+P01 was measured **KILLED** by its own suite while my checker called it dead. The
+structural answer is the one that ended the `node -e` escaping failures earlier
+this cycle: **stop re-deriving shell quoting and hand the text to the thing that
+owns it.** `run_mut` is stubbed to print its arguments, so the needle tested is
+byte-identical to the needle the suite will use. Only invocation lines are
+replayed — no preamble, nothing mutated — and a block with a command
+substitution is refused, never passed.
+
+Three further defects found in my own checker while building it:
+
+- **It examined 260 of 293 mutants and printed a clean summary.** Coverage is
+  now asserted against a deliberately looser count; any shortfall is a failure.
+- **One syntax error killed the entire replay**, delivering 2 of 293 while the
+  table still rendered. Each invocation now replays in isolation.
+- **`bash "$SCRIPT"` inherited the reader's stdin** and could eat the lines still
+  to be read. `< /dev/null` is load-bearing there, not hygiene.
+
+An invocation whose arguments span a real newline (RotDuplicate M03 inserts two
+lines of Lean) needed a quote **state machine**, not a quote count: counting is
+defeated by `'"'"'`, which merged V08 with its neighbour and lost a mutant
+silently.
+
+### Why only ZERO is a failure
+
+A first cut failed on any count ≠ 1. That was a spec forbidding a correct
+future: several suites use `run_mut_nth`, others pass an expected occurrence
+count, so a needle at 10 sites is **declared** there (RotInstall I01), not
+accidental. Failing those would have pushed the repair toward weakening real
+mutants to satisfy the checker. Zero is never correct under any convention.
+
+### The Lean binding — `RotMutant.lean` §S
+
+| theorem | what it settles |
+|---|---|
+| `allDiscarded_evidence_eq_empty` | an all-discarded suite has the **same** evidence as a suite with no mutants — not less, the same |
+| `one_landed_gives_evidence` | one landed mutant suffices, so the static check need not know which mutants are strong |
+| `evidence_not_always_empty` | control: `evidence` is not the constant empty list |
+
+Mutants **M19–M21, all killed** (RotMutant: 21 killed, 0 survived, 0 discarded).
+
 ## CI went red on a correct commit — the spec was wrong, not the change
 
 Run `31193273932` (`4fb410a`) **failed**, and the failure was the gate's fault.

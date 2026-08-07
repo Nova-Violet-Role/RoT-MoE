@@ -383,18 +383,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "4ead9755f4e5",
-      "indexed_at": "2026-08-07T16:11:16.663345+00:00",
+      "hash": "f59a22b34cc5",
+      "indexed_at": "2026-08-07T17:53:19.801647+00:00",
       "language": "shell",
-      "lines": 360,
-      "mtime_ns": 1786117775387219100,
-      "size": 17625,
+      "lines": 361,
+      "mtime_ns": 1786124639927277200,
+      "size": 17729,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            153,
-            168
+            154,
+            169
           ],
           "name": "fires",
           "type": "function"
@@ -675,6 +675,24 @@
       "mtime_ns": 1786111540133390600,
       "size": 15389,
       "symbols": []
+    },
+    "mutant-needles.sh": {
+      "hash": "2f4361c2bd43",
+      "indexed_at": "2026-08-07T17:53:20.178001+00:00",
+      "language": "shell",
+      "lines": 291,
+      "mtime_ns": 1786124290279547100,
+      "size": 13113,
+      "symbols": [
+        {
+          "lines": [
+            114,
+            142
+          ],
+          "name": "emit_block",
+          "type": "function"
+        }
+      ]
     },
     "mutate-checker.sh": {
       "hash": "aad95eb6c5b2",
@@ -1348,6 +1366,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T17:12:51.673122+00:00",
+  "generated_at": "2026-08-07T17:53:20.311044+00:00",
   "version": "1.0"
 }
