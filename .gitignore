@@ -15,3 +15,8 @@ build/
 # `checker/repo-complete.sh` had to carry a permanent exemption to stop scanning
 # them for stale numbers. Kept on disk, out of git.
 TASKS/
+
+# Local-only 1.0.x release artifacts (checker/release-local.sh). Built from HEAD,
+# stamped, installed into CTT for testing -- never published until the promise is earned.
+.release-local-only/
+.release-local-only.count

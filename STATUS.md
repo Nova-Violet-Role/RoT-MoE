@@ -10,22 +10,19 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-BEGIN -->
 | field | value |
 |---|---|
-| theorems | 619 |
-| modules | 25 |
-| mutation suites | 22 |
-| checkers | 54 |
+| theorems | 627 |
+| modules | 26 |
+| mutation suites | 23 |
+| checkers | 55 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |
 | files containing `native_decide` | 0 |
 <!-- VERDICT-END -->
 
-Regenerated locally at 2026-08-05 20:09 UTC from
-`checker/status-verdict.sh` on commit `0e252ee7915e197a41c672c337132f058e0344fb`, after the CI HONESTY law
-was added to `lean/Proofs/RotGates.lean` and `checker/ci-honesty.sh`.
-That line is PROVENANCE for the verdict above and is excluded from the
-comparison that decides whether to commit: a timestamp is evidence that
-time passed, never that anything was re-verified.
+Regenerated locally by `bash checker/status-verdict.sh --write` on top
+of commit `a920914e866e8f5c7c2487b1d469613695cd2f86`. That line is PROVENANCE and is excluded from the
+comparison that decides whether the verdict changed: it records WHERE the
+numbers were counted, and claims nothing about gates having passed.
 
-This file changes only when the measurements change. `--allow-empty`
-is deliberately absent below, and the step that writes this file does
-not run at all when the verdict is unchanged.
+This file changes only when the measurements change. The rows above are
+recounted from source on every run of the generator.

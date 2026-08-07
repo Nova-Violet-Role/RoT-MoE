@@ -18,7 +18,9 @@
       "**/*.mutbak",
       "**/*.bak",
       "**/.release/**",
-      "**/TASKS/**"
+      "**/TASKS/**",
+      "**/.release-local-only/**",
+      "**/.release-local-only.count/**"
     ],
     "include_patterns": [
       "**/*.py",
@@ -111,12 +113,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-07T20:26:05.453642+00:00",
+  "generated_at": "2026-08-07T21:59:22.055567+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-07T20:26:05.439104+00:00",
-    "total_files": 110,
-    "total_symbols": 758
+    "last_full_index": "2026-08-07T21:59:22.038535+00:00",
+    "total_files": 112,
+    "total_symbols": 766
   },
   "version": "1.0"
 }

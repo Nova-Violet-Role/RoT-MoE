@@ -23,6 +23,42 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### `1.0.0` / `1.0.1` / `1.0.2` — built locally, deliberately not published
+
+These three version numbers exist as **local artifacts only**, produced by
+`checker/release-local.sh` into a `.gitignore`'d `.release-local-only/`. They are
+installed into the CTT instance for testing and will not be tagged or uploaded
+until the completion promise is true. As of this entry it is **not** true: the
+central "produces better answers" claim still has no instrument, and
+`not_every_lane_shrinks` in `lean/Proofs/RotAbility.lean` proves the router's
+effect is not uniform in direction — one lane moves against it. A 1.0 tag cut
+today would be a version number asserting something the repository can disprove.
+
+Three properties are enforced rather than intended:
+
+- **The tree is never bumped.** `plugin.json` still declares `0.9.2`, which is
+  what the newest tag carries. The 1.0.x version exists only inside a throwaway
+  `git archive HEAD` export. Bumping the manifest to get a local build would put
+  it ahead of every tag and turn a correct repository red — buying convenience
+  with a false alarm in the shared history.
+- **An artifact is evidence only while it regenerates.** Every build starts from
+  a pristine export of the commit, and the checker then rebuilds and compares
+  file-by-file digests. A local zip that no longer reproduces from `HEAD` is
+  reported stale, because the real hazard is not a missing artifact — it is an
+  old one that installs cleanly and passes, crediting code that never shipped.
+- **The changelog is not restamped.** The export rewrites the version in
+  `plugin.json`, `marketplace.json`, `CITATION.cff` and `RELEASE.md`, which are
+  mechanical name-and-number surfaces, and pointedly **not** in this file.
+  Running the same `sed` here would relabel the real `0.9.x` history as `1.0.x`
+  and satisfy the packager's "the shipped CHANGELOG names every variant" check
+  by forging the record it is meant to verify.
+
+The reproducibility comparison classifies each artifact as identical, different,
+or **unmeasured**, and an unmeasured artifact fails on its own account. Folding
+"the digest tool failed" into "the contents differ" is the same defect as
+counting a mutation that never applied as `SURVIVED`: it reports in the
+reassuring direction.
+
 ## Twelve fake kills, green in CI for the whole cycle
 
 **Found by reading the full `log.zip` of run `31180174433`, which concluded

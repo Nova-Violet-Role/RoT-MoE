@@ -392,18 +392,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "b8474e284bc2",
-      "indexed_at": "2026-08-07T20:26:04.950986+00:00",
+      "hash": "ad3d40a0e369",
+      "indexed_at": "2026-08-07T21:59:21.429384+00:00",
       "language": "shell",
-      "lines": 362,
-      "mtime_ns": 1786134101474303000,
-      "size": 17900,
+      "lines": 363,
+      "mtime_ns": 1786138280519698800,
+      "size": 18062,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            155,
-            170
+            156,
+            171
           ],
           "name": "fires",
           "type": "function"
@@ -868,6 +868,34 @@
         }
       ]
     },
+    "release-local.sh": {
+      "hash": "e8a9e9cf9e25",
+      "indexed_at": "2026-08-07T21:59:21.914397+00:00",
+      "language": "shell",
+      "lines": 322,
+      "mtime_ns": 1786138887106469900,
+      "size": 16409,
+      "symbols": [
+        {
+          "docstring": "--- phase 2: build from a PRISTINE export of HEAD, never the working tree ----",
+          "lines": [
+            138,
+            182
+          ],
+          "name": "build_into",
+          "type": "function"
+        },
+        {
+          "docstring": "--- phase 4: REGENERATE and diff -- the claim that makes this evidence ------- Contents, not zip bytes. Two zips of identical trees differ in their st",
+          "lines": [
+            223,
+            233
+          ],
+          "name": "digest_of",
+          "type": "function"
+        }
+      ]
+    },
     "release-longsession.sh": {
       "hash": "99318ad15656",
       "indexed_at": "2026-08-05T13:16:35.067361+00:00",
@@ -1101,12 +1129,12 @@
       ]
     },
     "status-verdict.sh": {
-      "hash": "3bcb4fff7fb9",
-      "indexed_at": "2026-08-05T13:16:35.082677+00:00",
+      "hash": "75065e5d171c",
+      "indexed_at": "2026-08-07T21:59:20.776887+00:00",
       "language": "shell",
-      "lines": 191,
-      "mtime_ns": 1785917576262843600,
-      "size": 8602,
+      "lines": 237,
+      "mtime_ns": 1786139481546484900,
+      "size": 10655,
       "symbols": [
         {
           "docstring": "`sorry` and `native_decide` are COUNTED, not asserted. A line saying \"none\" that nothing recounts is the kind of claim this repository exists to refus",
@@ -1124,6 +1152,14 @@
             133
           ],
           "name": "token_in_file",
+          "type": "function"
+        },
+        {
+          "lines": [
+            181,
+            193
+          ],
+          "name": "emit_verdict",
           "type": "function"
         }
       ]
@@ -1244,12 +1280,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "ed9a6258ad37",
-      "indexed_at": "2026-08-07T20:26:04.954167+00:00",
+      "hash": "dc8f1f8052ef",
+      "indexed_at": "2026-08-07T21:59:21.433016+00:00",
       "language": "shell",
       "lines": 1278,
-      "mtime_ns": 1786134052052303000,
-      "size": 65490,
+      "mtime_ns": 1786138526766870400,
+      "size": 65528,
       "symbols": [
         {
           "docstring": "One entry point, so the four call sites cannot drift apart again.",
@@ -1384,6 +1420,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T21:10:55.683759+00:00",
+  "generated_at": "2026-08-07T21:59:22.048970+00:00",
   "version": "1.0"
 }

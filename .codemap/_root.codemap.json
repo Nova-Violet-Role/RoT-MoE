@@ -404,18 +404,29 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "9ff6a8a794cd",
-      "indexed_at": "2026-08-07T20:26:04.600172+00:00",
+      "hash": "ee2b2276ec90",
+      "indexed_at": "2026-08-07T21:59:20.539129+00:00",
       "language": "markdown",
-      "lines": 2260,
-      "mtime_ns": 1786133328480173700,
-      "size": 127861,
+      "lines": 2296,
+      "mtime_ns": 1786137862100699700,
+      "size": 130143,
       "symbols": [
         {
+          "children": [
+            {
+              "docstring": "These three version numbers exist as **local artifacts only**, produced by `checker/release-local.sh` into a `.gitignore`'d `.release-local-only/`. Th",
+              "lines": [
+                26,
+                61
+              ],
+              "name": "`1.0.0` / `1.0.1` / `1.0.2` \u2014 built locally, deliberately not published",
+              "type": "subsection"
+            }
+          ],
           "docstring": "Work landed after `0.9.2` and not yet cut into a release. The heading is not decoration: `checker/repo-complete.sh` scans the **newest release section",
           "lines": [
             18,
-            25
+            61
           ],
           "name": "[Unreleased]",
           "type": "section"
@@ -423,8 +434,8 @@
         {
           "docstring": "**Found by reading the full `log.zip` of run `31180174433`, which concluded `success`.** The lean job's mutation step contained this:",
           "lines": [
-            26,
-            91
+            62,
+            127
           ],
           "name": "Twelve fake kills, green in CI for the whole cycle",
           "type": "section"
@@ -432,8 +443,8 @@
         {
           "docstring": "**I published a null result that the data does not support.** The 80\u00d72 A/B run was reported as \"null on every pre-registered primary\". Two defects in",
           "lines": [
-            92,
-            152
+            128,
+            188
           ],
           "name": "The A/B was not null \u2014 my analysis was blind, and here is the retraction",
           "type": "section"
@@ -443,8 +454,8 @@
             {
               "docstring": "It answers one question: **does the CI run I am reading contain the commits I think it does?** Pointed at the run I misread, it fails and names them:",
               "lines": [
-                183,
-                210
+                219,
+                246
               ],
               "name": "`checker/ci-audit-freshness.sh` \u2014 the alarm that was missing",
               "type": "subsection"
@@ -452,8 +463,8 @@
           ],
           "docstring": "The user asked whether I was reading the CI archive correctly, since the same line kept coming back:",
           "lines": [
-            153,
-            210
+            189,
+            246
           ],
           "name": "Three CI runs reported the same error because the fix was never pushed",
           "type": "section"
@@ -463,8 +474,8 @@
             {
               "docstring": "A platform bug findable only on that platform is a bug found by users. Phase 5 of `checker/debug-channel.sh` puts a padding `wc` at the front of `PATH",
               "lines": [
-                234,
-                245
+                270,
+                281
               ],
               "name": "The defect is now reproducible on every platform",
               "type": "subsection"
@@ -472,8 +483,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `strict_padded_is_zero` | the shipped guard reads a padded count as **zero** \u2014 the one value that makes ever",
               "lines": [
-                246,
-                262
+                282,
+                298
               ],
               "name": "`RotDebugLog.lean` \u00a7R \u2014 the count parser",
               "type": "subsection"
@@ -481,8 +492,8 @@
             {
               "docstring": "- D12's needle contained `' '` \u2014 a literal space character \u2014 which ends a single-quoted shell string. Third time this trap has fired this session. - A",
               "lines": [
-                263,
-                283
+                299,
+                319
               ],
               "name": "Three attempts to write those mutants, and what each one taught",
               "type": "subsection"
@@ -490,8 +501,8 @@
           ],
           "docstring": "CI run `31202010565` failed on **one leg of three**:",
           "lines": [
-            211,
-            283
+            247,
+            319
           ],
           "name": "A defensive sanitiser switched rotation off on macOS \u2014 and only macOS",
           "type": "section"
@@ -501,8 +512,8 @@
             {
               "docstring": "A needle goes stale the moment someone edits the line it quotes, and that edit is usually in a commit with nothing to do with mutation testing.",
               "lines": [
-                297,
-                305
+                333,
+                341
               ],
               "name": "`checker/mutant-needles.sh` \u2014 static, no build, runs on every commit",
               "type": "subsection"
@@ -510,8 +521,8 @@
             {
               "docstring": "Getting here required admitting the approach was wrong three times:",
               "lines": [
-                306,
-                338
+                342,
+                374
               ],
               "name": "Four wrong answers before the right one, all recorded",
               "type": "subsection"
@@ -519,8 +530,8 @@
             {
               "docstring": "A first cut failed on any count \u2260 1. That was a spec forbidding a correct future: several suites use `run_mut_nth`, others pass an expected occurrence",
               "lines": [
-                339,
-                346
+                375,
+                382
               ],
               "name": "Why only ZERO is a failure",
               "type": "subsection"
@@ -528,8 +539,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `allDiscarded_evidence_eq_empty` | an all-discarded suite has the **same** evidence as a suite with no mutan",
               "lines": [
-                347,
-                356
+                383,
+                392
               ],
               "name": "The Lean binding \u2014 `RotMutant.lean` \u00a7S",
               "type": "subsection"
@@ -537,8 +548,8 @@
           ],
           "docstring": "`checker/mutant-discipline.sh` proves every suite refuses to score a mutant whose patch did not apply \u2014 it reports DISCARDED. That is the per-mutant r",
           "lines": [
-            284,
-            356
+            320,
+            392
           ],
           "name": "A suite where every mutant DISCARDS looks diligent and proves nothing",
           "type": "section"
@@ -548,8 +559,8 @@
             {
               "docstring": "The probe now uses `.`, the regex wildcard, at slash positions. `_` today, anything tomorrow, and this file never has to be edited. Hard-coding `_` wo",
               "lines": [
-                389,
-                418
+                425,
+                454
               ],
               "name": "The fix does not learn GitHub's substitute \u2014 it stops needing to know",
               "type": "subsection"
@@ -557,8 +568,8 @@
           ],
           "docstring": "Run `31193273932` (`4fb410a`) **failed**, and the failure was the gate's fault.",
           "lines": [
-            357,
-            418
+            393,
+            454
           ],
           "name": "CI went red on a correct commit \u2014 the spec was wrong, not the change",
           "type": "section"
@@ -568,8 +579,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `silent_channel_is_ambiguous` | the two worlds above are identical to a reader | | `..._at_every_volume` | q",
               "lines": [
-                439,
-                465
+                475,
+                501
               ],
               "name": "`lean/Proofs/RotDebugLog.lean` \u2014 12 theorems, then the shell",
               "type": "subsection"
@@ -577,8 +588,8 @@
             {
               "docstring": "Fixing only the obvious writer was not enough. **The channel has two writers** \u2014 the awk in `gauge` emits `\"kind\":\"gauge\"`, the block below emits `\"ki",
               "lines": [
-                466,
-                490
+                502,
+                526
               ],
               "name": "What the shell actually did, measured",
               "type": "subsection"
@@ -586,8 +597,8 @@
             {
               "docstring": "A theorem about a `World` constrains `rot-router.sh` through nothing at all unless something runs the real hook. 17 assertions across both arms, on al",
               "lines": [
-                491,
-                508
+                527,
+                544
               ],
               "name": "`checker/debug-channel.sh` \u2014 the binding, with its own controls",
               "type": "subsection"
@@ -595,8 +606,8 @@
           ],
           "docstring": "The goal names one thing this repo did not check: the router's `*.log` debug output. It turns out the channel existed and worked \u2014 and could lie by om",
           "lines": [
-            419,
-            508
+            455,
+            544
           ],
           "name": "The router's debug channel could not report its own failure",
           "type": "section"
@@ -604,8 +615,8 @@
         {
           "docstring": "Run `31187881399` printed these two lines consecutively in the lean job:",
           "lines": [
-            509,
-            541
+            545,
+            577
           ],
           "name": "A skip that named the wrong cause \u2014 `marketplace-session.sh`",
           "type": "section"
@@ -615,8 +626,8 @@
             {
               "docstring": "Nine theorems, all `decide` over the measured lane table, all delivered and kernel-re-checked (`lake env leanchecker Proofs.RotMoe.RotAttribute` \u2192 exi",
               "lines": [
-                598,
-                625
+                634,
+                661
               ],
               "name": "`RotAttribute` \u00a75 \u2014 the universal claim, refuted in Lean by our own data",
               "type": "subsection"
@@ -624,8 +635,8 @@
           ],
           "docstring": "A single pooled figure was never the right reading, and `RotAttribute` proves why: `pooling_reverses_every_stratum` exhibits a checked instance where",
           "lines": [
-            542,
-            625
+            578,
+            661
           ],
           "name": "Every lane scored on its own effect \u2014 and one lane goes the other way",
           "type": "section"
@@ -633,8 +644,8 @@
         {
           "docstring": "The retraction above is not an anecdote, it is three theorems. `lean/Proofs/RotAttribute.lean`, 24th module, states the failure modes so the harness i",
           "lines": [
-            626,
-            668
+            662,
+            704
           ],
           "name": "Why a null can belong to the analysis instead of the world \u2014 `RotAttribute`",
           "type": "section"
@@ -642,8 +653,8 @@
         {
           "docstring": "**Measured in CI run 31116857127, and it had been green the whole cycle.** `checker/live-session-smoke.sh` guarded its authenticated phase like this:",
           "lines": [
-            669,
-            745
+            705,
+            781
           ],
           "name": "A test that creates its own precondition \u2014 green on three platforms",
           "type": "section"
@@ -653,8 +664,8 @@
             {
               "docstring": "| theorem | claim it settles | |---|---| | `forge_matches_the_spec` | the operator reproduces the spec's own worked hybrid (Claude \u00d7 Anti-Venom \u2192 \u03bb 1.",
               "lines": [
-                757,
-                774
+                793,
+                810
               ],
               "name": "What is now PROVED",
               "type": "subsection"
@@ -662,8 +673,8 @@
             {
               "docstring": "Two boundaries are theorems too, so they cannot be quietly dropped:",
               "lines": [
-                775,
-                788
+                811,
+                824
               ],
               "name": "And what it deliberately does NOT say",
               "type": "subsection"
@@ -671,8 +682,8 @@
             {
               "docstring": "Float addition is not associative, so the shipped arithmetic can pin a concrete row and can never support a general statement about iteration. Every c",
               "lines": [
-                789,
-                796
+                825,
+                832
               ],
               "name": "Why \u211a and not `Float`",
               "type": "subsection"
@@ -680,8 +691,8 @@
             {
               "docstring": "S01\u2013S12: **all twelve killed, none survived, none discarded** (the repo-wide figure stays the one in `README.md`; a per-suite count must not be writte",
               "lines": [
-                797,
-                816
+                833,
+                852
               ],
               "name": "The mutants",
               "type": "subsection"
@@ -689,8 +700,8 @@
           ],
           "docstring": "The engine's strongest assertion is about **reach**: that fusing two lenses produces a point of view neither parent occupies, that Eidolon can keep do",
           "lines": [
-            746,
-            816
+            782,
+            852
           ],
           "name": "Symbiogenesis is generative \u2014 and that half is a theorem, not a claim",
           "type": "section"
@@ -700,8 +711,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `fresh_temp_drops_the_exec_bit` | replacing via a fresh temp yields a non-executable file, whatever the cont",
               "lines": [
-                851,
-                875
+                887,
+                911
               ],
               "name": "`RotObserve` \u00a717 \u2014 seven theorems on what a rename carries",
               "type": "subsection"
@@ -709,8 +720,8 @@
           ],
           "docstring": "Run on `6791683`: `mutate the checker` failed on **ubuntu-latest and macos-latest** with",
           "lines": [
-            817,
-            875
+            853,
+            911
           ],
           "name": "Atomicity is not enough: the atomic write dropped the exec bit and CI caught it",
           "type": "section"
@@ -720,8 +731,8 @@
             {
               "docstring": "| where | what changed | |---|---| | `checker/mutate-checker.sh` | recovers **at start-up**: a `.mutbak` present before this run made one means the la",
               "lines": [
-                892,
-                908
+                928,
+                944
               ],
               "name": "Recovery cannot depend on a signal handler",
               "type": "subsection"
@@ -729,8 +740,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `recoverable_before_backup` / `recoverable_after_backup` | interruption before or between the two steps is h",
               "lines": [
-                909,
-                932
+                945,
+                968
               ],
               "name": "`RotObserve` \u00a716 \u2014 nine theorems on interrupted mutation",
               "type": "subsection"
@@ -738,8 +749,8 @@
           ],
           "docstring": "Measured three times in one session on 2026-08-07. A commit whose gate run exceeded a wall-clock ceiling had its **entire process tree SIGKILLed**. Th",
           "lines": [
-            876,
-            932
+            912,
+            968
           ],
           "name": "A SIGKILL left a mutated router on disk, one `git add -A` from being published",
           "type": "section"
@@ -749,8 +760,8 @@
             {
               "docstring": "| layer | what it does | |---|---| | `.gitattributes` (new) | `* text=auto eol=lf` \u2014 the working tree is LF on every platform, so a checker reads the",
               "lines": [
-                947,
-                966
+                983,
+                1002
               ],
               "name": "Three layers, because one is not enough",
               "type": "subsection"
@@ -758,8 +769,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `shown_can_hide_a_real_difference` | a terminal CAN render two different fields identically \u2014 the defect, as",
               "lines": [
-                967,
-                991
+                1003,
+                1027
               ],
               "name": "`RotObserve` \u00a715 \u2014 six theorems on the two halves of the repair",
               "type": "subsection"
@@ -767,8 +778,8 @@
           ],
           "docstring": "CI run 31148233876, `checkers (windows-latest)`, step \"gauge hook corpus\": six rows failed, every one of them reporting two values that **render ident",
           "lines": [
-            933,
-            991
+            969,
+            1027
           ],
           "name": "`hook 0.09 != corpus 0.09` \u2014 the gate was right and its message was useless",
           "type": "section"
@@ -778,8 +789,8 @@
             {
               "docstring": "| endpoint | routed | unrouted | 80 paired | |---|---|---|---| | trailing question | 0.000 | 0.000 | 80 ties | | self-narration | 0.000 | 0.000 | 80 t",
               "lines": [
-                1000,
-                1015
+                1036,
+                1051
               ],
               "name": "The pre-registered primary endpoints did not support the hypothesis",
               "type": "subsection"
@@ -787,8 +798,8 @@
             {
               "docstring": "| metric | routed | unrouted | delta | paired sign count | |---|---|---|---|---| | cost per turn | $0.1013 | $0.1481 | **-31.6%** | cheaper on **75 of",
               "lines": [
-                1016,
-                1035
+                1052,
+                1071
               ],
               "name": "A secondary metric moved hard, and it stays secondary",
               "type": "subsection"
@@ -796,8 +807,8 @@
             {
               "docstring": "1. **CTT was running a router killed at 30 s.** Starting an hour earlier would have made arm A a second arm B and produced a false null. 2. **The firs",
               "lines": [
-                1036,
-                1051
+                1072,
+                1087
               ],
               "name": "Three defects the run found, none of which a theorem would have",
               "type": "subsection"
@@ -805,8 +816,8 @@
             {
               "docstring": "| theorem | what it settles | |---|---| | `floor_endpoint_cannot_improve` | a control arm at zero admits no improvement -- for every endpoint | | `imp",
               "lines": [
-                1052,
-                1072
+                1088,
+                1108
               ],
               "name": "`RotObserve` \u00a714 -- seven theorems about what an endpoint can attribute",
               "type": "subsection"
@@ -814,8 +825,8 @@
           ],
           "docstring": "**80 paired turns with the plugin armed against 80 with it disabled**, same 80 prompts in the same order, same config directory, tools off in both arm",
           "lines": [
-            992,
-            1072
+            1028,
+            1108
           ],
           "name": "The A/B ran: the pre-registered endpoints came back NULL, and cost fell 31.6%",
           "type": "section"
@@ -823,8 +834,8 @@
         {
           "docstring": "**Measured 2026-08-07 by the maintainer, found by accident.** Opening the debug view (CTRL+O) showed the router **timing out** on real prompts. Neithe",
           "lines": [
-            1073,
-            1131
+            1109,
+            1167
           ],
           "name": "The router was being killed at 30 seconds, and a killed hook is silent",
           "type": "section"
@@ -832,8 +843,8 @@
         {
           "docstring": "**Second occurrence, measured 2026-08-06 21:41:17.** An unrelated local tool wrote `.githooks/pre-commit` wholesale, replacing the gate with its own i",
           "lines": [
-            1132,
-            1180
+            1168,
+            1216
           ],
           "name": "The commit gate was overwritten again \u2014 and the audit for it cannot run",
           "type": "section"
@@ -841,8 +852,8 @@
         {
           "docstring": "**Found while publishing 0.9.x, and it was already uploaded.** `release-package.sh` builds the archives **from the working tree** and computes `SHA256",
           "lines": [
-            1181,
-            1223
+            1217,
+            1259
           ],
           "name": "A checksum that agrees with its archive is not provenance",
           "type": "section"
@@ -850,8 +861,8 @@
         {
           "docstring": "CI run 31118671400's predecessor caught something the pre-commit tier could not: `checker/mutant-discipline.sh` audited **21** harnesses on ubuntu and",
           "lines": [
-            1224,
-            1266
+            1260,
+            1302
           ],
           "name": "An audit that silently narrows its own scope \u2014 `grep -q` under `pipefail`",
           "type": "section"
@@ -859,8 +870,8 @@
         {
           "docstring": "The CTT re-test after the gauge work came back green. It should not have.",
           "lines": [
-            1267,
-            1330
+            1303,
+            1366
           ],
           "name": "Twenty failed turns, exit 0 \u2014 the evidence counter incremented in the failure path",
           "type": "section"
@@ -868,8 +879,8 @@
         {
           "docstring": "Three lines in every green run, on ubuntu, macos and windows:",
           "lines": [
-            1331,
-            1398
+            1367,
+            1434
           ],
           "name": "A step that could only SKIP \u2014 the last real skip in CI is closed",
           "type": "section"
@@ -877,8 +888,8 @@
         {
           "docstring": "`0.9.0`, `0.9.1` and `0.9.2` are **released together, on the same commit**. The version *is* the variant. Nothing in `0.9.1` supersedes `0.9.0`; it ad",
           "lines": [
-            1399,
-            1423
+            1435,
+            1459
           ],
           "name": "The three numbers are not a roadmap",
           "type": "section"
@@ -886,8 +897,8 @@
         {
           "docstring": "Every row was **measured on the shipped code**, before and after. This table is the whole release in one screen; the sections beneath it give each row",
           "lines": [
-            1424,
-            1470
+            1460,
+            1506
           ],
           "name": "PRIOR \u2192 AFTER, at a glance",
           "type": "section"
@@ -897,8 +908,8 @@
             {
               "docstring": "Written **after** publishing, from the install of the published `0.8.2` into a real second Claude configuration and a 20-turn session held against it.",
               "lines": [
-                1481,
-                1546
+                1517,
+                1582
               ],
               "name": "Added \u2014 `Proofs/RotObserve.lean`: five readings that report less than the truth",
               "type": "subsection"
@@ -906,8 +917,8 @@
             {
               "docstring": "Not the local `.release/` build: the asset was **downloaded from the release** and its SHA256 compared against the published `SHA256SUMS.txt` \u2014 `45924",
               "lines": [
-                1547,
-                1564
+                1583,
+                1600
               ],
               "name": "Verified \u2014 the published `0.8.1` archive, installed and driven through the real CLI",
               "type": "subsection"
@@ -915,8 +926,8 @@
             {
               "docstring": "Found **while publishing this release**, by auditing the runs the tag pushes themselves triggered \u2014 which is the audit everyone skips, because the rel",
               "lines": [
-                1565,
-                1625
+                1601,
+                1661
               ],
               "name": "Fixed \u2014 a `paths:` filter does not restrain a tag push, and the run it wasted concluded `cancelled`",
               "type": "subsection"
@@ -924,8 +935,8 @@
             {
               "docstring": "Before this release was tagged, the packaged `0.9.1` Lean variant was installed into a **separate Claude Code instance** kept for pre-publish testing",
               "lines": [
-                1626,
-                1666
+                1662,
+                1702
               ],
               "name": "Verified \u2014 the CTT round-trip, and four theorems confirmed against a live install",
               "type": "subsection"
@@ -933,8 +944,8 @@
             {
               "docstring": "`checker/verdict-schedule-sim.sh` builds scratch git trees. On a Windows runner git printed, four times into a fully passing log:",
               "lines": [
-                1667,
-                1680
+                1703,
+                1716
               ],
               "name": "Fixed \u2014 a warning inside a green log: git CRLF advisory \u00d74",
               "type": "subsection"
@@ -942,8 +953,8 @@
             {
               "docstring": "`lake build` exited 0 on every platform and **printed 70 warnings**, in a job whose conclusion was `success`. Nothing failed, so nothing looked wrong.",
               "lines": [
-                1681,
-                1724
+                1717,
+                1760
               ],
               "name": "Fixed \u2014 70 build warnings that no gate was reading, and one understated theorem",
               "type": "subsection"
@@ -951,8 +962,8 @@
             {
               "docstring": "The repair to the Windows `tty guard` shipped with a defect **in the repair itself**, and run `31052104953` caught it: 145 success, **0 skipped**, 2 f",
               "lines": [
-                1725,
-                1772
+                1761,
+                1808
               ],
               "name": "Fixed \u2014 a green CI leg that asserted nothing, from one missing `else`",
               "type": "subsection"
@@ -960,8 +971,8 @@
             {
               "docstring": "`checker/gate-all.sh` refuses to run when a mutation suite left `.mutbak` files behind, because the tree may carry a live mutant. That refusal is corr",
               "lines": [
-                1773,
-                1826
+                1809,
+                1862
               ],
               "name": "Fixed \u2014 our own recovery advice destroyed two shipped hooks",
               "type": "subsection"
@@ -969,8 +980,8 @@
             {
               "docstring": "Run `31045719329` measured the no-skip repair and it **held: zero skipped steps**, down from the eight that run `31035932155` carried while GitHub cal",
               "lines": [
-                1827,
-                1864
+                1863,
+                1900
               ],
               "name": "Fixed \u2014 the CI honesty law was strict in one direction and blind in the other",
               "type": "subsection"
@@ -978,8 +989,8 @@
             {
               "docstring": "`lean/Proofs/RotGates.lean` grows from 24 to **30 theorems**. `runIsHonest` is no longer `allGreen`; it is `List.all stepIsAcceptable`, which branches",
               "lines": [
-                1865,
-                1902
+                1901,
+                1938
               ],
               "name": "Added \u2014 the asymmetry, proved",
               "type": "subsection"
@@ -987,8 +998,8 @@
             {
               "docstring": "Documents where the RoT formulae came from, and proves it rather than asserting it. Backed by `RotEigenform.lean`: **113 theorems, 0 `sorry`, 0 warnin",
               "lines": [
-                1903,
-                1956
+                1939,
+                1992
               ],
               "name": "Added \u2014 the Easter Egg section in `README.md`",
               "type": "subsection"
@@ -996,8 +1007,8 @@
             {
               "docstring": "Measured on the author's machine: two marker lines, two gauge computations, twice the tokens, every turn. The packet reaches a session by two routes a",
               "lines": [
-                1957,
-                1978
+                1993,
+                2014
               ],
               "name": "The router fired TWICE on every prompt, and the install document caused it",
               "type": "subsection"
@@ -1005,8 +1016,8 @@
             {
               "docstring": "Counted: `grep -cE '\\-\\-dry-run|DRY'` gave **15** in `ARM_ROUTER.sh` and **0** in `DISARM_ROUTER.sh`. The destructive half of the pair was the half wi",
               "lines": [
-                1979,
-                1993
+                2015,
+                2029
               ],
               "name": "`DISARM_ROUTER --dry-run` was accepted, ignored, and deleted live entries",
               "type": "subsection"
@@ -1014,8 +1025,8 @@
             {
               "docstring": "`\"$PROOFS_DIR\"/*.lean` and `Get-ChildItem -Filter '*.lean'` with no `-Recurse`. File proofs by subject and the newest file either arm can see is whate",
               "lines": [
-                1994,
-                2001
+                2030,
+                2037
               ],
               "name": "The proof scan was one level deep \u2014 in both arms",
               "type": "subsection"
@@ -1023,8 +1034,8 @@
             {
               "docstring": "`env \u2192 RECORDED \u2192 bundled corpus` reads like three answers. Only `SETUP_LEAN` ever writes RECORDED, so for a marketplace install the middle step is pe",
               "lines": [
-                2002,
-                2018
+                2038,
+                2054
               ],
               "name": "The workspace chain had a step nothing wrote",
               "type": "subsection"
@@ -1032,8 +1043,8 @@
             {
               "docstring": "`cross-diff-remind.sh` compares the two arms' **decision**; its own header says what it does not cover is \"that both arms measure the same things off",
               "lines": [
-                2019,
-                2029
+                2055,
+                2065
               ],
               "name": "The measurement half had no instrument, so defects lived there",
               "type": "subsection"
@@ -1041,8 +1052,8 @@
             {
               "docstring": "| gate | what it makes impossible | |---|---| | `router-duplication.sh` | arming on top of a live plugin registration | | `disarm-safety.sh` | a dry r",
               "lines": [
-                2030,
-                2041
+                2066,
+                2077
               ],
               "name": "Four new gates, all fast tier",
               "type": "subsection"
@@ -1050,8 +1061,8 @@
             {
               "docstring": "`bench-router.sh` already summed the logged `term` values and checked `\u03a3term / K = Rs`. What it cannot see is everything upstream of `term`: a record",
               "lines": [
-                2042,
-                2052
+                2078,
+                2088
               ],
               "name": "The debug log is now re-derived, not merely summed",
               "type": "subsection"
@@ -1059,8 +1070,8 @@
             {
               "docstring": "`RotLog.WellPaired` first asserted that a route record carries the **same** `Rs` as its gauge record. The shipped router does not do that: the gauge l",
               "lines": [
-                2053,
-                2067
+                2089,
+                2103
               ],
               "name": "A spec that was wrong, said plainly",
               "type": "subsection"
@@ -1068,8 +1079,8 @@
             {
               "docstring": "Measured on the shipped router before the change:",
               "lines": [
-                2068,
-                2112
+                2104,
+                2148
               ],
               "name": "`prove this lemma` did not reach FORGE \u2014 and could not be made to",
               "type": "subsection"
@@ -1077,8 +1088,8 @@
             {
               "docstring": "`README.md` said `rot-moe-0.5.1-lean.zip` while `checker/release-package.sh` built `rot-moe-0.9.1-lean.zip`. Three links, all wrong, **for two minor v",
               "lines": [
-                2113,
-                2143
+                2149,
+                2179
               ],
               "name": "The install section told three tiers to download archives that do not exist",
               "type": "subsection"
@@ -1086,8 +1097,8 @@
             {
               "docstring": "`grep -c sha256 checker/release-package.sh` returned **zero** while `README.md` said every archive verifies against the sums file published beside it.",
               "lines": [
-                2144,
-                2165
+                2180,
+                2201
               ],
               "name": "`SHA256SUMS.txt` was promised by the README and never written by anything",
               "type": "subsection"
@@ -1095,8 +1106,8 @@
             {
               "docstring": "`docs/GIT-WORKFLOW.md` \u00a74.3 said *\"never force-push, never rewrite published history \u2014 tags are consumed by the marketplace.\"* The first half is right",
               "lines": [
-                2166,
-                2203
+                2202,
+                2239
               ],
               "name": "The tag rule was a blanket where the hazard has a boundary",
               "type": "subsection"
@@ -1104,8 +1115,8 @@
             {
               "docstring": "- `RotTag.lean` (9) \u2014 the rule above, stated so it can be checked instead of remembered. `released_tag_never_moves` is the durable form: a published t",
               "lines": [
-                2204,
-                2250
+                2240,
+                2286
               ],
               "name": "New Lean modules",
               "type": "subsection"
@@ -1113,8 +1124,8 @@
             {
               "docstring": "- **495** machine-checked theorems across 22 modules (was 205 across 14), 0 `sorry`, 0 `native_decide`, 0 build warnings. - **35** gates (was 29); 23",
               "lines": [
-                2251,
-                2261
+                2287,
+                2297
               ],
               "name": "Numbers",
               "type": "subsection"
@@ -1122,8 +1133,8 @@
           ],
           "docstring": "Three archives, one tree. The patch digit is the tier: `0` core, `1` lean, `2` unsealed.",
           "lines": [
-            1471,
-            2261
+            1507,
+            2297
           ],
           "name": "[0.9.0] \u00b7 [0.9.1] \u00b7 [0.9.2] \u2014 2026-08-06",
           "type": "section"
@@ -1428,11 +1439,11 @@
       ]
     },
     "README.md": {
-      "hash": "a080dab415e9",
-      "indexed_at": "2026-08-07T18:50:01.103023+00:00",
+      "hash": "da7bee2fa9d9",
+      "indexed_at": "2026-08-07T21:59:20.995200+00:00",
       "language": "markdown",
       "lines": 1874,
-      "mtime_ns": 1786127473291516800,
+      "mtime_ns": 1786138692800871400,
       "size": 108085,
       "symbols": [
         {
@@ -2125,12 +2136,12 @@
       ]
     },
     "STATUS.md": {
-      "hash": "20506260bbc9",
-      "indexed_at": "2026-08-07T20:26:04.772896+00:00",
+      "hash": "5fc54d141c3f",
+      "indexed_at": "2026-08-07T21:59:21.206706+00:00",
       "language": "markdown",
-      "lines": 31,
-      "mtime_ns": 1786133399411780900,
-      "size": 1173,
+      "lines": 28,
+      "mtime_ns": 1786139503776485000,
+      "size": 1010,
       "symbols": []
     },
     "UNSEALED.md": {
@@ -2198,6 +2209,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T20:26:04.772982+00:00",
+  "generated_at": "2026-08-07T21:59:21.206807+00:00",
   "version": "1.0"
 }
