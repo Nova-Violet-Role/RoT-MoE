@@ -340,6 +340,24 @@
         }
       ]
     },
+    "mutate_rotsymbiogenesis.sh": {
+      "hash": "46fe147545bd",
+      "indexed_at": "2026-08-07T12:44:55.887880+00:00",
+      "language": "shell",
+      "lines": 289,
+      "mtime_ns": 1786104485363561700,
+      "size": 12772,
+      "symbols": [
+        {
+          "lines": [
+            107,
+            172
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rottag.sh": {
       "hash": "5f8f932ce5a4",
       "indexed_at": "2026-08-05T13:16:35.151325+00:00",
@@ -429,6 +447,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T11:25:21.291725+00:00",
+  "generated_at": "2026-08-07T12:44:55.910519+00:00",
   "version": "1.0"
 }

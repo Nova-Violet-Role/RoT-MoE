@@ -100,6 +100,77 @@ Counts move to **504 theorems / 22 modules / 19 suites / 226 mutants**.
 
 ---
 
+## Symbiogenesis is generative — and that half is a theorem, not a claim
+
+The engine's strongest assertion is about **reach**: that fusing two lenses
+produces a point of view neither parent occupies, that Eidolon can keep doing
+it, and that the supply of distinct points of view is therefore not bounded by
+the roster of nine.
+
+That is mathematics. It does not need an A/B test, it needs a proof — and
+`lean/Proofs/RotSymbiogenesis.lean` is that proof. 21 theorems, 12 mutants, all
+killed.
+
+### What is now PROVED
+
+| theorem | claim it settles |
+|---|---|
+| `forge_matches_the_spec` | the operator reproduces the spec's own worked hybrid (Claude × Anti-Venom → λ 1.7 · H 0.35 · μ 1.05) exactly |
+| `fuse_H_gt_left` / `_right` | a hybrid's entropy strictly exceeds **both** parents' |
+| `fuse_ne_left` / `_right` | **a hybrid is never one of its parents** |
+| `fuse_escapes_any_roster` | for **any** finite roster — nine, or nine hundred, or every hybrid built so far — fusion lands outside it |
+| `fuse_lam_gt_mean` | the `+0.2` is a real gain: fusion strictly exceeds the mean |
+| `fuse_mu_ge_both` | μ is a maximum, so fusion can never lower quality below a parent |
+| `chain_H` / `chain_lam` | iteration is exactly linear: `+1/20` entropy and `+1/5` λ per generation |
+| `chain_injective` | **no two generations are the same lens** |
+| `symbiogenesis_generates_infinitely_many` | the reachable set is **infinite** — the precise content of "infinitely generated combinations" |
+| `lens_space_is_infinite` | there is no finite catalogue of points of view to enumerate |
+
+`#eval` on the chain from the Verified Forge:
+λ 1.7 → 1.9 → 2.1 → 2.3 → 2.5, H 0.35 → 0.40 → 0.45 → 0.50 → 0.55.
+
+### And what it deliberately does NOT say
+
+Two boundaries are theorems too, so they cannot be quietly dropped:
+
+- `fuse_may_gain_no_quality` — a new triple is **not** a better lens. μ being a
+  maximum means fusion never *loses* quality, not that it gains any.
+- `equal_reading_does_not_imply_equal_lens` — **the gauge compresses.** Two
+  different lenses can share a reading, so an `R/s+` value is evidence of
+  activity, never a fingerprint of the point of view that produced it. The
+  honest direction is `distinct_reading_implies_distinct_lens`.
+
+Nothing here concerns output quality. That is a separate question, settled by
+measurement and by nothing else, and it is not settled.
+
+### Why ℚ and not `Float`
+
+Float addition is not associative, so the shipped arithmetic can pin a concrete
+row and can never support a general statement about iteration. Every constant is
+exact (`0.2 = 1/5`, `0.05 = 1/20`), the spec's worked hybrid is pinned against
+these definitions, and the general theorems are therefore real rather than
+artefacts of rounding. `RotEnsemble` continues to bind the Float arm.
+
+### The mutants
+
+S01–S12: **all twelve killed, none survived, none discarded** (the repo-wide
+figure stays the one in `README.md`; a per-suite count must not be written in
+the phrasing `repo-complete` reserves for the total, or it shadows it). They
+plant the objections
+directly: delete the novelty term, delete the λ gain, average μ instead of
+maximising, take the minimum entropy, misquote the spec's hybrid by one digit,
+collapse iteration so it saturates, weaken strict monotonicity to `≤`, add the
+Verified Forge **to** the roster so fusion no longer escapes it, and — S12 —
+flip the anti-overclaim boundary to assert the fingerprint property that was
+never proved.
+
+S02 was first reported **DISCARDED** (needle whitespace), fixed, and re-run. A
+discarded mutant is a claim about the harness, never about a theorem.
+
+Counts: **567 theorems / 23 modules / 20 suites / 261 mutants**.
+
+---
+
 ## Atomicity is not enough: the atomic write dropped the exec bit and CI caught it
 
 Run on `6791683`: `mutate the checker` failed on **ubuntu-latest and
