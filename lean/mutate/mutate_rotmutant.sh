@@ -366,6 +366,33 @@ run_mut M18 RotMutant \
 # then imports the module to probe it and reports theorems "unaccounted for",
 # which reads exactly like a broken proof. Telling those two apart cost a full
 # attribution cycle.
+
+
+# --- SuiteEvidence: a suite where everything discards is zero evidence ------
+# Added with checker/mutant-needles.sh (2026-08-07). The per-mutant rule was
+# already modelled; these keep the SUITE-level consequence load-bearing.
+
+# evidence throws everything away. allDiscarded_evidence_eq_empty then holds
+# trivially -- which is exactly why that theorem needs its control.
+run_mut M19 RotMutant \
+  'def evidence (s : Suite) : Suite := s.filter counts' \
+  'def evidence (s : Suite) : Suite := []' \
+  'evidence_not_always_empty'
+
+# evidence keeps the discarded mutations too. A suite that tested nothing then
+# reports a full list of evidence -- the exact false-diligence this models.
+run_mut M20 RotMutant \
+  'def evidence (s : Suite) : Suite := s.filter counts' \
+  'def evidence (s : Suite) : Suite := s' \
+  'allDiscarded_evidence_eq_empty'
+
+# counts accepts a discarded mutation as evidence. This is the per-mutant rule
+# the whole suite-level argument rests on.
+run_mut M21 RotMutant \
+  '  o != Outcome.discarded' \
+  '  true' \
+  'allDiscarded_evidence_eq_empty'
+
 for m in $MODULES; do
   cp "Proofs/$m.lean.mutbak" "Proofs/$m.lean" 2>/dev/null
 done

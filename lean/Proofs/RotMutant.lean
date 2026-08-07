@@ -599,4 +599,76 @@ theorem naive_rule_also_manufactures_a_survivor :
       = Outcome.discarded := by
   constructor <;> rfl
 
+/-! ## §S A SUITE IN WHICH EVERY MUTANT DISCARDS IS ZERO EVIDENCE
+
+Added 2026-08-07 with `checker/mutant-needles.sh`.
+
+`counts` already says a single discarded mutation carries no information about
+the assertion. That is the *per-mutant* rule, and every suite implements it.
+This section states the consequence at the **suite** level, which no suite can
+observe about itself: if every mutation discards, the suite's evidence is the
+empty list, and an empty list is exactly what a suite of zero mutants produces.
+
+That matters because DISCARDED reads as diligence. A run reporting
+`0 killed, 9 discarded` looks careful; it is indistinguishable from having run
+nothing at all, and the only trace is a number in a summary line nobody diffs.
+
+`mutant-needles.sh` is the instrument: it checks statically, before any build,
+that every needle still occurs in the module it targets. Measured on this tree —
+22 suites, **293 of 293** invocations replayed, **0 dead needles**. -/
+
+namespace SuiteEvidence
+
+/-- The outcomes a suite produced, in order. -/
+abbrev Suite := List Outcome
+
+/-- The sub-list a suite may actually reason from: the mutations that landed. -/
+def evidence (s : Suite) : Suite := s.filter counts
+
+/-- **A suite in which everything discarded has the same evidence as a suite
+with no mutants at all.** Not "less evidence" — the *same*, and that is the
+claim worth having, because it is what makes a green summary line worthless
+rather than merely weak. -/
+theorem allDiscarded_evidence_eq_empty (s : Suite)
+    (h : ∀ o ∈ s, o = Outcome.discarded) : evidence s = [] := by
+  induction s with
+  | nil => rfl
+  | cons o os ih =>
+    have ho : o = Outcome.discarded := h o (by simp)
+    have hos : ∀ x ∈ os, x = Outcome.discarded := fun x hx => h x (by simp [hx])
+    simpa [evidence, counts, ho] using ih hos
+
+/-- The converse direction, which is what the checker actually enforces: **one
+surviving needle is enough to make the suite non-empty as evidence.** So the
+static check does not need to know which mutants are strong — it only has to
+guarantee that not all of them are dead. -/
+theorem one_landed_gives_evidence (s : Suite) (o : Outcome)
+    (ho : o ≠ Outcome.discarded) (hmem : o ∈ s) : evidence s ≠ [] := by
+  intro hnil
+  have : o ∈ evidence s := by
+    simp only [evidence, List.mem_filter]
+    exact ⟨hmem, by simp [counts, ho]⟩
+  rw [hnil] at this
+  exact absurd this (List.not_mem_nil)
+
+/-- **Negative control: `evidence` is not the constant empty list.** Without
+this, `allDiscarded_evidence_eq_empty` would be satisfied by a definition that
+throws everything away, and the theorem above would be decoration. -/
+theorem evidence_not_always_empty :
+    evidence [Outcome.killed, Outcome.discarded] = [Outcome.killed] := by
+  decide
+
+/-- And a discarded-only suite really does reduce to nothing — the executable
+witness of the theorem, on the shape the incident had. -/
+example : evidence [Outcome.discarded, Outcome.discarded] = [] := by decide
+
+/-- A suite of purely surviving mutants is still *evidence*, and pointedly not a
+pass: `counts` is about attributability, never about whether the news is good.
+Conflating the two is how a suite that proves nothing gets read as a suite that
+found nothing wrong. -/
+example : evidence [Outcome.survived, Outcome.survived] =
+    [Outcome.survived, Outcome.survived] := by decide
+
+end SuiteEvidence
+
 end RotMoE
