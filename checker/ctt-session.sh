@@ -107,6 +107,54 @@ if [ "${1:-}" = "--report" ]; then
   note "corpus: $LOG"
   note "router firings: $turns route records, $gauges gauge records"
 
+  # --- ATTRIBUTION ----------------------------------------------------------
+  # Pooling runs from different plugin builds can report a leading lane that led
+  # NEITHER build -- exhibited in Proofs/RotCorpus.lean:pooling_invents_a_leader.
+  # So a report must say which build it is talking about, and refuse when it
+  # cannot know. Attribution is the nearest PRECEDING marker
+  # (Proofs/RotCorpus.lean:assign), which is what awk reproduces here.
+  vers=$(grep '"kind":"version"' "$LOG" | sed -n 's/.*"ver":"\([^"]*\)".*/\1/p' | sort -u)
+  nvers=$(printf '%s\n' "$vers" | grep -c .)
+  pre=$(awk '/"kind":"version"/{seen=1} /"kind":"route"/{ if (!seen) n++ } END{print n+0}' "$LOG")
+
+  # A CORPUS MAY CARRY ITS VERSION IN ITS NAME, and that is not a defect.
+  # The committed benchmark is bench/ctt-session-0.6.1.jsonl: one file, one
+  # build, the version in the filename. An in-file marker check written as an
+  # absolute requirement FAILS that file -- and the tempting repair, deleting
+  # the check, throws away the coverage. So: prefer the marker, accept a
+  # filename that names exactly one version, refuse only when NEITHER exists.
+  # The distinction is reported, because the two are not equally strong: a
+  # marker is written per run and survives concatenation, a filename does not.
+  namever=$(basename "$LOG" | sed -n 's/^ctt-session-\([0-9][0-9.]*\)\.jsonl$/\1/p')
+  if [ "${nvers:-0}" -eq 0 ] && [ -n "$namever" ]; then
+    ok "corpus is attributed by FILENAME to $namever (no in-file marker; weaker, but unambiguous)"
+    note "  attributed to $namever: $turns firing(s)"
+    note "  a marker survives concatenation and a filename does not -- new corpora carry markers"
+  elif [ "${nvers:-0}" -eq 0 ]; then
+    bad "corpus carries NO version marker and its name encodes no version -- all $turns firings are unattributable"
+    echo "        Proofs/RotCorpus.lean:no_marker_attributes_nothing states exactly this."
+    echo "        Re-collect with a build of the harness that writes the marker."
+  else
+    ok "corpus carries $nvers version marker value(s): $(printf '%s ' $vers)"
+    if [ "${pre:-0}" -gt 0 ]; then
+      bad "$pre firing(s) precede the first marker -- those are unattributable and are NOT counted"
+    else
+      ok "every firing follows a marker (marker_first_attributes_all)"
+    fi
+    # per-version counts, so a pooled number is never the headline
+    for v in $vers; do
+      c=$(awk -v want="$v" '
+        /"kind":"version"/ { if (match($0, /"ver":"[^"]*"/)) { cur=substr($0,RSTART+7,RLENGTH-8) } }
+        /"kind":"route"/   { if (cur == want) n++ }
+        END { print n+0 }' "$LOG")
+      note "  attributed to $v: $c firing(s)"
+    done
+    if [ "${nvers:-0}" -gt 1 ]; then
+      bad "this corpus MIXES $nvers builds -- a single pooled figure over it is not a measurement of any one of them"
+      echo "        Report per-version, or re-collect against one build."
+    fi
+  fi
+
   # every gauge must carry K=9 and nine lens terms -- the ninth lens present in
   # a REAL session, not just in a unit test
   badk=$(grep '"kind":"gauge"' "$LOG" | grep -vc '"K":9'); badk=${badk:-0}
@@ -174,6 +222,29 @@ INSTALLED=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
 note "CTT plugin version: $INSTALLED"
 note "turns $FROM..$TO, timeout ${TURN_TIMEOUT}s each"
 note "corpus: $LOG"
+
+# --- VERSION MARKER ---------------------------------------------------------
+# The router hook writes each route record, and the hook does not know which
+# plugin build it is running inside -- so a record carries no version. Measured
+# 2026-08-08: the corpus held 120 records, 60 from 0.9.2 and 60 from 1.0.1, and
+# nothing in the file told them apart, while this file's own header calls these
+# "the numbers the README's benchmark section is allowed to quote".
+#
+# Why a marker and not a post-hoc annotation: attribution is a left fold that
+# carries the announced version forward, so appending a run cannot disturb the
+# runs already collected. That is Proofs/RotCorpus.lean:
+#   appending_preserves_earlier   -- four calls of 20 == one call of 80
+#   marker_first_attributes_all   -- a marked corpus attributes every firing
+#   no_marker_attributes_nothing  -- an unmarked one attributes none of them
+#   pooling_invents_a_leader      -- and pooling two runs can name a leading
+#                                    lane that led NEITHER of them
+mkdir -p "$(dirname "$LOG")"
+printf '{"kind":"version","ts":"%s","ver":"%s","from":%s,"to":%s}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$INSTALLED" "$FROM" "$TO" >> "$LOG"
+_mk=$(grep -c '"kind":"version"' "$LOG")
+[ "${_mk:-0}" -ge 1 ] \
+  || { echo "REFUSE: version marker was not written to $LOG -- this run would be unattributable"; exit 2; }
+note "version marker written: this run's firings attribute to $INSTALLED"
 
 export CLAUDE_CONFIG_DIR="$CTT"
 export ROTMOE_DEBUG_LOG="$LOG"

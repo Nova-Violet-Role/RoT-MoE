@@ -281,12 +281,12 @@
       ]
     },
     "ctt-session.sh": {
-      "hash": "fa9306cf6d65",
-      "indexed_at": "2026-08-07T03:36:17.135995+00:00",
+      "hash": "35dce35cb2e8",
+      "indexed_at": "2026-08-08T12:14:43.581695+00:00",
       "language": "shell",
-      "lines": 379,
-      "mtime_ns": 1786072133710088400,
-      "size": 20277,
+      "lines": 450,
+      "mtime_ns": 1786189529672642600,
+      "size": 24674,
       "symbols": [
         {
           "docstring": "--- the conversation: REAL work on THIS repository -------------------------- Every prompt names something that exists on disk. The lane each is expec",
@@ -1420,6 +1420,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-07T21:59:22.048970+00:00",
+  "generated_at": "2026-08-08T12:14:43.581803+00:00",
   "version": "1.0"
 }
