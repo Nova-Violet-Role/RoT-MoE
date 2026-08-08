@@ -128,11 +128,28 @@ if [ -z "$JOBS_JSON" ]; then
       exit 3
     fi
     HEAD_SHA="$(git rev-parse HEAD)"
-    RUN_ID="$(api "https://api.github.com/repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=1" \
-              | grep -oE '"id": [0-9]+' | head -1 | grep -oE '[0-9]+')"
+    # SEPARATE "the API did not answer" FROM "there is no run yet". Measured
+    # 2026-08-09: a DNS blip (`curl: (6) Could not resolve host: api.github.com`)
+    # produced an empty body, and this branch announced "This commit has not
+    # been pushed" about a commit that HAD been pushed thirty seconds earlier.
+    # The exit code was right -- 3, a skip, never a pass -- but the DIAGNOSIS
+    # was invented, and a wrong diagnosis sends the next person to push again
+    # instead of checking their network. Reading curl's status through a pipe
+    # would have hidden it, so the body is captured first and the status read
+    # directly.
+    RUNS_JSON="$(api "https://api.github.com/repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=1")"
+    API_RC=$?
+    if [ "$API_RC" -ne 0 ]; then
+      echo "SKIP: the GitHub API could not be reached (curl exit $API_RC)."
+      echo "      This says NOTHING about whether the commit was pushed or whether"
+      echo "      CI is green -- the question was never asked. Check connectivity,"
+      echo "      then re-run. Exit 3 is a SKIP, never a pass."
+      exit 3
+    fi
+    RUN_ID="$(printf '%s' "$RUNS_JSON" | grep -oE '"id": [0-9]+' | head -1 | grep -oE '[0-9]+')"
     if [ -z "$RUN_ID" ]; then
-      echo "SKIP: no CI run exists for HEAD ($HEAD_SHA)."
-      echo "      This commit has not been pushed, so there is no run to judge."
+      echo "SKIP: the API answered, and it lists no CI run for HEAD ($HEAD_SHA)."
+      echo "      Most likely this commit has not been pushed yet."
       echo "      Re-run this gate after the push. Exit 3 is a SKIP, never a pass."
       exit 3
     fi
@@ -157,7 +174,31 @@ echo
 # The API response must actually contain jobs. An empty or error payload that
 # yields zero steps would otherwise sail through every loop below and report a
 # perfect record, which is the exact failure shape this checker exists to catch.
-TOTAL_STEPS="$(grep -cE '"(conclusion)": ' "$JOBS_JSON" 2>/dev/null || echo 0)"
+#
+# AND THE GUARD ITSELF FAILED OPEN, EXACTLY WHEN IT WAS NEEDED. Measured
+# 2026-08-09 against a run that was still 'pending' and had no steps yet:
+#
+#   TOTAL_STEPS="$(grep -cE ... || echo 0)"
+#
+# `grep -c` PRINTS `0` and ALSO exits 1 when it matches nothing, so the `|| echo 0`
+# appended a second zero and the variable became the two-line string "0\n0".
+# `[ "0\n0" -lt 5 ]` is not a comparison, it is an error -- bash printed
+# `[: 0: integer expression expected` and returned non-zero, which took the ELSE
+# branch. The guard against an empty payload waved the empty payload through,
+# and the checker went on to report `PASS every step concluded success
+# (0 steps read)` -- a pass over the empty set, which is the precise failure
+# shape this file exists to catch, committed inside the catcher.
+#
+# The repair keeps the substitution and the fallback apart, then insists the
+# result is a number before it is compared. Anything unparseable REFUSES.
+TOTAL_STEPS="$(grep -cE '"(conclusion)": ' "$JOBS_JSON" 2>/dev/null)" || TOTAL_STEPS=""
+TOTAL_STEPS="${TOTAL_STEPS%%
+*}"
+case "${TOTAL_STEPS}" in
+  ''|*[!0-9]*)
+    echo "SKIP: step count unreadable ('${TOTAL_STEPS}') -- refusing to judge. Exit 3, never a pass."
+    exit 3 ;;
+esac
 if [ "${TOTAL_STEPS:-0}" -lt 5 ]; then
   echo "SKIP: the jobs payload has $TOTAL_STEPS outcome fields -- too few to judge."
   echo "      Refusing to report a verdict on an empty response. Exit 3, never a pass."

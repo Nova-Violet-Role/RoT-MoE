@@ -1,7 +1,7 @@
 {
   "name": "rot-moe",
   "version": "0.9.2",
-  "description": "RoT MoE - a nine-lens Mixture-of-Experts router with a measured R/s+ divergence gauge, specified in Lean 4 and bound to the shipped hooks by an executable checker. 684 machine-checked theorems, zero sorry, kernel re-verified.",
+  "description": "RoT MoE - a nine-lens Mixture-of-Experts router with a measured R/s+ divergence gauge, specified in Lean 4 and bound to the shipped hooks by an executable checker. 703 machine-checked theorems, zero sorry, kernel re-verified.",
   "author": {
     "name": "Saimonokuma",
     "url": "https://github.com/Nova-Violet-Role"

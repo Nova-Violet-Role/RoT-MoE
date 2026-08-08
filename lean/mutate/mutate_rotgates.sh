@@ -291,6 +291,27 @@ echo
 # itself hit its own no-download guard and reported SKIP, because the workspace
 # was no longer built -- and a later `leanchecker` sweep over the same tree would
 # report `Could not find any oleans`, which reads as a KERNEL failure when it is
+run_mut M14 \
+  '  i.gate.triggers.any (fun t => hits t i.script)' \
+  '  i.gate.triggers.all (fun t => hits t i.script)' \
+  'self-triggering demands EVERY trigger match the script, not any'
+
+echo
+
+run_mut M15 \
+  '            , triggers := [".github/workflows/".toList] }' \
+  '            , triggers := ["checker/".toList] }' \
+  'the measured before-row is given a trigger that DOES cover its script'
+
+echo
+
+run_mut M16 \
+  '            , triggers := [".github/workflows/".toList, "checker/ci-honesty.sh".toList] }' \
+  '            , triggers := ["checker/ci-honesty.sh".toList] }' \
+  'the repaired row loses the original workflow trigger'
+
+echo
+
 # only a deleted artifact. A false red is as corrosive as a false green.
 cp "$BAK" "$F"
 if ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotGates ) >/tmp/mut_post_rotgates.log 2>&1; then

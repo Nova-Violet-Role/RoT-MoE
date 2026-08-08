@@ -300,13 +300,13 @@ def shipped : List Gate :=
   , f "log replay (every gauge record recomputed from its own fields)"
   , f "benchmark"
   , f "gate split"
-  , d "repo completeness" ["README.md", "CHANGELOG.md", "STATUS.md", "lean/"]
-  , d "cross-diff (both reminder arms)" ["hooks/prover-remind"]
+  , d "repo completeness" ["README.md", "CHANGELOG.md", "STATUS.md", "lean/", "checker/repo-complete.sh"]
+  , d "cross-diff (both reminder arms)" ["hooks/prover-remind", "checker/cross-diff-remind.sh"]
   , d "verdict stability" ["STATUS.md", "checker/verdict"]
-  , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean"]
-  , d "profile binding" ["engine/rot-lean.md", "lean/Proofs/RotAbility.lean"]
-  , d "axiom audit" ["lean/"]
-  , d "axiom class" ["lean/"]
+  , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean", "checker/gauge-cross.sh"]
+  , d "profile binding" ["engine/rot-lean.md", "lean/Proofs/RotAbility.lean", "checker/profile-bind.sh"]
+  , d "axiom audit" ["lean/", "checker/axiom-audit.sh"]
+  , d "axiom class" ["lean/", "checker/axiom-class.sh"]
   -- NARROWED 2026-08-07, and the comment above about dead triggers is exactly
   -- why this needs justifying rather than just doing. The trigger was
   -- `checker/`, the whole directory. This gate mutates the four SHIPPED HOOKS
@@ -333,9 +333,9 @@ def shipped : List Gate :=
   -- guards is a dead trigger for everything outside it.
   , d "portability" ["checker/", "hooks/", "lean/", "ARM_ROUTER", "DISARM_ROUTER", ".githooks/"]
   , d "installer round trip" ["ARM_ROUTER", "DISARM_ROUTER", "checker/install", ".claude-plugin/"]
-  , d "install parity" ["ARM_ROUTER", "DISARM_ROUTER", "hooks/hooks.json", "hooks/settings-merge.js"]
+  , d "install parity" ["ARM_ROUTER", "DISARM_ROUTER", "hooks/hooks.json", "hooks/settings-merge.js", "checker/install-parity.sh"]
   , d "release install" ["checker/release", ".claude-plugin/"]
-  , d "CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential" [".github/workflows/"]
+  , d "CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential" [".github/workflows/", "checker/ci-honesty.sh"]
   ]
 
 -- Thirty-six gates: `profile binding` joined on 2026-08-03, deep tier; the
@@ -949,5 +949,105 @@ def scaffoldingFailureRun : Run :=
 -- repo-complete's re-measurement. The boundary is stated so nobody reads this
 -- law as covering more than it does.
 #guard runIsHonest []
+
+/-! ## A gate must trigger on itself
+
+Measured 2026-08-09 across the shipped table: **14 of the 25 deep gates with a
+resolvable script did not list their own path among their triggers.** Editing
+the checker did not run the checker. `checker/ci-honesty.sh` fired only on
+`.github/workflows/`; `checker/axiom-audit.sh` only on `lean/`;
+`checker/marketplace-session.sh` only on `.claude-plugin/` and `hooks/`.
+
+This is the near sibling of `no_trigger_never_escalates` and it is easy to miss
+precisely because it looks fine: the gate is not invisible to *every* commit,
+only to the commits most likely to break it -- the ones that rewrite the
+instrument. It is the same shape as `gauge-cross` in `bc1272d`, which had been
+skipped in every job for a whole cycle, generalised across the table.
+
+`checker/gate-all.sh` now refuses such a row, with the offending script and its
+triggers printed. Control, tripped deliberately: removing the self-trigger from
+the `ci-honesty` row made the runner exit 2 and name that gate.
+-/
+
+/-- A gate together with the path of the script it actually runs. The shipped
+`Gate` carries no script, so the pairing is explicit rather than assumed. -/
+structure Instrument where
+  /-- The gate as it appears in the table. -/
+  gate : Gate
+  /-- The path of the script the gate's command invokes. -/
+  script : List Char
+  deriving DecidableEq, Repr
+
+/-- The gate escalates when its own script is edited. -/
+def selfTriggers (i : Instrument) : Bool :=
+  i.gate.triggers.any (fun t => hits t i.script)
+
+/-- **The defect.** A gate that does not trigger on its own script does not run
+when a commit changes only that script -- so a break introduced by that very
+edit ships unseen. -/
+theorem a_gate_blind_to_itself_misses_its_own_break (i : Instrument)
+    (h : selfTriggers i = false) : fires i.gate [i.script] = false := by
+  unfold selfTriggers at h
+  simp [fires, h]
+
+/-- **And the repair works.** Once the script is among the triggers, editing it
+escalates the gate. -/
+theorem self_trigger_makes_the_edit_visible (i : Instrument)
+    (h : selfTriggers i = true) : fires i.gate [i.script] = true := by
+  unfold selfTriggers at h
+  simp [fires, h]
+
+/-- Listing the script itself is always sufficient: a path is its own prefix. -/
+theorem listing_the_script_suffices (g : Gate) (s : List Char)
+    (h : s ∈ g.triggers) : selfTriggers ⟨g, s⟩ = true := by
+  unfold selfTriggers hits
+  simp only [List.any_eq_true]
+  exact ⟨s, h, by simp⟩
+
+/-- The measured `ci-honesty` row BEFORE the repair: triggered only by the
+workflow directory, blind to `checker/ci-honesty.sh`. -/
+def ciHonestyBefore : Instrument :=
+  { gate := { name := "CI honesty".toList
+            , tier := Tier.deep
+            , triggers := [".github/workflows/".toList] }
+    script := "checker/ci-honesty.sh".toList }
+
+/-- The same row AFTER the repair. -/
+def ciHonestyAfter : Instrument :=
+  { gate := { name := "CI honesty".toList
+            , tier := Tier.deep
+            , triggers := [".github/workflows/".toList, "checker/ci-honesty.sh".toList] }
+    script := "checker/ci-honesty.sh".toList }
+
+/-- **Measured, before:** blind to its own edit. -/
+theorem ci_honesty_was_blind : selfTriggers ciHonestyBefore = false := by decide
+
+/-- **Measured, after:** it now fires. -/
+theorem ci_honesty_now_fires : selfTriggers ciHonestyAfter = true := by decide
+
+/-- Stated end to end on the real row: a commit touching only
+`checker/ci-honesty.sh` did not run the gate, and now does. -/
+theorem the_repair_changes_the_run :
+    fires ciHonestyBefore.gate [ciHonestyBefore.script] = false
+      ∧ fires ciHonestyAfter.gate [ciHonestyAfter.script] = true := by decide
+
+/-- **The repair cannot cost coverage.** Adding a trigger only ever adds runs:
+anything that fired before still fires. Stated so the fix is known to be
+one-directional rather than a re-shuffle. -/
+theorem adding_a_trigger_never_runs_less (g : Gate) (t : List Char)
+    (staged : List (List Char)) (h : fires g staged = true) :
+    fires { g with triggers := t :: g.triggers } staged = true := by
+  unfold fires at *
+  simp only [List.any_eq_true] at *
+  obtain ⟨p, hp, hq⟩ := h
+  exact ⟨p, hp, by simp [hq]⟩
+
+/-- The workflow path still escalates it too -- the added trigger did not
+displace the original. -/
+theorem the_original_trigger_still_works :
+    fires ciHonestyAfter.gate [".github/workflows/ci.yml".toList] = true := by decide
+
+-- Executable: the before/after pair in one value.
+#guard (selfTriggers ciHonestyBefore, selfTriggers ciHonestyAfter) = (false, true)
 
 end RotMoE.Gates

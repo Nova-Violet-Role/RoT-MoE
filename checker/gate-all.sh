@@ -96,7 +96,7 @@ Lean witness vs shipped weights|fast||bash checker/lean-binds-shell.sh
 release package|fast||bash checker/release-package.sh
 hook contract|fast||bash checker/hook-contract.sh
 workflow lint + drift|fast||bash checker/workflow-lint.sh
-CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential|deep|.github/workflows/|bash checker/ci-honesty.sh
+CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential|deep|.github/workflows/,checker/ci-honesty.sh|bash checker/ci-honesty.sh
 README download links vs the packager|fast||bash checker/readme-variants.sh
 cross-diff (both router arms)|fast||bash checker/cross-diff.sh
 debug channel (marker + rotation, both arms, vs RotDebugLog.lean)|fast||bash checker/debug-channel.sh
@@ -106,33 +106,33 @@ remind measure (both arms, one tree, nested proof)|fast||bash checker/remind-mea
 log replay (every gauge record recomputed from its own fields)|fast||bash checker/log-replay.sh
 benchmark|fast||bash checker/bench-router.sh
 gate split|fast||bash checker/gate-split.sh
-repo completeness|deep|README.md,CHANGELOG.md,STATUS.md,lean/|bash checker/repo-complete.sh
-cross-diff (both reminder arms)|deep|hooks/prover-remind|bash checker/cross-diff-remind.sh
+repo completeness|deep|README.md,CHANGELOG.md,STATUS.md,lean/,checker/repo-complete.sh|bash checker/repo-complete.sh
+cross-diff (both reminder arms)|deep|hooks/prover-remind,checker/cross-diff-remind.sh|bash checker/cross-diff-remind.sh
 verdict stability|deep|STATUS.md,checker/verdict|bash checker/verdict-stability.sh
-gauge cross|deep|hooks/rot-router,lean/Proofs/RotGauge.lean|bash checker/gauge-cross.sh
+gauge cross|deep|hooks/rot-router,lean/Proofs/RotGauge.lean,checker/gauge-cross.sh|bash checker/gauge-cross.sh
 gauge hook corpus|fast||bash checker/gauge-hook-corpus.sh
-profile binding|deep|engine/rot-lean.md,lean/Proofs/RotAbility.lean|bash checker/profile-bind.sh
-axiom audit|deep|lean/|bash checker/axiom-audit.sh
-axiom class|deep|lean/|bash checker/axiom-class.sh
+profile binding|deep|engine/rot-lean.md,lean/Proofs/RotAbility.lean,checker/profile-bind.sh|bash checker/profile-bind.sh
+axiom audit|deep|lean/,checker/axiom-audit.sh|bash checker/axiom-audit.sh
+axiom class|deep|lean/,checker/axiom-class.sh|bash checker/axiom-class.sh
 mutate the checker|deep|hooks/,checker/cross-diff.sh,checker/cross-diff-remind.sh,checker/mutate-checker.sh,checker/corpus-gauge.txt,checker/corpus-remind.txt|bash checker/mutate-checker.sh
 portability|deep|checker/,hooks/,lean/,ARM_ROUTER,DISARM_ROUTER,.githooks/|bash checker/portability.sh
 installer round trip|deep|ARM_ROUTER,DISARM_ROUTER,checker/install,.claude-plugin/|bash checker/install-roundtrip.sh
-install parity|deep|ARM_ROUTER,DISARM_ROUTER,hooks/hooks.json,hooks/settings-merge.js|bash checker/install-parity.sh
+install parity|deep|ARM_ROUTER,DISARM_ROUTER,hooks/hooks.json,hooks/settings-merge.js,checker/install-parity.sh|bash checker/install-parity.sh
 release install|deep|checker/release,.claude-plugin/|bash checker/release-install.sh
 "
 
 if [ "$MODE" = full ]; then
   GATES="$GATES
-ci dry run (the CI step list, clean clone)|deep|.github/|bash checker/ci-dryrun.sh
+ci dry run (the CI step list, clean clone)|deep|.github/,checker/ci-dryrun.sh|bash checker/ci-dryrun.sh
 generalization probe (does each theorem CONSTRAIN its function)|deep|lean/|cd lean && bash mutate/generalization_probe.sh
 scheduled verdict, three weeks with a remote|deep|STATUS.md,checker/verdict|bash checker/verdict-schedule-sim.sh
-plugin + fresh-user install|deep|.claude-plugin/,ARM_ROUTER|bash checker/plugin-install.sh
-marketplace session (install as a stranger, router in the loop)|deep|.claude-plugin/,hooks/|bash checker/marketplace-session.sh
-live-session smoke|deep|hooks/,agents/|bash checker/live-session-smoke.sh
+plugin + fresh-user install|deep|.claude-plugin/,ARM_ROUTER,checker/plugin-install.sh|bash checker/plugin-install.sh
+marketplace session (install as a stranger, router in the loop)|deep|.claude-plugin/,hooks/,checker/marketplace-session.sh|bash checker/marketplace-session.sh
+live-session smoke|deep|hooks/,agents/,checker/live-session-smoke.sh|bash checker/live-session-smoke.sh
 release session (every variant, every lane, real CLI)|deep|checker/release|bash checker/release-session.sh
-sustained session (cloned auth, plugin installed, real conversation)|deep|hooks/|bash checker/release-longsession.sh
+sustained session (cloned auth, plugin installed, real conversation)|deep|hooks/,checker/release-longsession.sh|bash checker/release-longsession.sh
 CTT session report (the 80-turn corpus the README quotes)|deep|hooks/,checker/ctt-session.sh|bash checker/ctt-session.sh --report
-deferred closure (the runner ran what the dry run could not)|deep|.github/|bash checker/deferred-closure.sh
+deferred closure (the runner ran what the dry run could not)|deep|.github/,checker/deferred-closure.sh|bash checker/deferred-closure.sh
 "
 fi
 
@@ -291,6 +291,39 @@ while IFS='|' read -r name tier trigs cmd; do
         echo "sweep while reading as covered. Give it trigger paths or make it"
         echo "fast. See lean/Proofs/RotGates.lean:no_trigger_never_escalates."
         exit 2
+      fi
+      # A GATE MUST TRIGGER ON ITSELF. Measured 2026-08-09: 14 of the 25 deep
+      # gates with a resolvable script did NOT list their own path, so editing
+      # the checker did not run the checker. `ci-honesty.sh` fired only on
+      # `.github/workflows/`; `axiom-audit.sh` only on `lean/`. Rewrite the
+      # instrument, commit it, and the instrument stays silent about the
+      # rewrite -- the same shape as gauge-cross in bc1272d, which had never
+      # run at all, generalised across the table.
+      #
+      # This is the weaker sibling of the empty-trigger refusal above: not
+      # invisible to every commit, only to the commits most likely to break it.
+      # Proved as RotGates.a_gate_blind_to_itself_misses_its_own_break.
+      _self="$(printf '%s' "${cmd:-}" | sed -nE 's/.*bash ([^ ]+\.sh).*/\1/p')"
+      case "${cmd:-}" in "cd lean && "*) _self="lean/$_self" ;; esac
+      if [ -n "$_self" ]; then
+        _selfhit=0
+        _oi="$IFS"; IFS=','
+        for _t in $trigs; do
+          IFS="$_oi"
+          [ -z "$_t" ] && continue
+          case "$_self" in "$_t"*) _selfhit=1 ;; esac
+          IFS=','
+        done
+        IFS="$_oi"
+        if [ "$_selfhit" -eq 0 ]; then
+          echo "REFUSING: deep gate '$name' does not trigger on its own script."
+          echo "  script:   $_self"
+          echo "  triggers: $trigs"
+          echo "Editing this checker would not run it, so a break introduced by"
+          echo "that edit ships unseen. Add the script path to its triggers."
+          echo "See lean/Proofs/RotGates.lean:a_gate_blind_to_itself_misses_its_own_break."
+          exit 2
+        fi
       fi ;;
     *)
       echo "REFUSING: gate '$name' has tier '${tier:-<empty>}' (expected fast|deep)."
