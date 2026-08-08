@@ -29,6 +29,11 @@ set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 CORPUS="${ROTMOE_AB_CORPUS:-D:/Temp/rotmoe-ab}"
+# Where the analyser hands the structural-leak count back to the shell. A
+# console.log cannot fail a build; a file the shell reads can.
+SEAL_OUT="$(mktemp -t ab-seal.XXXXXX)"
+export ROTMOE_AB_SEAL_OUT="$SEAL_OUT"
+trap 'rm -f "$SEAL_OUT"' EXIT
 N=$(wc -l < "$REPO/bench/ab-prompts.txt")
 METRICS="$REPO/bench/ab-metrics.jsonl"
 
@@ -194,6 +199,30 @@ const HEDGE=["maybe","perhaps","might be","I think","possibly","it seems","likel
 const NARRATE=["Let me ","I%27ll now","First, I%27ll"].map(s=>decodeURIComponent(s));
 const LEAK=["RoT:","[Nova]","R/s+","lambda table"];
 
+// THE LEAK LIST MEASURED TWO DIFFERENT THINGS AND THE SPEC ONLY MEANT ONE.
+// Measured 2026-08-09 over the committed corpus: `RoT:`, `[Nova]` and
+// `lambda table` -- the YAML block and the footer, the FORMS the seal bans --
+// occur ZERO times in 88 routed turns. Every one of the 10 counted "leaks" is
+// the bare term `R/s+`, and the arm with NO plugin and NO seal to keep produces
+// 13 of them. A detector that fires more often on the arm that has no trace is
+// measuring SUBJECT MATTER, not compliance.
+//
+// It matters because the seal has a hatch: a direct question about the engine
+// must be ANSWERED, naming whatever the answer requires. Four of the ten turns
+// ask literally "what does hooks/rot-router.sh compute for each lens?"; three
+// ask what breaks if a tenth lens is added; two ask what the first question
+// was; one explains where to start in a repository whose subject IS the router.
+// Enforcing "routed must be 0" would mark every one of those correct answers as
+// a violation -- a spec that forbids the right behaviour.
+//
+// So the list is split. STRUCTURAL is the seal, it is enforced, and it can fail.
+// TOPICAL is reported with the unrouted arm beside it as the baseline that
+// shows what a mention means when there is no seal at all.
+// Proofs/RotSeal.lean carries the argument: structural_zero_is_the_real_seal,
+// topical_cannot_distinguish, old_spec_condemns_a_correct_answer.
+const STRUCTURAL=["RoT:","[Nova]","lambda table"];
+const TOPICAL=["R/s+"];
+
 function load(arm){
   const out=[];
   for(let i=1;i<=N;i++){
@@ -222,6 +251,8 @@ function metrics(j){
     hedge: HEDGE.reduce((a,w)=>a+(low.split(w.toLowerCase()).length-1),0),
     narr: NARRATE.reduce((a,w)=>a+(t.split(w).length-1),0),
     leak: LEAK.reduce((a,w)=>a+(t.split(w).length-1),0),
+    structural: STRUCTURAL.reduce((a,w)=>a+(t.split(w).length-1),0),
+    topical: TOPICAL.reduce((a,w)=>a+(t.split(w).length-1),0),
     // ROUTER-OBSERVABLE ENDPOINTS, and the reason they are here is a defect in
     // the round-1 analysis. MEASURED 2026-08-07: this analyser reported the run
     // NULL on every primary, because it only ever looked at coarse counters and
@@ -298,11 +329,43 @@ line("5b output TOKENS","outTok",x=>Math.round(x).toString());
 console.log("");
 console.log("2 tool calls: 0 in both arms by AMENDMENT 2 -- uninformative BY DESIGN, not omitted.");
 const leakA=sum(ma,"leak"), leakB=sum(mb,"leak");
-console.log("9 seal leaks: routed "+leakA+" (must be 0), unrouted "+leakB+" (undefined, no seal to keep)");
+const strA=sum(ma,"structural"), strB=sum(mb,"structural");
+const topA=sum(ma,"topical"), topB=sum(mb,"topical");
+console.log("9 seal leaks, SPLIT because the old single count conflated two things:");
+console.log("   structural (RoT: block, [Nova] footer, lambda table) -- THE SEAL, must be 0");
+console.log("     routed "+strA+"   unrouted "+strB);
+console.log("   topical (the bare term R/s+) -- subject matter, NOT a breach");
+console.log("     routed "+topA+"   unrouted "+topB+"  <- the arm with no seal mentions it MORE");
+console.log("   old combined count: routed "+leakA+", unrouted "+leakB+" (kept for continuity)");
+// THE LINE THAT CAN ACTUALLY FAIL. Written to a file the shell reads, because a
+// console.log cannot reach an exit code -- which is exactly how the old
+// "must be 0" sat green over a corpus that violated it as written.
+fs.writeFileSync(process.env.ROTMOE_AB_SEAL_OUT||"/dev/null", String(strA)+"\n");
 console.log("");
 console.log("READ THE SIGN COUNTS, NOT THE MEANS. A mean shifted by one long answer is");
 console.log("not an effect; 80 paired comparisons going one way is.");
 ' "$CORPUS" "$N"
+
+# --- THE SEAL, ENFORCED ------------------------------------------------------
+# The old "must be 0" was a console.log and nothing else: it printed `routed 10
+# (must be 0)` and the script exited 0. Same defect class as the one confessed
+# below, one line lower, and it survived because nobody ever planted a marker to
+# see the alarm fire. Now the count crosses back into the shell through a file
+# and becomes a real PASS/FAIL.
+#
+# It is the STRUCTURAL count that is enforced, not the old combined one --
+# enforcing the old one would refuse correct answers to questions about the
+# engine, which the seal explicitly requires be answered. See Proofs/RotSeal.lean.
+if [ -f "$SEAL_OUT" ]; then
+  seal_structural=$(head -1 "$SEAL_OUT")
+  case "$seal_structural" in
+    ''|*[!0-9]*) bad "seal count unreadable ('$seal_structural') -- the check could not run, which is not a pass" ;;
+    0) ok "SEAL HELD: 0 structural trace markers in the routed arm (RoT: block, [Nova] footer, lambda table)" ;;
+    *) bad "SEAL BREACHED: $seal_structural structural trace marker(s) in the routed arm -- the trace reached the chat" ;;
+  esac
+else
+  bad "seal count file was never written -- the analyser did not reach the seal check"
+fi
 
 # --- THE VERDICT, WHICH THIS SCRIPT DID NOT HAVE -----------------------------
 # Measured 2026-08-07, on the first negative control ever pointed at it: with

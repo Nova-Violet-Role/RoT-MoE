@@ -23,6 +23,69 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A mention is not a leak — the seal check was decorative *and* wrong
+
+`checker/ab-analyze.sh` counted four strings, called the total *seal leaks*, and
+annotated it `routed must be 0`. Measured over the committed corpus: the count
+was **10**, and the script exited **0**. Two defects sharing one line.
+
+**It could not fail.** The number was printed by a `console.log` inside the node
+heredoc; the shell's `FAIL` counter never saw it. That is the same defect class
+confessed twelve lines below it in the same file — *a checker whose failures
+cannot reach its exit code is decoration* — and it survived because nobody had
+ever planted a marker to watch the alarm fire.
+
+**And it was the wrong property.** Splitting the needles by what they are:
+
+| needle | routed (88 turns) | unrouted (88 turns) |
+|---|---|---|
+| `RoT:` · `[Nova]` · `lambda table` — the trace **forms** | **0** | **0** |
+| `R/s+` — a bare technical **term** | 10 | 13 |
+
+The forms never appeared. Every counted leak was the term, and *the arm with no
+plugin loaded and no seal to keep produced more of them.* A detector that fires
+more often where there is no trace to leak is measuring subject matter.
+
+That matters because the seal has a hatch: a direct question about the engine
+must be **answered**. Four of the ten flagged turns ask literally what
+`hooks/rot-router.sh` computes for each lens, three ask what breaks if a tenth
+lens is added, two ask what the session's first question was, and one explains
+where to start in a repository whose subject *is* the router. Enforcing
+`routed must be 0` would have marked all ten correct answers as violations —
+and the obvious repair when such a check goes red is to delete it, destroying
+the coverage. The spec was wrong, not the answers.
+
+The count is now split: **structural is enforced and can fail**, topical is
+reported with the unrouted arm beside it as the baseline. Negative control: a
+`[Nova]` footer planted in routed turn 5 drove the checker to **exit 1,
+`SEAL BREACHED: 1 structural trace marker`**; restoring the file returned it to
+**exit 0, 4 passed** with the transcript verified byte-identical.
+
+`Proofs/RotSeal.lean` carries the argument — 13 theorems, 6 mutants, 6 killed:
+`breach_implies_old_flag` (the split loses nothing on genuine breaches),
+`old_flag_does_not_imply_breach` and `old_spec_condemns_a_correct_answer` (the
+converse fails, and that is the defect), `the_hatch_does_not_license_the_form`
+(a question about the engine still may not print the block — the hatch exempts
+the *term*, never the *form*), `topical_cannot_be_evidence_of_a_breach` (13 > 10
+with a clean baseline), and `the_enforced_check_can_fail` for non-vacuity.
+
+### The A/B primary endpoints, stated without varnish
+
+Re-derived from `bench/ab-metrics.jsonl`, 88 paired turns:
+
+| pre-registered PRIMARY | routed | unrouted | verdict |
+|---|---|---|---|
+| trailing question | 0.000 | 0.000 | no effect, 88 ties |
+| hedging tokens | 0.045 | 0.011 | **worse routed**, 1 vs 4 pairs |
+| self-narration | 0.000 | 0.000 | no effect, 88 ties |
+
+The secondary figures move hard and consistently — cost −29.1 % (83 of 88
+pairs), output tokens −34.8 %, duration −24.1 %, length −26.2 %, and 9 of 10
+lanes favour routed at lane-level sign p = 1.95e-3. But the endpoints the voice
+contract *claims* to change are flat on two and negative on the third. Written
+down here rather than left in a log, because a project that only records the
+metrics that moved is not measuring, it is advertising.
+
 ### `1.0.0` / `1.0.1` / `1.0.2` — built locally, deliberately not published
 
 These three version numbers exist as **local artifacts only**, produced by
