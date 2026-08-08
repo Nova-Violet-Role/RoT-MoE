@@ -137,6 +137,29 @@ done
 [ "$missing" -eq 0 ] || { printf '\n== axiom audit: %d passed, %d failed\n' "$PASS" "$FAIL"; exit 1; }
 echo "== axiom audit over ${#modules[@]} modules shipped by this repo (list read from disk, never typed)"
 
+# --- hoist lake's package resolution out of the per-module loop --------------
+# Measured 2026-08-09: `lake env lean <probe>` costs ~2s of package resolution
+# BEFORE lean starts, and this loop pays it once per module -- ~64s of the
+# gate's 186s, spent re-answering a question whose answer cannot change during
+# the run. Capturing LEAN_PATH once and invoking `lean` directly removes it.
+#
+# Every module is still probed in its OWN process. That is not an optimisation
+# target: `import`ing them together is IMPOSSIBLE -- Proofs.RotGauge and
+# Proofs.RotMutant both define `RotMoE.classify`, and lean refuses with
+# "environment already contains". Measured, not assumed.
+#
+# The fallback is the original command, used whenever the fast path is not
+# demonstrably available: no LEAN_PATH, or no usable `lean` on PATH. A speedup
+# that changes WHAT is checked would be a downgrade wearing a stopwatch.
+AX_LEAN_PATH="$( cd "$LEAN_ROOT" && lake env printenv LEAN_PATH 2>/dev/null )" || AX_LEAN_PATH=""
+if [ -n "$AX_LEAN_PATH" ] && command -v lean >/dev/null 2>&1 && lean --version >/dev/null 2>&1; then
+  AX_FAST=1
+  echo "   probe: direct lean with a hoisted LEAN_PATH (lake resolution paid once)"
+else
+  AX_FAST=0
+  echo "   probe: lake env lean per module (fast path unavailable -- falling back)"
+fi
+
 # --- the audit itself -------------------------------------------------------
 audit_module () {  # audit_module <name> -> 0 clean, 1 dirty/incomplete
   local m="$1" src="$LEAN_ROOT/Proofs/$m.lean" probe out rc
@@ -150,7 +173,11 @@ audit_module () {  # audit_module <name> -> 0 clean, 1 dirty/incomplete
     printf 'import Proofs.%s\n' "$m"
     for n in "${ns[@]}"; do printf '#print axioms %s\n' "$n"; done
   } > "$probe"
-  out=$( cd "$LEAN_ROOT" && lake env lean ".axiom_probe_$m.lean" 2>&1 ); rc=$?
+  if [ "${AX_FAST:-0}" -eq 1 ]; then
+    out=$( cd "$LEAN_ROOT" && LEAN_PATH="$AX_LEAN_PATH" lean ".axiom_probe_$m.lean" 2>&1 ); rc=$?
+  else
+    out=$( cd "$LEAN_ROOT" && lake env lean ".axiom_probe_$m.lean" 2>&1 ); rc=$?
+  fi
   rm -f "$probe"
 
   if [ "${#ns[@]}" -eq 0 ]; then

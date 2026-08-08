@@ -206,6 +206,91 @@ theorem a_real_run_is_still_judged (id : Nat) :
     oldMessage (Outcome.run id) = newMessage (Outcome.run id) := by
   simp [oldMessage, newMessage]
 
+/-! ## Part three: the status you read was not the status of what you ran
+
+Found 2026-08-09 in my OWN gating harness, minutes after proving Part one about
+someone else's. The loop was
+
+    for g in ...; do bash "$g" > "log" 2>&1; echo "$(basename $g) EXIT=$? ..."; done
+
+and it reported `EXIT=0` for a gate that had just printed **five FAIL lines**.
+The shell expands a word list LEFT TO RIGHT, so `$(basename $g)` runs -- and
+succeeds -- BEFORE `$?` is expanded. The status read is `basename`'s, which is
+always 0. Every gate in that loop reported green unconditionally.
+
+The repo's standing rule is *read exit codes DIRECTLY, never through a pipe*.
+This is the same defect wearing a different costume: not a pipe, a command
+substitution sitting earlier in the same line. The rule is really **nothing may
+run between the command and the read**, and `$(...)` is something running.
+
+It was caught only because a gate's own log carried an independent verdict line
+that contradicted the harness. That redundancy is the reason this is a story
+about a caught bug rather than a shipped one -- and the argument for every
+checker printing its own verdict rather than relying on its exit code alone.
+-/
+
+/-- A command that ran, and what it returned. -/
+structure Ran where
+  /-- Which command this was. -/
+  name : String
+  /-- Its exit status. -/
+  status : Nat
+  deriving DecidableEq, Repr
+
+/-- The gate that was actually under test, and failed. -/
+def theGate : Ran := { name := "repo-complete", status := 1 }
+
+/-- The incidental command the shell ran while building the message. -/
+def theSubstitution : Ran := { name := "basename", status := 0 }
+
+/-- Reading a status DIRECTLY: nothing runs in between. -/
+def readDirect (cmd : Ran) : Nat := cmd.status
+
+/-- Reading a status with something else expanded first: `$?` now belongs to
+whatever ran last, which is the interloper. -/
+def readAfter (_cmd interloper : Ran) : Nat := interloper.status
+
+/-- A reading is honest when it reports the status of the command it names. -/
+def honest (cmd : Ran) (reading : Nat) : Bool := reading == cmd.status
+
+/-- **The false green.** The gate exited 1, and the harness reported 0. -/
+theorem the_harness_reported_green_for_a_red_gate :
+    readAfter theGate theSubstitution = 0 ∧ theGate.status = 1 := by decide
+
+/-- Stated as the dishonesty it is. -/
+theorem the_indirect_reading_was_not_honest :
+    honest theGate (readAfter theGate theSubstitution) = false := by decide
+
+/-- **The direct reading is honest for every command**, which is the whole rule:
+put the read first and nothing can displace it. -/
+theorem direct_reading_is_always_honest (cmd : Ran) :
+    honest cmd (readDirect cmd) = true := by
+  simp [honest, readDirect]
+
+/-- **Why it is so dangerous: it fails in the reassuring direction.** Whenever
+the interloper succeeds, the indirect reading says success -- no matter what the
+real command did. A harness built this way cannot report a failure at all. -/
+theorem a_succeeding_interloper_hides_every_failure (cmd interloper : Ran)
+    (h : interloper.status = 0) : readAfter cmd interloper = 0 := by
+  simp [readAfter, h]
+
+/-- And it is not merely unreliable, it is *blind*: the reading does not depend
+on the command's status in any way. Two gates with opposite outcomes read the
+same. -/
+theorem the_reading_ignores_the_command (a b interloper : Ran) :
+    readAfter a interloper = readAfter b interloper := by
+  simp [readAfter]
+
+/-- The redundancy that caught it: the gate's own log said `5 failed` while the
+harness said 0. Two instruments, one disagreement, and the disagreement is the
+signal. -/
+def logSaysFailed : Nat := 5
+
+/-- **The contradiction, stated.** A harness reading 0 while the log reports
+failures is not a green -- it is evidence the reader is broken. -/
+theorem log_and_harness_disagreed :
+    readAfter theGate theSubstitution = 0 ∧ logSaysFailed ≠ 0 := by decide
+
 /-! ## Executable checks -/
 
 /-- The measured reading, parsed and guarded, both ways. -/

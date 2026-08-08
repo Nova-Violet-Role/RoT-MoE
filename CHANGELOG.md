@@ -23,6 +23,80 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A gate must trigger on itself — 14 of 25 were blind to their own edits
+
+Measured across the shipped table with `gate-all.sh`'s own prefix matcher: of the 25 deep
+gates with a resolvable script, **14 did not list their own path among their triggers**.
+Editing the checker did not run the checker. `checker/ci-honesty.sh` fired only on
+`.github/workflows/`; `checker/axiom-audit.sh` only on `lean/`;
+`checker/marketplace-session.sh` only on `.claude-plugin/` and `hooks/`.
+
+It is the near sibling of `no_trigger_never_escalates`, and it hides better: the gate is not
+invisible to *every* commit, only to the commits most likely to break it. Same shape as
+`gauge-cross` in `bc1272d`, which had been skipped in every job for a whole cycle —
+generalised across the table.
+
+Found by editing `checker/ci-honesty.sh` and noticing its own gate would not have run.
+
+Repaired in three places that had to move together: all 14 rows gained their own script;
+`gate-all.sh` now **refuses** a deep row that does not self-trigger (control: stripping the
+`ci-honesty` self-trigger → exit 2, naming the gate); and the Lean witness `shipped` moved in
+the same edit, because `checker/gate-split.sh` diffs the two tables and went red the instant
+they disagreed. The six `FULL=1`-only gates are deliberately absent from the witness —
+`gate-split.sh:56` mirrors only the default block — while `gate-all` validates every row it
+reads.
+
+`RotGates.lean` gains 9 theorems (41 → 50): `a_gate_blind_to_itself_misses_its_own_break`,
+`self_trigger_makes_the_edit_visible`, `listing_the_script_suffices`, `ci_honesty_was_blind`,
+`ci_honesty_now_fires`, `the_repair_changes_the_run`, `adding_a_trigger_never_runs_less`
+(the fix cannot cost coverage), `the_original_trigger_still_works`, and
+`a_fast_gate_is_never_blind_to_itself` — the fast tier is structurally immune, which is why
+the repair touched deep only. Measured alongside: 28 fast gates, 0 carrying triggers.
+
+### Three ways a checker lied about its own result — `RotGuard.lean`
+
+Seventeen theorems, ten mutants, all killed. Each part is a defect that was live.
+
+**The empty-payload guard failed open exactly when the payload was empty.** `grep -c` prints
+`0` *and* exits 1, so `|| echo 0` appended a second zero; the variable became the two-token
+string `0 0`; `[ "0 0" -lt 5 ]` **errored** rather than compared; the non-zero test status
+took the else branch. Result: `PASS every step concluded success (0 steps read)` — a pass
+asserted over the empty set, inside the file whose job is to catch that. Reproduced before
+repair: `guard FELL THROUGH`. `guards_agree_on_wellformed` proves the repair changed nothing
+else for any count; `defaulting_to_zero_is_not_a_repair` rules out the tempting
+one-character fix, because `0` is a legitimate reading with the opposite meaning.
+
+**A DNS blip was reported as "you did not push."** `curl: (6) Could not resolve host`, thirty
+seconds after a successful push, produced *"This commit has not been pushed."* The exit code
+was right — 3, a skip, never a pass — and `the_verdict_was_always_right` records that,
+rather than overselling the fix. But a wrong diagnosis sends the next person to push again
+instead of checking their network. Control: an unreachable host now exits 3 with
+`the GitHub API could not be reached (curl exit 6)`.
+
+**And one in the harness doing the auditing.** `echo "$(basename $g) EXIT=$? ..."` reports
+`basename`'s status, not the gate's: the shell expands left to right, so the command
+substitution runs *before* `$?`. A gate that printed five `FAIL` lines was recorded as
+`EXIT=0`. The standing rule is *read exit codes directly, never through a pipe*; this is the
+same defect in a different costume, so the rule is really **nothing may run between the
+command and the read**. `a_succeeding_interloper_hides_every_failure` proves it fails in the
+reassuring direction; `the_reading_ignores_the_command` proves the reading does not depend on
+the command's status at all. It was caught only because the gate's own log carried an
+independent verdict line that contradicted the harness — an argument for every checker
+printing its verdict rather than relying on its exit code alone.
+
+### The axiom gates got 16 % faster without checking one thing less
+
+`lake env lean` re-resolves the package before every probe, and both gates paid it once per
+module — measured ~2 s × 32. Captured once, then `lean` is invoked directly, with a fallback
+to the original command whenever the fast path is not demonstrably available. 186 s → 157 s
+and 185 s → 159 s.
+
+Verified as an equivalence, not a speedup: the fast and fallback outputs were diffed and are
+**byte-identical**, and a planted `sorry` was still caught at exit 1 by the fast path in both
+gates. Per-module isolation is unchanged and is not an optimisation target — `Proofs.RotGauge`
+and `Proofs.RotMutant` both define `RotMoE.classify`, so a single combined import is refused
+by lean itself.
+
 ### A mention is not a leak — the seal check was decorative *and* wrong
 
 `checker/ab-analyze.sh` counted four strings, called the total *seal leaks*, and

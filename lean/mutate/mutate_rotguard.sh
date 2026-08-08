@@ -251,6 +251,30 @@ run_mut G06 \
   '  | [_] => Parsed.malformed' \
   'every reading is malformed -- the guard refuses even healthy payloads'
 
+# G07: the indirect read is quietly made correct -- the defect stops existing
+run_mut G07 \
+  'def readAfter (_cmd interloper : Ran) : Nat := interloper.status' \
+  'def readAfter (_cmd interloper : Ran) : Nat := _cmd.status' \
+  'the indirect read is quietly made correct -- the defect stops existing'
+
+# G08: the gate that failed is recorded as having passed
+run_mut G08 \
+  'def theGate : Ran := { name := "repo-complete", status := 1 }' \
+  'def theGate : Ran := { name := "repo-complete", status := 0 }' \
+  'the gate that failed is recorded as having passed'
+
+# G09: honesty is redefined as reporting zero -- a green is always honest
+run_mut G09 \
+  'def honest (cmd : Ran) (reading : Nat) : Bool := reading == cmd.status' \
+  'def honest (cmd : Ran) (reading : Nat) : Bool := reading == 0' \
+  'honesty is redefined as reporting zero -- a green is always honest'
+
+# G10: the independent log agrees with the broken harness -- no contradiction left
+run_mut G10 \
+  'def logSaysFailed : Nat := 5' \
+  'def logSaysFailed : Nat := 0' \
+  'the independent log agrees with the broken harness -- no contradiction left'
+
 printf '
 
 

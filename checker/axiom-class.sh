@@ -96,6 +96,20 @@ fi
 echo "== axiom classification =="
 note "toolchain: $(cat lean-toolchain 2>/dev/null || echo unknown)"
 
+# Hoist lake's package resolution out of the per-module probe loop below.
+# Measured 2026-08-09 on the sibling gate: ~2s per invocation, paid once per
+# module, for an answer that cannot change during the run. Verified there by
+# diffing the fast and fallback outputs -- byte-identical verdicts -- and by a
+# planted `sorry`, which the fast path still caught at exit 1.
+AXC_LEAN_PATH="$( lake env printenv LEAN_PATH 2>/dev/null )" || AXC_LEAN_PATH=""
+if [ -n "$AXC_LEAN_PATH" ] && command -v lean >/dev/null 2>&1 && lean --version >/dev/null 2>&1; then
+  AXC_FAST=1
+  note "probe: direct lean with a hoisted LEAN_PATH (lake resolution paid once)"
+else
+  AXC_FAST=0
+  note "probe: lake env lean per module (fast path unavailable -- falling back)"
+fi
+
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/rotmoe-axclass.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -205,7 +219,18 @@ for m in $MODULES; do
   [ "$n_here" -eq 0 ] && { note "$m declares no theorems -- nothing to classify"; continue; }
   total=$((total+n_here))
   probed_modules=$((probed_modules+1))
-  run_bounded 1800 lake env lean "$P" >> "$WORK/ax.txt" 2>&1
+  # Same hoist as checker/axiom-audit.sh: `lake env lean` re-resolves the
+  # package before every probe, and this loop pays it once per module. The
+  # answer cannot change during the run, so it is captured once above and
+  # `lean` is invoked directly. Per-module isolation is UNCHANGED and is not
+  # optional -- Proofs.RotGauge and Proofs.RotMutant both define
+  # `RotMoE.classify`, so a single combined import is refused by lean itself.
+  # Falls back to the original command whenever the fast path is unavailable.
+  if [ "${AXC_FAST:-0}" -eq 1 ]; then
+    run_bounded 1800 env LEAN_PATH="$AXC_LEAN_PATH" lean "$P" >> "$WORK/ax.txt" 2>&1
+  else
+    run_bounded 1800 lake env lean "$P" >> "$WORK/ax.txt" 2>&1
+  fi
   rc=$?
   if [ "$rc" -ne 0 ]; then
     note "probe for $m exited $rc -- its verdicts may be missing (the accounting check below will catch it)"

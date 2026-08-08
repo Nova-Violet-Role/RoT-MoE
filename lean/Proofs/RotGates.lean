@@ -1047,6 +1047,18 @@ displace the original. -/
 theorem the_original_trigger_still_works :
     fires ciHonestyAfter.gate [".github/workflows/ci.yml".toList] = true := by decide
 
+/-- **The fast tier cannot have this defect.** A fast gate runs on every commit,
+so in particular it runs on the commit that edits its own script -- no trigger
+is needed and none is wanted. Measured alongside: all 28 fast rows carry an
+empty trigger list, and `checker/gate-split.sh` already refuses a fast gate that
+declares triggers as dead configuration.
+
+This is why the repair touched the deep tier only, and it is stated as a
+corollary rather than left as a comment, so the audit is a theorem. -/
+theorem a_fast_gate_is_never_blind_to_itself {gs : List Gate} {g : Gate}
+    (hmem : g ∈ fastSet gs) (script : List Char) : g ∈ stagedRun gs [script] :=
+  fast_always_runs hmem
+
 -- Executable: the before/after pair in one value.
 #guard (selfTriggers ciHonestyBefore, selfTriggers ciHonestyAfter) = (false, true)
 
