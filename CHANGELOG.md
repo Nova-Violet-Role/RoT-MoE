@@ -23,6 +23,127 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Eleven was also wrong — the CLI defines **31** hook events, and the router bound 11
+
+The previous entry below celebrates going from 3 events to 11. Eleven was still a
+guess wearing a measurement's clothes. It came from counting **which events other
+installed plugins bound**, and that method has a ceiling built into it: it cannot
+reveal an event that nothing on this machine happens to use. The Socio found the
+hole by asking a question the method could never have answered — *there is a
+SubagentStop, so where is SubagentStart?*
+
+There is one. It was never bound, and neither were nineteen others.
+
+The list is now taken from the only authoritative source, the `Lz` array inside
+the compiled CLI binary (`claude.exe`, 287,053,472 bytes, version 2.1.226),
+cross-checked against that binary's own `execute<Name>Hooks` dispatchers. It is
+committed as [`checker/cli-hook-events.txt`](checker/cli-hook-events.txt) with its
+provenance, and all four declarations — the plugin manifest, both installer arms,
+and the Lean `declared` list — now carry those 31 names in the CLI's own order,
+compared character for character.
+
+`TaskStop` is deliberately excluded and `#guard`ed against: its surrounding text
+in the binary reads *"use TaskStop with task_id"*, which makes it a **tool**, not
+an event. Wiring it would be the same class of error as missing `SubagentStart`,
+just in the opposite direction.
+
+**Measured live, not asserted.** Under the old wiring the router observed 9 of the
+lifecycle. Sessions run against the widened build have now recorded **14 distinct
+events**, including three that were structurally impossible to see before —
+`SubagentStart`, `PostToolBatch` and `MessageDisplay` — plus `InstructionsLoaded`
+and `ConfigChange`, the latter fired by the settings edit described below. Every
+A/B this repo ran before this change was run against a router watching a subset of
+the lifecycle, and that is stated plainly rather than quietly re-baselined.
+
+**The gate that keeps this from happening a third time.**
+[`checker/cli-event-coverage.sh`](checker/cli-event-coverage.sh) has two phases.
+Phase A compares the four declarations against the fixture; it reads only files in
+this repo, so it runs identically on every runner and **never skips**. Phase B
+re-extracts the array from an installed CLI and fails if it has drifted — which is
+what catches a CLI upgrade that adds a thirty-second event. Where no binary
+exists, Phase B prints `INAPPLICABLE` rather than passing silently: *"the CLI is
+not here"* and *"the CLI agrees"* are different claims and must not print the
+same. Negative control: deleting `ConfigChange` from the manifest turns it red at
+exit 1, and the byte-exact restore returns it to green.
+
+The mutation suite for `RotEvent.lean` also grew a defect of its own worth naming.
+Mutant E06's needle was the tail of the *old* eleven-element list; after the
+widening that exact text still occurred once, but at the end of a **different**
+list, so the mutant applied cleanly to the wrong object, changed no membership
+test, and was recorded as `SURVIVED`. That is worse than a miss — a miss says
+`DISCARDED` and asks for attention, while this said the theorem was robust. The
+needle is now anchored to text unique to the list under mutation, and two further
+mutants (E09 dropping `SubagentStart`, E10 adding `TaskStop`) were added: **10
+applied, 10 killed, 0 survived, 0 discarded**.
+
+### The global config ran 23 hook entries across 4 events; it now runs 403 across 31
+
+Socio directive: every hook already present in `~/.claude/settings.json` should
+observe the whole lifecycle, each group carrying `"matcher": "*"`. Done — 13
+distinct commands × 31 events, with each command's own `type` and `timeout`
+preserved and first-appearance order kept, so nothing was reordered. Two entries
+that were **not** `*` before are now: the agent-depth guard (previously scoped to
+`Agent`) and the matcher-less `SessionStart`/`SessionEnd` entries.
+
+Tolerance was measured **before** writing, not after: each of the 13 commands was
+fired with `ConfigChange`, `MessageDisplay` and `SessionEnd` payloads — 39
+invocations, **0 non-zero exits, 0 emitting a permission decision**. That second
+number is the one that mattered. A hook that returned a *deny* on an unrelated
+event would have broken every session on this machine, including the one making
+the change.
+
+The router itself was deliberately **not** added to `settings.json`. It is already
+bound to all 31 events by the plugin, and a settings entry would stack on top and
+fire it twice per event — precisely the defect `checker/router-duplication.sh`
+exists to catch. The generator refuses with a distinct exit code if it ever finds
+a router entry there. Verified after the rewrite: **0** stacked entries, and a
+live session under the new config returned correct output with all other settings
+keys intact.
+
+### CodeMap kept deleting the commit gate, and the reason was a string it could not find
+
+`.githooks/pre-commit` was found clobbered: HEAD's gate hook has 7 `gate-all`
+calls, the copy on disk had **zero**. Restoring it worked for about forty seconds
+before it was overwritten again, mid-repair.
+
+Attributed rather than guessed. `~/.claude/tools/codemap-ext/cartographer.ps1`
+decides whether a pre-commit hook is already armed with
+`$body -match 'codemap update'`. RoT MoE's gate *delegates* CodeMap's work to
+`.githooks/pre-commit.d/10-codemap` instead of inlining it, so that literal string
+never appeared in the file, cartographer concluded the hook was unarmed, and it
+reinstalled its own — deleting the gate every time. Wiring every global hook to
+all 31 events made cartographer run far more often, which turned an occasional
+clobber into a reliable one.
+
+The repair keeps **both** tools whole. The gate now states, in a comment, that it
+delegates to `10-codemap` which runs `codemap update` — which satisfies
+cartographer's probe **truthfully**, because committing through this hook really
+does run it: the delegate is byte-identical (`cmp`) to the hook cartographer
+wanted to install. CodeMap keeps its complete per-filetype map; the gate keeps its
+refusing path. Confirmed by running cartographer's own matching logic against the
+repaired file: `ARMED`. If that probe ever changes, the hook gets clobbered again
+and `workflow-lint` catches it — the arrangement is checked, not trusted.
+
+### Counts drifted a second time in one day, and the generated file was the one that was right
+
+`STATUS.md` is generated by `checker/status-verdict.sh` and was already correct at
+741 theorems; `verdict-fresh` passed 3/3. The four **hand-declared** figures in
+`marketplace.json`, `plugin.json`, `CITATION.cff` and `README.md` still said 737,
+and the mutant count still said 364 against 366 declared by the suites. Nothing
+regenerates those four, so they lag every time the spec grows — the second such
+drift today, which makes it a pattern rather than an accident. Synced to **741
+theorems / 366 mutants**, with a re-scan confirming no stale figure survives
+anywhere.
+
+Adding the new gate also required extending its **Lean witness**: the repo refuses
+a gate that exists in `checker/gate-all.sh` but not in `lean/Proofs/RotGates.lean`,
+and `checker/gate-split.sh` compares the two tables including position. Four
+`#guard` counts moved with it, each justified structurally — a *fast* gate is
+unconditional, so it joins every staged run — rather than adjusted until the build
+went quiet. One of those four disproved a prediction: assuming all counts rose by
+exactly one left the build red, and the remaining figure had to be read off the
+compiler rather than guessed.
+
 ### The router was wired into 3 of 11 lifecycle events — it was never fully installed
 
 RoT MoE is a **router**. It shipped bound to three Claude Code events —

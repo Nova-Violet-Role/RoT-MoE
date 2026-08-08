@@ -13,14 +13,14 @@ that script on the run that produced it -- none is a description.
 | theorems | 741 |
 | modules | 33 |
 | mutation suites | 30 |
-| checkers | 56 |
+| checkers | 57 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |
 | files containing `native_decide` | 0 |
 <!-- VERDICT-END -->
 
 Regenerated locally by `bash checker/status-verdict.sh --write` on top
-of commit `70cc4f85d1de1d2e05f5ff138a3c0dc32512139e`. That line is PROVENANCE and is excluded from the
+of commit `d4fdd2f5fe230a25bbf0ce6ca4b84333964ce63d`. That line is PROVENANCE and is excluded from the
 comparison that decides whether the verdict changed: it records WHERE the
 numbers were counted, and claims nothing about gates having passed.
 

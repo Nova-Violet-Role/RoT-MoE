@@ -21,11 +21,11 @@
       ]
     },
     "prover-remind.sh": {
-      "hash": "c096b2ad3229",
-      "indexed_at": "2026-08-08T18:28:50.321335+00:00",
+      "hash": "807e0ccb76cb",
+      "indexed_at": "2026-08-08T20:33:55.956148+00:00",
       "language": "shell",
       "lines": 606,
-      "mtime_ns": 1786211309167242900,
+      "mtime_ns": 1786215257278596400,
       "size": 31298,
       "symbols": [
         {
@@ -142,12 +142,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "2249e992b545",
-      "indexed_at": "2026-08-08T11:17:57.451322+00:00",
+      "hash": "7a5626e22a1c",
+      "indexed_at": "2026-08-08T20:33:55.960959+00:00",
       "language": "shell",
-      "lines": 498,
-      "mtime_ns": 1786187154764081400,
-      "size": 26813,
+      "lines": 527,
+      "mtime_ns": 1786216305984305800,
+      "size": 28326,
       "symbols": [
         {
           "docstring": "CONVERGENT is the only lane with no lead LENS -- by design, it is the lane where all nine co-reason and none leads. It used to print the literal \"none",
@@ -188,7 +188,7 @@
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
             264,
-            499
+            528
           ],
           "name": "hook_mode",
           "type": "function"
@@ -196,8 +196,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            468,
-            475
+            497,
+            504
           ],
           "name": "need_value",
           "type": "function"
@@ -214,6 +214,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-08T18:28:50.333259+00:00",
+  "generated_at": "2026-08-08T20:33:56.068871+00:00",
   "version": "1.0"
 }

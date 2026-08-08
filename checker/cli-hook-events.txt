@@ -1,0 +1,55 @@
+# THE HOOK EVENTS CLAUDE CODE DEFINES -- extracted, not remembered.
+#
+# Source          : the `Lz` array inside the compiled claude CLI binary
+# CLI version     : 2.1.226 (Claude Code)
+# Extracted       : 2026-08-08
+# Cross-checked   : against the same binary's execute<Name>Hooks dispatchers
+#                   (28 of 31 have a dispatcher under exactly that name;
+#                   SubagentStop, WorktreeCreate and WorktreeRemove do not, and
+#                   SubagentStop is MEASURED firing in a live session, so those
+#                   three are dispatched under a different symbol, not absent)
+# Deliberately excluded: TaskStop. It is a TOOL -- its surrounding text in the
+#                   binary reads "use TaskStop with task_id" -- and wiring it
+#                   would be the same class of error as missing SubagentStart.
+#
+# WHY THIS FILE EXISTS. RoT MoE's event list was previously derived by counting
+# which events other installed plugins bound. That is a lower bound: it cannot
+# reveal an event nothing on the machine happens to use, and it missed twenty of
+# the thirty-one below. A fixture extracted from the CLI removes the guesswork
+# and, more importantly, gives checker/cli-event-coverage.sh something to fail
+# against when a CLI upgrade adds an event the router does not yet bind.
+#
+# ORDER IS THE CLI'S OWN and is significant: hooks/hooks.json, ARM_ROUTER.sh,
+# ARM_ROUTER.ps1 and lean/Proofs/RotEvent.lean all carry this order, and the
+# checker compares it character for character.
+PreToolUse
+PostToolUse
+PostToolUseFailure
+PostToolBatch
+Notification
+UserPromptSubmit
+UserPromptExpansion
+SessionStart
+SessionEnd
+Stop
+StopFailure
+SubagentStart
+SubagentStop
+PreCompact
+PostCompact
+PermissionRequest
+PermissionDenied
+Setup
+TeammateIdle
+TaskCreated
+TaskCompleted
+Elicitation
+ElicitationResult
+ConfigChange
+WorktreeCreate
+WorktreeRemove
+InstructionsLoaded
+CwdChanged
+FileChanged
+DirectoryAdded
+MessageDisplay

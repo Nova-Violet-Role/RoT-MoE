@@ -40,6 +40,30 @@
 #
 # If a tool clobbers this file again, workflow-lint goes red on the next run.
 # The guard against silent disarming is a check, not a convention.
+#
+# WHY THIS FILE NAMES `codemap update`, AND WHY THAT IS NOT A TRICK.
+# Clobbered twice on 2026-08-08, the second time 40 seconds after the repair.
+# Attributed rather than guessed: ~/.claude/tools/codemap-ext/cartographer.ps1
+# tests `$body -match 'codemap update'` to decide whether a pre-commit hook is
+# already armed. This gate DELEGATES CodeMap's work to
+# .githooks/pre-commit.d/10-codemap rather than inlining it, so the string never
+# appeared here, cartographer judged the hook unarmed, and it reinstalled its own
+# -- deleting the gate every time. Wiring every global hook to all 31 CLI events
+# made cartographer run far more often, turning an occasional clobber into a
+# reliable one.
+#
+# The line below satisfies that probe truthfully. Committing through this hook
+# DOES run `codemap update`: the delegate loop at the bottom of this file
+# executes .githooks/pre-commit.d/10-codemap, which is byte-identical (cmp) to
+# the hook cartographer wanted to install. CodeMap keeps its full per-filetype
+# map -- better coverage than GitHub's own language stats, which is the point of
+# it -- and the gate keeps its refusing path. Nothing is disabled on either side.
+#
+#     delegate: .githooks/pre-commit.d/10-codemap  ->  runs `codemap update`
+#
+# If that probe in cartographer.ps1 changes, this hook gets clobbered again and
+# workflow-lint catches it. The arrangement is checked, not trusted.
+# The guard against silent disarming is a check, not a convention.
 # -----------------------------------------------------------------------------
 #
 # ENABLE IT (once per clone -- git does not enable hooks automatically, by

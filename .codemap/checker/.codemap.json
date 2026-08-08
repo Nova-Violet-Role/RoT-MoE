@@ -2,12 +2,21 @@
   "directory": "checker",
   "files": {
     "ab-analyze.sh": {
-      "hash": "b57d8e1297f3",
-      "indexed_at": "2026-08-08T18:28:50.307688+00:00",
+      "hash": "9b76c05c9277",
+      "indexed_at": "2026-08-08T20:33:55.821189+00:00",
       "language": "shell",
       "lines": 383,
-      "mtime_ns": 1786195576529438300,
+      "mtime_ns": 1786215257277596900,
       "size": 18374,
+      "symbols": []
+    },
+    "ab-compliance.sh": {
+      "hash": "b588db6fc47d",
+      "indexed_at": "2026-08-08T20:33:55.822124+00:00",
+      "language": "shell",
+      "lines": 108,
+      "mtime_ns": 1786206331172600500,
+      "size": 5098,
       "symbols": []
     },
     "ab-lanes.js": {
@@ -40,11 +49,11 @@
       ]
     },
     "axiom-audit.sh": {
-      "hash": "5778023a86f1",
-      "indexed_at": "2026-08-08T18:28:50.309104+00:00",
+      "hash": "03ade232a274",
+      "indexed_at": "2026-08-08T20:33:55.826568+00:00",
       "language": "shell",
       "lines": 294,
-      "mtime_ns": 1786202168731395800,
+      "mtime_ns": 1786215257277596900,
       "size": 13779,
       "symbols": [
         {
@@ -76,11 +85,11 @@
       ]
     },
     "axiom-class.sh": {
-      "hash": "534d128a8dce",
-      "indexed_at": "2026-08-08T18:28:50.310533+00:00",
+      "hash": "d2232acf1808",
+      "indexed_at": "2026-08-08T20:33:55.829972+00:00",
       "language": "shell",
       "lines": 367,
-      "mtime_ns": 1786202953667890300,
+      "mtime_ns": 1786215257277596900,
       "size": 16956,
       "symbols": [
         {
@@ -146,12 +155,12 @@
       "symbols": []
     },
     "ci-dryrun.sh": {
-      "hash": "f7c111c93fa8",
-      "indexed_at": "2026-08-05T13:16:35.013431+00:00",
+      "hash": "e0c7027ad3f1",
+      "indexed_at": "2026-08-08T20:33:55.837391+00:00",
       "language": "shell",
-      "lines": 387,
-      "mtime_ns": 1785903876638674000,
-      "size": 20044,
+      "lines": 411,
+      "mtime_ns": 1786213998016651500,
+      "size": 21303,
       "symbols": [
         {
           "lines": [
@@ -190,11 +199,11 @@
       ]
     },
     "ci-honesty.sh": {
-      "hash": "7873e6c3d117",
-      "indexed_at": "2026-08-08T18:28:50.311581+00:00",
+      "hash": "de8f7d12c30d",
+      "indexed_at": "2026-08-08T20:33:55.839785+00:00",
       "language": "shell",
       "lines": 374,
-      "mtime_ns": 1786207976751733700,
+      "mtime_ns": 1786215257277596900,
       "size": 18344,
       "symbols": [
         {
@@ -226,6 +235,15 @@
           "type": "function"
         }
       ]
+    },
+    "cli-event-coverage.sh": {
+      "hash": "d23ee80c8b08",
+      "indexed_at": "2026-08-08T20:33:55.842045+00:00",
+      "language": "shell",
+      "lines": 137,
+      "mtime_ns": 1786221094167529700,
+      "size": 7003,
+      "symbols": []
     },
     "count-theorems.sh": {
       "hash": "9376cfdcb98b",
@@ -392,18 +410,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "20fbc660a3c2",
-      "indexed_at": "2026-08-08T18:28:50.312566+00:00",
+      "hash": "ec9cbdb3107f",
+      "indexed_at": "2026-08-08T21:12:15.312728+00:00",
       "language": "shell",
-      "lines": 397,
-      "mtime_ns": 1786205850820213200,
-      "size": 20208,
+      "lines": 398,
+      "mtime_ns": 1786223527225123400,
+      "size": 20268,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            157,
-            172
+            158,
+            173
           ],
           "name": "fires",
           "type": "function"
@@ -575,18 +593,18 @@
       ]
     },
     "install-roundtrip.sh": {
-      "hash": "4abb9223b176",
-      "indexed_at": "2026-08-05T13:16:35.039033+00:00",
+      "hash": "d2d108b9f63e",
+      "indexed_at": "2026-08-08T20:33:55.872685+00:00",
       "language": "shell",
-      "lines": 408,
-      "mtime_ns": 1785903877557674800,
-      "size": 20097,
+      "lines": 447,
+      "mtime_ns": 1786215103031416600,
+      "size": 22162,
       "symbols": [
         {
           "docstring": "--- the fixture ------------------------------------------------------------ Deliberately hostile, and every hostile trait is one measured on the real",
           "lines": [
             49,
-            76
+            79
           ],
           "name": "make_fixture",
           "type": "function"
@@ -741,11 +759,11 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "8b4eb1b681c8",
-      "indexed_at": "2026-08-08T18:28:50.314105+00:00",
+      "hash": "792de9311c06",
+      "indexed_at": "2026-08-08T20:33:55.896102+00:00",
       "language": "shell",
       "lines": 674,
-      "mtime_ns": 1786213629533411100,
+      "mtime_ns": 1786215257278596400,
       "size": 35560,
       "symbols": [
         {
@@ -1064,12 +1082,12 @@
       ]
     },
     "router-duplication.sh": {
-      "hash": "202dfbef2b3a",
-      "indexed_at": "2026-08-05T13:16:35.080224+00:00",
+      "hash": "67b7ae58c266",
+      "indexed_at": "2026-08-08T20:33:55.923164+00:00",
       "language": "shell",
-      "lines": 245,
-      "mtime_ns": 1785903878830673400,
-      "size": 11976,
+      "lines": 267,
+      "mtime_ns": 1786215517048597700,
+      "size": 13363,
       "symbols": [
         {
           "docstring": "--- fixtures ---------------------------------------------------------------- A scratch Claude config. `enabled` decides whether the plugin registrati",
@@ -1091,8 +1109,8 @@
         {
           "docstring": "--- ARM 1: POSIX ------------------------------------------------------------",
           "lines": [
-            87,
-            116
+            109,
+            138
           ],
           "name": "run_case",
           "type": "function"
@@ -1100,8 +1118,8 @@
         {
           "docstring": "THE PATH IN THE MANIFEST MUST BE ONE **NODE** CAN OPEN. Claude Code writes a native path there (\"C:\\\\Users\\\\...\\\\0.7.2\" on Windows, measured). Writing",
           "lines": [
-            217,
-            220
+            239,
+            242
           ],
           "name": "canon_np",
           "type": "function"
@@ -1279,11 +1297,11 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "a44346b865ba",
-      "indexed_at": "2026-08-08T18:28:50.318379+00:00",
+      "hash": "8308bd908a7c",
+      "indexed_at": "2026-08-08T20:33:55.944110+00:00",
       "language": "shell",
       "lines": 1353,
-      "mtime_ns": 1786213017883448400,
+      "mtime_ns": 1786215257278596400,
       "size": 70043,
       "symbols": [
         {
@@ -1419,6 +1437,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T18:28:50.331118+00:00",
+  "generated_at": "2026-08-08T21:12:15.312843+00:00",
   "version": "1.0"
 }

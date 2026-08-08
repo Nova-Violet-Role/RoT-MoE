@@ -124,6 +124,21 @@ jobs:
         shell: bash
         run: bash checker/install-parity.sh
 
+      # DOES THE ROUTER BIND EVERY EVENT THE CLI DEFINES?
+      # Added after the event list was found to be a LOWER BOUND: it had been
+      # derived by counting which events other installed plugins used, which
+      # cannot reveal an event nothing on the measuring machine binds. It missed
+      # twenty of the thirty-one, SubagentStart among them.
+      #
+      # Phase A compares the manifest, both installer arms and the Lean spec
+      # against checker/cli-hook-events.txt and needs no claude binary, so it
+      # runs identically here and does NOT skip. Phase B re-extracts the array
+      # from an installed CLI when one is present -- on a runner there is none,
+      # and the checker says INAPPLICABLE rather than pretending to agree.
+      - name: cli event coverage (manifest + installers + Lean vs the CLI)
+        shell: bash
+        run: bash checker/cli-event-coverage.sh
+
       # THE RELEASE ARTIFACTS, BUILT AND THEN INSTALLED FROM THE ZIP.
       # These two run in this order and only in this order: release-install.sh
       # REFUSES (exit 2) if the archives are not on disk, because installing a

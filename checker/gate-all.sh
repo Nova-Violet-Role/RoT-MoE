@@ -119,6 +119,7 @@ mutate the checker|deep|hooks/,checker/cross-diff.sh,checker/cross-diff-remind.s
 portability|deep|checker/,hooks/,lean/,ARM_ROUTER,DISARM_ROUTER,.githooks/|bash checker/portability.sh
 installer round trip|deep|ARM_ROUTER,DISARM_ROUTER,checker/install,.claude-plugin/|bash checker/install-roundtrip.sh
 install parity|deep|ARM_ROUTER,DISARM_ROUTER,hooks/hooks.json,hooks/settings-merge.js,checker/install-parity.sh|bash checker/install-parity.sh
+cli event coverage|fast||bash checker/cli-event-coverage.sh
 release install|deep|checker/release,.claude-plugin/|bash checker/release-install.sh
 "
 
