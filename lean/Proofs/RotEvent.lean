@@ -98,6 +98,24 @@ theorem quote_payload_is_refused :
     (sanitise "Evil\",\"lane\":\"PWNED" == "-") = true := by
   rfl
 
+/-- THE UNIVERSAL INJECTION REFUSAL. A quote ANYWHERE in the event name is
+refused, whatever surrounds it -- not merely the one payload that was fired at
+the running hooks.
+
+This is the theorem the first version of this module failed to prove and
+recorded as a disclosed weakening: the general form was replaced by
+`non_letter_is_refused` plus the single decided instance below. That was honest
+but it was not the claim, and a weakened claim left standing is exactly what the
+governing rules forbid. The gap was a missing lemma name, not a missing fact --
+`String.toList_append` and `List.all_append` close it. -/
+theorem quote_is_refused (pre post : String) :
+    sanitise (pre ++ "\"" ++ post) = "-" := by
+  apply non_letter_is_refused
+  rw [String.toList_append, String.toList_append, List.all_append, List.all_append]
+  have hq : "\"".toList.all isLetter = false := by decide
+  rw [hq]
+  simp
+
 /-- NON-VACUITY. The sanitiser is not the constant function `"-"`; a real event
 name survives it unchanged. Without this, `sanitise_is_safe` would be satisfied
 by a sanitiser that destroys everything. -/

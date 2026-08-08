@@ -97,6 +97,37 @@ It is parsed with shell parameter expansion rather than a second `node` process:
 the hook costs ~125 ms, and a second interpreter spawn would roughly double that
 on every event, eleven times a turn.
 
+#### Measured live in CTT: six distinct events, and an A/B that shows no quality difference
+
+With the event field in place, a real CTT session (plugin `rot-moe` only,
+`claude -p` with `CLAUDE_CONFIG_DIR` pointed at the test config) produced six
+route records, each naming its event and the lane it routed to:
+
+| event | lane |
+|---|---|
+| `SessionStart` | CONVERGENT |
+| `UserPromptSubmit` | FORGE |
+| `PreToolUse` | CLINICAL |
+| `PostToolUse` | CLINICAL |
+| `Stop` | CONVERGENT |
+| `SessionEnd` | CONVERGENT |
+
+**Three of those six could not fire at all under the old three-event wiring.**
+That is the first direct evidence, from a live session rather than a harness,
+that the eleven-event registration changed what the router observes.
+
+**The A/B on this task shows NO difference in output, and that is reported
+rather than buried.** The same prompt was run against standard Claude Code with
+no plugin and no hooks: both returned `hello-from-ctt`, both in 2 turns, both
+`is_error: false`. The control held — the unplugged config wrote **zero** router
+records, so the six records are attributable to the plugin and to nothing else.
+
+What this measurement supports is precise and narrow: the router now **observes**
+six of eleven events in a real session, and observation is attributable to the
+plugin. It does **not** support any claim that the router improves answers. A
+single trivial task cannot show that, and nothing here should be read as
+showing it.
+
 #### `prover-remind.ps1` swallowed an unknown argument; the POSIX arm refused it
 
 Found while establishing whether the sanctum idiom `-Event *` is safe to put on
@@ -122,7 +153,7 @@ eleven registrations refuse itself. Measured, not reasoned — `HOOKMODE_EXIT=2`
 on the first run. All five modes are now asserted: hook 0, unknown flag 2,
 `-Decide` 0, `-Measure` 0, `-Version` 0.
 
-#### `lean/Proofs/RotEvent.lean` — 11 theorems, 8 mutants, all killed
+#### `lean/Proofs/RotEvent.lean` — 12 theorems, 8 mutants, all killed
 
 The specification of the sanitiser and of the coverage claim: the output is
 always `-` or letters (`sanitise_is_safe`); any non-letter name is refused
@@ -137,11 +168,16 @@ expire the way the two checkers above did: `undeclared_is_not_bound` over an
 arbitrary list and event, and `entries_equal_declared_count` over an arbitrary
 list.
 
-**One theorem was weakened, and it is disclosed rather than buried.** The
-intended `quote_is_refused (pre post)` — *any* string with a quote anywhere is
-refused — is replaced by a hypothesis-driven general refusal plus one decided
-concrete instance. The universally-quantified form over `pre`/`post` is **not
-proved**.
+**A weakening was disclosed and then closed rather than left standing.** The
+first version of this module could not prove `quote_is_refused (pre post)` —
+that a quote *anywhere* in an event name is refused, whatever surrounds it — and
+shipped a hypothesis-driven refusal plus one decided instance in its place, with
+the gap stated openly. Leaving it there would have been a weakened claim wearing
+a disclosure, which the governing rules forbid outright. The obstacle turned out
+to be two missing lemma names, not a missing fact: `String.toList_append` and
+`List.all_append` close it. The general theorem is now **proved** for arbitrary
+`pre` and `post`, and the measured single instance is kept beside it as the
+anchor to the attack that was actually fired.
 
 `lake build` exit 0 · axioms `[propext, Classical.choice, Quot.sound]` or
 axiom-free, `sorryAx` 0 · `leanchecker` exit 0, zero bytes, negative control
