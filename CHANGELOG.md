@@ -23,6 +23,82 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Being wired to an event is not permission to speak on it
+
+Wiring every hook to all 31 CLI events (previous entry) exposed a defect that the
+11-event binding had been hiding. A live session ended and the CLI answered:
+
+    SessionEnd hook [...] failed:
+    Hook JSON output validation failed — (root): Invalid input
+
+`hookSpecificOutput.additionalContext` is accepted on only **six** of the 31
+events. Every hook that echoes its invoking event — which is the correct
+behaviour, and stays — was therefore emitting schema-invalid JSON on the other
+25, once per firing, logged as a hook failure each time.
+
+**The shipped plugin had it too, and a first pass said it did not.** `hooks/rot-router.{sh,ps1}`
+emit no context at all, and on that basis this was written off as a local-tooling
+problem. The plugin registers **two** hooks per event, and the second —
+`hooks/prover-remind.{sh,ps1}` — does emit context. Grepping one of two files is
+how a false all-clear gets issued. `checker/context-gate.sh` reads `hooks/*` and
+cannot repeat the mistake.
+
+The fix gates **emission**, never the label. An event the CLI later starts
+accepting simply receives no injection — silent and harmless — instead of an
+error. Measured, both directions, before and after:
+
+| arm | `SessionEnd` | `PostToolUse` |
+|---|---|---|
+| before | **718 bytes, rejected** | 719 bytes, accepted |
+| after | **0 bytes** | 719 bytes, accepted |
+
+A gate that silenced everything would also have made the error go away, which is
+why the second column is part of the evidence and not an afterthought.
+
+**`lean/Proofs/RotInject.lean`** — 8 theorems. The load-bearing one is universal
+and cannot expire: *no event outside the accepting set ever emits*, quantified
+over every string including events that do not exist yet. Its partner is
+`accepting_still_emits`, which is what distinguishes a repair from a disarming.
+The six-event roster lives in `#guard`s, deliberately: it is a fact about
+claude.exe 2.1.226, and a theorem asserting "exactly six" would go red on a
+correct future CLI upgrade with deletion as the obvious repair. That defect shape
+has bitten this repo before and is not repeated. Nine mutants, nine killed, none
+discarded — including `I07`, which re-hardcodes the label and kills
+`label_is_the_invoking_event`, an axiom-free theorem that would otherwise read as
+vacuous.
+
+**`checker/context-gate.sh`** — the binding, without which RotInject would prove a
+property of a list no program reads. It parses the accepting set **out of the
+Lean source** and compares it to the arrays the shell and PowerShell arms
+actually branch on. Phase A audits `hooks/*` and caught the shipped defect on its
+first run; phase B checks the set against the 31 real events in both directions
+(subset, and complement non-empty, so a gate that refuses nothing fails); phase C
+compares the installed user hooks and prints `INAPPLICABLE` where they are
+absent, which is a statement about the machine, not a skip; phase D is a
+self-control that fails the gate if the detector stops detecting.
+
+Cross-arm parity re-measured after the change: `cross-diff-remind` 31/0,
+`remind-measure` 16/0 — the gate sits in the hook path only and `--decide` is
+untouched.
+
+### The global install was left on 0.7.1 with 1.0.1 hook files
+
+Refreshing only the *hook manifests* of the global install, while its
+`plugin.json` still said 0.7.1, produced a version number that did not describe
+the files beside it — worse than an old version, because every later diagnosis
+reads it. The full 1.0.1-lean build is now installed globally: marketplace
+directory, plugin cache, `known_marketplaces.json`, `installed_plugins.json` and
+`settings.json` all moved together, with eleven post-checks re-read from disk.
+This is a local install; `.release/` remains untouched and nothing is published.
+
+Two failures worth recording. The registry entries live under a top-level
+`plugins` object, not at the root — the installer asserted the shape and aborted
+cleanly rather than writing against a wrong assumption, which is why nothing was
+corrupted. And `settings.json` refused twelve consecutive writes with `EPERM`:
+not a lock but a **read-only attribute**, set by an earlier `cp -f` during an
+unrelated line-ending pass. Retrying was the wrong instinct; measuring the file
+attribute answered it in one command.
+
 ### Eleven was also wrong — the CLI defines **31** hook events, and the router bound 11
 
 The previous entry below celebrates going from 3 events to 11. Eleven was still a

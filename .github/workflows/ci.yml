@@ -139,6 +139,18 @@ jobs:
         shell: bash
         run: bash checker/cli-event-coverage.sh
 
+      # A HOOK WIRED TO AN EVENT MAY NOT SPEAK ON IT.
+      # Measured live on 2026-08-09: with all 31 events wired, hooks that emit
+      # hookSpecificOutput.additionalContext were doing so on events whose CLI
+      # schema rejects it -- "Hook JSON output validation failed" roughly 25
+      # times a session. Phases A/B are pure file reads and run everywhere;
+      # phase C prints INAPPLICABLE where the user-profile hooks are absent,
+      # which is a statement about the runner, not a skipped check. Phase D is
+      # a self-control that fails the gate if the detector stops detecting.
+      - name: context gate (no context emitted on a rejecting event)
+        shell: bash
+        run: bash checker/context-gate.sh
+
       # THE RELEASE ARTIFACTS, BUILT AND THEN INSTALLED FROM THE ZIP.
       # These two run in this order and only in this order: release-install.sh
       # REFUSES (exit 2) if the archives are not on disk, because installing a

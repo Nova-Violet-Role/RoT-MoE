@@ -346,6 +346,11 @@ def shipped : List Gate :=
   -- events, SubagentStart included. It is fast because it reads four files and
   -- needs no claude binary, so it runs on every commit and on every runner.
   , f "cli event coverage"
+  -- Binds Proofs/RotInject.lean to the hooks that actually run: the accepting
+  -- set is parsed OUT of the Lean source and compared to the arrays the shell
+  -- and PowerShell arms branch on. Without it RotInject would prove a property
+  -- of a list no program reads. Fast: no CLI, no network, four file reads.
+  , f "context gate"
   , d "release install" ["checker/release", ".claude-plugin/"]
   , d "CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential" [".github/workflows/", "checker/ci-honesty.sh"]
   ]
@@ -362,10 +367,10 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 45
+#guard shipped.length = 46
 
 -- Twenty-eight run on every commit.
-#guard (fastSet shipped).length = 29
+#guard (fastSet shipped).length = 30
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
@@ -390,7 +395,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 34
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 35
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -400,14 +405,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 29
+#guard (stagedRun shipped []).length = 30
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 33
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 34
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 30
+#guard (stagedRun shipped ["README.md".toList]).length = 31
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

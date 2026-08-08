@@ -238,12 +238,30 @@
     },
     "cli-event-coverage.sh": {
       "hash": "d23ee80c8b08",
-      "indexed_at": "2026-08-08T20:33:55.842045+00:00",
+      "indexed_at": "2026-08-08T22:38:11.420739+00:00",
       "language": "shell",
       "lines": 137,
-      "mtime_ns": 1786221094167529700,
+      "mtime_ns": 1786221802828312600,
       "size": 7003,
       "symbols": []
+    },
+    "context-gate.sh": {
+      "hash": "555b3c254fa3",
+      "indexed_at": "2026-08-08T22:40:29.794886+00:00",
+      "language": "shell",
+      "lines": 172,
+      "mtime_ns": 1786228827643673500,
+      "size": 7814,
+      "symbols": [
+        {
+          "lines": [
+            156,
+            158
+          ],
+          "name": "_detect",
+          "type": "function"
+        }
+      ]
     },
     "count-theorems.sh": {
       "hash": "9376cfdcb98b",
@@ -410,18 +428,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "ec9cbdb3107f",
-      "indexed_at": "2026-08-08T21:12:15.312728+00:00",
+      "hash": "23bd384ea6cd",
+      "indexed_at": "2026-08-08T22:45:54.780826+00:00",
       "language": "shell",
-      "lines": 398,
-      "mtime_ns": 1786223527225123400,
-      "size": 20268,
+      "lines": 399,
+      "mtime_ns": 1786229152672674200,
+      "size": 20316,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            158,
-            173
+            159,
+            174
           ],
           "name": "fires",
           "type": "function"
@@ -1445,6 +1463,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T22:06:38.072447+00:00",
+  "generated_at": "2026-08-08T22:45:54.785541+00:00",
   "version": "1.0"
 }

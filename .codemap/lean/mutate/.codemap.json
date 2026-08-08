@@ -288,6 +288,24 @@
         }
       ]
     },
+    "mutate_rotinject.sh": {
+      "hash": "ba9dfcc3e1d0",
+      "indexed_at": "2026-08-08T22:38:11.571653+00:00",
+      "language": "shell",
+      "lines": 292,
+      "mtime_ns": 1786228688960205900,
+      "size": 13185,
+      "symbols": [
+        {
+          "lines": [
+            107,
+            189
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotinstall.sh": {
       "hash": "1cb67cdbf446",
       "indexed_at": "2026-08-07T14:20:02.064121+00:00",
@@ -627,6 +645,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T20:33:56.070400+00:00",
+  "generated_at": "2026-08-08T22:38:11.624016+00:00",
   "version": "1.0"
 }

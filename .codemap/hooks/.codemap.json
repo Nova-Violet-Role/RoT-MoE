@@ -21,12 +21,12 @@
       ]
     },
     "prover-remind.sh": {
-      "hash": "807e0ccb76cb",
-      "indexed_at": "2026-08-08T20:33:55.956148+00:00",
+      "hash": "9e6fac25f830",
+      "indexed_at": "2026-08-08T22:42:15.572875+00:00",
       "language": "shell",
-      "lines": 606,
-      "mtime_ns": 1786215257278596400,
-      "size": 31298,
+      "lines": 622,
+      "mtime_ns": 1786228932842674500,
+      "size": 32209,
       "symbols": [
         {
           "docstring": "WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live.  This defaulted straight to the plugin's bundled corpus, and that was wrong in a way",
@@ -74,7 +74,7 @@
         {
           "lines": [
             179,
-            607
+            623
           ],
           "name": "decide",
           "type": "function"
@@ -125,7 +125,7 @@
           "docstring": "--- HOOK MODE --------------------------------------------------------------- ========================================================================",
           "lines": [
             389,
-            607
+            623
           ],
           "name": "verify_lean_edit",
           "type": "function"
@@ -134,7 +134,7 @@
           "docstring": "No arguments means \"you were called as a hook\". That default is not a nicety: R20 measured the router shipping with only its flag modes while ARM_ROUT",
           "lines": [
             500,
-            607
+            623
           ],
           "name": "hook_mode",
           "type": "function"
@@ -214,6 +214,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-08T20:33:56.068871+00:00",
+  "generated_at": "2026-08-08T22:42:15.573003+00:00",
   "version": "1.0"
 }

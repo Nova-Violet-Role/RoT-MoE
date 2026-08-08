@@ -560,6 +560,22 @@ hook_mode () {
   fi
   [ -z "$ctx" ] && exit 0
 
+  # SCHEMA GATE: being wired to an event is not permission to speak on it.
+  # Measured live 2026-08-09 on the 31-event wiring: the CLI answered
+  #   Hook JSON output validation failed - (root): Invalid input
+  # for a context payload emitted on SessionEnd. additionalContext is accepted on
+  # only some events; on the rest this hook was logging a failure every time it
+  # fired. The label above is NOT touched -- it must keep naming the invoking
+  # event -- only the emission is gated, and an event the CLI later starts
+  # accepting simply gets no injection, which is the safe direction.
+  # The set is proved a subset of the real events in lean/Proofs/RotInject.lean
+  # and compared against this array by checker/context-gate.sh.
+  CTX_EVENTS="PreToolUse PostToolUse PostToolBatch SessionStart UserPromptSubmit UserPromptExpansion"
+  case " $CTX_EVENTS " in
+    *" $ev "*) : ;;
+    *) exit 0 ;;
+  esac
+
   date +%s > "$stampf" 2>/dev/null
   # The invoking event MUST be echoed back or Claude Code discards the payload
   # silently -- a hook that appears wired, runs, and delivers nothing.
