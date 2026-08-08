@@ -234,6 +234,12 @@ def shipped : List Gate :=
     -- because a needle goes stale in commits that have nothing to do with
     -- mutation testing, so it must run on all of them.
   , f "mutant needles (every needle still exists; no suite all-DISCARDED)"
+    -- DEEP because it packages three archives twice -- once to build, once to
+    -- prove the build regenerates -- and that cost buys the only property that
+    -- makes a local artifact worth installing into CTT. Triggered by the
+    -- version-bearing surfaces and by the packager itself: those are the commits
+    -- after which a local zip silently stops matching the tree it claims.
+  , d "local-only 1.0.x release regenerates from HEAD and cannot be published" [".claude-plugin/", "CITATION.cff", "RELEASE.md", "checker/release"]
     -- DEEP, and the trigger list is the point: this can only be wrong after a
     -- commit that changes what CI runs or what the hooks do. It answers "does
     -- the run I am reading contain the fix I am claiming", which is the check
@@ -340,13 +346,13 @@ def shipped : List Gate :=
 -- `CI honesty` on 2026-08-05, deep tier, after run 31035932155 concluded
 -- `success` with EIGHT skipped steps -- one of them `tty guard`, a real check
 -- that had never run on Windows or macOS.
-#guard shipped.length = 42
+#guard shipped.length = 43
 
 -- Twenty-three run on every commit.
 #guard (fastSet shipped).length = 28
 
--- Thirteen are escalated by path (`CI honesty` joined 2026-08-05).
-#guard (deepSet shipped).length = 14
+-- Fifteen are escalated by path (`CI honesty` joined 2026-08-05).
+#guard (deepSet shipped).length = 15
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length
