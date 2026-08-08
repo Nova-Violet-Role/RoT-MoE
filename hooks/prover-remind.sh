@@ -203,8 +203,27 @@ decide () {   # decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS
       _out='RESULT IS IN -- attribute it. A green build is elaboration, not truth; bind the measurement to a theorem or say plainly that it is MEASURED, not PROVED.' ;;
   esac
 
-  if [ "$_nr" -gt 0 ]; then
-    _out="$_out KERNEL REJECTED $_nr module(s): $(first_n "$_kred" 4). leanchecker disagrees with lake build -- those theorems are NOT proved. Fix before anything else."
+  # Split the watchdog's red list into the two things it was conflating: modules
+  # the kernel actually REJECTED, and modules whose re-check never finished
+  # (marked with a trailing `?` by measure_kernel). Reporting a timeout as a
+  # rejection is a false accusation, and it cost a session real time -- see the
+  # comment in measure_kernel.
+  _rej=""; _unf=""
+  for _tok in $(printf '%s' "$_kred" | tr ',' ' '); do
+    case "$_tok" in
+      "") ;;
+      *\?) _unf="$_unf,${_tok%\?}" ;;
+      *)   _rej="$_rej,$_tok" ;;
+    esac
+  done
+  _rej=${_rej#,}; _unf=${_unf#,}
+  _nrej=$(count_csv "$_rej"); _nunf=$(count_csv "$_unf")
+
+  if [ "$_nrej" -gt 0 ]; then
+    _out="$_out KERNEL REJECTED $_nrej module(s): $(first_n "$_rej" 4). leanchecker disagrees with lake build -- those theorems are NOT proved. Fix before anything else."
+  fi
+  if [ "$_nunf" -gt 0 ]; then
+    _out="$_out KERNEL RE-CHECK DID NOT FINISH for $_nunf module(s): $(first_n "$_unf" 4). A TIMEOUT IS NOT A REJECTION and it is not a pass either -- the question was never answered. Re-run lake env leanchecker on those modules with a longer bound before believing anything about them."
   fi
   if [ "$_ns" -gt 0 ]; then
     _out="$_out SORRY PRESENT in: $(first_n "$_ksorry" 4). A sorry is an admission, never a result -- report it with a count."
@@ -300,7 +319,27 @@ measure_kernel () {   # echoes "<red csv>|<sorry csv>" from the watchdog status 
     node -e '
       const fs=require("fs");
       try{const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
-        const red=(v.red||[]).map(x=>x.module||x).join(",");
+        // A TIMEOUT IS NOT A REJECTION. Measured 2026-08-09: the watchdog timed
+        // out re-checking the four largest modules and wrote them to `red` with
+        // reason "TIMEOUT"; this line dropped the reason, and the hook then said
+        // "KERNEL REJECTED 4 module(s) ... those theorems are NOT proved. Fix
+        // before anything else." All four verify at exit 0 with ZERO bytes when
+        // given time. The alarm sent a session to repair proofs that were fine.
+        //
+        // "I did not finish asking" is not "the answer is no" -- the same
+        // conflation as the empty-payload guard, pointed the other way. Reasons
+        // that mean UNFINISHED get a `?` suffix so `decide` can word them
+        // differently while the 7-argument contract stays intact.
+        //
+        // FAIL LOUD ON THE UNKNOWN: only these two reasons are demoted. A reason
+        // this code has never seen keeps the full rejection alarm, because the
+        // safe default for an unrecognised failure is to shout.
+        const UNFINISHED=["TIMEOUT","NOT_FOUND"];
+        const red=(v.red||[]).map(x=>{
+          const m=x.module||x;
+          const r=(x&&x.reason)?String(x.reason).toUpperCase():"";
+          return UNFINISHED.indexOf(r)>=0 ? m+"?" : m;
+        }).join(",");
         const s=(v.sorryFiles||[]).join(",");
         process.stdout.write(red+"|"+s);}catch(e){process.stdout.write("|");}' "$_vs" 2>/dev/null || echo "|"
   else

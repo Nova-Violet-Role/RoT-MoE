@@ -217,6 +217,39 @@ except_reason () {   # except_reason <basename> -> prints reason, or nothing
 # consecutive runs reported an identical failure while the repair sat
 # uncommitted here. It runs from gate-all.sh, and the phase below asserts that.
     ci-audit-freshness.sh) printf '%s' "compares a run against LOCAL HEAD; in CI that is trivially itself, so it runs from gate-all.sh instead" ;;
+# release-local IS THE PRE-RELEASE STAGING REHEARSAL, and it is local by
+# definition. `.release-local-only/` is where a new version is built and tested
+# on THIS machine -- installed into CTT, exercised -- before anything is promoted
+# into `.release/`. It is .gitignore'd and never published.
+#
+# It was wired into ci.yml anyway, and ran on three runners. macOS-latest failed
+# it for three consecutive runs (BSD `sed -i`), taking 28 later steps down as
+# skipped. The incompatibility was the symptom; the category error was asking a
+# GitHub runner to rehearse a release into a CTT that does not exist there.
+#
+# Removed from ci.yml 2026-08-09. It still runs in the local deep tier through
+# gate-all.sh, and exempt_must_be_reachable asserts that below -- so this
+# exemption states WHERE it runs, never that it stopped running.
+    release-local.sh)  printf '%s' "pre-release staging rehearsal into a gitignored dir and CTT; neither exists on a runner, so it runs from gate-all.sh" ;;
+# THE NEXT THREE WERE ALREADY OUT OF CI ON PURPOSE -- and this table did not know
+# it. Each carries a comment in ci.yml explaining why it is not a step, and the
+# wiring scan below used to read that comment as proof the checker WAS wired.
+# Stripping comments (see WF_TEXT) exposed all three at once. Their reasons were
+# already correct; they were simply written in prose instead of being enforced
+# here, so nothing asserted they still ran ANYWHERE. Now something does.
+#
+# ci.yml:536 -- ci-dryrun executes this workflow's own step list, so running it
+# as a step inside that workflow is recursion.
+    ci-dryrun.sh)      printf '%s' "executes this workflow's own step list; running it as a step in that workflow recurses" ;;
+# ci.yml:74 -- ci-honesty judges a COMPLETED run. Inside a run, that run is
+# in_progress by construction, so the verdict would be provisional forever. Same
+# structural reason as ci-audit-freshness above.
+    ci-honesty.sh)     printf '%s' "judges a completed run; inside a run that run is in_progress by construction, so it runs from gate-all.sh" ;;
+# ci.yml:605 -- both release-session gates need the `claude` CLI and the
+# sustained one needs a credential to clone. The workflow comment says it
+# plainly: a step that can NEVER do its job still paints a green check.
+    release-longsession.sh) printf '%s' "needs the claude CLI and a clone credential; a step that can never do its job still paints a green check" ;;
+    release-session.sh)     printf '%s' "needs the claude CLI, absent on a public runner; runs from gate-all.sh instead" ;;
   esac
 }
 
@@ -270,7 +303,49 @@ $2
   esac
 }
 
-WF_TEXT="$(cat .github/workflows/*.yml)"
+# STRIP YAML COMMENTS BEFORE ASKING "IS IT WIRED".
+#
+# Measured 2026-08-09, on the very commit that removed a step. The step running
+# checker/release-local.sh was deleted from ci.yml and replaced with a comment
+# block explaining WHY -- a block that necessarily names the file. This scan read
+# the raw text, found the name inside the comment, and printed
+#
+#     PASS  wired into a workflow: release-local.sh
+#
+# about a checker no workflow runs any more. A mention is not a wiring, exactly
+# as a mention is not a leak: the rule must read the commands, not the prose
+# around them. Section 1 above already learned this for `git push` and has a
+# control for it; this section had not.
+#
+# Comments are stripped the same way section 1 does it. That is imperfect for a
+# `#` inside a quoted string, and deliberately so -- erring toward NOT seeing a
+# wiring makes the checker complain about a real gap, never bless a missing one.
+WF_TEXT="$(sed 's/#.*$//' .github/workflows/*.yml)"
+
+# CONTROL for the strip, both directions. The bug it prevents was introduced and
+# caught inside one commit, so the control is not hypothetical: a comment naming
+# a checker must NOT read as a wiring, and a real `run:` line MUST.
+ctl_yml="${TMPDIR:-/tmp}/wfl-strip.$$.yml"
+printf '%s\n' \
+  'jobs:' \
+  '  x:' \
+  '    steps:' \
+  '      # NOT RUN HERE on purpose: checker/ghost-only-in-a-comment.sh' \
+  '      - run: bash checker/really-wired.sh' > "$ctl_yml"
+ctl_txt="$(sed 's/#.*$//' "$ctl_yml")"
+strip_ok=0
+case "
+$ctl_txt
+" in *"ghost-only-in-a-comment.sh"*) bad "CONTROL: a checker named only in a COMMENT still reads as wired -- the strip is not working" ;;
+     *) strip_ok=$((strip_ok+1)) ;;
+esac
+case "
+$ctl_txt
+" in *"really-wired.sh"*) strip_ok=$((strip_ok+1)) ;;
+     *) bad "CONTROL: a checker on a real run: line was LOST by the strip -- the rule would invent failures" ;;
+esac
+rm -f "$ctl_yml"
+[ "$strip_ok" -eq 2 ] && ok "CONTROL: a comment mention is not a wiring, and a run: line still is"
 for c in checker/*.sh; do
   base="${c##*/}"
   if contains "$WF_TEXT" "$base"; then

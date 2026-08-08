@@ -160,7 +160,15 @@ build_into () {
   for f in "$ex/.claude-plugin/plugin.json" "$ex/.claude-plugin/marketplace.json" \
            "$ex/CITATION.cff" "$ex/RELEASE.md"; do
     [ -f "$f" ] || continue
-    sed -i "s/0\.9\.2/$LOCALVER.2/g; s/0\.9\.1/$LOCALVER.1/g; s/0\.9\.0/$LOCALVER.0/g" "$f"
+    # NOT `sed -i`: it is not portable and this line failed every macOS run from
+    # 2026-08-08 onward. GNU sed treats the argument after -i as OPTIONAL, BSD
+    # sed (macOS) REQUIRES one and takes the next word as the backup suffix --
+    # so `sed -i "s/a/b/" f` on macOS tries to use the script as a suffix and
+    # dies. `sed -i ''` fixes macOS and breaks GNU. There is no spelling of
+    # `-i` that works on both, so write to a temp file and move it into place,
+    # which works everywhere and needs no branch on the platform.
+    sed "s/0\.9\.2/$LOCALVER.2/g; s/0\.9\.1/$LOCALVER.1/g; s/0\.9\.0/$LOCALVER.0/g" "$f" > "$f.tmp" \
+      && mv "$f.tmp" "$f"
   done
   if ! grep -q "\"version\": \"$LOCALVER\.2\"" "$ex/$MANIFEST"; then
     inf "the version rewrite did not take in the export -- refusing to build"
@@ -220,13 +228,29 @@ fi
 # timestamps, so a byte comparison would fail on a correct pair and teach the
 # reader to ignore it. What must match is what a stranger unpacks: the file list
 # and the sha256 of every file.
+# `sha256sum` is GNU coreutils and DOES NOT EXIST on macOS, where the tool is
+# `shasum -a 256`. Measured: this is the second of the two reasons this checker
+# failed on every macOS run from 2026-08-08. Resolve the command ONCE, and
+# REFUSE if neither is present rather than silently digesting nothing -- an
+# empty digest would compare equal to another empty digest and pass.
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA256() { sha256sum "$1"; }
+elif command -v shasum >/dev/null 2>&1; then
+  SHA256() { shasum -a 256 "$1"; }
+elif command -v openssl >/dev/null 2>&1; then
+  SHA256() { printf '%s  %s\n' "$(openssl dgst -sha256 -r "$1" | cut -d' ' -f1)" "$1"; }
+else
+  echo "REFUSE: no sha256 tool (sha256sum, shasum or openssl) -- cannot compare archives"
+  exit 2
+fi
+
 digest_of () {
   # $1 = zip, $2 = output digest file
   local z="$1" out="$2" d
   d="$(mktemp -d "${TMPDIR:-/tmp}/reldig.XXXXXX")" || return 1
   unzip -qq "$z" -d "$d" 2>/dev/null || { rm -rf "$d"; return 1; }
   ( cd "$d" && find . -type f | LC_ALL=C sort | while IFS= read -r f; do
-      printf '%s  %s\n' "$(sha256sum "$f" | cut -d' ' -f1)" "$f"
+      printf '%s  %s\n' "$(SHA256 "$f" | cut -d' ' -f1)" "$f"
     done ) > "$out"
   rm -rf "$d"
   [ -s "$out" ]

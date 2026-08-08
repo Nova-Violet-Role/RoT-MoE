@@ -23,6 +23,212 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A timeout is not a rejection — the hook accused four modules of being unproved
+
+The hook that guards this repo's proofs spent the day telling the session:
+
+```
+KERNEL REJECTED 4 module(s): Proofs.RotMutant, Proofs.RotVerdict,
+Proofs.RotVacuity, Proofs.RotRoute. leanchecker disagrees with lake build --
+those theorems are NOT proved. Fix before anything else.
+```
+
+Every word of that is false. Re-checked directly, all four return **exit 0 with zero
+bytes** — the kernel pass. The watchdog's status file explains it: each entry reads
+`{"module":"Proofs.RotMutant","reason":"TIMEOUT"}`. The re-check of the four *largest*
+modules ran out of time, the watchdog recorded them as red, and `measure_kernel` mapped
+`v.red` to module names while dropping the reason.
+
+**"I did not finish asking" was being reported as "the answer is no."**
+
+This is the third instance of one shape in a single cycle, and the direction is worth
+noting. The empty-payload guard turned *no data* into a PASS; the provisional-CI defect
+turned *not yet finished* into a PASS; this one turns *no data* into a FAIL. The last is
+the safer default and still wrong — a false statement about four named modules, costing
+exactly what a false alarm always costs: the time spent disproving it.
+
+The reader now has three outcomes. A recognised "did not finish" reason (`TIMEOUT`,
+`NOT_FOUND`) is marked and reported as **KERNEL RE-CHECK DID NOT FINISH … a timeout is not
+a rejection and it is not a pass either**. Everything else, *including an unfamiliar
+reason*, keeps the full rejection alarm — the safe default for an unknown failure is to
+shout, and `an_unknown_reason_still_accuses` is the theorem that holds that line.
+
+Both hook arms changed identically; `cross-diff-remind.sh` diffs them on every corpus row
+and the corpus gained five rows covering only-unfinished, only-rejected and mixed
+(`31 passed, 0 failed`).
+
+`RotGuard.lean` part four proves the distinction: the old reader accuses all four
+(`the_old_reader_accused_all_four`), the new one accuses none
+(`the_new_reader_accuses_none_of_them`), and `the_old_reader_ignores_the_reason` states the
+real defect — its output did not depend on its input at all, so the `reason` field it read
+was doing no work. `only_the_unfinished_are_demoted` proves the repair silences nothing
+real: for every reason other than those two, old and new agree.
+
+### A local pre-release rehearsal was being run on GitHub's runners — that was the defect
+
+Reported by the Socio twice: first that macOS CI had been failing repeatedly, then — after
+this file had already blamed BSD `sed` — that the real mistake was **merging into `ci.yml`
+something that should have stayed local**. The second diagnosis is the correct one and this
+entry now leads with it.
+
+`.release-local-only/` is the staging area where a new version is built and exercised **on
+this machine**, installed into CTT, before anything is promoted into `.release/`. It is
+`.gitignore`d and never published. `checker/release-local.sh` (R23) rehearses exactly that.
+It was wired into `ci.yml` as a step on all three runners, where there is no CTT and nothing
+can be promoted anywhere — a local rehearsal asked of a machine that cannot host it. The
+comment that used to sit above the step claimed CI "proves something I cannot prove
+locally"; what it actually proved is that the runner is not this machine.
+
+The step is removed. The gate is **not** deleted and **not** weakened: it runs in the local
+deep tier through `gate-all.sh` and passes there (`11 passed, 0 failed`), and
+`workflow-lint.sh` now carries it as a named exemption whose reachability from `gate-all.sh`
+is asserted — so it cannot quietly stop running.
+
+**Removing the step exposed a second defect immediately.** The removal left a comment
+explaining why, and that comment necessarily names the file. `workflow-lint.sh` read the raw
+YAML and printed `PASS wired into a workflow: release-local.sh` about a checker no workflow
+runs any more. A mention is not a wiring — the same lesson as "a mention is not a leak",
+which this repo had already learned for `git push` in section 1 of the same file and had a
+control for. The scan now strips comments, and a two-way control asserts that a
+comment-only mention does not read as wired while a real `run:` line still does.
+
+Stripping comments then exposed a **third**, pre-existing hole: four checkers had been
+counted as CI-covered on the strength of prose alone — `ci-dryrun.sh`, `ci-honesty.sh`,
+`release-session.sh`, `release-longsession.sh`. Every one of them is out of CI *on purpose*
+and each already had a correct reason written in `ci.yml` — recursion, judging a run from
+inside itself, needing the `claude` CLI. Those reasons were prose; nothing asserted the
+checkers still ran anywhere. They are now enforced exemptions with reachability checked.
+
+The portability repairs below stay, because a macOS contributor running the deep tier
+locally still needs them.
+
+#### The symptom, and why it went unnoticed for three runs
+
+**The defect.** `checker/release-local.sh` used two GNU-only constructs, both invisible on
+Linux, Windows and Git Bash — everywhere it was ever run locally. The runner log names the
+first one exactly, four times over:
+
+```
+sed: 1: "/var/folders/df/djsxfhc ...": invalid command code f
+  ----  the version rewrite did not take in the export -- refusing to build
+##[error]phase 2: the local package build FAILED
+```
+
+That message *is* the `-i` defect: BSD sed took the substitution script as the backup suffix,
+then read the **file path** as the script, parsed the leading `/` as an address and choked on
+the `f` of `/var/folders`. The checker's own refusal — "the version rewrite did not take" —
+then fired correctly, which is the one part of this that worked as designed.
+
+Precision about the second construct, since the log settles it: the build died in phase 2 and
+the digest phase was never reached, so `sha256sum` **never executed**. It is a latent defect
+fixed alongside, not an observed one. Saying "both were fatal" would have been an
+overclaim — one was fatal, the other was next in line.
+
+| line | construct | on macOS | observed? |
+|---|---|---|---|
+| `163` | `sed -i "s/…/" f` | GNU treats the argument after `-i` as **optional**; BSD **requires** one and takes the next word as the backup suffix, so the script is eaten as a suffix and the command dies | **yes** -- `invalid command code f`, x4 |
+| `229` | `sha256sum` | does not exist; the tool is `shasum -a 256` | no -- phase 2 died first |
+
+There is no spelling of `-i` that works on both — `sed -i ''` fixes macOS and breaks GNU — so
+the repair writes to a temp file and moves it into place, and the digest resolves its tool
+once through `command -v` with a refusal if none is present. `checker/release-package.sh:406`
+had resolved the sha256 question correctly since the day it was written: the knowledge was
+already in the repo and simply had not been applied here.
+
+Runs `31261506027`, `31263721866` and `31266263626` all concluded `failure` on
+`checkers (macos-latest)`, each with **28 subsequent steps skipped**; ubuntu and windows were
+green throughout. All three runner logs were downloaded and carry the identical signature —
+8 `invalid command code` lines and the same two `##[error]` lines — so this is one defect
+reproduced three times, not three coincidences.
+
+A known unknown, stated because the fix does not close it: those 28 skipped steps have
+**never executed on macOS**. Fixing this one only lets the job reach them. The repo-wide scan
+for the two constructs now returns zero hits, but a BSD/GNU difference this scan does not know
+about could surface in any of them on the next green-enough run.
+
+**Why the checker missed it, which is the part worth keeping.** `ci-honesty.sh` was run four
+times against those commits, always while the run was still `in_progress`, and each time it
+printed:
+
+```
+FAIL  the run is 'in_progress', not completed -- there is no verdict to report yet
+PASS  NO step was skipped -- every authored step ran on every platform
+PASS  every step concluded success (158 steps read)
+```
+
+Both PASS lines were true of the steps that had finished and **wrong about the run** — the
+macOS job had not yet reached its failing step. Beside a single timing FAIL they read as
+"only the clock is unresolved", and three red runs went by.
+
+A question whose answer is not yet knowable must not be answered PASS. There is now a third
+outcome, `PROVISIONAL`, which prints the reading and **does not count as a pass** — the same
+rule as the malformed-payload guard, which also had to become a third outcome rather than a
+coerced second one. Measured on the live run: what used to report `7 passed, 1 failed` now
+reports `5 passed, 1 failed`.
+
+**And the gate that should have caught the constructs.** `portability.sh` passed the whole
+time. It checks `\|` in sed BREs and three bash-4 constructs, and had no rule for either of
+these. Section `6b` adds both, with five controls — three planted violations that must be
+caught and two correct forms that must be spared, because a rule that flags
+`sed -i ''` or a guarded `command -v sha256sum` wrapper would be deleted by the next person
+who trips over it. The decisive control: run the rule against the **pre-fix file from git**,
+and it names both defects at lines 163 and 229.
+
+Two smaller findings fell out of writing it. The new code initially used
+`printf … | grep -q`, and `portability.sh`'s own SIGPIPE rule caught it — replaced with
+`case`. And a file named with a leading dot in `checker/` is invisible to every `checker/*.sh`
+scan, which is how the first attempt at the pre-fix control silently passed.
+
+### The first endpoint that *could* show a quality win — and it did not
+
+Two of the three published primaries are `0.000` in both arms across 88 turns. That is not
+"no effect": counts are bounded below by zero, the control arm sits on the bound, and so
+those endpoints could not have shown a win for **any** routed arm
+(`the_zero_endpoints_cannot_show_improvement`). So one was needed that can move.
+
+`bench/ab-session.sh` appends `" Answer in one or two sentences."` to every prompt, in both
+arms, verbatim. Compliance with it is scorable mechanically by a scorer that is identical on
+each side, and the control arm violates it 41 times in 88 turns — nowhere near the floor.
+Capable, by the definition already in `RotEndpoint.lean`.
+
+**The headline favoured routing:**
+
+| | routed | unrouted |
+|---|---|---|
+| violations of the two-sentence limit | 23 / 88 (26.1 %) | 41 / 88 (46.6 %) |
+| mean sentences | 2.18 | 3.25 |
+| paired sign | **28 better** | 10 better, 50 ties |
+
+Two-sided sign test on the 38 discordant pairs: **p = 5.1e-3**.
+
+**Then the confound removed it.** Routed answers are also 26 % shorter, and sentence count
+rises with length nearly by construction — measured Pearson r = 0.263 routed, r = 0.707
+unrouted. A brevity win drags compliance along with it, which would make this a second
+measurement of an already-published result rather than new evidence.
+
+Isolating the pairs brevity cannot explain — routed complied **and** was not shorter — leaves
+**2 wins against 10 losses**, p = 3.9e-2. On the de-confounded subset the effect **reverses**:
+routing is mildly worse.
+
+So the result recorded here is negative. The compliance win is the brevity result restated.
+No quality improvement from nine-lens routing has been demonstrated, and on the only capable
+endpoint measured so far the de-confounded sign points the other way.
+
+One further reason to distrust it even as a negative: it counts sentences, so a single
+2080-character run-on scores as perfect compliance. That case is in the corpus (turn 46) and
+`a_run_on_sentence_scores_as_compliant` pins it.
+
+`RotEndpoint.lean` gains 7 theorems and 4 mutants for this, including `capable_is_not_enough`
+— stated generally, not about these numbers: whenever the covariate-explained share of the
+wins is large enough, the headline favours routing while the de-confounded subset does not.
+`no_explained_wins_means_no_divergence` is its contrapositive and the test to apply.
+
+`checker/ab-compliance.sh` re-derives every figure from the raw transcripts and fails if any
+drifts **in either direction** — a bigger headline breaks it exactly as loudly as a smaller
+one — and it fails if the correction ever detaches from the headline. Controls: planting three
+extra sentences in one turn moved 23 → 24 and the gate went red; a missing corpus exits 3,
+never 0.
+
 ### A gate must trigger on itself — 14 of 25 were blind to their own edits
 
 Measured across the shipped table with `gate-all.sh`'s own prefix matcher: of the 25 deep

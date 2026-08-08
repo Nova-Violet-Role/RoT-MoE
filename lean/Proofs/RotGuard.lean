@@ -291,6 +291,123 @@ failures is not a green -- it is evidence the reader is broken. -/
 theorem log_and_harness_disagreed :
     readAfter theGate theSubstitution = 0 ∧ logSaysFailed ≠ 0 := by decide
 
+/-! ## Part four: a timeout is not a rejection
+
+The third instance of the same shape in one day, and the only one that accused
+the *proofs* rather than excusing them.
+
+`hooks/prover-remind.sh` reads a watchdog status file and reports its `red` list
+as **KERNEL REJECTED ... those theorems are NOT proved. Fix before anything
+else.** Measured 2026-08-09: all four modules in that list carried
+`"reason":"TIMEOUT"`. The watchdog had run out of time re-checking the four
+largest modules and written them to `red`; the reader dropped the reason.
+
+`Proofs.RotMutant`, `Proofs.RotVerdict`, `Proofs.RotVacuity` and
+`Proofs.RotRoute` each re-verify at **exit 0 with zero bytes** when given time.
+
+Note which direction this one fails in. Part one turned "no data" into a PASS;
+this turns "no data" into a FAIL. The second is the safer default and still
+wrong, because it is a false statement about specific named theorems, and it
+costs exactly what a false alarm always costs -- the time spent disproving it.
+
+The repair gives the reader three outcomes instead of two, and demotes only the
+reasons it recognises: an unfamiliar failure reason keeps the loud alarm, since
+the safe default for an unknown is to shout.
+-/
+
+/-- What a kernel re-check can actually tell you. -/
+inductive Kernel where
+  /-- The kernel re-verified the proof terms. -/
+  | verified
+  /-- The kernel rejected them. This is the only one that impugns a theorem. -/
+  | rejected
+  /-- The re-check never finished, so nothing was learned either way. -/
+  | unfinished
+  deriving DecidableEq, Repr
+
+/-- How the watchdog described each module it could not clear. -/
+inductive Reason where
+  /-- Ran out of time. -/
+  | timeout
+  /-- No oleans at that module path. -/
+  | notFound
+  /-- A genuine kernel rejection. -/
+  | kernelSaidNo
+  /-- Something this code has never seen. -/
+  | unrecognised
+  deriving DecidableEq, Repr
+
+/-- The OLD reader: everything on the red list became a rejection. -/
+def oldClassify (_r : Reason) : Kernel := Kernel.rejected
+
+/-- The NEW reader. Only the two recognised "did not finish" reasons are
+demoted; anything unfamiliar keeps the rejection, deliberately. -/
+def newClassify : Reason → Kernel
+  | Reason.timeout      => Kernel.unfinished
+  | Reason.notFound     => Kernel.unfinished
+  | Reason.kernelSaidNo => Kernel.rejected
+  | Reason.unrecognised => Kernel.rejected
+
+/-- Does this outcome justify telling someone their theorems are not proved? -/
+def accusesTheProof : Kernel → Bool
+  | Kernel.rejected => true
+  | _               => false
+
+/-- The four modules the watchdog listed, all with reason `timeout`. -/
+def theAccused : List Reason :=
+  [Reason.timeout, Reason.timeout, Reason.timeout, Reason.timeout]
+
+/-- **The false accusation, counted.** The old reader impugns all four. -/
+theorem the_old_reader_accused_all_four :
+    (theAccused.map (fun r => accusesTheProof (oldClassify r))).count true = 4 := by
+  decide
+
+/-- **And the new one accuses none of them**, which is correct: every one of the
+four re-verifies at exit 0. -/
+theorem the_new_reader_accuses_none_of_them :
+    (theAccused.map (fun r => accusesTheProof (newClassify r))).count true = 0 := by
+  decide
+
+/-- **The core distinction**, stated once: not finishing is not being told no. -/
+theorem unfinished_is_not_rejected : Kernel.unfinished ≠ Kernel.rejected := by
+  decide
+
+/-- **The old reader was blind**, in the precise sense that its answer does not
+depend on its input at all. Every reason, recognised or not, produced the same
+verdict -- so the `reason` field it read was doing no work. -/
+theorem the_old_reader_ignores_the_reason (a b : Reason) :
+    oldClassify a = oldClassify b := by
+  simp [oldClassify]
+
+/-- **The new reader is not blind**: at least two reasons are told apart. This is
+the theorem that would die if someone "simplified" the classifier back. -/
+theorem the_new_reader_distinguishes :
+    newClassify Reason.timeout ≠ newClassify Reason.kernelSaidNo := by decide
+
+/-- **Fail loud on the unknown.** An unrecognised reason still accuses, so a new
+watchdog failure mode cannot be silently demoted into a shrug. This is the
+property that makes the repair safe rather than merely quieter. -/
+theorem an_unknown_reason_still_accuses :
+    accusesTheProof (newClassify Reason.unrecognised) = true := by decide
+
+/-- **The repair never silences a real rejection.** For every reason, if the old
+reader was right to accuse, the new one still does -- except precisely on the two
+reasons that mean the question went unanswered. -/
+theorem only_the_unfinished_are_demoted (r : Reason)
+    (h : r ≠ Reason.timeout) (h' : r ≠ Reason.notFound) :
+    newClassify r = oldClassify r := by
+  cases r <;> simp_all [newClassify, oldClassify]
+
+/-- Both mistakes in one statement: part one turned no-data into a pass, part
+four turned no-data into a failure, and neither is the honest third answer. -/
+theorem no_data_is_neither_pass_nor_fail :
+    Kernel.unfinished ≠ Kernel.verified ∧ Kernel.unfinished ≠ Kernel.rejected := by
+  decide
+
+-- Executable: the four accused, before and after.
+#guard ((theAccused.map (fun r => accusesTheProof (oldClassify r))).count true,
+        (theAccused.map (fun r => accusesTheProof (newClassify r))).count true) = (4, 0)
+
 /-! ## Executable checks -/
 
 /-- The measured reading, parsed and guarded, both ways. -/

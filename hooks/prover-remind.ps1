@@ -242,8 +242,25 @@ function Invoke-Decide {
     }
   }
 
-  if ($nr -gt 0) {
-    $out = "$out KERNEL REJECTED $nr module(s): $(Join-FirstN $r 4). leanchecker disagrees with lake build -- those theorems are NOT proved. Fix before anything else."
+  # Split the watchdog's red list into modules the kernel actually REJECTED and
+  # modules whose re-check never finished (trailing `?`, written by the reader
+  # below). A timeout reported as a rejection is a false accusation; measured
+  # 2026-08-09 on four modules that all verify at exit 0 with zero bytes.
+  # This must stay byte-identical in wording to the POSIX arm --
+  # checker/cross-diff-remind.sh diffs the two on every corpus row.
+  $rejList = @(); $unfList = @()
+  foreach ($t in $r) {
+    if ([string]::IsNullOrEmpty($t)) { continue }
+    if ($t.EndsWith('?')) { $unfList += $t.Substring(0, $t.Length - 1) }
+    else                  { $rejList += $t }
+  }
+  $nrej = $rejList.Count; $nunf = $unfList.Count
+
+  if ($nrej -gt 0) {
+    $out = "$out KERNEL REJECTED $nrej module(s): $(Join-FirstN $rejList 4). leanchecker disagrees with lake build -- those theorems are NOT proved. Fix before anything else."
+  }
+  if ($nunf -gt 0) {
+    $out = "$out KERNEL RE-CHECK DID NOT FINISH for $nunf module(s): $(Join-FirstN $unfList 4). A TIMEOUT IS NOT A REJECTION and it is not a pass either -- the question was never answered. Re-run lake env leanchecker on those modules with a longer bound before believing anything about them."
   }
   if ($ns -gt 0) {
     $out = "$out SORRY PRESENT in: $(Join-FirstN $s 4). A sorry is an admission, never a result -- report it with a count."
@@ -466,7 +483,18 @@ try {
     $vs = Join-Path $StateDir 'lean-verify-status.json'
     if (Test-Path -LiteralPath $vs) {
       $v = Get-Content -LiteralPath $vs -Raw | ConvertFrom-Json
-      if ($v.red)        { $kred   = @($v.red | ForEach-Object { $_.module }) }
+      # Mark UNFINISHED re-checks with a trailing `?` so `Decide` can word them
+      # as "did not finish" instead of "rejected". Only these two reasons are
+      # demoted; an unrecognised reason keeps the full rejection alarm, because
+      # the safe default for an unknown failure is to shout. Mirrors the POSIX
+      # arm exactly -- cross-diff-remind.sh compares the two on every row.
+      if ($v.red) {
+        $kred = @($v.red | ForEach-Object {
+          $m = $_.module
+          $rs = if ($_.reason) { ([string]$_.reason).ToUpper() } else { '' }
+          if ($rs -eq 'TIMEOUT' -or $rs -eq 'NOT_FOUND') { "$m`?" } else { $m }
+        })
+      }
       if ($v.sorryFiles) { $ksorry = @($v.sorryFiles) }
     }
   } catch { }

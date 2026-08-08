@@ -261,6 +261,11 @@ def shipped : List Gate :=
   -- here -- a fast gate runs on every commit by construction -- and the claim
   -- can be broken by editing the CHANGELOG alone, which touches no trigger.
   , f "A/B corpus vs published figures"
+    -- DEEP, not fast: it needs the ~176 raw transcripts, which are not
+    -- committed, so in CI it can only skip. Triggered by `bench/` (the scorer
+    -- and the corpus definition), by `CHANGELOG.md` (where its figures are
+    -- published), and by its own script -- the rule this table now enforces.
+  , d "A/B instruction compliance -- exit 3 SKIP without the raw corpus" ["bench/", "CHANGELOG.md", "checker/ab-compliance.sh"]
   -- FAST, and deliberately so. It replaced a `checkers`-job step that could only
   -- ever SKIP (gauge-cross needs a Lean workspace that job has not got), so it
   -- must run on EVERY commit rather than only when a trigger path is touched --
@@ -346,13 +351,18 @@ def shipped : List Gate :=
 -- `CI honesty` on 2026-08-05, deep tier, after run 31035932155 concluded
 -- `success` with EIGHT skipped steps -- one of them `tty guard`, a real check
 -- that had never run on Windows or macOS.
-#guard shipped.length = 43
+-- `A/B instruction compliance` joined 2026-08-09, deep tier: the endpoint that
+-- CAN move, added after two of the three published primaries were proved
+-- incapable of showing a win. It needs the raw transcripts, which are not
+-- committed, so in CI it can only skip.
+#guard shipped.length = 44
 
--- Twenty-three run on every commit.
+-- Twenty-eight run on every commit.
 #guard (fastSet shipped).length = 28
 
--- Fifteen are escalated by path (`CI honesty` joined 2026-08-05).
-#guard (deepSet shipped).length = 15
+-- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
+-- instruction compliance` 2026-08-09).
+#guard (deepSet shipped).length = 16
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

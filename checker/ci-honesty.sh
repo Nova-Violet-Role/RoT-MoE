@@ -62,6 +62,26 @@ cd "$(dirname "$0")/.."
 pass=0; fail=0
 ok  () { printf '  PASS  %s\n' "$1"; pass=$((pass+1)); }
 bad () { printf '  FAIL  %s\n' "$1"; fail=$((fail+1)); }
+# A THIRD outcome, and the reason it exists is a false green I acted on.
+#
+# MEASURED 2026-08-09. Runs 31261506027 and 31263721866 both concluded FAILURE:
+# the macOS job died at `local-only 1.0.x release regenerates from HEAD` and 28
+# later steps were skipped. This checker was run against both -- while they were
+# still `in_progress` -- and printed
+#
+#     PASS  NO step was skipped -- every authored step ran on every platform
+#     PASS  every step concluded success (158 steps read)
+#
+# Both were true of the steps that had finished, and both were WRONG about the
+# run. The `FAIL the run is in_progress` line was there, but two PASS lines
+# beside it read as "only the timing is unresolved", and the macOS failure went
+# unnoticed across two commits until the Socio spotted it.
+#
+# A question whose answer is not yet knowable must not be answered PASS. `prov`
+# reports the reading WITHOUT counting it as a pass, so an unfinished run can
+# never contribute evidence of health. Same rule as the malformed-payload guard
+# above: a third outcome, not a coerced second one.
+prov () { printf '  ....  PROVISIONAL (run not finished, this is NOT a pass): %s\n' "$1"; }
 
 REPO="${CI_HONESTY_REPO:-Nova-Violet-Role/RoT-MoE}"
 
@@ -245,7 +265,11 @@ done < "$STEPS"
 # append a second zero and produce "0\n0" -- which then fails `[ -eq ]` with
 # "integer expression expected". Measured here. Take grep's output as-is.
 nskip=$(grep -c '^SKIPPED' "$ST2" 2>/dev/null); nskip=${nskip:-0}
-if [ "${nskip:-0}" -eq 0 ]; then
+if [ "${nskip:-0}" -eq 0 ] && [ "$RUN_STATUS" != "completed" ]; then
+  prov "no skip among the steps that have finished so far -- the run is"
+  prov "  '$RUN_STATUS', so a job that has not reached its failing step yet"
+  prov "  cannot be distinguished from one that will pass. Re-run when complete."
+elif [ "${nskip:-0}" -eq 0 ]; then
   ok "NO step was skipped -- every authored step ran on every platform"
 else
   sed 's/^SKIPPED\t/  FAIL  SKIPPED (a skip is never a pass): /' "$ST2" | sort -u
@@ -281,7 +305,11 @@ while IFS=$'\t' read -r name concl; do
   esac
 done < "$STEPS"
 nun=$(grep -c '^UNGREEN' "$ST2" 2>/dev/null); nun=${nun:-0}
-if [ "${nun:-0}" -eq 0 ]; then
+if [ "${nun:-0}" -eq 0 ] && [ "$RUN_STATUS" != "completed" ]; then
+  prov "every step that has CONCLUDED so far concluded success ($NSTEPS read)."
+  prov "  This says nothing about the steps still running. Both failures this"
+  prov "  checker missed looked exactly like this line."
+elif [ "${nun:-0}" -eq 0 ]; then
   ok "every step concluded success ($NSTEPS steps read)"
 else
   sed 's/^UNGREEN\t/  FAIL  concluded /' "$ST2"

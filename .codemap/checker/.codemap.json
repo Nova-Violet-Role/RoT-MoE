@@ -2,12 +2,12 @@
   "directory": "checker",
   "files": {
     "ab-analyze.sh": {
-      "hash": "4242188bcb08",
-      "indexed_at": "2026-08-07T14:48:05.012592+00:00",
+      "hash": "b57d8e1297f3",
+      "indexed_at": "2026-08-08T18:28:50.307688+00:00",
       "language": "shell",
-      "lines": 320,
-      "mtime_ns": 1786113299478907900,
-      "size": 14461,
+      "lines": 383,
+      "mtime_ns": 1786195576529438300,
+      "size": 18374,
       "symbols": []
     },
     "ab-lanes.js": {
@@ -40,18 +40,18 @@
       ]
     },
     "axiom-audit.sh": {
-      "hash": "c429698047f1",
-      "indexed_at": "2026-08-05T13:16:35.004041+00:00",
+      "hash": "5778023a86f1",
+      "indexed_at": "2026-08-08T18:28:50.309104+00:00",
       "language": "shell",
-      "lines": 267,
-      "mtime_ns": 1785903876394673400,
-      "size": 12328,
+      "lines": 294,
+      "mtime_ns": 1786202168731395800,
+      "size": 13779,
       "symbols": [
         {
           "docstring": "--- theorem names, from the SOURCE, comment- and namespace-aware ------------ Lean block comments NEST, so a boolean flag is wrong. Doc comments carry",
           "lines": [
             74,
-            268
+            295
           ],
           "name": "names_of",
           "type": "function"
@@ -59,16 +59,16 @@
         {
           "docstring": "--- the audit itself -------------------------------------------------------",
           "lines": [
-            141,
-            194
+            164,
+            221
           ],
           "name": "audit_module",
           "type": "function"
         },
         {
           "lines": [
-            230,
-            234
+            257,
+            261
           ],
           "name": "cleanup_ctl",
           "type": "function"
@@ -76,12 +76,12 @@
       ]
     },
     "axiom-class.sh": {
-      "hash": "c34ed4223b93",
-      "indexed_at": "2026-08-05T13:16:35.007175+00:00",
+      "hash": "534d128a8dce",
+      "indexed_at": "2026-08-08T18:28:50.310533+00:00",
       "language": "shell",
-      "lines": 342,
-      "mtime_ns": 1785921056909370800,
-      "size": 15548,
+      "lines": 367,
+      "mtime_ns": 1786202953667890300,
+      "size": 16956,
       "symbols": [
         {
           "lines": [
@@ -94,16 +94,16 @@
         {
           "docstring": "--- extracting declaration names --------------------------------------------- A `sed` for `^theorem` is the obvious approach and it is WRONG, measure",
           "lines": [
-            115,
-            343
+            129,
+            368
           ],
           "name": "names_in",
           "type": "function"
         },
         {
           "lines": [
-            314,
-            321
+            339,
+            346
           ],
           "name": "classify_line",
           "type": "function"
@@ -190,18 +190,18 @@
       ]
     },
     "ci-honesty.sh": {
-      "hash": "4641f1efbb48",
-      "indexed_at": "2026-08-05T22:03:07.955829+00:00",
+      "hash": "7873e6c3d117",
+      "indexed_at": "2026-08-08T18:28:50.311581+00:00",
       "language": "shell",
-      "lines": 305,
-      "mtime_ns": 1785965101518293600,
-      "size": 14371,
+      "lines": 374,
+      "mtime_ns": 1786207976751733700,
+      "size": 18344,
       "symbols": [
         {
           "docstring": "--- runner scaffolding ------------------------------------------------------ GitHub injects these; the repository does not author them, so they are n",
           "lines": [
-            73,
-            79
+            93,
+            99
           ],
           "name": "is_scaffolding",
           "type": "function"
@@ -392,18 +392,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "ad3d40a0e369",
-      "indexed_at": "2026-08-07T21:59:21.429384+00:00",
+      "hash": "20fbc660a3c2",
+      "indexed_at": "2026-08-08T18:28:50.312566+00:00",
       "language": "shell",
-      "lines": 363,
-      "mtime_ns": 1786138280519698800,
-      "size": 18062,
+      "lines": 397,
+      "mtime_ns": 1786205850820213200,
+      "size": 20208,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            156,
-            171
+            157,
+            172
           ],
           "name": "fires",
           "type": "function"
@@ -741,18 +741,18 @@
       "symbols": []
     },
     "portability.sh": {
-      "hash": "75cbc66fc1f5",
-      "indexed_at": "2026-08-07T09:33:03.509645+00:00",
+      "hash": "8b4eb1b681c8",
+      "indexed_at": "2026-08-08T18:28:50.314105+00:00",
       "language": "shell",
-      "lines": 570,
-      "mtime_ns": 1786090992145783600,
-      "size": 29589,
+      "lines": 674,
+      "mtime_ns": 1786213629533411100,
+      "size": 35560,
       "symbols": [
         {
           "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
           "lines": [
-            468,
-            472
+            572,
+            576
           ],
           "name": "s6_scan",
           "type": "function"
@@ -869,27 +869,26 @@
       ]
     },
     "release-local.sh": {
-      "hash": "e8a9e9cf9e25",
-      "indexed_at": "2026-08-07T21:59:21.914397+00:00",
+      "hash": "9a44f0a70a04",
+      "indexed_at": "2026-08-08T18:28:50.315148+00:00",
       "language": "shell",
-      "lines": 322,
-      "mtime_ns": 1786138887106469900,
-      "size": 16409,
+      "lines": 346,
+      "mtime_ns": 1786207359275403100,
+      "size": 17758,
       "symbols": [
         {
           "docstring": "--- phase 2: build from a PRISTINE export of HEAD, never the working tree ----",
           "lines": [
             138,
-            182
+            190
           ],
           "name": "build_into",
           "type": "function"
         },
         {
-          "docstring": "--- phase 4: REGENERATE and diff -- the claim that makes this evidence ------- Contents, not zip bytes. Two zips of identical trees differ in their st",
           "lines": [
-            223,
-            233
+            247,
+            257
           ],
           "name": "digest_of",
           "type": "function"
@@ -1280,12 +1279,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "dc8f1f8052ef",
-      "indexed_at": "2026-08-07T21:59:21.433016+00:00",
+      "hash": "a44346b865ba",
+      "indexed_at": "2026-08-08T18:28:50.318379+00:00",
       "language": "shell",
-      "lines": 1278,
-      "mtime_ns": 1786138526766870400,
-      "size": 65528,
+      "lines": 1353,
+      "mtime_ns": 1786213017883448400,
+      "size": 70043,
       "symbols": [
         {
           "docstring": "One entry point, so the four call sites cannot drift apart again.",
@@ -1300,7 +1299,7 @@
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
           "lines": [
             201,
-            221
+            254
           ],
           "name": "except_reason",
           "type": "function"
@@ -1308,8 +1307,8 @@
         {
           "docstring": "AN EXEMPTION MUST NOT BE A HIDING PLACE.  The reason above is honest, but \"not run by CI\" and \"not run at all\" look identical from here, and the secon",
           "lines": [
-            230,
-            235
+            263,
+            268
           ],
           "name": "exempt_must_be_reachable",
           "type": "function"
@@ -1317,16 +1316,16 @@
         {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            256,
-            261
+            289,
+            294
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            262,
-            271
+            295,
+            304
           ],
           "name": "contains_line",
           "type": "function"
@@ -1334,8 +1333,8 @@
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            323,
-            330
+            398,
+            405
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -1343,16 +1342,16 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            417,
-            426
+            492,
+            501
           ],
           "name": "gate_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            499,
-            503
+            574,
+            578
           ],
           "name": "enum_mods",
           "type": "function"
@@ -1360,24 +1359,24 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            540,
-            544
+            615,
+            619
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            677,
-            701
+            752,
+            776
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            757,
-            768
+            832,
+            843
           ],
           "name": "perms_of",
           "type": "function"
@@ -1385,8 +1384,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            886,
-            893
+            961,
+            968
           ],
           "name": "probe_r20",
           "type": "function"
@@ -1394,8 +1393,8 @@
         {
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
-            1013,
-            1028
+            1088,
+            1103
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -1403,16 +1402,16 @@
         {
           "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
           "lines": [
-            1224,
-            1226
+            1299,
+            1301
           ],
           "name": "_r23_onblock",
           "type": "function"
         },
         {
           "lines": [
-            1227,
-            1229
+            1302,
+            1304
           ],
           "name": "_r23_count",
           "type": "function"
@@ -1420,6 +1419,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T12:14:43.581803+00:00",
+  "generated_at": "2026-08-08T18:28:50.331118+00:00",
   "version": "1.0"
 }

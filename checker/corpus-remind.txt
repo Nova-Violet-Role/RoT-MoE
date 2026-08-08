@@ -38,3 +38,12 @@ PostToolUse 10 RotGauge - - - 3
 PostToolUse 10 RotGauge a.rs - - 14
 PreToolUse -1 - a.rs,b.rs,c.rs,d.rs,e.rs RotPath Basic.lean 14
 UserPromptSubmit 999 RotGauge a.rs,b.rs,c.rs,d.rs,e.rs,f.rs RotPath,RotGauge Basic.lean,Other.lean 20
+# A TIMEOUT IS NOT A REJECTION (2026-08-09). The watchdog writes timed-out
+# modules into `red` with reason TIMEOUT; the reader marks them with a trailing
+# `?`. These rows pin the three shapes: only-unfinished, only-rejected, mixed.
+# All four accused modules verified at exit 0 with zero bytes when re-run.
+PostToolUse 10 RotGauge - RotMutant? - 0
+PostToolUse 10 RotGauge - RotMutant?,RotVerdict?,RotVacuity?,RotRoute? - 0
+PostToolUse 10 RotGauge - RotMutant - 0
+PreToolUse 10 RotGauge - RotMutant,RotVerdict? - 0
+UserPromptSubmit 99 RotGauge a.rs RotA?,RotB,RotC? Basic.lean 3

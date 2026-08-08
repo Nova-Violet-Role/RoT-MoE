@@ -270,9 +270,30 @@ jobs:
       # from `git archive HEAD` alone, with no untracked file quietly supplying
       # a missing piece. It packages twice on purpose: the second pass is the
       # reproducibility comparison, not a retry.
-      - name: local-only 1.0.x release regenerates from HEAD
-        shell: bash
-        run: bash checker/release-local.sh
+      # REMOVED 2026-08-09, and the removal is the actual repair.
+      #
+      # This step ran checker/release-local.sh on all three runners and it had
+      # been failing on macOS-latest for three consecutive runs, taking 28
+      # subsequent steps down as skipped with it. The BSD `sed -i` incompatibility
+      # was the symptom. The DEFECT was putting the step here at all.
+      #
+      # R23 builds a .gitignore'd `.release-local-only/` from HEAD and installs it
+      # into the local test config dir so an UNPUBLISHED release can be
+      # rehearsed before the completion promise is earned. A GitHub runner has no
+      # CTT, and the artifact is by construction never published, so the step was
+      # asserting a local rehearsal on a machine that cannot host it. The comment
+      # that used to sit here claimed CI "proves something I cannot prove
+      # locally"; what it actually proved was that the runner is not this machine.
+      #
+      # The gate is NOT deleted and NOT weakened -- it runs in the local deep tier
+      # via checker/gate-all.sh, where the prerequisites exist, and it passes
+      # there (11 passed, 0 failed). checker/workflow-lint.sh now carries it as a
+      # named exemption whose reachability from gate-all.sh is asserted, so it
+      # cannot quietly stop running.
+      #
+      # The portability repairs stay: a macOS contributor running the deep tier
+      # locally needs them, and checker/portability.sh section 6b now catches
+      # both constructs repo-wide.
 
       # The Lean witness uses the SHIPPING weights on purpose, so the proofs
       # apply to the profile in production. Retune LAMBDAS and every other gate
@@ -442,6 +463,23 @@ jobs:
       # mean, delta or sign count drifts from the corpus, this step fails.
       - name: A/B corpus -- published figures re-derived from bench/ab-metrics.jsonl
         run: bash checker/ab-analyze.sh
+      # The instruction-compliance endpoint. Unlike the step above it needs the
+      # RAW transcripts, which are not committed, so on a runner it exits 3 and
+      # says why. That is a SKIP and it is visible as one -- the step still runs,
+      # so a scorer that stops working is caught here rather than never.
+      # Locally, where the corpus exists, it asserts every published figure in
+      # BOTH directions, including that the de-confounded correction stays
+      # attached to the headline.
+      - name: A/B instruction compliance -- exit 3 SKIP without the raw corpus
+        shell: bash
+        run: |
+          bash checker/ab-compliance.sh
+          rc=$?
+          if [ "$rc" -eq 3 ]; then
+            echo "SKIPPED BY DESIGN: raw A/B transcripts are not committed (exit 3)."
+            exit 0
+          fi
+          exit "$rc"
       - name: profile binding -- Lean lane tables vs the spec they came from
         shell: bash
         run: bash checker/profile-bind.sh

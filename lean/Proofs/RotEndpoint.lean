@@ -188,4 +188,121 @@ example : (winsRouted trailingQuestion, winsControl trailingQuestion,
 /-- Ties account for the rest of the hedging corpus. -/
 example : hedging.length = 88 := by decide
 
+/-! ## A capable endpoint that still did not show a quality win
+
+Having proved that two of the three published primaries were incapable of
+showing improvement, I went looking for one that could. The A/B harness appends
+
+    " Answer in one or two sentences."
+
+to every prompt in BOTH arms (`bench/ab-session.sh`), so compliance with it is
+scorable mechanically, after the fact, by a scorer that is identical on each
+side. Its control arm is nowhere near the floor -- 41 violations in 88 turns --
+so a win is expressible. It is `capable` in exactly the sense defined above.
+
+**And the headline looked like the result the project needed:**
+
+| | routed | unrouted |
+|---|---|---|
+| violations of the two-sentence limit | 23 / 88 (26.1 %) | 41 / 88 (46.6 %) |
+| mean sentences | 2.18 | 3.25 |
+| paired sign | 28 better | 10 better, 50 ties |
+
+Two-sided sign test on the 38 discordant pairs: **p = 5.1e-3**.
+
+**Then the confound killed it.** Routed answers are also 26 % shorter, and
+sentence count rises with length nearly by construction (measured Pearson
+r = 0.263 routed, r = 0.707 unrouted). So a brevity win drags compliance along
+with it, and the endpoint risks being a second measurement of a result already
+published rather than new evidence.
+
+Isolating the wins brevity cannot account for -- pairs where the routed answer
+complied AND was **not shorter** -- leaves **2 wins against 10 losses**
+(p = 3.9e-2). On the de-confounded subset the effect **reverses**: routing is
+mildly worse.
+
+The conclusion this file records is therefore negative, and deliberately so: the
+compliance win is the brevity result restated. No quality improvement from
+nine-lens routing has been demonstrated, and on the only capable endpoint
+measured so far the de-confounded sign points the other way.
+
+One more reason not to trust this endpoint even as a negative: it counts
+sentences, so a single 2080-character run-on scores as perfect compliance. That
+case is in the corpus (turn 46), and `a_run_on_sentence_scores_as_compliant`
+pins it.
+-/
+
+/-- A decomposition of the pairs an endpoint calls wins: those a known covariate
+already explains, and those it does not. -/
+structure Decomp where
+  /-- Wins the covariate accounts for -- here, routed simply answered shorter. -/
+  explained : Nat
+  /-- Wins the covariate cannot account for. -/
+  unexplained : Nat
+  /-- Pairs lost, on the same de-confounded footing. -/
+  losses : Nat
+  deriving DecidableEq, Repr
+
+/-- The measured decomposition of the compliance endpoint. -/
+def compliance : Decomp := { explained := 26, unexplained := 2, losses := 10 }
+
+/-- The headline count: every pair the endpoint scored for routing. -/
+def headlineWins (d : Decomp) : Nat := d.explained + d.unexplained
+
+/-- Does the endpoint favour routing once the covariate is removed? -/
+def survivesDeconfounding (d : Decomp) : Bool := d.losses < d.unexplained
+
+/-- **The headline was real** -- 28 wins against 10 losses. -/
+theorem the_headline_favoured_routing :
+    headlineWins compliance = 28 ∧ compliance.losses = 10
+      ∧ compliance.losses < headlineWins compliance := by decide
+
+/-- **And it does not survive.** Almost every win was one the covariate already
+explained. -/
+theorem the_compliance_win_was_brevity :
+    survivesDeconfounding compliance = false := by decide
+
+/-- **It does not merely fail to survive -- it reverses.** On the subset brevity
+cannot explain, the control arm wins by five to one. -/
+theorem the_deconfounded_subset_favours_control :
+    compliance.unexplained < compliance.losses
+      ∧ compliance.unexplained = 2 ∧ compliance.losses = 10 := by decide
+
+/-- **The general lesson, not tied to these numbers.** Capability and honesty
+are different properties: an endpoint can be perfectly capable of showing a win,
+show one, and still be measuring something already known. Whenever the explained
+share is large enough, the headline favours routing while the de-confounded
+subset does not. -/
+theorem capable_is_not_enough (d : Decomp)
+    (hhead : d.losses < headlineWins d) (hdec : survivesDeconfounding d = false) :
+    d.unexplained ≤ d.losses ∧ d.losses < d.explained + d.unexplained := by
+  refine ⟨?_, hhead⟩
+  simpa [survivesDeconfounding, Nat.not_lt] using hdec
+
+/-- Contrapositive, stated as the test to apply: if an endpoint's wins are ALL
+unexplained by the covariate, the headline and the de-confounded verdict agree.
+Only a nonzero explained share can drive them apart. -/
+theorem no_explained_wins_means_no_divergence (d : Decomp)
+    (h : d.explained = 0) (hhead : d.losses < headlineWins d) :
+    survivesDeconfounding d = true := by
+  simp only [survivesDeconfounding, decide_eq_true_eq]
+  simpa [headlineWins, h] using hhead
+
+/-- The endpoint's own loophole: it counts sentences, not words. A single
+enormous sentence is scored compliant. Turn 46 of the corpus is exactly this --
+2080 characters, one sentence. -/
+def compliesWithLimit (sentences : Nat) : Bool := sentences ≤ 2
+
+/-- **Measured, and it is why even the negative reading is weak evidence.** -/
+theorem a_run_on_sentence_scores_as_compliant :
+    compliesWithLimit 1 = true := by decide
+
+/-- Whereas three short sentences are scored a violation, whatever their length.
+The endpoint has no view on quality at all -- only on punctuation. -/
+theorem three_short_sentences_score_as_a_violation :
+    compliesWithLimit 3 = false := by decide
+
+-- Executable: the decomposition, and the two verdicts it produces.
+#guard (headlineWins compliance, survivesDeconfounding compliance) = (28, false)
+
 end RotMoE.Endpoint

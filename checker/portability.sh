@@ -177,11 +177,23 @@ else
   ok "the CRLF variant LANDED (printf-built, non-empty, genuinely differs from the LF form)"
 bash checker/cross-diff-remind.sh > "$ctl_dir/crlf.log" 2>&1
 rc=$?
-cp "$BK" "$CORPUS"; rm -f "$BK"
-if git diff --quiet -- "$CORPUS"; then
-  ok "the corpus was restored byte-identical after the CRLF round"
+cp "$BK" "$CORPUS"
+# ASK THE RIGHT WITNESS. This compared the restored corpus against GIT, which
+# answers a different question: "does the working tree match HEAD". Measured
+# 2026-08-09, when five rows were deliberately added to the corpus and not yet
+# committed -- the CRLF round restored the file perfectly and this still reported
+# THE CORPUS WAS LEFT MODIFIED. An intentional uncommitted edit is not a failed
+# restore.
+#
+# The honest witness is the backup this section took moments earlier: compare
+# after-bytes to before-bytes. That is exactly the property claimed ("restored
+# byte-identical"), it holds whether or not the tree is clean, and it still
+# fails loudly if the round really does leave the file changed.
+if cmp -s "$BK" "$CORPUS"; then
+  rm -f "$BK"
+  ok "the corpus was restored byte-identical after the CRLF round (compared to the pre-round bytes, not to git)"
 else
-  bad "THE CORPUS WAS LEFT MODIFIED -- restore it from git before trusting anything"
+  bad "THE CORPUS WAS LEFT MODIFIED by the CRLF round -- restore it from $BK"
 fi
 if [ "$rc" -eq 0 ]; then
   ok "both reminder arms agree with the ENTIRE corpus in CRLF (the windows-latest failure)"
@@ -432,6 +444,98 @@ for f in checker/*.sh hooks/*.sh .githooks/* *.sh; do
   fi
 done
 [ "$sed_hits" -eq 0 ] && ok "no sed uses GNU-only \\| alternation (use sed -E with (a|b))"
+
+echo "== 6b. no in-place sed and no sha256sum (both are GNU-only) =="
+# MEASURED 2026-08-09, and the reason this section exists: checker/release-local.sh
+# failed on EVERY macOS run from 2026-08-08 while ubuntu and windows passed, and
+# section 6 above did not see it. Two constructs, each fatal on BSD userland:
+#
+#   sed -i "s/a/b/" f    GNU treats the argument after -i as OPTIONAL. BSD sed
+#                        REQUIRES one and takes the next word as the BACKUP
+#                        SUFFIX, so the script itself is consumed as a suffix and
+#                        the command dies. `sed -i ''` is the BSD spelling and it
+#                        breaks GNU. NO spelling of -i works on both, which is
+#                        why the rule is a ban and not a preferred form: write to
+#                        a temp file and mv it into place.
+#
+#   sha256sum            GNU coreutils. Does not exist on macOS, where the tool
+#                        is `shasum -a 256`. checker/release-package.sh:406 has
+#                        resolved this correctly since it was written -- the
+#                        knowledge was in the repo and simply was not applied
+#                        here, which is exactly what a checker is for.
+#
+# EXEMPTION, deliberately narrow: a line that already carries BOTH spellings is a
+# platform fallback (`.github/workflows/ci.yml:237` does this on purpose), and a
+# `command -v` line is resolving the tool rather than calling it.
+gnu_only_hits=0
+for f in checker/*.sh hooks/*.sh .githooks/* bench/*.sh *.sh; do
+  [ -f "$f" ] || continue
+  case "$f" in */portability.sh) continue ;; esac   # this file quotes both forms
+  body=$(sed 's/#.*$//' "$f")
+  h=$(printf '%s\n' "$body" | grep -nE "sed[[:space:]]+(-[A-Za-z]*[[:space:]]+)*-i([[:space:]]|$)" \
+      | grep -vE "sed[[:space:]]+-i[[:space:]]+''" || true)
+  if [ -n "$h" ]; then
+    bad "$f uses in-place sed -- BSD sed needs an argument to -i, GNU sed must not have one:"
+    printf '%s\n' "$h" | sed 's/^/        /' | head -3
+    gnu_only_hits=$((gnu_only_hits+1))
+  fi
+  # The sha256sum rule judges at FILE scope, not line scope. The recommended
+  # pattern is a `command -v sha256sum` probe that installs a wrapper, and the
+  # wrapper's body necessarily contains the bare word -- flagging that line
+  # would be flagging the fix. A file that probes has demonstrably resolved the
+  # tool. LIMITATION, stated rather than hidden: a file could probe once and
+  # still call it unguarded somewhere else, and this scan would not catch that.
+  # The control below therefore checks an UNPROBED file is still caught, which
+  # is the case that has actually shipped.
+  # `case` rather than `| grep -q`: this file's own rule 3 bans piping into
+  # grep -q, because SIGPIPE plus pipefail makes the status platform-dependent.
+  # The rule caught this very line when it was first written that way.
+  case "$body" in
+    *"command -v sha256sum"*) s="" ;;
+    *) s=$(printf '%s\n' "$body" | grep -n 'sha256sum' | grep -vE 'shasum' || true) ;;
+  esac
+  if [ -n "$s" ]; then
+    bad "$f calls sha256sum -- absent on macOS, use shasum -a 256 behind a command -v probe:"
+    printf '%s\n' "$s" | sed 's/^/        /' | head -3
+    gnu_only_hits=$((gnu_only_hits+1))
+  fi
+done
+[ "$gnu_only_hits" -eq 0 ] && ok "no in-place sed and no unguarded sha256sum in any shell script"
+
+# --- controls for 6b: both rules must be able to fire ------------------------
+# The bug this section was written for shipped BECAUSE a scan passed. A scan
+# that cannot fail is worth nothing, so break each rule on purpose.
+ctl6b="${TMPDIR:-/tmp}/b6bctl.$$.sh"
+b6b_ok=0; b6b_n=0
+for probe in 'sed -i "s/a/b/" f' 'sha256sum "$f" | cut -d" " -f1' 'sed -i -e "s/a/b/" f'; do
+  printf '#!/usr/bin/env bash\n%s\n' "$probe" > "$ctl6b"
+  b6b_n=$((b6b_n+1))
+  cb=$(sed 's/#.*$//' "$ctl6b")
+  hit=$(printf '%s\n' "$cb" | grep -nE "sed[[:space:]]+(-[A-Za-z]*[[:space:]]+)*-i([[:space:]]|$)" | grep -vE "sed[[:space:]]+-i[[:space:]]+''" || true)
+  case "$cb" in
+    *"command -v sha256sum"*) hit2="" ;;
+    *) hit2=$(printf '%s\n' "$cb" | grep -n 'sha256sum' | grep -vE 'shasum' || true) ;;
+  esac
+  if [ -n "$hit" ] || [ -n "$hit2" ]; then b6b_ok=$((b6b_ok+1)); else echo "        control MISSED: $probe"; fi
+done
+# And the exemptions must NOT fire, or the rule would flag correct code.
+for probe in "sed -i '' 's/a/b/' f" 'if command -v sha256sum >/dev/null; then SHA() { sha256sum "$1"; }; fi'; do
+  printf '#!/usr/bin/env bash\n%s\n' "$probe" > "$ctl6b"
+  cb=$(sed 's/#.*$//' "$ctl6b")
+  hit=$(printf '%s\n' "$cb" | grep -nE "sed[[:space:]]+(-[A-Za-z]*[[:space:]]+)*-i([[:space:]]|$)" | grep -vE "sed[[:space:]]+-i[[:space:]]+''" || true)
+  case "$cb" in
+    *"command -v sha256sum"*) hit2="" ;;
+    *) hit2=$(printf '%s\n' "$cb" | grep -n 'sha256sum' | grep -vE 'shasum' || true) ;;
+  esac
+  b6b_n=$((b6b_n+1))
+  if [ -z "$hit" ] && [ -z "$hit2" ]; then b6b_ok=$((b6b_ok+1)); else echo "        exemption WRONGLY flagged: $probe"; fi
+done
+rm -f "$ctl6b"
+if [ "$b6b_ok" -eq "$b6b_n" ]; then
+  ok "CONTROL: all $b6b_n probes behaved ($((b6b_n-2)) violations caught, 2 exemptions spared)"
+else
+  bad "CONTROL: only $b6b_ok of $b6b_n probes behaved -- rule 6b is not trustworthy"
+fi
 
 # --- controls ---------------------------------------------------------------
 # Three separate constructs, because one regex alternative passing says nothing

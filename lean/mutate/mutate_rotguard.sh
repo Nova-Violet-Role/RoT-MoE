@@ -275,6 +275,30 @@ run_mut G10 \
   'def logSaysFailed : Nat := 0' \
   'the independent log agrees with the broken harness -- no contradiction left'
 
+# G11: a timeout is classified as a rejection again -- the original defect
+run_mut G11 \
+  '  | Reason.timeout      => Kernel.unfinished' \
+  '  | Reason.timeout      => Kernel.rejected' \
+  'a timeout is classified as a rejection again -- the original defect'
+
+# G12: an unknown failure reason is quietly demoted instead of shouting
+run_mut G12 \
+  '  | Reason.unrecognised => Kernel.rejected' \
+  '  | Reason.unrecognised => Kernel.unfinished' \
+  'an unknown failure reason is quietly demoted instead of shouting'
+
+# G13: a real kernel rejection stops accusing the proof
+run_mut G13 \
+  '  | Kernel.rejected => true' \
+  '  | Kernel.rejected => false' \
+  'a real kernel rejection stops accusing the proof'
+
+# G14: the old reader is rewritten as if it had been right all along
+run_mut G14 \
+  'def oldClassify (_r : Reason) : Kernel := Kernel.rejected' \
+  'def oldClassify (_r : Reason) : Kernel := Kernel.unfinished' \
+  'the old reader is rewritten as if it had been right all along'
+
 printf '
 
 

@@ -250,6 +250,30 @@ run_mut E06 \
   'def favoursControl (p : Pair) : Bool := routed p < control p' \
   'both predicates now point the same way -- no direction left to disagree about'
 
+# E07: the measured split is inverted so the win looks unexplained by brevity
+run_mut E07 \
+  'def compliance : Decomp := { explained := 26, unexplained := 2, losses := 10 }' \
+  'def compliance : Decomp := { explained := 2, unexplained := 26, losses := 10 }' \
+  'the measured split is inverted so the win looks unexplained by brevity'
+
+# E08: de-confounding is tested against the EXPLAINED share -- the wrong column
+run_mut E08 \
+  'def survivesDeconfounding (d : Decomp) : Bool := d.losses < d.unexplained' \
+  'def survivesDeconfounding (d : Decomp) : Bool := d.losses < d.explained' \
+  'de-confounding is tested against the EXPLAINED share -- the wrong column'
+
+# E09: the headline silently drops the confounded wins it was built from
+run_mut E09 \
+  'def headlineWins (d : Decomp) : Nat := d.explained + d.unexplained' \
+  'def headlineWins (d : Decomp) : Nat := d.unexplained' \
+  'the headline silently drops the confounded wins it was built from'
+
+# E10: the two-sentence limit becomes a zero-sentence limit
+run_mut E10 \
+  'def compliesWithLimit (sentences : Nat) : Bool := sentences ≤ 2' \
+  'def compliesWithLimit (sentences : Nat) : Bool := sentences ≤ 0' \
+  'the two-sentence limit becomes a zero-sentence limit'
+
 printf '
 
 
