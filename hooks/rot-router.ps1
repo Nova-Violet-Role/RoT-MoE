@@ -331,8 +331,23 @@ $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
 # issue, and the routing decision is what is under test, not the user's text.
 if ($env:ROTMOE_DEBUG_LOG) {
   $ms = [int]((Get-Date) - $__rotStart).TotalMilliseconds
-  Write-RotDebug ('{{"kind":"route","ts":"{0}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","arm":"ps1","ms":{6}}}' -f `
-    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms)
+  # WHICH EVENT PRODUCED THIS RECORD -- added 2026-08-08, mirroring the POSIX
+  # arm. The reasoning is written out in full at the same point in
+  # rot-router.sh: with eleven registrations, a log that does not name the event
+  # makes the wiring unfalsifiable from its own evidence.
+  #
+  # The charset guard is the same and is load-bearing for the same reason: this
+  # value goes into a JSON record, and a quote or brace arriving in that field
+  # would emit a malformed line that breaks every downstream reader. Anything
+  # not plain letters is recorded as "-", which honestly says "a record was
+  # written and the event was not identifiable".
+  $evName = '-'
+  if ($j -and $j.hook_event_name) {
+    $cand = [string]$j.hook_event_name
+    if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
+  }
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","arm":"ps1","ms":{6}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName)
 }
 
 # The marker rides the router's own stdout, not a sidecar file: if the log path

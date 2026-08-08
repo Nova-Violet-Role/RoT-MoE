@@ -410,8 +410,37 @@ hook_mode () {
     # left to right, and the "No such file or directory" for a failed `>>` is
     # emitted by the SHELL, not by printf -- with the order reversed it escapes
     # to the transcript before stderr has been silenced. Measured, not assumed.
-    if printf '{"kind":"route","ts":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh"}\n' \
-         "$(date -Is 2>/dev/null || date)" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" \
+    # WHICH EVENT PRODUCED THIS RECORD -- added 2026-08-08.
+    #
+    # The router is now registered on ELEVEN lifecycle events, and until this
+    # field existed the debug log could not tell you which one fired. Six
+    # records from a live session were indistinguishable: three gauges and three
+    # routes, with no way to know whether they came from SessionStart, a tool
+    # call, or Stop. That makes the central claim of the wiring -- that the
+    # router observes the whole session -- UNFALSIFIABLE FROM THE LOG, which is
+    # the same defect class this project hunts everywhere else.
+    #
+    # Parsed with parameter expansion rather than a second `node` process: the
+    # hook already costs ~125 ms and a second interpreter spawn would roughly
+    # double it on every event, eleven times per turn.
+    #
+    # THE CHARSET GUARD IS LOAD-BEARING, not decoration. This value is
+    # interpolated into a JSON record; a payload carrying a quote or a brace in
+    # that field would emit a malformed line and corrupt the log for every
+    # reader downstream, including checker/log-replay.sh. Anything that is not
+    # plain letters is refused and recorded as "-", which is honest: it says a
+    # record was written and the event was not identifiable.
+    _ev='-'
+    case "$payload" in
+      *'"hook_event_name"'*)
+        _ev=${payload#*\"hook_event_name\"}
+        _ev=${_ev#*\"}
+        _ev=${_ev%%\"*}
+        ;;
+    esac
+    case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
+    if printf '{"kind":"route","ts":"%s","event":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh"}\n' \
+         "$(date -Is 2>/dev/null || date)" "$_ev" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" \
          2>/dev/null >> "$ROTMOE_DEBUG_LOG"
     then
       # Bound the file. `tail -n` keeps the LAST cap lines, which is the

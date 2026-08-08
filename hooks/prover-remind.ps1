@@ -41,6 +41,42 @@ $ErrorActionPreference = 'Stop'
 
 if ($Version) { Write-Output 'prover-remind.ps1 1.0.0'; exit 0 }
 
+# AN UNKNOWN ARGUMENT MUST REFUSE, NOT BE SWALLOWED -- 2026-08-08.
+#
+# Measured cross-arm divergence, found while answering whether the sanctum
+# idiom `-Event *` is safe to put on RoT MoE's own hooks (it is not: it kills
+# rot-router.ps1 with "A parameter cannot be found", exit 1). The same probe
+# showed the two arms of THIS hook disagreeing about an unknown flag:
+#
+#     bash prover-remind.sh --event '*'   ->  exit 2, usage printed
+#     pwsh prover-remind.ps1 -Event '*'   ->  exit 0, ZERO bytes, silently fine
+#
+# The PowerShell arm swallowed it because -Event is not declared, so it lands in
+# $Rest, and $Rest is only inspected under -Decide. checker/cross-diff-remind.sh
+# could not see this: it compares the two arms over --decide rows, and an
+# unknown flag never reaches that path.
+#
+# Swallowing is the wrong behaviour by this project's own rule, stated in
+# checker/router-duplication.sh: "An unknown flag must REFUSE, not be swallowed.
+# Swallowing an argument is how a typo becomes a silent no-op." A hook that
+# exits 0 having done nothing is indistinguishable from a hook that worked,
+# which is precisely the false green this repo exists to hunt.
+#
+# $Rest is legitimate under -Decide (seven positional values, checked below), so
+# the refusal applies only when no mode owns them.
+# $null -ne $Rest FIRST, and it is load-bearing: with no remaining arguments
+# $Rest is $null, and PowerShell's @($null).Count is 1, NOT 0. Testing the count
+# alone made plain hook mode -- the way every one of the eleven registrations
+# actually invokes this file -- exit 2 and refuse itself. Measured, not
+# reasoned: PS1_HOOKMODE_EXIT=2 on the first run of this guard.
+if (-not ($Decide -or $Measure -or $Workspace) -and $null -ne $Rest -and @($Rest).Count -gt 0) {
+  [Console]::Error.WriteLine('usage: prover-remind.ps1                (hook mode, JSON on stdin)')
+  [Console]::Error.WriteLine('       prover-remind.ps1 -Decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS')
+  [Console]::Error.WriteLine('       prover-remind.ps1 -Measure      (count, minutes and name, off disk)')
+  [Console]::Error.WriteLine("refusing unknown argument(s): $($Rest -join ' ')")
+  exit 2
+}
+
 # --- CONFIG ------------------------------------------------------------------
 function Get-EnvOr([string] $Name, [string] $Default) {
   $v = [Environment]::GetEnvironmentVariable($Name)

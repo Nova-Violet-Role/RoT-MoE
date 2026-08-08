@@ -69,6 +69,91 @@ Three files carry the list — `hooks/hooks.json` (what the plugin registers),
 are asserted character-identical, so a future edit cannot silently wire the
 plugin and the installer differently.
 
+#### The debug log could not say which event produced a record
+
+Wiring eleven events is worth nothing if the log cannot show it happened. A live
+CTT session emitted six records — three `gauge`, three `route` — and **not one
+named the event that produced it**. The claim "the router now observes eleven
+events" was therefore unfalsifiable from its own evidence, which is the defect
+class this project exists to hunt.
+
+Both arms now write an `event` field on every route record. Measured across five
+events, the two arms agree exactly:
+
+```
+{"UserPromptSubmit [sh]":1,"UserPromptSubmit [ps1]":1,"PreToolUse [sh]":1,
+ "PreToolUse [ps1]":1,"Stop [sh]":1,"Stop [ps1]":1,"SessionEnd [sh]":1,
+ "SessionEnd [ps1]":1,"PostCompact [sh]":1,"PostCompact [ps1]":1}
+```
+
+The value is **sanitised, and the guard is load-bearing**: it is interpolated
+into JSON, so a payload carrying a quote would emit a malformed line and break
+every downstream reader including `checker/log-replay.sh`. Anything that is not
+plain letters is recorded as `-`. Fired at the running hooks, the payload
+`Evil","lane":"PWNED` produced `event:"-"` in both arms, zero malformed lines
+and zero overridden lanes.
+
+It is parsed with shell parameter expansion rather than a second `node` process:
+the hook costs ~125 ms, and a second interpreter spawn would roughly double that
+on every event, eleven times a turn.
+
+#### `prover-remind.ps1` swallowed an unknown argument; the POSIX arm refused it
+
+Found while establishing whether the sanctum idiom `-Event *` is safe to put on
+RoT MoE's hooks. It is not — `rot-router.ps1` dies with *"A parameter cannot be
+found that matches parameter name 'Event'"*, exit 1. The same probe exposed the
+two arms of `prover-remind` disagreeing:
+
+| arm | `--event *` / `-Event *` | before |
+|---|---|---|
+| `prover-remind.sh` | exit 2, usage printed | correct |
+| `prover-remind.ps1` | **exit 0, zero bytes** | swallowed |
+
+`checker/cross-diff-remind.sh` could not see this: it compares the arms over
+`--decide` rows, and an unknown flag never reaches that path. Swallowing is
+wrong by this project's own rule, stated in `checker/router-duplication.sh` —
+*"an unknown flag must REFUSE, not be swallowed"* — because a hook that exits 0
+having done nothing is indistinguishable from one that worked. The PowerShell
+arm now refuses with exit 2 and the same usage text.
+
+The first version of that guard **broke plain hook mode**: `@($null).Count` is
+`1` in PowerShell, not `0`, so testing the count alone made every one of the
+eleven registrations refuse itself. Measured, not reasoned — `HOOKMODE_EXIT=2`
+on the first run. All five modes are now asserted: hook 0, unknown flag 2,
+`-Decide` 0, `-Measure` 0, `-Version` 0.
+
+#### `lean/Proofs/RotEvent.lean` — 11 theorems, 8 mutants, all killed
+
+The specification of the sanitiser and of the coverage claim: the output is
+always `-` or letters (`sanitise_is_safe`); any non-letter name is refused
+(`non_letter_is_refused`); the measured injection is refused
+(`quote_payload_is_refused`); the sanitiser is **not** the constant `-`
+(`sanitise_is_not_constant`, the non-vacuity witness); every declared event
+survives it unchanged; the list is eleven long with no duplicates; the old
+binding is a strict subset and **eight events were unbound**.
+
+Two statements are deliberately quantified rather than named, so they cannot
+expire the way the two checkers above did: `undeclared_is_not_bound` over an
+arbitrary list and event, and `entries_equal_declared_count` over an arbitrary
+list.
+
+**One theorem was weakened, and it is disclosed rather than buried.** The
+intended `quote_is_refused (pre post)` — *any* string with a quote anywhere is
+refused — is replaced by a hypothesis-driven general refusal plus one decided
+concrete instance. The universally-quantified form over `pre`/`post` is **not
+proved**.
+
+`lake build` exit 0 · axioms `[propext, Classical.choice, Quot.sound]` or
+axiom-free, `sorryAx` 0 · `leanchecker` exit 0, zero bytes, negative control
+exit 1 · mutation **8 killed, 0 survived, 0 discarded**.
+
+Two mutants had to be repaired before the suite was evidence, and both failures
+are the reassuring kind: `E04` was `DISCARDED` twice — first because the needle
+spelled `<=` where the source has the glyph, then because the replacement
+*contained* the needle — and `E08` `SURVIVED` because the mutated statement was
+still true, so it tested nothing. A discarded or unfailable mutant is a claim
+about the harness, never about the theorem.
+
 #### A checker went red on the correct change, and the checker was wrong
 
 `checker/install-roundtrip.sh` asserted that `hooks.SessionStart` is
