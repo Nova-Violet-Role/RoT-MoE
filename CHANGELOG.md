@@ -97,6 +97,42 @@ It is parsed with shell parameter expansion rather than a second `node` process:
 the hook costs ~125 ms, and a second interpreter spawn would roughly double that
 on every event, eleven times a turn.
 
+#### The Global install was three versions stale, and it is fixed through the PLUGIN, not through settings.json
+
+The global config had `rot-moe@rot-moe` enabled the whole time, but its
+marketplace pointed at `Desktop/RoT-MoE 0.7.1-Lean` and both cached versions —
+`0.6.1` and `0.7.1` — carried the **three-event** manifest. Global was running a
+router wired into three lifecycle events while the repo had eleven.
+
+**Adding eleven entries to `settings.json` would have been the wrong repair, and
+it would have gone green.** With the plugin enabled, hooks registered in
+`settings.json` stack on top of the plugin's own — the router fires twice per
+event. That is precisely the defect `checker/router-duplication.sh` exists to
+catch. The correct repair is to refresh the plugin the install actually serves,
+which leaves `settings.json` alone and keeps every one of the 23 existing
+sanctum / codemap-ext / cavecrew / pxpipe hook entries and their `*` matchers
+untouched. (An earlier note in this session said 22; that was a miscount. The
+pre-work backup and the current file both hold 23, and a diff of the two shows
+zero added and zero removed.)
+
+Refreshed the marketplace source directory and both cache versions from the
+staged build, after asserting the staged artifact matches the worktree
+byte-for-byte, and verified with 15 byte comparisons. Backups are
+`*.pre-11event-2026-08-08.bak` beside each replaced file.
+
+Measured live against the global config: `SessionStart`, `UserPromptSubmit`,
+`PreToolUse`, `PostToolUse`, `Stop` and `SessionEnd` all fire — the same six as
+CTT.
+
+**One measurement of mine was wrong first, and the instrument was at fault, not
+the router.** Counting "new records after line N" returned **zero**, which reads
+as "the plugin does not fire". The debug log is capped at
+`ROTMOE_DEBUG_LOG_MAX` (default 5000) and rotates from the front — the property
+`rotate_keeps_the_newest` in `RotDebugLog.lean` — so appending 6 records to a
+full file leaves the line count at exactly 5000 and a positional slice is empty
+by construction. Re-measured by timestamp: 126 route records in the preceding
+ten minutes.
+
 #### Measured live in CTT: six distinct events, and an A/B that shows no quality difference
 
 With the event field in place, a real CTT session (plugin `rot-moe` only,
