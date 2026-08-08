@@ -73,8 +73,22 @@ list, so the mutant applied cleanly to the wrong object, changed no membership
 test, and was recorded as `SURVIVED`. That is worse than a miss — a miss says
 `DISCARDED` and asks for attention, while this said the theorem was robust. The
 needle is now anchored to text unique to the list under mutation, and two further
-mutants (E09 dropping `SubagentStart`, E10 adding `TaskStop`) were added: **10
-applied, 10 killed, 0 survived, 0 discarded**.
+mutants (E09 dropping `SubagentStart`, E10 adding `TaskStop`) were added. **That
+suite alone now runs ten mutants and kills all ten**, with none surviving and none
+discarded.
+
+A note on how that sentence is phrased, because the first attempt broke CI. The
+shape `N applied, N killed` is **reserved**: `checker/repo-complete.sh:312` scans
+the newest section of this file for it and reads it as the repo-wide mutation
+total, so a per-suite figure written that way collides with the 366 the suites
+actually declare. The checker was right to refuse it — a reader skimming the
+newest section would have misread it the same way. The fact is unchanged; only its
+scope is now explicit. Nothing about the check was relaxed to make this pass.
+
+The miss itself is worth recording: the local run before committing was
+`gate-all --fast`, and `repo completeness` is a **deep** gate, so the tier that
+would have caught this never ran. A green `--fast` is not a green tree, and the
+commit that follows one should say which tier produced it.
 
 ### The global config ran 23 hook entries across 4 events; it now runs 403 across 31
 
