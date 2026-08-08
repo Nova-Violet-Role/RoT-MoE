@@ -1129,13 +1129,13 @@ _PCTL="$(mktemp "${TMPDIR:-/tmp}/rotmoe-pctl.XXXXXX")"
 # widened pattern is not.
 printf 'set -uo pipefail\nsed s/x/y/ f | grep -q PATTERN || bad "missing"\n' > "$_PCTL"   # SIGPIPE-ALLOW
 _n=$(sed 's/#.*$//' "$_PCTL" | grep -v -E '^[[:space:]]*((printf|echo|cat)[[:space:]].*>|(ok|bad)[[:space:]])' | grep -c -E '[^|][|][[:space:]]*grep[[:space:]]+-[A-Za-z]*q')
-0
+[ -n "$_n" ] || _n=0
 [ "${_n:-0}" -gt 0 ] \
   && ok "CONTROL: a pipe into 'grep -q' under pipefail IS detected" \
   || bad "CONTROL DEAD: the SIGPIPE hazard is not detected -- rule 7 proves nothing"
 printf 'set -uo pipefail\nsed s/x/y/ f | grep -c PATTERN >/dev/null || bad "missing"\ngrep -q P file || bad "x"\n' > "$_PCTL"
 _n=$(sed 's/#.*$//' "$_PCTL" | grep -v -E '^[[:space:]]*((printf|echo|cat)[[:space:]].*>|(ok|bad)[[:space:]])' | grep -c -E '[^|][|][[:space:]]*grep[[:space:]]+-[A-Za-z]*q')
-0
+[ -n "$_n" ] || _n=0
 [ "${_n:-0}" -eq 0 ] \
   && ok "CONTROL: the two cures (grep -c, or grep a FILE) are NOT flagged" \
   || bad "CONTROL: rule 7 flags the fix -- it would push the tree back to the hazard"

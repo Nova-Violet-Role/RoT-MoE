@@ -264,6 +264,16 @@ jobs:
         shell: bash
         run: bash checker/release-install.sh
 
+      # The local-only 1.0.x build, run HERE rather than exempted. On my machine
+      # it proves the artifacts regenerate; in CI it proves something I cannot
+      # prove locally -- that they regenerate on a checkout that is not mine,
+      # from `git archive HEAD` alone, with no untracked file quietly supplying
+      # a missing piece. It packages twice on purpose: the second pass is the
+      # reproducibility comparison, not a retry.
+      - name: local-only 1.0.x release regenerates from HEAD
+        shell: bash
+        run: bash checker/release-local.sh
+
       # The Lean witness uses the SHIPPING weights on purpose, so the proofs
       # apply to the profile in production. Retune LAMBDAS and every other gate
       # stays green while "proved for the shipping profile" quietly goes false.
