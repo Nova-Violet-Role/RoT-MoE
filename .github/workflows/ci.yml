@@ -473,8 +473,30 @@ jobs:
       - name: A/B instruction compliance -- exit 3 SKIP without the raw corpus
         shell: bash
         run: |
-          bash checker/ab-compliance.sh
-          rc=$?
+          # `|| rc=$?` IS LOAD-BEARING, and the bare form was the defect.
+          #
+          # MEASURED on run 31272071528, job 93139618870: this gate printed its
+          # SKIP banner correctly -- "Exit 3 is a SKIP, never a pass" -- and the
+          # step still failed with "##[error]Process completed with exit code 3".
+          # The exit-3 branch below never executed.
+          #
+          # The reason is that GitHub runs `shell: bash` as
+          # `bash --noprofile --norc -eo pipefail`. Under `set -e` a command
+          # returning non-zero terminates the script AT THAT LINE, so `rc=$?` on
+          # the next line is never reached. The handling looked present in the
+          # file and was dead on the runner.
+          #
+          # This cost all four jobs: the step failed, and 28 steps after it were
+          # SKIPPED as a consequence -- which is why three runs in a row showed
+          # a large skip count that had nothing to do with the checkers
+          # themselves.
+          #
+          # `|| rc=$?` keeps `set -e` satisfied while reading the code DIRECTLY,
+          # which is the same rule this repo applies everywhere: nothing may run
+          # between the command and the read of its status. Exit 3 and ONLY exit
+          # 3 is a skip; every other non-zero still fails the job.
+          rc=0
+          bash checker/ab-compliance.sh || rc=$?
           if [ "$rc" -eq 3 ]; then
             echo "SKIPPED BY DESIGN: raw A/B transcripts are not committed (exit 3)."
             exit 0
