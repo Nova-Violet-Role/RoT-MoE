@@ -247,9 +247,25 @@ run_mut E05 \
 
 # E06: an event is declared twice -- the router would double-fire on it
 run_mut E06 \
-  '   "PreCompact", "PostCompact"]' \
-  '   "PreCompact", "PostCompact", "Stop"]' \
+  '   "MessageDisplay"]' \
+  '   "MessageDisplay", "Stop"]' \
   'Stop is declared twice -- the manifest itself would double-fire the router'
+
+# E09: SubagentStart is dropped from the declared list -- the exact event the
+# counting method missed. If nothing dies here, the re-derivation proved nothing.
+run_mut E09 \
+  '   "SessionEnd", "Stop", "StopFailure", "SubagentStart", "SubagentStop",' \
+  '   "SessionEnd", "Stop", "StopFailure", "SubagentStop",' \
+  'SubagentStart is missing again -- the counted-from-plugins blind spot is back'
+
+# E10: the counted list is given an event the CLI does not define. This attacks
+# the direction of the subset claim: widening must be a SUPERSET of what worked
+# before, and a counted list containing a non-event would mean the old wiring
+# bound something that does not exist.
+run_mut E10 \
+  '   "PreCompact", "PostCompact"]' \
+  '   "PreCompact", "PostCompact", "TaskStop"]' \
+  'the counted list claims TaskStop, which is a TOOL and not a declared event'
 
 # E07: the historical record is rewritten -- the defect is made to look smaller
 run_mut E07 \

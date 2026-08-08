@@ -1,43 +1,7 @@
 {
   "_comment": "HOOK MODE: no arguments, payload read from STDIN. This is a HARDENING, not a bug fix, and the distinction is recorded because an earlier commit message of mine got it wrong. The previous registration passed -Route with the CLAUDE_USER_PROMPT placeholder and it WORKED: measured against commit 59b2620 in a real marketplace install, three prompts routed to FORGE, EMPATHIC and CLINICAL correctly. The claim that it shipped dead came from misreading the harness debug log -- the line reads \"Hook UserPromptSubmit (UserPromptSubmit) success:\" and the hook output is printed on the NEXT line, so grepping only the matching line shows nothing. Hook mode is kept anyway for two measured reasons: it depends on no harness-provided variable, and an empty route makes the ps1 wait on stdin forever (exit 124), which is a real latent hang; and it stops PreToolUse from passing a FABRICATED all-zero gauge vector. Measured: 5 of 5 sessions emit the marker and the lane varies with the prompt.",
-
-  "_comment_coverage": "EVERY EVENT, WILDCARD MATCHER -- 2026-08-08. This manifest covered THREE events: UserPromptSubmit, PreToolUse, PostToolUse. That is the defect the Socio named: RoT MoE is a ROUTER, and a router wired into three of eleven lifecycle events observes a fraction of the session it claims to govern. Every A/B measurement taken against the old wiring was therefore measuring a partially-installed router, which is one reason no quality win has been demonstrated. The eleven event names below are not remembered -- they were counted from every hooks.json and settings.json present on this machine: PreToolUse 97, UserPromptSubmit 78, SessionStart 69, PostToolUse 62, Stop 61, SessionEnd 6, Notification 6, SubagentStop 4, PreCompact 2, UserPromptExpansion 1, PostCompact 1. The wildcard matcher is likewise measured, not assumed: an installed plugin registers Stop with matcher \"*\", so \"*\" is accepted on events that carry no tool name. Both hooks were executed against all eleven event payloads before this file was written: rot-router exits 0 and emits its marker on all eleven, prover-remind exits 0 on all eleven. A hook that crashed on Stop would break the session, so the tolerance was measured first and the wiring written second.",
-
+  "_comment_coverage": "EVERY EVENT THE CLI DEFINES, WILDCARD MATCHER -- 2026-08-08. This manifest covered THREE events, then ELEVEN, and now THIRTY-ONE. The jump from eleven to thirty-one came from the Socio asking a question I could not answer: is there a SubagentStart, and are eleven really all of them? There is, and they are not. The eleven were derived by COUNTING WHICH EVENTS OTHER INSTALLED PLUGINS USED -- a lower bound that can never reveal an event nobody on this machine happens to use, which is precisely how SubagentStart was missed. The thirty-one below come from the authoritative source instead: the Lz array inside the compiled claude CLI binary, cross-checked against its execute<Name>Hooks dispatch functions, and listed here in the CLI's own order. TaskStop was found nearby and deliberately EXCLUDED -- its surrounding text reads 'use TaskStop with task_id', so it is a tool, not an event. Tolerance was measured BEFORE the wiring was written, as it was for the eleven: all four hook arms were fired with each of the twenty new event payloads on stdin, 80 invocations, 0 non-zero exits. A hook that crashed on ConfigChange would break every session it fired in. The wildcard matcher is likewise measured: an installed plugin registers Stop with matcher \"*\", so \"*\" is accepted on events that carry no tool name.",
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
-            "timeout": 1200
-          },
-          {
-            "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
-            "timeout": 1200
-          }
-        ]
-      }
-    ],
-    "UserPromptExpansion": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
-            "timeout": 1200
-          },
-          {
-            "type": "command",
-            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
-            "timeout": 1200
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "*",
@@ -56,6 +20,91 @@
       }
     ],
     "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "PostToolBatch": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "UserPromptExpansion": [
       {
         "matcher": "*",
         "hooks": [
@@ -123,7 +172,7 @@
         ]
       }
     ],
-    "SubagentStop": [
+    "StopFailure": [
       {
         "matcher": "*",
         "hooks": [
@@ -140,7 +189,24 @@
         ]
       }
     ],
-    "Notification": [
+    "SubagentStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
       {
         "matcher": "*",
         "hooks": [
@@ -175,6 +241,278 @@
       }
     ],
     "PostCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "Setup": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "TaskCreated": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "Elicitation": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "ElicitationResult": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "InstructionsLoaded": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "CwdChanged": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "FileChanged": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "DirectoryAdded": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "timeout": 1200
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "timeout": 1200
+          }
+        ]
+      }
+    ],
+    "MessageDisplay": [
       {
         "matcher": "*",
         "hooks": [

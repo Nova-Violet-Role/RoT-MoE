@@ -97,16 +97,16 @@ $RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
 # EVERY LIFECYCLE EVENT, NOT TWO -- 2026-08-08. The reasoning is written out in
 # full at the same point in ARM_ROUTER.sh and is not repeated here; the short
-# form is that RoT MoE is a ROUTER, two of eleven events is sampling rather than
+# form is that RoT MoE is a ROUTER, eleven of thirty-one events is sampling rather than
 # observation, and every A/B this repo has run was therefore run against a
-# partially installed product. The eleven names were COUNTED from every
-# hooks.json and settings.json on the measuring machine, not recalled, and both
-# hooks were executed against all eleven payloads at exit 0 before the list was
-# widened. This CSV must stay character-identical to the one in ARM_ROUTER.sh
+# partially installed product. The thirty-one names were READ FROM THE CLI's own
+# Lz array, not recalled and not counted from other plugins -- an earlier list of
+# eleven was counted that way and missed SubagentStart entirely. Both hooks were
+# executed against every new payload at exit 0 before the list was widened. This CSV must stay character-identical to the one in ARM_ROUTER.sh
 # and to hooks/hooks.json; checker/install-parity.sh fails if it drifts.
-$EventsCsv = 'UserPromptSubmit,UserPromptExpansion,PreToolUse,PostToolUse,SessionStart,SessionEnd,Stop,SubagentStop,Notification,PreCompact,PostCompact'
+$EventsCsv = 'PreToolUse,PostToolUse,PostToolUseFailure,PostToolBatch,Notification,UserPromptSubmit,UserPromptExpansion,SessionStart,SessionEnd,Stop,StopFailure,SubagentStart,SubagentStop,PreCompact,PostCompact,PermissionRequest,PermissionDenied,Setup,TeammateIdle,TaskCreated,TaskCompleted,Elicitation,ElicitationResult,ConfigChange,WorktreeCreate,WorktreeRemove,InstructionsLoaded,CwdChanged,FileChanged,DirectoryAdded,MessageDisplay'
 
-# The reminder, on the SAME eleven events the plugin binds it to. Measured parity
+# The reminder, on the SAME thirty-one events the plugin binds it to. Measured parity
 # gap when this was three: the plugin registered 5 bindings across 3 events, this
 # installer wrote 2, and no installer in the tree had ever wired prover-remind at
 # all. See the same block in ARM_ROUTER.sh -- the two arms must stay

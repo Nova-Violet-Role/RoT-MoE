@@ -41,17 +41,42 @@ namespace RotMoE.Event
 
 /-! ## The declared events -/
 
-/-- The eleven lifecycle events RoT MoE binds, in the order the manifest lists
-them. Counted from every `hooks.json` and `settings.json` on the measuring
-machine -- not recalled. -/
+/-- The thirty-one lifecycle events RoT MoE binds, in the order the CLI itself
+lists them.
+
+PROVENANCE, because the previous provenance was the defect. This list was
+eleven, and the eleven were obtained by COUNTING WHICH EVENTS OTHER INSTALLED
+PLUGINS USED. That method is a lower bound: it cannot reveal an event that
+nothing on the measuring machine happens to bind. It missed `SubagentStart`
+entirely, and it missed nineteen others.
+
+These thirty-one are read from the authoritative source -- the `Lz` array inside
+the compiled `claude` CLI binary -- and cross-checked against that binary's
+`execute<Name>Hooks` dispatch functions. `TaskStop` appears nearby and is
+deliberately EXCLUDED: its surrounding text reads "use TaskStop with task_id",
+which makes it a tool, not an event. -/
 def declared : List String :=
+  ["PreToolUse", "PostToolUse", "PostToolUseFailure", "PostToolBatch",
+   "Notification", "UserPromptSubmit", "UserPromptExpansion", "SessionStart",
+   "SessionEnd", "Stop", "StopFailure", "SubagentStart", "SubagentStop",
+   "PreCompact", "PostCompact", "PermissionRequest", "PermissionDenied",
+   "Setup", "TeammateIdle", "TaskCreated", "TaskCompleted", "Elicitation",
+   "ElicitationResult", "ConfigChange", "WorktreeCreate", "WorktreeRemove",
+   "InstructionsLoaded", "CwdChanged", "FileChanged", "DirectoryAdded",
+   "MessageDisplay"]
+
+/-- What the router was bound to before 2026-08-08 -- three events. -/
+def boundBefore : List String :=
+  ["UserPromptSubmit", "PreToolUse", "PostToolUse"]
+
+/-- The intermediate list: the eleven events reached by counting other plugins'
+usage. Kept as a named object rather than deleted, because the theorem that
+matters is that it was a strict subset of what the CLI actually defines --
+that is the shape of the error, and it is worth being able to state it. -/
+def countedFromPlugins : List String :=
   ["UserPromptSubmit", "UserPromptExpansion", "PreToolUse", "PostToolUse",
    "SessionStart", "SessionEnd", "Stop", "SubagentStop", "Notification",
    "PreCompact", "PostCompact"]
-
-/-- What the router was bound to before 2026-08-08. -/
-def boundBefore : List String :=
-  ["UserPromptSubmit", "PreToolUse", "PostToolUse"]
 
 /-! ## The sanitiser
 
@@ -133,9 +158,9 @@ theorem every_declared_event_survives :
 
 /-! ## What the coverage claim says -/
 
-/-- Eleven, and this is the number the manifest, `ARM_ROUTER.sh` and
+/-- Thirty-one, and this is the number the manifest, `ARM_ROUTER.sh` and
 `ARM_ROUTER.ps1` are asserted to agree on. -/
-theorem declared_count : declared.length = 11 := by rfl
+theorem declared_count : declared.length = 31 := by rfl
 
 /-- Deduplication, written out rather than imported, so this module depends on
 no library name that could move under it. -/
@@ -145,7 +170,7 @@ def dedup (l : List String) : List String :=
 /-- No event is registered twice. A duplicate would double-fire the router on
 that event -- the exact defect `checker/router-duplication.sh` exists to catch,
 arriving through the manifest instead of through a stacked install. -/
-theorem declared_has_no_duplicates : (dedup declared).length = 11 := by
+theorem declared_has_no_duplicates : (dedup declared).length = 31 := by
   rfl
 
 /-- THE DEFECT, stated as a theorem: what the router used to bind is a strict
@@ -153,10 +178,42 @@ subset of what it binds now. -/
 theorem old_binding_was_a_subset :
     boundBefore.all (fun e => declared.contains e) = true := by rfl
 
-/-- Eight events had no binding at all. This is the size of the blind spot, and
-it is the reason every prior A/B measured a partially installed router. -/
-theorem eight_events_were_unbound :
-    (declared.filter (fun e => !boundBefore.contains e)).length = 8 := by rfl
+/-- Twenty-eight events had no binding at all under the original three. This is
+the size of the blind spot, and it is the reason every prior A/B measured a
+partially installed router. -/
+theorem twentyeight_events_were_unbound :
+    (declared.filter (fun e => !boundBefore.contains e)).length = 28 := by rfl
+
+/-! ## The counting method was the defect, and it is stated as a theorem
+
+The eleven-event list was obtained by counting which events other installed
+plugins bound. The three theorems below say precisely what was wrong with that,
+so the error cannot be repeated silently: the counted list was a strict subset,
+it was missing twenty entries, and `SubagentStart` -- the event the Socio asked
+about by name -- was one of them. -/
+
+/-- Counting other plugins' usage produced a list that is entirely valid, and
+entirely incomplete. Every counted event is real. -/
+theorem counted_events_are_all_real :
+    countedFromPlugins.all (fun e => declared.contains e) = true := by rfl
+
+/-- ... but it missed twenty of them. A lower bound cannot find what nothing on
+the machine happens to use. -/
+theorem counting_missed_twenty :
+    (declared.filter (fun e => !countedFromPlugins.contains e)).length = 20 := by rfl
+
+/-- `SubagentStart` is declared by the CLI and was absent from the counted list.
+This is the specific miss that prompted the re-derivation, kept as a theorem
+rather than a comment so that a regression to the counting method fails a
+build. -/
+theorem subagent_start_was_missed :
+    (declared.contains "SubagentStart" && !countedFromPlugins.contains "SubagentStart") = true := by
+  rfl
+
+/-- The router now binds a SUPERSET of what counting found, not a different set.
+Widening must never silently drop an event that already worked. -/
+theorem widening_dropped_nothing :
+    countedFromPlugins.all (fun e => declared.contains e) = true := by rfl
 
 /-! ## The property that must survive a growing list
 
@@ -185,7 +242,12 @@ theorem entries_equal_declared_count (evs : List String) :
 #guard sanitise "" == "-"
 #guard sanitise "Stop-1" == "-"
 #guard sanitise "Evil\",\"lane\":\"PWNED" == "-"
-#guard declared.length == 11
-#guard (declared.filter (fun e => !boundBefore.contains e)).length == 8
+#guard declared.length == 31
+#guard (declared.filter (fun e => !boundBefore.contains e)).length == 28
+#guard (declared.filter (fun e => !countedFromPlugins.contains e)).length == 20
+#guard declared.contains "SubagentStart"
+#guard !declared.contains "TaskStop"
+#guard sanitise "SubagentStart" == "SubagentStart"
+#guard sanitise "PostToolUseFailure" == "PostToolUseFailure"
 
 end RotMoE.Event
