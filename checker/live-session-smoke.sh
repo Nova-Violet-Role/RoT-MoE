@@ -142,9 +142,61 @@ fi
 #
 # Only lines naming this router, or a hook the CLI itself reports as failed,
 # count as evidence about this router.
+#
+# THE THIRD DEFECT, and it is the same shape as the first two. Measured on the
+# macOS runner, 2026-08-08, immediately after the router was widened from 11 to
+# 31 events: this phase reported "the router ERRORED 1 time(s)" while quoting
+# three lines that each ended `completed with status 0`. They were successes.
+#
+# The cause is a NAME COLLISION with the CLI's own vocabulary. Two of the newly
+# bound events are called `StopFailure` and `PostToolUseFailure`, and the CLI
+# annotates a line with the reason, giving text like
+#
+#     [DEBUG] StopFailure:authentication_failed [pwsh ... rot-router.ps1 ...] completed with status 0
+#
+# The first grep selects it (the command string contains `rot-router`), and the
+# second counts it (the EVENT NAME contains `failed`). Nothing failed. The router
+# ran and exited 0 on an event whose name happens to be a synonym for the thing
+# this detector hunts.
+#
+# So the status field is now read instead of trusting substrings: a line the CLI
+# itself reports as `completed with status 0` cannot be evidence that the hook
+# broke, whatever words appear in the event name. This is a STRENGTHENING -- the
+# detector becomes precise rather than accidental -- and every genuine signal it
+# caught before is still counted, which the control below proves by feeding it
+# one of each.
+STATUS_OK_RE='completed with status 0'
 ARMED_ERR=$(grep -hiE 'rot-router|Hook [A-Za-z]+ .*(failed|error)' \
               "$WORK/armed.debug" "$WORK/armed.err" 2>/dev/null \
+            | grep -vE "$STATUS_OK_RE" \
             | grep -ciE 'no mode given|Write-Error|Exception|command not found|usage:|failed')
+
+# CONTROL, run every time, because a detector nobody has deliberately tripped is
+# an untested alarm -- and this one has now been wrong three separate ways.
+CTLDIR="$WORK/errdet-control"; mkdir -p "$CTLDIR"
+printf '%s\n' \
+  '2026-08-08T22:03:11.402Z [DEBUG] StopFailure:authentication_failed [pwsh -NoProfile -File "/x/hooks/rot-router.ps1"] completed with status 0' \
+  > "$CTLDIR/benign.log"
+printf '%s\n' \
+  '2026-08-08T22:03:11.402Z [DEBUG] Stop:end [pwsh -NoProfile -File "/x/hooks/rot-router.ps1"] no mode given (-Vector or -Route)' \
+  > "$CTLDIR/real.log"
+_count_err() {
+  grep -hiE 'rot-router|Hook [A-Za-z]+ .*(failed|error)' "$1" 2>/dev/null \
+    | grep -vE "$STATUS_OK_RE" \
+    | grep -ciE 'no mode given|Write-Error|Exception|command not found|usage:|failed'
+}
+CTL_BENIGN=$(_count_err "$CTLDIR/benign.log")
+CTL_REAL=$(_count_err "$CTLDIR/real.log")
+if [ "$CTL_BENIGN" -eq 0 ]; then
+  ok "CONTROL: a StopFailure line that completed with status 0 is NOT counted as an error"
+else
+  bad "CONTROL: the detector still counts a successful StopFailure line ($CTL_BENIGN)"
+fi
+if [ "$CTL_REAL" -eq 1 ]; then
+  ok "CONTROL: a real router failure IS still counted -- the detector can fire"
+else
+  bad "CONTROL: the detector no longer catches a real failure ($CTL_REAL) -- it was weakened, not sharpened"
+fi
 if [ "$ARMED_ERR" -eq 0 ]; then
   ok "ARMED: no error attributable to the router"
 else

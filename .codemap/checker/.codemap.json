@@ -630,12 +630,12 @@
       "symbols": []
     },
     "live-session-smoke.sh": {
-      "hash": "45af30a5c316",
-      "indexed_at": "2026-08-06T19:45:20.704816+00:00",
+      "hash": "4beaca7b8cfd",
+      "indexed_at": "2026-08-08T22:06:38.072339+00:00",
       "language": "shell",
-      "lines": 292,
-      "mtime_ns": 1786045504054707200,
-      "size": 14816,
+      "lines": 344,
+      "mtime_ns": 1786226796159463800,
+      "size": 17529,
       "symbols": [
         {
           "lines": [
@@ -643,6 +643,14 @@
             97
           ],
           "name": "run_session",
+          "type": "function"
+        },
+        {
+          "lines": [
+            183,
+            187
+          ],
+          "name": "_count_err",
           "type": "function"
         }
       ]
@@ -1437,6 +1445,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T21:12:15.312843+00:00",
+  "generated_at": "2026-08-08T22:06:38.072447+00:00",
   "version": "1.0"
 }
