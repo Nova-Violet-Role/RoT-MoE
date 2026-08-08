@@ -97,7 +97,7 @@ echo "== axiom classification =="
 note "toolchain: $(cat lean-toolchain 2>/dev/null || echo unknown)"
 
 # Hoist lake's package resolution out of the per-module probe loop below.
-# Measured 2026-08-09 on the sibling gate: ~2s per invocation, paid once per
+# Measured 2026-08-08 on the sibling gate: ~2s per invocation, paid once per
 # module, for an answer that cannot change during the run. Verified there by
 # diffing the fast and fallback outputs -- byte-identical verdicts -- and by a
 # planted `sorry`, which the fast path still caught at exit 1.

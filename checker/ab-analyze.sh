@@ -200,7 +200,7 @@ const NARRATE=["Let me ","I%27ll now","First, I%27ll"].map(s=>decodeURIComponent
 const LEAK=["RoT:","[Nova]","R/s+","lambda table"];
 
 // THE LEAK LIST MEASURED TWO DIFFERENT THINGS AND THE SPEC ONLY MEANT ONE.
-// Measured 2026-08-09 over the committed corpus: `RoT:`, `[Nova]` and
+// Measured 2026-08-08 over the committed corpus: `RoT:`, `[Nova]` and
 // `lambda table` -- the YAML block and the footer, the FORMS the seal bans --
 // occur ZERO times in 88 routed turns. Every one of the 10 counted "leaks" is
 // the bare term `R/s+`, and the arm with NO plugin and NO seal to keep produces

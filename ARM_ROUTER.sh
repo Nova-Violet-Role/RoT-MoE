@@ -148,16 +148,41 @@ ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
 # `pwsh ... || bash ...` mirrors the org's working plugin: Windows takes the
 # first arm, POSIX falls through to the second.
 ROUTER_CMD="pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
-EVENTS='UserPromptSubmit PreToolUse'
-EVENTS_CSV='UserPromptSubmit,PreToolUse'
 
-# The reminder ships in the same tree and is registered by the PLUGIN on three
-# events. The hand install has to match it or the two paths deliver different
-# products -- see the block at the merge call for the measurement.
+# EVERY LIFECYCLE EVENT, NOT TWO -- 2026-08-08.
+#
+# This installer wired the router on UserPromptSubmit and PreToolUse, and the
+# reminder on those two plus PostToolUse. For a linter that would be ample. For
+# a ROUTER it is the central defect: a router observes the session it claims to
+# govern, and two of eleven events is not observation, it is sampling. Every A/B
+# measurement this repo has taken was therefore taken against a partially
+# installed product -- which is a live candidate explanation for why no quality
+# win has been demonstrated, and it is recorded here as a candidate rather than
+# a conclusion, because it has not yet been re-measured under full wiring.
+#
+# The eleven names are COUNTED, not recalled: every hooks.json and settings.json
+# on the measuring machine was scanned, and these are the event keys in real use
+# (occurrences in that scan: PreToolUse 97, UserPromptSubmit 78, SessionStart 69,
+# PostToolUse 62, Stop 61, SessionEnd 6, Notification 6, SubagentStop 4,
+# PreCompact 2, UserPromptExpansion 1, PostCompact 1). hooks/hooks.json carries
+# the identical list, and checker/install-parity.sh fails if the two disagree --
+# so this constant cannot silently drift away from what the plugin registers.
+#
+# Both hooks were run against all eleven payloads BEFORE this list was widened:
+# rot-router exits 0 and emits its marker on all eleven, prover-remind exits 0
+# on all eleven. Widening the wiring without that measurement would have risked
+# a hook that crashes on Stop, which breaks the session rather than the build.
+ALL_EVENTS='UserPromptSubmit UserPromptExpansion PreToolUse PostToolUse SessionStart SessionEnd Stop SubagentStop Notification PreCompact PostCompact'
+EVENTS="$ALL_EVENTS"
+EVENTS_CSV='UserPromptSubmit,UserPromptExpansion,PreToolUse,PostToolUse,SessionStart,SessionEnd,Stop,SubagentStop,Notification,PreCompact,PostCompact'
+
+# The reminder ships in the same tree and is registered by the PLUGIN on the
+# same eleven events. The hand install has to match it or the two paths deliver
+# different products -- see the block at the merge call for the measurement.
 REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
 REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
 REMIND_CMD="pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
-REMIND_EVENTS_CSV='UserPromptSubmit,PreToolUse,PostToolUse'
+REMIND_EVENTS_CSV="$EVENTS_CSV"
 
 echo "RoT MoE :: ARM_ROUTER"
 echo "  config dir : $CLAUDE_DIR"

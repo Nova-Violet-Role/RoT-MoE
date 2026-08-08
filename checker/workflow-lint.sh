@@ -227,7 +227,7 @@ except_reason () {   # except_reason <basename> -> prints reason, or nothing
 # skipped. The incompatibility was the symptom; the category error was asking a
 # GitHub runner to rehearse a release into a CTT that does not exist there.
 #
-# Removed from ci.yml 2026-08-09. It still runs in the local deep tier through
+# Removed from ci.yml 2026-08-08. It still runs in the local deep tier through
 # gate-all.sh, and exempt_must_be_reachable asserts that below -- so this
 # exemption states WHERE it runs, never that it stopped running.
     release-local.sh)  printf '%s' "pre-release staging rehearsal into a gitignored dir and CTT; neither exists on a runner, so it runs from gate-all.sh" ;;
@@ -305,7 +305,7 @@ $2
 
 # STRIP YAML COMMENTS BEFORE ASKING "IS IT WIRED".
 #
-# Measured 2026-08-09, on the very commit that removed a step. The step running
+# Measured 2026-08-08, on the very commit that removed a step. The step running
 # checker/release-local.sh was deleted from ci.yml and replaced with a comment
 # block explaining WHY -- a block that necessarily names the file. This scan read
 # the raw text, found the name inside the comment, and printed

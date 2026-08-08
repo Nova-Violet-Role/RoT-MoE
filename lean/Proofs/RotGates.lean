@@ -351,7 +351,7 @@ def shipped : List Gate :=
 -- `CI honesty` on 2026-08-05, deep tier, after run 31035932155 concluded
 -- `success` with EIGHT skipped steps -- one of them `tty guard`, a real check
 -- that had never run on Windows or macOS.
--- `A/B instruction compliance` joined 2026-08-09, deep tier: the endpoint that
+-- `A/B instruction compliance` joined 2026-08-08, deep tier: the endpoint that
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
@@ -361,7 +361,7 @@ def shipped : List Gate :=
 #guard (fastSet shipped).length = 28
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
--- instruction compliance` 2026-08-09).
+-- instruction compliance` 2026-08-08).
 #guard (deepSet shipped).length = 16
 
 -- The partition is total on the shipped table too, not just in principle.
@@ -962,7 +962,7 @@ def scaffoldingFailureRun : Run :=
 
 /-! ## A gate must trigger on itself
 
-Measured 2026-08-09 across the shipped table: **14 of the 25 deep gates with a
+Measured 2026-08-08 across the shipped table: **14 of the 25 deep gates with a
 resolvable script did not list their own path among their triggers.** Editing
 the checker did not run the checker. `checker/ci-honesty.sh` fired only on
 `.github/workflows/`; `checker/axiom-audit.sh` only on `lean/`;

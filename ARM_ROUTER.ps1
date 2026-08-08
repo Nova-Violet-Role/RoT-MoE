@@ -95,18 +95,27 @@ function ConvertTo-PosixPath([string] $p) {
 # which is what makes that a tested claim rather than an intention.
 $RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
-$EventsCsv = 'UserPromptSubmit,PreToolUse'
+# EVERY LIFECYCLE EVENT, NOT TWO -- 2026-08-08. The reasoning is written out in
+# full at the same point in ARM_ROUTER.sh and is not repeated here; the short
+# form is that RoT MoE is a ROUTER, two of eleven events is sampling rather than
+# observation, and every A/B this repo has run was therefore run against a
+# partially installed product. The eleven names were COUNTED from every
+# hooks.json and settings.json on the measuring machine, not recalled, and both
+# hooks were executed against all eleven payloads at exit 0 before the list was
+# widened. This CSV must stay character-identical to the one in ARM_ROUTER.sh
+# and to hooks/hooks.json; checker/install-parity.sh fails if it drifts.
+$EventsCsv = 'UserPromptSubmit,UserPromptExpansion,PreToolUse,PostToolUse,SessionStart,SessionEnd,Stop,SubagentStop,Notification,PreCompact,PostCompact'
 
-# The reminder, on the THREE events the plugin binds it to. Measured parity gap:
-# the plugin registered 5 bindings across 3 events, this installer wrote 2, and
-# no installer in the tree had ever wired prover-remind at all. See the same
-# block in ARM_ROUTER.sh -- the two arms must stay character-identical here or
-# each installs an entry the other cannot remove.
+# The reminder, on the SAME eleven events the plugin binds it to. Measured parity
+# gap when this was three: the plugin registered 5 bindings across 3 events, this
+# installer wrote 2, and no installer in the tree had ever wired prover-remind at
+# all. See the same block in ARM_ROUTER.sh -- the two arms must stay
+# character-identical here or each installs an entry the other cannot remove.
 $RemindPs1 = Join-Path $SelfDir 'hooks/prover-remind.ps1'
 $RemindSh  = Join-Path $SelfDir 'hooks/prover-remind.sh'
 $RemindCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
-$RemindEventsCsv = 'UserPromptSubmit,PreToolUse,PostToolUse'
+$RemindEventsCsv = $EventsCsv
 
 Write-Output 'RoT MoE :: ARM_ROUTER (PowerShell arm)'
 Write-Output ('  config dir : ' + $ClaudeDir)

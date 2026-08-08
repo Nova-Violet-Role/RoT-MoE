@@ -199,6 +199,30 @@ got_x=$( ( cd "$CLONE/repo" && git ls-files -s ) | awk '$1=="100755"' | wc -l | 
 if [ "$want_x" -ne "$got_x" ]; then
   bad "the scratch index has $got_x executable entries, the real one has $want_x -- the dry run is not simulating a clone"
 fi
+# A REAL CLONE HAS A COMMIT. This scratch repo had an index -- the exec-bit
+# transfer above proves that -- but no HEAD, and several CI steps read HEAD:
+# `git rev-parse HEAD`, `git archive HEAD`, `git diff HEAD`. They failed here
+# and passed on ubuntu and windows in the same cycle, which is the definition of
+# a harness manufacturing its own red. checker/release-local.sh printed
+# `REFUSE: could not read HEAD` for exactly this reason.
+#
+# The same lesson as the exec bits twenty lines up: reproduce what you claim to
+# simulate. Deferring these steps would have been the cheap answer and the wrong
+# one -- it hides a real capability behind a shrug instead of restoring it.
+#
+# Identity is passed with -c so nothing is read from, or written to, the user's
+# git config.
+( cd "$CLONE/repo" \
+  && git -c user.email=dryrun@invalid -c user.name="ci-dryrun" \
+       commit -q -m "dry-run baseline" --no-verify ) >/dev/null 2>&1
+scratch_head=$( ( cd "$CLONE/repo" && git rev-parse HEAD 2>/dev/null ) )
+case "$scratch_head" in
+  [0-9a-f][0-9a-f]*)
+    ok "the scratch clone has a readable HEAD -- steps that read HEAD can actually run" ;;
+  *)
+    bad "the scratch clone has NO HEAD; every step reading HEAD will fail for a reason CI does not have" ;;
+esac
+
 ok "clean tree materialised: $copied file(s), working tree as it stands, no .lake, no ~/.claude"
 
 # --- 3. run what can be run -------------------------------------------------

@@ -293,7 +293,7 @@ while IFS='|' read -r name tier trigs cmd; do
         echo "fast. See lean/Proofs/RotGates.lean:no_trigger_never_escalates."
         exit 2
       fi
-      # A GATE MUST TRIGGER ON ITSELF. Measured 2026-08-09: 14 of the 25 deep
+      # A GATE MUST TRIGGER ON ITSELF. Measured 2026-08-08: 14 of the 25 deep
       # gates with a resolvable script did NOT list their own path, so editing
       # the checker did not run the checker. `ci-honesty.sh` fired only on
       # `.github/workflows/`; `axiom-audit.sh` only on `lean/`. Rewrite the

@@ -138,7 +138,7 @@ done
 echo "== axiom audit over ${#modules[@]} modules shipped by this repo (list read from disk, never typed)"
 
 # --- hoist lake's package resolution out of the per-module loop --------------
-# Measured 2026-08-09: `lake env lean <probe>` costs ~2s of package resolution
+# Measured 2026-08-08: `lake env lean <probe>` costs ~2s of package resolution
 # BEFORE lean starts, and this loop pays it once per module -- ~64s of the
 # gate's 186s, spent re-answering a question whose answer cannot change during
 # the run. Capturing LEAN_PATH once and invoking `lean` directly removes it.

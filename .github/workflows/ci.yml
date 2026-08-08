@@ -270,7 +270,7 @@ jobs:
       # from `git archive HEAD` alone, with no untracked file quietly supplying
       # a missing piece. It packages twice on purpose: the second pass is the
       # reproducibility comparison, not a retry.
-      # REMOVED 2026-08-09, and the removal is the actual repair.
+      # REMOVED 2026-08-08, and the removal is the actual repair.
       #
       # This step ran checker/release-local.sh on all three runners and it had
       # been failing on macOS-latest for three consecutive runs, taking 28

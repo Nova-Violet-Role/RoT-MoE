@@ -23,6 +23,84 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The router was wired into 3 of 11 lifecycle events — it was never fully installed
+
+RoT MoE is a **router**. It shipped bound to three Claude Code events —
+`UserPromptSubmit`, `PreToolUse`, `PostToolUse` — out of the eleven that exist.
+A router that observes three of eleven events is not routing a session, it is
+sampling one, and this is the most consequential defect found in the project so
+far: **every A/B measurement this repo has ever taken was taken against a
+partially installed product.**
+
+That does not retroactively turn the compliance reversal into a win — the
+reversal stands as measured, and no quality claim is being restored here. It
+does mean the measurement was never of the thing the README describes.
+
+The eleven event names were **counted, not recalled**. Every `hooks.json` and
+`settings.json` on the measuring machine was scanned, and these are the keys in
+real use:
+
+| event | occurrences in the scan | bound before | bound now |
+|---|---:|---|---|
+| `PreToolUse` | 97 | yes | yes |
+| `UserPromptSubmit` | 78 | yes | yes |
+| `SessionStart` | 69 | **no** | yes |
+| `PostToolUse` | 62 | yes | yes |
+| `Stop` | 61 | **no** | yes |
+| `SessionEnd` | 6 | **no** | yes |
+| `Notification` | 6 | **no** | yes |
+| `SubagentStop` | 4 | **no** | yes |
+| `PreCompact` | 2 | **no** | yes |
+| `UserPromptExpansion` | 1 | **no** | yes |
+| `PostCompact` | 1 | **no** | yes |
+
+Every binding uses `matcher: "*"`. The wildcard on a non-tool event is not an
+assumption either: an installed third-party plugin registers `Stop` with
+matcher `"*"`, so the form is known-accepted.
+
+**The tolerance was measured before the wiring was widened, not after.** A hook
+that crashes on `Stop` breaks the session rather than the build, so both hooks
+were executed against all eleven event payloads first: `rot-router` exits 0 and
+emits its lane marker on all eleven, `prover-remind` exits 0 on all eleven.
+Only then was the list widened.
+
+Three files carry the list — `hooks/hooks.json` (what the plugin registers),
+`ARM_ROUTER.sh` and `ARM_ROUTER.ps1` (what the hand installer writes) — and they
+are asserted character-identical, so a future edit cannot silently wire the
+plugin and the installer differently.
+
+#### A checker went red on the correct change, and the checker was wrong
+
+`checker/install-roundtrip.sh` asserted that `hooks.SessionStart` is
+*bit-identical* after install and uninstall, under the name "an event we never
+touch". It was true when the installer bound two events. It went red the moment
+the installer legitimately grew to bind eleven.
+
+This is the failure mode where a spec freezes a **contingent fact** as if it
+were an invariant: the build goes red on correct work, and the obvious repair —
+delete the check — destroys real coverage. The property that actually matters is
+not *SessionStart specifically is untouched* but **anything the installer does
+not declare is untouched**. It is now quantified over the installer's own
+declared list, read from `ARM_ROUTER.sh` at run time, so it stays meaningful at
+any list size.
+
+Two things keep that honest:
+
+- The fixture carries a `ZZ_ForeignEvent` key that the installer will never
+  bind, and the checker **asserts the comparison count is non-zero**. Without
+  it, a future list covering every fixture event would compare nothing and pass
+  in silence.
+- That guard is not theoretical: it fired on its own first run, because the
+  fixture has a UTF-8 BOM (deliberately — another check asserts the BOM
+  survives) and the new reader had not stripped it. The check reported
+  "compared NOTHING … so it proves nothing" instead of passing empty.
+
+Control, run deliberately: adding `ZZ_ForeignEvent` to the installer's declared
+list makes the foreign event *declared*, the loop compares nothing, and the
+checker goes **red** — mutation asserted present before the run, tree restored
+byte-clean after. `30 passed, 0 failed` with the repair, exit 1 under the
+control.
+
 ### A timeout is not a rejection — the hook accused four modules of being unproved
 
 The hook that guards this repo's proofs spent the day telling the session:

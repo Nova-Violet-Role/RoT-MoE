@@ -5,7 +5,7 @@ Copyright 2026 Saimonokuma.
 
 # A guard that fails open, and a diagnosis that was invented
 
-Two defects measured in `checker/ci-honesty.sh` on 2026-08-09, both found by
+Two defects measured in `checker/ci-honesty.sh` on 2026-08-08, both found by
 pointing the checker at a CI run that was still `pending`.
 
 ## One: the empty-payload guard failed open exactly when the payload was empty
@@ -208,7 +208,7 @@ theorem a_real_run_is_still_judged (id : Nat) :
 
 /-! ## Part three: the status you read was not the status of what you ran
 
-Found 2026-08-09 in my OWN gating harness, minutes after proving Part one about
+Found 2026-08-08 in my OWN gating harness, minutes after proving Part one about
 someone else's. The loop was
 
     for g in ...; do bash "$g" > "log" 2>&1; echo "$(basename $g) EXIT=$? ..."; done
@@ -298,7 +298,7 @@ the *proofs* rather than excusing them.
 
 `hooks/prover-remind.sh` reads a watchdog status file and reports its `red` list
 as **KERNEL REJECTED ... those theorems are NOT proved. Fix before anything
-else.** Measured 2026-08-09: all four modules in that list carried
+else.** Measured 2026-08-08: all four modules in that list carried
 `"reason":"TIMEOUT"`. The watchdog had run out of time re-checking the four
 largest modules and written them to `red`; the reader dropped the reason.
 

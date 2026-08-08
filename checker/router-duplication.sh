@@ -83,6 +83,28 @@ count_entries () {   # count_entries <settings.json> -> number of rot-router hoo
 
 hash_of () { md5sum "$1" 2>/dev/null | cut -d' ' -f1 || cksum "$1" | cut -d' ' -f1; }
 
+# HOW MANY ROUTER ENTRIES A SUCCESSFUL ARM PRODUCES -- DERIVED, NOT LITERAL.
+#
+# This file asserted the number 2, four times over. That was correct while the
+# installer bound two events, and it turned RED on a correct change the moment
+# the installer legitimately grew to bind eleven. Same shape as the SessionStart
+# assertion in install-roundtrip.sh: a CONTINGENT FACT written down as if it
+# were an invariant, which fails loudly on good work and invites the repair that
+# destroys the coverage -- weaken the number until it passes.
+#
+# What the checker actually cares about is not "two" but "one router entry per
+# event the installer declares, and nothing stacked on top". So the count is
+# read from ARM_ROUTER.sh's own declared list at run time. Grow the list and
+# this still asserts the right thing; stack a duplicate registration and it
+# still fails, which is the defect this file exists to catch.
+ARM_EVENTS_CSV="$(sed -n "s/^EVENTS_CSV='\\(.*\\)'$/\\1/p" "$REPO/ARM_ROUTER.sh")"
+WANT_ENTRIES="$(printf '%s' "$ARM_EVENTS_CSV" | tr ',' '\n' | grep -c .)"
+if [ -z "$ARM_EVENTS_CSV" ] || [ "${WANT_ENTRIES:-0}" -lt 1 ]; then
+  echo "REFUSE: could not read EVENTS_CSV from ARM_ROUTER.sh -- every count below would be fabricated"
+  exit 2
+fi
+echo "  (expectation derived from ARM_ROUTER.sh: $WANT_ENTRIES declared event(s))"
+
 # --- ARM 1: POSIX ------------------------------------------------------------
 run_case () {   # run_case <label> <arm: sh|ps1> <withplugin> <enabled> <extra-flag> <expect-entries>
   label="$1"; arm="$2"; withp="$3"; en="$4"; flag="$5"; want="$6"
@@ -126,15 +148,15 @@ for arm in $ARMS; do
   # THE DEFECT: plugin live -> arming must add nothing.
   run_case "plugin live, guard must refuse" "$arm" yes true "" 0
   # THE CONTROL that stops the guard from being a way to break the installer.
-  run_case "no plugin, must still arm"      "$arm" no  true "" 2
+  run_case "no plugin, must still arm"      "$arm" no  true "" "$WANT_ENTRIES"
   # A disabled plugin registers nothing, so arming is correct.
-  run_case "plugin present but DISABLED"    "$arm" yes false "" 2
+  run_case "plugin present but DISABLED"    "$arm" yes false "" "$WANT_ENTRIES"
 done
 
 # --force / -Force must override, or the escape hatch is decoration.
 d="$TMP/force-sh"; make_cfg "$d" yes true
 CLAUDE_CONFIG_DIR="$d" bash ARM_ROUTER.sh --force >"$d/out.txt" 2>&1
-if [ "$(count_entries "$d/settings.json")" = "2" ]; then
+if [ "$(count_entries "$d/settings.json")" = "$WANT_ENTRIES" ]; then
   ok "--force overrides the guard [sh]"
 else
   bad "--force did not arm [sh] -- the documented escape hatch does not work"
@@ -142,7 +164,7 @@ fi
 if command -v pwsh >/dev/null 2>&1; then
   d="$TMP/force-ps1"; make_cfg "$d" yes true
   CLAUDE_CONFIG_DIR="$d" pwsh -NoProfile -File ./ARM_ROUTER.ps1 -Force >"$d/out.txt" 2>&1
-  if [ "$(count_entries "$d/settings.json")" = "2" ]; then
+  if [ "$(count_entries "$d/settings.json")" = "$WANT_ENTRIES" ]; then
     ok "-Force overrides the guard [ps1]"
   else
     bad "-Force did not arm [ps1] -- cross-arm parity broken on the escape hatch"

@@ -64,7 +64,7 @@ ok  () { printf '  PASS  %s\n' "$1"; pass=$((pass+1)); }
 bad () { printf '  FAIL  %s\n' "$1"; fail=$((fail+1)); }
 # A THIRD outcome, and the reason it exists is a false green I acted on.
 #
-# MEASURED 2026-08-09. Runs 31261506027 and 31263721866 both concluded FAILURE:
+# MEASURED 2026-08-08. Runs 31261506027 and 31263721866 both concluded FAILURE:
 # the macOS job died at `local-only 1.0.x release regenerates from HEAD` and 28
 # later steps were skipped. This checker was run against both -- while they were
 # still `in_progress` -- and printed
@@ -149,7 +149,7 @@ if [ -z "$JOBS_JSON" ]; then
     fi
     HEAD_SHA="$(git rev-parse HEAD)"
     # SEPARATE "the API did not answer" FROM "there is no run yet". Measured
-    # 2026-08-09: a DNS blip (`curl: (6) Could not resolve host: api.github.com`)
+    # 2026-08-08: a DNS blip (`curl: (6) Could not resolve host: api.github.com`)
     # produced an empty body, and this branch announced "This commit has not
     # been pushed" about a commit that HAD been pushed thirty seconds earlier.
     # The exit code was right -- 3, a skip, never a pass -- but the DIAGNOSIS
@@ -196,7 +196,7 @@ echo
 # perfect record, which is the exact failure shape this checker exists to catch.
 #
 # AND THE GUARD ITSELF FAILED OPEN, EXACTLY WHEN IT WAS NEEDED. Measured
-# 2026-08-09 against a run that was still 'pending' and had no steps yet:
+# 2026-08-08 against a run that was still 'pending' and had no steps yet:
 #
 #   TOTAL_STEPS="$(grep -cE ... || echo 0)"
 #

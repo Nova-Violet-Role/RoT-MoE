@@ -180,7 +180,7 @@ rc=$?
 cp "$BK" "$CORPUS"
 # ASK THE RIGHT WITNESS. This compared the restored corpus against GIT, which
 # answers a different question: "does the working tree match HEAD". Measured
-# 2026-08-09, when five rows were deliberately added to the corpus and not yet
+# 2026-08-08, when five rows were deliberately added to the corpus and not yet
 # committed -- the CRLF round restored the file perfectly and this still reported
 # THE CORPUS WAS LEFT MODIFIED. An intentional uncommitted edit is not a failed
 # restore.
@@ -446,7 +446,7 @@ done
 [ "$sed_hits" -eq 0 ] && ok "no sed uses GNU-only \\| alternation (use sed -E with (a|b))"
 
 echo "== 6b. no in-place sed and no sha256sum (both are GNU-only) =="
-# MEASURED 2026-08-09, and the reason this section exists: checker/release-local.sh
+# MEASURED 2026-08-08, and the reason this section exists: checker/release-local.sh
 # failed on EVERY macOS run from 2026-08-08 while ubuntu and windows passed, and
 # section 6 above did not see it. Two constructs, each fatal on BSD userland:
 #

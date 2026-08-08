@@ -319,7 +319,7 @@ measure_kernel () {   # echoes "<red csv>|<sorry csv>" from the watchdog status 
     node -e '
       const fs=require("fs");
       try{const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
-        // A TIMEOUT IS NOT A REJECTION. Measured 2026-08-09: the watchdog timed
+        // A TIMEOUT IS NOT A REJECTION. Measured 2026-08-08: the watchdog timed
         // out re-checking the four largest modules and wrote them to `red` with
         // reason "TIMEOUT"; this line dropped the reason, and the hook then said
         // "KERNEL REJECTED 4 module(s) ... those theorems are NOT proved. Fix

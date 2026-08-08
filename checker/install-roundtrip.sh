@@ -65,6 +65,9 @@ make_fixture () {
       { "matcher": "*", "hooks": [ { "type": "command", "command": "echo user-owned-1" } ] }
     ],
     "SessionStart": [
+      { "matcher": "*", "hooks": [ { "type": "command", "command": "echo user-owned-sessionstart" } ] }
+    ],
+    "ZZ_ForeignEvent": [
       { "matcher": "*", "hooks": [ { "type": "command", "command": "echo untouched-event" } ] }
     ],
     "PostToolUse": [
@@ -113,9 +116,45 @@ done
 # the BOM must survive -- the real file has one and we must not silently drop it
 hasbom "$S" && ok "BOM state preserved" || bad "BOM was stripped"
 
-# an event we never touch must be bit-identical
-[ "$(jget "$S" hooks.SessionStart)" = "$(jget "$WORK/pre-install.json" hooks.SessionStart)" ] \
-  && ok "untouched event unchanged" || bad "untouched event changed"
+# AN EVENT OUTSIDE THE INSTALLER'S DECLARED LIST MUST BE BIT-IDENTICAL.
+#
+# This assertion used to name SessionStart as "an event we never touch". That
+# was true when the installer bound two events, and it went RED the moment the
+# installer legitimately grew to bind eleven -- on a correct change. That is the
+# worst shape a check can have: it fails loudly on good work, and the obvious
+# repair is to delete it, which destroys the coverage.
+#
+# The defect was in the check, not in the change. What actually matters is not
+# "SessionStart specifically is untouched" but "anything the installer does NOT
+# declare is untouched", so the property is now quantified over the installer's
+# own declared list, read from ARM_ROUTER.sh at run time. Grow the list to fifty
+# events and this still asserts the right thing.
+#
+# The fixture carries ZZ_ForeignEvent precisely so the loop below can never be
+# vacuous: if every pre-install event happened to be one the installer binds,
+# the loop would compare nothing and pass in silence. The count is asserted.
+DECLARED_CSV="$(sed -n "s/^EVENTS_CSV='\\(.*\\)'$/\\1/p" "$REPO/ARM_ROUTER.sh")"
+if [ -z "$DECLARED_CSV" ]; then
+  bad "could not read EVENTS_CSV from ARM_ROUTER.sh -- the untouched-event check cannot be evaluated"
+else
+  _checked=0
+  for _ev in $(node -e '
+    const fs=require("fs");
+    const pre=JSON.parse(fs.readFileSync(process.argv[1],"utf8").replace(/^﻿/,""));
+    const declared=new Set(process.argv[2].split(",").map(s=>s.trim()));
+    for (const k of Object.keys(pre.hooks||{})) if (!declared.has(k)) console.log(k);
+  ' "$WORK/pre-install.json" "$DECLARED_CSV"); do
+    _checked=$((_checked+1))
+    if [ "$(jget "$S" "hooks.$_ev")" = "$(jget "$WORK/pre-install.json" "hooks.$_ev")" ]; then
+      ok "undeclared event untouched: $_ev"
+    else
+      bad "UNDECLARED event changed: $_ev -- the installer edited an event it does not bind"
+    fi
+  done
+  [ "$_checked" -gt 0 ] \
+    && ok "the undeclared-event check compared $_checked event(s) -- not vacuous" \
+    || bad "the undeclared-event check compared NOTHING; every fixture event is declared, so it proves nothing"
+fi
 
 # THE USER'S OWN EMPTY GROUP MUST STILL BE THERE -- not ours to tidy.
 #

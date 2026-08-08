@@ -7,7 +7,7 @@ Copyright 2026 Saimonokuma.
 
 `checker/ab-analyze.sh` counted four strings and called the total "seal leaks",
 with the note `routed must be 0`. Measured over the committed corpus on
-2026-08-09, that count was 10 -- and the script exited 0, because the number was
+2026-08-08, that count was 10 -- and the script exited 0, because the number was
 printed by a `console.log` and never reached a `FAIL`. Two defects in one line:
 an assertion that could not fire, guarding a property that was stated wrongly.
 

@@ -7,7 +7,7 @@ Copyright 2026 Saimonokuma.
 
 The A/B has three pre-registered PRIMARY endpoints -- the ones chosen in advance
 to detect whether routing changes how the model answers. Re-derived from
-`bench/ab-metrics.jsonl` on 2026-08-09, over 88 paired turns:
+`bench/ab-metrics.jsonl` on 2026-08-08, over 88 paired turns:
 
     endpoint             routed   unrouted   pairs A<B   A>B   tie
     trailing question     0.000      0.000           0     0    88
