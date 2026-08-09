@@ -1,9 +1,100 @@
 {
   "directory": "bench",
   "files": {
+    "TRAP-PREREGISTRATION.md": {
+      "hash": "f622c6cfc178",
+      "indexed_at": "2026-08-09T20:29:31.392709+00:00",
+      "language": "markdown",
+      "lines": 110,
+      "mtime_ns": 1786307368952034600,
+      "size": 4700,
+      "symbols": [
+        {
+          "docstring": "Whether the routed arm falls for a **trap** less often than the unrouted arm, where a trap is an item whose obvious method yields a specific wrong ans",
+          "lines": [
+            12,
+            23
+          ],
+          "name": "What is being tested",
+          "type": "section"
+        },
+        {
+          "docstring": "- Generator: `bench/trap-prompts.js`, output `bench/trap-candidates.jsonl`. - **n = 60**, from a pool of 71 traps; **76 non-trap items were refused**",
+          "lines": [
+            24,
+            37
+          ],
+          "name": "Corpus",
+          "type": "section"
+        },
+        {
+          "docstring": "| arm | meaning | |---|---| | `a` | unrouted \u2014 RoT MoE hooks disarmed | | `b` | routed \u2014 the shipped nine-lens router active |",
+          "lines": [
+            38,
+            46
+          ],
+          "name": "Arms",
+          "type": "section"
+        },
+        {
+          "docstring": "For each item, the arm's answer is parsed as the first integer in its reply.",
+          "lines": [
+            47,
+            60
+          ],
+          "name": "Outcome classification, fixed now",
+          "type": "section"
+        },
+        {
+          "docstring": "McNemar exact (two-sided binomial, p = 0.5) on the **discordant pairs** of `CORRECT`. \u03b1 = 0.05.",
+          "lines": [
+            61,
+            65
+          ],
+          "name": "Primary test",
+          "type": "section"
+        },
+        {
+          "docstring": "The informative band is the count of discordant pairs (`RotTrap.band`). **If band < 10 the result is reported as `noPower`** (`RotCeiling.noPower`) \u2014",
+          "lines": [
+            66,
+            73
+          ],
+          "name": "Power floor, fixed now",
+          "type": "section"
+        },
+        {
+          "docstring": "Both controls that killed earlier corpora are applied from the start, not bolted on when a headline looks good:",
+          "lines": [
+            74,
+            90
+          ],
+          "name": "Deconfounding, fixed now",
+          "type": "section"
+        },
+        {
+          "docstring": "| condition | verdict | |---|---| | band < 10 | `noPower` \u2014 corpus cannot decide | | band \u2265 10, deconfounded p \u2265 0.05 | `null` \u2014 no advantage establis",
+          "lines": [
+            91,
+            101
+          ],
+          "name": "Decision rule, fixed now",
+          "type": "section"
+        },
+        {
+          "docstring": "It would mean: on mechanically-checkable questions of this repository where the obvious method is wrong, the routed arm is measurably less likely to g",
+          "lines": [
+            102,
+            111
+          ],
+          "name": "What a win here would and would not mean",
+          "type": "section"
+        }
+      ]
+    },
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-09T18:42:15.455918+00:00",
+      "indexed_at": "2026-08-09T20:21:33.503538+00:00",
       "language": "javascript",
       "lines": 101,
       "mtime_ns": 1786205762889294800,
@@ -40,7 +131,7 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-09T18:42:15.457757+00:00",
+      "indexed_at": "2026-08-09T20:21:33.505378+00:00",
       "language": "javascript",
       "lines": 180,
       "mtime_ns": 1786277368570225200,
@@ -95,7 +186,7 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-09T18:42:15.460659+00:00",
+      "indexed_at": "2026-08-09T20:21:33.508190+00:00",
       "language": "shell",
       "lines": 385,
       "mtime_ns": 1786277829886864600,
@@ -130,7 +221,7 @@
     },
     "calib-prompts.js": {
       "hash": "887a4f5e2997",
-      "indexed_at": "2026-08-09T18:42:15.464920+00:00",
+      "indexed_at": "2026-08-09T20:21:33.510155+00:00",
       "language": "javascript",
       "lines": 219,
       "mtime_ns": 1786292666878221500,
@@ -204,7 +295,7 @@
     },
     "calib-score.js": {
       "hash": "b0381a1edbd7",
-      "indexed_at": "2026-08-09T18:42:15.466304+00:00",
+      "indexed_at": "2026-08-09T20:21:33.511638+00:00",
       "language": "javascript",
       "lines": 135,
       "mtime_ns": 1786295190750693100,
@@ -234,7 +325,7 @@
     },
     "calib-select.js": {
       "hash": "1e81c694de06",
-      "indexed_at": "2026-08-09T18:42:15.467642+00:00",
+      "indexed_at": "2026-08-09T20:21:33.512926+00:00",
       "language": "javascript",
       "lines": 125,
       "mtime_ns": 1786292666880220900,
@@ -243,7 +334,7 @@
     },
     "calib-verdict.js": {
       "hash": "9c6c50ce2439",
-      "indexed_at": "2026-08-09T18:42:15.469173+00:00",
+      "indexed_at": "2026-08-09T20:21:33.514357+00:00",
       "language": "javascript",
       "lines": 119,
       "mtime_ns": 1786292666880220900,
@@ -281,7 +372,7 @@
     },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-09T18:42:15.470519+00:00",
+      "indexed_at": "2026-08-09T20:21:33.515339+00:00",
       "language": "javascript",
       "lines": 105,
       "mtime_ns": 1786277739693226100,
@@ -310,7 +401,7 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-09T18:42:15.472759+00:00",
+      "indexed_at": "2026-08-09T20:21:33.516969+00:00",
       "language": "javascript",
       "lines": 136,
       "mtime_ns": 1786280334426837900,
@@ -362,8 +453,177 @@
           "type": "function"
         }
       ]
+    },
+    "trap-prompts.js": {
+      "hash": "7a1e67e2adbd",
+      "indexed_at": "2026-08-09T20:27:37.368377+00:00",
+      "language": "javascript",
+      "lines": 146,
+      "mtime_ns": 1786307254658034100,
+      "size": 6640,
+      "symbols": [
+        {
+          "lines": [
+            49,
+            49
+          ],
+          "name": "rd",
+          "signature": "(p)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            50,
+            54
+          ],
+          "name": "ls",
+          "signature": "(d, re)",
+          "type": "function"
+        },
+        {
+          "docstring": "corpus rather than merely misreport it.",
+          "lines": [
+            61,
+            67
+          ],
+          "name": "truthTheorems",
+          "signature": "(relFile)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            72,
+            75
+          ],
+          "name": "push",
+          "signature": "(family, file, question, naive, truth, naiveMethod)",
+          "type": "function"
+        }
+      ]
+    },
+    "trap-score-controls.js": {
+      "hash": "d5ebc297f989",
+      "indexed_at": "2026-08-09T20:42:41.945453+00:00",
+      "language": "javascript",
+      "lines": 72,
+      "mtime_ns": 1786307564289978100,
+      "size": 3612,
+      "symbols": [
+        {
+          "lines": [
+            21,
+            28
+          ],
+          "name": "mk",
+          "signature": "(dir, fn)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            29,
+            32
+          ],
+          "name": "run",
+          "signature": "(a, b)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            35,
+            35
+          ],
+          "name": "ok",
+          "signature": "(m)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            36,
+            36
+          ],
+          "name": "bad",
+          "signature": "(m)",
+          "type": "function"
+        }
+      ]
+    },
+    "trap-score.js": {
+      "hash": "9cf145f197d0",
+      "indexed_at": "2026-08-09T20:31:05.733763+00:00",
+      "language": "javascript",
+      "lines": 174,
+      "mtime_ns": 1786307463863035400,
+      "size": 6973,
+      "symbols": [
+        {
+          "docstring": "numbering is 1-based against the prompt file, which is emitted in `id` order.",
+          "lines": [
+            37,
+            46
+          ],
+          "name": "readTurn",
+          "signature": "(dir, id)",
+          "type": "function"
+        },
+        {
+          "docstring": "dot-decimal are skipped.",
+          "lines": [
+            52,
+            56
+          ],
+          "name": "firstInt",
+          "signature": "(txt)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            58,
+            64
+          ],
+          "name": "classify",
+          "signature": "(txt, it)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            99,
+            99
+          ],
+          "name": "cnt",
+          "signature": "(arm, cls)",
+          "type": "function"
+        },
+        {
+          "docstring": "Exact two-sided binomial at p = 0.5 -- McNemar exact.",
+          "lines": [
+            114,
+            118
+          ],
+          "name": "lchoose",
+          "signature": "(n, k)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            119,
+            126
+          ],
+          "name": "binomTwoSided",
+          "signature": "(k, n)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            131,
+            135
+          ],
+          "name": "median",
+          "signature": "(xs)",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-09T18:42:15.843682+00:00",
+  "generated_at": "2026-08-09T20:42:42.248377+00:00",
   "version": "1.0"
 }

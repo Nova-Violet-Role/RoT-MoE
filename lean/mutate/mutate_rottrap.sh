@@ -1,0 +1,308 @@
+#!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# MUTATION SUITE -- Proofs/RotTrap.lean (calibrating a corpus, and the two ways it cheats)
+#
+# The contract, identical to the other suites in this directory:
+#   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
+#   2. assert the mutation LANDED after patching (needle gone, replacement present)
+#   3. delete the stale .olean so Lake cannot skip the rebuild
+#   4. rebuild, read the exit code DIRECTLY
+#   5. restore from the backup, always
+#
+# DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
+# claim about the theorem. Folding them together manufactures reassurance.
+#
+# WHAT THIS SUITE IS AIMED AT. The module defines what "strictly extends the
+# default agentic loop" MEANS -- seven conjuncts, each claimed load-bearing --
+# and proves why a five-sample determinism test failed to see a genuinely
+# nondeterministic router.
+#
+# Two classes of mutant, deliberately:
+#   D01-D07  WEAKEN A CONJUNCT. Each should resurrect exactly the near-miss
+#            layer that conjunct was written to reject. If one survives, that
+#            conjunct is decorative and `every_conjunct_is_load_bearing` is
+#            a weaker theorem than its name claims.
+#   D08-D11  ATTACK THE ALIASING RESULT and the two VACUITY guards. D10 and
+#            D11 delete the `0 <` guards that stop a layer passing D5/D6 by
+#            never having been measured -- the silent-pass holes, closed by
+#            `an_untested_layer_is_not_deterministic` before this suite was
+#            written rather than after a mutant survived.
+#
+# =============================================================================
+
+set -uo pipefail
+cd "$(dirname "$0")/.."
+
+F="Proofs/RotTrap.lean"
+BAK="$F.mutbak"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotTrap.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutdominance.XXXXXX")"
+
+[ -f "$F" ] || {
+  echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
+  echo "and be scored KILLED without a line having been mutated."
+  exit 2
+}
+
+# --- NO-DOWNLOAD GUARD ------------------------------------------------------
+# `lake build` RESOLVES the package first, and against the vendored `lean/` tree
+# that resolution starts fetching mathlib INTO the repository. A workspace that
+# was never built cannot satisfy this suite, so it SKIPS rather than builds.
+# Exit 3 is a skip everywhere in this repo, and a skip is never a pass.
+_WSDIR="${LEAN_ROOT:-.}"
+if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
+  echo "SKIP: $_WSDIR is not a BUILT Lean workspace (.lake/packages or $OLEAN absent)."
+  echo "      Refusing to invoke lake: resolving mathlib would DOWNLOAD ~7.2 GB."
+  echo "      Set LEAN_ROOT to an already-built workspace to run this suite."
+  echo "      This is a SKIP (exit 3), never a pass."
+  exit 3
+fi
+
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotTrap ) >/tmp/mut_pre_rottrap.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotTrap)."
+  echo "A kill measured against a red baseline is unattributable. Fix the tree first."
+  tail -5 /tmp/mut_pre_rottrap.log
+  exit 2
+fi
+echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
+
+# --- SOURCE SANITY: a green baseline is NOT proof the source is intact -----
+# AN EMPTY LEAN FILE BUILDS GREEN, so "the baseline compiles" is weaker than it
+# looks. The source is checked for CONTENT before it is copied over the backup.
+_lines=$(wc -l < "$F" 2>/dev/null || echo 0)
+_thms=$(grep -c "^theorem \|^@\[simp\] theorem \|^example " "$F" 2>/dev/null || echo 0)
+if [ "${_lines:-0}" -lt 20 ] || [ "${_thms:-0}" -lt 1 ]; then
+  echo "FATAL: $F looks DAMAGED ($_lines lines, $_thms theorem/example lines)."
+  echo "Refusing to overwrite the backup with it. An empty or truncated source"
+  echo "compiles green and would be scored as a suite full of DISCARDED mutants."
+  echo "Restore the file (git checkout -- <path>) before running this suite."
+  exit 2
+fi
+
+cp "$F" "$BAK"
+# The rebuild lives in the TRAP, not in the tail, so it runs on EVERY exit
+# path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
+# that reported a real failure left the module with no .olean, and the NEXT
+# run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotTrap ) >/dev/null 2>&1' EXIT
+
+killed=0; survived=0; discarded=0
+
+# --- OPTIONAL FILTER, AND WHY A PARTIAL RUN MUST LOOK PARTIAL ----------------
+# The suite is 9 mutants and each one rebuilds the module, so a full pass
+# outgrew the wall-clock ceiling of the agent that runs it -- and MEASURED
+# 2026-08-07, being killed at that ceiling left a MUTATED RotGuard.lean on
+# disk beside its .mutbak. Chunking is the fix; pretending a chunk is the suite
+# would be much worse than the timeout.
+#
+#   MUT_ONLY="A05 A06"   run only those, everything else SKIPPED
+#
+# A filtered run prints a PARTIAL banner and exits 3, never 0. Nothing that
+# consumes this output -- the CHANGELOG count, repo-complete's cross-check, CI
+# -- can mistake four killed mutants for forty-eight.
+skipped=0
+filtered=0
+[ -n "${MUT_ONLY:-}" ] && filtered=1
+
+run_mut() {
+  local id="$1" needle="$2" repl="$3" expect="$4"
+
+  if [ -n "${MUT_ONLY:-}" ]; then
+    case " $MUT_ONLY " in
+      *" $id "*) : ;;
+      *) skipped=$((skipped+1)); return ;;
+    esac
+  fi
+
+  cp "$BAK" "$F"
+
+  local n
+  n=$(grep -F -c -- "$needle" "$BAK")
+  if [ "$n" -ne 1 ]; then
+    echo "$id  DISCARDED  needle occurs $n times (expected 1) -- patch not applied"
+    discarded=$((discarded+1)); return
+  fi
+
+  awk -v needle="$needle" -v repl="$repl" '{
+    p = index($0, needle)
+    if (p > 0) { $0 = substr($0,1,p-1) repl substr($0, p+length(needle)) }
+    print
+  }' "$BAK" > "$F"
+
+  local after_needle after_repl
+  after_needle=$(grep -F -c -- "$needle" "$F")
+  after_repl=$(grep -F -c -- "$repl" "$F")
+  if [ "$after_needle" -ne 0 ] || [ "$after_repl" -lt 1 ]; then
+    echo "$id  DISCARDED  post-check failed (needle=$after_needle repl=$after_repl)"
+    discarded=$((discarded+1)); cp "$BAK" "$F"; return
+  fi
+
+  rm -f "$OLEAN"
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotTrap ) > "$LOG/$id.log" 2>&1
+  local ec=$?
+
+  # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
+  # A non-zero exit proves the theorems died only if a build actually happened.
+  # A failed redirection, a missing toolchain or a killed process each give a
+  # non-zero status with NO build log, and each would otherwise be filed as a
+  # kill. MEASURED in CI run 31180174433: mutate_rotgauge.sh wrote its logs to a
+  # hard-coded /d/tmp/mut, mkdir was refused on the Linux runner, bash declined
+  # to run each build because the redirect could not be opened, and all twelve
+  # mutants were scored KILLED without lake running once. The job was green.
+  #
+  # No log, or an empty one, means nothing was learned. DISCARDED -- which
+  # cannot exit 0 -- rather than a finding.
+  if [ ! -s "$LOG/$id.log" ]; then
+    echo "$id  DISCARDED  build produced NO log (exit=$ec) -- lake did not run,"
+    echo "                so this is a harness fault, not a dead theorem."
+    discarded=$((discarded+1)); cp "$BAK" "$F"; return
+  fi
+
+  if [ "$ec" -eq 0 ]; then
+    echo "$id  SURVIVED   (build still exit 0)  expected to kill: $expect"
+    survived=$((survived+1))
+  else
+    # The reported error lines are a LOWER BOUND on what died, not an inventory.
+    # A mutant build produces no olean, so every theorem in the module is
+    # unusable downstream regardless of which line the elaborator complained at.
+    local dead
+    dead=$(grep -oE "^error: Proofs/RotTrap\.lean:[0-9]+" "$LOG/$id.log" \
+      | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
+        awk -v L="$ln" '
+          /^(theorem|def|private def|instance|structure|inductive|example)/ {
+            if (NR <= L) { name=$0 }
+          }
+          END { if (name != "") print name }
+        ' "$F"
+      done | sed -E 's/^(private )?(theorem|def|instance|structure|inductive|example) *//; s/[ ({:].*$//' \
+      | sort -u | tr '\n' ',')
+    if [ ! -f "$OLEAN" ]; then
+      echo "$id  KILLED     exit=$ec  MODULE DEAD (no olean: every theorem unusable)"
+      echo "        errors at: ${dead%,}  <- LOWER BOUND, not the full set"
+      echo "        expected: $expect"
+    else
+      echo "$id  KILLED     exit=$ec  dead: ${dead%,}"
+    fi
+    killed=$((killed+1))
+  fi
+  cp "$BAK" "$F"
+}
+
+echo "=== RotTrap mutation suite ==="
+
+# Each needle is asserted present EXACTLY once before it is applied, and the
+# replacement is asserted present afterwards. A needle that does not match is
+# DISCARDED, never SURVIVED.
+
+run_mut T01 \
+  "def isTrap (i : Item) : Bool := i.naive != i.truth" \
+  "def isTrap (i : Item) : Bool := i.naive == i.truth" \
+  "isTrap INVERTED -- a non-trap would be called a trap; the free-pass and punish theorems must both die"
+
+run_mut T02 \
+  "def correct (i : Item) (a : Nat) : Bool := a == i.truth" \
+  "def correct (i : Item) (a : Nat) : Bool := a == i.naive" \
+  "correct scored against the NAIVE answer instead of the truth -- the whole point of a trap"
+
+run_mut T03 \
+  "  correct i r.routed != correct i r.unrouted" \
+  "  correct i r.routed == correct i r.unrouted" \
+  "informative INVERTED -- ceiling items would count as the band, which is the saturation defect itself"
+
+run_mut T04 \
+  "def band    (xs : List Pair) : Nat := (xs.filter (fun p => informative p.1 p.2)).length" \
+  "def band    (xs : List Pair) : Nat := xs.length" \
+  "band ignores informativeness -- every dead corpus would look powered"
+
+run_mut T05 \
+  "  (xs.filter (fun p => correct p.1 p.2.routed && correct p.1 p.2.unrouted)).length" \
+  "  (xs.filter (fun p => correct p.1 p.2.routed || correct p.1 p.2.unrouted)).length" \
+  "ceiling uses OR -- the partition theorem must die"
+
+run_mut T06 \
+  "  (xs.filter (fun p => !correct p.1 p.2.routed && !correct p.1 p.2.unrouted)).length" \
+  "  (xs.filter (fun p => !correct p.1 p.2.routed)).length" \
+  "floor drops the second conjunct -- partition breaks"
+
+run_mut T07 \
+  "  xs.filter (fun p => correct p.1 p.2.routed && !correct p.1 p.2.unrouted)" \
+  "  xs.filter (fun p => correct p.1 p.2.routed)" \
+  "selectRoutedWins drops the unrouted-lost clause -- circular_selection_sweeps_even_a_bad_router must die"
+
+run_mut T08 \
+  "def worthRunning (xs : List Pair) (minBand : Nat) : Bool := minBand ≤ band xs" \
+  "def worthRunning (xs : List Pair) (minBand : Nat) : Bool := true" \
+  "worthRunning always true -- a saturated corpus would be accepted, which is the defect this file exists to prevent"
+
+run_mut T09 \
+  "def realTrap : Item := ⟨931, 919⟩" \
+  "def realTrap : Item := ⟨919, 919⟩" \
+  "the witness stops being a trap -- the #guards pinning isTrap/informative must fire"
+
+run_mut T10 \
+  "  (realTrap, routedWins) :: List.replicate 79 (realTrap, bothRight)" \
+  "  (realTrap, routedWins) :: List.replicate 79 (realTrap, routedWins)" \
+  "saturated80 stops being saturated -- band/ceiling guards must fire"
+
+
+
+# NEGATIVE CONTROL, run 2026-08-09 and then removed rather than left in the
+# suite. A prose-only mutant ("A definition where one" -> "in which one") was
+# reported SURVIVED at exit 1, proving this suite can report a survivor at all.
+# Two harness defects were found by running it:
+#   * a needle that is a PREFIX of its replacement ("## The definition" ->
+#     "## The definitions") is scored DISCARDED, correctly -- the post-check
+#     still finds the needle. Needles must not be prefixes of replacements.
+#   * the EXIT trap restored the source but not the .olean, so this failing run
+#     left the module uncompiled and the NEXT run reported SKIP exit 3 instead
+#     of the failure. Fixed in the trap above, and in the 29 other suites that
+#     shared it.
+_total=$((killed + survived + discarded + skipped))
+if [ "${_total:-0}" -eq 0 ]; then
+  echo "FAIL: ZERO mutants ran. This suite measured NOTHING."
+  echo "A blank or zero count is not a clean sweep -- it is a truncated harness."
+  exit 1
+fi
+
+# THE VERDICT MUST BE ABLE TO FAIL.
+#
+# This block used to be an unconditional `exit 0` under a sentence claiming
+# every mutant was killed -- so a SURVIVING mutant was reported as a clean
+# sweep. Measured 2026-08-09 when C05 survived in mutate_rottrap.sh and the
+# suite still exited 0. Every suite in this directory shared the defect.
+#
+# A survivor and a discard mean different things and neither is a pass:
+#   SURVIVED  the mutation applied, the build stayed green -> COVERAGE GAP
+#   DISCARDED the mutation never applied -> NOTHING WAS TESTED
+if [ "${survived:-0}" -gt 0 ]; then
+  echo "FAIL: $survived of $_total mutant(s) SURVIVED -- those beliefs are NOT defended."
+  echo "A survivor is a coverage gap. Add the theorem or the #guard; never delete the mutant."
+  exit 1
+fi
+if [ "${discarded:-0}" -gt 0 ]; then
+  echo "FAIL: $discarded mutant(s) DID NOT APPLY -- the patch never landed, so nothing was tested."
+  echo "Fix the needle. A mutation that cannot be applied is not evidence of anything."
+  exit 1
+fi
+# RESTORE AND REBUILD -- a suite must leave the tree GREEN.
+#
+# Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
+# So without this, a PASSING suite leaves the module uncompiled and the next
+# instrument (lake env leanchecker) fails for a reason unrelated to any proof.
+# Measured 2026-08-09 on Proofs.RotTrap.
+cp "$BAK" "$F" 2>/dev/null
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotTrap ) >/dev/null 2>&1
+_base=$?
+if [ "$_base" -ne 0 ]; then
+  echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."
+  echo "The tree is left RED. A green mutation report over a red tree is worthless."
+  exit 1
+fi
+echo "baseline restored and rebuilt GREEN"
+echo "All $killed mutants killed ($_total ran, 0 survived, 0 discarded)."
+echo "Every belief above is refuted by a theorem or a #guard."
+exit 0

@@ -3,7 +3,7 @@
   "files": {
     "ARM_ROUTER.sh": {
       "hash": "e88656efa2a5",
-      "indexed_at": "2026-08-09T18:42:15.398626+00:00",
+      "indexed_at": "2026-08-09T20:21:33.453708+00:00",
       "language": "shell",
       "lines": 328,
       "mtime_ns": 1786220160223909900,
@@ -22,7 +22,7 @@
     },
     "CHANGELOG-ARCHIVE.md": {
       "hash": "cbb2a7c15954",
-      "indexed_at": "2026-08-09T18:42:15.400377+00:00",
+      "indexed_at": "2026-08-09T20:21:33.455483+00:00",
       "language": "markdown",
       "lines": 583,
       "mtime_ns": 1785879984960271400,
@@ -405,7 +405,7 @@
     },
     "CHANGELOG.md": {
       "hash": "f42b2a76fbeb",
-      "indexed_at": "2026-08-09T19:01:12.949586+00:00",
+      "indexed_at": "2026-08-09T20:21:33.479088+00:00",
       "language": "markdown",
       "lines": 3997,
       "mtime_ns": 1786302070631221600,
@@ -1610,7 +1610,7 @@
     },
     "CLAUDE.md": {
       "hash": "2bd4eba20f9b",
-      "indexed_at": "2026-08-09T18:42:15.428263+00:00",
+      "indexed_at": "2026-08-09T20:21:33.479676+00:00",
       "language": "markdown",
       "lines": 159,
       "mtime_ns": 1785512159809504300,
@@ -1702,7 +1702,7 @@
     },
     "CODE_OF_CONDUCT.md": {
       "hash": "c859256e95f9",
-      "indexed_at": "2026-08-09T18:42:15.428758+00:00",
+      "indexed_at": "2026-08-09T20:21:33.480017+00:00",
       "language": "markdown",
       "lines": 30,
       "mtime_ns": 1785499382791346900,
@@ -1739,7 +1739,7 @@
     },
     "CONTRIBUTING.md": {
       "hash": "60983cc28d4f",
-      "indexed_at": "2026-08-09T18:42:15.429269+00:00",
+      "indexed_at": "2026-08-09T20:21:33.480464+00:00",
       "language": "markdown",
       "lines": 105,
       "mtime_ns": 1785504355612940400,
@@ -1802,7 +1802,7 @@
     },
     "DISARM_ROUTER.sh": {
       "hash": "3faddd83b4ec",
-      "indexed_at": "2026-08-09T18:42:15.430832+00:00",
+      "indexed_at": "2026-08-09T20:21:33.481843+00:00",
       "language": "shell",
       "lines": 214,
       "mtime_ns": 1785892145370845000,
@@ -1821,7 +1821,7 @@
     },
     "NOTICE.md": {
       "hash": "689675ac46d9",
-      "indexed_at": "2026-08-09T18:42:15.431479+00:00",
+      "indexed_at": "2026-08-09T20:21:33.482371+00:00",
       "language": "markdown",
       "lines": 201,
       "mtime_ns": 1785515130882815500,
@@ -1906,11 +1906,11 @@
       ]
     },
     "README.md": {
-      "hash": "c50cfe051071",
-      "indexed_at": "2026-08-09T18:59:12.022792+00:00",
+      "hash": "d015f4a32de7",
+      "indexed_at": "2026-08-09T20:25:19.035858+00:00",
       "language": "markdown",
       "lines": 1876,
-      "mtime_ns": 1786301949747221000,
+      "mtime_ns": 1786307042210365500,
       "size": 108289,
       "symbols": [
         {
@@ -2394,7 +2394,7 @@
     },
     "RELEASE.md": {
       "hash": "851f891d6bd7",
-      "indexed_at": "2026-08-09T18:42:15.438122+00:00",
+      "indexed_at": "2026-08-09T20:21:33.488598+00:00",
       "language": "markdown",
       "lines": 280,
       "mtime_ns": 1786274140905608600,
@@ -2467,7 +2467,7 @@
     },
     "SECURITY.md": {
       "hash": "4594c9020526",
-      "indexed_at": "2026-08-09T18:42:15.438882+00:00",
+      "indexed_at": "2026-08-09T20:21:33.488981+00:00",
       "language": "markdown",
       "lines": 84,
       "mtime_ns": 1785501505387414100,
@@ -2532,7 +2532,7 @@
     },
     "SETUP_LEAN.sh": {
       "hash": "bd21bdc2996c",
-      "indexed_at": "2026-08-09T18:42:15.442547+00:00",
+      "indexed_at": "2026-08-09T20:21:33.492068+00:00",
       "language": "shell",
       "lines": 489,
       "mtime_ns": 1785875289056228500,
@@ -2603,17 +2603,17 @@
       ]
     },
     "STATUS.md": {
-      "hash": "b54aefe35284",
-      "indexed_at": "2026-08-09T18:42:15.443839+00:00",
+      "hash": "476f693a2a8d",
+      "indexed_at": "2026-08-09T20:25:19.036426+00:00",
       "language": "markdown",
       "lines": 28,
-      "mtime_ns": 1786288617763509000,
+      "mtime_ns": 1786307051558034100,
       "size": 1010,
       "symbols": []
     },
     "UNSEALED.md": {
       "hash": "8995e135fa26",
-      "indexed_at": "2026-08-09T18:42:15.444340+00:00",
+      "indexed_at": "2026-08-09T20:21:33.492785+00:00",
       "language": "markdown",
       "lines": 128,
       "mtime_ns": 1785781880971583800,
@@ -2676,6 +2676,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T19:01:12.949905+00:00",
+  "generated_at": "2026-08-09T20:25:19.036523+00:00",
   "version": "1.0"
 }
