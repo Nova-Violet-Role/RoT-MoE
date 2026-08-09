@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotCeiling.lean (a ceiling is not a null result)
+# MUTATION SUITE -- Proofs/RotCalibration.lean (calibrating a corpus, and the two ways it cheats)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -16,27 +16,31 @@
 # DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
 # claim about the theorem. Folding them together manufactures reassurance.
 #
-# WHAT THIS SUITE IS AIMED AT. C01, C02 and C04 attack the POWER TEST, which is
-# the single thing this module exists to defend: the fact corpus scored 84-84
-# with zero discordant pairs, so p = 1.0 carries no information and must report
-# `noPower`, never `null`. C05 is the one to watch -- it weakens `<` to `<=` in
-# `verdict`, classifying a TIE as a routed advantage. It SURVIVED the first run
-# on 2026-08-09 and exposed both a real coverage gap and the fact that this
-# harness could not fail. The gap is closed by tie_with_power_is_null.
+# WHAT THIS SUITE IS AIMED AT. The module defends a MEASUREMENT DESIGN, and a
+# design is exactly the kind of artifact whose defects are invisible in a green
+# build. Three groups:
 #
-# This header previously described an "S01-S06 scrubber" and an S07 provenance
-# mutant. No such mutants are in this file -- the text was carried over when the
-# suite was cloned from another module. A suite that misdescribes its own
-# mutants is a false map of the coverage it certifies.
+#   K01-K03  THE BAND. Re-admit the floor, re-admit the ceiling, or stop
+#            filtering at all. Any survivor means a corpus could be selected
+#            with saturated items in it -- the RotCeiling failure, recreated.
+#   K04-K06  SOUNDNESS. Drop one clause of `sound` each. A survivor means an
+#            unsound design would be accepted: one rep, reused test reps, or
+#            selection driven by the routed arm.
+#   K07-K08  CIRCULARITY. Corrupt the tally so the two circular-selection
+#            theorems can no longer bind. These are the theorems that say a
+#            filter, not the router, produced the win.
+#
+# K09-K12 attack the measured design record and the guards, including the
+# cross-module one: an EMPTY calibrated corpus must still report `noPower`.
 # =============================================================================
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotCeiling.lean"
+F="Proofs/RotCalibration.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCeiling.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutceiling.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCalibration.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutcalibration.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -58,10 +62,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCeiling ) >/tmp/mut_pre_rotceiling.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCeiling)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCalibration ) >/tmp/mut_pre_rotcalibration.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCalibration)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotceiling.log
+  tail -5 /tmp/mut_pre_rotcalibration.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -134,7 +138,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCeiling ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -162,7 +166,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotCeiling\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotCalibration\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -184,54 +188,72 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotCeiling mutation suite ==="
+echo "=== RotCalibration mutation suite ==="
 
-# WHAT THIS SUITE IS AIMED AT.
-#
-# The module proves a ceiling is NOT a null: the fact corpus scored 84-84 with
-# zero discordant pairs, so p = 1.0 carries no information. C01/C02/C04 attack
-# the power test. If any survives, `p = 1` could be reported as 'the arms are
-# equal', which is the single misreading this file exists to block.
+# Each needle is asserted present EXACTLY once before it is applied, and the
+# replacement is asserted present afterwards. A needle that does not match is
+# DISCARDED, never SURVIVED -- measured 2026-08-09, an ASCII '<=' written where
+# the source has a unicode '≤' silently tested nothing in mutate_rotabverdict.
 
-run_mut C01 \
-  "def hasPower (c : Comparison) : Bool := 0 < discordant c" \
-  "def hasPower (c : Comparison) : Bool := 0 <= discordant c" \
-  "concordance_never_creates_power -- agreement would manufacture power"
+run_mut K01 \
+  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
+  "  0 <= i.calibCorrect && i.calibCorrect < i.calibReps" \
+  "band_excludes_the_floor -- an item nobody ever got right would be kept"
 
-run_mut C02 \
-  "def discordant (c : Comparison) : Nat := c.routedOnly + c.unroutedOnly" \
-  "def discordant (c : Comparison) : Nat := c.routedOnly + c.bothRight" \
-  "fact_corpus_has_no_power -- 84 agreeing pairs would count as evidence"
+run_mut K02 \
+  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
+  "  0 < i.calibCorrect && i.calibCorrect <= i.calibReps" \
+  "band_excludes_the_ceiling -- a saturated item would be kept, recreating the ceiling"
 
-run_mut C03 \
-  "def measured : Comparison := ⟨0, 0, 84, 0⟩" \
-  "def measured : Comparison := ⟨3, 0, 81, 0⟩" \
-  "fact_corpus_is_at_ceiling -- the measured saturation"
+run_mut K03 \
+  "def calibrated (pool : List Item) : List Item := pool.filter inBand" \
+  "def calibrated (pool : List Item) : List Item := pool" \
+  "one_rep_pool_calibrates_to_nothing -- calibration that filters nothing"
 
-run_mut C04 \
-  "  if !hasPower c then .noPower" \
-  "  if hasPower c then .noPower" \
-  "fact_corpus_has_no_power -- the power branch, inverted"
+run_mut K04 \
+  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
+  "  1 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
+  "one_rep_calibration_is_unsound -- one rep can only score floor or ceiling"
 
-run_mut C05 \
-  "  else if c.unroutedOnly < c.routedOnly then .advantage" \
-  "  else if c.unroutedOnly <= c.routedOnly then .advantage" \
-  "power_without_majority_is_null -- a loss would read as an advantage"
+run_mut K05 \
+  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
+  "  2 ≤ d.calibReps && !d.selectionUsedRoutedArm" \
+  "reusing_the_calibration_reps_is_unsound -- grading the run that chose the items"
 
-run_mut C06 \
-  "  c.routedOnly == 0 && c.unroutedOnly == 0 && c.bothWrong == 0" \
-  "  c.routedOnly == 0 && c.unroutedOnly == 0 && c.bothRight == 0" \
-  "fact_corpus_is_at_ceiling -- ceiling would require zero correct answers"
+run_mut K06 \
+  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
+  "  2 ≤ d.calibReps && d.testRepsAreFresh" \
+  "selecting_on_the_routed_arm_is_unsound -- the filter would decide the result"
 
-run_mut C07 \
-  "#guard hasPower ⟨29, 4, 0, 0⟩ = true" \
-  "#guard hasPower ⟨29, 4, 0, 0⟩ = false" \
-  "the compliance corpus DID have power -- only the fact corpus lacked it"
+run_mut K07 \
+  "   (ps.filter (fun p => !p.routedRight && p.baselineRight)).length," \
+  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
+  "circular_selection_cannot_lose -- the routed arm's losses would stop being counted"
 
-run_mut C08 \
-  "#guard verdict ⟨3, 1, 0, 0⟩ = Verdict.advantage" \
-  "#guard verdict ⟨3, 1, 0, 0⟩ = Verdict.null" \
-  "all_three_verdicts_reachable -- the classification must discriminate"
+run_mut K08 \
+  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
+  "   (ps.filter (fun p => p.routedRight)).length," \
+  "selecting_on_the_test_result_also_biases -- concordant wins miscounted"
+
+run_mut K09 \
+  "def planned : Design := ⟨3, true, false⟩" \
+  "def planned : Design := ⟨1, true, false⟩" \
+  "the_planned_design_is_sound -- the design this repo will actually run"
+
+run_mut K10 \
+  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 2 ≤ i.calibReps" \
+  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 3 ≤ i.calibReps" \
+  "the bound is TIGHT -- two reps is the floor, not three"
+
+run_mut K11 \
+  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨1, 3⟩, ⟨2, 3⟩]" \
+  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨0, 3⟩, ⟨1, 3⟩, ⟨2, 3⟩]" \
+  "the floor item is really dropped by the filter"
+
+run_mut K12 \
+  "#guard verdict (tally []) = Verdict.noPower" \
+  "#guard verdict (tally []) = Verdict.null" \
+  "empty_corpus_reproduces_the_ceiling_failure -- an empty corpus is NOT a null"
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
@@ -244,7 +266,7 @@ fi
 #
 # This block used to be an unconditional `exit 0` under a sentence claiming
 # every mutant was killed -- so a SURVIVING mutant was reported as a clean
-# sweep. Measured 2026-08-09 when C05 survived in mutate_rotceiling.sh and the
+# sweep. Measured 2026-08-09 when C05 survived in mutate_rotcalibration.sh and the
 # suite still exited 0. Every suite in this directory shared the defect.
 #
 # A survivor and a discard mean different things and neither is a pass:
@@ -265,9 +287,9 @@ fi
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
 # So without this, a PASSING suite leaves the module uncompiled and the next
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
-# Measured 2026-08-09 on Proofs.RotCeiling.
+# Measured 2026-08-09 on Proofs.RotCalibration.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCeiling ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."

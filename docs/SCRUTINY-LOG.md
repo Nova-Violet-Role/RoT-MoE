@@ -246,3 +246,54 @@ log pinned at its 5000-record cap. It read `new_records=0` while a record had
 just arrived at 12:26:50 — the file rotates, so a count delta cannot see growth.
 That is `delta_false_passes_under_rotation` from `Proofs/RotAbJoin.lean`,
 observed on the real log hours after proving it. Timestamps, not counts.
+
+## CLOSED ALARM — the kernel had never re-checked a delivered proof (2026-08-09)
+
+Every delivery report in this project ends with three instruments: `lake build`
+for elaboration, `#print axioms` for what the proof rests on, and `leanchecker`
+for the kernel's independent re-verification of the proof term. The third one
+had **never once succeeded** on a delivered module.
+
+    lake build Proofs.RotMoE.RotCeiling            -> exit 0, olean written
+    lake env leanchecker Proofs.RotMoE.RotCeiling  -> Could not find any oleans
+
+Both true at the same time. The directory is `Proofs/RotMoe/`, lowercase `e`;
+the references said `RotMoE`. Windows folds case when resolving a path, so the
+compiler opened the file; `leanchecker` matches exactly, so it did not.
+
+**Why it stayed hidden for weeks:** the failure message says *could not find*,
+which reads as a missing artifact rather than a wrong name — and the artifact
+was demonstrably there, 264 KB of it. Two sessions chased the wrong bug on the
+strength of that wording. The first blamed a missing aggregator and wrote one,
+which changed nothing. The second "fixed" seven imports from `RotMoe` to
+`RotMoE`, moving them **away** from the directory's real name; the build stayed
+green because the filesystem kept absorbing the error.
+
+**What settled it** was a control rather than an argument. The plausible rival
+explanation — `leanchecker` cannot resolve nested module paths — dies against a
+freshly built `Proofs.ZZDepth.Leaf`, which re-checks at exit 0 at the same depth.
+
+| after canonicalising every reference to `RotMoe` | count |
+|---|---|
+| modules in the shared tree | 46 |
+| modules with an olean | 35 |
+| **kernel re-checked at exit 0** | **34** (was 0) |
+| failing for a pre-existing mathlib cache mismatch | 11 unbuilt + 1 dependent |
+
+**PROVED:** `lean/Proofs/RotCaseFold.lean`, 14 theorems, 10/10 mutants killed.
+The load-bearing one is `exact_implies_insensitive`: whatever an exact matcher
+can find, a folding matcher can find too — so the disagreement can only ever run
+in the direction that makes the *build* look better than the truth.
+
+**GATED:** `checker/lean-module-case.sh`, registered in `gate-all.sh`. It reads
+the real on-disk spelling from a `find` listing, because `[ -f path ]` on Windows
+answers *yes* for the wrong case and would certify the defect. It separates
+"differs only in case" from "does not exist" — conflating those is precisely
+what misdirected the two earlier sessions. Both failure paths were tripped on
+purpose before the gate was trusted, and it returns to exit 0 afterwards.
+
+**The general lesson, which is not about Lean:** an instrument that resolves
+names *more strictly* than the compiler is not redundant with the compiler. It
+is the only thing that can see this class of defect, and when it fails the
+temptation is to assume the instrument is broken. Here the instrument was right
+and the tree was wrong, for 45 modules, in silence.

@@ -217,6 +217,34 @@ audit_module () {  # audit_module <name> -> 0 clean, 1 dirty/incomplete
     printf '%s\n' "$out" | head -8 | sed 's/^/        /'
     return 1
   fi
+  # --- UNWRAP BEFORE PARSING --------------------------------------------------
+  # `#print axioms` WRAPS its output when the declaration name is long:
+  #
+  #     'RotMoE.CaseFold.a_green_build_does_not_imply_the_kernel_can_find_it'
+  #       depends on axioms: [propext,
+  #      Classical.choice,
+  #      Quot.sound]
+  #
+  # A line-oriented reader sees `[propext,` with no closing bracket, the
+  # whitelist regex below does not match, and the module is reported as resting
+  # on an exotic axiom. MEASURED 2026-08-09 on RotCaseFold: two theorems flagged,
+  # both resting on nothing but the three standard axioms. **The audit's verdict
+  # depended on the LENGTH OF THE THEOREM'S NAME.**
+  #
+  # The failure direction was a false ALARM, not a false green -- a truncated
+  # `[propext,` fails the whitelist and `sorryAx` is matched across every line
+  # regardless of wrapping. That is the safe direction, and it is still a defect:
+  # an instrument that cries wolf on correct input trains its reader to dismiss
+  # it, and the obvious "repair" is to shorten a theorem name, which is bending
+  # the proof to fit a broken ruler.
+  #
+  # Each record starts with a quote at column 1; every other line is a
+  # continuation and is folded onto it.
+  out=$(printf '%s\n' "$out" | awk '
+    /^'\''/ { if (started) printf "\n"; printf "%s", $0; started = 1; next }
+    { if (started) { sub(/^[ \t]+/, ""); printf " %s", $0 } else print }
+    END { if (started) printf "\n" }
+  ')
   local answered
   answered=$(printf '%s\n' "$out" | grep -c "depends on axioms\|does not depend on any axioms")
   if [ "$answered" -ne "${#ns[@]}" ]; then
@@ -341,6 +369,39 @@ if [ -f "$CTL_SRC" ]; then
   bad "the control module was left behind at $CTL_SRC"
 else
   ok "the control module was removed -- the workspace is as it was found"
+fi
+
+# --- CONTROL: the unwrapper must not turn a bad axiom into a clean line -------
+#
+# The unwrap added 2026-08-09 folds continuation lines onto the record they
+# belong to. That is exactly the kind of edit that can quietly widen what counts
+# as acceptable, so it is controlled in BOTH directions on synthetic input:
+#
+#   1. a WRAPPED record listing only the three standard axioms must PASS
+#   2. a WRAPPED record hiding a non-standard axiom on a continuation line must
+#      still be REJECTED -- otherwise the repair would have created a false green
+_unwrap() {
+  awk '
+    /^'\''/ { if (started) printf "\n"; printf "%s", $0; started = 1; next }
+    { if (started) { sub(/^[ \t]+/, ""); printf " %s", $0 } else print }
+    END { if (started) printf "\n" }
+  '
+}
+_whitelisted() {
+  grep 'depends on axioms' \
+  | grep -vE '\[(propext|Classical\.choice|Quot\.sound)(, (propext|Classical\.choice|Quot\.sound))*\]'
+}
+_ctl_good=$(printf "'A.very_long_theorem_name_that_wraps' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n" | _unwrap | _whitelisted)
+if [ -z "$_ctl_good" ]; then
+  ok "CONTROL: a WRAPPED record of the three standard axioms is accepted (the false alarm is gone)"
+else
+  bad "CONTROL: the unwrapper still rejects a clean wrapped record -- the parse fix does not work"
+fi
+_ctl_bad=$(printf "'A.very_long_theorem_name_that_wraps' depends on axioms: [propext,\n someExoticAxiom,\n Quot.sound]\n" | _unwrap | _whitelisted)
+if [ -n "$_ctl_bad" ]; then
+  ok "CONTROL: an exotic axiom hidden on a CONTINUATION line is still rejected -- the fix did not widen the whitelist"
+else
+  bad "CONTROL: an exotic axiom on a continuation line was ACCEPTED -- the unwrap created a false green"
 fi
 
 printf '\n== axiom audit: %d passed, %d failed\n' "$PASS" "$FAIL"

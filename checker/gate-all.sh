@@ -79,6 +79,7 @@ GATES="
 count-theorems selftest|fast||bash checker/count-theorems.sh --selftest
 SPDX sweep|fast||sh checker/spdx-sweep.sh
 no machine-local paths|fast||sh checker/no-local-paths.sh
+lean module case (imports match the disk EXACTLY; a case-folding filesystem hides this)|fast||sh checker/lean-module-case.sh
 install-document lint|fast||bash checker/claude-md-lint.sh
 licence bridge|fast||bash checker/license-bridge.sh
 release consistency|fast||bash checker/release-consistency.sh

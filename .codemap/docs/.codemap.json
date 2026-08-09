@@ -291,12 +291,12 @@
       ]
     },
     "SCRUTINY-LOG.md": {
-      "hash": "3aff4137cb8c",
-      "indexed_at": "2026-08-09T11:05:11.032371+00:00",
+      "hash": "094b68fe311b",
+      "indexed_at": "2026-08-09T15:16:36.675580+00:00",
       "language": "markdown",
-      "lines": 248,
-      "mtime_ns": 1786273474078197900,
-      "size": 13373,
+      "lines": 299,
+      "mtime_ns": 1786288594550662700,
+      "size": 16324,
       "symbols": [
         {
           "docstring": "Two independent sinks, written by both router arms (`hooks/rot-router.sh`, `hooks/rot-router.ps1`):",
@@ -398,10 +398,19 @@
           ],
           "name": "CLOSED ALARM \u2014 the production log's emitter, identified (2026-08-09)",
           "type": "section"
+        },
+        {
+          "docstring": "Every delivery report in this project ends with three instruments: `lake build` for elaboration, `#print axioms` for what the proof rests on, and `lea",
+          "lines": [
+            250,
+            300
+          ],
+          "name": "CLOSED ALARM \u2014 the kernel had never re-checked a delivered proof (2026-08-09)",
+          "type": "section"
         }
       ]
     }
   },
-  "generated_at": "2026-08-09T11:05:11.036852+00:00",
+  "generated_at": "2026-08-09T15:16:36.675704+00:00",
   "version": "1.0"
 }

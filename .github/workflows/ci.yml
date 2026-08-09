@@ -111,6 +111,17 @@ jobs:
         shell: bash
         run: sh checker/no-local-paths.sh
 
+      # EVERY `import` MUST MATCH THE FILE ON DISK EXACTLY, INCLUDING CASE.
+      # This runner is Linux and resolves paths case-SENSITIVELY, so a wrong
+      # case here is a hard build failure -- while on the Windows machine where
+      # the tree is authored the compiler folds case and exits 0. Measured
+      # 2026-08-09: 45 modules referenced `Proofs.RotMoE.` against a directory
+      # named `Proofs/RotMoe/`, the build was green throughout, and leanchecker
+      # could not resolve a single one of them.
+      - name: lean module case (imports vs the real on-disk spelling)
+        shell: bash
+        run: sh checker/lean-module-case.sh
+
       - name: installer round trip (scratch config dir only)
         shell: bash
         run: bash checker/install-roundtrip.sh

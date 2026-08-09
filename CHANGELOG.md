@@ -23,6 +23,99 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The kernel had never re-checked a single delivered proof — the filesystem was folding the name
+
+`lake build Proofs.RotMoE.RotCeiling` exited **0** and wrote the olean.
+`lake env leanchecker Proofs.RotMoE.RotCeiling` answered
+
+```
+uncaught exception: Could not find any oleans for: Proofs.RotMoE.RotCeiling
+```
+
+Both statements were true simultaneously, for **45 delivered modules, for
+weeks**. The directory on disk is `Proofs/RotMoe/` — lowercase `e`. Windows
+resolves paths case-**insensitively**, so the compiler opened the file happily;
+`leanchecker` resolves a module name by **exact** match and could not. The build
+could not see the error and the kernel could not see the proof, so the strongest
+instrument in the delivery ritual was silently unavailable the entire time.
+
+**Two earlier turns on this were wrong, and that is the instructive part.**
+
+1. The previous diagnosis blamed a missing aggregator (`Proofs/RotMoE.lean`).
+   Writing it changed nothing — `the_aggregator_cannot_fix_a_case_mismatch`
+   proves it could not have.
+2. The previous *repair* made it worse: seven imports reading
+   `import Proofs.RotMoe.X` were "corrected" to `Proofs.RotMoE.X`. They had been
+   **right**. The edit moved them away from the directory's real name and the
+   build stayed green throughout, because the filesystem kept absorbing it.
+
+The competing hypothesis — that `leanchecker` cannot resolve nested module paths
+— was killed by a **control**, not by argument: a freshly built
+`Proofs.ZZDepth.Leaf` re-checks at exit 0. Depth was never the problem.
+
+After canonicalising every reference to `RotMoe`, **34 of the 35 modules that
+have an olean re-check at exit 0. Before, the number was zero.** The one failure
+(`RotVacuity`) imports a module whose olean is absent for an unrelated,
+pre-existing mathlib cache mismatch; 11 modules in that tree do not compile for
+the same reason, which is an environment defect and is reported as such.
+
+This is not a Windows curiosity. The exact-match resolvers are the ones that
+matter for publication — a Linux CI runner, a case-sensitive checkout, `git`
+itself. A tree that only builds because the developer's filesystem folds case is
+a tree that fails on the machine meant to verify it.
+
+**`lean/Proofs/RotCaseFold.lean`** — 14 theorems, 13 guards, mutants F01–F10,
+**10/10 killed**. `a_green_build_does_not_imply_the_kernel_can_find_it`,
+`same_tree_is_red_on_a_case_sensitive_host`, `exact_implies_insensitive` (the
+disagreement can only ever run in one direction),
+`canonical_names_resolve_on_every_host` (the repair, stated for all names, not
+for the two that happened to be wrong), and `depth_was_not_the_problem` so the
+refuted hypothesis stays refuted.
+
+**`checker/lean-module-case.sh`** — new gate, registered in `gate-all.sh`. It
+compares every `import Proofs…` against a `find` listing, because a `[ -f path ]`
+test on Windows answers *yes* for the wrong case and would certify the defect it
+exists to catch. It distinguishes "differs only in case" from "does not exist",
+since conflating them is what sent the last two sessions after the wrong bug.
+Two positive controls run before any clean report, and both failure paths were
+tripped on purpose: a planted wrong-case import exits **1** naming the real
+on-disk spelling, a planted missing import exits **1** with the other message,
+and the tree returns to **0**.
+
+### A fourth corpus, designed before it was run — and the two ways calibration cheats
+
+Three efficacy metrics have now failed three different controls: brevity,
+selectivity, and a ceiling. The remaining route is a corpus calibrated so
+baseline accuracy sits strictly between floor and ceiling. That design is where
+a measurement becomes easy to fake, so it was **proved before it was built**.
+
+**`lean/Proofs/RotCalibration.lean`** — 18 theorems, 15 guards, mutants K01–K12,
+**12/12 killed**. It imports `RotCeiling`, so the verdict machinery already
+proven there applies unchanged.
+
+- `circular_selection_cannot_lose` — keep only the pairs the **routed** arm got
+  right and `unroutedOnly` is zero *by construction*, for every input. The
+  filter would produce the win, not the router.
+- `selecting_on_the_test_result_also_biases` — the subtler one, because it looks
+  fair: selecting on the **baseline** arm's graded result zeroes `bothRight` just
+  as mechanically. Selection must read *calibration* reps, never the reps being
+  graded, whichever arm they come from.
+- `band_needs_two_reps` and `one_rep_pool_calibrates_to_nothing` — with one rep
+  an item scores floor or ceiling and nothing else, so a one-rep calibration
+  selects the **empty** corpus. A harness that then reported "no difference"
+  would be reporting the absence of its own input.
+- `calibration_does_not_guarantee_power` — the anti-overclaim. An item can sit in
+  the band and still be answered correctly by both arms on the fresh rep; a
+  calibrated run with zero discordant pairs is still `noPower`, not a null.
+  Calibration removes a known *reason* for no power. It does not create power.
+- `all_three_clauses_are_load_bearing` — drop any one clause of `sound` and a
+  design that must be rejected is accepted.
+
+The planned design is recorded as a value, not as prose: `⟨3, true, false⟩` —
+three baseline reps, a fresh graded run, routed arm blind to selection.
+
+Counts: **908 theorems, 46 modules, 43 suites, 494 mutants, 60 checkers.**
+
 ### The mutation harness could not fail — 26 suites, one unconditional `exit 0`
 
 **The instrument that certifies every theorem in this repository was itself a

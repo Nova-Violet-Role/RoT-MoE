@@ -222,6 +222,7 @@ def shipped : List Gate :=
   [ f "count-theorems selftest"
   , f "SPDX sweep"
   , f "no machine-local paths"
+  , f "lean module case (imports match the disk EXACTLY; a case-folding filesystem hides this)"
   , f "install-document lint"
   , f "licence bridge"
   , f "release consistency"
@@ -374,10 +375,10 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 47
+#guard shipped.length = 48
 
 -- Twenty-eight run on every commit.
-#guard (fastSet shipped).length = 31
+#guard (fastSet shipped).length = 32
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
@@ -402,7 +403,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 36
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 37
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -412,14 +413,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 31
+#guard (stagedRun shipped []).length = 32
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 35
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 36
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 32
+#guard (stagedRun shipped ["README.md".toList]).length = 33
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.
