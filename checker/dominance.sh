@@ -240,6 +240,38 @@ else
   bad "D7 BOUNDED COST: worst observed turn ${_worst} ms exceeds the ${MS_BOUND} ms bound"
 fi
 
+# D7b  NO SNAPSHOT LATENCY CLAIM IN THE DOCS
+# ---------------------------------------------------------------------------
+# MEASURED DEFECT, 2026-08-10. README.md advertised the router as "a
+# 130-millisecond shell script" in two places. That was true of the first
+# pre-release; the shipped router measures 380-436 ms (ten runs, median ~398),
+# because it grew a live log, a nine-lens ensemble and the R/s+ gauge. The claim
+# had been 3x wrong and green for weeks, because nothing checked it.
+#
+# The repair was NOT to write 398. A fresh snapshot schedules the same defect for
+# next month -- it is the "contingent fact frozen as an invariant" shape this
+# project exists to catch. The docs now state the BOUND (D7, ${MS_BOUND} ms), which
+# a gate can enforce and which stays true as the router evolves.
+#
+# So this check forbids the snapshot form from coming back: a bare "<n>-millisecond"
+# or "~<n> ms" claim about the router in the docs is a defect even when the number
+# happens to be right today. Prose describing the OLD claim as history is allowed --
+# it must appear inside a blockquote, which is how the correction is written.
+_snap=0
+for _f in README.md engine/rot-lean.md; do
+  [ -f "$REPO/$_f" ] || continue
+  # Strip blockquote lines (historical explanation) before looking for claims.
+  _hits=$(grep -vE '^\s*>' "$REPO/$_f" 2>/dev/null \
+          | grep -oiE '(~ ?[0-9]{2,4} ?ms\b|[0-9]{2,4}-millisecond)' | wc -l | tr -d ' ')
+  if [ "${_hits:-0}" -ne 0 ]; then
+    bad "D7b SNAPSHOT CLAIM: $_f states a fixed router latency ($_hits site(s)) -- state the ${MS_BOUND} ms bound instead; a snapshot expires"
+    _snap=$((_snap + _hits))
+  fi
+done
+if [ "$_snap" -eq 0 ]; then
+  ok "D7b NO SNAPSHOT CLAIM: the docs state the ${MS_BOUND} ms bound, not a number that decays"
+fi
+
 # ===========================================================================
 # POSITIVE CONTROLS -- the instrument must be able to fail
 # ===========================================================================

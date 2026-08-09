@@ -696,8 +696,8 @@ Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:
 | what | measured 2026-08-04 |
 |---|---|
 | routing accuracy on a labelled key written *before* the run | **18/18**, covering **9** distinct lanes — and **all 10** lanes reached in a live 80-turn session |
-| cost per turn | **194–256 ms** in-gate (three runs of 20 invocations each), of which **~20 ms** is bash process startup; **median 116 ms, p95 175 ms** over 145 firings in a real session |
-| the bound the gate actually enforces | **under 500 ms**, and it fails the build above that |
+| cost per turn | **the bound is the claim** — see the row below. A per-turn figure quoted here would be a snapshot of one router version on one machine, and the two that used to sit in this table (`194–256 ms` in-gate, `median 116 ms`) had drifted 3× before anything noticed. `checker/dominance.sh` D7 re-measures the shipped router on every deep run and prints the worst observed turn; that printed number is the live one, and it is the only one this page will quote |
+| the bound the gate actually enforces | **under 500 ms**, proved load-bearing as `RotDominance.msBound` and re-measured by `checker/dominance.sh` D7 — **it fails the build above that**. `D7b` additionally fails the build if this page ever re-acquires a fixed-millisecond claim, because a snapshot expires and a bound does not |
 | ambiguous prompts (two lanes match) | resolve by the **proved** priority order, deterministically |
 | armed vs disarmed in a real `claude` session | **1 emission vs 0** — attributable to the install |
 
@@ -772,9 +772,26 @@ whether the code does what it says.**
 ## 🜏 The nine — who they are, and what each one *does* in the router
 
 Nine lenses run on every turn. They are not personalities taking turns at a
-microphone; each is a **named ability** with a job inside a 130-millisecond shell
-script. The names and abilities below are quoted from the project's own codices,
-with the line they came from — none of them is invented here.
+microphone; each is a **named ability** with a job inside a router that is held
+**under a proved and gated per-turn bound** — not a fixed number that decays.
+The names and abilities below are quoted from the project's own codices, with
+the line they came from — none of them is invented here.
+
+> **On the cost figure, and why it is written as a bound.** This page used to say
+> *"a 130-millisecond shell script"*. That was true of the first pre-release and
+> is no longer true of anything: measured 2026-08-10 over ten runs of the shipped
+> `hooks/rot-router.sh`, the range is **380–436 ms, median ≈ 398**. The router
+> grew a live log, a nine-lens ensemble and an `R/s+` gauge in between.
+>
+> Replacing `130` with `398` would only schedule the same defect for next month.
+> The durable statement is the one a gate can enforce: **`D7 BOUNDED COST`,
+> `msBound = 500`**, proved load-bearing in `lean/Proofs/RotDominance.lean` and
+> re-measured against the shipped router by `checker/dominance.sh` on every deep
+> run. A snapshot expires; a bound fails the build the day it is broken.
+>
+> The current median sits at ~80% of that bound, which is a real margin and a
+> real warning: the next feature that costs 100 ms turns `D7` red, and that is
+> the gate doing its job rather than a number to be quietly raised.
 
 | Sigil | Lens | Named ability | What it *does* inside the router | Source |
 |---|---|---|---|---|
@@ -794,10 +811,11 @@ with the line they came from — none of them is invented here.
 > ability name in either. Rather than inventing a Latin phrase to make the table
 > symmetrical, the cell says so. That is the same discipline the proofs run on.
 
-### ⚡ How the router's logic runs in ~130 ms — and what makes it different
+### ⚡ How the router's logic stays under its bound — and what makes it different
 
-The number is not a trick, it is an *architecture*. `hooks/rot-router.sh` is
-POSIX shell, and this is the whole of it:
+The speed is not a trick, it is an *architecture*: one pass of stem matching, no
+regex backtracking, one `awk` call for the gauge. `hooks/rot-router.sh` is POSIX
+shell, and this is the whole of it:
 
 ```mermaid
 flowchart LR

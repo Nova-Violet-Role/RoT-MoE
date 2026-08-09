@@ -418,12 +418,12 @@
       ]
     },
     "dominance.sh": {
-      "hash": "c490ff5a3659",
-      "indexed_at": "2026-08-09T20:21:33.561681+00:00",
+      "hash": "98cc8a1ea95a",
+      "indexed_at": "2026-08-09T23:06:55.417810+00:00",
       "language": "shell",
-      "lines": 282,
-      "mtime_ns": 1786303796674212400,
-      "size": 13325,
+      "lines": 314,
+      "mtime_ns": 1786316813390260800,
+      "size": 15115,
       "symbols": [
         {
           "docstring": "Drive one event through the router. Echoes \"exit<TAB>stdout<TAB>stderrbytes\".",
@@ -1649,6 +1649,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T22:57:51.452004+00:00",
+  "generated_at": "2026-08-09T23:06:55.417924+00:00",
   "version": "1.0"
 }
