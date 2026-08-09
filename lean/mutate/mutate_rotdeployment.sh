@@ -239,6 +239,26 @@ run_mut D08 \
   "#guard knownCopies.length = 4" \
   "the count guard itself -- if this survives the roster is not pinned"
 
+run_mut D09 \
+  "def probeFires (p : Probe) : Bool := p.instrumentedRuns && p.targetExecutes" \
+  "def probeFires (p : Probe) : Bool := p.targetExecutes" \
+  "broken_probe_is_silent_either_way -- a broken probe would report truthfully"
+
+run_mut D10 \
+  "def probeFires (p : Probe) : Bool := p.instrumentedRuns && p.targetExecutes" \
+  "def probeFires (p : Probe) : Bool := p.instrumentedRuns" \
+  "positive_control_is_required -- the probe would stop measuring the target"
+
+run_mut D11 \
+  "def probeFires (p : Probe) : Bool := p.instrumentedRuns && p.targetExecutes" \
+  "def probeFires (p : Probe) : Bool := p.instrumentedRuns || p.targetExecutes" \
+  "broken_probe_mimics_a_dormant_target -- the confusion would vanish"
+
+run_mut D12 \
+  "    (hrun : p.instrumentedRuns = true) (hsilent : probeFires p = false) :" \
+  "    (hrun : p.instrumentedRuns = false) (hsilent : probeFires p = false) :" \
+  "silence_is_evidence_once_the_probe_runs -- its hypothesis is load-bearing"
+
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."

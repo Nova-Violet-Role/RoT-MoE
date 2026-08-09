@@ -111,6 +111,66 @@ theorem silent_marker_means_dormant (c : Copy) (h : markerFires c = false) :
 
 end TheDiscriminator
 
+section TheInstrumentThatCannotRun
+
+/-! ## The correction: the first marker run was INVALID
+
+Added after the fact, because the first version of this file shipped a
+conclusion supported by a broken experiment. The marker was inserted at line 2
+of a PowerShell script whose lines 22-23 are `[CmdletBinding()]` / `param(`.
+PowerShell requires `param` to be the first statement, so the instrumented file
+**did not parse** -- measured: `PARSE_FAILS: Unexpected attribute
+'CmdletBinding'`. `pwsh -File` then exits non-zero and the hook's `|| bash`
+fallback takes over.
+
+So the marker was silent because the program was broken, not because it was
+dormant. Two causes, one observation -- the very confusion this module was
+written about, committed *inside the module about it*.
+
+Redone properly (marker after the param block, `PARSE_OK` verified **while
+instrumented**, positive control fired on a hand-driven invocation) the marker
+stayed silent while records kept arriving. The conclusion survived; the
+evidence for it had to be rebuilt. -/
+
+/-- A probe over a program: it is only evidence if the instrumented program
+still runs. `fires` is what you observe; `instrumentedRuns` is the precondition
+almost nobody checks. -/
+structure Probe where
+  instrumentedRuns : Bool
+  targetExecutes : Bool
+deriving DecidableEq, Repr
+
+/-- What the probe actually shows: nothing at all unless the instrumented
+program can still run. -/
+def probeFires (p : Probe) : Bool := p.instrumentedRuns && p.targetExecutes
+
+/-- A probe that broke its target is silent regardless of the truth it was
+meant to measure -- so its silence carries zero information. -/
+theorem broken_probe_is_silent_either_way (e : Bool) :
+    probeFires ⟨false, e⟩ = probeFires ⟨false, !e⟩ := by
+  simp [probeFires]
+
+/-- Stated as the indistinguishability that bit: a broken probe on a RUNNING
+target looks exactly like a working probe on a DORMANT one. -/
+theorem broken_probe_mimics_a_dormant_target :
+    probeFires ⟨false, true⟩ = probeFires ⟨true, false⟩ := by decide
+
+/-- The precondition discharged: once the instrumented program is known to run,
+silence does mean the target is dormant. This is the theorem that makes the
+second run count where the first did not. -/
+theorem silence_is_evidence_once_the_probe_runs (p : Probe)
+    (hrun : p.instrumentedRuns = true) (hsilent : probeFires p = false) :
+    p.targetExecutes = false := by
+  simpa [probeFires, hrun] using hsilent
+
+/-- And the positive control is not optional decoration: a probe that cannot
+fire even on a live target is indistinguishable from a broken one. -/
+theorem positive_control_is_required :
+    probeFires ⟨false, true⟩ = false ∧ probeFires ⟨true, true⟩ = true := by
+  decide
+
+end TheInstrumentThatCannotRun
+
 section TheConclusion
 
 /-- What the measurement actually licenses. If every copy in the known set is

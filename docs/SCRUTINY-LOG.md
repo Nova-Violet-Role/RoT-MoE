@@ -147,9 +147,9 @@ pre-fix record shape. What has been measured:
 | stale plugin deployment | all three cache copies replaced with the 24462 B fixed build; records unchanged |
 | Desktop builds | both probed; markers never fired |
 | `prover-remind.ps1` | contains no append call and no log path |
-| `tools/sanctum/rot-lean-inject.ps1` | wired to all 31 events but writes nothing to disk |
+| `tools/sanctum/rot-lean-inject.ps1` | wired to all 31 events; writes only a turn-delta state file (`Set-Content` x2, line 488) — emits no route/gauge record and never names the log path |
 | settings-level wiring | no `rot-router` reference in `settings.json`, `settings.local.json`, `.claude.json`, or project config |
-| the patched file executing at all | **execution marker never fired** while records kept arriving |
+| the patched file executing at all | **execution marker never fired** while records kept arriving — see the correction below, the FIRST marker run was invalid |
 
 The inference is bounded by `Proofs/RotDeployment.lean`:
 `emitter_is_outside_the_known_set` licenses only *the writer is not among the
@@ -160,3 +160,35 @@ router demonstrably works when driven.
 writing process itself (open-handle or command-line attribution at the moment a
 record appears), because five file-level repairs have already failed to change
 the observable and a sixth carries no new information.
+
+### Correction (same day) — the first marker run proved nothing
+
+The marker was inserted at **line 2** of a PowerShell script whose lines 22-23
+are `[CmdletBinding()]` / `param(`. PowerShell requires `param` to be the first
+statement, so the instrumented file **did not parse** — measured directly:
+`PARSE_FAILS: Unexpected attribute 'CmdletBinding'`. `pwsh -File` then exits
+non-zero and the hook's `|| bash` fallback runs. The marker was silent because
+the probe had broken its own target.
+
+That is the identical two-causes-one-observation error this alarm is about,
+committed inside the investigation of it. The conclusion happened to survive;
+the evidence did not, and a conclusion resting on invalid evidence is not a
+measurement.
+
+Redone under three conditions, all measured:
+
+| condition | result |
+|---|---|
+| marker inserted **after** the param block | line 32 |
+| instrumented file parses | `PARSE_OK_WHILE_INSTRUMENTED` |
+| positive control — hand-driven invocation | marker fired, 1 line, 2 records |
+| live firings during the window | records arrived, marker **silent** |
+
+Only with the parse check and the positive control does the silence mean the
+installed router is dormant. `Proofs/RotDeployment.lean` now carries this as
+`broken_probe_is_silent_either_way`, `broken_probe_mimics_a_dormant_target`,
+`silence_is_evidence_once_the_probe_runs` and `positive_control_is_required`.
+
+**Standing rule this adds: an instrument that modifies its target must prove the
+target still runs, and must be fired once on purpose, before its silence counts
+as data.**

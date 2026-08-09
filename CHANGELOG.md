@@ -23,6 +23,42 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The probe broke the program it was probing
+
+**A correction to the entry below, published the same day.** The conclusion
+there — that the installed router is not the live emitter — still holds, but the
+experiment offered as proof was invalid and has been redone.
+
+The execution marker was inserted at line 2 of a script whose lines 22-23 are
+`[CmdletBinding()]` / `param(`. PowerShell requires `param` first, so the
+instrumented file **did not parse** (`PARSE_FAILS: Unexpected attribute
+'CmdletBinding'`), `pwsh -File` exited non-zero, and the `|| bash` fallback ran.
+The marker was silent because the probe had destroyed its own target — the same
+two-causes-one-observation error the entry below is about, committed inside the
+investigation of it.
+
+Redone with the marker after the param block, `PARSE_OK` verified **while
+instrumented**, and a positive control fired by hand (1 marker line, 2 records)
+before trusting the silence. Also corrected: `rot-lean-inject.ps1` was described
+as writing nothing to disk; it writes a turn-delta state file (`Set-Content`
+x2). It still emits no route record, so the ruling-out stands — but the stated
+reason was wrong.
+
+Four new theorems in `Proofs/RotDeployment.lean` (now **12 theorems, 6 guards,
+12/12 killed**):
+
+| theorem | what it forbids |
+|---|---|
+| `broken_probe_is_silent_either_way` | reading silence from a probe that broke its target |
+| `broken_probe_mimics_a_dormant_target` | the exact confusion, exhibited |
+| `silence_is_evidence_once_the_probe_runs` | silence counts **only** after the precondition is discharged |
+| `positive_control_is_required` | a probe never fired on purpose is not an instrument |
+
+**Standing rule: an instrument that modifies its target must prove the target
+still runs, and must be fired once deliberately, before its silence is data.**
+
+---
+
 ### Five copies patched, none of them running
 
 **Production still emits route records with no `src` and no `session`, and this
