@@ -23,6 +23,84 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The CTT install test passes -- and the harness had been blaming the wrong thing
+
+**The CTT install test now runs end to end at exit 0**, which was the stated
+prerequisite to publishing. Getting there turned up a checker that was
+confidently wrong.
+
+**First, the shadowing install was cleared.** CTT was running the local-only
+`1.0.1`. `claude plugin install` alone cannot move it -- `RotUpgrade` proves
+that -- so the uninstall-then-install sequence was used, exactly as
+`uninstall_then_install_upgrades` describes:
+
+| step | measured |
+|---|---|
+| `marketplace update rot-moe` | exit 0, `.rot-release` refreshed from `rot-moe-0.9.1-lean.zip` |
+| `plugin uninstall` | exit 0, registry `{}` |
+| `plugin install` | exit 0, `installPath: .../0.9.1` |
+| installed router | `rot-router.sh` 37421 B, `_rot_src` x10 |
+
+Driving that installed artifact as a hook produced the record production has
+**never** produced:
+
+```json
+{"kind":"gauge","session":"ctt-0f3","src":"hook","K":9, ...}
+```
+
+**Then `ctt-session.sh` refused, and its stated reason was false.** It reported
+`0 route records` and `Most likely: the CTT credential expired`. Measured
+against the running instance: `claude auth status` -> `loggedIn: true`, a raw
+turn replied `OK`, and **20 records with `"src":"hook"` were in the CTT log
+under the harness's own session id** `3111c07c-...`.
+
+The cause is precedence. The harness does `export ROTMOE_DEBUG_LOG="$LOG"`; the
+CTT `settings.json` carries an `env` block naming a different path, **and the
+settings block wins**. The harness watched a file the router never writes,
+counted zero, and named a credential that was never broken. CP29 records the
+same message from a run where it probably WAS the credential -- which is how a
+misnamed cause becomes a fake pattern.
+
+`Proofs/RotEffectiveLog.lean` -- **11 theorems, 8 guards, 0 sorry**, 8/8 mutants
+killed:
+
+| theorem | what it settles |
+|---|---|
+| `settings_wins`, `inherited_used_when_settings_silent` | the precedence, as measured |
+| `harness_watches_the_wrong_file` | a different settings path means the watched file is not the written file |
+| `zero_at_watched_says_nothing` | **the load-bearing one** — two runs agree on everything the naive check reads and differ in what happened |
+| `naive_conflates_override_with_dead_credential` | the old form cannot separate them; the new one can |
+| `the_measured_shape_is_misdiagnosed` | naive says credential, truth is override — over all counts |
+| `failure_dominates`, `silence_is_not_override` | three causes, three verdicts |
+| `collection_is_reachable`, `collected_requires_a_record` | the pass is reachable and never announced without evidence |
+| `override_is_not_a_pass` | following the override is not a licence to pass |
+
+`ctt-session.sh` now resolves the effective path the way the router does, and
+its refusal names one of three causes instead of guessing one. Re-run:
+**exit 0, 2 turns, 0 failed, 10 route records collected, 0 trace leaks.**
+
+### A mutation suite that ran zero mutants and exited 0
+
+Found in my own generator and worth recording as a defect class. The template
+phrase `WHAT THIS SUITE IS AIMED AT` occurs **twice** — once in the file header
+and once above the mutant table — and an `indexOf` cut at the first dropped the
+counters, the preflight and `run_mut` itself. The 97-line result printed
+
+```
+=== RotEffectiveLog:  killed,  survived,  discarded,  skipped ===
+All  mutants killed.
+```
+
+— blank numbers, **exit 0**. That reads as a clean sweep and means nothing ran.
+Both new suites now refuse when `killed + survived + discarded + skipped == 0`,
+and the guard was **tripped on purpose** (exit 1, correct message) rather than
+assumed to work. The other 31 suites carry the same latent shape; noted as open
+rather than silently patched in bulk.
+
+Counts: **813 theorems, 37 modules, 34 suites, 411 mutants**.
+
+---
+
 ### A fix nobody can install is not a fix -- `Proofs/RotRelease.lean`
 
 **The correction first: the repository was NOT the thing at fault, and the

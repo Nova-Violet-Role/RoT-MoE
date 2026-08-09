@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotRelease.lean (a session id that reaches a filename)
+# MUTATION SUITE -- Proofs/RotEffectiveLog.lean (a session id that reaches a filename)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -33,10 +33,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotRelease.lean"
+F="Proofs/RotEffectiveLog.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotRelease.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrelease.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotEffectiveLog.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/muteffectivelog.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -58,10 +58,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotRelease ) >/tmp/mut_pre_rotrelease.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotRelease)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotEffectiveLog ) >/tmp/mut_pre_roteffectivelog.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotEffectiveLog)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotrelease.log
+  tail -5 /tmp/mut_pre_roteffectivelog.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -134,7 +134,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotEffectiveLog ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -162,7 +162,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotRelease\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotEffectiveLog\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -184,71 +184,67 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotRelease mutation suite ==="
+echo "=== RotEffectiveLog mutation suite ==="
 
 # WHAT THIS SUITE IS AIMED AT.
 #
-# The module exists because the repository declared 0.9.2 while the deployed
-# build was 1.0.1, so every proved fix sat in a version that could not reach
-# anyone. The theorems are about ORDER. The mutants therefore attack the
-# ORDERING FUNCTION and the PUBLISHING PREDICATE -- never a theorem's statement,
-# which would only prove that editing a theorem breaks it.
+# The module exists because checker/ctt-session.sh counted zero records, blamed
+# the credential, and was measurably wrong: the credential was live, the turns
+# replied, and twenty records with "src":"hook" were sitting in the log named by
+# settings.json. The theorems are about PRECEDENCE and about a diagnosis that
+# must separate three different states of the world.
 #
-#   R01  the major comparison is reversed        (the order runs backwards)
-#   R02  the minor comparison is reversed        (same, one digit down)
-#   R03  patch comparison admits equality        (a reinstall counts as newer)
-#   R04  supersedes compares the wrong direction (a downgrade reads as an upgrade)
-#   R05  supersedes accepts anything not older   (equal versions "upgrade")
-#   R06  the lean tier shares core's patch digit (variants stop being ordered)
-#   R07  canPublish accepts if ANY install is older (one stale channel ignored)
-#   R08  the measured deployed version is altered (are the #guards load-bearing?)
+# The mutants attack the two functions -- `effective` and `diagnose` -- and the
+# recorded observation. Never a theorem statement: breaking a theorem only shows
+# that editing it breaks it.
 #
-# R05 is the one to watch. It is the plausible implementation -- "publish unless
-# the candidate is older" -- and it silently permits republishing the same
-# number, which is exactly the CLI behaviour RotUpgrade proves changes nothing.
-# If reinstall_is_not_an_upgrade does not die on R05, that theorem is decoration.
+# E05 and E06 are the ones to watch. Each collapses two causes into one, which
+# is EXACTLY the defect the module was written about. If the diagnosis theorems
+# do not die on them, they are decoration and the old confident-but-wrong
+# message could walk straight back in.
 
-run_mut R01 \
-  "  a.major < b.major ||" \
-  "  b.major < a.major ||" \
-  "lt_iff, lt_trans, lower_major_never_supersedes -- the order reversed"
+run_mut E01 \
+  "  | some s => s" \
+  "  | some _ => inherited" \
+  "settings_wins -- the settings block would stop winning"
 
-run_mut R02 \
-  "(a.minor < b.minor || (a.minor == b.minor" \
-  "(b.minor < a.minor || (a.minor == b.minor" \
-  "lt_sameMajor, a_higher_minor_always_wins -- the minor order reversed"
+run_mut E02 \
+  "  | none   => inherited" \
+  "  | none   => \"\"" \
+  "inherited_used_when_settings_silent -- the fallback erased"
 
-run_mut R03 \
-  "&& a.patch < b.patch" \
-  "&& a.patch <= b.patch" \
-  "lt_irrefl, reinstall_is_not_an_upgrade -- a version now supersedes itself"
+run_mut E03 \
+  "  if o.turnsFailed > 0 then .turnsFailed" \
+  "  if o.turnsFailed > 0 then .collected" \
+  "failure_dominates -- a failed run would be reported as collected"
 
-run_mut R04 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt candidate deployed" \
-  "every supersedes theorem and #guard -- a downgrade would read as an upgrade"
+run_mut E04 \
+  "  else if o.atWatched > 0 then .collected" \
+  "  else if o.atWatched > 0 then .logOverridden" \
+  "collection_is_reachable, collected_requires_a_record -- no run could pass"
 
-run_mut R05 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := !(lt candidate deployed)" \
-  "reinstall_is_not_an_upgrade, cannot_publish_over_itself -- equality accepted"
+run_mut E05 \
+  "  else if o.atEffective > 0 then .logOverridden" \
+  "  else if o.atEffective > 0 then .genuinelySilent" \
+  "the_measured_shape_is_misdiagnosed -- the override collapses into silence"
 
-run_mut R06 \
-  "  | .lean => 1" \
-  "  | .lean => 0" \
-  "variants_are_ordered -- core and lean would share a patch digit"
+run_mut E06 \
+  "  else .genuinelySilent" \
+  "  else .logOverridden" \
+  "silence_is_not_override -- the third state disappears"
 
-run_mut R07 \
-  "  deployed.all (fun d => supersedes candidate d)" \
-  "  deployed.any (fun d => supersedes candidate d)" \
-  "one_stale_channel_blocks_publication -- a single old install would suffice"
+run_mut E07 \
+  "  if o.atWatched > 0 then .collected else .turnsFailed" \
+  "  if o.atWatched > 0 then .collected else .logOverridden" \
+  "the_measured_shape_is_misdiagnosed -- the naive form stops being naive"
 
-run_mut R08 \
-  "def deployedProduction : SemVer := ⟨1, 0, 1⟩" \
-  "def deployedProduction : SemVer := ⟨0, 0, 1⟩" \
-  "the measured #guards -- if these survive, the recorded facts are inert"
+run_mut E08 \
+  "def cttRun : Observation := ⟨2, 0, 0, 20⟩" \
+  "def cttRun : Observation := ⟨2, 0, 0, 0⟩" \
+  "the measured #guards -- if these survive, the CTT reading is inert"
+
 echo
-echo "=== RotRelease: $killed killed, $survived survived, $discarded discarded, $skipped skipped ==="
+echo "=== RotEffectiveLog: $killed killed, $survived survived, $discarded discarded, $skipped skipped ==="
 
 if [ "$filtered" -eq 1 ]; then
   echo "PARTIAL RUN (MUT_ONLY='${MUT_ONLY}') -- $skipped mutant(s) never ran."

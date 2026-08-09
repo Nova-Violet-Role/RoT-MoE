@@ -238,6 +238,38 @@ note "corpus: $LOG"
 #   no_marker_attributes_nothing  -- an unmarked one attributes none of them
 #   pooling_invents_a_leader      -- and pooling two runs can name a leading
 #                                    lane that led NEITHER of them
+# --- THE EFFECTIVE LOG PATH: settings.json BEATS an inherited export ---------
+# MEASURED 2026-08-09, immediately after installing the 0.9.1-lean artifact into
+# CTT. This script exports ROTMOE_DEBUG_LOG below and then counts records in
+# that file. The CTT `settings.json` carries its own `env` block naming a
+# different path, AND THAT ONE WINS: the two turns ran, the hooks fired, and
+# twenty records with "src":"hook" landed in the settings-named log under the
+# harness's own session id -- while this script counted zero and refused with
+#
+#     "Most likely: the CTT credential expired."
+#
+# which was false. `claude auth status` said loggedIn:true and a raw turn
+# replied. The next reader would have spent the hour on a credential that was
+# never broken -- and the CP29 note recording that same message makes it look
+# like a recurring auth problem rather than two different causes.
+#
+# So the path is RESOLVED the way the router resolves it, instead of assuming
+# the export takes effect. `Proofs/RotEffectiveLog.lean` is the model:
+#   settings_wins                    -- the precedence, as measured
+#   harness_watches_the_wrong_file   -- a different settings path means the
+#                                       watched file is not the written file
+#   zero_at_watched_says_nothing     -- and nothing follows from its emptiness
+_settings_log=$(sed -n '/"ROTMOE_DEBUG_LOG"/{s/.*"ROTMOE_DEBUG_LOG"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p;q;}' \
+  "$CTT/settings.json" 2>/dev/null)
+if [ -n "$_settings_log" ] && [ "$_settings_log" != "$LOG" ]; then
+  note "settings.json env overrides the exported log -- following it (this is the"
+  note "  path the router actually writes: $_settings_log)"
+  _watched_before="$LOG"
+  LOG="$_settings_log"
+else
+  _watched_before="$LOG"
+fi
+
 mkdir -p "$(dirname "$LOG")"
 printf '{"kind":"version","ts":"%s","ver":"%s","from":%s,"to":%s}\n' \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$INSTALLED" "$FROM" "$TO" >> "$LOG"
@@ -440,8 +472,36 @@ if [ "$ran" -gt 0 ] && [ "$_new" -eq 0 ]; then
   echo "REFUSE: $ran turn(s) ran and NOT ONE route record was written."
   echo "        The session produced no measurement, so this is not a pass."
   echo "        $failed of $ran turn(s) exited non-zero."
-  echo "        Most likely: the CTT credential expired. Check with"
-  echo "          CLAUDE_CONFIG_DIR=\"\$CTT\" claude auth status"
+
+  # NAME THE CAUSE, DO NOT GUESS IT. The old text said "Most likely: the CTT
+  # credential expired" unconditionally, and on 2026-08-09 that was measurably
+  # wrong -- the credential was live, the turns replied, and the records were in
+  # another file. A refusal that misnames its cause is worse than a bare one:
+  # it is confidently wrong, and it sends the reader somewhere else.
+  #
+  # Proofs/RotEffectiveLog.lean separates the states this branch can be in:
+  #   the_measured_shape_is_misdiagnosed -- naive says credential, truth is override
+  #   silence_is_not_override            -- and silence is a THIRD state
+  #   override_is_not_a_pass             -- following the override never passes
+  _elsewhere=0
+  if [ -n "${_watched_before:-}" ] && [ "${_watched_before}" != "$LOG" ]; then
+    _elsewhere=$(grep -c '"kind":"route"' "$_watched_before" 2>/dev/null)
+    : "${_elsewhere:=0}"
+  fi
+  if [ "$_elsewhere" -gt 0 ]; then
+    echo "        CAUSE: records exist at $_watched_before ($_elsewhere route)."
+    echo "        The log path was overridden and this run followed the wrong one."
+  elif [ "$failed" -gt 0 ]; then
+    echo "        CAUSE: $failed turn(s) exited non-zero -- read the per-turn reason"
+    echo "        above. A stale CTT credential reports 'Not logged in'. Check with"
+    echo "          CLAUDE_CONFIG_DIR=\"\$CTT\" claude auth status"
+  else
+    echo "        CAUSE: every turn SUCCEEDED and nothing was written anywhere."
+    echo "        That is not a credential problem -- the hooks did not fire."
+    echo "        Check that the plugin is installed and enabled in CTT:"
+    echo "          $CTT/plugins/installed_plugins.json"
+    echo "          $CTT/settings.json  (enabledPlugins)"
+  fi
   echo "        A collection run that collects nothing must never exit 0."
   exit 2
 fi
