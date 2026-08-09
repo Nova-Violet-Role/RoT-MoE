@@ -23,6 +23,78 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The first attributable advantage: same answers, ~45% less wall time, order-controlled
+
+Five answer-quality corpora had produced four nulls. The fifth — the trap corpus,
+pre-registered at `2e5732f` before a single turn ran — produced the first result
+that survives its own control, and it is **not** an answer-quality result.
+
+**Latency, paired per item, sign test, both orderings run:**
+
+| ordering | routed faster | p | speedup |
+|---|---|---|---|
+| a-first (unrouted ran first) | 55/60 | 1.04e-11 | 44.7% |
+| b-first (routed ran first) | 56/60 | 9.09e-13 | 46.6% |
+
+The confound was named before the control was run: arms run sequentially against
+the same files, so whichever runs **second** reads from a warm page cache. If
+that were the cause, reversing the order moves the advantage to the other arm.
+It did not — the routed arm is faster running **first, on a cold cache**, by
+slightly *more*. `bench/trap-latency.js` refuses to attribute from a single
+ordering, emitting `attribution: UNATTRIBUTED` until given both; with both it
+reports `attribution: router`.
+
+**Accuracy did not move.** Rep 1 measured a routed *deficit* (59 vs 47, band 12,
+p = 0.0005, driven entirely by `theorem_count` at 0/12 with 11 trapped). Rep 2,
+same corpus and order, went 59 vs 58 with `theorem_count` at 12/12 and nothing
+trapped. Amendment 1 to the pre-registration — written after rep 1 and **before**
+rep 2 — fixed the rule: an unreplicated collapse is reported as unreplicated and
+no claim is made in either direction. Rep 1 is kept, not deleted.
+
+So the honest headline is *the same answers, in about half the time*, on top of a
+routing layer the default loop does not have. It is **not** "better answers", and
+`dominance_says_nothing_about_answer_quality` still separates the two.
+
+### Two defects in this project's own instruments, both declared
+
+- **The pre-registered decision table had no row for the router LOSING.** Rep 1
+  mapped to `null` — "no difference established" — when a difference *had* been
+  established, in the other direction. A decision table that can only express the
+  outcome its author hoped for is not neutral. `disadvantage` is now the symmetric
+  partner of `advantage`, evaluated on identical terms.
+- **The answer parser scored 0/60 for *both* arms on the first pass.** The arms
+  were right; `firstInt` rejected any digit followed by a period, so `**0.**` —
+  the natural way to answer "how many" — read as no integer at all. Repaired after
+  data existed, and declared for that reason: it is a change to the **parser**, not
+  a decision rule, it struck both arms identically, and it made the result *worse*
+  for the router (an uninformative `noPower` became a measured deficit).
+  `bench/trap-parse-controls.js` pins 15 cases in both directions plus a negative
+  control that rejects a naive `/(\d+)/` parser.
+
+### `RotOrdering.lean` — the instrument's refusal to attribute is now a theorem
+
+`trap-latency.js` declining to name a cause from one ordering was a convention in
+a script. It is now 12 theorems (11/11 mutants killed, no `sorryAx`, kernel
+re-checked at 0 bytes):
+
+- `one_ordering_cannot_attribute` — two models disagreeing completely about the
+  cause produce the **same** a-first observation.
+- `every_gap_has_a_pure_router_and_a_pure_position_explanation` — the ambiguity is
+  total, not a quirk of one witness: *any* observed gap has both explanations.
+- `two_orderings_determine_both_effects` / `effects_are_recoverable` — with both
+  orderings the unknowns are pinned **and** computable: their sum is `2·armEffect`,
+  their difference `2·posEffect`.
+- `cache_world_predicts_routed_is_slower_when_it_runs_first` — the specific
+  alternative the control excluded, and why the b-first run was decisive.
+- `three_worlds_one_a_first_observation` — three incompatible causal stories, one
+  number; all three separate b-first.
+
+A generator defect worth recording: the first suite reported **11 DISCARDED**
+because the generator emitted `run_mut <id> <why> <needle> <repl>` while the
+harness signature is `<id> <needle> <repl> <why>` (`mutate_rottrap.sh:112`). The
+harness was right and said so — `DISCARDED`, never `SURVIVED`. That distinction is
+the reason the suite can be trusted at all.
+
 ### "Surpasses standard Claude Code" was never a proposition — now it is one, and it is measured
 
 The project's central claim had been attacked only in its weakest reading: *does

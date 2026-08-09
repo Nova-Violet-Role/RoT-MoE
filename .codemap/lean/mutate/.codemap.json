@@ -594,6 +594,24 @@
         }
       ]
     },
+    "mutate_rotordering.sh": {
+      "hash": "41f22a03726f",
+      "indexed_at": "2026-08-09T22:24:17.753083+00:00",
+      "language": "shell",
+      "lines": 255,
+      "mtime_ns": 1786314223419636900,
+      "size": 12664,
+      "symbols": [
+        {
+          "lines": [
+            108,
+            190
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotpath.sh": {
       "hash": "092f1f8bb47e",
       "indexed_at": "2026-08-09T20:21:33.786308+00:00",
@@ -933,6 +951,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T20:21:33.847449+00:00",
+  "generated_at": "2026-08-09T22:24:17.753241+00:00",
   "version": "1.0"
 }
