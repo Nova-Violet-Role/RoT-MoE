@@ -34,24 +34,62 @@ const items = fs.readFileSync(CAND, "utf8").trim().split("\n").map((l) => JSON.p
 
 // The reply file for turn N. ab-session.sh writes turn-001.txt ... and the
 // numbering is 1-based against the prompt file, which is emitted in `id` order.
+// bench/ab-session.sh writes `turn-NNN.json` holding the CLI's --output-format
+// json envelope; the reply is the `result` field. A `.txt` form is accepted too
+// so the controls can drive this scorer without inventing an envelope.
+//
+// Reading the envelope is a HARNESS detail. The classification rule fixed in
+// bench/TRAP-PREREGISTRATION.md is untouched by it.
 function readTurn(dir, id) {
-  for (const name of [
-    "turn-" + String(id).padStart(3, "0") + ".txt",
-    "turn-" + id + ".txt",
-  ]) {
+  const nnn = String(id).padStart(3, "0");
+  for (const name of ["turn-" + nnn + ".txt", "turn-" + id + ".txt"]) {
     const p = path.join(dir, name);
     if (fs.existsSync(p)) return fs.readFileSync(p, "utf8");
+  }
+  for (const name of ["turn-" + nnn + ".json", "turn-" + id + ".json"]) {
+    const p = path.join(dir, name);
+    if (!fs.existsSync(p)) continue;
+    const raw = fs.readFileSync(p, "utf8");
+    if (raw.trim() === "") return "";               // ran, produced nothing -> SILENT
+    try {
+      const j = JSON.parse(raw);
+      // `is_error` turns are still the arm's output for this item; they are
+      // scored, not dropped, exactly as SILENT is scored and not dropped.
+      return typeof j.result === "string" ? j.result : JSON.stringify(j);
+    } catch (e) {
+      return raw;                                    // unparseable envelope: score the bytes
+    }
   }
   return null;
 }
 
-// FIRST INTEGER, and the parse is deliberately narrow. A reply like
-// "lean/Proofs/RotAbility.lean has 35 theorems" must not score by matching the
-// digits inside a path or a version string, so digits glued to a letter or a
-// dot-decimal are skipped.
+// FIRST INTEGER. The parse must skip digits inside a path or a dotted version
+// ("1.0.2", "RotAbility.lean") while still reading a number that ENDS A
+// SENTENCE -- because "**0.**" is the most natural way to answer "how many".
+//
+// DEFECT FOUND ON THE FIRST REAL RUN, AND THE CORRECTION IS RECORDED HERE
+// RATHER THAN QUIETLY APPLIED. The first version used a trailing `(?![\w.])`,
+// which rejected any digit followed by a period. Both arms answered item 1 with
+// "**0.**" -- the correct answer, with correct reasoning -- and both were scored
+// as having produced no integer. Result: 0 correct out of 60 for BOTH arms and
+// a verdict of noPower produced entirely by the scorer.
+//
+// The change is to the PARSER, not to the decision rule, and it is not
+// outcome-tuning: the failure is visible without knowing which arm wins,
+// because it struck both arms identically, and `firstInt("**0.**") === null` is
+// wrong on its own terms. The distinction now drawn is principled -- a digit
+// followed by `.` and another DIGIT is part of a numeral, a digit followed by
+// `.` and anything else has ended a sentence. bench/trap-parse-controls.js
+// pins every case, and those cases were written from the rule, not from the
+// answers. The pre-registered run is reported VOID and re-scored.
 function firstInt(txt) {
   if (txt == null) return null;
-  const m = txt.match(/(?<![\w.])(\d+)(?![\w.])/);
+  // (?<![\w.])  not glued to a word or trailing a dotted numeral ("1.0.2")
+  // (?<!\w-)    not a hyphenated token fragment ("turn-001")
+  // (?!\w)      not the head of a longer word
+  // (?!\.\d)    not the head of a dotted numeral ("3.14")
+  // (?!\.\w)    not a file stem before an extension ("001.json")
+  const m = txt.match(/(?<![\w.])(?<!\w-)(\d+)(?!\w)(?!\.\d)(?!\.\w)/);
   return m ? Number(m[1]) : null;
 }
 
@@ -136,11 +174,20 @@ const median = (xs) => {
 const medA = median(rows.map((r) => r.aLen)), medB = median(rows.map((r) => r.bLen));
 const lengthConfounded = medA > 0 && medB > 0 && (medB / medA > 2 || medA / medB > 2);
 
-// Verdict, straight from the pre-registered table. No branch is added here.
+// Verdict, straight from the pre-registered table AS AMENDED.
+//
+// AMENDMENT 1 (bench/TRAP-PREREGISTRATION.md): the original table had no row
+// for the UNROUTED arm winning significantly, so a real loss for the router was
+// reported as `null` -- "no difference established" -- when a difference had in
+// fact been established in the other direction. That was a defect in the spec,
+// not in the run: a decision table that can only express the outcome its author
+// hoped for is not neutral. The `disadvantage` row is the symmetric partner of
+// `advantage` and is evaluated on exactly the same terms.
 let verdict;
 if (band < 10) verdict = "noPower";
 else if (lengthConfounded) verdict = "confounded";
 else if (pDeconf < 0.05 && bWinsUnexplained.length > aWinsUnexplained.length) verdict = "advantage";
+else if (pDeconf < 0.05 && aWinsUnexplained.length > bWinsUnexplained.length) verdict = "disadvantage";
 else verdict = "null";
 
 const out = {

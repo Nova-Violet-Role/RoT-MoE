@@ -108,3 +108,61 @@ obvious wrong answer.
 It would **not** mean the router produces better answers in general. One corpus,
 one repository, three families. That sentence is part of the pre-registration so
 it cannot be forgotten if the number comes out favourable.
+
+---
+
+# AMENDMENT 1 — after rep 1, before rep 2
+
+Recorded as an appendix rather than folded into the text above, so the original
+pre-registration stays exactly as it was committed at `2e5732f`.
+
+## A1.1 The decision table had no row for a routed LOSS
+
+Measured in rep 1: band 12, **all 12 discordant pairs to the unrouted arm**,
+p = 0.0005. The table maps that to `null`, because `advantage` requires the
+routed arm to be ahead and everything else falls through.
+
+**That is a defect in this document, not in the run.** `null` reads as "no
+difference established" when what was measured is a significant difference in
+the *other* direction. A spec that can only express the outcome its author hoped
+for is not neutral.
+
+The table is extended, and the extension is written to be symmetric so it cannot
+favour either arm:
+
+| condition | verdict |
+|---|---|
+| band < 10 | `noPower` |
+| length-confounded | `confounded` |
+| band ≥ 10, deconfounded p < 0.05, **routed** ahead | `advantage` |
+| band ≥ 10, deconfounded p < 0.05, **unrouted** ahead | `disadvantage` |
+| band ≥ 10, deconfounded p ≥ 0.05 | `null` |
+
+Rep 1 is `disadvantage` under the corrected table. It is reported as such.
+
+## A1.2 The answer parser was defective in rep 1 and was repaired mid-analysis
+
+The first scoring run gave **0 correct out of 60 for both arms**. The arms were
+right; `firstInt` rejected any digit followed by a period, so `**0.**` — the
+most natural way to answer "how many" — read as no integer.
+
+The repair is declared here because it happened after data existed. It is a
+change to the **parser**, not to any decision rule, and it is not
+outcome-tuning: the fault struck both arms identically and
+`firstInt("**0.**") === null` is wrong without reference to any outcome.
+`bench/trap-parse-controls.js` now pins 15 cases in both directions, including a
+negative control proving a naive `/(\d+)/` parser fails the suite.
+
+Anyone re-reading this should note the parser fix made the result WORSE for the
+router, not better: before the fix the run was an uninformative `noPower`, after
+it the routed arm is measurably behind.
+
+## A1.3 Reproducibility is not yet established
+
+Rep 1 is a single pass per arm. The calibration corpus needed two reps before
+its band was trustworthy. Rep 2 is required before this is treated as a
+property of the router rather than of one run, and its rule is fixed here in
+advance: **rep 2 uses this same corpus, same order, same settings, and the
+result is reported per family.** If rep 2 does not reproduce the
+`theorem_count` collapse, rep 1 is reported as unreplicated and no claim is made
+in either direction.

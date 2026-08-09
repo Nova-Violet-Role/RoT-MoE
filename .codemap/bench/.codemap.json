@@ -2,12 +2,12 @@
   "directory": "bench",
   "files": {
     "TRAP-PREREGISTRATION.md": {
-      "hash": "f622c6cfc178",
-      "indexed_at": "2026-08-09T20:29:31.392709+00:00",
+      "hash": "c48db2fa80e8",
+      "indexed_at": "2026-08-09T21:23:24.057442+00:00",
       "language": "markdown",
-      "lines": 110,
-      "mtime_ns": 1786307368952034600,
-      "size": 4700,
+      "lines": 168,
+      "mtime_ns": 1786310602072948200,
+      "size": 7337,
       "symbols": [
         {
           "docstring": "Whether the routed arm falls for a **trap** less often than the unrouted arm, where a trap is an item whose obvious method yields a specific wrong ans",
@@ -85,9 +85,36 @@
           "docstring": "It would mean: on mechanically-checkable questions of this repository where the obvious method is wrong, the routed arm is measurably less likely to g",
           "lines": [
             102,
-            111
+            118
           ],
           "name": "What a win here would and would not mean",
+          "type": "section"
+        },
+        {
+          "docstring": "Measured in rep 1: band 12, **all 12 discordant pairs to the unrouted arm**, p = 0.0005. The table maps that to `null`, because `advantage` requires t",
+          "lines": [
+            119,
+            142
+          ],
+          "name": "A1.1 The decision table had no row for a routed LOSS",
+          "type": "section"
+        },
+        {
+          "docstring": "The first scoring run gave **0 correct out of 60 for both arms**. The arms were right; `firstInt` rejected any digit followed by a period, so `**0.**`",
+          "lines": [
+            143,
+            159
+          ],
+          "name": "A1.2 The answer parser was defective in rep 1 and was repaired mid-analysis",
+          "type": "section"
+        },
+        {
+          "docstring": "Rep 1 is a single pass per arm. The calibration corpus needed two reps before its band was trustworthy. Rep 2 is required before this is treated as a",
+          "lines": [
+            160,
+            169
+          ],
+          "name": "A1.3 Reproducibility is not yet established",
           "type": "section"
         }
       ]
@@ -454,6 +481,26 @@
         }
       ]
     },
+    "trap-parse-controls.js": {
+      "hash": "22761c05b246",
+      "indexed_at": "2026-08-09T21:20:29.289788+00:00",
+      "language": "javascript",
+      "lines": 71,
+      "mtime_ns": 1786310427035946800,
+      "size": 3932,
+      "symbols": [
+        {
+          "docstring": "caught here. A suite that cannot fail is not evidence.",
+          "lines": [
+            65,
+            65
+          ],
+          "name": "broken",
+          "signature": "(txt)",
+          "type": "function"
+        }
+      ]
+    },
     "trap-prompts.js": {
       "hash": "7a1e67e2adbd",
       "indexed_at": "2026-08-09T20:27:37.368377+00:00",
@@ -548,28 +595,28 @@
       ]
     },
     "trap-score.js": {
-      "hash": "9cf145f197d0",
-      "indexed_at": "2026-08-09T20:31:05.733763+00:00",
+      "hash": "4652f9c3c658",
+      "indexed_at": "2026-08-09T21:23:46.162562+00:00",
       "language": "javascript",
-      "lines": 174,
-      "mtime_ns": 1786307463863035400,
-      "size": 6973,
+      "lines": 221,
+      "mtime_ns": 1786310624165948200,
+      "size": 10018,
       "symbols": [
         {
-          "docstring": "numbering is 1-based against the prompt file, which is emitted in `id` order.",
+          "docstring": "bench/TRAP-PREREGISTRATION.md is untouched by it.",
           "lines": [
-            37,
-            46
+            43,
+            64
           ],
           "name": "readTurn",
           "signature": "(dir, id)",
           "type": "function"
         },
         {
-          "docstring": "dot-decimal are skipped.",
+          "docstring": "answers. The pre-registered run is reported VOID and re-scored.",
           "lines": [
-            52,
-            56
+            85,
+            94
           ],
           "name": "firstInt",
           "signature": "(txt)",
@@ -577,8 +624,8 @@
         },
         {
           "lines": [
-            58,
-            64
+            96,
+            102
           ],
           "name": "classify",
           "signature": "(txt, it)",
@@ -586,8 +633,8 @@
         },
         {
           "lines": [
-            99,
-            99
+            137,
+            137
           ],
           "name": "cnt",
           "signature": "(arm, cls)",
@@ -596,8 +643,8 @@
         {
           "docstring": "Exact two-sided binomial at p = 0.5 -- McNemar exact.",
           "lines": [
-            114,
-            118
+            152,
+            156
           ],
           "name": "lchoose",
           "signature": "(n, k)",
@@ -605,8 +652,8 @@
         },
         {
           "lines": [
-            119,
-            126
+            157,
+            164
           ],
           "name": "binomTwoSided",
           "signature": "(k, n)",
@@ -614,8 +661,8 @@
         },
         {
           "lines": [
-            131,
-            135
+            169,
+            173
           ],
           "name": "median",
           "signature": "(xs)",
@@ -624,6 +671,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T20:42:42.248377+00:00",
+  "generated_at": "2026-08-09T21:23:46.162710+00:00",
   "version": "1.0"
 }
