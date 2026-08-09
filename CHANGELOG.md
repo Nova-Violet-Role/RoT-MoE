@@ -23,6 +23,88 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### An alarm that was set and never read, and a sentinel a path could forge
+
+Follow-up to the two-log work below, and both defects were found the same way:
+by breaking the path on purpose instead of admiring it.
+
+**`_rot_local_lost` and `RotLocalLost` were assigned and never consulted.** The
+project sink could fail to be created — a read-only checkout, a directory the
+agent does not own, a full volume — and the router said nothing. Silence there
+is indistinguishable from a session that produced no records, which is the
+worst possible failure mode for an observation channel. Both arms now emit
+`| project-log UNWRITABLE (record lost)`, byte-identical, alongside the
+existing central-sink marker.
+
+The POSIX arm then failed a **second** time after the first repair, and the
+reason is worth stating because it is not obvious: `_rot_local_file` is always
+called as `$(_rot_local_file)`, which is a **subshell**. A variable set inside
+it is gone the moment it returns. The first fix moved the assignment into a
+helper — which was also called in a command substitution, so it died in exactly
+the same way. A subshell cannot report to its parent except through stdout, so
+the decode now happens in the main shell where the variable actually lives.
+
+**And the first encoding was forgeable.** Reporting failure on stdout means
+encoding both the path and the status into one string, and that is a wire
+format. The first version used a leading `!` for "degraded" — ambiguous the
+moment a project path itself begins with `!`.
+
+Measured with `cwd="!rel"`, three things went wrong at once:
+
+| symptom | consequence |
+|---|---|
+| the decoder ate the bang | the record was written to `rel/…`, one directory away from where it belonged |
+| the alarm fired | a healthy sink reported as degraded |
+| `awk` died with `cannot redirect` | the gauge record was lost entirely — stdout read `R/s+ n/a` |
+
+Replaced with a **fixed-width status character**, always present, stripped
+unconditionally. No path can forge it, because the prefix is not part of the
+path's alphabet — it is positional.
+
+#### The theorems
+
+`Sink`, `encodeSink`/`decodeSink` and the rejected `encodeBang`/`decodeBang` are
+all in `lean/Proofs/RotSessionLog.lean`. Four new theorems, and one of them is
+the bug itself:
+
+- `sink_ok_roundtrip` — a healthy sink survives for **every** path, including
+  one beginning with a status character. This is precisely the property the
+  bang protocol lacked.
+- `sink_ok_never_reads_as_lost` — no path can forge a failure. A caller seeing
+  `.lost` knows the sink really failed, rather than that a user named a
+  directory badly.
+- `bang_protocol_misdirects` — the measured bug, frozen: the healthy sink at
+  `!rel` decodes as *degraded* at `rel`. Both halves wrong.
+- `bang_protocol_not_injective` — the same fact in the general form that makes
+  it a defect rather than an anecdote.
+
+Paths are modelled as `List Char`, not `String`. The property at issue concerns
+the leading character and nothing else, and a list makes it decidable without
+string-slicing lemmas that would bury the point.
+
+`sink_degraded_roundtrip` carries a non-empty hypothesis rather than quietly
+widening: `encodeSink (.degraded [])` *is* the lost encoding. A degraded sink
+always carries the path it managed to build, so the case does not arise — but
+the theorem says so instead of pretending otherwise.
+
+#### The instruments that would have caught it earlier
+
+Two new phases in `checker/session-log.sh`, bringing it to 49 assertions:
+
+- **E** trips the alarm on purpose (a `cwd` whose parent is a regular file) and
+  requires both arms to report it, with a negative control requiring silence
+  when the sink is fine, and a cross-arm byte-comparison of the marker.
+- **F** binds `sink_ok_roundtrip` to the shell. Without it the theorem is about
+  an encoding that nothing executes. It replays the exact input that broke the
+  first implementation and fails on a truncated directory, a lost gauge value,
+  or a leaked fatal error.
+
+Phase E was itself mutation-tested: disarming the two flag assignments in the
+POSIX arm produced `2 failed`, and restoring returned it to `49 passed`. An
+alarm nobody has deliberately tripped is an untested alarm.
+
+Mutants S13–S16 attack the protocol; all four killed, 16 of 16 for the module.
+
 ### The debug log had no idea who was talking to it
 
 The router's log is the only channel it is observable through, so an

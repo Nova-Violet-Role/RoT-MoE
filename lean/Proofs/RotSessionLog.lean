@@ -364,3 +364,108 @@ theorem default_follows_central (central : Option String) :
 #guard originTag (classify (some "wat") true)  = "hook"
 
 end RotMoE.SessionLog
+
+/-! ## The project-sink status protocol
+
+`_rot_local_file` in the POSIX arm runs inside a command substitution, so it
+cannot set a variable the caller will see. Its only channel to the parent is
+stdout, and it therefore has to encode BOTH the path and whether the sink
+failed into one string. That encoding is a wire format, and a wire format that
+is not injective loses data.
+
+The first version used a leading `!` for "degraded". Measured with `cwd="!rel"`:
+the decoder ate the bang, the record was written to `rel/...` instead of
+`!rel/...`, awk died with a fatal redirect error and the gauge record was lost
+outright. The theorems below are that bug, and its repair, stated so neither
+can come back quietly.
+
+Paths are modelled as `List Char` rather than `String`. The property at issue
+is about the leading character and nothing else, and a list makes that decidable
+without dragging in string-slicing lemmas that would obscure it. -/
+
+/-- What the project sink reported to the caller. -/
+inductive Sink where
+  | disabled
+  | ok (path : List Char)
+  | degraded (path : List Char)
+  | lost
+  deriving DecidableEq, Repr
+
+/-- The shipped encoding: one fixed-width status character, always present. -/
+def encodeSink : Sink → List Char
+  | .disabled   => []
+  | .ok p       => '0' :: p
+  | .degraded p => '1' :: p
+  | .lost       => ['1']
+
+def decodeSink : List Char → Sink
+  | []        => .disabled
+  | ['1']     => .lost
+  | '0' :: p  => .ok p
+  | '1' :: p  => .degraded p
+  | _         => .lost
+
+/-- The rejected encoding: a bare `!` prefix meaning degraded. -/
+def encodeBang : Sink → List Char
+  | .disabled   => []
+  | .ok p       => p
+  | .degraded p => '!' :: p
+  | .lost       => ['!']
+
+def decodeBang : List Char → Sink
+  | []       => .disabled
+  | ['!']    => .lost
+  | '!' :: p => .degraded p
+  | p        => .ok p
+
+/-- A healthy sink survives the round trip for EVERY path, including one that
+begins with a status character. This is the property the bang protocol lacked. -/
+theorem sink_ok_roundtrip (p : List Char) : decodeSink (encodeSink (.ok p)) = .ok p := by
+  cases p <;> rfl
+
+/-- A degraded sink survives for every non-empty path. The empty path is
+excluded because `encodeSink (.degraded [])` is `['1']`, which is the lost
+encoding -- and a degraded sink always carries the path it managed to build,
+so the empty case does not arise. Stating it with the hypothesis rather than
+quietly widening the claim. -/
+theorem sink_degraded_roundtrip (c : Char) (p : List Char) :
+    decodeSink (encodeSink (.degraded (c :: p))) = .degraded (c :: p) := by
+  cases c with
+  | mk v h => rfl
+
+/-- No path can forge a lost sink. A caller that sees `.lost` knows the sink
+really failed, rather than that a user named a directory badly. -/
+theorem sink_ok_never_reads_as_lost (p : List Char) :
+    decodeSink (encodeSink (.ok p)) ≠ .lost := by
+  rw [sink_ok_roundtrip]; intro h; cases h
+
+/-- THE BUG, as a theorem. The bang protocol is not injective: a perfectly
+healthy sink at the relative path `!rel` decodes as DEGRADED at `rel`. Both
+halves are wrong -- the alarm fires when nothing failed, and the record is
+written one directory away from where it belongs. -/
+theorem bang_protocol_misdirects :
+    decodeBang (encodeBang (.ok ['!', 'r', 'e', 'l'])) = .degraded ['r', 'e', 'l'] := by
+  decide
+
+/-- The same fact in the general form that makes it a defect rather than an
+anecdote: round-tripping is NOT the identity on the bang protocol. -/
+theorem bang_protocol_not_injective :
+    ¬ (∀ p : List Char, decodeBang (encodeBang (.ok p)) = .ok p) := by
+  intro h
+  have := h ['!', 'r', 'e', 'l']
+  rw [bang_protocol_misdirects] at this
+  cases this
+
+/-- And the shipped protocol does not have that defect, on the very input that
+broke the old one. -/
+theorem status_protocol_survives_bang_path :
+    decodeSink (encodeSink (.ok ['!', 'r', 'e', 'l'])) = .ok ['!', 'r', 'e', 'l'] := by
+  decide
+
+#guard decodeSink (encodeSink (Sink.ok ['!', 'r', 'e', 'l'])) == Sink.ok ['!', 'r', 'e', 'l']
+#guard decodeSink (encodeSink (Sink.ok ['0', 'x'])) == Sink.ok ['0', 'x']
+#guard decodeSink (encodeSink (Sink.ok ['1', 'x'])) == Sink.ok ['1', 'x']
+#guard decodeSink (encodeSink Sink.lost) == Sink.lost
+#guard decodeSink (encodeSink Sink.disabled) == Sink.disabled
+#guard decodeSink (encodeSink (Sink.degraded ['a'])) == Sink.degraded ['a']
+#guard decodeBang (encodeBang (Sink.ok ['!', 'r', 'e', 'l'])) == Sink.degraded ['r', 'e', 'l']

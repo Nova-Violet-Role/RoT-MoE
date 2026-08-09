@@ -447,9 +447,12 @@ if ($env:ROTMOE_DEBUG_LOG) {
 # is unwritable, a file beside it very likely is too, and a marker that fails
 # the same way as the thing it reports is not a marker. Byte-identical to the
 # sh arm's line so cross-diff keeps comparing the same string.
-if ($script:RotDebugLost) {
-  Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs + " | debug-log UNWRITABLE (record lost)")
-} else {
-  Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs)
-}
+# BOTH SINKS REPORT. RotLocalLost was set and never read -- an alarm that cannot
+# fire. The central marker stays byte-identical to the sh arm's so cross-diff
+# keeps comparing the same string; the project marker is an additive suffix,
+# emitted in the same order and wording by both arms.
+$mark = ""
+if ($script:RotDebugLost) { $mark = $mark + " | debug-log UNWRITABLE (record lost)" }
+if ($script:RotLocalLost) { $mark = $mark + " | project-log UNWRITABLE (record lost)" }
+Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs + $mark)
 exit 0

@@ -21,6 +21,8 @@
 #   B  hostile session ids produce the SAME name in both arms as in the #guards
 #   C  provenance: the classify table, both arms
 #   D  self-control -- the detector must fail when fed a broken arm
+#   E  the project-sink alarm fires when the sink is unwritable
+#   F  a project path that collides with the status prefix still works
 #
 # THE TABLE IN PHASE B IS NOT INVENTED HERE. Every row is pinned by a #guard in
 # lean/Proofs/RotSessionLog.lean and re-checked by `lake build` in the lean CI
@@ -266,6 +268,114 @@ else
     ok "control: phase A's grep REJECTS the weakened scrubber"
   fi
 fi
+
+
+# --------------------------------------------------------------------------
+printf -- '\n-- E. the project-sink alarm must be able to fire --\n'
+
+# A flag that is set and never read is worse than no flag: it reads like
+# coverage. Both arms shipped exactly that -- _rot_local_lost in the POSIX arm
+# and RotLocalLost in the PowerShell one were assigned and never consulted, so
+# a project sink that could not be created failed in total silence. The POSIX
+# arm then failed a SECOND time after the first repair, because the flag was
+# being set inside a command substitution and died in the subshell.
+#
+# The break is a cwd whose parent is a regular file, so mkdir cannot succeed.
+BLOCK="$TMPW/blockfile"
+rm -rf "$BLOCK"; printf 'not a directory\n' > "$BLOCK"
+
+marker_of () {  # marker_of <arm> <cwd>
+  _a=$1; _c=$2
+  _p=$(printf '{"session_id":"alarm","cwd":"%s","hook_event_name":"PreToolUse","prompt":"build"}' "$_c")
+  if [ "$_a" = sh ]; then
+    printf '%s' "$_p" | ROTMOE_DEBUG_LOCAL=1 ROTMOE_DEBUG_LOG="$TMPW/alarm.$_a.jsonl" sh "$SH" 2>/dev/null
+  else
+    printf '%s' "$_p" | ROTMOE_DEBUG_LOCAL=1 ROTMOE_DEBUG_LOG="$TMPW/alarm.$_a.jsonl" pwsh -NoProfile -File "$PS" 2>/dev/null
+  fi
+}
+
+OKDIR="$TMPW/alarm-ok"
+rm -rf "$OKDIR"; mkdir -p "$OKDIR"
+
+for arm in sh ps1; do
+  if [ "$arm" = ps1 ] && [ "$have_pwsh" != 1 ]; then
+    inap "ps1 project-sink alarm -- pwsh not on PATH"
+    continue
+  fi
+  broke=$(marker_of "$arm" "$BLOCK/sub")
+  fine=$(marker_of "$arm" "$OKDIR")
+  case "$broke" in
+    *"project-log UNWRITABLE (record lost)"*)
+      ok "$arm reports an unwritable project sink" ;;
+    *)
+      bad "$arm SILENT on an unwritable project sink: '$broke'" ;;
+  esac
+  case "$fine" in
+    *"project-log UNWRITABLE"*)
+      bad "$arm CONTROL: reported a failure on a writable sink: '$fine'" ;;
+    *)
+      ok "$arm CONTROL: silent when the project sink is fine" ;;
+  esac
+done
+
+# Both arms must use the SAME wording, or a reader cannot grep one pattern.
+if [ "$have_pwsh" = 1 ]; then
+  a=$(marker_of sh  "$BLOCK/sub")
+  b=$(marker_of ps1 "$BLOCK/sub")
+  if [ "$a" = "$b" ]; then
+    ok "both arms emit a byte-identical marker line"
+  else
+    bad "marker lines differ: sh='$a' ps1='$b'"
+  fi
+else
+  inap "cross-arm marker comparison -- pwsh not on PATH"
+fi
+
+
+# --------------------------------------------------------------------------
+printf -- '\n-- F. a path that looks like the status prefix is still handled --\n'
+
+# THIS IS THE PHASE THAT BINDS RotSessionLog.sink_ok_roundtrip TO THE SHELL.
+# The theorem is about an encoding; without this the two could drift and the
+# proof would be about nothing. The input is the one that actually broke the
+# first implementation: a RELATIVE cwd beginning with the old sentinel.
+#
+# Measured before the repair: the decoder ate the bang, the record went to
+# "rel/..." instead of "!rel/...", awk died with a fatal redirect error, and
+# the gauge record vanished (stdout read "R/s+ n/a").
+for arm in sh ps1; do
+  if [ "$arm" = ps1 ] && [ "$have_pwsh" != 1 ]; then
+    inap "ps1 status-prefix collision -- pwsh not on PATH"
+    continue
+  fi
+  SCRATCH="$TMPW/collide-$arm"
+  rm -rf "$SCRATCH"; mkdir -p "$SCRATCH"
+  P=$(printf '{"session_id":"collide","cwd":"%s","hook_event_name":"PreToolUse","prompt":"build"}' '!rel')
+  if [ "$arm" = sh ]; then
+    out=$(cd "$SCRATCH" && printf '%s' "$P" | ROTMOE_DEBUG_LOCAL=1 ROTMOE_DEBUG_LOG="$TMPW/collide.$arm.jsonl" sh "$SH" 2>&1)
+  else
+    out=$(cd "$SCRATCH" && printf '%s' "$P" | ROTMOE_DEBUG_LOCAL=1 ROTMOE_DEBUG_LOG="$TMPW/collide.$arm.jsonl" pwsh -NoProfile -File "$PS" 2>&1)
+  fi
+
+  if [ -d "$SCRATCH/!rel/.rot-moe" ]; then
+    ok "$arm wrote under the real directory '!rel'"
+  else
+    bad "$arm did not create '!rel/.rot-moe' -- out: $out"
+  fi
+  if [ -d "$SCRATCH/rel" ]; then
+    bad "$arm MISDIRECTED the write: a stray 'rel' directory was created"
+  else
+    ok "$arm CONTROL: no truncated 'rel' directory"
+  fi
+  case "$out" in
+    *"R/s+ n/a"*) bad "$arm lost the gauge record on a prefix-colliding path" ;;
+    *)            ok "$arm still produced a gauge value" ;;
+  esac
+  case "$out" in
+    *fatal*|*"cannot redirect"*) bad "$arm leaked a fatal error: $out" ;;
+    *)                           ok "$arm CONTROL: no fatal error leaked" ;;
+  esac
+done
 
 printf '\n== session-log: %d passed, %d failed, %d inapplicable ==\n' "$PASS" "$FAIL" "$INAP"
 [ "$FAIL" -eq 0 ]

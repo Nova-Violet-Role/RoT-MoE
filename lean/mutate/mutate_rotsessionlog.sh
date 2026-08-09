@@ -275,6 +275,30 @@ run_mut S12 \
   'def maxLen : Nat := 128' \
   "the cap #guard -- the constant checker/session-log.sh reads out of this source"
 
+
+# S13-S16 attack the project-sink status protocol. S15 is the one to watch: it
+# targets the theorem that RECORDS the measured bug (decodeBang eating a leading
+# bang). If S15 survives, that theorem has stopped being a regression test and
+# is merely a description.
+run_mut S13 \
+  "  | '0' :: p  => .ok p" \
+  "  | '0' :: p  => .lost" \
+  "sink_ok_roundtrip -- a healthy sink misreported as a failure"
+
+run_mut S14 \
+  "  | .ok p       => '0' :: p" \
+  "  | .ok p       => p" \
+  "the status prefix itself -- reverting to the ambiguous bang-style encoding"
+
+run_mut S15 \
+  "  | '!' :: p => .degraded p" \
+  "  | '!' :: p => .ok p" \
+  "bang_protocol_misdirects -- the theorem that records the measured bug"
+
+run_mut S16 \
+  "  | ['1']     => .lost" \
+  "  | ['1']     => .disabled" \
+  "the lost encoding -- a failed sink decoding as a disabled one"
 echo
 echo "=== RotSessionLog: $killed killed, $survived survived, $discarded discarded, $skipped skipped ==="
 

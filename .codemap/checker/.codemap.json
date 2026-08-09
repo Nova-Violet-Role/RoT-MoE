@@ -1153,27 +1153,35 @@
       ]
     },
     "session-log.sh": {
-      "hash": "da5b09cfb338",
-      "indexed_at": "2026-08-08T23:55:47.348370+00:00",
+      "hash": "3fcd438f0048",
+      "indexed_at": "2026-08-09T01:13:59.293946+00:00",
       "language": "shell",
-      "lines": 271,
-      "mtime_ns": 1786233344878232900,
-      "size": 10196,
+      "lines": 381,
+      "mtime_ns": 1786238020844925700,
+      "size": 14599,
       "symbols": [
         {
           "lines": [
-            129,
-            141
+            131,
+            143
           ],
           "name": "run_arm",
           "type": "function"
         },
         {
           "lines": [
-            182,
-            198
+            184,
+            200
           ],
           "name": "src_of",
+          "type": "function"
+        },
+        {
+          "lines": [
+            287,
+            295
+          ],
+          "name": "marker_of",
           "type": "function"
         }
       ]
@@ -1489,6 +1497,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T23:56:56.566847+00:00",
+  "generated_at": "2026-08-09T01:13:59.294094+00:00",
   "version": "1.0"
 }

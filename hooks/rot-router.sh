@@ -65,9 +65,26 @@ _rot_scrub () {
   printf '%s' "$_s"
 }
 
-# The per-session project log. Returns the path on stdout, or nothing when the
-# sink is disabled -- `localEnabled` in the Lean module, all six combinations
-# pinned by #guard there.
+# The per-session project log. Returns a STATUS-PREFIXED path on stdout.
+#
+# FAILURE TRAVELS ON STDOUT, and it has to. This function is always called as
+# `$(_rot_local_file)`, which is a SUBSHELL: a variable set in here is gone the
+# moment it returns. Two earlier versions set a flag instead and it never
+# reached the marker, so a project sink that could not be created failed in
+# total silence.
+#
+# THE PREFIX IS FIXED-WIDTH, and that is not decoration. The first version used
+# a leading '!' meaning "degraded", which is ambiguous the moment a project
+# path itself begins with '!' -- measured with cwd="!rel": the decoder ate the
+# bang, the record was written to "rel/..." instead of "!rel/...", awk died
+# with a fatal redirect error, and the gauge record was lost. A sentinel that
+# can occur in the payload is not a sentinel. One status character, always
+# present, strips unconditionally, and no path can forge it.
+#
+#   ""        sink disabled -- not a failure, nothing to report
+#   "0<path>" fine
+#   "1<path>" usable, but degraded (the .gitignore was not written)
+#   "1"       unusable
 _rot_local_file () {
   case "${ROTMOE_DEBUG_LOCAL:-}" in
     0) return 0 ;;
@@ -76,13 +93,14 @@ _rot_local_file () {
   esac
   [ -n "$_rot_proj" ] || return 0
   _d="$_rot_proj/.rot-moe"
+  _st=0
   if [ ! -d "$_d" ]; then
-    mkdir -p "$_d" 2>/dev/null || { _rot_local_lost=1; return 0; }
+    mkdir -p "$_d" 2>/dev/null || { printf '1'; return 0; }
     # Self-ignoring: the router writes into someone else's repository and must
     # not turn up in their `git status`.
-    printf '%s\n' '*' > "$_d/.gitignore" 2>/dev/null || _rot_local_lost=1
+    printf '%s\n' '*' > "$_d/.gitignore" 2>/dev/null || _st=1
   fi
-  printf '%s' "$_d/rot-route-$_rot_sess.jsonl"
+  printf '%s%s' "$_st" "$_d/rot-route-$_rot_sess.jsonl"
 }
 
 # --- TIER 1 ------------------------------------------------------------------
@@ -242,7 +260,18 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
   # user's transcript. gauge() runs inside a command substitution at the call
   # site, so _rot_local_lost set here does NOT propagate to the marker -- the
   # route record's own attempt is what reports a local-sink failure.
+  # gauge() is itself called in a command substitution, so a flag set here can
+  # never reach the marker -- the route record's own attempt is what reports a
+  # local-sink failure. Only the path is decoded, and an unusable sink becomes
+  # the empty string so awk is never handed a path it cannot open.
   _loc_g=$(_rot_local_file)
+  case "$_loc_g" in
+    '')  : ;;
+    1)   _loc_g='' ;;
+    0*)  _loc_g=${_loc_g#0} ;;
+    1*)  _loc_g=${_loc_g#1} ;;
+    *)   _loc_g='' ;;
+  esac
   printf '%s|%s|%s|%s|%s|%s|%s|%s\n' \
     "$_acts" "$_breadth" "$_M" "$_C" "$_T" "$LAMBDAS" "$MUS" "$NAMES" |
   awk -F'|' -v dbg="${ROTMOE_DEBUG_LOG:-}" -v loc="$_loc_g" -v sess="$_rot_sess" -v src="$_rot_src" -v ts="$(date -Is 2>/dev/null || date)" '
@@ -558,7 +587,18 @@ hook_mode () {
 
     # SECOND SINK first: it must not be behind the central sink's success, or a
     # user with an unwritable central log would silently lose the local one too.
+    #
+    # The decode runs HERE, in the main shell, and that placement is the whole
+    # point. Twice the failure flag was set inside a command substitution and
+    # died there. A subshell cannot report to its parent except through stdout.
     _loc=$(_rot_local_file)
+    case "$_loc" in
+      '')  : ;;
+      1)   _rot_local_lost=1; _loc='' ;;
+      0*)  _loc=${_loc#0} ;;
+      1*)  _rot_local_lost=1; _loc=${_loc#1} ;;
+      *)   _rot_local_lost=1; _loc='' ;;
+    esac
     if [ -n "$_loc" ]; then
       printf '%s\n' "$_rec" 2>/dev/null >> "$_loc" || _rot_local_lost=1
     fi
@@ -596,11 +636,19 @@ hook_mode () {
       _dbg_lost=1
     fi
   fi
-  if [ "$_dbg_lost" -eq 1 ]; then
-    echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs | debug-log UNWRITABLE (record lost)"
-  else
-    echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs"
-  fi
+  # BOTH SINKS REPORT. `_rot_local_lost` was set in three places and read in
+  # none -- an alarm that cannot fire, which is worse than no alarm because it
+  # reads like coverage. The project sink can fail for reasons the central one
+  # cannot: a read-only checkout, a directory the user owns but the agent does
+  # not, a full disk on a different volume. Silence there would look exactly
+  # like a session that produced no records.
+  #
+  # The central marker stays BYTE-IDENTICAL so cross-diff keeps comparing the
+  # same string; the project marker is a separate, additive suffix.
+  _mark=""
+  [ "$_dbg_lost" -eq 1 ] && _mark="$_mark | debug-log UNWRITABLE (record lost)"
+  [ "$_rot_local_lost" -eq 1 ] && _mark="$_mark | project-log UNWRITABLE (record lost)"
+  echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs$_mark"
   exit 0
 }
 
