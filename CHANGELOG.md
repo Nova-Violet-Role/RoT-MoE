@@ -23,6 +23,87 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The zero was a stale deployment, not a router defect
+
+**Correction to the entry below.** It reported `src:"hook"` appearing 0 times in
+the production log as evidence of the CLI-path defect. That attribution was
+wrong, and the two facts are independent:
+
+- the repository code **did** have a real CLI-path defect (measured, fixed, and
+  proved in the entry below);
+- production's missing `src` is a **stale deployment**.
+
+Measured on the live machine, `.claude/plugins/cache/rot-moe/rot-moe/1.0.1`:
+
+| file | installed | repo HEAD |
+|---|---|---|
+| `rot-router.ps1` | 18048 B, `RotSrc` x**0** | 24462 B, x14 |
+| `rot-router.sh` | 28326 B, `_rot_src` x**0** | 37421 B, x10 |
+
+The deployed plugin predates the entire provenance subsystem, so it emits no
+`src` and no `session` at all -- the 2953 field-less records are its output.
+A freshly built artifact, driven directly, is correct:
+
+```
+{"kind":"gauge","ts":"2026-08-09T06:48:48+02:00","session":"rel-7c1","src":"hook",...}
+```
+
+**A proof about `hooks/rot-router.sh` in this repository says nothing about the
+copy a user runs, and nothing compared the two.** `checker/release-install.sh`
+now drives the unpacked artifact and asserts it emits `src` and `session`, and
+classifies a genuine lifecycle payload as `hook`. The check is on field
+PRESENCE rather than a particular value: a release that quietly drops an
+observable is the failure being caught.
+
+### The cross-diff never looked at the fields that broke
+
+`checker/cross-diff.sh` compared the ROUTE record. `src` and `session` live on
+the GAUGE record, so for the whole life of the two-log subsystem the arms could
+disagree about provenance and this gate stayed green -- and they did disagree.
+Its own header already named this failure mode: *the new observable is simply
+not in the old comparison.*
+
+New phase: five rows across both arms x {cli, hook} x {declared, undeclared,
+unrecognised}, plus two controls. `NONE`, `ABSENT` and `EMPTY` are reported as
+three different strings, because collapsing them is how an empty value reads as
+"nothing to compare" instead of as a value no classifier can produce.
+
+Verified load-bearing: recreating the shipped PowerShell defect (initializer
+and CLI-path declaration read both removed, presence of both edits asserted
+before building) turns the gate red on exactly the shipped behaviour --
+`sh 'cli' / ps1 'EMPTY'` -- while the hook-mode rows keep passing, because the
+defect was CLI-path-only. It discriminates rather than blanket-failing.
+
+### A sed idiom that cannot stop, fixed in three places
+
+`sed -n 's/.*X\(...\).*/\1/p; /X/q'` looks like "print the first match and
+quit". It is not: `s` rewrites the pattern space, so when `q` tests its address
+the text it was looking for is gone, `q` never fires, and every later record
+prints too. The extractor returns a MULTI-LINE value that compares unequal to
+itself.
+
+Latent in the route-stem extractor since it was written (those logs carry one
+route record) and it bit for real in the new gauge extractor, which saw two.
+Corrected to the address-block form `/X/{s/.../\1/p;q;}` in all three sites.
+
+### Three harness bugs that posed as product defects
+
+Recorded because the pattern is the point, not the individual mistakes. Each
+produced a red that accused correct code:
+
+1. `${x:+...}` cannot **unset** an inherited variable, so "no declaration" cells
+   measured `test` -- the checker exports `ROTMOE_DEBUG_SRC=test` itself.
+2. `env -u VAR run_bounded ...` -- `env` can only exec an external command, and
+   `run_bounded` is a shell **function**. It wrote no record, and the phase
+   reported "observability is dead in the release" against a correct artifact.
+3. The sed idiom above.
+
+All three are the same shape as the defect under investigation: a declaration
+that was never actually consulted. The reasons are now written into the
+checkers rather than left to be rediscovered.
+
+---
+
 ### `classify` was proved correct and the log was contaminated anyway
 
 A proof binds only the code that calls it. `classify` had been correct and

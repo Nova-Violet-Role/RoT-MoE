@@ -441,6 +441,79 @@ if [ -s "$CORE" ] && [ -s "$LEAN" ] && [ -s "$UNSEALED" ]; then
   fi
 fi
 
+echo
+echo "-- the ARTIFACT must emit the observability fields the spec proves --"
+# WHY THIS EXISTS, and it is not hypothetical. MEASURED 2026-08-09 on the live
+# machine: the installed plugin at .claude/plugins/cache/rot-moe/1.0.1 contains
+# ZERO occurrences of RotSrc, _rot_src and RotSession -- it predates the whole
+# provenance subsystem. Every record it writes omits `src` and `session`
+# entirely, and the central log showed src:"hook" exactly 0 times.
+#
+# That zero was read as a router defect. It was not: it was a STALE DEPLOYMENT.
+# A proof about hooks/rot-router.sh in the repository says nothing about the
+# copy a user actually runs, and nothing in this suite compared the two.
+#
+# The check is deliberately about FIELD PRESENCE, not a particular value: a
+# release that quietly drops an observable is the failure being caught, and
+# that is a property of the artifact rather than of today's classifier.
+if [ -f "$PLUG/hooks/rot-router.sh" ]; then
+  _OL="$WORK/obs.jsonl"; rm -f "$_OL"
+  # A SUBSHELL, NOT `env`. Two constraints collide here and the obvious spelling
+  # satisfies neither:
+  #   1. this checker exports ROTMOE_DEBUG_SRC=test, so "no declaration" has to
+  #      UNSET it -- ${x:+...} leaves the inherited value in place;
+  #   2. `run_bounded` is a shell FUNCTION, and `env` can only exec an external
+  #      command, so `env -u X run_bounded ...` fails with "No such file or
+  #      directory" and writes no record at all.
+  # Measured: that combination reported "observability is dead in the release"
+  # against an artifact that was perfectly correct. A subshell gets both.
+  ( unset ROTMOE_DEBUG_SRC
+    ROTMOE_DEBUG_LOG="$_OL" ROTMOE_DEBUG_LOCAL=0
+    export ROTMOE_DEBUG_LOG ROTMOE_DEBUG_LOCAL
+    printf '%s' '{"prompt":"lake build","hook_event_name":"UserPromptSubmit","session_id":"rel-7c1"}' \
+      | run_bounded 60 bash "$PLUG/hooks/rot-router.sh" >/dev/null 2>&1 )
+
+  # ABSENT and EMPTY are kept apart on purpose: collapsing them is how a
+  # field-less release reads as "nothing to compare".
+  _has () { [ -f "$_OL" ] && [ "$(grep -c "\"$1\":" "$_OL" 2>/dev/null)" != "0" ]; }
+
+  if [ ! -s "$_OL" ]; then
+    bad "the unpacked artifact wrote NO debug record at all -- observability is dead in the release"
+  else
+    if _has src; then
+      ok "artifact emits a 'src' field"
+    else
+      bad "artifact emits NO 'src' field -- this release ships blind provenance (the 1.0.1 defect)"
+    fi
+    if _has session; then
+      ok "artifact emits a 'session' field"
+    else
+      bad "artifact emits NO 'session' field -- records cannot be joined to a session"
+    fi
+    # /re/{...} -- NOT 's///p; /re/q'. See the note in cross-diff.sh:_gfield.
+    _sv=$(sed -n '/"src":"/{s/.*"src":"\([^"]*\)".*/\1/p;q;}' "$_OL")
+    case "$_sv" in
+      hook) ok "artifact classifies a real lifecycle payload as src='hook'" ;;
+      "")   bad "artifact wrote an EMPTY src -- a value classify cannot produce" ;;
+      *)    bad "artifact wrote src='$_sv' for a genuine hook payload, expected 'hook'" ;;
+    esac
+  fi
+
+  # CONTROL: the presence test must be able to report ABSENT, or every line
+  # above is decoration. A record carrying neither field is planted and must
+  # fail the same predicate.
+  printf '%s\n' '{"kind":"gauge","ts":"x","K":9}' > "$WORK/obs-control.jsonl"
+  _OL_SAVE="$_OL"; _OL="$WORK/obs-control.jsonl"
+  if _has src; then
+    bad "CONTROL DEAD: a record with no src passed the presence test"
+  else
+    ok "CONTROL: a record missing 'src' IS reported absent -- this phase can fail"
+  fi
+  _OL="$_OL_SAVE"
+else
+  bad "no rot-router.sh in the unpacked artifact -- observability cannot be checked"
+fi
+
 printf '\n== release install: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 exit 0

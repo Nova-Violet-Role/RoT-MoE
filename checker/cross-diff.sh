@@ -175,7 +175,11 @@ if [ -n "$PWSH" ]; then
     # in workflow-lint exists to forbid: head exits at the first line, sed dies
     # of SIGPIPE, and under `pipefail` a SUCCESSFUL extraction reports 141. The
     # `q` does the truncation inside the one process instead.
-    sed -n 's/.*"kind":"route".*"stem":"\([^"]*\)".*/\1/p; /"kind":"route"/q' "$1"
+    # Address block, not 's///p; /re/q' -- the latter cannot quit, because 's'
+    # has already removed the text the 'q' address is looking for. Latent here
+    # (these logs carry one route record) and it bit for real in the gauge
+    # extractor below, which saw two.
+    sed -n '/"kind":"route"/{s/.*"kind":"route".*"stem":"\([^"]*\)".*/\1/p;q;}' "$1"
   }
   _drive () {     # _drive <arm> <prompt> <logfile>
     rm -f "$3"
@@ -219,6 +223,119 @@ if [ -n "$PWSH" ]; then
   rm -rf "$_SD"
 else
   note "no pwsh: the stem cross-diff is SKIPPED, which is never a pass"
+fi
+
+echo
+echo "== GAUGE PROVENANCE: the two fields this cross-diff never looked at =="
+# THE BLIND SPOT THIS CLOSES, and it is the same one the stem block above
+# describes: a new observable is added and simply is not in the old comparison.
+#
+# `src` and `session` live on the GAUGE record. Every comparison in this file
+# reads the ROUTE record. So for the whole life of the two-log subsystem the
+# arms could disagree about provenance and this checker stayed green -- and they
+# did disagree, in the worst possible way: on the CLI path the POSIX arm wrote
+# src="cli" while the PowerShell arm wrote src="" (an unset variable), and 228
+# such records shipped. Neither arm was compared, so neither was caught.
+#
+# The CLI path matters specifically. `_drive` above only ever feeds a payload on
+# stdin, so it exercises hook mode alone; `--vector` returns before hook mode is
+# reached and was therefore never observed by any cross-arm check.
+#
+# Spec: resolveNow in lean/Proofs/RotSessionLog.lean.
+#   src_declaration_wins_on_every_path  -- declared value wins, both paths
+#   resolveNow_never_renders_empty      -- EMPTY is unreachable, every input
+if [ -n "$PWSH" ]; then
+  _GD="$(mktemp -d "${TMPDIR:-/tmp}/xdprov.XXXXXX")"
+
+  # NONE (no gauge record) / ABSENT (no such field) / EMPTY (present but "") are
+  # reported as three DIFFERENT strings on purpose. Collapsing them is how the
+  # shipped defect stayed invisible: an empty value read as "nothing to compare"
+  # rather than as a value no classifier can produce.
+  _gfield () {   # _gfield <logfile> <field>
+    if [ ! -f "$1" ]; then printf 'NONE'; return; fi
+    if [ "$(grep -c '"kind":"gauge"' "$1" 2>/dev/null)" = "0" ]; then printf 'NONE'; return; fi
+    if [ "$(grep -c "\"$2\":\"" "$1" 2>/dev/null)" = "0" ]; then printf 'ABSENT'; return; fi
+    # THE ADDRESS BLOCK IS LOAD-BEARING. 's///p; /re/q' looks equivalent and
+    # is not: 's' rewrites the pattern space, so by the time 'q' tests its
+    # address the text it matched is gone, 'q' never fires, and a second record
+    # prints too -- yielding a two-line value that compares unequal to itself.
+    _v=$(sed -n "/\"kind\":\"gauge\"/{s/.*\"kind\":\"gauge\".*\"$2\":\"\([^\"]*\)\".*/\1/p;q;}" "$1")
+    if [ -z "$_v" ]; then printf 'EMPTY'; else printf '%s' "$_v"; fi
+  }
+
+  # This checker exports ROTMOE_DEBUG_SRC=test, so "no declaration" must be
+  # expressed with `env -u`. `${x:+...}` leaves the INHERITED value in place --
+  # measured, and it silently turned six cells of the session-log phase G into
+  # a test of nothing.
+  _pdrive () {   # _pdrive <arm> <mode: hook|cli> <declaration|-> <logfile>
+    rm -f "$4"
+    if [ "$3" = '-' ]; then _e="-u ROTMOE_DEBUG_SRC"; else _e="ROTMOE_DEBUG_SRC=$3"; fi
+    if [ "$2" = cli ]; then
+      if [ "$1" = sh ]; then
+        env $_e ROTMOE_DEBUG_LOG="$4" ROTMOE_DEBUG_LOCAL=0 "$SH" \
+          --vector 0,0,0,0,0,0,0,0,1 --breadth 1 --M 1 --C 1 --T 1 >/dev/null 2>&1
+      else
+        env $_e ROTMOE_DEBUG_LOG="$4" ROTMOE_DEBUG_LOCAL=0 "$PWSH" -NoProfile -File "$PS1" \
+          -Vector 0,0,0,0,0,0,0,0,1 -Breadth 1 -M 1 -C 1 -T 1 >/dev/null 2>&1
+      fi
+    else
+      _pl='{"prompt":"lake build","hook_event_name":"UserPromptSubmit","session_id":"xd-9f2"}'
+      if [ "$1" = sh ]; then
+        printf '%s' "$_pl" | env $_e ROTMOE_DEBUG_LOG="$4" ROTMOE_DEBUG_LOCAL=0 \
+          "$SH" >/dev/null 2>&1
+      else
+        printf '%s' "$_pl" | env $_e ROTMOE_DEBUG_LOG="$4" ROTMOE_DEBUG_LOCAL=0 \
+          "$PWSH" -NoProfile -File "$PS1" >/dev/null 2>&1
+      fi
+    fi
+  }
+
+  _prows=0
+  # mode  declaration  field    expected
+  for _row in "cli  -     src      cli" \
+              "cli  test  src      test" \
+              "hook -     src      hook" \
+              "hook test  src      test" \
+              "hook -     session  xd-9f2"; do
+    set -- $_row
+    _m="$1"; _d="$2"; _f="$3"; _want="$4"
+    _pdrive sh  "$_m" "$_d" "$_GD/a.log"
+    _pdrive ps1 "$_m" "$_d" "$_GD/b.log"
+    _a=$(_gfield "$_GD/a.log" "$_f"); _b=$(_gfield "$_GD/b.log" "$_f")
+    if [ "$_a" != "$_b" ]; then
+      bad "PROVENANCE ARMS DISAGREE: $_m decl=$_d $_f -- sh '$_a' / ps1 '$_b'"
+    elif [ "$_a" != "$_want" ]; then
+      bad "PROVENANCE WRONG IN BOTH ARMS: $_m decl=$_d $_f = '$_a', spec says '$_want'"
+    else
+      _prows=$((_prows+1))
+      ok "arms agree and match the spec: $_m decl=$_d -> $_f='$_a'"
+    fi
+  done
+  [ "$_prows" -ge 5 ] || bad "only $_prows provenance rows compared -- the probe broke, not the arms"
+
+  # CONTROL 1: the comparison must SEE a real cross-arm disagreement. Two
+  # different declarations are fed to the two arms; that must be reported.
+  _pdrive sh  cli test "$_GD/a.log"
+  _pdrive ps1 cli -    "$_GD/b.log"
+  _a=$(_gfield "$_GD/a.log" src); _b=$(_gfield "$_GD/b.log" src)
+  if [ "$_a" != "$_b" ]; then
+    ok "CONTROL: a genuine provenance disagreement IS detected (sh '$_a' vs ps1 '$_b')"
+  else
+    bad "CONTROL DEAD: two different declarations read identically ('$_a') -- this phase proves nothing"
+  fi
+
+  # CONTROL 2: EMPTY must be distinguishable from a real value, or the exact
+  # shipped defect would read as agreement. Planted, not produced -- the router
+  # can no longer emit this, which is the point.
+  printf '%s\n' '{"kind":"gauge","ts":"x","session":"unknown","src":"","K":9}' > "$_GD/c.log"
+  if [ "$(_gfield "$_GD/c.log" src)" = "EMPTY" ]; then
+    ok "CONTROL: a planted empty src reads as EMPTY, not as absent or as a value"
+  else
+    bad "CONTROL DEAD: a planted empty src read as '$(_gfield "$_GD/c.log" src)'"
+  fi
+  rm -rf "$_GD"
+else
+  note "no pwsh: the gauge-provenance cross-diff is SKIPPED, which is never a pass"
 fi
 
 echo

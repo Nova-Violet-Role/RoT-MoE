@@ -291,27 +291,45 @@
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "12a916a77664",
-      "indexed_at": "2026-08-08T23:52:22.398184+00:00",
+      "hash": "b8d174e82521",
+      "indexed_at": "2026-08-09T04:53:18.917516+00:00",
       "language": "shell",
-      "lines": 269,
-      "mtime_ns": 1786233140024850200,
-      "size": 13889,
+      "lines": 386,
+      "mtime_ns": 1786251100082712100,
+      "size": 19809,
       "symbols": [
         {
           "lines": [
             172,
-            179
+            183
           ],
           "name": "_stem_of",
           "type": "function"
         },
         {
           "lines": [
-            180,
-            187
+            184,
+            191
           ],
           "name": "_drive",
+          "type": "function"
+        },
+        {
+          "docstring": "NONE (no gauge record) / ABSENT (no such field) / EMPTY (present but \"\") are reported as three DIFFERENT strings on purpose. Collapsing them is how th",
+          "lines": [
+            254,
+            264
+          ],
+          "name": "_gfield",
+          "type": "function"
+        },
+        {
+          "docstring": "This checker exports ROTMOE_DEBUG_SRC=test, so \"no declaration\" must be expressed with `env -u`. `${x:+...}` leaves the INHERITED value in place -- me",
+          "lines": [
+            270,
+            291
+          ],
+          "name": "_pdrive",
           "type": "function"
         }
       ]
@@ -895,12 +913,12 @@
       "symbols": []
     },
     "release-install.sh": {
-      "hash": "64998dfa4bcd",
-      "indexed_at": "2026-08-08T23:52:22.401887+00:00",
+      "hash": "e0f8c7114b9f",
+      "indexed_at": "2026-08-09T04:53:18.918944+00:00",
       "language": "shell",
-      "lines": 446,
-      "mtime_ns": 1786233140025850100,
-      "size": 22962,
+      "lines": 519,
+      "mtime_ns": 1786251100080712000,
+      "size": 26615,
       "symbols": [
         {
           "lines": [
@@ -1515,6 +1533,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T03:15:01.389343+00:00",
+  "generated_at": "2026-08-09T04:53:18.919040+00:00",
   "version": "1.0"
 }
