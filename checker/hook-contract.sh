@@ -38,6 +38,17 @@
 # fails a gate instead of shipping.
 #
 # Exit: 0 pass, 1 fail, 2 refuse, 3 skip (never a pass).
+
+# THIS HARNESS DECLARES ITS OWN TRAFFIC -- and it is the one that most needed to.
+#
+# Unlike the other seven, hook-contract.sh sends payloads that DO carry
+# hook_event_name, so without this line its records were classified `hook` and
+# were indistinguishable from real lifecycle traffic in the debug log. Found by
+# checker/session-log.sh phase C on its first run, after I had already declared
+# the seven obvious ones and believed the set was complete.
+export ROTMOE_DEBUG_SRC=test
+export ROTMOE_DEBUG_LOCAL=0
+
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 2
 

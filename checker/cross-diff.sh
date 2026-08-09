@@ -23,6 +23,24 @@
 # entire argument for maintaining a second arm at all.
 # =============================================================================
 
+
+# THIS HARNESS DECLARES ITS OWN TRAFFIC.
+#
+# Measured 2026-08-09: seven checkers feed the router synthetic payloads and
+# write into whatever ROTMOE_DEBUG_LOG points at. 738 of 955 sh route records
+# in the live log were theirs, and nothing in the schema said so -- so every
+# "live router health" figure computed from that log silently mixed real
+# lifecycle traffic with replayed corpus traffic. The instrument was
+# contaminating its own measurement and could not report that it was.
+#
+# RotSessionLog.test_is_never_hook proves the consequence: a record declared
+# here can never be classified as live traffic, whatever the payload contains.
+export ROTMOE_DEBUG_SRC=test
+
+# Never write a per-session log into the repository being tested. A checker
+# that leaves files behind is not a read-only observer.
+export ROTMOE_DEBUG_LOCAL=0
+
 set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 SH="$REPO/hooks/rot-router.sh"

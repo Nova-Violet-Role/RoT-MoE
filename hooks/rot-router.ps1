@@ -186,7 +186,65 @@ function Format-Num([double] $x, [int] $d) {
 # would distinguish nothing.
 $script:RotDebugLost = $false
 
+# --- SESSION IDENTITY AND THE PER-SESSION PROJECT LOG ----------------------
+#
+# Measured 2026-08-09: the record schema had no session field, so two concurrent
+# sessions interleaved into one file and could not be told apart. 185 live route
+# records from at least two sessions were indistinguishable.
+#
+# The scrubber below is the EXECUTABLE TWIN of `sanitiseSession` in
+# lean/Proofs/RotSessionLog.lean, and checker/session-log.sh compares the two so
+# they cannot drift. It is not cosmetic: this value is interpolated into a
+# FILENAME. A session id of "../../.ssh/authorized_keys" would otherwise make
+# the router append JSONL outside the project, silently, because the router is
+# contractually forbidden from throwing. The Lean proofs no_forward_slash,
+# no_backslash and no_dot are what make that impossible -- traversal is removed
+# by deleting the characters, never by blacklisting the ".." spelling.
+$script:RotSession    = 'unknown'
+$script:RotProjectDir = ''
+$script:RotLocalLost  = $false
+
+function Get-RotSessionName([string] $Raw) {
+  if (-not $Raw) { return 'unknown' }
+  $kept = ($Raw -replace '[^A-Za-z0-9-]', '')
+  if ($kept.Length -gt 64) { $kept = $kept.Substring(0, 64) }
+  if (-not $kept) { return 'unknown' }
+  return $kept
+}
+
+# The SECOND log: one file per session, inside the project being worked on, so a
+# session can be inspected beside the code that produced it. Independent of the
+# central sink on purpose -- a user who never sets ROTMOE_DEBUG_LOG can still opt
+# in with ROTMOE_DEBUG_LOCAL=1, and a user who has a central log can opt OUT with
+# ROTMOE_DEBUG_LOCAL=0. Enablement is specified in RotSessionLog.localEnabled.
+function Write-RotDebugLocal([string] $Line) {
+  $mode = $env:ROTMOE_DEBUG_LOCAL
+  if ($mode -eq '0') { return }
+  if (-not ($mode -eq '1' -or $env:ROTMOE_DEBUG_LOG)) { return }
+  $root = $script:RotProjectDir
+  if (-not $root) { return }
+  try {
+    $d = Join-Path $root '.rot-moe'
+    if (-not (Test-Path -LiteralPath $d)) {
+      New-Item -ItemType Directory -Path $d -Force -ErrorAction Stop | Out-Null
+      # A self-ignoring directory. The router writes into someone else's
+      # repository; leaving it to pollute their `git status` would be rude and
+      # would eventually get the whole log committed by accident.
+      Set-Content -LiteralPath (Join-Path $d '.gitignore') -Value '*' -Encoding utf8 -ErrorAction Stop
+    }
+    $f = Join-Path $d ('rot-route-' + $script:RotSession + '.jsonl')
+    Add-Content -LiteralPath $f -Value $Line -Encoding utf8 -ErrorAction Stop
+  } catch {
+    # Never fails the turn. Recorded so the marker can say so.
+    $script:RotLocalLost = $true
+  }
+}
+
 function Write-RotDebug([string] $Line) {
+  # Both sinks are attempted. The local one is NOT behind the central one's
+  # early return -- that ordering was the bug in the first draft: with
+  # ROTMOE_DEBUG_LOG unset, the per-session log could never be created at all.
+  Write-RotDebugLocal $Line
   $p = $env:ROTMOE_DEBUG_LOG
   if (-not $p) { return }
   try {
@@ -241,9 +299,9 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
     }
   }
   if ($env:ROTMOE_DEBUG_LOG) {
-    Write-RotDebug ('{{"kind":"gauge","ts":"{0}","K":{1},"mean":{2},"breadth":{3},"M":{4},"C":{5},"T":{6},"sum":{7},"Rs":{8},"active":"{9}","lenses":[{10}]}}' -f `
+    Write-RotDebug ('{{"kind":"gauge","ts":"{0}","session":"{11}","src":"{12}","K":{1},"mean":{2},"breadth":{3},"M":{4},"C":{5},"T":{6},"sum":{7},"Rs":{8},"active":"{9}","lenses":[{10}]}}' -f `
       (Get-Date -Format 'o'), $K, (Format-Num $mean 4), $Br, (Format-Num $M 3), (Format-Num $C 3), (Format-Num $T 3), `
-      (Format-Num $sum 5), (Format-Num ($sum / $K) 5), ($(if ($active.Count) { $active -join ',' } else { 'none' })), ($terms -join ','))
+      (Format-Num $sum 5), (Format-Num ($sum / $K) 5), ($(if ($active.Count) { $active -join ',' } else { 'none' })), ($terms -join ','), $script:RotSession, $script:RotSrc)
   }
   $R = $sum / $K
   $band = if ($R -lt 0.9) { 'BELOW RANGE' } elseif ($R -gt 1.8) { 'ABOVE RANGE' } else { 'IN RANGE (0.9-1.8)' }
@@ -305,6 +363,41 @@ try {
   $prompt = $payload
 }
 
+# WHICH SESSION PRODUCED THIS RECORD. `$j` is absent when the payload did not
+# parse, so both reads are guarded; an unidentifiable session degrades to
+# 'unknown' rather than losing the record, which is the same honesty rule the
+# event field follows.
+try {
+  if ($j -and $j.session_id) { $script:RotSession = Get-RotSessionName ([string]$j.session_id) }
+} catch { }
+try {
+  if ($j -and $j.cwd) { $script:RotProjectDir = [string]$j.cwd }
+  else                { $script:RotProjectDir = (Get-Location).Path }
+} catch { $script:RotProjectDir = '' }
+
+# PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean.
+#
+# Measured 2026-08-09: seven checkers (bench-router, debug-channel, cross-diff,
+# log-replay, release-install, release-longsession, release-session) feed the
+# router synthetic payloads and write into the same log. 738 of 955 sh records
+# were theirs, and nothing in the schema said so, so every "live router health"
+# figure computed from this log silently mixed real traffic with replayed
+# traffic. The field below is what makes live records countable again.
+#
+# An unrecognised ROTMOE_DEBUG_SRC is IGNORED, never believed:
+# unknown_declaration_falls_back proves a typo demotes to inference rather than
+# inventing a fourth class.
+$script:RotSrc = 'cli'
+try {
+  $hasEvent = [bool]($j -and $j.hook_event_name)
+  switch ($env:ROTMOE_DEBUG_SRC) {
+    'test'  { $script:RotSrc = 'test' }
+    'cli'   { $script:RotSrc = 'cli' }
+    'hook'  { $script:RotSrc = 'hook' }
+    default { $script:RotSrc = $(if ($hasEvent) { 'hook' } else { 'cli' }) }
+  }
+} catch { $script:RotSrc = 'cli' }
+
 # README.md:77 promises this line carries a named lane AND A GAUGE READING. See
 # the long note at the same point in rot-router.sh: the vector is the ROUTING
 # DECISION expressed one-hot -- the lead lens of the fired lane at 1, the rest
@@ -346,8 +439,8 @@ if ($env:ROTMOE_DEBUG_LOG) {
     $cand = [string]$j.hook_event_name
     if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
   }
-  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","arm":"ps1","ms":{6}}}' -f `
-    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName)
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","arm":"ps1","ms":{6}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc)
 }
 
 # The marker rides the router's own stdout, not a sidecar file: if the log path

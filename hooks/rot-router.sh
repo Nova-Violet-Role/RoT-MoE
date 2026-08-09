@@ -36,6 +36,55 @@ LC_ALL=C
 LC_NUMERIC=C
 export LC_ALL LC_NUMERIC
 
+# --- OBSERVABILITY STATE ------------------------------------------------------
+# Defaults set HERE, before any use, because gauge() is called from hook mode and
+# an unset variable under `set -u` would fail the user's turn over a log field.
+_rot_sess=unknown
+_rot_proj=''
+_rot_src=cli
+_rot_local_lost=0
+
+# Start of this invocation, for the `ms` field the ps1 arm has always had and
+# this one did not -- the POSIX arm was unmeasurable for latency.
+#
+# BSD date has no %N: on macOS `date +%s%N` returns a literal trailing "N", so
+# the guard below blanks it and `ms` is emitted as -1 meaning NOT MEASURABLE
+# HERE. Emitting 0 instead would be a lie at millisecond precision, and a lie
+# that reads as "instantaneous" is worse than an honest absence.
+_rot_t0=$(date +%s%N 2>/dev/null)
+case "$_rot_t0" in (*[!0-9]*|'') _rot_t0='' ;; esac
+
+# Session id -> filename-safe token. The executable twin of `sanitiseSession` in
+# lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two so they
+# cannot drift. `tr -cd` deletes the complement of the allowed set, which is
+# removal rather than blacklisting -- no_dot and no_forward_slash are what make
+# a session id of "../../etc/passwd" incapable of leaving the directory.
+_rot_scrub () {
+  _s=$(printf '%s' "${1:-}" | tr -cd 'A-Za-z0-9-' | cut -c1-64)
+  [ -n "$_s" ] || _s=unknown
+  printf '%s' "$_s"
+}
+
+# The per-session project log. Returns the path on stdout, or nothing when the
+# sink is disabled -- `localEnabled` in the Lean module, all six combinations
+# pinned by #guard there.
+_rot_local_file () {
+  case "${ROTMOE_DEBUG_LOCAL:-}" in
+    0) return 0 ;;
+    1) : ;;
+    *) [ -n "${ROTMOE_DEBUG_LOG:-}" ] || return 0 ;;
+  esac
+  [ -n "$_rot_proj" ] || return 0
+  _d="$_rot_proj/.rot-moe"
+  if [ ! -d "$_d" ]; then
+    mkdir -p "$_d" 2>/dev/null || { _rot_local_lost=1; return 0; }
+    # Self-ignoring: the router writes into someone else's repository and must
+    # not turn up in their `git status`.
+    printf '%s\n' '*' > "$_d/.gitignore" 2>/dev/null || _rot_local_lost=1
+  fi
+  printf '%s' "$_d/rot-route-$_rot_sess.jsonl"
+}
+
 # --- TIER 1 ------------------------------------------------------------------
 # Stems are case-insensitive substrings, quoted from rot-lean.md section 3.
 # `code` (CLINICAL) and `art` (CREATIVE) are deliberately ABSENT: on a prover
@@ -188,9 +237,15 @@ NAMES='Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude'
 
 gauge () {   # gauge "a1,..,a9" breadth M C T
   _acts="$1"; _breadth="$2"; _M="$3"; _C="$4"; _T="$5"
+  # The second sink is resolved in the shell, not in awk: creating a directory
+  # and its .gitignore is not awk's job, and a failure there must not reach the
+  # user's transcript. gauge() runs inside a command substitution at the call
+  # site, so _rot_local_lost set here does NOT propagate to the marker -- the
+  # route record's own attempt is what reports a local-sink failure.
+  _loc_g=$(_rot_local_file)
   printf '%s|%s|%s|%s|%s|%s|%s|%s\n' \
     "$_acts" "$_breadth" "$_M" "$_C" "$_T" "$LAMBDAS" "$MUS" "$NAMES" |
-  awk -F'|' -v dbg="${ROTMOE_DEBUG_LOG:-}" -v ts="$(date -Is 2>/dev/null || date)" '
+  awk -F'|' -v dbg="${ROTMOE_DEBUG_LOG:-}" -v loc="$_loc_g" -v sess="$_rot_sess" -v src="$_rot_src" -v ts="$(date -Is 2>/dev/null || date)" '
     # Match PowerShell ToString("0.##"): round, then strip trailing zeros and a
     # bare trailing dot. 0.90 -> "0.9", 1.00 -> "1", 0.09 -> "0.09".
     # Formatting is part of the observable: the cross-diff compares these
@@ -233,9 +288,14 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
       # cannot show that a lens was multiplied by the wrong mu or never
       # participated; this can. Logging must never break a turn, so the write
       # is appended with >> and any failure is swallowed by the caller.
-      if (dbg != "") {
-        printf "{\"kind\":\"gauge\",\"ts\":\"%s\",\"K\":%d,\"mean\":%s,\"breadth\":%d,\"M\":%s,\"C\":%s,\"T\":%s,\"sum\":%s,\"Rs\":%s,\"active\":\"%s\",\"lenses\":[%s]}\n",
-               ts, K, fmt(mean,4), breadth, fmt(M,3), fmt(C,3), fmt(T,3), fmt(sum,5), fmt(R,5), active, terms >> dbg;
+      # Built once, written to both sinks. Two printf statements would be two
+      # places for the schema to drift, and the field order must match the ps1
+      # arm exactly or a reader cannot treat the two logs as one stream.
+      if (dbg != "" || loc != "") {
+        rec = sprintf("{\"kind\":\"gauge\",\"ts\":\"%s\",\"session\":\"%s\",\"src\":\"%s\",\"K\":%d,\"mean\":%s,\"breadth\":%d,\"M\":%s,\"C\":%s,\"T\":%s,\"sum\":%s,\"Rs\":%s,\"active\":\"%s\",\"lenses\":[%s]}",
+               ts, sess, src, K, fmt(mean,4), breadth, fmt(M,3), fmt(C,3), fmt(T,3), fmt(sum,5), fmt(R,5), active, terms);
+        if (dbg != "") print rec >> dbg;
+        if (loc != "") print rec >> loc;
       }
       printf "R/s+ = %s [%s] mean=%s breadth=%d K=%d lenses=%s\n",
              fmt(R, 2), band, fmt(mean, 3), breadth, K, active;
@@ -272,6 +332,43 @@ hook_mode () {
   fi
   payload=$(cat)
   [ -z "$payload" ] && exit 0     # nothing to route; silence is correct
+
+  # WHICH SESSION, WHICH PROJECT, AND WHERE THE RECORD CAME FROM.
+  #
+  # Parameter expansion rather than a second node spawn: the hook already costs
+  # ~125 ms and is registered on 31 events, so a second interpreter per event
+  # would be paid 31 times a turn.
+  case "$payload" in
+    *'"session_id"'*)
+      _rot_sess=${payload#*\"session_id\"}
+      _rot_sess=${_rot_sess#*\"}
+      _rot_sess=${_rot_sess%%\"*}
+      ;;
+  esac
+  _rot_sess=$(_rot_scrub "$_rot_sess")
+
+  case "$payload" in
+    *'"cwd"'*)
+      _rot_proj=${payload#*\"cwd\"}
+      _rot_proj=${_rot_proj#*\"}
+      _rot_proj=${_rot_proj%%\"*}
+      ;;
+  esac
+  # JSON escapes a Windows separator, so "C:\Users\x" arrives doubled. Left as
+  # forward slashes, which every shell and PowerShell on this platform accept.
+  _rot_proj=$(printf '%s' "$_rot_proj" | sed 's|\\|/|g')
+  [ -n "$_rot_proj" ] || _rot_proj=$PWD
+
+  # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean. Inference first,
+  # then an explicit declaration overrides it, and ONLY for the three known
+  # values: unknown_declaration_falls_back proves a typo demotes to inference
+  # rather than inventing a fourth class.
+  case "$payload" in *'"hook_event_name"'*) _rot_src=hook ;; esac
+  case "${ROTMOE_DEBUG_SRC:-}" in
+    test) _rot_src=test ;;
+    cli)  _rot_src=cli ;;
+    hook) _rot_src=hook ;;
+  esac
 
   # Extract the prompt. node gives an exact parse and is GUARANTEED here --
   # Claude Code is itself a Node application, so anything that can invoke this
@@ -439,9 +536,30 @@ hook_mode () {
         ;;
     esac
     case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
-    if printf '{"kind":"route","ts":"%s","event":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh"}\n' \
-         "$(date -Is 2>/dev/null || date)" "$_ev" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" \
-         2>/dev/null >> "$ROTMOE_DEBUG_LOG"
+    # LATENCY. The ps1 arm has always emitted `ms` and this one never did, so
+    # the POSIX arm could not be compared against it. -1 is not a duration: it
+    # means this platform has no sub-second clock (BSD date has no %N), and it
+    # is emitted rather than 0 because a 0 would read as "instantaneous".
+    _ms=-1
+    if [ -n "$_rot_t0" ]; then
+      _t1=$(date +%s%N 2>/dev/null)
+      case "$_t1" in (*[!0-9]*|'') _t1='' ;; esac
+      [ -n "$_t1" ] && _ms=$(( (_t1 - _rot_t0) / 1000000 ))
+    fi
+
+    # Field order is byte-for-byte the ps1 arm's, so both logs parse as one
+    # stream and cross-diff compares like with like.
+    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh","ms":%s}' \
+         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$_ms")
+
+    # SECOND SINK first: it must not be behind the central sink's success, or a
+    # user with an unwritable central log would silently lose the local one too.
+    _loc=$(_rot_local_file)
+    if [ -n "$_loc" ]; then
+      printf '%s\n' "$_rec" 2>/dev/null >> "$_loc" || _rot_local_lost=1
+    fi
+
+    if printf '%s\n' "$_rec" 2>/dev/null >> "$ROTMOE_DEBUG_LOG"
     then
       # Bound the file. `tail -n` keeps the LAST cap lines, which is the
       # `rotate` of the Lean module: drop from the front, retain the newest.

@@ -151,6 +151,16 @@ jobs:
         shell: bash
         run: bash checker/context-gate.sh
 
+      # THE LOG IS THE ONLY CHANNEL THE ROUTER IS OBSERVABLE THROUGH, so the
+      # thing that must not drift is the session scrubber: it puts a payload
+      # value into a FILENAME. Phase B replays hostile ids through both arms and
+      # compares against names pinned by #guard in the Lean module; phase C
+      # enforces that every harness writing to the log declares itself, which is
+      # what stops the instrument from contaminating its own measurement.
+      - name: session log (scrubber, provenance, no traversal)
+        shell: bash
+        run: bash checker/session-log.sh
+
       # THE RELEASE ARTIFACTS, BUILT AND THEN INSTALLED FROM THE ZIP.
       # These two run in this order and only in this order: release-install.sh
       # REFUSES (exit 2) if the archives are not on disk, because installing a

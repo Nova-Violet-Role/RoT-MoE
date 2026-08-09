@@ -142,18 +142,36 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "7a5626e22a1c",
-      "indexed_at": "2026-08-08T20:33:55.960959+00:00",
+      "hash": "b16a0a7cbff0",
+      "indexed_at": "2026-08-08T23:49:41.527954+00:00",
       "language": "shell",
-      "lines": 527,
-      "mtime_ns": 1786216305984305800,
-      "size": 28326,
+      "lines": 645,
+      "mtime_ns": 1786232979601447400,
+      "size": 33629,
       "symbols": [
+        {
+          "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
+          "lines": [
+            62,
+            66
+          ],
+          "name": "_rot_scrub",
+          "type": "function"
+        },
+        {
+          "docstring": "The per-session project log. Returns the path on stdout, or nothing when the sink is disabled -- `localEnabled` in the Lean module, all six combinatio",
+          "lines": [
+            71,
+            86
+          ],
+          "name": "_rot_local_file",
+          "type": "function"
+        },
         {
           "docstring": "CONVERGENT is the only lane with no lead LENS -- by design, it is the lane where all nine co-reason and none leads. It used to print the literal \"none",
           "lines": [
-            84,
-            93
+            133,
+            142
           ],
           "name": "convener",
           "type": "function"
@@ -161,8 +179,8 @@
         {
           "docstring": "A STEM MUST START A WORD. Until 0.7.0 this was a plain substring test, and that is why `prove`, `proof` and `lemma` could not be added to the FORGE li",
           "lines": [
-            140,
-            156
+            189,
+            205
           ],
           "name": "fired",
           "type": "function"
@@ -170,16 +188,16 @@
         {
           "docstring": "route emits \"<LANE LENS>|<matched stem>\". The separator is the LAST `|`, so a convener model name containing one cannot swallow the stem. Callers that",
           "lines": [
-            162,
-            176
+            211,
+            225
           ],
           "name": "route",
           "type": "function"
         },
         {
           "lines": [
-            189,
-            243
+            238,
+            303
           ],
           "name": "gauge",
           "type": "function"
@@ -187,8 +205,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            264,
-            528
+            324,
+            646
           ],
           "name": "hook_mode",
           "type": "function"
@@ -196,8 +214,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            497,
-            504
+            615,
+            622
           ],
           "name": "need_value",
           "type": "function"
@@ -205,15 +223,15 @@
       ]
     },
     "settings-merge.js": {
-      "hash": "78dc04bbae93",
-      "indexed_at": "2026-08-07T04:14:50.286242+00:00",
+      "hash": "51239e6bfcc2",
+      "indexed_at": "2026-08-09T00:23:37.075085+00:00",
       "language": "javascript",
-      "lines": 254,
-      "mtime_ns": 1786074510780369500,
-      "size": 12827,
+      "lines": 315,
+      "mtime_ns": 1786235012999962600,
+      "size": 16482,
       "symbols": []
     }
   },
-  "generated_at": "2026-08-08T22:42:15.573003+00:00",
+  "generated_at": "2026-08-09T00:23:37.075214+00:00",
   "version": "1.0"
 }

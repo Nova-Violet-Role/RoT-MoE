@@ -121,6 +121,7 @@ installer round trip|deep|ARM_ROUTER,DISARM_ROUTER,checker/install,.claude-plugi
 install parity|deep|ARM_ROUTER,DISARM_ROUTER,hooks/hooks.json,hooks/settings-merge.js,checker/install-parity.sh|bash checker/install-parity.sh
 cli event coverage|fast||bash checker/cli-event-coverage.sh
 context gate|fast||bash checker/context-gate.sh
+session log|fast||bash checker/session-log.sh
 release install|deep|checker/release,.claude-plugin/|bash checker/release-install.sh
 "
 

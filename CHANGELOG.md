@@ -23,6 +23,120 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The debug log had no idea who was talking to it
+
+The router's log is the only channel it is observable through, so an
+unattributable log makes every claim about the router unfalsifiable. Three
+defects, all structural, all measured on 2026-08-09.
+
+**A new user got no logs at all.** `ARM_ROUTER.sh`, `ARM_ROUTER.ps1`,
+`settings-merge.js` and both plugin manifests contained *zero* references to
+`ROTMOE_DEBUG_LOG`, and the router's first act is `if (-not $p) { return }`.
+Every install shipped with the observation channel switched off; the only
+machine that had logs had them because the path was set by hand.
+
+**No session identity.** The schema was `kind, ts, event, lane, lens, Rs,
+chars, stem, arm` — nothing said which session a record came from, so
+concurrent sessions interleaved into one file and could not be separated.
+
+**And the log could not tell real traffic from its own test traffic.** This is
+the one that matters, because it invalidated my own reporting rather than the
+router. 738 of 955 `sh` route records carried `event: "-"`, and I diagnosed that
+twice as the POSIX arm losing the event name in production. Both diagnoses were
+wrong. EIGHT checkers — `bench-router` (5 payload sites), `debug-channel` (6),
+`cross-diff`, `log-replay`, `release-install`, `release-longsession`,
+`release-session`, and `hook-contract` — feed the router synthetic payloads and
+write into whatever `ROTMOE_DEBUG_LOG` points at. The `-` was honest. The
+records were synthetic. Every "live router health" figure computed from that log
+mixed real lifecycle traffic with replayed corpus traffic, and nothing in the
+schema could say so. An instrument that contaminates its own measurement and
+cannot report that it is doing so is the exact failure class this project hunts.
+
+`hook-contract` is the worst of the eight and was found last, by the new
+checker, after I had already declared the seven obvious ones and believed the
+set was complete: its payloads *do* carry `hook_event_name`, so its records were
+classified as live traffic and were indistinguishable from the real thing.
+
+#### What shipped
+
+Two logs, as the schema now records them:
+
+| sink | path | contents |
+|---|---|---|
+| central | `ROTMOE_DEBUG_LOG` | every session, rotating at `ROTMOE_DEBUG_LOG_MAX` (5000) |
+| per-session | `<project>/.rot-moe/rot-route-<session>.jsonl` | one file per session, beside the code that produced it |
+
+The per-session directory writes its own `.gitignore` containing `*`. The router
+is a guest in someone else's repository and must not turn up in their
+`git status`.
+
+Both records gained `session` and `src`. The `sh` arm gained `ms`, which the
+PowerShell arm has always had — the POSIX arm was unmeasurable for latency. It
+emits `-1`, not `0`, where the platform has no sub-second clock (BSD `date` has
+no `%N`): a zero would read as *instantaneous*, and a lie that flatters is worse
+than an honest absence.
+
+The two sinks are independent. In the first draft the local one sat behind the
+central sink's early return, so a user with no `ROTMOE_DEBUG_LOG` could never
+produce a per-session log however they configured it. `localEnabled` in the Lean
+module pins all six combinations, and `explicit_off_wins` is quantified over
+every central value — a user who says no gets nothing written into their
+repository, whatever else is configured.
+
+#### Why this needed Lean and not care
+
+The per-session log puts a payload value into a **filename**. A `session_id` of
+`../../.ssh/authorized_keys` is a perfectly good string, and the router is
+contractually forbidden from throwing, so a traversal would have been silent.
+
+`lean/Proofs/RotSessionLog.lean` — 22 theorems. The load-bearing ones are not
+"it strips bad characters" but the consequence: `no_forward_slash`,
+`no_backslash` and `no_dot` are quantified over every string, so `..` is not
+merely rejected, it is **inexpressible**. Blacklisting the `..` spelling is how
+traversal filters get bypassed; deleting the characters is not. `test_is_never_hook`
+is the honesty theorem: a record a harness has declared cannot be counted as
+live traffic, for every payload, including one carrying a real event name.
+
+Measured both arms against the spec: `../../etc/passwd` becomes `etcpasswd` in
+Lean, in `sh`, and in PowerShell, and the file lands inside `.rot-moe/` in all
+three. A hostile id written straight through would have escaped two directories
+up.
+
+#### The instruments
+
+`checker/session-log.sh`, four phases, none skippable — 36 passed, 0 failed, 0
+inapplicable. Phase A reads `maxLen` and the alphabet *out of the Lean source*
+and compares them to `tr -cd` and `-replace`; phase B replays hostile ids
+through both arms against names pinned by `#guard`; phase C walks the classify
+table on both arms and **fails if any checker feeding the router has not
+declared its traffic** — the check that would have caught the contamination
+years earlier than I did; phase D is a self-control that fails the gate if the
+detector stops detecting.
+
+Twelve mutants, all killed. One of them earned its keep by *surviving* first:
+S03 admitted `'Q'` to the alphabet and nothing noticed, because `sanitise_is_safe`
+is stated in terms of `isSafeChar` itself and moves with the mutation — a
+predicate cannot be tested by its own definition. The response was to pin the
+alphabet from the other side (`a_b -> ab`, `a b -> ab`, `a.b -> ab`) rather than
+to retire the mutant. Widening `isSafeChar` by a single non-alphanumeric
+character is now a build failure.
+
+#### Corrections owed
+
+Two claims I made and then disproved myself, recorded because a retraction that
+is not written down is not a retraction:
+
+- *"The plugin is structurally immune to the additionalContext defect."* Wrong.
+  I had grepped `rot-router.*` and the plugin registers two hooks per event.
+- *"The blank-event problem is healed."* Wrong twice over — first because the
+  `sh` arm was still emitting blanks, then because the blanks were never a
+  router defect at all.
+
+The `ROTMOE_DEBUG_LOG` path also moved out of an unrelated project's build
+directory to `~/.claude/rot-moe/`, verified by newest-record timestamp rather
+than by line count: both files sit at the 5000-line rotation cap, so a line
+count cannot move and would have shown a false negative.
+
 ### Being wired to an event is not permission to speak on it
 
 Wiring every hook to all 31 CLI events (previous entry) exposed a defect that the

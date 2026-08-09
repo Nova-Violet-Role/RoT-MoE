@@ -120,25 +120,25 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "b338970653e0",
-      "indexed_at": "2026-08-05T13:16:35.010630+00:00",
+      "hash": "bdb109b142db",
+      "indexed_at": "2026-08-08T23:52:22.397107+00:00",
       "language": "shell",
-      "lines": 579,
-      "mtime_ns": 1785918854790667800,
-      "size": 28964,
+      "lines": 597,
+      "mtime_ns": 1786233140022851500,
+      "size": 29801,
       "symbols": [
         {
           "lines": [
-            40,
-            46
+            58,
+            64
           ],
           "name": "run_bounded",
           "type": "function"
         },
         {
           "lines": [
-            131,
-            140
+            149,
+            158
           ],
           "name": "check_priority",
           "type": "function"
@@ -291,25 +291,25 @@
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "a7f7d0f4071b",
-      "indexed_at": "2026-08-05T13:16:35.018348+00:00",
+      "hash": "12a916a77664",
+      "indexed_at": "2026-08-08T23:52:22.398184+00:00",
       "language": "shell",
-      "lines": 251,
-      "mtime_ns": 1785919916097580100,
-      "size": 13052,
+      "lines": 269,
+      "mtime_ns": 1786233140024850200,
+      "size": 13889,
       "symbols": [
         {
           "lines": [
-            154,
-            161
+            172,
+            179
           ],
           "name": "_stem_of",
           "type": "function"
         },
         {
           "lines": [
-            162,
-            169
+            180,
+            187
           ],
           "name": "_drive",
           "type": "function"
@@ -336,18 +336,18 @@
       ]
     },
     "debug-channel.sh": {
-      "hash": "21518188817d",
-      "indexed_at": "2026-08-07T18:50:01.496076+00:00",
+      "hash": "3252b34ce674",
+      "indexed_at": "2026-08-08T23:52:22.399206+00:00",
       "language": "shell",
-      "lines": 260,
-      "mtime_ns": 1786127021669863400,
-      "size": 11749,
+      "lines": 278,
+      "mtime_ns": 1786233140024850200,
+      "size": 12586,
       "symbols": [
         {
           "docstring": "Runs one arm. $1 = arm name, $2 = log path, $3.. = env assignments handled by the caller through the environment. Prints stdout, stderr goes to $WORK/",
           "lines": [
-            56,
-            63
+            74,
+            81
           ],
           "name": "run_arm",
           "type": "function"
@@ -428,18 +428,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "23bd384ea6cd",
-      "indexed_at": "2026-08-08T22:45:54.780826+00:00",
+      "hash": "8f3985328275",
+      "indexed_at": "2026-08-08T23:56:56.561309+00:00",
       "language": "shell",
-      "lines": 399,
-      "mtime_ns": 1786229152672674200,
-      "size": 20316,
+      "lines": 400,
+      "mtime_ns": 1786233410318928300,
+      "size": 20362,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            159,
-            174
+            160,
+            175
           ],
           "name": "fires",
           "type": "function"
@@ -521,17 +521,17 @@
       ]
     },
     "hook-contract.sh": {
-      "hash": "a97a6f3a23e7",
-      "indexed_at": "2026-08-05T13:16:35.033066+00:00",
+      "hash": "484757ae0c24",
+      "indexed_at": "2026-08-08T23:55:07.575057+00:00",
       "language": "shell",
-      "lines": 186,
-      "mtime_ns": 1785903877461673300,
-      "size": 10135,
+      "lines": 197,
+      "mtime_ns": 1786233293117779800,
+      "size": 10649,
       "symbols": [
         {
           "lines": [
-            89,
-            96
+            100,
+            107
           ],
           "name": "run_hook",
           "type": "function"
@@ -674,18 +674,18 @@
       ]
     },
     "log-replay.sh": {
-      "hash": "46aaf310320d",
-      "indexed_at": "2026-08-05T13:16:35.046195+00:00",
+      "hash": "22446d9fab76",
+      "indexed_at": "2026-08-08T23:52:22.400555+00:00",
       "language": "shell",
-      "lines": 464,
-      "mtime_ns": 1785918854801668800,
-      "size": 23293,
+      "lines": 482,
+      "mtime_ns": 1786233140025850100,
+      "size": 24130,
       "symbols": [
         {
           "docstring": "See the long note on the same function in checker/hook-footprint.sh: an unauthenticated caller cannot read CI logs (403, admin rights), so a failure t",
           "lines": [
-            84,
-            88
+            102,
+            106
           ],
           "name": "bad",
           "type": "function"
@@ -693,8 +693,8 @@
         {
           "docstring": "--- 2. THE NEGATIVE CONTROLS ------------------------------------------------ A replayer that accepts everything is worse than none: it certifies. Eac",
           "lines": [
-            367,
-            407
+            385,
+            425
           ],
           "name": "ctl",
           "type": "function"
@@ -895,17 +895,17 @@
       "symbols": []
     },
     "release-install.sh": {
-      "hash": "248f3101f451",
-      "indexed_at": "2026-08-05T13:16:35.065350+00:00",
+      "hash": "64998dfa4bcd",
+      "indexed_at": "2026-08-08T23:52:22.401887+00:00",
       "language": "shell",
-      "lines": 428,
-      "mtime_ns": 1785903878367676200,
-      "size": 22125,
+      "lines": 446,
+      "mtime_ns": 1786233140025850100,
+      "size": 22962,
       "symbols": [
         {
           "lines": [
-            103,
-            109
+            121,
+            127
           ],
           "name": "run_bounded",
           "type": "function"
@@ -940,18 +940,18 @@
       ]
     },
     "release-longsession.sh": {
-      "hash": "99318ad15656",
-      "indexed_at": "2026-08-05T13:16:35.067361+00:00",
+      "hash": "430d58f672cc",
+      "indexed_at": "2026-08-08T23:52:22.403076+00:00",
       "language": "shell",
-      "lines": 286,
-      "mtime_ns": 1785903878446673800,
-      "size": 15811,
+      "lines": 304,
+      "mtime_ns": 1786233140026849700,
+      "size": 16648,
       "symbols": [
         {
           "docstring": "--- the conversation --------------------------------------------------------- A working session, not a lane drill: the turns build on each other, and",
           "lines": [
-            120,
-            143
+            138,
+            161
           ],
           "name": "turn_text",
           "type": "function"
@@ -959,8 +959,8 @@
         {
           "docstring": "--- INSTALL, the plugin way: the CLI loads it straight from the zip ------- `--plugin-dir` accepts a directory OR a .zip (measured: claude --help). Th",
           "lines": [
-            186,
-            194
+            204,
+            212
           ],
           "name": "run_turn",
           "type": "function"
@@ -995,25 +995,25 @@
       ]
     },
     "release-session.sh": {
-      "hash": "2e6343892d9a",
-      "indexed_at": "2026-08-05T13:16:35.072299+00:00",
+      "hash": "2080e258de06",
+      "indexed_at": "2026-08-08T23:52:22.404164+00:00",
       "language": "shell",
-      "lines": 297,
-      "mtime_ns": 1785903878599674800,
-      "size": 15115,
+      "lines": 315,
+      "mtime_ns": 1786233140026849700,
+      "size": 15952,
       "symbols": [
         {
           "lines": [
-            59,
-            65
+            77,
+            83
           ],
           "name": "run_bounded",
           "type": "function"
         },
         {
           "lines": [
-            125,
-            137
+            143,
+            155
           ],
           "name": "prompt_for",
           "type": "function"
@@ -1021,16 +1021,16 @@
         {
           "docstring": "The expected lens is read from THIS ARCHIVE's router, not from a copy here. A hard-coded expectation is a second source of truth that silently rots --",
           "lines": [
-            203,
-            206
+            221,
+            224
           ],
           "name": "lens_for",
           "type": "function"
         },
         {
           "lines": [
-            225,
-            235
+            243,
+            253
           ],
           "name": "run_session",
           "type": "function"
@@ -1148,6 +1148,32 @@
             242
           ],
           "name": "canon_np",
+          "type": "function"
+        }
+      ]
+    },
+    "session-log.sh": {
+      "hash": "da5b09cfb338",
+      "indexed_at": "2026-08-08T23:55:47.348370+00:00",
+      "language": "shell",
+      "lines": 271,
+      "mtime_ns": 1786233344878232900,
+      "size": 10196,
+      "symbols": [
+        {
+          "lines": [
+            129,
+            141
+          ],
+          "name": "run_arm",
+          "type": "function"
+        },
+        {
+          "lines": [
+            182,
+            198
+          ],
+          "name": "src_of",
           "type": "function"
         }
       ]
@@ -1463,6 +1489,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T22:45:54.785541+00:00",
+  "generated_at": "2026-08-08T23:56:56.566847+00:00",
   "version": "1.0"
 }

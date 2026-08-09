@@ -88,6 +88,16 @@ if (!EVENTS.length) {
   process.exit(3);
 }
 
+
+// The default central log path, derived the same way the router derives its
+// settings path (rot-router.sh:convener) so the two cannot disagree about where
+// a user's configuration lives. Forward slashes: both the POSIX arm and
+// PowerShell accept them on every platform this ships to, and a backslash in
+// JSON has to be escaped, which is one more thing to get wrong.
+const WIN_SEP = String.fromCharCode(92);   // a backslash, spelled without one
+const CONFIG_DIR = (process.env.CLAUDE_CONFIG_DIR
+  || require("path").join(require("os").homedir(), ".claude")).split(WIN_SEP).join("/");
+const DEFAULT_LOG = CONFIG_DIR + "/rot-moe/rot-route-debug.jsonl";
 // --- read, preserving every encoding decision the file already made ---------
 const raw = fs.readFileSync(file, "utf8");
 const hadBOM = raw.charCodeAt(0) === 0xFEFF;
@@ -114,6 +124,7 @@ const before = JSON.parse(JSON.stringify(s));
 
 // --- the edit ---------------------------------------------------------------
 let touched = [];
+let wroteEnv = false;   // the env default is NOT an event; see the verification block
 
 if (mode === "arm") {
   const alreadyIn = (ev) =>
@@ -144,7 +155,32 @@ if (mode === "arm") {
     s.hooks[ev].push({ matcher: "*", hooks: [{ type: "command", command: cmd, timeout: HOOK_TIMEOUT_SECONDS }] });
     touched.push(ev);
   }
-  if (touched.length === 0) { console.log("  nothing to do -- already armed on every event"); process.exit(10); }
+
+  // THE OBSERVATION CHANNEL IS SWITCHED ON AT INSTALL TIME.
+  //
+  // MEASURED 2026-08-09: grepping ARM_ROUTER.sh, ARM_ROUTER.ps1, this file and
+  // both plugin manifests for ROTMOE_DEBUG_LOG returned ZERO hits, while the
+  // router's first act in the debug path is to return when the variable is
+  // unset. Every install shipped with the log switched off. The only machine in
+  // the world with router logs had them because the path had been set by hand,
+  // which also meant the only person who could inspect the router's behaviour
+  // was the one who already knew it needed configuring.
+  //
+  // WRITTEN ONLY WHEN ABSENT. A value the user chose is theirs; an installer
+  // that "corrects" it is an installer that loses data. The default lands next
+  // to the settings file it is recorded in, not in a build directory of some
+  // unrelated project -- which is where it had drifted to on this machine.
+  if (!s.env || typeof s.env !== "object" || Array.isArray(s.env)) s.env = s.env || {};
+  if (typeof s.env !== "object" || Array.isArray(s.env)) {
+    console.log("  env: present but not an object -- left untouched");
+  } else if (typeof s.env.ROTMOE_DEBUG_LOG === "string" && s.env.ROTMOE_DEBUG_LOG !== "") {
+    console.log("  ROTMOE_DEBUG_LOG: already set, left as the user configured it");
+  } else {
+    s.env.ROTMOE_DEBUG_LOG = DEFAULT_LOG;
+    wroteEnv = true;
+    console.log("  ROTMOE_DEBUG_LOG: " + DEFAULT_LOG);
+  }
+  if (touched.length === 0 && !wroteEnv) { console.log("  nothing to do -- already armed on every event"); process.exit(10); }
 } else if (mode === "disarm" || mode === "disarm-any") {
   // THE PREDICATE IS THE ONLY DIFFERENCE between the two modes. Written once,
   // here, so the removal, the group-emptying rule and the container rule cannot
@@ -157,6 +193,21 @@ if (mode === "arm") {
   // documented means, which is the exact defect `disarm-any` was created to fix.
   // Widening it here rather than at the call sites keeps one definition of
   // "ours" for both arms.
+
+  // SYMMETRY, and only where it is safe. Disarm removes the default we wrote
+  // and nothing else: a path the user chose is theirs to keep, and an installer
+  // that deletes a customised value on uninstall is worse than one that leaves
+  // a harmless variable behind. The log FILES are never touched -- they are the
+  // user's data, and an uninstaller that deletes evidence is not a good citizen.
+  if (s.env && typeof s.env === "object" && !Array.isArray(s.env)) {
+    if (s.env.ROTMOE_DEBUG_LOG === DEFAULT_LOG) {
+      delete s.env.ROTMOE_DEBUG_LOG;
+      if (Object.keys(s.env).length === 0) delete s.env;
+      console.log("  ROTMOE_DEBUG_LOG: our default removed (log files left in place)");
+    } else if (typeof s.env.ROTMOE_DEBUG_LOG === "string") {
+      console.log("  ROTMOE_DEBUG_LOG: user-chosen value kept");
+    }
+  }
   const isOurs = (c) => mode === "disarm-any"
     ? (typeof c === "string" && /(rot-router|prover-remind)\.(ps1|sh)/.test(c))
     : (c === cmd);
@@ -240,6 +291,16 @@ if (mode === "arm") {
     stripped.hooks[ev] = stripped.hooks[ev].filter(
       g => !((g.hooks || []).some(h => h.command === cmd)));
     if (stripped.hooks[ev].length === 0 && !(before.hooks && before.hooks[ev])) delete stripped.hooks[ev];
+  }
+  // The env default is stripped the same way the hook entries are. `touched`
+  // holds EVENT NAMES and is indexed into `stripped.hooks`, so pushing a
+  // non-event onto it crashes this block -- measured, TypeError at the filter.
+  // A separate flag keeps the strong invariant intact: after removing exactly
+  // what we added, the file must be deep-equal to the pre-image, not merely
+  // "close enough in the keys someone remembered to check".
+  if (wroteEnv && stripped.env) {
+    delete stripped.env.ROTMOE_DEBUG_LOG;
+    if (Object.keys(stripped.env).length === 0 && !before.env) delete stripped.env;
   }
   if (Object.keys(stripped.hooks || {}).length === 0 && !before.hooks) delete stripped.hooks;
   const a = JSON.stringify(stripped), b = JSON.stringify(before);

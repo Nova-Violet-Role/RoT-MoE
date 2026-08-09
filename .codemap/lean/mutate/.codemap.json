@@ -502,6 +502,24 @@
         }
       ]
     },
+    "mutate_rotsessionlog.sh": {
+      "hash": "1779d223b2a2",
+      "indexed_at": "2026-08-09T00:08:42.359291+00:00",
+      "language": "shell",
+      "lines": 299,
+      "mtime_ns": 1786234088098640900,
+      "size": 12682,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            185
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotstem.sh": {
       "hash": "10a98dc344f4",
       "indexed_at": "2026-08-07T17:53:20.289396+00:00",
@@ -645,6 +663,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-08T22:38:11.624016+00:00",
+  "generated_at": "2026-08-09T00:08:42.359445+00:00",
   "version": "1.0"
 }

@@ -1,0 +1,271 @@
+#!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# session-log.sh -- bind lean/Proofs/RotSessionLog.lean to the two routers.
+#
+# WHAT THIS EXISTS FOR. RotSessionLog proves that a scrubbed session id contains
+# no path separator and no dot, so it cannot escape the directory it is joined
+# to. That is a theorem about a Lean function. Without this file it would say
+# nothing whatever about `tr -cd` in the POSIX arm or `-replace` in the
+# PowerShell one, and a proof that does not touch the program proves nothing
+# about the program.
+#
+# The four phases below are the binding. None may skip: an environment that
+# cannot run a phase reports INAPPLICABLE and says which, which is a statement
+# about the machine rather than a pass.
+#
+#   A  the constants in both arms match the ones the Lean source declares
+#   B  hostile session ids produce the SAME name in both arms as in the #guards
+#   C  provenance: the classify table, both arms
+#   D  self-control -- the detector must fail when fed a broken arm
+#
+# THE TABLE IN PHASE B IS NOT INVENTED HERE. Every row is pinned by a #guard in
+# lean/Proofs/RotSessionLog.lean and re-checked by `lake build` in the lean CI
+# job, so the two sides cannot drift without one of them going red.
+# =============================================================================
+
+# This harness declares its own traffic; see the same block in the other six.
+export ROTMOE_DEBUG_SRC=test
+export ROTMOE_DEBUG_LOCAL=0
+
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+SH="$ROOT/hooks/rot-router.sh"
+PS="$ROOT/hooks/rot-router.ps1"
+LEAN="$ROOT/lean/Proofs/RotSessionLog.lean"
+
+PASS=0; FAIL=0; INAP=0
+ok   () { PASS=$((PASS+1)); printf '  PASS  %s\n' "$1"; }
+bad  () { FAIL=$((FAIL+1)); printf '  FAIL  %s\n' "$1"; }
+inap () { INAP=$((INAP+1)); printf '  INAP  %s\n' "$1"; }
+
+TMP=$(mktemp -d 2>/dev/null || echo "/tmp/seslog.$$")
+mkdir -p "$TMP"
+# MEASURED: on Windows `mktemp -d` returns an MSYS path (/tmp/...) that
+# PowerShell resolves it under the wrong root, so every ps1 row failed with
+# the sh rows passed -- a harness defect that reads exactly like a router defect.
+# cygpath -m gives a form BOTH arms accept; elsewhere it is absent and the
+# original path is already fine.
+TMPW=$(cygpath -m "$TMP" 2>/dev/null || printf '%s' "$TMP")
+trap 'rm -rf "$TMP"' EXIT
+
+have_pwsh=0
+command -v pwsh >/dev/null 2>&1 && have_pwsh=1
+
+printf '== session-log: Lean spec vs both routers ==\n\n'
+
+# --------------------------------------------------------------------------
+printf -- '-- A. constants agree with the Lean source --\n'
+
+LEAN_MAX=$(sed -n 's/^def maxLen : Nat := \([0-9]*\).*/\1/p' "$LEAN" | head -1)
+if [ -n "$LEAN_MAX" ]; then
+  ok "Lean declares maxLen = $LEAN_MAX"
+else
+  bad "could not read maxLen out of $LEAN"
+  LEAN_MAX=0
+fi
+
+# The POSIX arm caps with `cut -c1-N`.
+SH_MAX=$(sed -n 's/.*cut -c1-\([0-9]*\).*/\1/p' "$SH" | head -1)
+if [ "$SH_MAX" = "$LEAN_MAX" ]; then
+  ok "sh arm caps at $SH_MAX -- matches the spec"
+else
+  bad "sh arm caps at '${SH_MAX:-none}', Lean says $LEAN_MAX"
+fi
+
+# The PowerShell arm caps with Substring(0, N).
+PS_MAX=$(sed -n 's/.*Substring(0, *\([0-9]*\)).*/\1/p' "$PS" | head -1)
+if [ "$PS_MAX" = "$LEAN_MAX" ]; then
+  ok "ps1 arm caps at $PS_MAX -- matches the spec"
+else
+  bad "ps1 arm caps at '${PS_MAX:-none}', Lean says $LEAN_MAX"
+fi
+
+# The alphabet. Lean: `c.isAlphanum || c == '-'`. sh: tr -cd 'A-Za-z0-9-'.
+# ps1: -replace '[^A-Za-z0-9-]'. All three must name the same set.
+if grep -q "c.isAlphanum || c == '-'" "$LEAN"; then
+  ok "Lean alphabet is alphanumeric plus dash"
+else
+  bad "Lean alphabet is not the expected isAlphanum-plus-dash"
+fi
+if grep -q "tr -cd 'A-Za-z0-9-'" "$SH"; then
+  ok "sh arm deletes the COMPLEMENT of A-Za-z0-9- (removal, not blacklisting)"
+else
+  bad "sh arm does not scrub with tr -cd 'A-Za-z0-9-'"
+fi
+if grep -q "\[^A-Za-z0-9-\]" "$PS"; then
+  ok "ps1 arm removes anything outside A-Za-z0-9-"
+else
+  bad "ps1 arm does not scrub with [^A-Za-z0-9-]"
+fi
+
+# --------------------------------------------------------------------------
+printf -- '\n-- B. hostile ids produce the name the #guards pin --\n'
+
+# id                          expected file name        (pinned by #guard in the Lean module)
+CASES='1ce31449-3c95|rot-route-1ce31449-3c95.jsonl
+../../etc/passwd|rot-route-etcpasswd.jsonl
+|rot-route-unknown.jsonl
+...|rot-route-unknown.jsonl
+/|rot-route-unknown.jsonl
+../..|rot-route-unknown.jsonl'
+
+# Every expectation must also appear as a #guard, or this table is a second
+# source of truth and the two will drift.
+while IFS='|' read -r id want; do
+  [ -n "$want" ] || continue
+  if grep -q "$want" "$LEAN"; then
+    :
+  else
+    bad "expectation '$want' is NOT pinned by a #guard in the Lean module"
+  fi
+done <<EOF
+$CASES
+EOF
+ok "every expected name below is also pinned by a #guard"
+
+run_arm () {  # run_arm <arm> <session_id> <projectdir>  -> prints the file created
+  _arm=$1; _sid=$2; _dir=$3
+  rm -rf "$_dir"; mkdir -p "$_dir"
+  _pl=$(printf '{"session_id":"%s","cwd":"%s","hook_event_name":"PreToolUse","prompt":"build"}' "$_sid" "$_dir")
+  if [ "$_arm" = sh ]; then
+    printf '%s' "$_pl" | ROTMOE_DEBUG_LOCAL=1 ROTMOE_DEBUG_LOG="$_dir/central.jsonl" \
+      sh "$SH" >/dev/null 2>&1
+  else
+    printf '%s' "$_pl" | ROTMOE_DEBUG_LOCAL=1 ROTMOE_DEBUG_LOG="$_dir/central.jsonl" \
+      pwsh -NoProfile -File "$PS" >/dev/null 2>&1
+  fi
+  find "$_dir/.rot-moe" -name 'rot-route-*.jsonl' 2>/dev/null | head -1 | sed 's|.*/||'
+}
+
+i=0
+while IFS='|' read -r id want; do
+  [ -n "$want" ] || continue
+  i=$((i+1))
+  got=$(run_arm sh "$id" "$TMPW/sh$i")
+  if [ "$got" = "$want" ]; then
+    ok "sh  '${id:-<empty>}' -> $got"
+  else
+    bad "sh  '${id:-<empty>}' -> '${got:-<none>}', expected '$want'"
+  fi
+  if [ "$have_pwsh" = 1 ]; then
+    gotp=$(run_arm ps1 "$id" "$TMPW/ps$i")
+    if [ "$gotp" = "$want" ]; then
+      ok "ps1 '${id:-<empty>}' -> $gotp"
+    else
+      bad "ps1 '${id:-<empty>}' -> '${gotp:-<none>}', expected '$want'"
+    fi
+  else
+    inap "ps1 '${id:-<empty>}' -- pwsh not on PATH"
+  fi
+done <<EOF
+$CASES
+EOF
+
+# The property the theorems are actually about: nothing lands outside the
+# project directory, however hostile the id.
+esc="$TMPW/escape"
+rm -rf "$esc"; mkdir -p "$esc/inner"
+run_arm sh '../../../PWNED' "$esc/inner" >/dev/null
+if [ -z "$(find "$esc" -name '*PWNED*' -not -path '*/inner/.rot-moe/*' 2>/dev/null)" ] \
+   && [ -z "$(find "$esc" -maxdepth 1 -name '*.jsonl' 2>/dev/null)" ]; then
+  ok "sh  traversal refused: nothing written above the project directory"
+else
+  bad "sh  TRAVERSAL SUCCEEDED -- a file escaped the project directory"
+fi
+
+# --------------------------------------------------------------------------
+printf -- '\n-- C. provenance: the classify table --\n'
+
+src_of () {  # src_of <arm> <declared|-> <withEvent 0|1>
+  _arm=$1; _dec=$2; _ev=$3
+  _d="$TMPW/src.$_arm.$$"; rm -rf "$_d"; mkdir -p "$_d"
+  if [ "$_ev" = 1 ]; then
+    _pl='{"session_id":"s1","hook_event_name":"PreToolUse","prompt":"build"}'
+  else
+    _pl='{"session_id":"s1","prompt":"build"}'
+  fi
+  if [ "$_dec" = '-' ]; then unset ROTMOE_DEBUG_SRC; else export ROTMOE_DEBUG_SRC="$_dec"; fi
+  if [ "$_arm" = sh ]; then
+    printf '%s' "$_pl" | ROTMOE_DEBUG_LOCAL=0 ROTMOE_DEBUG_LOG="$_d/c.jsonl" sh "$SH" >/dev/null 2>&1
+  else
+    printf '%s' "$_pl" | ROTMOE_DEBUG_LOCAL=0 ROTMOE_DEBUG_LOG="$_d/c.jsonl" pwsh -NoProfile -File "$PS" >/dev/null 2>&1
+  fi
+  export ROTMOE_DEBUG_SRC=test
+  sed -n 's/.*"kind":"route".*"src":"\([a-z]*\)".*/\1/p' "$_d/c.jsonl" 2>/dev/null | head -1
+}
+
+# declared  hasEvent  expected      -- classify in the Lean module
+PROV='-|1|hook
+-|0|cli
+test|1|test
+test|0|test
+wat|1|hook
+wat|0|cli'
+
+while IFS='|' read -r dec ev want; do
+  [ -n "$want" ] || continue
+  got=$(src_of sh "$dec" "$ev")
+  if [ "$got" = "$want" ]; then
+    ok "sh  declared=${dec} hasEvent=${ev} -> $got"
+  else
+    bad "sh  declared=${dec} hasEvent=${ev} -> '${got:-<none>}', expected '$want'"
+  fi
+  if [ "$have_pwsh" = 1 ]; then
+    gotp=$(src_of ps1 "$dec" "$ev")
+    if [ "$gotp" = "$want" ]; then
+      ok "ps1 declared=${dec} hasEvent=${ev} -> $gotp"
+    else
+      bad "ps1 declared=${dec} hasEvent=${ev} -> '${gotp:-<none>}', expected '$want'"
+    fi
+  else
+    inap "ps1 declared=${dec} hasEvent=${ev} -- pwsh not on PATH"
+  fi
+done <<EOF
+$PROV
+EOF
+
+# The honesty property, stated as a check rather than inferred from the table:
+# a declared harness record is never counted as live traffic.
+if [ "$(src_of sh test 1)" != hook ]; then
+  ok "sh  test_is_never_hook holds on a payload carrying a real event"
+else
+  bad "sh  a declared test record was classified as live traffic"
+fi
+
+# Every harness that writes to the log must declare itself, or the field is
+# decoration. This is the check that would have caught the contamination.
+UNDECLARED=0
+for f in "$ROOT"/checker/*.sh; do
+  grep -q 'rot-router' "$f" 2>/dev/null || continue
+  grep -q '"prompt"\|tool_input' "$f" 2>/dev/null || continue
+  grep -q 'ROTMOE_DEBUG_SRC' "$f" 2>/dev/null && continue
+  UNDECLARED=$((UNDECLARED+1))
+  printf '        undeclared: %s\n' "$(basename "$f")"
+done
+if [ "$UNDECLARED" = 0 ]; then
+  ok "every checker that feeds the router declares ROTMOE_DEBUG_SRC"
+else
+  bad "$UNDECLARED checker(s) feed the router without declaring their traffic"
+fi
+
+# --------------------------------------------------------------------------
+printf -- '\n-- D. self-control: the detector must be able to fail --\n'
+
+BROKE="$TMP/broken-router.sh"
+sed 's/tr -cd .A-Za-z0-9-./tr -cd "A-Za-z0-9.\/-"/' "$SH" > "$BROKE"
+if cmp -s "$BROKE" "$SH"; then
+  bad "control: could not construct a broken arm -- phase A/B prove nothing"
+else
+  ok "control: a broken arm was constructed (scrubber weakened to allow / and .)"
+  if grep -q "tr -cd 'A-Za-z0-9-'" "$BROKE"; then
+    bad "control: the broken arm still passes the phase-A grep -- detector is blind"
+  else
+    ok "control: phase A's grep REJECTS the weakened scrubber"
+  fi
+fi
+
+printf '\n== session-log: %d passed, %d failed, %d inapplicable ==\n' "$PASS" "$FAIL" "$INAP"
+[ "$FAIL" -eq 0 ]
