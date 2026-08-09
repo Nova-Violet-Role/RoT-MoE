@@ -1,0 +1,78 @@
+{
+  "primary": {
+    "label": "a-first (arm a ran first, arm b second)",
+    "pairs": 60,
+    "missing": 0,
+    "routedFaster": 55,
+    "unroutedFaster": 5,
+    "signTestP": 1.0382663478969465e-11,
+    "totalMsUnrouted": 983688,
+    "totalMsRouted": 544000,
+    "routedSpeedupPct": 44.7,
+    "byFamily": {
+      "guard_count": {
+        "n": 12,
+        "routedFaster": 11,
+        "medianMsUnrouted": 19753.5,
+        "medianMsRouted": 8449,
+        "medianOutTokUnrouted": 489,
+        "medianOutTokRouted": 421.5
+      },
+      "mutant_count": {
+        "n": 36,
+        "routedFaster": 32,
+        "medianMsUnrouted": 12154.5,
+        "medianMsRouted": 8740,
+        "medianOutTokUnrouted": 218.5,
+        "medianOutTokRouted": 375
+      },
+      "theorem_count": {
+        "n": 12,
+        "routedFaster": 12,
+        "medianMsUnrouted": 13584.5,
+        "medianMsRouted": 7272.5,
+        "medianOutTokUnrouted": 439.5,
+        "medianOutTokRouted": 325
+      }
+    }
+  },
+  "reversed": {
+    "label": "b-first (arm b ran first, arm a second)",
+    "pairs": 60,
+    "missing": 0,
+    "routedFaster": 56,
+    "unroutedFaster": 4,
+    "signTestP": 9.084503982403922e-13,
+    "totalMsUnrouted": 1044883,
+    "totalMsRouted": 557749,
+    "routedSpeedupPct": 46.6,
+    "byFamily": {
+      "guard_count": {
+        "n": 12,
+        "routedFaster": 11,
+        "medianMsUnrouted": 18583.5,
+        "medianMsRouted": 10213,
+        "medianOutTokUnrouted": 500.5,
+        "medianOutTokRouted": 288
+      },
+      "mutant_count": {
+        "n": 36,
+        "routedFaster": 35,
+        "medianMsUnrouted": 14972,
+        "medianMsRouted": 7201,
+        "medianOutTokUnrouted": 349.5,
+        "medianOutTokRouted": 185
+      },
+      "theorem_count": {
+        "n": 12,
+        "routedFaster": 10,
+        "medianMsUnrouted": 22300.5,
+        "medianMsRouted": 11037,
+        "medianOutTokUnrouted": 613.5,
+        "medianOutTokRouted": 432
+      }
+    }
+  },
+  "orderConfoundUncontrolled": false,
+  "attribution": "router"
+}

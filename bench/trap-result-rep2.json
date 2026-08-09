@@ -1,0 +1,54 @@
+{
+  "n": 60,
+  "arms": {
+    "a": {
+      "correct": 59,
+      "trapped": 0,
+      "other": 1,
+      "silent": 0,
+      "medianLen": 141
+    },
+    "b": {
+      "correct": 58,
+      "trapped": 0,
+      "other": 2,
+      "silent": 0,
+      "medianLen": 74
+    }
+  },
+  "band": 1,
+  "bWins": 0,
+  "aWins": 1,
+  "p": 1,
+  "bandDeconfounded": 1,
+  "bWinsUnexplained": 0,
+  "aWinsUnexplained": 1,
+  "explained": 0,
+  "pDeconfounded": 1,
+  "lengthConfounded": false,
+  "powerFloor": 10,
+  "verdict": "noPower",
+  "byFamily": {
+    "guard_count": {
+      "n": 12,
+      "aCorrect": 11,
+      "bCorrect": 10,
+      "aTrapped": 0,
+      "bTrapped": 0
+    },
+    "mutant_count": {
+      "n": 36,
+      "aCorrect": 36,
+      "bCorrect": 36,
+      "aTrapped": 0,
+      "bTrapped": 0
+    },
+    "theorem_count": {
+      "n": 12,
+      "aCorrect": 12,
+      "bCorrect": 12,
+      "aTrapped": 0,
+      "bTrapped": 0
+    }
+  }
+}
