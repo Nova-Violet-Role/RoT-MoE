@@ -142,12 +142,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "b16a0a7cbff0",
-      "indexed_at": "2026-08-08T23:49:41.527954+00:00",
+      "hash": "686bf41aa2b8",
+      "indexed_at": "2026-08-09T00:38:28.202769+00:00",
       "language": "shell",
-      "lines": 645,
-      "mtime_ns": 1786232979601447400,
-      "size": 33629,
+      "lines": 649,
+      "mtime_ns": 1786235871143062700,
+      "size": 33922,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -206,7 +206,7 @@
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
             324,
-            646
+            650
           ],
           "name": "hook_mode",
           "type": "function"
@@ -214,8 +214,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            615,
-            622
+            619,
+            626
           ],
           "name": "need_value",
           "type": "function"
@@ -232,6 +232,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-09T00:23:37.075214+00:00",
+  "generated_at": "2026-08-09T00:38:28.202911+00:00",
   "version": "1.0"
 }

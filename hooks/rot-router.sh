@@ -356,7 +356,11 @@ hook_mode () {
   esac
   # JSON escapes a Windows separator, so "C:\Users\x" arrives doubled. Left as
   # forward slashes, which every shell and PowerShell on this platform accept.
-  _rot_proj=$(printf '%s' "$_rot_proj" | sed 's|\\|/|g')
+  # tr, NOT sed. With | as the sed delimiter the escaped-backslash pattern is
+  # ambiguous across implementations, and checker/portability.sh refuses it:
+  # a strip that fails OPEN on BSD would leave separators in a value that
+  # reaches a directory path. tr has no delimiter to collide with.
+  _rot_proj=$(printf '%s' "$_rot_proj" | tr '\\' '/')
   [ -n "$_rot_proj" ] || _rot_proj=$PWD
 
   # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean. Inference first,
