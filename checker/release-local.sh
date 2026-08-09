@@ -25,13 +25,16 @@
 # HEAD" is true by construction, and phase 4 then proves it by regenerating and
 # diffing the contents rather than trusting the claim.
 #
-# WHY 1.0.x DOES NOT TOUCH THE TREE. `plugin.json` declares 0.9.2 and
-# checker/release-consistency.sh binds that to the newest published tag. Bumping
-# the tree to 1.0.2 to get a 1.0.2 build would put the manifest ahead of every
-# tag and turn a correct repository red -- buying a local convenience with a
-# false alarm in the shared history. The version is therefore rewritten only in
-# the throwaway export, and the real manifest is never opened for writing. Phase
-# 5 asserts that: the tree still says 0.9.2 when this script is done.
+# WHY THE LOCAL BUILD DOES NOT TOUCH THE TREE. checker/release-consistency.sh
+# binds the manifest version to the newest published tag, so rewriting the real
+# manifest to get a differently-versioned local build would put the tree ahead
+# of every tag and turn a correct repository red. The version is therefore
+# rewritten only in the throwaway export.
+#
+# Phase 5 asserts the INVARIANT, not the value: the manifest is byte-identical
+# before and after this script. Stating it as "the tree still says 0.9.2" was a
+# dated spec -- it went red the day the family was legitimately bumped, on a
+# change that was entirely correct.
 #
 # The obligations come from lean/Proofs/RotLocalRelease.lean. These are the REAL
 # theorem names, checked against the module -- an earlier draft of this header
@@ -69,6 +72,17 @@ command -v tar   >/dev/null 2>&1 || { echo "REFUSE: tar absent";   exit 2; }
 LOCALDIR="$REPO/.release-local-only"
 LOCALVER="1.0"                      # MAJOR.MINOR; the packager derives .0/.1/.2
 MANIFEST=".claude-plugin/plugin.json"
+
+# --- phase 5 baseline, captured BEFORE any packaging runs -------------------
+# Phase 5 asks whether THIS SCRIPT modified the tracked manifest. It used to ask
+# a different question -- whether the manifest still literally said "0.9.2" --
+# which is a snapshot of a contingent fact, not the property that matters. When
+# the family was legitimately bumped to 1.0.x the gate went RED on a CORRECT
+# tree, and the obvious repair (delete or weaken the check) would have destroyed
+# real coverage. The durable statement is: whatever the version is, this script
+# must leave it alone. That holds for 0.9.2, for 1.0.2, and for every bump after.
+_MANIFEST_BEFORE="$(cksum < "$REPO/$MANIFEST" 2>/dev/null || echo unreadable)"
+_MANIFEST_VER_BEFORE="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$REPO/$MANIFEST" | head -1)"
 
 echo "== release local-only :: 1.0.x from HEAD, never published =="
 
@@ -300,10 +314,14 @@ fi
 # The whole 1.0.x rewrite happens in a throwaway export. If this script ever
 # starts editing the manifest in place, the repository silently claims a version
 # it has never tagged -- and THAT is the failure this phase catches.
-if grep -q '"version": "0.9.2"' "$REPO/$MANIFEST"; then
-  ok "phase 5: the tracked manifest still declares 0.9.2 -- the local build did not move the tree"
+_MANIFEST_AFTER="$(cksum < "$REPO/$MANIFEST" 2>/dev/null || echo unreadable)"
+_MANIFEST_VER_AFTER="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$REPO/$MANIFEST" | head -1)"
+if [ "$_MANIFEST_BEFORE" = "unreadable" ] || [ -z "$_MANIFEST_VER_BEFORE" ]; then
+  bad "phase 5: could not read $MANIFEST before packaging -- this check proves nothing"
+elif [ "$_MANIFEST_BEFORE" = "$_MANIFEST_AFTER" ]; then
+  ok "phase 5: the tracked manifest is byte-identical after packaging (still $_MANIFEST_VER_AFTER) -- the local build did not move the tree"
 else
-  bad "phase 5: $MANIFEST no longer declares 0.9.2 -- a local-only build has modified the tracked tree"
+  bad "phase 5: $MANIFEST CHANGED during packaging ($_MANIFEST_VER_BEFORE -> $_MANIFEST_VER_AFTER) -- a local-only build has modified the tracked tree"
 fi
 
 # NOT `git status --porcelain | grep -q ...`: grep -q exits at the first match and

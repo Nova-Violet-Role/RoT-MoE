@@ -38,42 +38,181 @@
         }
       ]
     },
+    "ab-grounding.js": {
+      "hash": "857abc8f405d",
+      "indexed_at": "2026-08-09T12:09:30.503715+00:00",
+      "language": "javascript",
+      "lines": 180,
+      "mtime_ns": 1786277368570225200,
+      "size": 7538,
+      "symbols": [
+        {
+          "lines": [
+            47,
+            58
+          ],
+          "name": "scanLean",
+          "signature": "(dir)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            66,
+            81
+          ],
+          "name": "citationsOf",
+          "signature": "(text)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            83,
+            95
+          ],
+          "name": "readArm",
+          "signature": "(arm)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            102,
+            115
+          ],
+          "name": "armStats",
+          "signature": "(M)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            152,
+            159
+          ],
+          "name": "signP",
+          "signature": "(k, n)",
+          "type": "function"
+        }
+      ]
+    },
     "ab-session.sh": {
-      "hash": "3788b636f440",
-      "indexed_at": "2026-08-09T09:36:01.789278+00:00",
+      "hash": "004c998dfc68",
+      "indexed_at": "2026-08-09T12:17:12.196126+00:00",
       "language": "shell",
-      "lines": 351,
-      "mtime_ns": 1786268159851327100,
-      "size": 16397,
+      "lines": 385,
+      "mtime_ns": 1786277829886864600,
+      "size": 18196,
       "symbols": [
         {
           "docstring": "--- ARM PRECONDITIONS, verified against something the harness did NOT create - RotObserve section 10 is the rule here: a detector satisfied by an arti",
           "lines": [
-            175,
-            183
+            209,
+            217
           ],
           "name": "armed_version",
           "type": "function"
         },
         {
           "lines": [
-            184,
-            194
+            218,
+            228
           ],
           "name": "armed_timeout",
           "type": "function"
         },
         {
           "lines": [
-            245,
-            250
+            279,
+            284
           ],
           "name": "restore_registry",
           "type": "function"
         }
       ]
+    },
+    "fact-prompts.js": {
+      "hash": "0ea1c51502ec",
+      "indexed_at": "2026-08-09T12:15:41.977744+00:00",
+      "language": "javascript",
+      "lines": 105,
+      "mtime_ns": 1786277739693226100,
+      "size": 4515,
+      "symbols": [
+        {
+          "docstring": "Nesting-aware: Lean permits `/- ... /- ... -/ ... -/`.",
+          "lines": [
+            52,
+            62
+          ],
+          "name": "stripBlockComments",
+          "signature": "(txt)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            64,
+            71
+          ],
+          "name": "facts",
+          "signature": "(file)",
+          "type": "function"
+        }
+      ]
+    },
+    "fact-score.js": {
+      "hash": "03cad1e01529",
+      "indexed_at": "2026-08-09T12:58:56.632857+00:00",
+      "language": "javascript",
+      "lines": 136,
+      "mtime_ns": 1786280334426837900,
+      "size": 5992,
+      "symbols": [
+        {
+          "lines": [
+            38,
+            46
+          ],
+          "name": "stripBlockComments",
+          "signature": "(txt)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            47,
+            53
+          ],
+          "name": "facts",
+          "signature": "(rel)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            73,
+            84
+          ],
+          "name": "readArm",
+          "signature": "(arm)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            88,
+            95
+          ],
+          "name": "correct",
+          "signature": "(k, ans)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            112,
+            119
+          ],
+          "name": "signP",
+          "signature": "(k, n)",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-09T09:36:01.789391+00:00",
+  "generated_at": "2026-08-09T12:58:56.892548+00:00",
   "version": "1.0"
 }

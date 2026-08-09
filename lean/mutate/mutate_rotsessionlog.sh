@@ -344,5 +344,41 @@ if [ "$survived" -gt 0 ]; then
   exit 1
 fi
 
-echo "All $killed mutants killed. Every belief above is refuted by a theorem or a #guard."
+# THE VERDICT MUST BE ABLE TO FAIL.
+#
+# This block used to be an unconditional `exit 0` under a sentence claiming
+# every mutant was killed -- so a SURVIVING mutant was reported as a clean
+# sweep. Measured 2026-08-09 when C05 survived in mutate_rotceiling.sh and the
+# suite still exited 0. Every suite in this directory shared the defect.
+#
+# A survivor and a discard mean different things and neither is a pass:
+#   SURVIVED  the mutation applied, the build stayed green -> COVERAGE GAP
+#   DISCARDED the mutation never applied -> NOTHING WAS TESTED
+if [ "${survived:-0}" -gt 0 ]; then
+  echo "FAIL: $survived of $_total mutant(s) SURVIVED -- those beliefs are NOT defended."
+  echo "A survivor is a coverage gap. Add the theorem or the #guard; never delete the mutant."
+  exit 1
+fi
+if [ "${discarded:-0}" -gt 0 ]; then
+  echo "FAIL: $discarded mutant(s) DID NOT APPLY -- the patch never landed, so nothing was tested."
+  echo "Fix the needle. A mutation that cannot be applied is not evidence of anything."
+  exit 1
+fi
+# RESTORE AND REBUILD -- a suite must leave the tree GREEN.
+#
+# Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
+# So without this, a PASSING suite leaves the module uncompiled and the next
+# instrument (lake env leanchecker) fails for a reason unrelated to any proof.
+# Measured 2026-08-09 on Proofs.RotSessionLog.
+cp "$BAK" "$F" 2>/dev/null
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotSessionLog ) >/dev/null 2>&1
+_base=$?
+if [ "$_base" -ne 0 ]; then
+  echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."
+  echo "The tree is left RED. A green mutation report over a red tree is worthless."
+  exit 1
+fi
+echo "baseline restored and rebuilt GREEN"
+echo "All $killed mutants killed ($_total ran, 0 survived, 0 discarded)."
+echo "Every belief above is refuted by a theorem or a #guard."
 exit 0

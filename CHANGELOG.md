@@ -23,6 +23,131 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The mutation harness could not fail — 26 suites, one unconditional `exit 0`
+
+**The instrument that certifies every theorem in this repository was itself a
+false-green generator.** The shared suite template ended with
+
+```sh
+echo "All $killed mutants killed. Every belief above is refuted by a theorem or a #guard."
+exit 0
+```
+
+with no reference to `$survived`. A suite in which mutants survived printed that
+sentence and exited **0**. It only failed when *zero* mutants ran.
+
+Found by accident, in the only way it could be: mutant `C05` survived in
+`mutate_rotceiling.sh` and the suite reported success anyway. **11 suites shared
+the unconditional ending and are now gated**; the other 32 already gated on
+survivors with different syntax, and three separate greps of mine got the count
+wrong before the endings were read directly — a lesson about auditing by pattern
+instead of by inspection.
+
+The gate distinguishes the two failure kinds, because they mean opposite things:
+
+| outcome | meaning | exit |
+|---|---|---|
+| `SURVIVED` | mutation applied, build stayed green → **coverage gap** | 1 |
+| `DISCARDED` | mutation never applied → **nothing was tested** | 1 |
+| `KILLED` (all) | every belief is defended | 0 |
+
+**Negative control, run before trusting it:** the repaired
+`mutate_rotceiling.sh` exits **1** with `FAIL: 1 of 8 mutant(s) SURVIVED`. The
+instrument can fail, which is the only reason its green counts.
+
+A second defect surfaced from the same run: a passing suite left the module with
+**no `.olean`** — each mutant deletes it and the exit trap restores only the
+source — so `lake env leanchecker` on that module failed immediately afterwards
+for a reason unrelated to any proof. All 11 suites now **restore, rebuild, and
+gate on a green baseline** before reporting success.
+
+`C05` was not noise. It weakened `<` to `<=` in `verdict`, which would classify
+a **tie** as a routed advantage, and nothing in the module covered a tie with
+power. The hole is closed with a theorem, not by retiring the mutant:
+`tie_with_power_is_null` and `every_tie_with_power_is_null (n) (0 < n)`.
+
+### Three efficacy metrics, three different failures — the claim is still unproven
+
+| metric | headline | its own control | verdict |
+|---|---|---|---|
+| compliance | routed 29–4, p = 1.09e-5 | 27/29 wins were merely shorter answers | brevity confound |
+| grounding | routed 8–0, p = 0.0078 | volume-matched 18 pairs: 0–0, all tied | selectivity confound |
+| facts | 84–84 | zero discordant pairs | **ceiling: no power** |
+
+`bench/ab-grounding.js` measures citation precision — a ratio, so length
+cancels. It defeated the brevity confound and then failed a second one: a ratio
+resists length but not **claim volume** (routed asserts 1.42 checkable items per
+turn against 2.47). Holding volume constant, every comparable pair tied.
+
+`bench/fact-prompts.js` + `bench/fact-score.js` answer that by punishing
+silence: 84 prompts with ground truth derived mechanically from the repo, one
+correct answer each, **abstention scored WRONG**, tools enabled. Both arms
+scored 84/84 — a **ceiling**, which is not a null. `Proofs/RotCeiling.lean`
+proves the distinction so `p = 1.0` can never be quoted as "the arms are equal".
+
+Two ground-truth defects were caught before either could grade an answer:
+`RotVacuity.lean:35` is **prose inside a `/- -/` block** beginning with the word
+"theorem" and was extracted as a theorem named `at`; and the first `share` lemma
+in `RotLensAbility` was **false as stated** because `Nat` division truncates.
+
+What survives all three controls: **4 absolute false statements routed against
+29 unrouted** — achieved by saying less and choosing when to speak. Per-claim
+reliability is indistinguishable.
+
+`bench/ab-session.sh` gained `ROTMOE_AB_PROMPTS` and `ROTMOE_AB_SUFFIX` so a
+second corpus reuses the runner instead of forking it. The suffix must be
+overridable: appending "answer in one or two sentences" to a factual question
+would re-import the very confound the fact corpus exists to escape.
+
+### The emitter, found: the plugin root was a stale Desktop folder
+
+**The `*.log` alarm is CLOSED with an attributed cause.** A self-attributing
+execution marker — recording not just *that* the router ran but *as what* —
+caught it:
+
+```
+ROOT=[<DESKTOP>/RoT-MoE 0.7.1-Lean/]
+```
+
+while `installed_plugins.json` declares `cache/rot-moe/rot-moe/1.0.1` and
+`known_marketplaces.json` names `Desktop\RoT-MoE 1.0.1-Lean`. **Three paths,
+and the one that executes is named by neither registry file.** That folder holds
+an 18048 B router with `RotSrc` x0 — a build predating the provenance feature,
+which is precisely why every live record arrived without `src` or `session`.
+
+So the five patched copies were all irrelevant: patching a path moves the
+observable only if the runtime resolves that path.
+
+**The method that should have been used first:** identify a running program by
+what it EMITS. A record lacking `src` cannot come from a build that always emits
+`src`, and a repo-HEAD router does — measured on a hand-driven invocation. That
+localises the build with no filesystem search at all.
+
+`Proofs/RotPluginRoot.lean` — 6 theorems, 7 guards, 0 sorry, **8/8 killed**:
+
+| theorem | what it settles |
+|---|---|
+| `registry_driven_patch_missed_the_runtime` | why five patches produced no change |
+| `registry_patch_fails_whenever_runtime_diverges` | quantified over every deployment, not just today's |
+| `patching_the_runtime_root_is_effective` | the method is sound once aimed correctly |
+| `bare_record_rules_out_a_modern_build` | provenance-absence is positive identification |
+| `bare_record_admits_an_old_build` | the test discriminates, not merely rejects |
+| `provenance_separates_the_builds` | separation without filesystem access |
+
+**Production has NOT been re-pointed** at the installed 1.0.1. Re-registering the
+marketplace changes the live session's plugin root; that belongs at a session
+boundary with a backup, not mid-run. Cause proved, repair scheduled.
+
+**A defect found in my own measurement, same hunt:** I checked for new records
+with a line count on a log pinned at its 5000 cap, and read `new_records=0`
+while a record had just arrived. The log rotates. That is
+`delta_false_passes_under_rotation` — proved this morning, then walked into
+hours later on the real file. Timestamps, not counts.
+
+Counts: **838 theorems, 40 modules, 37 suites, 439 mutants**.
+
+---
+
 ### The A/B's disarm check was counting the wrong thing
 
 **This is NEXT item 4 -- the `bench/` A/B on the now-attributable log -- and it

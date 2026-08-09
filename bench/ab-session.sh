@@ -47,7 +47,12 @@ cd "$REPO"
 
 CTT="${ROTMOE_CTT_DIR:-C:/Users/Saimono/Claude_Test/.claude}"
 CORPUS="${ROTMOE_AB_CORPUS:-D:/Temp/rotmoe-ab}"
-PROMPTS="$REPO/bench/ab-prompts.txt"
+# The prompt file and the per-turn suffix are overridable so a SECOND corpus
+# can reuse this runner without forking it. The fact corpus (bench/fact-*.js)
+# must NOT carry the "one or two sentences" suffix: that instruction is the
+# thing the compliance metric measured, and appending it to a factual question
+# would re-import the brevity confound into the corpus built to escape it.
+PROMPTS="${ROTMOE_AB_PROMPTS:-$REPO/bench/ab-prompts.txt}"
 TURN_TIMEOUT="${ROTMOE_TURN_TIMEOUT:-120}"
 REGISTRY="$CTT/plugins/installed_plugins.json"
 
@@ -124,6 +129,35 @@ echo "== A/B arm $ARM, turns $FROM..$TO =="
 # --- the environment, identical in both arms ---------------------------------
 export CLAUDE_CONFIG_DIR="$CTT"
 export ROTMOE_DEBUG_LOG="$LOG"
+
+# THE EFFECTIVE LOG PATH IS NOT NECESSARILY THE ONE WE JUST EXPORTED.
+#
+# Measured 2026-08-09: this arm reported "arm A produced NO route records" and
+# refused -- while the router had in fact run and written 90 records, including
+# SessionEnd, for the very session the join was looking for. The records were in
+# the CTT config's own log, not in "$LOG".
+#
+# Cause: an `env` block in the CTT settings.json BEATS an inherited export.
+# `checker/ctt-session.sh:250` was fixed for exactly this and the fix was never
+# carried here, so the benchmark inherited a solved bug. The failure direction
+# was safe (a false FAIL, never a false pass), but a harness that cannot find
+# the evidence is a harness that cannot judge.
+#
+# So resolve the path the ROUTER will actually use, and join against THAT.
+EFFECTIVE_LOG="$LOG"
+_settings_log=$(node -e '
+const fs=require("fs");
+try{
+  const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8").replace(/^﻿/,""));
+  const v=(j.env||{}).ROTMOE_DEBUG_LOG;
+  if(typeof v==="string"&&v.length) process.stdout.write(v);
+}catch(e){}' "$CTT/settings.json" 2>/dev/null)
+if [ -n "$_settings_log" ]; then
+  EFFECTIVE_LOG="$_settings_log"
+  note "effective log: $EFFECTIVE_LOG (settings.json env BEATS the exported ROTMOE_DEBUG_LOG=$LOG)"
+else
+  note "effective log: $EFFECTIVE_LOG (no settings.json override)"
+fi
 _live_cred="$HOME/.claude/.credentials.json"
 if [ -f "$_live_cred" ]; then
   cp "$_live_cred" "$CTT/.credentials.json" 2>/dev/null && note "credential refreshed (one-way copy, as the launcher does)"
@@ -255,11 +289,11 @@ SIDF="$CORPUS/arm$ARM.sid"
 SID=""
 [ -f "$SIDF" ] && SID=$(cat "$SIDF" 2>/dev/null)
 
-_before=$(grep -c '"kind":"route"' "$LOG" 2>/dev/null); : "${_before:=0}"
+_before=$(grep -c '"kind":"route"' "$EFFECTIVE_LOG" 2>/dev/null); : "${_before:=0}"
 ran=0; failed=0; wrote=0
 n="$FROM"
 while [ "$n" -le "$TO" ]; do
-  txt="$(sed -n "${n}p" "$PROMPTS") Answer in one or two sentences."
+  txt="$(sed -n "${n}p" "$PROMPTS")${ROTMOE_AB_SUFFIX- Answer in one or two sentences.}"
   dest="$OUT/turn-$(printf '%03d' "$n").json"
   start=$(date +%s)
   if [ -z "$SID" ]; then
@@ -283,7 +317,7 @@ while [ "$n" -le "$TO" ]; do
   n=$((n+1))
 done
 
-_after=$(grep -c '"kind":"route"' "$LOG" 2>/dev/null); : "${_after:=0}"
+_after=$(grep -c '"kind":"route"' "$EFFECTIVE_LOG" 2>/dev/null); : "${_after:=0}"
 _new=$((_after - _before))
 
 # --- THE JOIN: attribute records to THIS RUN, not to the file ----------------
@@ -310,7 +344,7 @@ if [ -z "$_sid_now" ]; then
   bad "no session id for arm $ARM -- cannot attribute records to this run; refusing to judge the arm on a global delta"
   _joined=-1
 else
-  _joined=$(grep '"kind":"route"' "$LOG" 2>/dev/null | grep -c "\"session\":\"$_sid_now\"")
+  _joined=$(grep '"kind":"route"' "$EFFECTIVE_LOG" 2>/dev/null | grep -c "\"session\":\"$_sid_now\"")
   : "${_joined:=0}"
 fi
 note "ran $ran turn(s), $failed failed, $wrote stored; route records THIS SESSION: $_joined (global delta, diagnostic only: $_new)"

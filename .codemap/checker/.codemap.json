@@ -11,12 +11,12 @@
       "symbols": []
     },
     "ab-compliance.sh": {
-      "hash": "b588db6fc47d",
-      "indexed_at": "2026-08-09T06:38:46.872675+00:00",
+      "hash": "eb860c4a4a3c",
+      "indexed_at": "2026-08-09T13:34:45.969225+00:00",
       "language": "shell",
-      "lines": 108,
-      "mtime_ns": 1786206331172600500,
-      "size": 5098,
+      "lines": 120,
+      "mtime_ns": 1786282483260362900,
+      "size": 5820,
       "symbols": []
     },
     "ab-lanes.js": {
@@ -931,26 +931,26 @@
       ]
     },
     "release-local.sh": {
-      "hash": "9a44f0a70a04",
-      "indexed_at": "2026-08-09T06:38:46.973145+00:00",
+      "hash": "6530d0f7435f",
+      "indexed_at": "2026-08-09T13:43:07.041776+00:00",
       "language": "shell",
-      "lines": 346,
-      "mtime_ns": 1786207359275403100,
-      "size": 17758,
+      "lines": 364,
+      "mtime_ns": 1786282954471868700,
+      "size": 19098,
       "symbols": [
         {
           "docstring": "--- phase 2: build from a PRISTINE export of HEAD, never the working tree ----",
           "lines": [
-            138,
-            190
+            152,
+            204
           ],
           "name": "build_into",
           "type": "function"
         },
         {
           "lines": [
-            247,
-            257
+            261,
+            271
           ],
           "name": "digest_of",
           "type": "function"
@@ -1533,6 +1533,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T06:38:47.142150+00:00",
+  "generated_at": "2026-08-09T13:43:07.041901+00:00",
   "version": "1.0"
 }

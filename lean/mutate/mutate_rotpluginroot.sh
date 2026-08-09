@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotRelease.lean (a session id that reaches a filename)
+# MUTATION SUITE -- Proofs/RotPluginRoot.lean (a session id that reaches a filename)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -33,10 +33,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotRelease.lean"
+F="Proofs/RotPluginRoot.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotRelease.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrelease.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotPluginRoot.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutpluginroot.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -58,10 +58,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotRelease ) >/tmp/mut_pre_rotrelease.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotRelease)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotPluginRoot ) >/tmp/mut_pre_rotpluginroot.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotPluginRoot)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotrelease.log
+  tail -5 /tmp/mut_pre_rotpluginroot.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -134,7 +134,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotPluginRoot ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -162,7 +162,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotRelease\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotPluginRoot\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -184,88 +184,59 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotRelease mutation suite ==="
+echo "=== RotPluginRoot mutation suite ==="
 
 # WHAT THIS SUITE IS AIMED AT.
 #
-# The module exists because the repository declared 0.9.2 while the deployed
-# build was 1.0.1, so every proved fix sat in a version that could not reach
-# anyone. The theorems are about ORDER. The mutants therefore attack the
-# ORDERING FUNCTION and the PUBLISHING PREDICATE -- never a theorem's statement,
-# which would only prove that editing a theorem breaks it.
+# The module says the plugin REGISTRY is not authority over what runs: measured,
+# CLAUDE_PLUGIN_ROOT resolved to a stale marketplace-source directory named by
+# neither installed_plugins.json nor known_marketplaces.json. Five copies were
+# patched and the observable never moved.
 #
-#   R01  the major comparison is reversed        (the order runs backwards)
-#   R02  the minor comparison is reversed        (same, one digit down)
-#   R03  patch comparison admits equality        (a reinstall counts as newer)
-#   R04  supersedes compares the wrong direction (a downgrade reads as an upgrade)
-#   R05  supersedes accepts anything not older   (equal versions "upgrade")
-#   R06  the lean tier shares core's patch digit (variants stop being ordered)
-#   R07  canPublish accepts if ANY install is older (one stale channel ignored)
-#   R08  the measured deployed version is altered (are the #guards load-bearing?)
-#
-# R05 is the one to watch. It is the plausible implementation -- "publish unless
-# the candidate is older" -- and it silently permits republishing the same
-# number, which is exactly the CLI behaviour RotUpgrade proves changes nothing.
-# If reinstall_is_not_an_upgrade does not die on R05, that theorem is decoration.
+# P01 and P04 are the ones to watch. Both try to smuggle the runtime root back
+# into the registry-driven strategy. If either survives, the module has not
+# actually separated "what the registry declares" from "what executes", which is
+# the entire finding.
 
-run_mut R01 \
-  "  a.major < b.major ||" \
-  "  b.major < a.major ||" \
-  "lt_iff, lt_trans, lower_major_never_supersedes -- the order reversed"
+run_mut P01 \
+  "  patched == d.runtimeRoot" \
+  "  patched == d.declaredInstall" \
+  "registry_driven_patch_missed_the_runtime -- the registry would become authority"
 
-run_mut R02 \
-  "(a.minor < b.minor || (a.minor == b.minor" \
-  "(b.minor < a.minor || (a.minor == b.minor" \
-  "lt_sameMajor, a_higher_minor_always_wins -- the minor order reversed"
+run_mut P02 \
+  "  patched == d.runtimeRoot" \
+  "  true" \
+  "patching_the_runtime_root_is_effective loses all content; every patch would 'work'"
 
-run_mut R03 \
-  "&& a.patch < b.patch" \
-  "&& a.patch <= b.patch" \
-  "lt_irrefl, reinstall_is_not_an_upgrade -- a version now supersedes itself"
+run_mut P03 \
+  "    runtimeRoot     := \"Desktop/RoT-MoE 0.7.1-Lean\" }" \
+  "    runtimeRoot     := \"cache/rot-moe/rot-moe/1.0.1\" }" \
+  "the measured deployment -- if this survives the finding is not pinned to what was observed"
 
-run_mut R04 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt candidate deployed" \
-  "every supersedes theorem and #guard -- a downgrade would read as an upgrade"
+run_mut P04 \
+  "  patchIsEffective d d.declaredInstall || patchIsEffective d d.declaredSource" \
+  "  patchIsEffective d d.declaredInstall || patchIsEffective d d.runtimeRoot" \
+  "registry_driven_patch_missed_the_runtime -- smuggles the runtime into the registry strategy"
 
-run_mut R05 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := !(lt candidate deployed)" \
-  "reinstall_is_not_an_upgrade, cannot_publish_over_itself -- equality accepted"
+run_mut P05 \
+  "  b.emitsProvenance == recordHasProvenance" \
+  "  b.emitsProvenance != recordHasProvenance" \
+  "the provenance identification, inverted"
 
-run_mut R06 \
-  "  | .lean => 1" \
-  "  | .lean => 0" \
-  "variants_are_ordered -- core and lean would share a patch digit"
+run_mut P06 \
+  "  b.emitsProvenance == recordHasProvenance" \
+  "  true" \
+  "provenance_separates_the_builds -- the test would stop discriminating"
 
-run_mut R07 \
-  "  deployed.all (fun d => supersedes candidate d)" \
-  "  deployed.any (fun d => supersedes candidate d)" \
-  "one_stale_channel_blocks_publication -- a single old install would suffice"
+run_mut P07 \
+  "         \"Desktop/RoT-MoE 0.7.1-Lean\"].filter" \
+  "         \"Desktop/RoT-MoE 9.9.9-Lean\"].filter" \
+  "the five-copies guard -- the one effective patch removed from the roster"
 
-run_mut R08 \
-  "def deployedProduction : SemVer := ⟨1, 0, 1⟩" \
-  "def deployedProduction : SemVer := ⟨0, 0, 1⟩" \
-  "the measured #guards -- if these survive, the recorded facts are inert"
-echo
-echo "=== RotRelease: $killed killed, $survived survived, $discarded discarded, $skipped skipped ==="
-
-if [ "$filtered" -eq 1 ]; then
-  echo "PARTIAL RUN (MUT_ONLY='${MUT_ONLY}') -- $skipped mutant(s) never ran."
-  echo "A filtered run is never a pass. Exit 3."
-  exit 3
-fi
-
-if [ "$discarded" -gt 0 ]; then
-  echo "FAIL: $discarded mutant(s) DISCARDED -- the harness could not apply them."
-  echo "That is a fault in this suite, not a claim about any theorem."
-  exit 1
-fi
-
-if [ "$survived" -gt 0 ]; then
-  echo "FAIL: $survived mutant(s) SURVIVED -- those theorems are decorative."
-  exit 1
-fi
+run_mut P08 \
+  "          (fun p => patchIsEffective measured p)).length = 1" \
+  "          (fun p => patchIsEffective measured p)).length = 0" \
+  "the count guard itself"
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
@@ -299,9 +270,9 @@ fi
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
 # So without this, a PASSING suite leaves the module uncompiled and the next
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
-# Measured 2026-08-09 on Proofs.RotRelease.
+# Measured 2026-08-09 on Proofs.RotPluginRoot.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotPluginRoot ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."

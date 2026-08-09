@@ -13,9 +13,21 @@
 # figure that drifts.
 #
 # It asserts the DE-CONFOUNDED verdict too, because the headline alone is
-# misleading and has to stay attached to its correction. Quoting "28 wins to 10,
-# p = 5.1e-3" without "2 to 10 once brevity is removed" would be an overclaim
+# misleading and has to stay attached to its correction. Quoting "29 wins to 4,
+# p = 1.09e-5" without "2 to 4 once brevity is removed" would be an overclaim
 # the repo would then be enforcing.
+#
+# EXPECTATIONS UPDATED 2026-08-09, and the reason is not that they stopped
+# matching. THE CORPUS WAS RE-RUN. The previous figures came from a pass in
+# which arm A read the WRONG log: bench/ab-session.sh exported
+# ROTMOE_DEBUG_LOG, but the `env` block in the CTT settings.json overrides an
+# inherited export, so the join looked at a file the session never wrote to.
+# That was fixed (EFFECTIVE_LOG), all 176 turns were re-collected, and both
+# arms are now 88/88 valid with the join verified against the session id.
+#
+# The numbers below are what the NEW corpus produces. They are not adjusted to
+# make anything pass -- the de-confounded verdict still runs AGAINST routing
+# (2 to 4), which is exactly what it said before.
 #
 # Exit 3 SKIP when the raw corpus is not on this machine: the transcripts are
 # ~176 JSON payloads that are not committed, so CI cannot see them. A skip is
@@ -67,11 +79,11 @@ echo "  turns $TURNS | violations routed $VA unrouted $VB | headline $HW-$HL | d
 
 # --- the published figures ---------------------------------------------------
 [ "$TURNS" = "88" ] && ok "88 paired turns" || bad "paired turns: expected 88, got $TURNS"
-[ "$VA" = "23" ]    && ok "routed violates the two-sentence limit 23 times" || bad "routed violations: expected 23, got $VA"
-[ "$VB" = "41" ]    && ok "unrouted violates it 41 times" || bad "unrouted violations: expected 41, got $VB"
-[ "$HW" = "28" ] && [ "$HL" = "10" ] && ok "headline 28-10 to routed" || bad "headline: expected 28-10, got $HW-$HL"
-[ "$EX" = "26" ] && ok "26 of those wins are explained by brevity alone" || bad "explained wins: expected 26, got $EX"
-[ "$UN" = "2" ] && [ "$DL" = "10" ] && ok "de-confounded subset is 2-10 AGAINST routing" || bad "de-confounded: expected 2-10, got $UN-$DL"
+[ "$VA" = "15" ]    && ok "routed violates the two-sentence limit 15 times" || bad "routed violations: expected 15, got $VA"
+[ "$VB" = "40" ]    && ok "unrouted violates it 40 times" || bad "unrouted violations: expected 40, got $VB"
+[ "$HW" = "29" ] && [ "$HL" = "4" ] && ok "headline 29-4 to routed" || bad "headline: expected 29-4, got $HW-$HL"
+[ "$EX" = "27" ] && ok "27 of those wins are explained by brevity alone" || bad "explained wins: expected 27, got $EX"
+[ "$UN" = "2" ] && [ "$DL" = "4" ] && ok "de-confounded subset is 2-4 AGAINST routing" || bad "de-confounded: expected 2-4, got $UN-$DL"
 
 # --- the endpoint must still be CAPABLE --------------------------------------
 # If the control arm ever reaches zero violations, this endpoint joins the two

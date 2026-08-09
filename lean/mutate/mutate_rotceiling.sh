@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotRelease.lean (a session id that reaches a filename)
+# MUTATION SUITE -- Proofs/RotCeiling.lean (a session id that reaches a filename)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -33,10 +33,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotRelease.lean"
+F="Proofs/RotCeiling.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotRelease.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrelease.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCeiling.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutceiling.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -58,10 +58,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotRelease ) >/tmp/mut_pre_rotrelease.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotRelease)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCeiling ) >/tmp/mut_pre_rotceiling.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCeiling)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotrelease.log
+  tail -5 /tmp/mut_pre_rotceiling.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -134,7 +134,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCeiling ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -162,7 +162,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotRelease\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotCeiling\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -184,88 +184,54 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotRelease mutation suite ==="
+echo "=== RotCeiling mutation suite ==="
 
 # WHAT THIS SUITE IS AIMED AT.
 #
-# The module exists because the repository declared 0.9.2 while the deployed
-# build was 1.0.1, so every proved fix sat in a version that could not reach
-# anyone. The theorems are about ORDER. The mutants therefore attack the
-# ORDERING FUNCTION and the PUBLISHING PREDICATE -- never a theorem's statement,
-# which would only prove that editing a theorem breaks it.
-#
-#   R01  the major comparison is reversed        (the order runs backwards)
-#   R02  the minor comparison is reversed        (same, one digit down)
-#   R03  patch comparison admits equality        (a reinstall counts as newer)
-#   R04  supersedes compares the wrong direction (a downgrade reads as an upgrade)
-#   R05  supersedes accepts anything not older   (equal versions "upgrade")
-#   R06  the lean tier shares core's patch digit (variants stop being ordered)
-#   R07  canPublish accepts if ANY install is older (one stale channel ignored)
-#   R08  the measured deployed version is altered (are the #guards load-bearing?)
-#
-# R05 is the one to watch. It is the plausible implementation -- "publish unless
-# the candidate is older" -- and it silently permits republishing the same
-# number, which is exactly the CLI behaviour RotUpgrade proves changes nothing.
-# If reinstall_is_not_an_upgrade does not die on R05, that theorem is decoration.
+# The module proves a ceiling is NOT a null: the fact corpus scored 84-84 with
+# zero discordant pairs, so p = 1.0 carries no information. C01/C02/C04 attack
+# the power test. If any survives, `p = 1` could be reported as 'the arms are
+# equal', which is the single misreading this file exists to block.
 
-run_mut R01 \
-  "  a.major < b.major ||" \
-  "  b.major < a.major ||" \
-  "lt_iff, lt_trans, lower_major_never_supersedes -- the order reversed"
+run_mut C01 \
+  "def hasPower (c : Comparison) : Bool := 0 < discordant c" \
+  "def hasPower (c : Comparison) : Bool := 0 <= discordant c" \
+  "concordance_never_creates_power -- agreement would manufacture power"
 
-run_mut R02 \
-  "(a.minor < b.minor || (a.minor == b.minor" \
-  "(b.minor < a.minor || (a.minor == b.minor" \
-  "lt_sameMajor, a_higher_minor_always_wins -- the minor order reversed"
+run_mut C02 \
+  "def discordant (c : Comparison) : Nat := c.routedOnly + c.unroutedOnly" \
+  "def discordant (c : Comparison) : Nat := c.routedOnly + c.bothRight" \
+  "fact_corpus_has_no_power -- 84 agreeing pairs would count as evidence"
 
-run_mut R03 \
-  "&& a.patch < b.patch" \
-  "&& a.patch <= b.patch" \
-  "lt_irrefl, reinstall_is_not_an_upgrade -- a version now supersedes itself"
+run_mut C03 \
+  "def measured : Comparison := ⟨0, 0, 84, 0⟩" \
+  "def measured : Comparison := ⟨3, 0, 81, 0⟩" \
+  "fact_corpus_is_at_ceiling -- the measured saturation"
 
-run_mut R04 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt candidate deployed" \
-  "every supersedes theorem and #guard -- a downgrade would read as an upgrade"
+run_mut C04 \
+  "  if !hasPower c then .noPower" \
+  "  if hasPower c then .noPower" \
+  "fact_corpus_has_no_power -- the power branch, inverted"
 
-run_mut R05 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := !(lt candidate deployed)" \
-  "reinstall_is_not_an_upgrade, cannot_publish_over_itself -- equality accepted"
+run_mut C05 \
+  "  else if c.unroutedOnly < c.routedOnly then .advantage" \
+  "  else if c.unroutedOnly <= c.routedOnly then .advantage" \
+  "power_without_majority_is_null -- a loss would read as an advantage"
 
-run_mut R06 \
-  "  | .lean => 1" \
-  "  | .lean => 0" \
-  "variants_are_ordered -- core and lean would share a patch digit"
+run_mut C06 \
+  "  c.routedOnly == 0 && c.unroutedOnly == 0 && c.bothWrong == 0" \
+  "  c.routedOnly == 0 && c.unroutedOnly == 0 && c.bothRight == 0" \
+  "fact_corpus_is_at_ceiling -- ceiling would require zero correct answers"
 
-run_mut R07 \
-  "  deployed.all (fun d => supersedes candidate d)" \
-  "  deployed.any (fun d => supersedes candidate d)" \
-  "one_stale_channel_blocks_publication -- a single old install would suffice"
+run_mut C07 \
+  "#guard hasPower ⟨29, 4, 0, 0⟩ = true" \
+  "#guard hasPower ⟨29, 4, 0, 0⟩ = false" \
+  "the compliance corpus DID have power -- only the fact corpus lacked it"
 
-run_mut R08 \
-  "def deployedProduction : SemVer := ⟨1, 0, 1⟩" \
-  "def deployedProduction : SemVer := ⟨0, 0, 1⟩" \
-  "the measured #guards -- if these survive, the recorded facts are inert"
-echo
-echo "=== RotRelease: $killed killed, $survived survived, $discarded discarded, $skipped skipped ==="
-
-if [ "$filtered" -eq 1 ]; then
-  echo "PARTIAL RUN (MUT_ONLY='${MUT_ONLY}') -- $skipped mutant(s) never ran."
-  echo "A filtered run is never a pass. Exit 3."
-  exit 3
-fi
-
-if [ "$discarded" -gt 0 ]; then
-  echo "FAIL: $discarded mutant(s) DISCARDED -- the harness could not apply them."
-  echo "That is a fault in this suite, not a claim about any theorem."
-  exit 1
-fi
-
-if [ "$survived" -gt 0 ]; then
-  echo "FAIL: $survived mutant(s) SURVIVED -- those theorems are decorative."
-  exit 1
-fi
+run_mut C08 \
+  "#guard verdict ⟨3, 1, 0, 0⟩ = Verdict.advantage" \
+  "#guard verdict ⟨3, 1, 0, 0⟩ = Verdict.null" \
+  "all_three_verdicts_reachable -- the classification must discriminate"
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
@@ -299,9 +265,9 @@ fi
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
 # So without this, a PASSING suite leaves the module uncompiled and the next
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
-# Measured 2026-08-09 on Proofs.RotRelease.
+# Measured 2026-08-09 on Proofs.RotCeiling.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCeiling ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."

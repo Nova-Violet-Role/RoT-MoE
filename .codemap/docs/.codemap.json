@@ -291,12 +291,12 @@
       ]
     },
     "SCRUTINY-LOG.md": {
-      "hash": "9655bff774d6",
-      "indexed_at": "2026-08-09T08:37:10.224476+00:00",
+      "hash": "3aff4137cb8c",
+      "indexed_at": "2026-08-09T11:05:11.032371+00:00",
       "language": "markdown",
-      "lines": 194,
-      "mtime_ns": 1786264582504694900,
-      "size": 10697,
+      "lines": 248,
+      "mtime_ns": 1786273474078197900,
+      "size": 13373,
       "symbols": [
         {
           "docstring": "Two independent sinks, written by both router arms (`hooks/rot-router.sh`, `hooks/rot-router.ps1`):",
@@ -371,19 +371,37 @@
               ],
               "name": "Correction (same day) \u2014 the first marker run proved nothing",
               "type": "subsection"
+            },
+            {
+              "docstring": "Closed by a **self-attributing** execution marker \u2014 one that records not just *that* it ran but *as what*:",
+              "lines": [
+                196,
+                241
+              ],
+              "name": "The answer: `CLAUDE_PLUGIN_ROOT` pointed at a stale marketplace source",
+              "type": "subsection"
+            },
+            {
+              "docstring": "While hunting the emitter I checked for new records with a **line count** on a log pinned at its 5000-record cap. It read `new_records=0` while a reco",
+              "lines": [
+                242,
+                249
+              ],
+              "name": "A second defect this exposed, in my own measurement",
+              "type": "subsection"
             }
           ],
           "docstring": "**Status: OPEN. Not fixed, not worked around, not closed.**",
           "lines": [
             137,
-            195
+            249
           ],
-          "name": "OPEN ALARM \u2014 the production log's emitter is unidentified (2026-08-09)",
+          "name": "CLOSED ALARM \u2014 the production log's emitter, identified (2026-08-09)",
           "type": "section"
         }
       ]
     }
   },
-  "generated_at": "2026-08-09T08:37:10.229327+00:00",
+  "generated_at": "2026-08-09T11:05:11.036852+00:00",
   "version": "1.0"
 }

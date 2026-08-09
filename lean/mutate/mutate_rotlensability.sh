@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotRelease.lean (a session id that reaches a filename)
+# MUTATION SUITE -- Proofs/RotLensAbility.lean (a session id that reaches a filename)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -33,10 +33,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotRelease.lean"
+F="Proofs/RotLensAbility.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotRelease.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrelease.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotLensAbility.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutlensability.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -58,10 +58,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotRelease ) >/tmp/mut_pre_rotrelease.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotRelease)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotLensAbility ) >/tmp/mut_pre_rotlensability.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotLensAbility)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotrelease.log
+  tail -5 /tmp/mut_pre_rotlensability.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -134,7 +134,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotLensAbility ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -162,7 +162,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotRelease\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotLensAbility\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -184,88 +184,60 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotRelease mutation suite ==="
+echo "=== RotLensAbility mutation suite ==="
 
 # WHAT THIS SUITE IS AIMED AT.
 #
-# The module exists because the repository declared 0.9.2 while the deployed
-# build was 1.0.1, so every proved fix sat in a version that could not reach
-# anyone. The theorems are about ORDER. The mutants therefore attack the
-# ORDERING FUNCTION and the PUBLISHING PREDICATE -- never a theorem's statement,
-# which would only prove that editing a theorem breaks it.
-#
-#   R01  the major comparison is reversed        (the order runs backwards)
-#   R02  the minor comparison is reversed        (same, one digit down)
-#   R03  patch comparison admits equality        (a reinstall counts as newer)
-#   R04  supersedes compares the wrong direction (a downgrade reads as an upgrade)
-#   R05  supersedes accepts anything not older   (equal versions "upgrade")
-#   R06  the lean tier shares core's patch digit (variants stop being ordered)
-#   R07  canPublish accepts if ANY install is older (one stale channel ignored)
-#   R08  the measured deployed version is altered (are the #guards load-bearing?)
-#
-# R05 is the one to watch. It is the plausible implementation -- "publish unless
-# the candidate is older" -- and it silently permits republishing the same
-# number, which is exactly the CLI behaviour RotUpgrade proves changes nothing.
-# If reinstall_is_not_an_upgrade does not die on R05, that theorem is decoration.
+# The module claims every one of the nine lenses has a router-observable
+# effect, measured over 3825 gauge records. L01-L04 attack the definition of
+# observability itself; L05-L07 attack the measured data; L08-L09 attack the
+# honesty theorems about cfDelta and Nat truncation. If L08 or L09 survive, the
+# module's admissions are decorative and the metrics could be quoted as sound.
 
-run_mut R01 \
-  "  a.major < b.major ||" \
-  "  b.major < a.major ||" \
-  "lt_iff, lt_trans, lower_major_never_supersedes -- the order reversed"
+run_mut L01 \
+  "  0 < l.actPerMille && 0 < l.swingE4" \
+  "  0 < l.actPerMille || 0 < l.swingE4" \
+  "observable_needs_both -- a dead-swing lens would pass"
 
-run_mut R02 \
-  "(a.minor < b.minor || (a.minor == b.minor" \
-  "(b.minor < a.minor || (a.minor == b.minor" \
-  "lt_sameMajor, a_higher_minor_always_wins -- the minor order reversed"
+run_mut L02 \
+  "  0 < l.actPerMille && 0 < l.swingE4" \
+  "  true" \
+  "everything is observable; all_nine_are_observable becomes vacuous"
 
-run_mut R03 \
-  "&& a.patch < b.patch" \
-  "&& a.patch <= b.patch" \
-  "lt_irrefl, reinstall_is_not_an_upgrade -- a version now supersedes itself"
+run_mut L03 \
+  "def allObservable (ls : List Lens) : Bool := ls.all isObservable" \
+  "def allObservable (ls : List Lens) : Bool := ls.any isObservable" \
+  "one_dead_lens_fails_the_suite -- one live lens would mask eight dead ones"
 
-run_mut R04 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt candidate deployed" \
-  "every supersedes theorem and #guard -- a downgrade would read as an upgrade"
+run_mut L04 \
+  "    { name := \"Carnage\",   actPerMille := 154, leadPerMille :=   6, swingE4 :=  9988, termE4 :=   951 }," \
+  "    { name := \"Carnage\",   actPerMille := 154, leadPerMille :=   6, swingE4 :=     0, termE4 :=   951 }," \
+  "the measured claim -- a zero-swing lens must fail all_nine_are_observable"
 
-run_mut R05 \
-  "def supersedes (candidate deployed : SemVer) : Bool := lt deployed candidate" \
-  "def supersedes (candidate deployed : SemVer) : Bool := !(lt candidate deployed)" \
-  "reinstall_is_not_an_upgrade, cannot_publish_over_itself -- equality accepted"
+run_mut L05 \
+  "    { name := \"Violet\",    actPerMille := 256, leadPerMille := 108, swingE4 :=  9433, termE4 :=  1460 }," \
+  "    { name := \"Violet\",    actPerMille :=   0, leadPerMille := 108, swingE4 :=  9433, termE4 :=  1460 }," \
+  "a never-activating lens must fail"
 
-run_mut R06 \
-  "  | .lean => 1" \
-  "  | .lean => 0" \
-  "variants_are_ordered -- core and lean would share a patch digit"
+run_mut L06 \
+  "    { name := \"Chroma\",    actPerMille := 151, leadPerMille :=   6, swingE4 := 20346, termE4 :=  1926 }," \
+  "    { name := \"Chroma\",    actPerMille := 151, leadPerMille :=   0, swingE4 := 20346, termE4 :=  1926 }," \
+  "all_nine_lead_sometimes -- a passenger lens"
 
-run_mut R07 \
-  "  deployed.all (fun d => supersedes candidate d)" \
-  "  deployed.any (fun d => supersedes candidate d)" \
-  "one_stale_channel_blocks_publication -- a single old install would suffice"
+run_mut L07 \
+  "#guard totalTerm measured = 36350" \
+  "#guard totalTerm measured = 36351" \
+  "the arithmetic over the measured terms"
 
-run_mut R08 \
-  "def deployedProduction : SemVer := ⟨1, 0, 1⟩" \
-  "def deployedProduction : SemVer := ⟨0, 0, 1⟩" \
-  "the measured #guards -- if these survive, the recorded facts are inert"
-echo
-echo "=== RotRelease: $killed killed, $survived survived, $discarded discarded, $skipped skipped ==="
+run_mut L08 \
+  "def cfNum (l : Lens) (total : Nat) : Int := 9 * (l.termE4 : Int) - (total : Int)" \
+  "def cfNum (l : Lens) (total : Nat) : Int := 8 * (l.termE4 : Int) - (total : Int)" \
+  "cf_is_deviation_not_importance -- the K-1 renormalisation is what makes it a deviation"
 
-if [ "$filtered" -eq 1 ]; then
-  echo "PARTIAL RUN (MUT_ONLY='${MUT_ONLY}') -- $skipped mutant(s) never ran."
-  echo "A filtered run is never a pass. Exit 3."
-  exit 3
-fi
-
-if [ "$discarded" -gt 0 ]; then
-  echo "FAIL: $discarded mutant(s) DISCARDED -- the harness could not apply them."
-  echo "That is a fault in this suite, not a claim about any theorem."
-  exit 1
-fi
-
-if [ "$survived" -gt 0 ]; then
-  echo "FAIL: $survived mutant(s) SURVIVED -- those theorems are decorative."
-  exit 1
-fi
+run_mut L09 \
+  "    (1 : Nat) * 10000 / 1000000 = 0 := by decide" \
+  "    (1 : Nat) * 10000 / 1000000 = 1 := by decide" \
+  "share_truncates_a_tiny_contribution -- the admission that Nat division truncates"
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
@@ -299,9 +271,9 @@ fi
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
 # So without this, a PASSING suite leaves the module uncompiled and the next
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
-# Measured 2026-08-09 on Proofs.RotRelease.
+# Measured 2026-08-09 on Proofs.RotLensAbility.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotLensAbility ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."

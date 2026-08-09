@@ -134,7 +134,7 @@ the subsystem exists to catch: a document asserting more than it measured.
 Items 4 and 5 are the serious ones: both claimed a test that does not exist,
 and both would have read as coverage to anyone auditing this packet.
 
-## OPEN ALARM — the production log's emitter is unidentified (2026-08-09)
+## CLOSED ALARM — the production log's emitter, identified (2026-08-09)
 
 **Status: OPEN. Not fixed, not worked around, not closed.**
 
@@ -192,3 +192,57 @@ installed router is dormant. `Proofs/RotDeployment.lean` now carries this as
 **Standing rule this adds: an instrument that modifies its target must prove the
 target still runs, and must be fired once on purpose, before its silence counts
 as data.**
+
+### The answer: `CLAUDE_PLUGIN_ROOT` pointed at a stale marketplace source
+
+Closed by a **self-attributing** execution marker — one that records not just
+*that* it ran but *as what*:
+
+```
+ROOT=[<DESKTOP>/RoT-MoE 0.7.1-Lean/]
+PARENT= bash -c "pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || ..."
+```
+
+The registry declares something else entirely:
+
+| source | path |
+|---|---|
+| `installed_plugins.json` | `cache/rot-moe/rot-moe/1.0.1` |
+| `known_marketplaces.json` | `Desktop\RoT-MoE 1.0.1-Lean` |
+| **runtime `CLAUDE_PLUGIN_ROOT`** | **`Desktop\RoT-MoE 0.7.1-Lean`** |
+
+Three paths; the one that executes is named by neither registry file. That
+folder holds an 18048 B router with `RotSrc` x0 — a build predating the
+provenance feature, which is exactly why every live record arrived with no
+`src` and no `session`. Nothing was broken; the wrong build was running.
+
+**Why five patches changed nothing.** Patching a path alters the observable
+only if the runtime resolves that path. The registry was consulted and three
+cache versions plus two Desktop copies were repaired — the emitter was never
+among them.
+
+**The instrument that would have found it on day one:** identify a running
+program by what it EMITS, not by what a registry says is installed. A record
+without `src` cannot come from a build that always emits `src` — measured, a
+repo-HEAD router emits `{"src":"hook","session":...}` on every record, gauge
+and route alike. That single observation localises the build without touching
+the filesystem.
+
+`Proofs/RotPluginRoot.lean` carries this: `registry_driven_patch_missed_the_runtime`,
+`registry_patch_fails_whenever_runtime_diverges`, `patching_the_runtime_root_is_effective`,
+`bare_record_rules_out_a_modern_build`, `bare_record_admits_an_old_build`,
+`provenance_separates_the_builds`. 6 theorems, 7 guards, 8/8 mutants killed.
+
+**Not yet done, and deliberately so:** production has NOT been re-pointed at the
+installed 1.0.1. Re-registering the marketplace changes the plugin root of the
+live session, and that is a change to make at a session boundary with a backup,
+not mid-run. The alarm is closed because the cause is *known and proved*; the
+repair is a separate, scheduled action.
+
+### A second defect this exposed, in my own measurement
+
+While hunting the emitter I checked for new records with a **line count** on a
+log pinned at its 5000-record cap. It read `new_records=0` while a record had
+just arrived at 12:26:50 — the file rotates, so a count delta cannot see growth.
+That is `delta_false_passes_under_rotation` from `Proofs/RotAbJoin.lean`,
+observed on the real log hours after proving it. Timestamps, not counts.
