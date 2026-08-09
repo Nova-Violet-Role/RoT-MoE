@@ -2,12 +2,12 @@
   "directory": "docs",
   "files": {
     "GIT-WORKFLOW.md": {
-      "hash": "701e84854fa1",
-      "indexed_at": "2026-08-05T13:16:35.099937+00:00",
+      "hash": "819b785e645c",
+      "indexed_at": "2026-08-09T02:12:23.612242+00:00",
       "language": "markdown",
-      "lines": 345,
-      "mtime_ns": 1785929884939431300,
-      "size": 14023,
+      "lines": 378,
+      "mtime_ns": 1786241541043668500,
+      "size": 15768,
       "symbols": [
         {
           "children": [
@@ -165,6 +165,15 @@
           ],
           "name": "7. What a good commit message looks like here",
           "type": "section"
+        },
+        {
+          "docstring": "Arming (`ARM_ROUTER.sh` / `ARM_ROUTER.ps1`) writes a default `ROTMOE_DEBUG_LOG` if and only if you have none; disarm removes only its own default, nev",
+          "lines": [
+            347,
+            379
+          ],
+          "name": "5. The debug log subsystem \u2014 how to work with it",
+          "type": "section"
         }
       ]
     },
@@ -280,8 +289,72 @@
           "type": "section"
         }
       ]
+    },
+    "SCRUTINY-LOG.md": {
+      "hash": "a19a9c3b9ecb",
+      "indexed_at": "2026-08-09T02:11:51.478766+00:00",
+      "language": "markdown",
+      "lines": 97,
+      "mtime_ns": 1786241509053750600,
+      "size": 5265,
+      "symbols": [
+        {
+          "docstring": "Two independent sinks, written by both router arms (`hooks/rot-router.sh`, `hooks/rot-router.ps1`):",
+          "lines": [
+            10,
+            23
+          ],
+          "name": "What the subsystem is",
+          "type": "section"
+        },
+        {
+          "docstring": "The log could not name its own traffic. 738 of 955 `sh` route records in the pre-subsystem log were synthetic corpus replays from eight different chec",
+          "lines": [
+            24,
+            33
+          ],
+          "name": "Why it exists \u2014 the defect that motivated it",
+          "type": "section"
+        },
+        {
+          "docstring": "28 theorems, 31 `#guard`s, 16/16 mutants killed. The load-bearing ones:",
+          "lines": [
+            34,
+            58
+          ],
+          "name": "What is proven (Lean, `lean/Proofs/RotSessionLog.lean`)",
+          "type": "section"
+        },
+        {
+          "docstring": "- `checker/session-log.sh` \u2014 49 assertions across 6 phases, including deliberate breakage: forged `!` sentinel, missing env, subshell flag loss, concu",
+          "lines": [
+            59,
+            68
+          ],
+          "name": "What is measured, not proven",
+          "type": "section"
+        },
+        {
+          "docstring": "1. No installer wrote `ROTMOE_DEBUG_LOG`; a new user got no logs at all. 2. No session identity; concurrent sessions interleaved inseparably. 3. Harne",
+          "lines": [
+            69,
+            82
+          ],
+          "name": "Defect ledger (all found by breaking things, all mine)",
+          "type": "section"
+        },
+        {
+          "docstring": "- **Single-writer assumption.** Two concurrent sessions in the *same* project write distinct per-session files, but the central sink is append-shared.",
+          "lines": [
+            83,
+            98
+          ],
+          "name": "OPEN \u2014 attack surfaces that remain",
+          "type": "section"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-05T13:16:35.169017+00:00",
+  "generated_at": "2026-08-09T02:12:23.612389+00:00",
   "version": "1.0"
 }

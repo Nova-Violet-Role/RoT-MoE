@@ -343,3 +343,36 @@ MEASURED on the shipped router: `prove this lemma` -> CONVERGENT, and
 
 `git log` is the only place a future reader learns *why* a check exists. "fix
 routing" teaches nobody anything.
+
+## 5. The debug log subsystem — how to work with it
+
+Arming (`ARM_ROUTER.sh` / `ARM_ROUTER.ps1`) writes a default `ROTMOE_DEBUG_LOG`
+if and only if you have none; disarm removes only its own default, never a
+value you set. Env vars:
+
+| var | meaning |
+|---|---|
+| `ROTMOE_DEBUG_LOG` | central sink path; unset = no central log |
+| `ROTMOE_DEBUG_LOG_MAX` | rotation cap, default 5000 records |
+| `ROTMOE_DEBUG_LOCAL` | per-session sink control |
+| `ROTMOE_DEBUG_SRC` | provenance tag; every harness MUST set `test` |
+
+Per-session log: `<project>/.rot-moe/rot-route-<session>.jsonl`, self-ignoring
+via its own `.gitignore` — never commit it, never rely on it being committed.
+
+Rules when touching this subsystem:
+
+1. Any new checker that feeds the router synthetic payloads MUST export
+   `ROTMOE_DEBUG_SRC=test` — otherwise it poisons every health figure computed
+   from the central log. Eight checkers already do; copy their preamble.
+2. Never filter the log by `event` to find live traffic; filter by `src`.
+   Harness records may carry real event names (`hook-contract.sh` does).
+3. Both arms (`hooks/rot-router.sh`, `hooks/rot-router.ps1`) must change in
+   lockstep; `checker/cross-diff.sh` and `checker/session-log.sh` enforce it.
+4. A new alarm counts only after you have tripped it deliberately once and
+   watched it fire. Gate it in `checker/session-log.sh`.
+5. `lean/Proofs/RotSessionLog.lean` owns the filename-safety proofs. If you
+   change the sanitiser alphabet, pin it from the outside (literal set), never
+   via its own predicate — see mutant S03 in `docs/SCRUTINY-LOG.md`.
+6. No `private theorem` anywhere: `checker/axiom-audit.sh` fails the repo on
+   sight, because private names are invisible to `#print axioms`.
