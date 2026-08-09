@@ -46,6 +46,24 @@
         }
       ]
     },
+    "mutate_rotabjoin.sh": {
+      "hash": "47f4f22accd3",
+      "indexed_at": "2026-08-09T09:34:28.142642+00:00",
+      "language": "shell",
+      "lines": 249,
+      "mtime_ns": 1786268045910327400,
+      "size": 10651,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            185
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotacquire.sh": {
       "hash": "223b8280c21f",
       "indexed_at": "2026-08-09T05:26:01.610132+00:00",
@@ -717,6 +735,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T08:35:25.551120+00:00",
+  "generated_at": "2026-08-09T09:34:28.142746+00:00",
   "version": "1.0"
 }

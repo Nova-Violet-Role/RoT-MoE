@@ -23,6 +23,53 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The A/B's disarm check was counting the wrong thing
+
+**This is NEXT item 4 -- the `bench/` A/B on the now-attributable log -- and it
+begins by finding the harness's verdict unsound rather than by running it.**
+
+`bench/ab-session.sh:307` decided whether arm B was genuinely disarmed by
+comparing a route-record count before and after the run. That delta is taken
+over the **whole central log**, which is append-shared and rotating, while the
+question is about **one run**. Measured today: all 176 records in
+`bench/ab-metrics.jsonl` carry `arm`, `turn`, `dur`, `cost_micro`, `len`,
+`outTok`, `model`, `q`, `hedge`, `narr`, `leak` — and **zero** carry `session`
+or `src`. The join that fixes this has been available since the observability
+subsystem landed and was simply not used; the harness even captures the id
+already, at `:279`.
+
+**Unsound in both directions**, and `Proofs/RotAbJoin.lean` proves each:
+
+| theorem | failure |
+|---|---|
+| `delta_false_alarms_on_foreign_traffic` | nine checkers and any concurrent session append with `src=test`; their records condemn an arm that emitted nothing |
+| `delta_false_passes_under_rotation` | **the dangerous one** — rotation at `ROTMOE_DEBUG_LOG_MAX` drops as many records as arm B wrote, the delta reads 0, and a fully ARMED run is reported clean |
+| `delta_cannot_separate_silence_from_rotation` | the two worlds give an identical verdict |
+| `join_ignores_foreign_traffic` | quantified over **every** foreign session, not an example |
+| `join_counts_the_arms_own_record` | rotation of somebody else's records cannot silence the arm's own |
+| `join_never_false_passes` | the quiet green is unrepresentable |
+| `join_ignores_non_route_records` | a gauge line is not evidence of routing |
+
+**7 theorems, 8 guards, 0 sorry, 8/8 mutants killed.** A04 and A05 attack the
+rotation half specifically — if those had survived, only the harmless failure
+mode (a noisy red) would have been proved and the quiet green would not.
+
+The harness now joins on `session` and, when no session id exists, **refuses to
+judge the arm at all** rather than falling back to the delta — a silent fallback
+to an unsound check is how a defect returns. It also reports when join and delta
+disagree, so the join is seen earning its keep. Negative control on real data:
+global route count 3, joined on this session 1, joined on an absent session 0.
+
+Two mutants were **DISCARDED** on the first run and are reported as such, never
+as survived: A03 used a multi-line needle (the harness counts matching lines, so
+it read 2) and A08 was double-escaped to `\\"armB\\"`. Both are harness bugs,
+both were fixed, and the re-run killed 8/8. The zero-mutant guard added earlier
+today is what made the distinction visible.
+
+Counts: **832 theorems, 39 modules, 36 suites, 431 mutants**.
+
+---
+
 ### The probe broke the program it was probing
 
 **A correction to the entry below, published the same day.** The conclusion

@@ -285,7 +285,35 @@ done
 
 _after=$(grep -c '"kind":"route"' "$LOG" 2>/dev/null); : "${_after:=0}"
 _new=$((_after - _before))
-note "ran $ran turn(s), $failed failed, $wrote stored; route records this run: $_new"
+
+# --- THE JOIN: attribute records to THIS RUN, not to the file ----------------
+# The delta above is a DIAGNOSTIC only. It must never decide the arm, because a
+# global count over a shared, rotating log is unsound in both directions and
+# Proofs/RotAbJoin.lean proves it:
+#
+#   delta_false_alarms_on_foreign_traffic  -- nine checkers and any concurrent
+#       session append to this same log with src=test. Their records inflate
+#       $_new and condemn an arm that emitted nothing.
+#   delta_false_passes_under_rotation      -- the log rotates at
+#       ROTMOE_DEBUG_LOG_MAX. If rotation drops as many old records as arm B
+#       wrote, $_new is 0 and a fully ARMED run is reported clean. That is a
+#       quiet green over a real failure, which is the worse direction.
+#
+# Every record has carried "session" since the observability subsystem landed,
+# and the harness already knows this run's id ($SID, captured at :279). So join
+# on it: sessionRouteCount, exactly as the module defines it.
+_sid_now=""
+[ -f "$SIDF" ] && _sid_now=$(cat "$SIDF" 2>/dev/null)
+if [ -z "$_sid_now" ]; then
+  # No id means the join is impossible. REFUSE rather than fall back to the
+  # delta -- a silent fallback to an unsound check is how the defect returns.
+  bad "no session id for arm $ARM -- cannot attribute records to this run; refusing to judge the arm on a global delta"
+  _joined=-1
+else
+  _joined=$(grep '"kind":"route"' "$LOG" 2>/dev/null | grep -c "\"session\":\"$_sid_now\"")
+  : "${_joined:=0}"
+fi
+note "ran $ran turn(s), $failed failed, $wrote stored; route records THIS SESSION: $_joined (global delta, diagnostic only: $_new)"
 
 # --- VERDICT: the arm must have been what it claims to be --------------------
 if [ "$wrote" -eq 0 ]; then
@@ -294,18 +322,27 @@ else
   ok "$wrote turn(s) stored in $OUT"
 fi
 
-if [ "$ARM" = "a" ]; then
-  if [ "$_new" -gt 0 ]; then
-    ok "arm A was ROUTED: $_new route record(s) written by the running hook"
+if [ "$_joined" -lt 0 ]; then
+  note "arm verdict SKIPPED: no session id, and the global delta is not allowed to stand in for it"
+elif [ "$ARM" = "a" ]; then
+  if [ "$_joined" -gt 0 ]; then
+    ok "arm A was ROUTED: $_joined route record(s) carrying this session's id"
   else
-    bad "arm A produced NO route records -- the router did not run, so these turns are arm B and must be discarded"
+    bad "arm A produced NO route records for session $_sid_now -- the router did not run, so these turns are arm B and must be discarded"
   fi
 else
-  if [ "$_new" -eq 0 ]; then
-    ok "arm B was UNROUTED: zero route records, as required"
+  if [ "$_joined" -eq 0 ]; then
+    ok "arm B was UNROUTED: zero route records carrying this session's id, as required"
   else
-    bad "arm B produced $_new route record(s) -- the plugin was still armed and the arm is invalid"
+    bad "arm B produced $_joined route record(s) for session $_sid_now -- the plugin was still armed and the arm is invalid"
   fi
+fi
+
+# Disagreement between the two is not an error -- it is the whole point, and it
+# is worth SAYING when it happens so the next reader sees the join earning its
+# keep rather than duplicating the delta.
+if [ "$_joined" -ge 0 ] && [ "$_joined" -ne "$_new" ]; then
+  note "join and delta DISAGREE ($_joined vs $_new) -- foreign traffic or rotation moved the file during this run; the join is the one that decided"
 fi
 
 echo

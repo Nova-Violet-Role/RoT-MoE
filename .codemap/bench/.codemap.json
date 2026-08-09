@@ -39,12 +39,12 @@
       ]
     },
     "ab-session.sh": {
-      "hash": "3573624f367c",
-      "indexed_at": "2026-08-09T06:38:46.868442+00:00",
+      "hash": "3788b636f440",
+      "indexed_at": "2026-08-09T09:36:01.789278+00:00",
       "language": "shell",
-      "lines": 314,
-      "mtime_ns": 1786082339923156000,
-      "size": 14223,
+      "lines": 351,
+      "mtime_ns": 1786268159851327100,
+      "size": 16397,
       "symbols": [
         {
           "docstring": "--- ARM PRECONDITIONS, verified against something the harness did NOT create - RotObserve section 10 is the rule here: a detector satisfied by an arti",
@@ -74,6 +74,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T06:38:47.141684+00:00",
+  "generated_at": "2026-08-09T09:36:01.789391+00:00",
   "version": "1.0"
 }
