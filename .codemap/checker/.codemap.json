@@ -482,18 +482,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "38f93e9eae60",
-      "indexed_at": "2026-08-09T20:21:33.565950+00:00",
+      "hash": "0509669aaf87",
+      "indexed_at": "2026-08-09T22:41:19.017332+00:00",
       "language": "shell",
-      "lines": 404,
-      "mtime_ns": 1786301598490783600,
-      "size": 20937,
+      "lines": 405,
+      "mtime_ns": 1786315276668428900,
+      "size": 21039,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            164,
-            179
+            165,
+            180
           ],
           "name": "fires",
           "type": "function"
@@ -1174,12 +1174,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "63b2f0ce9915",
-      "indexed_at": "2026-08-09T20:21:33.636628+00:00",
+      "hash": "08e890b89625",
+      "indexed_at": "2026-08-09T22:57:51.451877+00:00",
       "language": "shell",
-      "lines": 668,
-      "mtime_ns": 1786091860005420200,
-      "size": 34532,
+      "lines": 744,
+      "mtime_ns": 1786316269210486500,
+      "size": 38313,
       "symbols": [
         {
           "lines": [
@@ -1220,6 +1220,14 @@
             539
           ],
           "name": "strip_lean_comments",
+          "type": "function"
+        },
+        {
+          "lines": [
+            683,
+            736
+          ],
+          "name": "inv_check",
           "type": "function"
         }
       ]
@@ -1402,6 +1410,15 @@
           "type": "function"
         }
       ]
+    },
+    "trap.sh": {
+      "hash": "8b9e2ef93d2e",
+      "indexed_at": "2026-08-09T22:39:20.113528+00:00",
+      "language": "shell",
+      "lines": 145,
+      "mtime_ns": 1786315157095430100,
+      "size": 6308,
+      "symbols": []
     },
     "verdict-fresh.sh": {
       "hash": "a2271c0b7624",
@@ -1632,6 +1649,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T20:21:33.841812+00:00",
+  "generated_at": "2026-08-09T22:57:51.452004+00:00",
   "version": "1.0"
 }

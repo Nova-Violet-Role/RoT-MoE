@@ -146,6 +146,22 @@ jobs:
         shell: bash
         run: bash checker/dominance.sh
 
+      # THE TRAP CORPUS AND ITS SCORING RULE. This does NOT re-run 120 live
+      # turns -- that costs ~25 minutes and real money. It guards the parts that
+      # rot in silence: that every corpus item is still a trap, that the scorer
+      # still has the SYMMETRIC disadvantage branch (without it a routed loss is
+      # filed as `null` again), and above all that the latency artifact on disk
+      # is the ORDER-CONTROLLED one. A single-ordering artifact cannot attribute
+      # the speedup -- RotOrdering.one_ordering_cannot_attribute proves that --
+      # while the prose would still claim the router caused it.
+      #
+      # Verified killable 2026-08-10 by two deliberate breaks: deleting the
+      # disadvantage branch (1 FAIL) and regenerating the artifact from one
+      # ordering (3 FAILs). Restored to 15/0 after both.
+      - name: trap corpus (all traps? scorer symmetric? latency order-controlled?)
+        shell: bash
+        run: bash checker/trap.sh
+
       - name: installer round trip (scratch config dir only)
         shell: bash
         run: bash checker/install-roundtrip.sh

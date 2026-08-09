@@ -310,6 +310,14 @@ def shipped : List Gate :=
   , f "gate split"
   , d "repo completeness" ["README.md", "CHANGELOG.md", "STATUS.md", "lean/", "checker/repo-complete.sh"]
   , d "dominance (does the routing layer STRICTLY EXTEND the default loop? D1-D7, each killable)" ["hooks/", "checker/dominance.sh", "lean/Proofs/RotDominance.lean"]
+  -- `trap corpus` joined 2026-08-10, FAST tier. It does not re-run 120 live
+  -- turns; it guards the things that make the recorded result meaningful and
+  -- that rot in silence -- above all that the latency artifact on disk is the
+  -- ORDER-CONTROLLED one. A single-ordering artifact cannot attribute the
+  -- speedup (`RotOrdering.one_ordering_cannot_attribute`) while the prose still
+  -- claims the router caused it, so this runs on every commit rather than
+  -- waiting for a path to match.
+  , f "trap corpus (all traps? scorer symmetric? latency still ORDER-CONTROLLED?)"
   , d "cross-diff (both reminder arms)" ["hooks/prover-remind", "checker/cross-diff-remind.sh"]
   , d "verdict stability" ["STATUS.md", "checker/verdict"]
   , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean", "checker/gauge-cross.sh"]
@@ -378,10 +386,10 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 51
+#guard shipped.length = 52
 
 -- Twenty-eight run on every commit.
-#guard (fastSet shipped).length = 34
+#guard (fastSet shipped).length = 35
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
@@ -406,7 +414,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 39
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 40
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -416,14 +424,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 34
+#guard (stagedRun shipped []).length = 35
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 39
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 40
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 35
+#guard (stagedRun shipped ["README.md".toList]).length = 36
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

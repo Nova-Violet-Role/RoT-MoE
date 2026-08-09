@@ -554,7 +554,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 51 modules, 968 theorems, 48 mutation suites — ⊕ `checker/` (63 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 51 modules, 968 theorems, 48 mutation suites — ⊕ `checker/` (64 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your

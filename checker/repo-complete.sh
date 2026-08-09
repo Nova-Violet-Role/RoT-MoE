@@ -663,6 +663,82 @@ else
 fi
 
 echo
+echo "== INVENTORY CLAIMS: modules, suites and CHECKERS, not just theorems =="
+#
+# MEASURED DEFECT, 2026-08-10. README.md:557 read "51 modules, 968 theorems,
+# 48 mutation suites ... (63 checkers)" while the tree held 64 checkers. The
+# theorem count was caught -- it is swept everywhere -- and the other three were
+# not, because `$MODS` and `$SUITES` were MEASURED at line 116 and then only
+# PRINTED. A number that is computed and never compared is decoration.
+#
+# The checker count was not even measured. Adding a 64th checker (`trap.sh`)
+# left a stale "63 checkers" claim in the shipping README, green, in the same
+# table that advertises the release tiers.
+#
+# Same sweep discipline as the theorem loop: every tracked file, the existing
+# exemption list, no hand-maintained roster of files-that-may-carry-a-claim.
+CHKS=$(ls "$REPO"/checker/*.sh 2>/dev/null | wc -l | tr -d ' ')
+echo "  measured: $MODS modules, $SUITES mutation suites, $CHKS checkers"
+
+inv_check () {   # <regex with one capture> <expected> <label>
+  local re="$1" want="$2" label="$3" hits=0 bad=0
+  while IFS= read -r -d '' f; do
+    claim_exempt "$f" && continue
+    [ -f "$REPO/$f" ] || continue
+    # CHANGELOG.md IS NOT SCANNED BY THIS BLOCK, and the reason is a scope
+    # judgement worth writing down rather than a convenience.
+    #
+    # The theorem sweep above can scan it safely because it matches a
+    # DISTINCTIVE LIVE-CLAIM PHRASE -- "<n> machine-checked theorems" -- which
+    # narrative prose does not accidentally contain. There is no such phrase for
+    # suites or checkers, so a bare `<n> mutation suites` pattern reads the
+    # changelog's own HISTORY as a claim about today. Measured on the first run
+    # of this block, it flagged two lines that are correct and must not change:
+    #
+    #   "### 30 of 46 mutation suites left the tree unbuildable ..."   (an event)
+    #   "Counts move to 24 modules, 578 theorems, 21 mutation suites"  (a past release)
+    #
+    # Editing either to satisfy a counter would falsify the record, which is the
+    # one thing a changelog must never do.
+    #
+    # THE RESIDUAL GAP, STATED: a stale suite/checker count written into the
+    # NEWEST changelog section is not caught here. It is caught for theorems
+    # (distinctive phrase, newest section only), and README plus all four
+    # manifests -- where a reader actually meets the number -- are fully covered
+    # by this block. Closing the gap properly needs a live-claim marker in the
+    # changelog, not a broader regex.
+    [ "$f" = "CHANGELOG.md" ] && continue
+    local body
+    body=$(cat "$REPO/$f")
+    while IFS= read -r got; do
+      [ -n "$got" ] || continue
+      hits=$((hits+1))
+      if [ "$got" != "$want" ]; then
+        echo "  FAIL  $f claims $got $label; the tree has $want"
+        fail=$((fail+1)); bad=$((bad+1))
+      fi
+    done < <(printf '%s\n' "$body" | grep -oE "$re" 2>/dev/null | grep -oE '[0-9]+')
+  done < <(cd "$REPO" && git ls-files -z)
+  if [ "$hits" -eq 0 ]; then
+    # Zero sites is not a pass. If the phrasing changes, this check silently
+    # stops covering anything -- the same invisible-gate failure the tier split
+    # was written to prevent.
+    echo "  FAIL  no '$label' claim found anywhere -- this check now covers nothing"
+    fail=$((fail+1))
+  elif [ "$bad" -eq 0 ]; then
+    echo "  PASS  $hits '$label' claim(s), all = $want"
+    pass=$((pass+1))
+  else
+    # Printing PASS beside a FAIL for the same check is how a red line gets read
+    # as green in a long log. Measured here on the first run of this block.
+    echo "  ....  $hits '$label' claim(s) scanned, $bad wrong -- see the FAILs above"
+  fi
+}
+
+inv_check '\([0-9]+ checkers\)'   "$CHKS"   "checkers"
+inv_check '[0-9]+ mutation suites' "$SUITES" "mutation suites"
+
+echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"
 [ "$fail" -eq 0 ] && { echo "  repo-complete: PASS"; exit 0; } || { echo "  repo-complete: FAIL"; exit 1; }
