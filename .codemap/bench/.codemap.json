@@ -481,6 +481,61 @@
         }
       ]
     },
+    "trap-latency.js": {
+      "hash": "ac1796e5e1d6",
+      "indexed_at": "2026-08-09T21:38:13.009055+00:00",
+      "language": "javascript",
+      "lines": 117,
+      "mtime_ns": 1786311490514862800,
+      "size": 5314,
+      "symbols": [
+        {
+          "lines": [
+            41,
+            45
+          ],
+          "name": "load",
+          "signature": "(dir, id)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            47,
+            47
+          ],
+          "name": "lchoose",
+          "signature": "(n, k)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            48,
+            55
+          ],
+          "name": "binomTwoSided",
+          "signature": "(k, n)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            56,
+            60
+          ],
+          "name": "med",
+          "signature": "(xs)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            62,
+            93
+          ],
+          "name": "compare",
+          "signature": "(dirA, dirB, label)",
+          "type": "function"
+        }
+      ]
+    },
     "trap-parse-controls.js": {
       "hash": "22761c05b246",
       "indexed_at": "2026-08-09T21:20:29.289788+00:00",
@@ -671,6 +726,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T21:23:46.162710+00:00",
+  "generated_at": "2026-08-09T21:38:13.290627+00:00",
   "version": "1.0"
 }

@@ -1,0 +1,41 @@
+{
+  "primary": {
+    "label": "a-first (arm a ran first, arm b second)",
+    "pairs": 60,
+    "missing": 0,
+    "routedFaster": 55,
+    "unroutedFaster": 5,
+    "signTestP": 1.0382663478969465e-11,
+    "totalMsUnrouted": 983688,
+    "totalMsRouted": 544000,
+    "routedSpeedupPct": 44.7,
+    "byFamily": {
+      "guard_count": {
+        "n": 12,
+        "routedFaster": 11,
+        "medianMsUnrouted": 19753.5,
+        "medianMsRouted": 8449,
+        "medianOutTokUnrouted": 489,
+        "medianOutTokRouted": 421.5
+      },
+      "mutant_count": {
+        "n": 36,
+        "routedFaster": 32,
+        "medianMsUnrouted": 12154.5,
+        "medianMsRouted": 8740,
+        "medianOutTokUnrouted": 218.5,
+        "medianOutTokRouted": 375
+      },
+      "theorem_count": {
+        "n": 12,
+        "routedFaster": 12,
+        "medianMsUnrouted": 13584.5,
+        "medianMsRouted": 7272.5,
+        "medianOutTokUnrouted": 439.5,
+        "medianOutTokRouted": 325
+      }
+    }
+  },
+  "orderConfoundUncontrolled": true,
+  "attribution": "UNATTRIBUTED -- only one ordering was measured; run the b-first control"
+}
