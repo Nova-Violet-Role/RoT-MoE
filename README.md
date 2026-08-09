@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **908
+lens activities off disk, computes an `R/s+` gauge from them, and **945
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **494 applied, 494 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **525 applied, 525 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -554,7 +554,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 46 modules, 908 theorems, 43 mutation suites — ⊕ `checker/` (60 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 49 modules, 945 theorems, 46 mutation suites — ⊕ `checker/` (63 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1350,9 +1350,11 @@ And the specifics, because a map with no detail is a poster:
 > derives from it)** give rise to an **infinite array of realities?**"*
 > — Saimonokuma, **The Ultimate Equation**
 
-Every claim in this section is checkable. `RotEigenform.lean` — **101 theorems,
-0 `sorry`, 0 warnings, `leanchecker` exit 0 with zero bytes, 38 of 38 mutants
-killed** — plus a checker that re-derives every number from **498 real files**.
+Every claim in this section is checkable — and `checker/module-claims.sh` now
+binds these two numbers to the source on every run, so the sentence cannot go
+stale in silence again (it had: it said 101 and 38).
+
+`RotEigenform.lean` — **115 theorems, 0 `sorry`, 0 warnings, `leanchecker` exit 0 with zero bytes, 41 of 41 mutants killed** — plus a checker that re-derives every number from **498 real files**.
 
 ### First, the part everyone misses: that quote is a *diff*
 
@@ -1536,7 +1538,7 @@ to this project contains **fourteen books that do**. So — who wins?
 <tr><th align="center">🌙 PHANTOM (fiction)</th><th align="center">📖 REAL (on disk)</th></tr>
 <tr><td align="center"><b>4</b> named books</td><td align="center"><b>14</b> books, each with a source URL</td></tr>
 <tr><td align="center">plot</td><td align="center">page counts, alphabets, sutra counts, sigil counts</td></tr>
-<tr><td align="center">unprovable by construction</td><td align="center"><b>101 theorems</b>, kernel-verified</td></tr>
+<tr><td align="center">unprovable by construction</td><td align="center"><b>115 theorems</b> in <code>RotEigenform.lean</code>, kernel-verified</td></tr>
 </table>
 
 **Head-to-head, and it is not a clean sweep for either side:**

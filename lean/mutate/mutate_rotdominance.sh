@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotCalibration.lean (calibrating a corpus, and the two ways it cheats)
+# MUTATION SUITE -- Proofs/RotDominance.lean (calibrating a corpus, and the two ways it cheats)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -16,31 +16,31 @@
 # DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
 # claim about the theorem. Folding them together manufactures reassurance.
 #
-# WHAT THIS SUITE IS AIMED AT. The module defends a MEASUREMENT DESIGN, and a
-# design is exactly the kind of artifact whose defects are invisible in a green
-# build. Three groups:
+# WHAT THIS SUITE IS AIMED AT. The module defines what "strictly extends the
+# default agentic loop" MEANS -- seven conjuncts, each claimed load-bearing --
+# and proves why a five-sample determinism test failed to see a genuinely
+# nondeterministic router.
 #
-#   K01-K03  THE BAND. Re-admit the floor, re-admit the ceiling, or stop
-#            filtering at all. Any survivor means a corpus could be selected
-#            with saturated items in it -- the RotCeiling failure, recreated.
-#   K04-K06  SOUNDNESS. Drop one clause of `sound` each. A survivor means an
-#            unsound design would be accepted: one rep, reused test reps, or
-#            selection driven by the routed arm.
-#   K07-K08  CIRCULARITY. Corrupt the tally so the two circular-selection
-#            theorems can no longer bind. These are the theorems that say a
-#            filter, not the router, produced the win.
+# Two classes of mutant, deliberately:
+#   D01-D07  WEAKEN A CONJUNCT. Each should resurrect exactly the near-miss
+#            layer that conjunct was written to reject. If one survives, that
+#            conjunct is decorative and `every_conjunct_is_load_bearing` is
+#            a weaker theorem than its name claims.
+#   D08-D11  ATTACK THE ALIASING RESULT and the two VACUITY guards. D10 and
+#            D11 delete the `0 <` guards that stop a layer passing D5/D6 by
+#            never having been measured -- the silent-pass holes, closed by
+#            `an_untested_layer_is_not_deterministic` before this suite was
+#            written rather than after a mutant survived.
 #
-# K09-K12 attack the measured design record and the guards, including the
-# cross-module one: an EMPTY calibrated corpus must still report `noPower`.
 # =============================================================================
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotCalibration.lean"
+F="Proofs/RotDominance.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCalibration.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutcalibration.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotDominance.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutdominance.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -62,10 +62,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCalibration ) >/tmp/mut_pre_rotcalibration.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCalibration)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotDominance ) >/tmp/mut_pre_rotdominance.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotDominance)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotcalibration.log
+  tail -5 /tmp/mut_pre_rotdominance.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -88,7 +88,7 @@ cp "$F" "$BAK"
 # path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
 # that reported a real failure left the module with no .olean, and the NEXT
 # run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) >/dev/null 2>&1' EXIT
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotDominance ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 
@@ -142,7 +142,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotDominance ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -170,7 +170,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotCalibration\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotDominance\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -192,73 +192,78 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotCalibration mutation suite ==="
+echo "=== RotDominance mutation suite ==="
 
 # Each needle is asserted present EXACTLY once before it is applied, and the
 # replacement is asserted present afterwards. A needle that does not match is
-# DISCARDED, never SURVIVED -- measured 2026-08-09, an ASCII '<=' written where
-# the source has a unicode '≤' silently tested nothing in mutate_rotabverdict.
+# DISCARDED, never SURVIVED.
 
-run_mut K01 \
-  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "  0 <= i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "band_excludes_the_floor -- an item nobody ever got right would be kept"
+run_mut D01 \
+  "def D4_discriminates (l : Layer) : Bool := lanes ≤ l.distinctOutcomes" \
+  "def D4_discriminates (l : Layer) : Bool := true" \
+  "a_logger_is_not_a_router -- a constant-lane router must NOT count as routing"
 
-run_mut K02 \
-  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "  0 < i.calibCorrect && i.calibCorrect <= i.calibReps" \
-  "band_excludes_the_ceiling -- a saturated item would be kept, recreating the ceiling"
+run_mut D02 \
+  "def D2_conserves (l : Layer) : Bool := l.survivingCaps == l.baselineCaps" \
+  "def D2_conserves (l : Layer) : Bool := true" \
+  "addition_does_not_excuse_regression -- the only conjunct that can make the router WORSE than none"
 
-run_mut K03 \
-  "def calibrated (pool : List Item) : List Item := pool.filter inBand" \
-  "def calibrated (pool : List Item) : List Item := pool" \
-  "one_rep_pool_calibrates_to_nothing -- calibration that filters nothing"
+run_mut D03 \
+  "def D3_adds (l : Layer) : Bool := 0 < l.records" \
+  "def D3_adds (l : Layer) : Bool := true" \
+  "the_baseline_fails_on_addition -- without it the DEFAULT loop would qualify"
 
-run_mut K04 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  1 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "one_rep_calibration_is_unsound -- one rep can only score floor or ceiling"
+run_mut D04 \
+  "def lanes : Nat := 9" \
+  "def lanes : Nat := 0" \
+  "discrimination_is_measured_against_the_declared_lane_count -- shrinking the bar is not passing it"
 
-run_mut K05 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  2 ≤ d.calibReps && !d.selectionUsedRoutedArm" \
-  "reusing_the_calibration_reps_is_unsound -- grading the run that chose the items"
+run_mut D05 \
+  "def msBound : Nat := 500" \
+  "def msBound : Nat := 1000" \
+  "every_conjunct_is_load_bearing -- a latency bound raised to fit the measurement"
 
-run_mut K06 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh" \
-  "selecting_on_the_routed_arm_is_unsound -- the filter would decide the result"
+run_mut D06 \
+  "  D1_total l && D2_conserves l && D3_adds l && D4_discriminates l &&" \
+  "  D2_conserves l && D3_adds l && D4_discriminates l &&" \
+  "every_conjunct_is_load_bearing -- TOTALITY dropped from the conjunction entirely"
 
-run_mut K07 \
-  "   (ps.filter (fun p => !p.routedRight && p.baselineRight)).length," \
-  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
-  "circular_selection_cannot_lose -- the routed arm's losses would stop being counted"
+run_mut D07 \
+  "    records := 0, distinctOutcomes := 0" \
+  "    records := 1, distinctOutcomes := 0" \
+  "the_baseline_fails_on_addition -- the default loop must produce ZERO router records"
 
-run_mut K08 \
-  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
-  "   (ps.filter (fun p => p.routedRight)).length," \
-  "selecting_on_the_test_result_also_biases -- concordant wins miscounted"
+run_mut D08 \
+  "theorem aliased_sample_is_always_phase_zero (p s i : Nat) (h : p ∣ s) :" \
+  "theorem aliased_sample_is_always_phase_zero (p s i : Nat) (h : s ∣ p) :" \
+  "aliased_sample_is_always_phase_zero -- the divisibility DIRECTION is what makes the alias"
 
-run_mut K09 \
-  "def planned : Design := ⟨3, true, false⟩" \
-  "def planned : Design := ⟨1, true, false⟩" \
-  "the_planned_design_is_sound -- the design this repo will actually run"
+run_mut D09 \
+  "  (List.range n).map (fun i => (i * (i + 1) / 2) % p)" \
+  "  (List.range n).map (fun i => (i * 2) % p)" \
+  "varying_stride_breaks_the_alias -- a 'varying' stride that is still constant fixes nothing"
 
-run_mut K10 \
-  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 2 ≤ i.calibReps" \
-  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 3 ≤ i.calibReps" \
-  "the bound is TIGHT -- two reps is the floor, not three"
+run_mut D10 \
+  "  0 < l.replaysAttempted && l.reproducibleReplays == l.replaysAttempted" \
+  "  l.reproducibleReplays == l.replaysAttempted" \
+  "an_untested_layer_is_not_deterministic -- zero replays would pass D5 vacuously"
 
-run_mut K11 \
-  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨1, 3⟩, ⟨2, 3⟩]" \
-  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨0, 3⟩, ⟨1, 3⟩, ⟨2, 3⟩]" \
-  "the floor item is really dropped by the filter"
+run_mut D11 \
+  "  0 < l.gaugeRecords && l.recomputed == l.gaugeRecords" \
+  "  l.recomputed == l.gaugeRecords" \
+  "an_untested_layer_is_not_deterministic -- zero gauge records would pass D6 vacuously"
 
-run_mut K12 \
-  "#guard verdict (tally []) = Verdict.noPower" \
-  "#guard verdict (tally []) = Verdict.null" \
-  "empty_corpus_reproduces_the_ceiling_failure -- an empty corpus is NOT a null"
-
+# NEGATIVE CONTROL, run 2026-08-09 and then removed rather than left in the
+# suite. A prose-only mutant ("A definition where one" -> "in which one") was
+# reported SURVIVED at exit 1, proving this suite can report a survivor at all.
+# Two harness defects were found by running it:
+#   * a needle that is a PREFIX of its replacement ("## The definition" ->
+#     "## The definitions") is scored DISCARDED, correctly -- the post-check
+#     still finds the needle. Needles must not be prefixes of replacements.
+#   * the EXIT trap restored the source but not the .olean, so this failing run
+#     left the module uncompiled and the NEXT run reported SKIP exit 3 instead
+#     of the failure. Fixed in the trap above, and in the 29 other suites that
+#     shared it.
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."
@@ -270,7 +275,7 @@ fi
 #
 # This block used to be an unconditional `exit 0` under a sentence claiming
 # every mutant was killed -- so a SURVIVING mutant was reported as a clean
-# sweep. Measured 2026-08-09 when C05 survived in mutate_rotcalibration.sh and the
+# sweep. Measured 2026-08-09 when C05 survived in mutate_rotdominance.sh and the
 # suite still exited 0. Every suite in this directory shared the defect.
 #
 # A survivor and a discard mean different things and neither is a pass:
@@ -291,9 +296,9 @@ fi
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
 # So without this, a PASSING suite leaves the module uncompiled and the next
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
-# Measured 2026-08-09 on Proofs.RotCalibration.
+# Measured 2026-08-09 on Proofs.RotDominance.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotDominance ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."

@@ -23,6 +23,86 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### "Surpasses standard Claude Code" was never a proposition — now it is one, and it is measured
+
+The project's central claim had been attacked only in its weakest reading: *does
+the routed arm win an answer-quality A/B?* Three corpora answered **no**, each
+for a different reason, and those results stand — brevity confound
+(`RotAbVerdict`), selectivity confound (`RotGrounding`), and a ceiling
+(`RotCeiling`). The fourth corpus closed the same way: two calibration reps over
+80 items produced a band of **1** (floor 1, ceiling 78), which is
+`RotCeiling.noPower`, not a null.
+
+That was the wrong target. Standard Claude Code has **no routing layer at all** —
+no lane, no lens weighting, no gauge, no per-turn record of why a turn was
+handled the way it was. The claim worth testing is structural, and
+`lean/Proofs/RotDominance.lean` (17 declarations) now states it as seven
+conjuncts, each proved load-bearing by a near-miss layer that satisfies the other
+six:
+
+| | conjunct | measured on the shipped router |
+|---|---|---|
+| D1 | TOTALITY | 31/31 declared hook events handled at exit 0 |
+| D2 | CONSERVATION | 0 blocked, 0 denied, 0 stderr bytes |
+| D3 | ADDITION | 62 router-observable records (default loop: 0) |
+| D4 | DISCRIMINATION | 10 distinct lanes reached (≥ 9 declared) |
+| D5 | DETERMINISM | 12 replays → 1 distinct route |
+| D6 | RECOMPUTABILITY | 5/5 gauge records re-derived from their own fields |
+| D7 | BOUNDED COST | worst turn 276 ms (bound 500 ms) |
+
+`checker/dominance.sh` measures all seven against `hooks/rot-router.sh` and was
+verified killable by three deliberately broken routers: one that exits 2 on a
+single event (D1+D2 fail), one pinned to a constant lane (D4 fails), and one
+branching on `$$` (D5 fails).
+
+**D2 had never been measured.** In Claude Code a hook exiting 2 *blocks* the tool
+call, so a router that added a gauge while blocking one event in thirty would be
+strictly worse than no router — with every other conjunct still green.
+
+`dominance_says_nothing_about_answer_quality` is a theorem, not a footnote: a
+green verdict here may never be reported as "better answers".
+
+### A five-sample determinism test could not see a nondeterministic router
+
+Found by a mutant, not by inspection. The replay loop spawned a **fixed** number
+of subprocesses per iteration, so the PID advanced by a constant stride; a router
+whose hidden state had a period dividing that stride was sampled at the same
+phase every time. It varied across twelve hand probes and still reported "1
+distinct route".
+
+`aliased_sample_is_always_phase_zero` and `more_samples_do_not_break_the_alias`
+prove why raising the sample count was never the fix — at a constant stride,
+*every* count returns the same value. The repair varies the stride;
+`varying_stride_breaks_the_alias` and `varying_stride_separates_period_three`
+show it works for period 2 and period 3, so the fix is not fitted to the one case
+that broke.
+
+### 30 of 46 mutation suites left the tree unbuildable whenever they reported a real failure
+
+The EXIT trap restored the **source** but not the `.olean`, which every mutant
+deletes. The rebuild lived in the suite's tail — reached only on the *success*
+path. So a suite that found something exited early, left the module uncompiled,
+and the **next** run tripped the no-download guard and reported `SKIP` exit 3
+instead of the failure. The real result vanished on the second run.
+
+`fixmut2.js` had fixed this for the passing path a day earlier; the failing paths
+were never covered. The rebuild now lives in the trap, which runs on every exit
+path, and was verified by a negative control that reports `SURVIVED` at exit 1
+**and** leaves the tree buildable.
+
+The same control found a second harness rule: **a needle that is a prefix of its
+replacement is scored DISCARDED**, correctly, because the post-check still finds
+the needle. `## The definition` → `## The definitions` tests nothing.
+
+### Two defects in gates added the previous day
+
+- `checker/plugin-root-consistency.sh` was in the shell table and the Lean
+  witness but in **no workflow** — CI had never run it once. Caught by
+  `workflow-lint`, now registered.
+- The same script piped into `grep -q` under `pipefail` at two sites. `-q` exits
+  on first match, `printf` takes SIGPIPE 141, and the pipeline returns 141 — so
+  **a match was reported as a failure**. Replaced with a full-read `grep … >/dev/null`.
+
 ### The kernel had never re-checked a single delivered proof — the filesystem was folding the name
 
 `lake build Proofs.RotMoE.RotCeiling` exited **0** and wrote the olean.

@@ -80,7 +80,11 @@ if [ "${_lines:-0}" -lt 20 ] || [ "${_thms:-0}" -lt 1 ]; then
 fi
 
 cp "$F" "$BAK"
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"' EXIT
+# The rebuild lives in the TRAP, not in the tail, so it runs on EVERY exit
+# path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
+# that reported a real failure left the module with no .olean, and the NEXT
+# run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRelease ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 

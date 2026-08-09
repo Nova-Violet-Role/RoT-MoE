@@ -78,7 +78,7 @@ if (!mode || !file || !cmd) {
 // ONE DEFINITION OF THE BOUND, used by the arm path below and asserted by
 // checker/hook-timeout.sh against hooks/hooks.json. Two copies of a number are
 // two numbers, and the install paths are required to agree.
-const HOOK_TIMEOUT_SECONDS = 1200;
+const HOOK_TIMEOUT_SECONDS = 18000;
 
 const EVENTS = (eventsArg && eventsArg.trim())
   ? eventsArg.split(",").map(s => s.trim()).filter(Boolean)
@@ -149,7 +149,7 @@ if (mode === "arm") {
     // the work is proportional to the traffic, not constant. A bound chosen for
     // a trivial script is the wrong shape of bound for this one.
     //
-    // 1200 s matches HOOK_TIMEOUT_SECONDS below and the plugin's hooks.json, so
+    // 18000 s matches HOOK_TIMEOUT_SECONDS below and the plugin's hooks.json, so
     // the two install paths deliver the same product -- the rule this file
     // already enforces for the command string is now enforced for the bound.
     s.hooks[ev].push({ matcher: "*", hooks: [{ type: "command", command: cmd, timeout: HOOK_TIMEOUT_SECONDS }] });

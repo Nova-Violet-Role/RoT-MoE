@@ -122,6 +122,30 @@ jobs:
         shell: bash
         run: sh checker/lean-module-case.sh
 
+      # A per-module count in the prose was bound to nothing: README said
+      # RotEigenform.lean had 101 theorems and 38 mutants when the source had
+      # 115 and 41. repo-complete.sh binds the TOTALS, and the totals were
+      # right -- the drift lived entirely inside one module's share of them.
+      - name: module claims (per-module counts in the prose vs the source)
+        shell: bash
+        run: sh checker/module-claims.sh
+
+      # Registered late: workflow-lint found this gate was in the shell table
+      # and the Lean witness but in NO workflow, so CI had never run it once.
+      # Exits 3 (SKIP) when no config dir is present, which is not a pass.
+      - name: plugin root consistency (declared roots exist and agree)
+        shell: bash
+        run: bash checker/plugin-root-consistency.sh
+
+      # The central structural claim, measured against the shipped router:
+      # D1 totality, D2 conservation, D3 addition, D4 discrimination,
+      # D5 determinism, D6 recomputability, D7 bounded cost. Each conjunct is
+      # proved load-bearing in lean/Proofs/RotDominance.lean, and each was
+      # verified killable by a deliberately broken router.
+      - name: dominance (does the routing layer strictly extend the default loop?)
+        shell: bash
+        run: bash checker/dominance.sh
+
       - name: installer round trip (scratch config dir only)
         shell: bash
         run: bash checker/install-roundtrip.sh

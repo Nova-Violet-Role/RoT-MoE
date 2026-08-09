@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotCalibration.lean (calibrating a corpus, and the two ways it cheats)
+# MUTATION SUITE -- Proofs/RotSample.lean (calibrating a corpus, and the two ways it cheats)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -16,31 +16,29 @@
 # DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
 # claim about the theorem. Folding them together manufactures reassurance.
 #
-# WHAT THIS SUITE IS AIMED AT. The module defends a MEASUREMENT DESIGN, and a
-# design is exactly the kind of artifact whose defects are invisible in a green
-# build. Three groups:
+# WHAT THIS SUITE IS AIMED AT. The module proves that the stratified cap in
+# bench/calib-prompts.js selects by POSITION and cannot see how either arm was
+# graded -- the property that makes it admissible in front of a paired test.
 #
-#   K01-K03  THE BAND. Re-admit the floor, re-admit the ceiling, or stop
-#            filtering at all. Any survivor means a corpus could be selected
-#            with saturated items in it -- the RotCeiling failure, recreated.
-#   K04-K06  SOUNDNESS. Drop one clause of `sound` each. A survivor means an
-#            unsound design would be accepted: one rep, reused test reps, or
-#            selection driven by the routed arm.
-#   K07-K08  CIRCULARITY. Corrupt the tally so the two circular-selection
-#            theorems can no longer bind. These are the theorems that say a
-#            filter, not the router, produced the win.
-#
-# K09-K12 attack the measured design record and the guards, including the
-# cross-module one: an EMPTY calibrated corpus must still report `noPower`.
+#   S01-S03  THE CAP ITSELF. Break the ceiling, the stride, or the max-1 guard.
+#            A survivor means cap_never_exceeds or the guards are not pinning
+#            the arithmetic the JavaScript is supposed to mirror.
+#   S04      MAKE flipGrade THE IDENTITY. This is the mutant that would have
+#            survived: with flipGrade = id, every blindness theorem reads
+#            "cap pool per = cap pool per" and holds for a cap that DOES read
+#            the grades. It is killed by three #guards that were added for
+#            exactly this reason, before the suite was written.
+#   S05-S07  THE ORDER OF CAP AND GRADE, and the witness that separates them.
+#   S08-S10  The shipped shape table and the executable checks.
 # =============================================================================
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotCalibration.lean"
+F="Proofs/RotSample.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCalibration.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutcalibration.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotSample.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutsample.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -62,10 +60,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCalibration ) >/tmp/mut_pre_rotcalibration.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCalibration)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotSample ) >/tmp/mut_pre_rotsample.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotSample)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotcalibration.log
+  tail -5 /tmp/mut_pre_rotsample.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -88,7 +86,7 @@ cp "$F" "$BAK"
 # path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
 # that reported a real failure left the module with no .olean, and the NEXT
 # run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) >/dev/null 2>&1' EXIT
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotSample ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 
@@ -142,7 +140,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotSample ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -170,7 +168,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotCalibration\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotSample\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -192,72 +190,61 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotCalibration mutation suite ==="
+echo "=== RotSample mutation suite ==="
 
 # Each needle is asserted present EXACTLY once before it is applied, and the
 # replacement is asserted present afterwards. A needle that does not match is
-# DISCARDED, never SURVIVED -- measured 2026-08-09, an ASCII '<=' written where
-# the source has a unicode '≤' silently tested nothing in mutate_rotabverdict.
+# DISCARDED, never SURVIVED.
 
-run_mut K01 \
-  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "  0 <= i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "band_excludes_the_floor -- an item nobody ever got right would be kept"
+run_mut S01 \
+  "  (everyNth pool (pool.length / max 1 per)).take per" \
+  "  (everyNth pool (pool.length / max 1 per)).take (per + 1)" \
+  "cap_never_exceeds -- the ceiling the JavaScript MAX is supposed to enforce"
 
-run_mut K02 \
-  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "  0 < i.calibCorrect && i.calibCorrect <= i.calibReps" \
-  "band_excludes_the_ceiling -- a saturated item would be kept, recreating the ceiling"
+run_mut S02 \
+  "  (l.zipIdx.filter (fun p => p.2 % (max 1 s) == 0)).map Prod.fst" \
+  "  (l.zipIdx.filter (fun p => p.2 % (max 1 s) == 1)).map Prod.fst" \
+  "the stride starts at the FIRST element -- an off-by-one drops item one"
 
-run_mut K03 \
-  "def calibrated (pool : List Item) : List Item := pool.filter inBand" \
-  "def calibrated (pool : List Item) : List Item := pool" \
-  "one_rep_pool_calibrates_to_nothing -- calibration that filters nothing"
+run_mut S03 \
+  "  (l.zipIdx.filter (fun p => p.2 % (max 1 s) == 0)).map Prod.fst" \
+  "  (l.zipIdx.filter (fun p => p.2 % s == 0)).map Prod.fst" \
+  "the max-1 guard -- without it a stride of 0 collapses the sample to one item"
 
-run_mut K04 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  1 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "one_rep_calibration_is_unsound -- one rep can only score floor or ceiling"
+run_mut S04 \
+  "def flipGrade (i : Item) : Item := { i with routedRight := !i.routedRight }" \
+  "def flipGrade (i : Item) : Item := i" \
+  "flipGrade MUST flip -- as the identity every blindness theorem is vacuous"
 
-run_mut K05 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  2 ≤ d.calibReps && !d.selectionUsedRoutedArm" \
-  "reusing_the_calibration_reps_is_unsound -- grading the run that chose the items"
+run_mut S05 \
+  "  cap (pool.filter (fun i => i.routedRight)) per" \
+  "  cap (pool.filter (fun i => !i.routedRight)) per" \
+  "grading_first_manufactures_a_routed_win -- the forbidden order's direction"
 
-run_mut K06 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh" \
-  "selecting_on_the_routed_arm_is_unsound -- the filter would decide the result"
+run_mut S06 \
+  "  (cap pool per).filter (fun i => i.routedRight)" \
+  "  (cap pool per).filter (fun _ => true)" \
+  "capThenGrade actually grades -- otherwise the honest order is a no-op"
 
-run_mut K07 \
-  "   (ps.filter (fun p => !p.routedRight && p.baselineRight)).length," \
-  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
-  "circular_selection_cannot_lose -- the routed arm's losses would stop being counted"
+run_mut S07 \
+  "def witness : List Item := [⟨0, 0, false⟩, ⟨0, 1, true⟩]" \
+  "def witness : List Item := [⟨0, 0, true⟩, ⟨0, 1, true⟩]" \
+  "grading_first_can_change_the_sample -- the witness must SEPARATE the orders"
 
-run_mut K08 \
-  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
-  "   (ps.filter (fun p => p.routedRight)).length," \
-  "selecting_on_the_test_result_also_biases -- concordant wins miscounted"
+run_mut S08 \
+  "#guard (shippedShapes.map Prod.snd).sum = 80" \
+  "#guard (shippedShapes.map Prod.snd).sum = 79" \
+  "the shipped pool is 80 items -- the number the corpus was actually built at"
 
-run_mut K09 \
-  "def planned : Design := ⟨3, true, false⟩" \
-  "def planned : Design := ⟨1, true, false⟩" \
-  "the_planned_design_is_sound -- the design this repo will actually run"
+run_mut S09 \
+  "#guard shippedShapes.all (fun p => 0 < p.2) = true" \
+  "#guard shippedShapes.all (fun p => 0 < p.2) = false" \
+  "no question shape was wiped out by the cap"
 
-run_mut K10 \
-  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 2 ≤ i.calibReps" \
-  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 3 ≤ i.calibReps" \
-  "the bound is TIGHT -- two reps is the floor, not three"
-
-run_mut K11 \
-  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨1, 3⟩, ⟨2, 3⟩]" \
-  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨0, 3⟩, ⟨1, 3⟩, ⟨2, 3⟩]" \
-  "the floor item is really dropped by the filter"
-
-run_mut K12 \
-  "#guard verdict (tally []) = Verdict.noPower" \
-  "#guard verdict (tally []) = Verdict.null" \
-  "empty_corpus_reproduces_the_ceiling_failure -- an empty corpus is NOT a null"
+run_mut S10 \
+  "#guard cap witness 0 = []" \
+  "#guard cap witness 0 = witness" \
+  "zero_ceiling_selects_nothing -- a cap of 0 must not mean 'no cap'"
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
@@ -270,7 +257,7 @@ fi
 #
 # This block used to be an unconditional `exit 0` under a sentence claiming
 # every mutant was killed -- so a SURVIVING mutant was reported as a clean
-# sweep. Measured 2026-08-09 when C05 survived in mutate_rotcalibration.sh and the
+# sweep. Measured 2026-08-09 when C05 survived in mutate_rotsample.sh and the
 # suite still exited 0. Every suite in this directory shared the defect.
 #
 # A survivor and a discard mean different things and neither is a pass:
@@ -291,9 +278,9 @@ fi
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
 # So without this, a PASSING suite leaves the module uncompiled and the next
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
-# Measured 2026-08-09 on Proofs.RotCalibration.
+# Measured 2026-08-09 on Proofs.RotSample.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotSample ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."

@@ -223,6 +223,8 @@ def shipped : List Gate :=
   , f "SPDX sweep"
   , f "no machine-local paths"
   , f "lean module case (imports match the disk EXACTLY; a case-folding filesystem hides this)"
+  , f "module claims (a per-module theorem/mutant count in the prose, bound to the source)"
+  , f "plugin root consistency (every declared root exists; declarations agree) -- exit 3 SKIP with no config dir"
   , f "install-document lint"
   , f "licence bridge"
   , f "release consistency"
@@ -307,6 +309,7 @@ def shipped : List Gate :=
   , f "benchmark"
   , f "gate split"
   , d "repo completeness" ["README.md", "CHANGELOG.md", "STATUS.md", "lean/", "checker/repo-complete.sh"]
+  , d "dominance (does the routing layer STRICTLY EXTEND the default loop? D1-D7, each killable)" ["hooks/", "checker/dominance.sh", "lean/Proofs/RotDominance.lean"]
   , d "cross-diff (both reminder arms)" ["hooks/prover-remind", "checker/cross-diff-remind.sh"]
   , d "verdict stability" ["STATUS.md", "checker/verdict"]
   , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean", "checker/gauge-cross.sh"]
@@ -375,14 +378,14 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 48
+#guard shipped.length = 51
 
 -- Twenty-eight run on every commit.
-#guard (fastSet shipped).length = 32
+#guard (fastSet shipped).length = 34
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
-#guard (deepSet shipped).length = 16
+#guard (deepSet shipped).length = 17
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length
@@ -403,7 +406,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 37
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 39
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -413,14 +416,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 32
+#guard (stagedRun shipped []).length = 34
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 36
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 39
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 33
+#guard (stagedRun shipped ["README.md".toList]).length = 35
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

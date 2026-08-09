@@ -3,7 +3,7 @@
   "files": {
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-09T06:38:46.865661+00:00",
+      "indexed_at": "2026-08-09T18:42:15.455918+00:00",
       "language": "javascript",
       "lines": 101,
       "mtime_ns": 1786205762889294800,
@@ -40,7 +40,7 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-09T12:09:30.503715+00:00",
+      "indexed_at": "2026-08-09T18:42:15.457757+00:00",
       "language": "javascript",
       "lines": 180,
       "mtime_ns": 1786277368570225200,
@@ -95,7 +95,7 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-09T12:17:12.196126+00:00",
+      "indexed_at": "2026-08-09T18:42:15.460659+00:00",
       "language": "shell",
       "lines": 385,
       "mtime_ns": 1786277829886864600,
@@ -128,9 +128,160 @@
         }
       ]
     },
+    "calib-prompts.js": {
+      "hash": "887a4f5e2997",
+      "indexed_at": "2026-08-09T18:42:15.464920+00:00",
+      "language": "javascript",
+      "lines": 219,
+      "mtime_ns": 1786292666878221500,
+      "size": 9668,
+      "symbols": [
+        {
+          "docstring": "truth that is itself wrong is worse than no metric.",
+          "lines": [
+            53,
+            62
+          ],
+          "name": "stripBlockComments",
+          "signature": "(txt)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            66,
+            68
+          ],
+          "name": "bodyOf",
+          "signature": "(m)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            69,
+            73
+          ],
+          "name": "theoremsOf",
+          "signature": "(m)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            74,
+            76
+          ],
+          "name": "guardsOf",
+          "signature": "(m)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            77,
+            80
+          ],
+          "name": "importsOf",
+          "signature": "(m)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            81,
+            84
+          ],
+          "name": "defsOf",
+          "signature": "(m)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            88,
+            91
+          ],
+          "name": "add",
+          "signature": "(kind, prompt, answer)",
+          "type": "function"
+        }
+      ]
+    },
+    "calib-score.js": {
+      "hash": "b0381a1edbd7",
+      "indexed_at": "2026-08-09T18:42:15.466304+00:00",
+      "language": "javascript",
+      "lines": 135,
+      "mtime_ns": 1786295190750693100,
+      "size": 6509,
+      "symbols": [
+        {
+          "docstring": "reason is carried through to the summary so the two can never be confused.",
+          "lines": [
+            76,
+            87
+          ],
+          "name": "readTurn",
+          "signature": "(file)",
+          "type": "function"
+        },
+        {
+          "docstring": "A token match, anchored so \"1\" cannot be hit by an unrelated \"10\".",
+          "lines": [
+            90,
+            94
+          ],
+          "name": "hit",
+          "signature": "(answer, text)",
+          "type": "function"
+        }
+      ]
+    },
+    "calib-select.js": {
+      "hash": "1e81c694de06",
+      "indexed_at": "2026-08-09T18:42:15.467642+00:00",
+      "language": "javascript",
+      "lines": 125,
+      "mtime_ns": 1786292666880220900,
+      "size": 6114,
+      "symbols": []
+    },
+    "calib-verdict.js": {
+      "hash": "9c6c50ce2439",
+      "indexed_at": "2026-08-09T18:42:15.469173+00:00",
+      "language": "javascript",
+      "lines": 119,
+      "mtime_ns": 1786292666880220900,
+      "size": 6047,
+      "symbols": [
+        {
+          "lines": [
+            45,
+            45
+          ],
+          "name": "norm",
+          "signature": "(s)",
+          "type": "function"
+        },
+        {
+          "docstring": "Two-sided exact binomial on the discordant pairs (the sign test).",
+          "lines": [
+            89,
+            89
+          ],
+          "name": "choose",
+          "signature": "(n, k)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            90,
+            97
+          ],
+          "name": "signTestP",
+          "signature": "(a, b)",
+          "type": "function"
+        }
+      ]
+    },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-09T12:15:41.977744+00:00",
+      "indexed_at": "2026-08-09T18:42:15.470519+00:00",
       "language": "javascript",
       "lines": 105,
       "mtime_ns": 1786277739693226100,
@@ -159,7 +310,7 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-09T12:58:56.632857+00:00",
+      "indexed_at": "2026-08-09T18:42:15.472759+00:00",
       "language": "javascript",
       "lines": 136,
       "mtime_ns": 1786280334426837900,
@@ -213,6 +364,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T12:58:56.892548+00:00",
+  "generated_at": "2026-08-09T18:42:15.843682+00:00",
   "version": "1.0"
 }

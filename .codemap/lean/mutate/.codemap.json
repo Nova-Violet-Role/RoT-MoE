@@ -3,7 +3,7 @@
   "files": {
     "attribute_mut.sh": {
       "hash": "d761370a81a3",
-      "indexed_at": "2026-08-09T05:26:01.601741+00:00",
+      "indexed_at": "2026-08-09T18:42:15.678791+00:00",
       "language": "shell",
       "lines": 26,
       "mtime_ns": 1785495730211329900,
@@ -12,7 +12,7 @@
     },
     "generalization_probe.sh": {
       "hash": "ee0f576486be",
-      "indexed_at": "2026-08-09T05:26:01.604149+00:00",
+      "indexed_at": "2026-08-09T18:42:15.681129+00:00",
       "language": "shell",
       "lines": 260,
       "mtime_ns": 1786027592169887400,
@@ -29,17 +29,17 @@
       ]
     },
     "mutate_rotability.sh": {
-      "hash": "ad46f6b3c492",
-      "indexed_at": "2026-08-09T05:26:01.607056+00:00",
+      "hash": "a5d4516c8fd0",
+      "indexed_at": "2026-08-09T18:47:47.437035+00:00",
       "language": "shell",
-      "lines": 240,
-      "mtime_ns": 1786111251741413900,
-      "size": 11058,
+      "lines": 244,
+      "mtime_ns": 1786301262897783700,
+      "size": 11432,
       "symbols": [
         {
           "lines": [
-            93,
-            167
+            97,
+            171
           ],
           "name": "run_mut",
           "type": "function"
@@ -47,17 +47,17 @@
       ]
     },
     "mutate_rotabjoin.sh": {
-      "hash": "96bb8a83074a",
-      "indexed_at": "2026-08-09T13:13:06.652973+00:00",
+      "hash": "cdeb6e6c6598",
+      "indexed_at": "2026-08-09T18:47:47.438208+00:00",
       "language": "shell",
-      "lines": 285,
-      "mtime_ns": 1786281170085836900,
-      "size": 12410,
+      "lines": 289,
+      "mtime_ns": 1786301262898783000,
+      "size": 12783,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -65,17 +65,17 @@
       ]
     },
     "mutate_rotabverdict.sh": {
-      "hash": "285d6bdc301d",
-      "indexed_at": "2026-08-09T13:13:06.654050+00:00",
+      "hash": "b54fecda0506",
+      "indexed_at": "2026-08-09T18:47:47.439349+00:00",
       "language": "shell",
-      "lines": 283,
-      "mtime_ns": 1786281170086836100,
-      "size": 12562,
+      "lines": 287,
+      "mtime_ns": 1786301262898783000,
+      "size": 12938,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -84,7 +84,7 @@
     },
     "mutate_rotacquire.sh": {
       "hash": "223b8280c21f",
-      "indexed_at": "2026-08-09T05:26:01.610132+00:00",
+      "indexed_at": "2026-08-09T18:42:15.691707+00:00",
       "language": "shell",
       "lines": 279,
       "mtime_ns": 1786111374124390900,
@@ -109,17 +109,17 @@
       ]
     },
     "mutate_rotattribute.sh": {
-      "hash": "906c390dc861",
-      "indexed_at": "2026-08-09T05:26:01.613160+00:00",
+      "hash": "84903468e604",
+      "indexed_at": "2026-08-09T18:47:47.440615+00:00",
       "language": "shell",
-      "lines": 346,
-      "mtime_ns": 1786114335206202100,
-      "size": 15629,
+      "lines": 350,
+      "mtime_ns": 1786301262898783000,
+      "size": 16005,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -127,17 +127,17 @@
       ]
     },
     "mutate_rotcalibration.sh": {
-      "hash": "7daabdfbc52f",
-      "indexed_at": "2026-08-09T14:23:46.769467+00:00",
+      "hash": "ab6477155637",
+      "indexed_at": "2026-08-09T18:47:47.441772+00:00",
       "language": "shell",
-      "lines": 302,
-      "mtime_ns": 1786285424029070800,
-      "size": 13638,
+      "lines": 306,
+      "mtime_ns": 1786301262899783500,
+      "size": 14016,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -145,17 +145,17 @@
       ]
     },
     "mutate_rotcasefold.sh": {
-      "hash": "12a06270228d",
-      "indexed_at": "2026-08-09T15:06:31.104475+00:00",
+      "hash": "c2c8847339fd",
+      "indexed_at": "2026-08-09T18:47:47.442935+00:00",
       "language": "shell",
-      "lines": 287,
-      "mtime_ns": 1786287952348614300,
-      "size": 12728,
+      "lines": 291,
+      "mtime_ns": 1786301262899783500,
+      "size": 13103,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -163,17 +163,17 @@
       ]
     },
     "mutate_rotceiling.sh": {
-      "hash": "5a5c16a71d2c",
-      "indexed_at": "2026-08-09T14:23:46.771701+00:00",
+      "hash": "29919ba80991",
+      "indexed_at": "2026-08-09T18:47:47.443998+00:00",
       "language": "shell",
-      "lines": 280,
-      "mtime_ns": 1786285424027070200,
-      "size": 12325,
+      "lines": 284,
+      "mtime_ns": 1786301262899783500,
+      "size": 12699,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -181,17 +181,17 @@
       ]
     },
     "mutate_rotcite.sh": {
-      "hash": "028ce93ceac1",
-      "indexed_at": "2026-08-09T05:26:01.615759+00:00",
+      "hash": "d690042ad7fa",
+      "indexed_at": "2026-08-09T18:47:47.445031+00:00",
       "language": "shell",
-      "lines": 279,
-      "mtime_ns": 1786183947558397900,
-      "size": 12546,
+      "lines": 283,
+      "mtime_ns": 1786301262899783500,
+      "size": 12917,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -199,17 +199,17 @@
       ]
     },
     "mutate_rotcorpus.sh": {
-      "hash": "aeb5f611a34f",
-      "indexed_at": "2026-08-09T05:26:01.618440+00:00",
+      "hash": "53b7347a6606",
+      "indexed_at": "2026-08-09T18:47:47.446051+00:00",
       "language": "shell",
-      "lines": 273,
-      "mtime_ns": 1786189173758657600,
-      "size": 12579,
+      "lines": 277,
+      "mtime_ns": 1786301262900782900,
+      "size": 12952,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -217,12 +217,30 @@
       ]
     },
     "mutate_rotdebuglog.sh": {
-      "hash": "89d82c36fe6d",
-      "indexed_at": "2026-08-09T05:26:01.621172+00:00",
+      "hash": "17a2f63b1169",
+      "indexed_at": "2026-08-09T18:47:47.447134+00:00",
       "language": "shell",
-      "lines": 321,
-      "mtime_ns": 1786127389164517700,
-      "size": 13635,
+      "lines": 325,
+      "mtime_ns": 1786301262900782900,
+      "size": 14010,
+      "symbols": [
+        {
+          "lines": [
+            111,
+            193
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotdeployment.sh": {
+      "hash": "0be1798278e8",
+      "indexed_at": "2026-08-09T18:47:47.448294+00:00",
+      "language": "shell",
+      "lines": 310,
+      "mtime_ns": 1786301262900782900,
+      "size": 14020,
       "symbols": [
         {
           "lines": [
@@ -234,18 +252,18 @@
         }
       ]
     },
-    "mutate_rotdeployment.sh": {
-      "hash": "00ea8de03a17",
-      "indexed_at": "2026-08-09T13:13:06.656161+00:00",
+    "mutate_rotdominance.sh": {
+      "hash": "46ebb85a6ba9",
+      "indexed_at": "2026-08-09T18:49:01.984798+00:00",
       "language": "shell",
-      "lines": 306,
-      "mtime_ns": 1786281170086836100,
-      "size": 13643,
+      "lines": 311,
+      "mtime_ns": 1786301339777782400,
+      "size": 14215,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -254,7 +272,7 @@
     },
     "mutate_rotduplicate.sh": {
       "hash": "2957267a7c8e",
-      "indexed_at": "2026-08-09T05:26:01.624377+00:00",
+      "indexed_at": "2026-08-09T18:42:15.728260+00:00",
       "language": "shell",
       "lines": 325,
       "mtime_ns": 1786111251742412600,
@@ -271,17 +289,17 @@
       ]
     },
     "mutate_roteffectivelog.sh": {
-      "hash": "b640e4d4a291",
-      "indexed_at": "2026-08-09T13:13:06.657223+00:00",
+      "hash": "6f1cfcfe70d5",
+      "indexed_at": "2026-08-09T18:47:47.450653+00:00",
       "language": "shell",
-      "lines": 310,
-      "mtime_ns": 1786281170087835900,
-      "size": 13226,
+      "lines": 314,
+      "mtime_ns": 1786301262901782100,
+      "size": 13605,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -290,7 +308,7 @@
     },
     "mutate_roteigenform.sh": {
       "hash": "493726316713",
-      "indexed_at": "2026-08-09T05:26:01.629319+00:00",
+      "indexed_at": "2026-08-09T18:42:15.736761+00:00",
       "language": "shell",
       "lines": 643,
       "mtime_ns": 1786111251742412600,
@@ -307,17 +325,17 @@
       ]
     },
     "mutate_rotendpoint.sh": {
-      "hash": "9ba8a607004a",
-      "indexed_at": "2026-08-09T05:26:01.632154+00:00",
+      "hash": "be1952d7584f",
+      "indexed_at": "2026-08-09T18:47:47.451761+00:00",
       "language": "shell",
-      "lines": 300,
-      "mtime_ns": 1786205703646294200,
-      "size": 14182,
+      "lines": 304,
+      "mtime_ns": 1786301262902783100,
+      "size": 14557,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -326,7 +344,7 @@
     },
     "mutate_rotensemble.sh": {
       "hash": "478a3242c58e",
-      "indexed_at": "2026-08-09T05:26:01.635273+00:00",
+      "indexed_at": "2026-08-09T18:42:15.743303+00:00",
       "language": "shell",
       "lines": 331,
       "mtime_ns": 1786111251742412600,
@@ -343,17 +361,17 @@
       ]
     },
     "mutate_rotevent.sh": {
-      "hash": "49078be87689",
-      "indexed_at": "2026-08-09T05:26:01.638245+00:00",
+      "hash": "4cb130f26d35",
+      "indexed_at": "2026-08-09T18:47:47.452863+00:00",
       "language": "shell",
-      "lines": 305,
-      "mtime_ns": 1786220568522811900,
-      "size": 14188,
+      "lines": 309,
+      "mtime_ns": 1786301262902783100,
+      "size": 14560,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -361,17 +379,17 @@
       ]
     },
     "mutate_rotgates.sh": {
-      "hash": "baa06abd7975",
-      "indexed_at": "2026-08-09T05:26:01.641695+00:00",
+      "hash": "235f7579ec33",
+      "indexed_at": "2026-08-09T18:47:47.454045+00:00",
       "language": "shell",
-      "lines": 335,
-      "mtime_ns": 1786200066593465100,
-      "size": 15519,
+      "lines": 339,
+      "mtime_ns": 1786301262902783100,
+      "size": 15891,
       "symbols": [
         {
           "lines": [
-            94,
-            172
+            98,
+            176
           ],
           "name": "run_mut",
           "type": "function"
@@ -380,7 +398,7 @@
     },
     "mutate_rotgauge.sh": {
       "hash": "71a5bed2d71c",
-      "indexed_at": "2026-08-09T05:26:01.644725+00:00",
+      "indexed_at": "2026-08-09T18:42:15.752467+00:00",
       "language": "shell",
       "lines": 325,
       "mtime_ns": 1786110951996412900,
@@ -397,17 +415,17 @@
       ]
     },
     "mutate_rotgrounding.sh": {
-      "hash": "b9ba439b6e5c",
-      "indexed_at": "2026-08-09T13:13:06.658230+00:00",
+      "hash": "3c6eb7957429",
+      "indexed_at": "2026-08-09T18:47:47.455129+00:00",
       "language": "shell",
-      "lines": 281,
-      "mtime_ns": 1786281170087835900,
-      "size": 12331,
+      "lines": 285,
+      "mtime_ns": 1786301262903782200,
+      "size": 12707,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -415,17 +433,17 @@
       ]
     },
     "mutate_rotguard.sh": {
-      "hash": "06ce402b77eb",
-      "indexed_at": "2026-08-09T05:26:01.647656+00:00",
+      "hash": "ba9396050620",
+      "indexed_at": "2026-08-09T18:47:47.456319+00:00",
       "language": "shell",
-      "lines": 325,
-      "mtime_ns": 1786211989817635000,
-      "size": 14734,
+      "lines": 329,
+      "mtime_ns": 1786301262903782200,
+      "size": 15106,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -433,17 +451,17 @@
       ]
     },
     "mutate_rotinject.sh": {
-      "hash": "e062cfee4c6f",
-      "indexed_at": "2026-08-09T13:13:06.659305+00:00",
+      "hash": "a549e61596f3",
+      "indexed_at": "2026-08-09T18:47:47.457490+00:00",
       "language": "shell",
-      "lines": 328,
-      "mtime_ns": 1786281170088836100,
-      "size": 14944,
+      "lines": 332,
+      "mtime_ns": 1786301262903782200,
+      "size": 15317,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -452,7 +470,7 @@
     },
     "mutate_rotinstall.sh": {
       "hash": "1cb67cdbf446",
-      "indexed_at": "2026-08-09T05:26:01.653771+00:00",
+      "indexed_at": "2026-08-09T18:42:15.763898+00:00",
       "language": "shell",
       "lines": 357,
       "mtime_ns": 1786111389088390800,
@@ -487,30 +505,12 @@
       ]
     },
     "mutate_rotlensability.sh": {
-      "hash": "73091d6b7483",
-      "indexed_at": "2026-08-09T13:13:06.660332+00:00",
+      "hash": "82935bd8d1f0",
+      "indexed_at": "2026-08-09T18:47:47.458531+00:00",
       "language": "shell",
-      "lines": 286,
-      "mtime_ns": 1786281170088836100,
-      "size": 12841,
-      "symbols": [
-        {
-          "lines": [
-            103,
-            185
-          ],
-          "name": "run_mut",
-          "type": "function"
-        }
-      ]
-    },
-    "mutate_rotlocalrelease.sh": {
-      "hash": "567574d9ede2",
-      "indexed_at": "2026-08-09T05:26:01.656572+00:00",
-      "language": "shell",
-      "lines": 277,
-      "mtime_ns": 1786138131800699900,
-      "size": 12277,
+      "lines": 290,
+      "mtime_ns": 1786301262903782200,
+      "size": 13219,
       "symbols": [
         {
           "lines": [
@@ -522,9 +522,27 @@
         }
       ]
     },
+    "mutate_rotlocalrelease.sh": {
+      "hash": "d00987881880",
+      "indexed_at": "2026-08-09T18:47:47.459509+00:00",
+      "language": "shell",
+      "lines": 281,
+      "mtime_ns": 1786301262903782200,
+      "size": 12656,
+      "symbols": [
+        {
+          "lines": [
+            111,
+            193
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotlog.sh": {
       "hash": "ef714d4bb34f",
-      "indexed_at": "2026-08-09T05:26:01.659680+00:00",
+      "indexed_at": "2026-08-09T18:42:15.772230+00:00",
       "language": "shell",
       "lines": 341,
       "mtime_ns": 1786121962598697600,
@@ -542,7 +560,7 @@
     },
     "mutate_rotmutant.sh": {
       "hash": "3c5d3cfc530c",
-      "indexed_at": "2026-08-09T05:26:01.663019+00:00",
+      "indexed_at": "2026-08-09T18:42:15.775571+00:00",
       "language": "shell",
       "lines": 418,
       "mtime_ns": 1786124534112275400,
@@ -559,17 +577,17 @@
       ]
     },
     "mutate_rotobserve.sh": {
-      "hash": "7b8d0b47d923",
-      "indexed_at": "2026-08-09T05:26:01.667625+00:00",
+      "hash": "fe4eb89d3167",
+      "indexed_at": "2026-08-09T18:47:47.461288+00:00",
       "language": "shell",
-      "lines": 645,
-      "mtime_ns": 1786111251744413200,
-      "size": 30452,
+      "lines": 649,
+      "mtime_ns": 1786301262904781900,
+      "size": 30826,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -578,7 +596,7 @@
     },
     "mutate_rotpath.sh": {
       "hash": "092f1f8bb47e",
-      "indexed_at": "2026-08-09T05:26:01.670308+00:00",
+      "indexed_at": "2026-08-09T18:42:15.783587+00:00",
       "language": "shell",
       "lines": 282,
       "mtime_ns": 1786111374124390900,
@@ -603,17 +621,17 @@
       ]
     },
     "mutate_rotpluginroot.sh": {
-      "hash": "69ba034ec845",
-      "indexed_at": "2026-08-09T13:13:06.661353+00:00",
+      "hash": "af19d535b2e4",
+      "indexed_at": "2026-08-09T18:47:47.462309+00:00",
       "language": "shell",
-      "lines": 285,
-      "mtime_ns": 1786281170089837100,
-      "size": 12445,
+      "lines": 289,
+      "mtime_ns": 1786301262904781900,
+      "size": 12822,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -621,17 +639,17 @@
       ]
     },
     "mutate_rotrelease.sh": {
-      "hash": "7a31324cbf38",
-      "indexed_at": "2026-08-09T13:13:06.662442+00:00",
+      "hash": "f76cfb44ebb8",
+      "indexed_at": "2026-08-09T18:47:47.463470+00:00",
       "language": "shell",
-      "lines": 314,
-      "mtime_ns": 1786281170089837100,
-      "size": 13802,
+      "lines": 318,
+      "mtime_ns": 1786301262904781900,
+      "size": 14176,
       "symbols": [
         {
           "lines": [
-            103,
-            185
+            107,
+            189
           ],
           "name": "run_mut",
           "type": "function"
@@ -640,7 +658,7 @@
     },
     "mutate_rotremind.sh": {
       "hash": "d3f26a2c40cb",
-      "indexed_at": "2026-08-09T05:26:01.675337+00:00",
+      "indexed_at": "2026-08-09T18:42:15.790753+00:00",
       "language": "shell",
       "lines": 304,
       "mtime_ns": 1786111374125390000,
@@ -664,9 +682,27 @@
         }
       ]
     },
+    "mutate_rotrootdecl.sh": {
+      "hash": "fbfb49447062",
+      "indexed_at": "2026-08-09T18:47:47.464591+00:00",
+      "language": "shell",
+      "lines": 295,
+      "mtime_ns": 1786301262905781700,
+      "size": 13274,
+      "symbols": [
+        {
+          "lines": [
+            111,
+            193
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotroute.sh": {
       "hash": "e4e3afa2a803",
-      "indexed_at": "2026-08-09T05:26:01.677272+00:00",
+      "indexed_at": "2026-08-09T18:42:15.796366+00:00",
       "language": "shell",
       "lines": 244,
       "mtime_ns": 1786111251744413200,
@@ -682,13 +718,49 @@
         }
       ]
     },
-    "mutate_rotseal.sh": {
-      "hash": "26f20653f9ea",
-      "indexed_at": "2026-08-09T05:26:01.679425+00:00",
+    "mutate_rotsample.sh": {
+      "hash": "dde9d1cfef4a",
+      "indexed_at": "2026-08-09T18:47:47.465760+00:00",
       "language": "shell",
-      "lines": 275,
-      "mtime_ns": 1786195792890437100,
-      "size": 12823,
+      "lines": 293,
+      "mtime_ns": 1786301262905781700,
+      "size": 13133,
+      "symbols": [
+        {
+          "lines": [
+            109,
+            191
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotseal.sh": {
+      "hash": "5e76624fe55e",
+      "indexed_at": "2026-08-09T18:47:47.466846+00:00",
+      "language": "shell",
+      "lines": 279,
+      "mtime_ns": 1786301262905781700,
+      "size": 13194,
+      "symbols": [
+        {
+          "lines": [
+            111,
+            193
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
+    "mutate_rotsessionlog.sh": {
+      "hash": "91f62d3fc105",
+      "indexed_at": "2026-08-09T18:47:47.468207+00:00",
+      "language": "shell",
+      "lines": 388,
+      "mtime_ns": 1786301262906782600,
+      "size": 16639,
       "symbols": [
         {
           "lines": [
@@ -700,27 +772,9 @@
         }
       ]
     },
-    "mutate_rotsessionlog.sh": {
-      "hash": "9ade6fa8511c",
-      "indexed_at": "2026-08-09T13:13:06.663633+00:00",
-      "language": "shell",
-      "lines": 384,
-      "mtime_ns": 1786281170089837100,
-      "size": 16262,
-      "symbols": [
-        {
-          "lines": [
-            103,
-            185
-          ],
-          "name": "run_mut",
-          "type": "function"
-        }
-      ]
-    },
     "mutate_rotstem.sh": {
       "hash": "10a98dc344f4",
-      "indexed_at": "2026-08-09T05:26:01.684201+00:00",
+      "indexed_at": "2026-08-09T18:42:15.808654+00:00",
       "language": "shell",
       "lines": 291,
       "mtime_ns": 1786124330388172300,
@@ -737,17 +791,17 @@
       ]
     },
     "mutate_rotsymbiogenesis.sh": {
-      "hash": "d91c867e94cb",
-      "indexed_at": "2026-08-09T05:26:01.687086+00:00",
+      "hash": "c32c6e4a7745",
+      "indexed_at": "2026-08-09T18:47:47.469423+00:00",
       "language": "shell",
-      "lines": 306,
-      "mtime_ns": 1786111251745412900,
-      "size": 13779,
+      "lines": 310,
+      "mtime_ns": 1786301262906782600,
+      "size": 14159,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -756,7 +810,7 @@
     },
     "mutate_rottag.sh": {
       "hash": "2658def19750",
-      "indexed_at": "2026-08-09T05:26:01.689818+00:00",
+      "indexed_at": "2026-08-09T18:42:15.816361+00:00",
       "language": "shell",
       "lines": 348,
       "mtime_ns": 1786111251745412900,
@@ -773,17 +827,17 @@
       ]
     },
     "mutate_rotupgrade.sh": {
-      "hash": "497fd8b6c084",
-      "indexed_at": "2026-08-09T05:26:01.692049+00:00",
+      "hash": "3304b3bad1bd",
+      "indexed_at": "2026-08-09T18:47:47.470539+00:00",
       "language": "shell",
-      "lines": 274,
-      "mtime_ns": 1786193871637666100,
-      "size": 12594,
+      "lines": 278,
+      "mtime_ns": 1786301262906782600,
+      "size": 12968,
       "symbols": [
         {
           "lines": [
-            107,
-            189
+            111,
+            193
           ],
           "name": "run_mut",
           "type": "function"
@@ -792,7 +846,7 @@
     },
     "mutate_rotvacuity.sh": {
       "hash": "fe47f0894c14",
-      "indexed_at": "2026-08-09T05:26:01.694499+00:00",
+      "indexed_at": "2026-08-09T18:42:15.821561+00:00",
       "language": "shell",
       "lines": 279,
       "mtime_ns": 1786111374125390000,
@@ -818,7 +872,7 @@
     },
     "mutate_rotvariants.sh": {
       "hash": "5a79099affa4",
-      "indexed_at": "2026-08-09T05:26:01.697055+00:00",
+      "indexed_at": "2026-08-09T18:42:15.825098+00:00",
       "language": "shell",
       "lines": 321,
       "mtime_ns": 1786111251745412900,
@@ -836,7 +890,7 @@
     },
     "mutate_rotverdict.sh": {
       "hash": "572a38874a93",
-      "indexed_at": "2026-08-09T05:26:01.699517+00:00",
+      "indexed_at": "2026-08-09T18:42:15.827700+00:00",
       "language": "shell",
       "lines": 290,
       "mtime_ns": 1786111374125390000,
@@ -861,6 +915,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T15:06:31.227919+00:00",
+  "generated_at": "2026-08-09T18:49:01.984913+00:00",
   "version": "1.0"
 }

@@ -80,6 +80,9 @@ count-theorems selftest|fast||bash checker/count-theorems.sh --selftest
 SPDX sweep|fast||sh checker/spdx-sweep.sh
 no machine-local paths|fast||sh checker/no-local-paths.sh
 lean module case (imports match the disk EXACTLY; a case-folding filesystem hides this)|fast||sh checker/lean-module-case.sh
+module claims (a per-module theorem/mutant count in the prose, bound to the source)|fast||sh checker/module-claims.sh
+plugin root consistency (every declared root exists; declarations agree) -- exit 3 SKIP with no config dir|fast||bash checker/plugin-root-consistency.sh
+dominance (does the routing layer STRICTLY EXTEND the default loop? D1-D7, each killable)|deep|hooks/,checker/dominance.sh,lean/Proofs/RotDominance.lean|bash checker/dominance.sh
 install-document lint|fast||bash checker/claude-md-lint.sh
 licence bridge|fast||bash checker/license-bridge.sh
 release consistency|fast||bash checker/release-consistency.sh

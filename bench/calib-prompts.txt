@@ -1,0 +1,80 @@
+In the file lean/Proofs/RotAbJoin.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotAbJoin.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 4? Answer with the identifier only.
+In the file lean/Proofs/RotAbJoin.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 7? Answer with the identifier only.
+In the file lean/Proofs/RotAbVerdict.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotAbVerdict.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 5? Answer with the identifier only.
+In the file lean/Proofs/RotAbVerdict.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 9? Answer with the identifier only.
+In the file lean/Proofs/RotAbility.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotAbility.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 18? Answer with the identifier only.
+In the file lean/Proofs/RotAbility.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 35? Answer with the identifier only.
+In the file lean/Proofs/RotAcquire.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotAcquire.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 5? Answer with the identifier only.
+In the file lean/Proofs/RotAcquire.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 9? Answer with the identifier only.
+In the file lean/Proofs/RotAttribute.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotAttribute.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 10? Answer with the identifier only.
+In the file lean/Proofs/RotAttribute.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 19? Answer with the identifier only.
+In the file lean/Proofs/RotCalibration.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotCalibration.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 9? Answer with the identifier only.
+In the file lean/Proofs/RotCalibration.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 18? Answer with the identifier only.
+In the file lean/Proofs/RotCaseFold.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotCaseFold.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 7? Answer with the identifier only.
+In the file lean/Proofs/RotCite.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 10? Answer with the identifier only.
+In the file lean/Proofs/RotEffectiveLog.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotEvent.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 8? Answer with the identifier only.
+In the file lean/Proofs/RotGuard.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 25? Answer with the identifier only.
+In the file lean/Proofs/RotLocalRelease.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In the file lean/Proofs/RotPath.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 6? Answer with the identifier only.
+In the file lean/Proofs/RotRoute.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 18? Answer with the identifier only.
+In the file lean/Proofs/RotSymbiogenesis.lean of this repository, consider only lines that begin with the word "theorem" and are OUTSIDE any /- -/ comment block. Counting from 1, what is the name of theorem number 1? Answer with the identifier only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotability.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotcalibration.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotcorpus.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_roteffectivelog.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotevent.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotguard.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotlocalrelease.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotpath.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotroute.sh contain? Answer with the integer only.
+In this repository, how many `run_mut` invocations does the file lean/mutate/mutate_rotsymbiogenesis.sh contain? Answer with the integer only.
+Across every .lean file in lean/Proofs of this repository, counting only lines that begin with "theorem" OUTSIDE any /- -/ comment block, which file has the most? Answer with the file name only, including the .lean extension.
+Across every .lean file in lean/Proofs of this repository, counting only lines that begin with "theorem" OUTSIDE any /- -/ comment block, how many does the file with the MOST have? Answer with the integer only.
+In the file lean/Proofs/RotAbJoin.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotAcquire.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotCaseFold.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotDeployment.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotEnsemble.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotGates.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotInject.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotMutant.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotRelease.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+In the file lean/Proofs/RotSessionLog.lean of this repository, how many lines begin with "#guard" outside any /- -/ comment block? Answer with the integer only.
+The file lean/Proofs/RotCalibration.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotDorks.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotDuplicate.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotEigenform.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotEnsemble.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotGauge.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotInject.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotInstall.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotLog.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+The file lean/Proofs/RotObserve.lean in this repository has exactly one import. What is the full module name it imports? Answer with the module name only.
+In this repository, exactly one file under lean/Proofs declares a top-level `def sessionRouteCount`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def lane1Control`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def onlyVer`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def corpusTracks`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def favoursRouted`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def hHybrid`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def ciHonestyAfter`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def emits`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def guessProbe`. Which file is it? Answer with the file name only, including the .lean extension.
+In this repository, exactly one file under lean/Proofs declares a top-level `def auditPasses`. Which file is it? Answer with the file name only, including the .lean extension.
+In the file lean/Proofs/RotAbJoin.lean of this repository, on which line number does the declaration `theorem join_ignores_foreign_traffic` begin? Answer with the integer only.
+In the file lean/Proofs/RotAttribute.lean of this repository, on which line number does the declaration `theorem measured_routed_emits_fewer_tokens` begin? Answer with the integer only.
+In the file lean/Proofs/RotCite.lean of this repository, on which line number does the declaration `theorem blind_extractor_fails` begin? Answer with the integer only.
+In the file lean/Proofs/RotDuplicate.lean of this repository, on which line number does the declaration `theorem guard_can_decline` begin? Answer with the integer only.
+In the file lean/Proofs/RotEnsemble.lean of this repository, on which line number does the declaration `theorem muFuse_eigenform` begin? Answer with the integer only.
+In the file lean/Proofs/RotGrounding.lean of this repository, on which line number does the declaration `theorem zero_wins_never_establishes` begin? Answer with the integer only.
+In the file lean/Proofs/RotLens.lean of this repository, on which line number does the declaration `theorem lead_does_not_shrink` begin? Answer with the integer only.
+In the file lean/Proofs/RotMutant.lean of this repository, on which line number does the declaration `theorem no_patch_no_discipline` begin? Answer with the integer only.
+In the file lean/Proofs/RotRelease.lean of this repository, on which line number does the declaration `theorem lt_sameMajor` begin? Answer with the integer only.
+In the file lean/Proofs/RotSeal.lean of this repository, on which line number does the declaration `theorem the_old_count_was_ten` begin? Answer with the integer only.

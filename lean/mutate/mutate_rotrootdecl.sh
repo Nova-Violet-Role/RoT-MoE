@@ -4,7 +4,7 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotCalibration.lean (calibrating a corpus, and the two ways it cheats)
+# MUTATION SUITE -- Proofs/RotRootDecl.lean (calibrating a corpus, and the two ways it cheats)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -16,31 +16,31 @@
 # DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
 # claim about the theorem. Folding them together manufactures reassurance.
 #
-# WHAT THIS SUITE IS AIMED AT. The module defends a MEASUREMENT DESIGN, and a
-# design is exactly the kind of artifact whose defects are invisible in a green
-# build. Three groups:
+# WHAT THIS SUITE IS AIMED AT. The module proves that a declared plugin root is
+# a CLAIM, and that checking those claims needs TWO independent rules.
 #
-#   K01-K03  THE BAND. Re-admit the floor, re-admit the ceiling, or stop
-#            filtering at all. Any survivor means a corpus could be selected
-#            with saturated items in it -- the RotCeiling failure, recreated.
-#   K04-K06  SOUNDNESS. Drop one clause of `sound` each. A survivor means an
-#            unsound design would be accepted: one rep, reused test reps, or
-#            selection driven by the routed arm.
-#   K07-K08  CIRCULARITY. Corrupt the tally so the two circular-selection
-#            theorems can no longer bind. These are the theorems that say a
-#            filter, not the router, produced the win.
-#
-# K09-K12 attack the measured design record and the guards, including the
-# cross-module one: an EMPTY calibrated corpus must still report `noPower`.
+#   R01-R03  THE TWO RULES ARE INDEPENDENT. Collapse soundness onto either rule
+#            alone and a real configuration slips through: a dangling pair that
+#            agrees with itself, or a divergent pair that both exist. Both
+#            shapes were observed on this machine on 2026-08-09.
+#   R04-R06  THE SCOPING. conflicts must require a SHARED config dir. Drop that
+#            and the checker goes red on a correct machine -- the global install
+#            and the CTT clone are supposed to declare different roots.
+#   R07-R08  SILENCE. A dangling declaration must resolve to the FALLBACK, which
+#            is why the operator sees a working tool and a patch that did
+#            nothing.
+#   R09-R10  The witnesses themselves. If danglingPair started existing, or
+#            divergentPair stopped diverging, the independence theorems would be
+#            about nothing.
 # =============================================================================
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotCalibration.lean"
+F="Proofs/RotRootDecl.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCalibration.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutcalibration.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotRootDecl.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrootdecl.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -62,10 +62,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCalibration ) >/tmp/mut_pre_rotcalibration.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCalibration)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotRootDecl ) >/tmp/mut_pre_rotrootdecl.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotRootDecl)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotcalibration.log
+  tail -5 /tmp/mut_pre_rotrootdecl.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -88,7 +88,7 @@ cp "$F" "$BAK"
 # path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
 # that reported a real failure left the module with no .olean, and the NEXT
 # run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) >/dev/null 2>&1' EXIT
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRootDecl ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 
@@ -142,7 +142,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRootDecl ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -170,7 +170,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotCalibration\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/RotRootDecl\.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -192,72 +192,61 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotCalibration mutation suite ==="
+echo "=== RotRootDecl mutation suite ==="
 
 # Each needle is asserted present EXACTLY once before it is applied, and the
 # replacement is asserted present afterwards. A needle that does not match is
-# DISCARDED, never SURVIVED -- measured 2026-08-09, an ASCII '<=' written where
-# the source has a unicode '≤' silently tested nothing in mutate_rotabverdict.
+# DISCARDED, never SURVIVED.
 
-run_mut K01 \
-  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "  0 <= i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "band_excludes_the_floor -- an item nobody ever got right would be kept"
+run_mut R01 \
+  "def sound (ds : List Decl) : Bool := allExist ds && agreesWithin ds" \
+  "def sound (ds : List Decl) : Bool := agreesWithin ds" \
+  "agreement_alone_misses_a_dangling_pair -- two configs agreeing on a retired dir"
 
-run_mut K02 \
-  "  0 < i.calibCorrect && i.calibCorrect < i.calibReps" \
-  "  0 < i.calibCorrect && i.calibCorrect <= i.calibReps" \
-  "band_excludes_the_ceiling -- a saturated item would be kept, recreating the ceiling"
+run_mut R02 \
+  "def sound (ds : List Decl) : Bool := allExist ds && agreesWithin ds" \
+  "def sound (ds : List Decl) : Bool := allExist ds" \
+  "existence_alone_misses_a_divergent_pair -- both exist, one dir names two roots"
 
-run_mut K03 \
-  "def calibrated (pool : List Item) : List Item := pool.filter inBand" \
-  "def calibrated (pool : List Item) : List Item := pool" \
-  "one_rep_pool_calibrates_to_nothing -- calibration that filters nothing"
+run_mut R03 \
+  "def sound (ds : List Decl) : Bool := allExist ds && agreesWithin ds" \
+  "def sound (ds : List Decl) : Bool := allExist ds || agreesWithin ds" \
+  "both_rules_are_load_bearing -- an OR passes every shape either rule allows"
 
-run_mut K04 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  1 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "one_rep_calibration_is_unsound -- one rep can only score floor or ceiling"
+run_mut R04 \
+  "  a.cfg == b.cfg && a.root.path != b.root.path" \
+  "  a.root.path != b.root.path" \
+  "cross_instance_divergence_is_not_a_defect -- unscoped, a CORRECT machine goes red"
 
-run_mut K05 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  2 ≤ d.calibReps && !d.selectionUsedRoutedArm" \
-  "reusing_the_calibration_reps_is_unsound -- grading the run that chose the items"
+run_mut R05 \
+  "  a.cfg == b.cfg && a.root.path != b.root.path" \
+  "  a.cfg == b.cfg && a.root.path == b.root.path" \
+  "conflict is DISAGREEMENT; inverted, agreement itself becomes the alarm"
 
-run_mut K06 \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh && !d.selectionUsedRoutedArm" \
-  "  2 ≤ d.calibReps && d.testRepsAreFresh" \
-  "selecting_on_the_routed_arm_is_unsound -- the filter would decide the result"
+run_mut R06 \
+  "  a.cfg == b.cfg && a.root.path != b.root.path" \
+  "  a.cfg != b.cfg && a.root.path != b.root.path" \
+  "the_same_divergence_within_one_dir_IS_a_defect -- scoping flipped exactly backwards"
 
-run_mut K07 \
-  "   (ps.filter (fun p => !p.routedRight && p.baselineRight)).length," \
-  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
-  "circular_selection_cannot_lose -- the routed arm's losses would stop being counted"
+run_mut R07 \
+  "  if d.root.exists_ then d.root.path else fallback" \
+  "  if d.root.exists_ then fallback else d.root.path" \
+  "a_dangling_declaration_resolves_to_the_stale_root -- resolution inverted"
 
-run_mut K08 \
-  "   (ps.filter (fun p => p.routedRight && p.baselineRight)).length," \
-  "   (ps.filter (fun p => p.routedRight)).length," \
-  "selecting_on_the_test_result_also_biases -- concordant wins miscounted"
+run_mut R08 \
+  "  if d.root.exists_ then d.root.path else fallback" \
+  "  d.root.path" \
+  "an unresolvable path would be USED -- the tool would fail loudly, not silently"
 
-run_mut K09 \
-  "def planned : Design := ⟨3, true, false⟩" \
-  "def planned : Design := ⟨1, true, false⟩" \
-  "the_planned_design_is_sound -- the design this repo will actually run"
+run_mut R09 \
+  "  [⟨0, 0, ⟨7, false⟩⟩, ⟨0, 1, ⟨7, false⟩⟩]" \
+  "  [⟨0, 0, ⟨7, true⟩⟩, ⟨0, 1, ⟨7, true⟩⟩]" \
+  "danglingPair must actually DANGLE, or R01 is about nothing"
 
-run_mut K10 \
-  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 2 ≤ i.calibReps" \
-  "theorem band_needs_two_reps (i : Item) (h : inBand i = true) : 3 ≤ i.calibReps" \
-  "the bound is TIGHT -- two reps is the floor, not three"
-
-run_mut K11 \
-  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨1, 3⟩, ⟨2, 3⟩]" \
-  "#guard calibrated [⟨0, 3⟩, ⟨1, 3⟩, ⟨3, 3⟩, ⟨2, 3⟩] = [⟨0, 3⟩, ⟨1, 3⟩, ⟨2, 3⟩]" \
-  "the floor item is really dropped by the filter"
-
-run_mut K12 \
-  "#guard verdict (tally []) = Verdict.noPower" \
-  "#guard verdict (tally []) = Verdict.null" \
-  "empty_corpus_reproduces_the_ceiling_failure -- an empty corpus is NOT a null"
+run_mut R10 \
+  "  [⟨0, 0, ⟨1, true⟩⟩, ⟨0, 1, ⟨2, true⟩⟩]" \
+  "  [⟨0, 0, ⟨1, true⟩⟩, ⟨0, 1, ⟨1, true⟩⟩]" \
+  "divergentPair must actually DIVERGE, or R02 is about nothing"
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
@@ -270,7 +259,7 @@ fi
 #
 # This block used to be an unconditional `exit 0` under a sentence claiming
 # every mutant was killed -- so a SURVIVING mutant was reported as a clean
-# sweep. Measured 2026-08-09 when C05 survived in mutate_rotcalibration.sh and the
+# sweep. Measured 2026-08-09 when C05 survived in mutate_rotrootdecl.sh and the
 # suite still exited 0. Every suite in this directory shared the defect.
 #
 # A survivor and a discard mean different things and neither is a pass:
@@ -291,9 +280,9 @@ fi
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
 # So without this, a PASSING suite leaves the module uncompiled and the next
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
-# Measured 2026-08-09 on Proofs.RotCalibration.
+# Measured 2026-08-09 on Proofs.RotRootDecl.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCalibration ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.RotRootDecl ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."
