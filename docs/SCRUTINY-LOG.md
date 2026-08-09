@@ -133,3 +133,30 @@ the subsystem exists to catch: a document asserting more than it measured.
 
 Items 4 and 5 are the serious ones: both claimed a test that does not exist,
 and both would have read as coverage to anyone auditing this packet.
+
+## OPEN ALARM — the production log's emitter is unidentified (2026-08-09)
+
+**Status: OPEN. Not fixed, not worked around, not closed.**
+
+`~/.claude/rot-moe/rot-route-debug.jsonl` gains route records every ~25 s with
+`"arm":"ps1"`, a valid `event`, and **no `src` and no `session` field** — the
+pre-fix record shape. What has been measured:
+
+| ruled out | how |
+|---|---|
+| stale plugin deployment | all three cache copies replaced with the 24462 B fixed build; records unchanged |
+| Desktop builds | both probed; markers never fired |
+| `prover-remind.ps1` | contains no append call and no log path |
+| `tools/sanctum/rot-lean-inject.ps1` | wired to all 31 events but writes nothing to disk |
+| settings-level wiring | no `rot-router` reference in `settings.json`, `settings.local.json`, `.claude.json`, or project config |
+| the patched file executing at all | **execution marker never fired** while records kept arriving |
+
+The inference is bounded by `Proofs/RotDeployment.lean`:
+`emitter_is_outside_the_known_set` licenses only *the writer is not among the
+copies I know about*. It does **not** license *the router is broken* — the
+router demonstrably works when driven.
+
+**Do not close this by patching another copy.** The next step is to identify the
+writing process itself (open-handle or command-line attribution at the moment a
+record appears), because five file-level repairs have already failed to change
+the observable and a sixth carries no new information.

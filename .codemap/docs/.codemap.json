@@ -291,12 +291,12 @@
       ]
     },
     "SCRUTINY-LOG.md": {
-      "hash": "6800e6471193",
-      "indexed_at": "2026-08-09T05:26:01.574710+00:00",
+      "hash": "9c409cb29572",
+      "indexed_at": "2026-08-09T07:45:00.819829+00:00",
       "language": "markdown",
-      "lines": 135,
-      "mtime_ns": 1786243113280198400,
-      "size": 7482,
+      "lines": 162,
+      "mtime_ns": 1786261491776173300,
+      "size": 8959,
       "symbols": [
         {
           "docstring": "Two independent sinks, written by both router arms (`hooks/rot-router.sh`, `hooks/rot-router.ps1`):",
@@ -360,10 +360,19 @@
           ],
           "name": "Errata \u2014 what the first draft of this document got wrong",
           "type": "section"
+        },
+        {
+          "docstring": "**Status: OPEN. Not fixed, not worked around, not closed.**",
+          "lines": [
+            137,
+            163
+          ],
+          "name": "OPEN ALARM \u2014 the production log's emitter is unidentified (2026-08-09)",
+          "type": "section"
         }
       ]
     }
   },
-  "generated_at": "2026-08-09T05:26:01.715204+00:00",
+  "generated_at": "2026-08-09T07:45:00.824171+00:00",
   "version": "1.0"
 }

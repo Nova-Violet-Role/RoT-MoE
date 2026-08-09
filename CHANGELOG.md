@@ -23,6 +23,53 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Five copies patched, none of them running
+
+**Production still emits route records with no `src` and no `session`, and this
+entry does not fix that -- it records what was ruled out and the instrument that
+ruled it out.** The honest state is an open alarm, not a repair.
+
+The obvious theory was a stale deployment. So every router copy on the machine
+was replaced with the fixed 24462 B build:
+
+| copy | before | after |
+|---|---|---|
+| `~/.claude/.../rot-moe/1.0.1/hooks/rot-router.ps1` | 18048 B | 24462 B |
+| `~/.claude/.../rot-moe/0.7.1/hooks/rot-router.ps1` | 18048 B | 24462 B |
+| `~/.claude/.../rot-moe/0.6.1/hooks/rot-router.ps1` | 18048 B | 24462 B |
+| `Desktop/RoT-MoE 1.0.1-Lean`, `Desktop/RoT-MoE 0.7.1-Lean` | 18048 B | probed |
+
+Driving any of them by hand emitted `"src":"hook"` correctly. The live log kept
+writing bare records throughout.
+
+**What settled it was an execution marker**, not another patch: one line
+appending a timestamp to a side file. The log gained a record at 09:29:56 while
+the marker file stayed **empty**. The file being edited is not the file being
+run. Also ruled out by measurement, so the next reader does not repeat it:
+`prover-remind.ps1` and `tools/sanctum/rot-lean-inject.ps1` never write the log
+(no append call, no log path), and no `settings.json`, `settings.local.json`,
+`.claude.json` or project-level config references any `rot-router`.
+
+`Proofs/RotDeployment.lean` -- **8 theorems, 6 guards, 0 sorry**, 8/8 killed:
+
+| theorem | what it settles |
+|---|---|
+| `absent_field_does_not_identify_the_cause` | **load-bearing** — an unpatched *running* copy and a patched *dormant* one give the identical observation |
+| `repatching_a_dormant_copy_is_a_fixed_point` | so re-patching can never resolve it — the hour lost, as a theorem |
+| `marker_is_blind_to_patching` | the discriminator must not depend on the thing it discriminates |
+| `marker_separates_the_indistinguishable_pair` | and it does separate them |
+| `emitter_is_outside_the_known_set` | what the measurement actually licenses: every known copy is patched and dormant, so the writer is not among them |
+| `dormant_set_says_nothing_about_the_writer` | the guard against over-reading that — this does **not** prove the records stopped |
+
+This is the third appearance of one defect: a mutation whose patch silently did
+not apply, a checker reading a log the router never wrote, and now a fix in a
+dormant file. All three are **acting on an artefact without confirming the
+artefact is the one in play**.
+
+Counts: **821 theorems, 38 modules, 35 suites, 419 mutants**.
+
+---
+
 ### The CTT install test passes -- and the harness had been blaming the wrong thing
 
 **The CTT install test now runs end to end at exit 0**, which was the stated
