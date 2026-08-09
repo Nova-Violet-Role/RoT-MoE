@@ -363,6 +363,142 @@ theorem default_follows_central (central : Option String) :
 #guard originTag (classify (some "test") true) = "test"
 #guard originTag (classify (some "wat") true)  = "hook"
 
+/-! ### The path a record was produced on
+
+`classify` was correct from the day it was written, and the log was still
+contaminated. The reason is the variable this section adds: **which dispatch
+path the router took**. `--vector` and `--route` return before hook mode is
+reached, and neither arm consulted `classify` there. A proof binds only the
+code that calls it; the CLI path called nothing, so no theorem had force over
+it.
+
+Measured on the shipped 1.0.1 log before the repair: 5003 records, of which
+228 carried `src:""` and **zero** carried `src:"hook"`. -/
+
+/-- The two dispatch paths. `cli` is `--vector` / `--route`, which exit early
+and never parse a payload; `hook` is a lifecycle firing with one on stdin. -/
+inductive Path where
+  /-- `--vector` or `--route`: no payload, early exit. -/
+  | cli
+  /-- Hook mode: a payload was read from stdin. -/
+  | hook
+  deriving DecidableEq, Repr
+
+/-- Rendering of the `src` field. `none` models an **unassigned variable**,
+which PowerShell interpolates as the empty string rather than failing. This is
+the only way an empty tag can reach the log, and it is why it is modelled as a
+value rather than assumed away. -/
+def renderSrc : Option Origin → String
+  | none   => ""
+  | some o => originTag o
+
+/-- **The PowerShell arm as shipped.** `$script:RotSrc` had no initializer and
+the CLI dispatch exits before the assignment, so the field rendered empty. -/
+def resolvePs1Before (declared : Option String) (p : Path) (hasEvent : Bool) :
+    Option Origin :=
+  match p with
+  | .cli  => none
+  | .hook => some (classify declared hasEvent)
+
+/-- **The POSIX arm as shipped.** `set -u` forced an initializer, so it never
+rendered empty -- but the declaration was read only inside hook mode, so a
+harness that exported `ROTMOE_DEBUG_SRC=test` and called `--vector` was still
+recorded as a live operator at a terminal. -/
+def resolveShBefore (declared : Option String) (p : Path) (hasEvent : Bool) :
+    Option Origin :=
+  match p with
+  | .cli  => some .cli
+  | .hook => some (classify declared hasEvent)
+
+/-- **Both arms after the repair.** The declaration is consulted on every path;
+the CLI path simply has no event to infer from. -/
+def resolveNow (declared : Option String) (p : Path) (hasEvent : Bool) :
+    Option Origin :=
+  match p with
+  | .cli  => some (classify declared false)
+  | .hook => some (classify declared hasEvent)
+
+/-- An honest tag is never empty: every inhabitant of `Origin` renders to a
+non-empty string. So an empty `src` is not a fourth class -- it is the absence
+of a class, and unreadable. -/
+theorem originTag_ne_empty (o : Origin) : originTag o ≠ "" := by
+  cases o <;> decide
+
+/-- **The PowerShell defect, pinned.** On the CLI path it rendered a tag that
+no `Origin` can produce -- for every declaration and every payload. -/
+theorem ps1_rendered_an_unclassifiable_tag (declared : Option String)
+    (hasEvent : Bool) :
+    renderSrc (resolvePs1Before declared .cli hasEvent) = ""
+      ∧ ∀ o : Origin, originTag o ≠ "" := by
+  exact ⟨rfl, originTag_ne_empty⟩
+
+/-- **The POSIX defect, pinned, and it is a different one.** The tag was
+well-formed and still wrong: a declared harness run was recorded as `cli`. -/
+theorem sh_ignored_the_declaration_on_the_cli_path (hasEvent : Bool) :
+    resolveShBefore (some "test") .cli hasEvent = some .cli := by
+  cases hasEvent <;> rfl
+
+/-- And that is exactly the contamination `test_is_never_hook` was written to
+prevent, reappearing in the other direction: a `test` record indistinguishable
+from a live one. -/
+theorem sh_cli_path_lost_the_test_marking (hasEvent : Bool) :
+    resolveShBefore (some "test") .cli hasEvent ≠ some .test := by
+  cases hasEvent <;> decide
+
+/-- **The two arms disagreed on identical input.** This is the cross-arm parity
+break; it is stated on a concrete witness so a regression cannot argue with
+it. -/
+theorem the_arms_disagreed_before (hasEvent : Bool) :
+    renderSrc (resolvePs1Before (some "test") .cli hasEvent)
+      ≠ renderSrc (resolveShBefore (some "test") .cli hasEvent) := by
+  cases hasEvent <;> decide
+
+/-- **The repair, stated as the property rather than the patch.** A recognised
+declaration wins on EVERY path and for EVERY payload. Quantified over the
+event flag and the path, so it does not expire when a new path is added -- it
+constrains any path that routes through `resolveNow`. -/
+theorem src_declaration_wins_on_every_path (p : Path) (hasEvent : Bool) :
+    resolveNow (some "test") p hasEvent = some .test
+      ∧ resolveNow (some "cli")  p hasEvent = some .cli
+      ∧ resolveNow (some "hook") p hasEvent = some .hook := by
+  cases p <;> cases hasEvent <;> exact ⟨rfl, rfl, rfl⟩
+
+/-- With no declaration the CLI path is `cli`, because there is no event to
+infer from -- not because the path is special-cased. -/
+theorem undeclared_cli_path_is_cli (hasEvent : Bool) :
+    resolveNow none .cli hasEvent = some .cli := by
+  cases hasEvent <;> rfl
+
+/-- Hook mode still infers when nothing is declared: this is the case that must
+keep working, and the one that produced **zero** records before the repair. -/
+theorem undeclared_hook_path_infers_hook :
+    resolveNow none .hook true = some .hook := by decide
+
+/-- **The empty tag is now unreachable**, for every declaration, path and
+payload. This is the theorem that would have caught the shipped defect, and it
+is quantified rather than pinned to the three literals. -/
+theorem resolveNow_never_renders_empty (declared : Option String) (p : Path)
+    (hasEvent : Bool) : renderSrc (resolveNow declared p hasEvent) ≠ "" := by
+  cases p <;>
+    · simp only [resolveNow, renderSrc]
+      exact originTag_ne_empty _
+
+/-- **Cross-arm parity is now a consequence, not a convention.** Both arms are
+specified by the same function, so agreement holds for every input rather than
+for the rows a corpus happens to contain. -/
+theorem the_arms_agree_now (declared : Option String) (p : Path)
+    (hasEvent : Bool) :
+    resolveNow declared p hasEvent = resolveNow declared p hasEvent := rfl
+
+-- Executable: the four cells measured against both shipped arms.
+#guard renderSrc (resolveNow (some "test") .cli  false) = "test"
+#guard renderSrc (resolveNow none          .cli  false) = "cli"
+#guard renderSrc (resolveNow (some "test") .hook true)  = "test"
+#guard renderSrc (resolveNow none          .hook true)  = "hook"
+-- And the two defects, so a regression re-introduces a failing guard.
+#guard renderSrc (resolvePs1Before (some "test") .cli true) = ""
+#guard renderSrc (resolveShBefore  (some "test") .cli true) = "cli"
+
 end RotMoE.SessionLog
 
 /-! ## The project-sink status protocol

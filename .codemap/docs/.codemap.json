@@ -291,18 +291,18 @@
       ]
     },
     "SCRUTINY-LOG.md": {
-      "hash": "a19a9c3b9ecb",
-      "indexed_at": "2026-08-09T02:11:51.478766+00:00",
+      "hash": "6800e6471193",
+      "indexed_at": "2026-08-09T02:38:35.236136+00:00",
       "language": "markdown",
-      "lines": 97,
-      "mtime_ns": 1786241509053750600,
-      "size": 5265,
+      "lines": 135,
+      "mtime_ns": 1786243113280198400,
+      "size": 7482,
       "symbols": [
         {
           "docstring": "Two independent sinks, written by both router arms (`hooks/rot-router.sh`, `hooks/rot-router.ps1`):",
           "lines": [
-            10,
-            23
+            19,
+            34
           ],
           "name": "What the subsystem is",
           "type": "section"
@@ -310,51 +310,60 @@
         {
           "docstring": "The log could not name its own traffic. 738 of 955 `sh` route records in the pre-subsystem log were synthetic corpus replays from eight different chec",
           "lines": [
-            24,
-            33
+            35,
+            44
           ],
           "name": "Why it exists \u2014 the defect that motivated it",
           "type": "section"
         },
         {
-          "docstring": "28 theorems, 31 `#guard`s, 16/16 mutants killed. The load-bearing ones:",
+          "docstring": "**28 theorems, 31 `#guard`s, 0 `private`** (counted from source, not recalled). 16 mutants declared in `lean/mutate/mutate_rotsessionlog.sh`; last ful",
           "lines": [
-            34,
-            58
+            45,
+            74
           ],
-          "name": "What is proven (Lean, `lean/Proofs/RotSessionLog.lean`)",
+          "name": "PROVED \u2014 Lean, `lean/Proofs/RotSessionLog.lean`",
           "type": "section"
         },
         {
-          "docstring": "- `checker/session-log.sh` \u2014 49 assertions across 6 phases, including deliberate breakage: forged `!` sentinel, missing env, subshell flag loss, concu",
+          "docstring": "- `checker/session-log.sh` \u2014 **49 assertions across 6 phases (A\u2013F)**, last clean run 49 passed / 0 failed / 0 inapplicable. Phases include deliberate",
           "lines": [
-            59,
-            68
+            75,
+            89
           ],
-          "name": "What is measured, not proven",
+          "name": "MEASURED \u2014 no theorem, but a number",
           "type": "section"
         },
         {
           "docstring": "1. No installer wrote `ROTMOE_DEBUG_LOG`; a new user got no logs at all. 2. No session identity; concurrent sessions interleaved inseparably. 3. Harne",
           "lines": [
-            69,
-            82
+            90,
+            103
           ],
-          "name": "Defect ledger (all found by breaking things, all mine)",
+          "name": "Defect ledger \u2014 all found by breaking things on purpose",
           "type": "section"
         },
         {
-          "docstring": "- **Single-writer assumption.** Two concurrent sessions in the *same* project write distinct per-session files, but the central sink is append-shared.",
+          "docstring": "- **Concurrent writers are UNTESTED.** Two sessions in the same project write distinct per-session files, but the central sink is append-shared. Wheth",
           "lines": [
-            83,
-            98
+            104,
+            120
           ],
           "name": "OPEN \u2014 attack surfaces that remain",
+          "type": "section"
+        },
+        {
+          "docstring": "Recorded rather than silently fixed, because the failure mode is the same one the subsystem exists to catch: a document asserting more than it measure",
+          "lines": [
+            121,
+            136
+          ],
+          "name": "Errata \u2014 what the first draft of this document got wrong",
           "type": "section"
         }
       ]
     }
   },
-  "generated_at": "2026-08-09T02:12:23.612389+00:00",
+  "generated_at": "2026-08-09T02:38:35.236264+00:00",
   "version": "1.0"
 }

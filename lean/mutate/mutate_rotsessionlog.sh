@@ -299,6 +299,31 @@ run_mut S16 \
   "  | ['1']     => .lost" \
   "  | ['1']     => .disabled" \
   "the lost encoding -- a failed sink decoding as a disabled one"
+
+# --- the CLI-path provenance repair (2026-08-09) ------------------------------
+# Each of these re-creates one half of the shipped defect. S17 is the important
+# one: it restores EXACTLY the behaviour measured in the 1.0.1 log, where the
+# CLI path ignored ROTMOE_DEBUG_SRC and recorded a declared harness run as live.
+
+run_mut S17 \
+  "  | .cli  => some (classify declared false)" \
+  "  | .cli  => some .cli" \
+  "src_declaration_wins_on_every_path -- the CLI path ignoring the declaration again"
+
+run_mut S18 \
+  "  | none   => \"\"" \
+  "  | none   => \"cli\"" \
+  "ps1_rendered_an_unclassifiable_tag -- an unset variable disguised as a real class"
+
+run_mut S19 \
+  "  | .cli  => \"cli\"" \
+  "  | .cli  => \"\"" \
+  "originTag_ne_empty and resolveNow_never_renders_empty -- an empty tag readmitted"
+
+run_mut S20 \
+  "  | .cli  => some .cli" \
+  "  | .cli  => some .test" \
+  "sh_cli_path_lost_the_test_marking -- the POSIX arm's half of the divergence"
 echo
 echo "=== RotSessionLog: $killed killed, $survived survived, $discarded discarded, $skipped skipped ==="
 

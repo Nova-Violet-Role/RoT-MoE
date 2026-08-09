@@ -203,6 +203,21 @@ $script:RotDebugLost = $false
 $script:RotSession    = 'unknown'
 $script:RotProjectDir = ''
 $script:RotLocalLost  = $false
+# RotSrc BELONGS IN THIS BLOCK and was missing from it.
+#
+# MEASURED 2026-08-09 on the shipped 1.0.1 log: 228 gauge records carried
+# src:"" -- a value lean/Proofs/RotSessionLog.lean:classify makes
+# unrepresentable, so no reader could interpret them. Cause: Invoke-Gauge
+# formats $script:RotSrc, and the --Vector / --Route dispatch exits before the
+# assignment further down ever runs. PowerShell has no `set -u`, so an unset
+# variable does not fail -- it interpolates as the empty string and the record
+# is written looking valid.
+#
+# The POSIX arm never had this defect because `set -u` FORCED the author to
+# declare the default up front (see rot-router.sh, same block). The safety one
+# arm gets from its shell, the other arm must state explicitly. Cross-arm
+# parity is the property; identical source is not.
+$script:RotSrc        = 'cli'
 
 function Get-RotSessionName([string] $Raw) {
   if (-not $Raw) { return 'unknown' }
@@ -308,6 +323,18 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
   $lenses = if ($active.Count) { $active -join ',' } else { 'none' }
   return ('R/s+ = {0} [{1}] mean={2} breadth={3} K={4} lenses={5}' -f `
           (Format-Num $R 2), $band, (Format-Num $mean 3), $Br, $K, $lenses)
+}
+
+# THE DECLARATION IS READ ON EVERY PATH, not only in hook mode -- the exact
+# counterpart of the block in rot-router.sh. Both CLI dispatches below exit
+# immediately, so without this a harness that exported ROTMOE_DEBUG_SRC=test
+# and called --Vector had its gauge written as live CLI traffic. Hook mode
+# re-resolves after parsing the payload (infer, THEN declare), so an explicit
+# value still wins there. Proved: src_declaration_wins_on_every_path.
+switch ($env:ROTMOE_DEBUG_SRC) {
+  'test'  { $script:RotSrc = 'test' }
+  'cli'   { $script:RotSrc = 'cli' }
+  'hook'  { $script:RotSrc = 'hook' }
 }
 
 if ($Route)  { $r = Split-Routed (Invoke-Route $Route); Write-Output $r[0]; exit 0 }

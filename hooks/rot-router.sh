@@ -44,6 +44,27 @@ _rot_proj=''
 _rot_src=cli
 _rot_local_lost=0
 
+# THE DECLARATION IS READ ON EVERY PATH, not only in hook mode.
+#
+# MEASURED 2026-08-09, and this was a live contamination hole: `--vector` and
+# `--route` exit before the hook-mode block below, so the resolution at "case
+# ${ROTMOE_DEBUG_SRC}" was never reached on a CLI invocation. A harness that
+# correctly exported ROTMOE_DEBUG_SRC=test and then called `--vector` had its
+# gauge record written as src="cli" -- indistinguishable from a real user at a
+# terminal. That is the exact defect the field was added to close, surviving in
+# a second doorway.
+#
+# lean/Proofs/RotSessionLog.lean:classify says a declaration OUTRANKS inference.
+# A proof binds only the code that consults it; this line is what makes the CLI
+# path a place where that theorem has force. Hook mode re-runs the same
+# resolution after parsing the payload (infer, THEN declare) so an explicit
+# value still wins there -- see src_declaration_wins_on_every_path.
+case "${ROTMOE_DEBUG_SRC:-}" in
+  test) _rot_src=test ;;
+  cli)  _rot_src=cli ;;
+  hook) _rot_src=hook ;;
+esac
+
 # Start of this invocation, for the `ms` field the ps1 arm has always had and
 # this one did not -- the POSIX arm was unmeasurable for latency.
 #

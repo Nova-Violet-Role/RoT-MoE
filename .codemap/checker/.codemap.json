@@ -1153,12 +1153,12 @@
       ]
     },
     "session-log.sh": {
-      "hash": "3fcd438f0048",
-      "indexed_at": "2026-08-09T01:13:59.293946+00:00",
+      "hash": "a40a72035c99",
+      "indexed_at": "2026-08-09T03:15:01.389235+00:00",
       "language": "shell",
-      "lines": 381,
-      "mtime_ns": 1786238020844925700,
-      "size": 14599,
+      "lines": 481,
+      "mtime_ns": 1786245299355670400,
+      "size": 19227,
       "symbols": [
         {
           "lines": [
@@ -1182,6 +1182,24 @@
             295
           ],
           "name": "marker_of",
+          "type": "function"
+        },
+        {
+          "docstring": "Read the src of the FIRST record written, or the literal <none> if no record was produced at all. An empty src must be reported as EMPTY, never as abs",
+          "lines": [
+            398,
+            406
+          ],
+          "name": "g_src",
+          "type": "function"
+        },
+        {
+          "docstring": "NOTE ON THE ENVIRONMENT, and it is load-bearing: this checker is itself one of the nine that export ROTMOE_DEBUG_SRC=test, so \"no declaration\" cannot",
+          "lines": [
+            414,
+            446
+          ],
+          "name": "g_cell",
           "type": "function"
         }
       ]
@@ -1497,6 +1515,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T01:37:17.716344+00:00",
+  "generated_at": "2026-08-09T03:15:01.389343+00:00",
   "version": "1.0"
 }

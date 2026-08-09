@@ -377,5 +377,105 @@ for arm in sh ps1; do
   esac
 done
 
+printf -- '\n-- G. the declaration is honoured on EVERY dispatch path, both arms --\n'
+# WHY THIS PHASE EXISTS. `classify` was correct and proved from the day it was
+# written, and the log was contaminated anyway: --vector and --route exit before
+# hook mode, and neither arm consulted the declaration there. A proof binds only
+# the code that calls it.
+#
+# MEASURED on the shipped 1.0.1 log before the repair: 5003 records, 228 with
+# src:"" (a value classify cannot produce) and ZERO with src:"hook".
+#
+# The four cells below are resolveNow in lean/Proofs/RotSessionLog.lean. Both
+# arms must answer identically -- src_declaration_wins_on_every_path and
+# resolveNow_never_renders_empty are the theorems, this is their binding to the
+# shipped scripts.
+G_LOG="$TMP/provenance.jsonl"
+G_LOGW="$TMPW/provenance.jsonl"
+
+# Read the src of the FIRST record written, or the literal <none> if no record
+# was produced at all. An empty src must be reported as EMPTY, never as absent.
+g_src () {
+  if [ ! -s "$G_LOG" ]; then printf '<none>'; return; fi
+  node -e '
+    const fs=require("fs");
+    const l=fs.readFileSync(process.argv[1],"utf8").trim().split("\n")[0];
+    let r; try { r=JSON.parse(l) } catch(e) { console.log("<unparsable>"); process.exit(0) }
+    console.log(r.src===undefined ? "<absent>" : (r.src==="" ? "<EMPTY>" : r.src));
+  ' "$G_LOG"
+}
+
+# NOTE ON THE ENVIRONMENT, and it is load-bearing: this checker is itself one of
+# the nine that export ROTMOE_DEBUG_SRC=test, so "no declaration" cannot be
+# expressed by passing an empty value -- `${x:+...}` leaves the INHERITED value
+# in place and the cell silently measures `test`. It must be actively removed
+# with `env -u`. Caught by this phase reporting 6 failures that were entirely
+# the harness's own doing.
+g_cell () {                       # arm  declaration  mode(cli|hook)  expected
+  _arm="$1"; _decl="$2"; _mode="$3"; _want="$4"
+  rm -f "$G_LOG"
+  if [ -n "$_decl" ]; then _envd="ROTMOE_DEBUG_SRC=$_decl"; else _envd="-u ROTMOE_DEBUG_SRC"; fi
+  if [ "$_mode" = cli ]; then
+    if [ "$_arm" = sh ]; then
+      env $_envd ROTMOE_DEBUG_LOG="$G_LOG" \
+        ROTMOE_DEBUG_LOCAL=0 bash "$SH" --vector 0,0,0,0,0,0,0,0,1 \
+        --breadth 1 --M 1 --C 1 --T 1 >/dev/null 2>&1 || true
+    else
+      env $_envd ROTMOE_DEBUG_LOG="$G_LOGW" \
+        ROTMOE_DEBUG_LOCAL=0 pwsh -NoProfile -File "$PS" -Vector 0,0,0,0,0,0,0,0,1 \
+        -Breadth 1 -M 1 -C 1 -T 1 >/dev/null 2>&1 || true
+    fi
+  else
+    _pl='{"prompt":"lake build","hook_event_name":"UserPromptSubmit","session_id":"abc123"}'
+    if [ "$_arm" = sh ]; then
+      printf '%s' "$_pl" | env $_envd \
+        ROTMOE_DEBUG_LOG="$G_LOG" ROTMOE_DEBUG_LOCAL=0 bash "$SH" >/dev/null 2>&1 || true
+    else
+      printf '%s' "$_pl" | env $_envd \
+        ROTMOE_DEBUG_LOG="$G_LOGW" ROTMOE_DEBUG_LOCAL=0 pwsh -NoProfile -File "$PS" \
+        >/dev/null 2>&1 || true
+    fi
+  fi
+  _got=$(g_src)
+  _lbl="${_arm} ${_mode} decl=${_decl:-<unset>}"
+  if [ "$_got" = "$_want" ]; then
+    ok "$_lbl -> src=$_got"
+  else
+    bad "$_lbl -> src=$_got, expected $_want"
+  fi
+}
+
+for arm in sh ps1; do
+  [ "$arm" = ps1 ] && ! command -v pwsh >/dev/null 2>&1 && continue
+  g_cell "$arm" test cli  test    # declaration wins on the CLI path
+  g_cell "$arm" ""   cli  cli     # no declaration, no event -> cli
+  g_cell "$arm" test hook test    # declaration still outranks a real event
+  g_cell "$arm" ""   hook hook    # inference works where it always should have
+  g_cell "$arm" wat  cli  cli     # unrecognised on the CLI path demotes to cli
+  g_cell "$arm" wat  hook hook    # unrecognised in hook mode falls back to inference
+done
+
+# The specific regression, named: an EMPTY src is not a class, it is an unset
+# variable that PowerShell rendered as if it were one. This is what 228 shipped
+# records looked like, and it must be impossible on every path.
+rm -f "$G_LOG"
+ROTMOE_DEBUG_LOG="$G_LOG" ROTMOE_DEBUG_LOCAL=0 bash "$SH" --vector 0,0,0,0,0,0,0,0,1 \
+  --breadth 1 --M 1 --C 1 --T 1 >/dev/null 2>&1 || true
+if [ "$(g_src)" = "<EMPTY>" ]; then
+  bad "sh CLI path rendered an EMPTY src -- the 1.0.1 defect is back"
+else
+  ok "sh CLI path never renders an empty src"
+fi
+
+# CONTROL: the reader can distinguish empty from present, or the phase above is
+# incapable of failing. A planted record with src:"" must be seen as <EMPTY>.
+printf '%s\n' '{"kind":"gauge","src":"","session":"x"}' > "$G_LOG"
+if [ "$(g_src)" = "<EMPTY>" ]; then
+  ok "CONTROL: a planted empty src IS reported as EMPTY -- this phase can fail"
+else
+  bad "CONTROL DEAD: a planted empty src read as $(g_src) -- phase G proves nothing"
+fi
+rm -f "$G_LOG"
+
 printf '\n== session-log: %d passed, %d failed, %d inapplicable ==\n' "$PASS" "$FAIL" "$INAP"
 [ "$FAIL" -eq 0 ]

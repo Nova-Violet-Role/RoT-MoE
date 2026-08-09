@@ -23,6 +23,62 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### `classify` was proved correct and the log was contaminated anyway
+
+A proof binds only the code that calls it. `classify` had been correct and
+machine-checked since the two-log work below landed, and the shipped 1.0.1 log
+was still unreadable, because **`--vector` and `--route` return before hook
+mode** and neither arm consulted it on that path.
+
+Measured on the shipped log, 5003 records:
+
+| field | count | meaning |
+|---|---|---|
+| `src:""` | 228 | a value `classify` cannot produce -- an unset variable rendered as if it were a class |
+| `src:"hook"` | **0** | no live lifecycle firing was ever identifiable as one |
+| `session:"unknown"` | 1641 of 2151 | session identity fell back on every non-test record |
+
+Two different defects, one per arm, which is why cross-arm comparison did not
+see them: both arms were wrong, in **different** ways, on the same input.
+
+- **PowerShell** (`hooks/rot-router.ps1:203-205`): `$script:RotSrc` had no
+  initializer while `RotSession`, `RotProjectDir` and `RotLocalLost` did. The
+  CLI dispatch at `:313` exits before the assignment at `:390`, and PowerShell
+  has no `set -u`, so the field rendered empty and the record looked valid.
+- **POSIX** (`hooks/rot-router.sh:44`): `set -u` had forced an initializer, so
+  the tag was well-formed and still wrong. A harness that correctly exported
+  `ROTMOE_DEBUG_SRC=test` and called `--vector` was recorded as a live operator
+  at a terminal, which is the exact contamination the field was added to close.
+
+The safety one arm gets from its shell, the other must state explicitly. Parity
+is the property; identical source is not.
+
+**The repair is stated as the property, not the patch.** The declaration is now
+read on every dispatch path in both arms, and the dispatch path is a modelled
+dimension in `lean/Proofs/RotSessionLog.lean` rather than an implicit one:
+
+- `src_declaration_wins_on_every_path` -- quantified over the path and the
+  payload, so it does not expire when a new path is added.
+- `resolveNow_never_renders_empty` -- the empty tag is unreachable for every
+  declaration, path and payload. This is the theorem that would have caught it.
+- `ps1_rendered_an_unclassifiable_tag`, `sh_ignored_the_declaration_on_the_cli_path`
+  and `the_arms_disagreed_before` pin **both** shipped defects and the divergence
+  between them, so a regression re-introduces a failing theorem, not a silent log.
+
+`checker/session-log.sh` gains **phase G**: twelve cells (2 arms x {cli, hook} x
+{declared, undeclared, unrecognised}), an explicit empty-tag probe, and a control
+proving the reader can tell empty from absent. Reverting the POSIX half turns it
+red on exactly the shipped behaviour: `sh cli decl=test -> src=cli`.
+
+Phase G was itself wrong first, and in the same class of way: `session-log.sh` is
+one of the nine checkers that export `ROTMOE_DEBUG_SRC=test`, and `${x:+...}`
+cannot *unset* an inherited variable, so every undeclared cell silently measured
+`test`. Six failures, none of them the router.
+
+Counts: 777 to **787 theorems**, 391 to **395 mutants** (S17-S20, all killed).
+
+---
+
 ### An alarm that was set and never read, and a sentinel a path could forge
 
 Follow-up to the two-log work below, and both defects were found the same way:
