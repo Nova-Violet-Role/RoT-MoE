@@ -49,18 +49,18 @@
       ]
     },
     "axiom-audit.sh": {
-      "hash": "03ade232a274",
-      "indexed_at": "2026-08-08T20:33:55.826568+00:00",
+      "hash": "695c09df89df",
+      "indexed_at": "2026-08-09T01:37:17.716227+00:00",
       "language": "shell",
-      "lines": 294,
-      "mtime_ns": 1786215257277596900,
-      "size": 13779,
+      "lines": 327,
+      "mtime_ns": 1786239273718836900,
+      "size": 15328,
       "symbols": [
         {
           "docstring": "--- theorem names, from the SOURCE, comment- and namespace-aware ------------ Lean block comments NEST, so a boolean flag is wrong. Doc comments carry",
           "lines": [
             74,
-            295
+            328
           ],
           "name": "names_of",
           "type": "function"
@@ -76,8 +76,8 @@
         },
         {
           "lines": [
-            257,
-            261
+            290,
+            294
           ],
           "name": "cleanup_ctl",
           "type": "function"
@@ -1497,6 +1497,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T01:13:59.294094+00:00",
+  "generated_at": "2026-08-09T01:37:17.716344+00:00",
   "version": "1.0"
 }

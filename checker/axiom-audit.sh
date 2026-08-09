@@ -248,6 +248,39 @@ else
   bad "COUNT MISMATCH: $total names extracted, $declared declarations counted -- one of the two is broken, so the sweep's coverage is unknown"
 fi
 
+
+# --- NO THEOREM MAY HIDE BEHIND `private` -----------------------------------
+# `#print axioms` resolves names from an IMPORTING module, and a private
+# declaration is not visible there: the probe fails to elaborate, and this
+# audit reports "names may be wrong" rather than an axiom verdict. That is the
+# GOOD outcome, and it is what happened -- RotSessionLog was the first module
+# in the repo to use `private theorem` and CI went red on it immediately.
+#
+# The bad outcome is the one this check exists to prevent. If the probe were
+# ever taught to SKIP names it cannot resolve -- the obvious repair, and the
+# wrong one -- then `private` would become a place to hide a `sorry` from the
+# only instrument that looks for one. The blind spot would be silent and the
+# audit would keep printing PASS.
+#
+# So the rule is the strong one: a theorem in this repo is public, or it is not
+# a theorem. Helper lemmas are part of what a reader must trust and are audited
+# like everything else.
+priv=0
+priv_where=""
+for m in "${modules[@]}"; do
+  c=$(grep -c '^[[:space:]]*private[[:space:]]\+theorem[[:space:]]' "$REPO/lean/Proofs/$m.lean" 2>/dev/null || true)
+  c=${c:-0}
+  if [ "$c" -gt 0 ]; then
+    priv=$((priv + c))
+    priv_where="$priv_where $m($c)"
+  fi
+done
+if [ "$priv" -eq 0 ]; then
+  ok "no theorem hides behind \`private\` -- every one is reachable by #print axioms"
+else
+  bad "PRIVATE THEOREMS ARE UNAUDITABLE:$priv_where -- #print axioms cannot resolve them from an importing module, so a sorry could hide there. Drop \`private\`."
+fi
+
 # --- NEGATIVE CONTROL: the audit must be able to fail -----------------------
 # A `sorry` is a WARNING in Lean: `lake env lean` on a file containing one exits
 # 0 (measured). So an audit that merely builds cannot see a hole, and this

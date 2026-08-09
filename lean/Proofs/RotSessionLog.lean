@@ -73,13 +73,13 @@ def sanitiseSession (s : String) : String :=
 Both are one induction. Reaching for a remembered mathlib name instead is how a
 build ends up depending on a lemma that does not exist in this toolchain. -/
 
-private theorem all_filter {α} (p : α → Bool) (l : List α) :
+theorem all_filter {α} (p : α → Bool) (l : List α) :
     (l.filter p).all p = true := by
   induction l with
   | nil => rfl
   | cons a t ih => by_cases h : p a <;> simp [List.filter, h, ih]
 
-private theorem all_take {α} (p : α → Bool) (n : Nat) (l : List α)
+theorem all_take {α} (p : α → Bool) (n : Nat) (l : List α)
     (h : l.all p = true) : (l.take n).all p = true := by
   induction n generalizing l with
   | zero => simp
