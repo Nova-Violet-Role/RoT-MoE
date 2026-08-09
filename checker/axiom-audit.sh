@@ -73,7 +73,7 @@ fi
 # measured today on `sorry_always_speaks`.
 names_of () {  # names_of <file> -> fully-qualified theorem names, one per line
   awk '
-    BEGIN { depth = 0; nsdepth = 0 }
+    BEGIN { depth = 0; sp = 0 }
     {
       line = $0; out = ""; i = 1
       while (i <= length(line)) {
@@ -86,10 +86,31 @@ names_of () {  # names_of <file> -> fully-qualified theorem names, one per line
       sub(/--.*$/, "", out)
       if (match(out, /^namespace[ \t]+[A-Za-z_][A-Za-z0-9_.]*/)) {
         n = out; sub(/^namespace[ \t]+/, "", n); sub(/[ \t].*$/, "", n)
-        ns[++nsdepth] = n; next
+        sp++; stkKind[sp] = "ns"; stkName[sp] = n; next
       }
-      if (match(out, /^end[ \t]+[A-Za-z_][A-Za-z0-9_.]*/)) {
-        if (nsdepth > 0) nsdepth--
+      # A SECTION IS NOT A NAMESPACE, and `end` closes whichever is innermost.
+      # MEASURED 2026-08-09 on Proofs/RotRelease.lean, the first module here to
+      # write `section Order ... end Order` INSIDE a namespace: `end Order` was
+      # matched by the `end` rule below and decremented the NAMESPACE depth that
+      # `section Order` never raised. Every theorem after that line was emitted
+      # UNQUALIFIED, the probe died on "Unknown constant", and the audit
+      # reported "names may be wrong, so nothing is established".
+      #
+      # It failed CLOSED, which is why this was a false alarm and never a false
+      # green -- but the wrong names came from THIS function, not from the
+      # module, and the tempting repair is to stop using named sections in
+      # Lean. That would be editing the subject to suit the instrument.
+      #
+      # NOTE FOR EDITORS: this awk program sits inside a single-quoted shell
+      # string, so an apostrophe in a comment TERMINATES it and the whole
+      # extractor silently returns nothing. Measured, twice in one session.
+      #
+      # One stack, two kinds. Only `ns` entries contribute to the prefix.
+      if (match(out, /^section([ \t]+[A-Za-z_][A-Za-z0-9_.]*)?[ \t]*$/)) {
+        sp++; stkKind[sp] = "sec"; stkName[sp] = ""; next
+      }
+      if (match(out, /^end([ \t]+[A-Za-z_][A-Za-z0-9_.]*)?[ \t]*$/)) {
+        if (sp > 0) sp--
         next
       }
       # Strip leading whitespace, then ATTRIBUTES, then modifiers. The first
@@ -107,7 +128,7 @@ names_of () {  # names_of <file> -> fully-qualified theorem names, one per line
         sub(/^(theorem|lemma)[ \t]+/, "", t)
         sub(/[ \t({:\[].*$/, "", t)
         pre = ""
-        for (k = 1; k <= nsdepth; k++) pre = pre ns[k] "."
+        for (k = 1; k <= sp; k++) if (stkKind[k] == "ns") pre = pre stkName[k] "."
         print pre t
       }
     }' "$1"

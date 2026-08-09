@@ -23,6 +23,79 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A fix nobody can install is not a fix -- `Proofs/RotRelease.lean`
+
+**The correction first: the repository was NOT the thing at fault, and the
+obvious repair would have broken it.** Measured:
+
+| | version |
+|---|---|
+| newest git tag | `v0.9.2` |
+| `.claude-plugin/plugin.json` | `0.9.2` |
+| installed in production | `1.0.1` |
+| installed in CTT (`.rot-release`) | `1.0.1` |
+
+The manifest and the newest tag AGREE, which is exactly what
+`checker/release-consistency.sh` requires, and `checker/release-local.sh:28-34`
+already explains why 1.0.x is rewritten only in a throwaway export: bumping the
+tree to outrank it would put the manifest ahead of every tag and turn a correct
+repository red. I was one edit away from doing precisely that.
+
+The real defect is the mirror image. A **local-only, never-published 1.0.1
+build was installed into production and into CTT**, numbered above the whole
+published line. It permanently shadows every future release: 0.9.x can never
+reach those installs, so every provenance repair proved in `RotSessionLog` sits
+in a build that cannot be delivered.
+
+`RotUpgrade` could not see this. It models the install mechanism with
+`abbrev Ver := String`, so it can say a version CHANGED and cannot say a version
+ROSE. `RotRelease` supplies the missing axis -- **15 theorems, 10 guards, 0
+sorry**, kernel re-checked, 8/8 mutants killed:
+
+| theorem | what it settles |
+|---|---|
+| `lt_iff`, `lt_sameMajor` | one bridge from the Bool order to arithmetic, proved once |
+| `lt_irrefl`, `lt_asymm`, `lt_trans` | the comparison really is a strict order |
+| `reinstall_is_not_an_upgrade` | republishing a number changes nothing -- the CLI exit-0 case |
+| `lower_major_never_supersedes` | the measured shape, quantified over every digit |
+| `patch_cannot_beat_a_higher_minor` | the tempting repair (bump the patch) provably fails |
+| `a_higher_minor_always_wins` | and the positive direction, so the pair is not vacuous |
+| `variants_are_ordered` | core < lean < unsealed within one line |
+| `a_new_line_supersedes_every_old_variant` | a new line reaches even the fullest old variant |
+| `one_stale_channel_blocks_publication` | one un-superseded install blocks the release |
+| `cannot_publish_over_itself` | the reinstall case at whole-deployment scale |
+
+**The contingent half is `#guard`s, never theorems.** `supersedes 0.9.2 1.0.1 =
+false` is a fact about today that a correct release is SUPPOSED to falsify. A
+theorem asserting it would go red on the very commit that fixes the problem --
+the exact way a spec starts forbidding correct futures.
+
+### The axiom auditor could not read a named section
+
+Found by the new module, which is the first here to write `section Order ... end
+Order` inside a namespace. `checker/axiom-audit.sh` matched `end Order` with its
+`end` rule and decremented the NAMESPACE depth that `section Order` never
+raised. Every theorem after that line was emitted UNQUALIFIED and the probe died
+on `Unknown constant`.
+
+It failed CLOSED -- "names may be wrong, so nothing is established" -- so this
+was a false alarm and never a false green. But the wrong names came from the
+auditor, not the module, and the tempting repair is to stop using named sections
+in Lean: editing the subject to suit the instrument. One stack, two kinds
+(`ns` / `sec`), only `ns` contributing to the prefix. Sweep: **39 passed, 0
+failed**, planted-`sorry` control still fires.
+
+A second self-inflicted bug on the way: the replacement comment contained
+apostrophes, and the awk program lives inside a single-quoted shell string, so
+it terminated the string and the extractor silently returned ZERO names for
+every module. The audit caught that too ("an empty sweep is not a clean
+sweep"). Both hazards are now written into the file.
+
+Counts: **802 theorems, 36 modules, 33 suites, 403 mutants**, synced across the
+five declaring sites.
+
+---
+
 ### The zero was a stale deployment, not a router defect
 
 **Correction to the entry below.** It reported `src:"hook"` appearing 0 times in
