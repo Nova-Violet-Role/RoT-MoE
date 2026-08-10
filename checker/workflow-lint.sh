@@ -245,6 +245,12 @@ except_reason () {   # except_reason <basename> -> prints reason, or nothing
 # in_progress by construction, so the verdict would be provisional forever. Same
 # structural reason as ci-audit-freshness above.
     ci-honesty.sh)     printf '%s' "judges a completed run; inside a run that run is in_progress by construction, so it runs from gate-all.sh" ;;
+# Same construction as ci-honesty: it downloads and reads a FINISHED run's
+# log.zip, which cannot exist for the run executing it. It answers a different
+# question -- ci-honesty reads step CONCLUSIONS, this reads whether a step's BODY
+# printed a skip while concluding green, a gap RotCiSkip proves conclusion
+# auditing cannot see. Reachability from gate-all.sh is asserted below.
+    ci-log-skips.sh)   printf '%s' "reads a COMPLETED run's log.zip; that artifact does not exist for the run reading it, so it runs from gate-all.sh" ;;
 # ci.yml:605 -- both release-session gates need the `claude` CLI and the
 # sustained one needs a credential to clone. The workflow comment says it
 # plainly: a step that can NEVER do its job still paints a green check.

@@ -337,6 +337,11 @@ def shipped : List Gate :=
   -- guards is the P2.4 instrument, and its own controls run in both directions
   -- -- a detector only ever tested where it should fire will fire everywhere.
   , f "work-trace extractor controls (every P2.4 observable fired AND silenced on purpose)"
+  -- Deep, and its triggers are real: it judges a COMPLETED CI run, so it cannot
+  -- run inside one. ci-honesty reads step CONCLUSIONS; this reads whether the
+  -- step's BODY skipped -- a difference RotCiSkip proves conclusion auditing
+  -- cannot see.
+  , d "CI log skips (a step that printed SKIP but concluded green must be DECLARED)" [".github/workflows/", "checker/ci-log-skips.sh", "lean/Proofs/RotCiSkip.lean"]
   , d "cross-diff (both reminder arms)" ["hooks/prover-remind", "checker/cross-diff-remind.sh"]
   , d "verdict stability" ["STATUS.md", "checker/verdict"]
   , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean", "checker/gauge-cross.sh"]
@@ -405,14 +410,14 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 54
+#guard shipped.length = 55
 
 -- Twenty-eight run on every commit.
 #guard (fastSet shipped).length = 36
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
-#guard (deepSet shipped).length = 18
+#guard (deepSet shipped).length = 19
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

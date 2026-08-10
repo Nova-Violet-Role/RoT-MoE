@@ -180,6 +180,24 @@
         }
       ]
     },
+    "mutate_rotciskip.sh": {
+      "hash": "8726cda348ad",
+      "indexed_at": "2026-08-10T08:29:29.476530+00:00",
+      "language": "shell",
+      "lines": 262,
+      "mtime_ns": 1786350542170956000,
+      "size": 13587,
+      "symbols": [
+        {
+          "lines": [
+            117,
+            199
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotcite.sh": {
       "hash": "d690042ad7fa",
       "indexed_at": "2026-08-10T06:55:18.107962+00:00",
@@ -1023,6 +1041,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-10T07:31:17.081604+00:00",
+  "generated_at": "2026-08-10T08:29:29.476652+00:00",
   "version": "1.0"
 }

@@ -234,6 +234,42 @@
         }
       ]
     },
+    "ci-log-skips.sh": {
+      "hash": "0acd40fe1a9d",
+      "indexed_at": "2026-08-10T08:35:42.915167+00:00",
+      "language": "shell",
+      "lines": 244,
+      "mtime_ns": 1786350939958937200,
+      "size": 11403,
+      "symbols": [
+        {
+          "docstring": "----------------------------------------------------------------------------- THE DECLARED BUDGET. One line per checker whose substance a public runne",
+          "lines": [
+            45,
+            73
+          ],
+          "name": "declared_reason",
+          "type": "function"
+        },
+        {
+          "docstring": "----------------------------------------------------------------------------- Extract, per job log, the steps whose BODY printed a runtime skip. Echoe",
+          "lines": [
+            80,
+            116
+          ],
+          "name": "scan_dir",
+          "type": "function"
+        },
+        {
+          "lines": [
+            118,
+            134
+          ],
+          "name": "judge_dir",
+          "type": "function"
+        }
+      ]
+    },
     "claude-md-lint.sh": {
       "hash": "eaf513f5d8a4",
       "indexed_at": "2026-08-10T06:55:17.886267+00:00",
@@ -482,18 +518,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "52d750d340fc",
-      "indexed_at": "2026-08-10T07:34:47.398038+00:00",
+      "hash": "d0fc7dce41af",
+      "indexed_at": "2026-08-10T08:36:12.512675+00:00",
       "language": "shell",
-      "lines": 407,
-      "mtime_ns": 1786347284963197800,
-      "size": 21402,
+      "lines": 408,
+      "mtime_ns": 1786350970376937000,
+      "size": 21583,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            167,
-            182
+            168,
+            183
           ],
           "name": "fires",
           "type": "function"
@@ -1527,12 +1563,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "8308bd908a7c",
-      "indexed_at": "2026-08-10T06:55:18.048577+00:00",
+      "hash": "e074208f087b",
+      "indexed_at": "2026-08-10T08:37:26.556375+00:00",
       "language": "shell",
-      "lines": 1353,
-      "mtime_ns": 1786215257278596400,
-      "size": 70043,
+      "lines": 1359,
+      "mtime_ns": 1786351044083935300,
+      "size": 70580,
       "symbols": [
         {
           "docstring": "One entry point, so the four call sites cannot drift apart again.",
@@ -1547,7 +1583,7 @@
           "docstring": "Deliberate exceptions, each with a reason. An empty reason is not allowed.  NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2.57 (2007) as /bin/bash -- Appl",
           "lines": [
             201,
-            254
+            260
           ],
           "name": "except_reason",
           "type": "function"
@@ -1555,8 +1591,8 @@
         {
           "docstring": "AN EXEMPTION MUST NOT BE A HIDING PLACE.  The reason above is honest, but \"not run by CI\" and \"not run at all\" look identical from here, and the secon",
           "lines": [
-            263,
-            268
+            269,
+            274
           ],
           "name": "exempt_must_be_reachable",
           "type": "function"
@@ -1564,16 +1600,16 @@
         {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            289,
-            294
+            295,
+            300
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            295,
-            304
+            301,
+            310
           ],
           "name": "contains_line",
           "type": "function"
@@ -1581,8 +1617,8 @@
         {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            398,
-            405
+            404,
+            411
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -1590,16 +1626,16 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            492,
-            501
+            498,
+            507
           ],
           "name": "gate_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            574,
-            578
+            580,
+            584
           ],
           "name": "enum_mods",
           "type": "function"
@@ -1607,24 +1643,24 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            615,
-            619
+            621,
+            625
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            752,
-            776
+            758,
+            782
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            832,
-            843
+            838,
+            849
           ],
           "name": "perms_of",
           "type": "function"
@@ -1632,8 +1668,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            961,
-            968
+            967,
+            974
           ],
           "name": "probe_r20",
           "type": "function"
@@ -1641,8 +1677,8 @@
         {
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
-            1088,
-            1103
+            1094,
+            1109
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -1650,16 +1686,16 @@
         {
           "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
           "lines": [
-            1299,
-            1301
+            1305,
+            1307
           ],
           "name": "_r23_onblock",
           "type": "function"
         },
         {
           "lines": [
-            1302,
-            1304
+            1308,
+            1310
           ],
           "name": "_r23_count",
           "type": "function"
@@ -1667,6 +1703,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-10T07:34:47.398153+00:00",
+  "generated_at": "2026-08-10T08:37:26.556522+00:00",
   "version": "1.0"
 }

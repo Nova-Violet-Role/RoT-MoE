@@ -86,6 +86,7 @@ dominance (does the routing layer STRICTLY EXTEND the default loop? D1-D7, each 
 trap corpus (all traps? scorer symmetric? latency still ORDER-CONTROLLED?)|fast||bash checker/trap.sh
 debug-log integrity (RECORDS recovered, never corrupt lines -- both arms run live)|deep|hooks/rot-router.sh,hooks/rot-router.ps1,checker/log-integrity.sh,checker/log-scan.js,lean/Proofs/RotLogAtomicity.lean|bash checker/log-integrity.sh
 work-trace extractor controls (every P2.4 observable fired AND silenced on purpose)|fast||node bench/work-trace.js --selftest
+CI log skips (a step that printed SKIP but concluded green must be DECLARED)|deep|.github/workflows/,checker/ci-log-skips.sh,lean/Proofs/RotCiSkip.lean|bash checker/ci-log-skips.sh
 install-document lint|fast||bash checker/claude-md-lint.sh
 licence bridge|fast||bash checker/license-bridge.sh
 release consistency|fast||bash checker/release-consistency.sh

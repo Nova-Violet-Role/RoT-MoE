@@ -23,6 +23,89 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A step can print "SKIP" and still be green, and nothing was counting those
+
+`checker/ci-honesty.sh` had never been run against a real completed run from
+this machine. Run it and the first thing you learn is that it is *right*: on run
+`31308026819` (commit `cef996e`, the last pushed one) it reports **8 passed, 0
+failed** — the run concluded `success`, **no step was skipped**, all 171 steps
+concluded, and five negative controls confirm it can detect a skipped step, a
+failed step, and the scaffolding asymmetry. That result stands and is not
+weakened here.
+
+What it cannot answer is a different question. It reads each step's
+**conclusion**; a step can print `SKIP: no credentials on the runner` and
+conclude `success` anyway. Downloading that run's actual `log.zip` — 721 KB, 4
+job logs — and reading it turned up **45 runtime skip lines inside steps that
+all concluded green**, spread over **9 steps**.
+
+Attribution first, because the alarming-looking numbers are mostly not alarming:
+
+| marker | raw hits | echoed source | real |
+|---|---|---|---|
+| `::error` | 39 | 39 | **0** |
+| `::warning` | 0 | 0 | **0** |
+| `FAIL` | 468 | — | **0** (all are controls asserting an alarm *can* fire) |
+| runtime `SKIP` | 66 | 21 | **45** |
+
+Every `::error` hit is GitHub echoing the *text of a guard that never fired* —
+and those guards read "would SKIP, and a skip is never a pass -- failing
+instead". Zero real error annotations, zero real warnings, zero failures. Every
+one of the 45 skips is honestly labelled with `exit 3` or `exit 4` and the words
+"never counted as a pass". **This was never a fake green.** It is an *uncounted
+coverage gap*, and an uncounted gap grows for free: add one more
+environment-gated skip tomorrow and nothing anywhere goes red.
+
+`lean/Proofs/RotCiSkip.lean` (10 theorems, 15 `#guard`s, no imports) proves why
+one instrument cannot cover the other. `conclusion_audit_is_blind_to_a_skip`
+exhibits two runs that are both entirely `success` and differ only in whether a
+step skipped: conclusion auditing returns *the same answer* for both. Not noisy
+— blind. `ratchet_separates_them` then shows a declared-budget check
+distinguishing exactly that pair, which is what earns the second instrument its
+place rather than assuming it.
+
+The rest of the module is aimed at how such a gate gets quietly defused, since
+its failure mode is loosening rather than breaking.
+`a_budget_containing_everything_disarms_the_ratchet` says a budget extended to
+cover every step reports green while checking nothing, and
+`ratchet_weakens_as_the_budget_grows` says adding an entry **spends** coverage
+instead of gaining it. Both are theorems so the danger is checkable rather than
+remembered. All 10 mutants killed (`lean/mutate/mutate_rotciskip.sh`), 0
+survived, 0 discarded.
+
+`checker/ci-log-skips.sh` is the binding: it downloads a finished run's
+`log.zip`, attributes each runtime skip to a step, and fails on any skip nobody
+declared. It carries three fixtures — an undeclared skip must be caught, a
+declared one admitted, a clean step left alone — plus an assertion that the
+budget covers 9 of 66 checkers rather than the whole tree.
+
+Two things the instrument caught that reading had not:
+
+- **My hand count was wrong.** Scanning by eye gave 7 skipping checkers; the
+  scanner found 9. It also *mis*-attributed two of them at first, blaming
+  `ab-compliance.sh` and `live-session-smoke.sh`, because GitHub echoes an
+  entire `run:` block **before** any of its output — so body order says nothing
+  about which checker in a multi-checker step printed the skip. Attribution is
+  now at step granularity, which is what the log can actually support, and the
+  coarseness of the two inline-block keys is written down in the script rather
+  than left to be rediscovered.
+- **A control failed against a fixture that was not realistic.** The declared-skip
+  fixture omitted the echoed command line that every real log carries, so the
+  scanner could not name the step. The fixture was the defect, not the scanner.
+
+Each of the 9 declarations records the measured reason a public runner cannot
+host it — uncommitted A/B transcripts, no credentials, no `claude` CLI, no
+drive-letter paths, a `[week2]` schedule gate. Declaring them is not the fix and
+is not claimed to be; the gap is now **counted**, and any *new* one is red.
+
+Registered as gate #55 (deep, triggered by `.github/workflows/`, the checker,
+and its Lean module) with a matching witness in `RotGates.lean`, and exempted
+from CI wiring for the same structural reason as `ci-honesty.sh`: it reads a
+*completed* run's `log.zip`, which cannot exist for the run reading it.
+`workflow-lint.sh` asserts that every exempt checker is still reachable from
+`gate-all.sh`, so the exemption states *where* it runs and never that it stopped
+running.
+
 ### The P2.4 extractor exists, and the first thing it measured was its own blindness
 
 `bench/work-trace.js` reads the process observables off a real session
