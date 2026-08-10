@@ -1003,8 +1003,26 @@
           "type": "function"
         }
       ]
+    },
+    "mutate_rotworktrace.sh": {
+      "hash": "3c765f01b99d",
+      "indexed_at": "2026-08-10T07:31:17.065021+00:00",
+      "language": "shell",
+      "lines": 268,
+      "mtime_ns": 1786347073746976600,
+      "size": 14264,
+      "symbols": [
+        {
+          "lines": [
+            121,
+            203
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-10T06:55:18.269472+00:00",
+  "generated_at": "2026-08-10T07:31:17.081604+00:00",
   "version": "1.0"
 }

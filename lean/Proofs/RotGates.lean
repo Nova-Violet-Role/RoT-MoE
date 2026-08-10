@@ -333,6 +333,10 @@ def shipped : List Gate :=
   -- which is exactly the silent hole `no_trigger_never_escalates` is about: a
   -- deep gate no staged path can reach. Caught by the gate on its first run.
   , d "debug-log integrity (RECORDS recovered, never corrupt lines -- both arms run live)" ["hooks/rot-router.sh", "hooks/rot-router.ps1", "checker/log-integrity.sh", "checker/log-scan.js", "lean/Proofs/RotLogAtomicity.lean"]
+  -- A fast gate: no triggers, so it runs on every staged set. The extractor it
+  -- guards is the P2.4 instrument, and its own controls run in both directions
+  -- -- a detector only ever tested where it should fire will fire everywhere.
+  , f "work-trace extractor controls (every P2.4 observable fired AND silenced on purpose)"
   , d "cross-diff (both reminder arms)" ["hooks/prover-remind", "checker/cross-diff-remind.sh"]
   , d "verdict stability" ["STATUS.md", "checker/verdict"]
   , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean", "checker/gauge-cross.sh"]
@@ -401,10 +405,10 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 53
+#guard shipped.length = 54
 
 -- Twenty-eight run on every commit.
-#guard (fastSet shipped).length = 35
+#guard (fastSet shipped).length = 36
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
@@ -429,7 +433,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 40
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 41
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -439,14 +443,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 35
+#guard (stagedRun shipped []).length = 36
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 41
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 42
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 36
+#guard (stagedRun shipped ["README.md".toList]).length = 37
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

@@ -184,6 +184,24 @@ jobs:
         shell: bash
         run: bash checker/log-integrity.sh
 
+      # THE P2.4 EXTRACTOR'S OWN CONTROLS. bench/work-trace.js reads the process
+      # observables (verification steps, rework, reads-before-write, unsupported
+      # claims) off a session transcript. It is registered as gate #54 in
+      # checker/gate-all.sh -- but gate-all.sh is NOT invoked by this workflow,
+      # CI runs checkers step by step, so without this step the gate would run
+      # only in a pre-commit hook and never on a runner. That is precisely the
+      # invisible-gate shape `no_trigger_never_escalates` is a theorem about.
+      #
+      # Every observable is controlled in BOTH directions -- one fixture that
+      # must fire, one that must stay silent. The negative direction is the one
+      # that matters: mutant W01 forced the verification predicate to accept
+      # every command, and ONLY the "must stay silent" fixtures noticed (exit 1,
+      # exactly 2 failures). A suite of positive fixtures alone would have
+      # passed a detector that had been completely destroyed.
+      - name: work-trace extractor controls (both directions, 16 fixtures)
+        shell: bash
+        run: node bench/work-trace.js --selftest
+
       - name: installer round trip (scratch config dir only)
         shell: bash
         run: bash checker/install-roundtrip.sh

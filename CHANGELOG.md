@@ -23,6 +23,72 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The P2.4 extractor exists, and the first thing it measured was its own blindness
+
+`bench/work-trace.js` reads the process observables off a real session
+transcript — O1 verification steps, O2 rework edits, O3 files read before the
+first write, O4 claims stated with no supporting tool output. The transcript
+format was measured, not assumed: one JSON object per line, `message.content[]`,
+`tool_use` entries carrying `name` and `input`. Observed tool distribution on a
+58 675-line transcript: Bash 4278, Edit 647, Write 251, Read 165, Grep 10,
+Glob 1.
+
+**The finding that changed the design.** Run against that transcript the
+extractor reported `O4 = 0` — no unsupported claims — and that number was
+worthless. O4 asks whether a claim appears anywhere in the tool output; the tool
+output there is **2.68 MB**, so short numbers occur by accident regardless of
+what was said. Rather than trust it, the extractor now measures its own
+false-negative rate per run by drawing fabricated claims and counting how many
+the haystack "confirms" anyway:
+
+| evidence | tool calls | fabricated claims confirmed by chance | usable |
+|---:|---:|---:|:--|
+| 2.68 MB | 5355 | **42.2 %** | no |
+| 1.20 MB | 1637 | **24.0 %** | no |
+| 152 KB | 218 | 3.0 % | yes |
+| 22 KB | 14 | 0.0 % | yes |
+| 4.8 KB | 5 | 1.0 % | yes |
+
+So a clean `O4 = 0` on the first row means nothing, and reporting it as evidence
+would have been a false green of exactly the kind this repo exists to catch. The
+extractor now refuses: above a 10 % rate it emits `O4_usable: false` and says
+the haystack is saturated. P2.4's tasks are single-defect sessions two orders of
+magnitude below the boundary, so the instrument is usable where it will be used
+— and now proves that per run instead of assuming it.
+
+**`lean/Proofs/RotWorkTrace.lean` — 18 theorems, 14 `#guard`s, 12/12 mutants
+killed.** The module proves the blindness is structural rather than unlucky:
+
+| theorem | what it forbids |
+|---|---|
+| `saturated_cannot_tell_two_messages_apart` | under saturation an honest message and a fabricated one score **identically** — the instrument is not noisy, it is blind, and no sample size repairs that |
+| `a_saturated_haystack_yields_no_verdict` | `Verdict.clean` is **unreachable** on a saturated run |
+| `a_saturated_haystack_is_never_clean` | the same stated as a refusal, so the false green has a named theorem against it |
+| `a_sparse_run_still_reaches_a_verdict` | and the gate is not vacuous — a sparse run still decides |
+| `positive_control_cannot_catch_a_loosened_detector` | why controls must run in **both** directions |
+| `only_a_negative_control_catches_a_loosened_detector` | the other half of the same statement |
+
+**The both-directions theorem was measured before it was proved.** Mutant W01
+forced `isVerification` to return `true` for every command; the self-test went
+to exit 1 with **exactly two** failures, and both were "must stay silent"
+fixtures. Every positive fixture passed a detector that had been completely
+destroyed. That is the whole argument for the negative direction, observed
+rather than argued.
+
+The suite's own generator refused its first draft: `usableThreshold : Nat := 100`
+is a **prefix** of the replacement `:= 1000`, which is the substitution hazard
+that silently double-applies. The mutant value became `900`. A harness that
+cannot tell "did not apply" from "survived" manufactures false greens, so
+DISCARDED is still counted separately from SURVIVED — here, zero of each.
+
+Registered as gate #54 (`fast`, no triggers, runs on every commit), witnessed in
+`lean/Proofs/RotGates.lean`, `gate-split` 12/0. Counts moved with the code:
+1030 → 1048 theorems, 579 → 591 mutants, 51 → 52 suites, 54 → 55 modules.
+
+**What this does not claim.** No P2.4 data exists yet. This is the instrument
+and its error bars; the run is T14, and `bench/P24-PREREGISTRATION.md` fixes the
+verdict rule in advance so the result cannot be chosen after seeing it.
+
 ### Two of the five "no difference" results were guaranteed by the corpus, and now a theorem says so
 
 Five A/B corpora returned null on answer quality. At least two of those nulls

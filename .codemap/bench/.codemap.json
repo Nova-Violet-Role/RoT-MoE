@@ -815,8 +815,101 @@
           "type": "function"
         }
       ]
+    },
+    "work-trace.js": {
+      "hash": "fffe54e2ca5c",
+      "indexed_at": "2026-08-10T07:15:52.458830+00:00",
+      "language": "javascript",
+      "lines": 328,
+      "mtime_ns": 1786346150021870500,
+      "size": 15457,
+      "symbols": [
+        {
+          "lines": [
+            54,
+            57
+          ],
+          "name": "isVerification",
+          "signature": "(cmd)",
+          "type": "function"
+        },
+        {
+          "docstring": "Parse a transcript into a flat, ordered event list.",
+          "lines": [
+            61,
+            88
+          ],
+          "name": "parseEvents",
+          "signature": "(text)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            106,
+            116
+          ],
+          "name": "claimTokens",
+          "signature": "(text)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            118,
+            203
+          ],
+          "name": "observables",
+          "signature": "(events)",
+          "type": "function"
+        },
+        {
+          "docstring": "supposed to fire is an untested alarm -- it will happily fire on everything.",
+          "lines": [
+            209,
+            211
+          ],
+          "name": "line",
+          "signature": "(role, content)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            212,
+            212
+          ],
+          "name": "toolUse",
+          "signature": "(name, input)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            213,
+            213
+          ],
+          "name": "toolResult",
+          "signature": "(text)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            214,
+            214
+          ],
+          "name": "say",
+          "signature": "(text)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            216,
+            314
+          ],
+          "name": "selftest",
+          "signature": "()",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-10T06:59:14.859513+00:00",
+  "generated_at": "2026-08-10T07:15:52.458982+00:00",
   "version": "1.0"
 }
