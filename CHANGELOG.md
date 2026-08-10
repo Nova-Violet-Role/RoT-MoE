@@ -81,8 +81,43 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **634 applied, 634 killed, 0 survived, 0 discarded**,
-and `CITATION.cff` moved from 1083 to the measured 1172 theorems.
+`README.md:240` now reads **639 applied, 639 killed, 0 survived, 0 discarded** —
+the 634 above plus the five below — and `CITATION.cff` moved from 1083 to the
+measured 1185 theorems.
+
+### The repairs went through Lean 4, because a fixed harness is still an unproven harness
+
+Three suites were repaired above. `lean/Proofs/RotSweep.lean` is why those repairs
+are correct rather than merely green.
+
+It models a run as `⟨declared, ran, killed, survived, discarded⟩` and separates
+the two observations that silently disagreed: `reportedAt k`, the summary a suite
+prints after `k` mutants, and `verdict`, the exit classification computed from the
+final counters.
+
+| theorem | what it settles |
+|---|---|
+| `early_summary_under_reports` | a summary printed after `k < killed` mutants reports `k`, not the truth |
+| `early_echo_is_indistinguishable_from_truncation` | the complete run with an early echo and a genuinely truncated run print the **same number** — the text cannot tell them apart |
+| `the_two_runs_differ` | …while the runs are not the same run, so the information was destroyed at the instrument |
+| `exit_path_was_correct_all_along` | rotlog's exit code classified the complete run clean, which is the half that was never wrong |
+| `truncation_is_refused` | a run that stopped short is not a pass |
+| `a_reported_exit_may_contradict_the_verdict` | the `_total` shape: a clean run whose reported exit says failure |
+| `a_verdict_requires_every_declared_mutant` | **durable** — a clean verdict forces `ran = declared`, over every run, naming no constant |
+| `a_clean_verdict_has_no_survivor_and_no_discard` | **durable** — the two are reported apart because they mean different things, and neither is a pass |
+| `a_summary_never_over_reports` | **durable** — the printed count can under-report but can never invent kills |
+
+The last one explains the whole episode: because an early summary under-reports
+rather than over-reports, the stale published figure stayed *self-consistent*.
+Nothing in the tree contradicted it, so nothing caught it.
+
+13 theorems, 11 `#guard`s, **5/5 mutants killed**, axioms `propext`/`Quot.sound`
+or none, `leanchecker` 0 bytes, and green in the shared Lean workspace as well as
+in `lean/`.
+
+Counts move together: **1185 theorems, 64 modules, 58 suites, 639 mutants, 68
+checkers**, each re-measured with the repaired counter rather than incremented by
+hand.
 
 ### The theorem counter could not fail, so the ratchet it feeds was decorative
 
