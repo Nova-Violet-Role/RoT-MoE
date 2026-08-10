@@ -230,6 +230,54 @@ else
 fi
 
 # ===========================================================================
+# D6b INFORMATIVE -- D6 alone passes vacuously on a record that measured nothing
+#
+# D6 above sums the logged `term` fields and compares to the logged `Rs`. On an
+# all-zero record that is |0 - 0| < 0.01, a PASS. So the gauge could break
+# completely, emit nothing but zeros, and D6 would stay green. This is not
+# hypothetical: the live log at ~/.claude/rot-moe/rot-route-debug.jsonl holds 96
+# such records out of 1755, every one with "mu":0 on all nine lenses. They are
+# historical (newest 2026-08-09T21:56:32) and today's router cannot produce one
+# -- hooks/rot-router.sh:274 sets MUS unconditionally -- but nothing STOPPED it
+# from coming back until this check existed.
+#
+# The property, proved in lean/Proofs/RotGaugeZero.lean:
+#   * Rs_pos                             -- a well-formed record cannot read 0
+#   * recomputes_does_not_imply_informative -- the D6 hole, with a witness
+#   * idle_is_not_a_violation            -- and the reason this check is SAFE:
+#       a turn on which NO lens fired still reads positive, because sigma(0) is
+#       0.1192, not 0. Only a zero FACTOR can zero the gauge. A check that
+#       flagged quiet turns would forbid a correct future; this one flags a
+#       broken instrument.
+# ===========================================================================
+_infm=$(node -e '
+  const fs=require("fs");
+  const lines=fs.readFileSync(process.argv[1],"utf8").trim().split("\n").filter(Boolean);
+  let n=0, zero=0, live=0, muzero=0;
+  for(const L of lines){
+    let r; try{ r=JSON.parse(L); }catch(e){ continue; }
+    if(r.kind!=="gauge"||!Array.isArray(r.lenses)) continue;
+    n++;
+    if(r.lenses.length>0 && r.lenses.every(x=>Number(x.mu)===0)) muzero++;
+    if(Number(r.Rs)===0) zero++; else live++;
+  }
+  console.log(n+" "+zero+" "+live+" "+muzero);
+' "$LOG")
+_i_n=$(printf '%s' "$_infm"   | awk '{print $1+0}')
+_i_zero=$(printf '%s' "$_infm" | awk '{print $2+0}')
+_i_live=$(printf '%s' "$_infm" | awk '{print $3+0}')
+_i_mu=$(printf '%s' "$_infm"   | awk '{print $4+0}')
+if [ "${_i_n:-0}" -eq 0 ]; then
+  bad "D6b INFORMATIVE: no gauge records at all -- D6's pass covered nothing"
+elif [ "${_i_zero:-0}" -ne 0 ]; then
+  bad "D6b INFORMATIVE: $_i_zero of $_i_n gauge record(s) read R/s+ = 0 -- engine/rot-lean.md:316 calls that a violation, and RotGaugeZero.Rs_pos proves a well-formed record cannot"
+elif [ "${_i_mu:-0}" -ne 0 ]; then
+  bad "D6b INFORMATIVE: $_i_mu of $_i_n gauge record(s) carry mu=0 on every lens -- the historical MUS defect is back"
+else
+  ok "D6b INFORMATIVE: $_i_live/$_i_n gauge record(s) carry a nonzero R/s+ and a nonzero mu -- D6's pass is over real arithmetic, not zeros"
+fi
+
+# ===========================================================================
 # D7 BOUNDED COST
 # ===========================================================================
 _worst=$(grep -o '"ms":[0-9]*' "$LOG" 2>/dev/null | cut -d: -f2 | sort -n | tail -1)

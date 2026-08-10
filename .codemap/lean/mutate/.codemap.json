@@ -414,6 +414,24 @@
         }
       ]
     },
+    "mutate_rotgaugezero.sh": {
+      "hash": "69e573c35a2b",
+      "indexed_at": "2026-08-09T23:45:23.994752+00:00",
+      "language": "shell",
+      "lines": 256,
+      "mtime_ns": 1786319120733583600,
+      "size": 12777,
+      "symbols": [
+        {
+          "lines": [
+            110,
+            192
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotgrounding.sh": {
       "hash": "3c6eb7957429",
       "indexed_at": "2026-08-09T20:21:33.758723+00:00",
@@ -951,6 +969,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T22:24:17.753241+00:00",
+  "generated_at": "2026-08-09T23:45:24.074140+00:00",
   "version": "1.0"
 }

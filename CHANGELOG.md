@@ -23,6 +23,84 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### `R/s+ = 0` was an "absolute law" that nothing enforced — and D6 could not have caught it
+
+`engine/rot-lean.md:316` calls a zero gauge reading a violation: *"a placeholder
+never computed; the gauge must be real or it is not."* `PROMISE-TODO.md` P4.4
+recorded it as the one gauge property with no instrument behind it. It now has
+two — a theorem and a gate — and finding it exposed something worse than the
+original defect.
+
+**The live log held 96 records reading `"Rs":0`**, every one with `"mu":0` on all
+nine lenses. They are historical: the newest is `2026-08-09T21:56:32`, and
+`hooks/rot-router.sh:274` sets `MUS` unconditionally, so today's router cannot
+emit one (probed live: `Rs = 0.66427`, every `mu` in the shipped set). Nothing
+*stopped* it from returning.
+
+**The worse finding is that `D6 RECOMPUTABILITY` passes on those records.** D6
+sums the logged `term` fields and compares to the logged `Rs`
+(`checker/dominance.sh:218-220`). On an all-zero record that is `|0 - 0| < 0.01`
+— a pass. The gauge could break completely, emit nothing but zeros, and the gate
+would stay green. A check that cannot distinguish *the arithmetic is right* from
+*there is no arithmetic* is not evidence of the first.
+
+`lean/Proofs/RotGaugeZero.lean` — **24 theorems, 11/11 mutants killed**:
+
+| theorem | what it settles |
+|---|---|
+| `Rs_pos` | a well-formed record **cannot** read zero — P4.4, as a law rather than a wish |
+| `recomputes_does_not_imply_informative` | the D6 hole, with the broken record as the witness |
+| `d6_with_informative_is_strictly_stronger` | the pair rejects a record D6 accepts |
+| `idle_is_not_a_violation` | **and the new check is safe**: a turn on which no lens fired still reads positive, because `σ(0)` is `0.1192`, not `0` |
+| `all_mu_zero_forces_zero` | the historical defect reproduced, not merely described |
+| `wellformed_passes_both` | the strengthened gate can never fail a healthy gauge |
+
+`idle_is_not_a_violation` is the one that decides whether this is a safeguard or
+a trap. A gate that flagged quiet turns would be a spec forbidding a correct
+future. Only a zero *factor* can zero the gauge, and no factor is ever
+legitimately zero — so `D6b INFORMATIVE` fires on a broken instrument and never
+on a quiet one. `dominance` goes 10 → **11 checks**.
+
+The theorems are stated over **exact scaled integers**, not ℚ. That is not a
+convenience: `decide` cannot evaluate rational arithmetic here, because `Rat`
+multiplication normalises through `Nat.gcd`, which is well-founded recursion the
+kernel refuses to reduce. On ℤ all 14 `#guard`s are real executions — verified by
+breaking one and watching the build turn red.
+
+**Negative control for the gate**, run against real data rather than a fixture:
+the check was extracted from the live `dominance.sh` (never a copy, to avoid
+drift) and run over the live debug log, where it reported `zero=50 muzero=47` —
+it fires. Extracting it also caught a defect in the extraction itself: under
+`node -e` the log is `argv[1]`, under `node file.js` it is `argv[2]`, and the
+first attempt silently measured the script instead of the log and reported a
+reassuring `0 0 0 0`.
+
+### The debug log is 8.2% corrupt, and every statistic drawn from it was quietly short
+
+Found while building the control above, and recorded here because it is the
+CLEAR CONDITION's explicitly unmet item — *"it doesn't as of now check: `*.log`
+Debug of RoT MoE"*.
+
+`grep` counts **3090** gauge records in `~/.claude/rot-moe/rot-route-debug.jsonl`;
+`JSON.parse` accepts **2750**. **410 of 5000 lines do not parse.** The shapes:
+
+- 47 lines carry **two `"kind"` keys** — two records spliced into one line.
+- 363 more end in `}` yet fail to parse, beginning mid-token (`a":0,"delta":0,…`).
+- One line holds a **complete 163-character `route` record with a gauge record's
+  tail appended to it**, no newline between.
+
+That last one names the mechanism: **non-atomic concurrent append**. Both writers
+are affected (`powershell/hook` 190, `bash/test` 114), which rules out a single
+writer's bug and points at the write discipline itself. The log is also capped at
+exactly 5000 lines and rotates, which is why a count taken twenty minutes apart
+moved from 96 to 66 — a fact worth knowing before trusting any absolute figure
+taken from it.
+
+The consequence is not cosmetic: every statistic ever computed from this log
+silently omitted ~8% of its input, including the lens-activity shares behind
+P3.1 and P3.2. No claim is being revised on the strength of an unrepaired
+instrument; the repair, its gate and its Lean model are the next unit of work.
+
 ### The first attributable advantage: same answers, ~45% less wall time, order-controlled
 
 Five answer-quality corpora had produced four nulls. The fifth — the trap corpus,
