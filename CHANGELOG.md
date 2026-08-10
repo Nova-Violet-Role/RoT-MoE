@@ -23,6 +23,54 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Two of the five "no difference" results were guaranteed by the corpus, and now a theorem says so
+
+Five A/B corpora returned null on answer quality. At least two of those nulls
+are facts about the *measurement*, not about the router, and
+`lean/Proofs/RotSaturation.lean` (12 theorems, **11/11 mutants killed**) turns
+that from an excuse into a decidable predicate you run **before** spending
+money.
+
+| corpus | result | gate | why |
+|---|---|---|---|
+| `rotmoe-fact` | 84/84 both arms | **refused** | at the ceiling — no better score is representable |
+| `rotmoe-calib` | 1/80 in band | **refused** | against the floor at margin 8 |
+| `rotmoe-trap` | 59/88 | **admitted** | real room both ways — its null is **not** excused |
+
+`saturated_pair_is_a_tie`: two arms both at the ceiling on the same denominator
+record *the same number*, whatever their true quality. The 84/84 tie was
+structurally guaranteed before the run started.
+
+**The order is the whole point.** An admissibility rule chosen *after* seeing a
+result is indistinguishable from discarding an inconvenient one — so the
+predicate, the margin and the verdict rule are all committed first, in
+`bench/P24-PREREGISTRATION.md`, while no P2.4 data exists.
+
+Three theorems exist specifically to stop this gate from being softened later:
+
+* `margin_zero_admits_everything` — with a zero margin every corpus passes,
+  including 84/84. An instrument that cannot fail, stated as a theorem, so the
+  parameter can never be quietly set to 0 and still called a check.
+* `admissibleBy_antitone` — loosening the margin is only possible by *lowering*
+  a visible number.
+* `headroom_admits_regression` — the corpus must be able to show the router
+  **losing**. A corpus that can only produce a win is measuring its own
+  construction.
+
+And `circular_selection_forces_the_ceiling` proves that picking the tasks the
+router already won drives the score to 100% by construction;
+`circular_selection_is_inadmissible` makes the gate refuse such a set without
+anyone having to notice the circularity by eye.
+
+**What this does not do:** it does not make P2.2 true, and it does not excuse
+the trap corpus, which the gate admits. It narrows five nulls to three that
+still need an answer, and it replaces the observable — grading the final text
+of a turn was never going to see a hook that acts on the *reasoning layer*.
+P2.4 measures the work instead: verification invoked, rework edits, files read
+before the first write, and unverified claims in the final message. That last
+one is in precisely because it is the observable most likely to embarrass the
+router.
+
 ### D7 was measuring the machine, not the router — and one clause of it is now weaker
 
 **Said first, plainly: the historical maximum is no longer a failure condition.**
