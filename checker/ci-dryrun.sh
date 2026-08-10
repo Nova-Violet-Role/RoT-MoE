@@ -260,7 +260,7 @@ while [ $# -gt 0 ]; do
 done
 case "$FROM$TO" in *[!0-9]*) echo "REFUSE: --from/--to take integers"; exit 2 ;; esac
 
-ran=0; deferred=0; broke=0; windowed=0; stepno=0
+ran=0; deferred=0; broke=0; windowed=0; stepno=0; deferred_names=""
 while IFS=$'\x1f' read -r -d $'\x1e' name wd sh cmd; do
   [ -z "${name:-}" ] && continue
   [ -z "${cmd:-}" ]  && continue
@@ -282,11 +282,13 @@ while IFS=$'\x1f' read -r -d $'\x1e' name wd sh cmd; do
         RUNNER_SH="pwsh"
       else
         printf '  DEFER %-52s -- declares shell: %s and pwsh is absent here\n' "$name" "$sh"
-        deferred=$((deferred+1)); continue
+        deferred=$((deferred+1))
+        deferred_names="$deferred_names$name :: pwsh absent"$'\n'; continue
       fi ;;
     *)
       printf '  DEFER %-52s -- declares an unsupported shell: %s\n' "$name" "$sh"
-      deferred=$((deferred+1)); continue ;;
+      deferred=$((deferred+1))
+      deferred_names="$deferred_names$name :: unsupported shell"$'\n'; continue ;;
   esac
   if runner_only "$cmd"; then
     reason="needs the runner"
@@ -297,7 +299,7 @@ while IFS=$'\x1f' read -r -d $'\x1e' name wd sh cmd; do
       *GITHUB_*)                     reason="uses runner-provided variables" ;;
     esac
     printf '  DEFER %-52s -- %s\n' "$name" "$reason"
-    deferred=$((deferred+1))
+    deferred=$((deferred+1)); deferred_names="$deferred_names$name :: $reason"$'\n'
     continue
   fi
   ran=$((ran+1))
@@ -342,6 +344,50 @@ if [ "$accounted" -eq "$nsteps" ]; then
 else
   bad "ACCOUNTING GAP: $ran run + $deferred deferred + $windowed windowed = $accounted, but $nsteps were extracted -- the loop stopped early and this verdict is incomplete"
 fi
+# DEFERRAL MUST BE DECLARED, BY NAME AND BY REASON.
+#
+# `deferred` was the second counter this verdict never consulted. Unlike
+# `windowed` it must NOT force a non-zero exit: the two steps below genuinely
+# cannot run in a local clone -- one needs root on a disposable machine, the
+# other reads runner-provided variables -- and a check that reddens for a
+# correct environment is a defect, not a safeguard. It would be deleted the
+# first time it fired, taking the real coverage with it.
+#
+# So the guard is a RATCHET on the declared SET, not a demand for zero:
+#   * a deferral that is not declared here is a FAILURE -- a step has quietly
+#     become unverifiable and nobody said so;
+#   * a declared deferral that did NOT happen is reported, never failed, because
+#     running MORE steps must never turn this red.
+#
+# Name AND reason are matched. Name alone would let a stale entry shelter a step
+# that starts deferring for an entirely different reason under the same name.
+#
+# Measured 2026-08-10 (pwsh IS present on this host, so neither is a shell defer).
+DECLARED_DEFERRALS="install comma-decimal locales :: needs root on a disposable machine
+provide a bound (gtimeout/timeout must exist on every runner) :: uses runner-provided variables"
+
+UNDECL="${TMPDIR:-/tmp}/cidry-undeclared.$$"
+: > "$UNDECL"
+printf '%s' "$deferred_names" | while IFS= read -r d; do
+  [ -z "$d" ] && continue
+  case "$DECLARED_DEFERRALS" in
+    *"$d"*) : ;;
+    *) printf '%s\n' "$d" >> "$UNDECL" ;;
+  esac
+done
+# `grep -c` prints 0 AND exits 1 on no match, so `grep -c ... || echo 0` yields
+# TWO lines and every later [ -eq ] on it is a syntax error reported as a FAIL
+# with an empty message. Measured here on the first run: "FAIL  0". wc -l cannot
+# do that.
+undeclared=$(wc -l < "$UNDECL" | tr -d ' ')
+if [ "${undeclared:-0}" -eq 0 ]; then
+  ok "every deferral is declared by name and reason ($deferred deferred)"
+else
+  while IFS= read -r u; do echo "        undeclared deferral: $u"; done < "$UNDECL"
+  bad "$undeclared step(s) DEFERRED without being declared -- a step became unverifiable and the verdict stayed green"
+fi
+rm -f "$UNDECL"
+
 if [ "$windowed" -gt 0 ]; then
   echo "  PARTIAL  $windowed step(s) were WINDOWED OUT (--from $FROM${TO:+ --to $TO})."
   echo "           This run is NOT a full pass. Windowed is not passed, not"

@@ -142,6 +142,75 @@ theorem a_gap_between_windows_is_refused (r₁ r₂ : Run)
     omega
   exact honest_never_passes_with_notrun _ h
 
+/-! ## The second unconsulted counter: deferral
+
+`windowed` was not the only counter `ci-dryrun.sh` left out of its verdict.
+`deferred` was too — 2 steps on this host, one needing root on a disposable
+machine, the other reading runner-provided variables.
+
+**That one must NOT be fixed by demanding zero.** Those steps genuinely cannot
+run in a local clone, so a guard that reddens whenever `deferred > 0` would fire
+on a correct environment, and the obvious repair would be to delete it — taking
+the real coverage with it. A spec that forbids a correct present is a defect.
+
+The instrument is a **ratchet on the declared set**: a deferral nobody declared
+is a failure, while a declared deferral that stops happening must never redden.
+A deferral is identified by `(name, reason)`, not by name alone — otherwise a
+stale entry shelters a step that begins deferring for a different reason. -/
+
+/-- A deferral: which step, and why. Both components are identifying. -/
+abbrev Deferral := Nat × Nat
+
+/-- Every observed deferral must appear in the declared set. -/
+def deferralsOk (declared observed : List Deferral) : Bool :=
+  observed.all (fun d => declared.contains d)
+
+/-- **An undeclared deferral is refused** — a step became unverifiable and said
+nothing. -/
+theorem undeclared_deferral_is_refused
+    (declared observed : List Deferral) (d : Deferral)
+    (hmem : d ∈ observed) (hnot : declared.contains d = false) :
+    deferralsOk declared observed = false := by
+  -- `by_contra` and `not_forall` are mathlib-only; this project is core-only, so
+  -- the refutation is a case split on the Bool itself.
+  cases hall : observed.all (fun x => declared.contains x) with
+  | false => simp only [deferralsOk, hall]
+  | true =>
+    rw [List.all_eq_true] at hall
+    have hd := hall d hmem
+    rw [hnot] at hd
+    exact Bool.noConfusion hd
+
+/-- **Reason drift is caught.** Same step name, different reason, is a different
+`Deferral` — so declaring `(n, r₁)` does not admit `(n, r₂)`. This is the
+property name-only matching would lose. -/
+theorem reason_drift_is_not_covered (n r₁ r₂ : Nat) (h : r₁ ≠ r₂) :
+    deferralsOk [(n, r₁)] [(n, r₂)] = false := by
+  simp only [deferralsOk, List.all_cons, List.all_nil, List.contains_cons,
+    List.contains_nil, Bool.or_false, Bool.and_true, beq_eq_false_iff_ne,
+    ne_eq, Prod.mk.injEq, not_and]
+  intro _
+  exact h ∘ Eq.symm
+
+/-- **An improvement can never redden.** Deferring *fewer* steps still passes, so
+the ratchet cannot punish a host that manages to run more of them. -/
+theorem fewer_deferrals_never_reddens
+    (declared observed : List Deferral) (d : Deferral)
+    (h : deferralsOk declared (d :: observed) = true) :
+    deferralsOk declared observed = true := by
+  simp only [deferralsOk, List.all_cons, Bool.and_eq_true] at h
+  exact h.2
+
+/-- Deferring nothing is always acceptable. -/
+theorem no_deferrals_is_ok (declared : List Deferral) :
+    deferralsOk declared [] = true := by
+  simp [deferralsOk]
+
+/-- And the ratchet is not vacuous: declaring nothing refuses any deferral. -/
+theorem empty_declaration_refuses_any_deferral (d : Deferral) :
+    deferralsOk [] [d] = false := by
+  simp [deferralsOk]
+
 /-! ## Executable checks — the measured run -/
 
 /-- CI steps `ci-dryrun.sh` extracts from the workflows. -/

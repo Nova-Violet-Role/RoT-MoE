@@ -84,7 +84,7 @@ selection cannot report a clean sweep of zero mutants.
 | `complementary_windows_compose_to_a_pass` | **segmenting stays legitimate**: the guard forbids lying about a partial run, not splitting one |
 | `a_gap_between_windows_is_refused` | a one-step gap between windows is still not a pass |
 
-Ten theorems, twelve `#guard`s, and a mutation suite of **10 mutants: 10 killed,
+Fifteen theorems, twelve `#guard`s, and a mutation suite of **10 mutants: 10 killed,
 0 survived, 0 discarded**. P01 restores the shipped bug verbatim and dies.
 
 #### What the two long checkers actually say, now that they have finished
@@ -101,6 +101,46 @@ a 180 s session probe once at 360 s. That checker's phases 1–2 did complete, a
 they are the router-observable result the project is after: **`armed=3` router
 references versus `disarmed=0`, with the difference attributable to the
 install.** Phase 3 remains unmeasured and is reported as such.
+
+#### The second unconsulted counter, and why zero was the wrong demand
+
+Assuming one instance was not unique, every checker was swept for counters the
+verdict never reads. Across all 67 there are five, and exactly one more was
+unconsulted: `ci-dryrun.sh` never let **`deferred`** affect its exit either.
+
+Two steps defer on this host. `pwsh` **is** present, so neither is a shell
+defer — the reasons are `needs root on a disposable machine` and `uses
+runner-provided variables`.
+
+**So this one must not be fixed the way `windowed` was.** Those steps genuinely
+cannot run in a local clone. A guard demanding `deferred = 0` would fire on a
+correct environment, and the obvious repair would be to delete it, taking the
+real coverage with it. A spec that forbids a correct present is a defect, not a
+safeguard.
+
+The instrument is a **ratchet on the declared set** instead: a deferral nobody
+declared is a failure; a declared deferral that stops happening is reported and
+never failed, because running *more* steps must never turn this red. A deferral
+is keyed on `(name, reason)`, not name alone — a stale entry would otherwise
+shelter a step that begins deferring for a different reason.
+
+Both directions were measured by executing the shipped block verbatim against
+synthetic input:
+
+| control | result |
+|---|---|
+| the two real deferrals | `PASS every deferral is declared by name and reason (2 deferred)` |
+| a third, undeclared | `FAIL 1 step(s) DEFERRED without being declared` |
+| declared name, **changed reason** | `FAIL … install comma-decimal locales :: needs a real pty` |
+
+The first attempt at this guard was itself broken and said so: `grep -c` prints
+`0` **and** exits 1, so `grep -c … \|\| echo 0` produced *two* lines and the
+comparison failed with a bare `FAIL  0`. It is now `wc -l`, which cannot do
+that. Five further theorems cover the ratchet —
+`undeclared_deferral_is_refused`, `reason_drift_is_not_covered`,
+`fewer_deferrals_never_reddens`, `no_deferrals_is_ok`,
+`empty_declaration_refuses_any_deferral` — the third being the one that proves
+the guard cannot punish an improvement.
 
 ### A file emptied on disk is invisible to every check that reads its text
 
@@ -177,7 +217,7 @@ truncating `hooks/prover-remind.ps1` gave exit 1 naming the file and its expecte
 28315 bytes; `git checkout` restored it and the gate returned to 0.
 
 **Proved.** `lean/Proofs/RotTreeIntegrity.lean`, 10 theorems, 14 `#guard`s,
-and a mutation suite of **10 mutants: 10 killed, 0 survived, 0 discarded**.
+and a mutation suite of **13 mutants: 13 killed, 0 survived, 0 discarded**.
 
 | theorem | what it settles |
 |---|---|

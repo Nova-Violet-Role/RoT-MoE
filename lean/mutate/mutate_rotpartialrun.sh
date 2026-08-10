@@ -193,6 +193,9 @@ run_mut P06 'def measuredWindow2 : Nat := 35' 'def measuredWindow2 : Nat := 34' 
 run_mut P07 '  exact Or.inr h' '  exact Or.inl h' 'the refusal is attributed to the failure count instead of the unrun count, breaking the proof'
 run_mut P08 '  ⟨r₁.total, r₁.ran + r₂.ran, r₁.failed + r₂.failed⟩' '  ⟨r₁.total, r₁.ran, r₁.failed⟩' 'composing two windows now discards the second, so complementary windows no longer cover the list'
 run_mut P09 '#guard honestVerdict (compose ⟨75, 40, 0⟩ ⟨75, 34, 0⟩) = false' '#guard honestVerdict (compose ⟨75, 40, 0⟩ ⟨75, 34, 0⟩) = true' 'a one-step gap between windows is declared acceptable -- exactly the fake green this module forbids'
+run_mut P11 '  observed.all (fun d => declared.contains d)' '  true' 'the deferral ratchet accepts everything, so a step that quietly became unverifiable passes'
+run_mut P12 '  exact h.2' '  exact h.1' 'the improvement-never-reddens proof takes the wrong conjunct and must stop elaborating'
+run_mut P13 '    deferralsOk declared [] = true := by' '    deferralsOk declared [] = false := by' 'deferring nothing is declared unacceptable, which would redden every clean host'
 run_mut P10 '  exact ⟨Nat.le_of_sub_eq_zero h.2, h.1⟩' '  exact ⟨Nat.le_of_sub_eq_zero h.2, h.2⟩' 'the pass-implies-everything-ran proof returns the wrong component and must stop elaborating'
 
 _total=$((killed + survived + discarded + skipped))
