@@ -23,6 +23,121 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### D7 was measuring the machine, not the router — and one clause of it is now weaker
+
+**Said first, plainly: the historical maximum is no longer a failure condition.**
+That is a weakening of one clause, deliberate, and the rest of this section is
+why it is nonetheless a stronger check than what it replaced.
+
+`RotDominance.D7_bounded` is `l.worstMs ≤ msBound` — a claim about **the
+router's** worst turn. The estimator was `max("ms")` over the live log, and the
+live log is a shared, unbounded history containing turns recorded while
+unrelated processes held the CPU. Both numbers below are real, an hour apart,
+on an **unchanged router**:
+
+| when | n | median | p95 | max |
+|---|---|---|---|---|
+| second session loading the CPU | 2158 | 314 | 616 | **8619** |
+| quiet machine, controlled probe | 24 | ~230 | — | **305** (sh), **198** (ps1) |
+
+The gate returned **11/0 and then 10/1 on an unchanged tree within the same
+hour**. A non-deterministic gate is not a safeguard, and the repair people
+reach for when one flaps is raising the bound — which `README.md:772` already
+names as the defect to avoid. The bound stays at 500.
+
+**What D7 does now.** It runs the shipped router itself — 7 turns per arm
+against a scratch log — and asserts **per arm**:
+
+* **min** — noise can only *add*, so the fastest of N runs is the cleanest
+  estimator of the router's own cost. If even the best run breaches the bound,
+  no contention story survives.
+* **median** — the turn a user actually gets. Contention cannot move a median;
+  a router that got slower moves it immediately.
+* **max is printed every time** and asserted against nothing, because a
+  wall-clock maximum on a preemptive OS is not attributable without a control.
+
+`D7c` keeps the field data and asserts its **median**, printing n / median /
+p95 / max / count-over-bound so the tail is never hidden.
+
+**Three defects were found while building this, each by the next control:**
+
+1. **The first rewrite asserted the probe's max and failed at 1366 ms** — while
+   the same router measured 217–305 ms (sh) and 172–181 ms (ps1) moments
+   earlier in isolation. The gate's own subprocess work was preempting its own
+   probe. The instrument was wrong, not the router.
+2. **Pooling the arms let a fast arm mask a broken one.** Writing the negative
+   control exposed it: a 600 ms regression in `sh` leaves seven fast `ps1`
+   samples sitting on the pooled median and the gate stays green with half the
+   router broken. Now asserted per arm — a user runs one arm, whichever their
+   shell is.
+3. **Two earlier attributions of mine were wrong and are retracted.** "The tail
+   is the PowerShell arm" was inferred from record *counts* (2112 ps1 vs 58 sh),
+   which says which arm runs most, not which is slow — `ps1` is in fact the
+   **faster** arm by ~120 ms. And a "56 ms/turn" figure for `sh` was measured
+   with a `--hook` flag that does not exist in that script; the run wrote
+   nothing and timed a no-op.
+
+**Verified killable**: injecting `sleep 0.6` into the `sh` arm (mutation
+asserted present, 1 site) turns `D7 [sh]` red at `min=881 ms` **and** `D7c` red
+at `median=914 ms`, while `D7 [ps1]` stays green — two independent checks
+catching it, and the per-arm split behaving as designed. Restored: **13 passed,
+0 failed**.
+
+### The log repair, and the two false greens it produced on the way
+
+The corruption reported in the section below is now **fixed in both writer arms,
+proved, and gated** — but the interesting part is that the first two attempts
+both looked green and were not.
+
+**The defect.** A writer killed mid-record leaves a line with no trailing
+newline. The next append lands on those bytes and fuses two records into one
+unreadable line. 409 of 5000 lines (8.2%), 27 carrying two `"kind"` keys.
+
+**The repair.** `_rot_terminate` (sh) and `Complete-RotPartialLine` (ps1) close
+a dangling line before appending. On a healthy file both are provably no-ops —
+`identical_on_the_healthy_path` — which is why they are safe on the hot path.
+
+**`lean/Proofs/RotLogAtomicity.lean` — 26 theorems, 11/11 mutants killed.** The
+model is lines of pieces, `whole` or `frag`. The load-bearing pair:
+
+| theorem | says |
+|---|---|
+| `naive_loses_the_next_record` | fusing does not raise the recovered count **at all** — the interrupted process costs its SUCCESSOR a good record |
+| `safe_keeps_the_next_record` | terminating first keeps it, +1 |
+| `corrupt_line_count_cannot_tell_them_apart` | both writers leave the SAME number of corrupt lines |
+| `record_count_does_tell_them_apart` | only the recovered-record count separates them |
+| `empty_has_nothing_pending` | a fresh log cannot fuse its first record |
+
+**FALSE GREEN 1 — the test passed for the wrong reason.** The differential
+expected 2 recovered records and got 2, so it went green. But the router writes
+**two** records per turn, and the second had simply landed on a fresh line after
+the first was destroyed. The guard was doing nothing. The expectation is now
+*calibrated* — measured from a clean run as `1 + N` — so only a working guard
+can satisfy it.
+
+**FALSE GREEN 2 — the guard was in the wrong place.** It was defined inside
+`hook_mode` and covered the two shell appends. The gauge record is written by
+**awk** (`print rec >> dbg`) and runs FIRST, so the guard fired after the damage,
+saw a terminated file, and correctly did nothing. `_rot_terminate` is now
+top-level and both writers call it. Every sink must be terminated before EVERY
+writer, not before the last one.
+
+**`checker/log-integrity.sh` — 39 checks, gate #53, DEEP tier.** It counts
+**recovered records, never corrupt lines**, because the theorem above proves a
+line-counting gate would have scored the whole repair as worthless. It drives
+both arms live against a deliberately truncated log, discovers its corpus rather
+than listing it (22 logs audited), and asserts the corrupt-line *tie* explicitly
+so nobody later "simplifies" the metric back to the blind one.
+
+Negative control, run: deleting the two awk-site calls → **exit 1** with
+`repaired writer recovered 2, expected 3`; restored → **exit 0**, zero mutant
+sites left. `checker/log-scan.js` counts a line that parses but is not an object
+as corrupt, because `JSON.parse` silently keeps the LAST of two fused `"kind"`
+keys.
+
+`RotGates.lean` moved with it: 52 → 53 gates, deep 17 → 18, and the staged run
+for `hooks/rot-router.sh` 40 → 41.
+
 ### `R/s+ = 0` was an "absolute law" that nothing enforced — and D6 could not have caught it
 
 `engine/rot-lean.md:316` calls a zero gauge reading a violation: *"a placeholder

@@ -318,6 +318,21 @@ def shipped : List Gate :=
   -- claims the router caused it, so this runs on every commit rather than
   -- waiting for a path to match.
   , f "trap corpus (all traps? scorer symmetric? latency still ORDER-CONTROLLED?)"
+  -- `debug-log integrity` joined 2026-08-10, DEEP tier. DEEP is the right tier
+  -- and the reason is cost, not importance: it starts a real PowerShell and
+  -- drives seven live router turns, which a fast gate on every commit cannot
+  -- afford. Its triggers name BOTH writer arms, because the defect it guards
+  -- was a fusion between records and either arm can reintroduce it -- the awk
+  -- gauge writer in the sh arm was the one that actually fused, and it was
+  -- missed on the first repair precisely because only the shell appends were
+  -- guarded. `lean/Proofs/RotLogAtomicity.lean` is a trigger too: the gate
+  -- asserts the theorems' predictions numerically, so a change to the model
+  -- must re-run the gate that depends on it.
+  -- The trigger list stays on ONE line. `checker/gate-split.sh` extracts the
+  -- witness with a line-oriented reader, so a wrapped list is read as EMPTY --
+  -- which is exactly the silent hole `no_trigger_never_escalates` is about: a
+  -- deep gate no staged path can reach. Caught by the gate on its first run.
+  , d "debug-log integrity (RECORDS recovered, never corrupt lines -- both arms run live)" ["hooks/rot-router.sh", "hooks/rot-router.ps1", "checker/log-integrity.sh", "checker/log-scan.js", "lean/Proofs/RotLogAtomicity.lean"]
   , d "cross-diff (both reminder arms)" ["hooks/prover-remind", "checker/cross-diff-remind.sh"]
   , d "verdict stability" ["STATUS.md", "checker/verdict"]
   , d "gauge cross" ["hooks/rot-router", "lean/Proofs/RotGauge.lean", "checker/gauge-cross.sh"]
@@ -386,14 +401,14 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 52
+#guard shipped.length = 53
 
 -- Twenty-eight run on every commit.
 #guard (fastSet shipped).length = 35
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
-#guard (deepSet shipped).length = 17
+#guard (deepSet shipped).length = 18
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length
@@ -427,7 +442,7 @@ def shipped : List Gate :=
 #guard (stagedRun shipped []).length = 35
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 40
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 41
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.

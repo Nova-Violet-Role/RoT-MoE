@@ -576,6 +576,24 @@
         }
       ]
     },
+    "mutate_rotlogatomicity.sh": {
+      "hash": "ef5d561da177",
+      "indexed_at": "2026-08-10T01:29:26.320956+00:00",
+      "language": "shell",
+      "lines": 264,
+      "mtime_ns": 1786325363433463900,
+      "size": 13772,
+      "symbols": [
+        {
+          "lines": [
+            118,
+            200
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotmutant.sh": {
       "hash": "3c5d3cfc530c",
       "indexed_at": "2026-08-09T20:21:33.778983+00:00",
@@ -969,6 +987,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T23:45:24.074140+00:00",
+  "generated_at": "2026-08-10T01:29:26.388711+00:00",
   "version": "1.0"
 }

@@ -169,6 +169,43 @@ STEMS_RECURSIVE='evolv recurs meta architect refactor ontolog hybrid'
 # env override -> settings.json -> the literal "model". The last fallback is
 # still a word, never "none" and never an empty string, because a hook that
 # emits an empty lead is worse than one that emits a generic one.
+# TERMINATE A PARTIAL LINE BEFORE APPENDING -- `RotLogAtomicity.appendSafe`.
+#
+# If the file ends WITHOUT a newline, some writer was killed mid-record (the
+# 1200 ms hook budget did this routinely before it was raised to 18000).
+# Appending onto those bytes fuses two records into one line and destroys
+# BOTH: `naive_loses_the_next_record` proves the recovered-record count does
+# not go up at all, so the interrupted process costs its SUCCESSOR a perfectly
+# good record. Closing the line first isolates the fragment and keeps this
+# record intact -- `safe_keeps_the_next_record`, +1.
+#
+# On a healthy file this is a NO-OP: `identical_on_the_healthy_path` proves the
+# two writers are the same function when nothing is pending, which is why it is
+# safe on the hot path.
+#
+# TOP LEVEL ON PURPOSE. This lived inside hook_mode at first and guarded only
+# the two shell appends -- and the gauge record is written by AWK (`print rec
+# >> dbg`), which runs FIRST in the turn. The guard therefore fired after the
+# damage, saw a newline-terminated file, and correctly did nothing, while the
+# fusion happened one writer earlier. checker/log-integrity.sh caught that: the
+# repaired writer recovered 2 records where 1 + 2 = 3 were due. Every sink must
+# be terminated before EVERY writer, not before the last one.
+#
+# Measured before the repair: 409 of 5000 lines unparseable (8.2%), 27 of them
+# carrying two `"kind"` keys.
+#
+# `$(tail -c 1 …)` strips a trailing newline, so the substitution is EMPTY
+# exactly when the file already ends in one -- no `wc`, no platform-specific
+# padding to sanitise.
+_rot_terminate () {
+  [ -n "${1:-}" ] || return 0
+  [ -s "$1" ] || return 0
+  if [ -n "$(tail -c 1 "$1" 2>/dev/null)" ]; then
+    printf '\n' 2>/dev/null >> "$1" || return 0
+  fi
+  return 0
+}
+
 convener () {
   if [ -n "$ROTMOE_MODEL" ]; then printf '%s' "$ROTMOE_MODEL"; return 0; fi
   _cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
@@ -293,6 +330,12 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
     1*)  _loc_g=${_loc_g#1} ;;
     *)   _loc_g='' ;;
   esac
+  # The gauge record is the FIRST write of the turn, so this is where a dangling
+  # fragment must be closed. awk's `print rec >> dbg` cannot inspect the tail
+  # byte itself without reopening the file, and doing it here keeps the single
+  # implementation of the rule in one place -- see `_rot_terminate` above.
+  _rot_terminate "${ROTMOE_DEBUG_LOG:-}"
+  _rot_terminate "$_loc_g"
   printf '%s|%s|%s|%s|%s|%s|%s|%s\n' \
     "$_acts" "$_breadth" "$_M" "$_C" "$_T" "$LAMBDAS" "$MUS" "$NAMES" |
   awk -F'|' -v dbg="${ROTMOE_DEBUG_LOG:-}" -v loc="$_loc_g" -v sess="$_rot_sess" -v src="$_rot_src" -v ts="$(date -Is 2>/dev/null || date)" '
@@ -606,6 +649,11 @@ hook_mode () {
     _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh","ms":%s}' \
          "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$_ms")
 
+    # The partial-line guard is `_rot_terminate`, defined at TOP LEVEL near
+    # `convener` -- it has to be reachable by the awk gauge writer too, which
+    # runs before this one. Both sinks are terminated again here because the
+    # gauge write may itself have been interrupted between then and now.
+
     # SECOND SINK first: it must not be behind the central sink's success, or a
     # user with an unwritable central log would silently lose the local one too.
     #
@@ -621,9 +669,11 @@ hook_mode () {
       *)   _rot_local_lost=1; _loc='' ;;
     esac
     if [ -n "$_loc" ]; then
+      _rot_terminate "$_loc"
       printf '%s\n' "$_rec" 2>/dev/null >> "$_loc" || _rot_local_lost=1
     fi
 
+    _rot_terminate "$ROTMOE_DEBUG_LOG"
     if printf '%s\n' "$_rec" 2>/dev/null >> "$ROTMOE_DEBUG_LOG"
     then
       # Bound the file. `tail -n` keeps the LAST cap lines, which is the

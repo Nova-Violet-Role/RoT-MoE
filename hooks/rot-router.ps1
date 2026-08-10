@@ -227,6 +227,42 @@ function Get-RotSessionName([string] $Raw) {
   return $kept
 }
 
+# TERMINATE A PARTIAL LINE BEFORE APPENDING -- `RotLogAtomicity.appendSafe`.
+#
+# This arm is the larger contributor to the corruption that motivated the fix:
+# of 409 unparseable lines in the live log, 248 carried a fractional-second `ts`
+# (this writer) against 114 whole-second (the sh arm). `Add-Content` is not
+# atomic, and a writer killed between its bytes leaves a line with no newline.
+#
+# The next append then lands ON those bytes. `naive_loses_the_next_record`
+# proves the recovered-record count does not rise at all in that case: the
+# interrupted process costs its SUCCESSOR a perfectly good record. Closing the
+# line first isolates the fragment and keeps the new record --
+# `safe_keeps_the_next_record`, +1.
+#
+# NO-OP on a healthy file: `identical_on_the_healthy_path` proves the two
+# writers are the same function when nothing is pending.
+#
+# The last byte is read through a share-mode ReadWrite handle so this never
+# blocks the other arm, and any exception propagates to the caller's existing
+# catch -- which sets the lost-evidence flag. That is deliberate: if the file
+# cannot be inspected it very likely cannot be appended either, and a silent
+# `catch {}` here would be an alarm that cannot fire.
+function Complete-RotPartialLine([string] $Path) {
+  if (-not (Test-Path -LiteralPath $Path)) { return }
+  $fs = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open,
+                               [System.IO.FileAccess]::Read,
+                               [System.IO.FileShare]::ReadWrite)
+  try {
+    if ($fs.Length -eq 0) { return }
+    [void]$fs.Seek(-1, [System.IO.SeekOrigin]::End)
+    $last = $fs.ReadByte()
+  } finally { $fs.Dispose() }
+  if ($last -ne 10) {
+    [System.IO.File]::AppendAllText($Path, "`n", (New-Object System.Text.UTF8Encoding($false)))
+  }
+}
+
 # The SECOND log: one file per session, inside the project being worked on, so a
 # session can be inspected beside the code that produced it. Independent of the
 # central sink on purpose -- a user who never sets ROTMOE_DEBUG_LOG can still opt
@@ -248,6 +284,7 @@ function Write-RotDebugLocal([string] $Line) {
       Set-Content -LiteralPath (Join-Path $d '.gitignore') -Value '*' -Encoding utf8 -ErrorAction Stop
     }
     $f = Join-Path $d ('rot-route-' + $script:RotSession + '.jsonl')
+    Complete-RotPartialLine $f
     Add-Content -LiteralPath $f -Value $Line -Encoding utf8 -ErrorAction Stop
   } catch {
     # Never fails the turn. Recorded so the marker can say so.
@@ -263,6 +300,7 @@ function Write-RotDebug([string] $Line) {
   $p = $env:ROTMOE_DEBUG_LOG
   if (-not $p) { return }
   try {
+    Complete-RotPartialLine $p
     Add-Content -LiteralPath $p -Value $Line -Encoding utf8 -ErrorAction Stop
   } catch {
     $script:RotDebugLost = $true

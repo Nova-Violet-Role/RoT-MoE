@@ -162,6 +162,28 @@ jobs:
         shell: bash
         run: bash checker/trap.sh
 
+      # THE DEBUG CHANNEL ITSELF. Every statistic this project quotes about lens
+      # activity, lead share and R/s+ is read out of one JSONL file, and that
+      # file was 8.2% unparseable (409 of 5000 lines) with nothing able to
+      # notice. A writer killed mid-record left a line with no newline; the next
+      # append fused two records into one and destroyed BOTH.
+      #
+      # This gate counts RECOVERED RECORDS, never corrupt lines. That is not a
+      # style choice: RotLogAtomicity.corrupt_line_count_cannot_tell_them_apart
+      # proves the broken and the repaired writer leave the SAME number of
+      # corrupt lines, so a line-counting gate would have scored the repair as
+      # worthless and passed the defect forever.
+      #
+      # It drives BOTH arms live against a deliberately truncated log --
+      # PowerShell is present on the Windows runner, and on a runner without it
+      # the behavioural half reports NOT RUN rather than claiming a pass.
+      #
+      # Verified killable 2026-08-10: removing the two awk-site guard calls gives
+      # exit 1 with `repaired writer recovered 2, expected 3`; restored to 39/0.
+      - name: debug-log integrity (records recovered, both writer arms run live)
+        shell: bash
+        run: bash checker/log-integrity.sh
+
       - name: installer round trip (scratch config dir only)
         shell: bash
         run: bash checker/install-roundtrip.sh

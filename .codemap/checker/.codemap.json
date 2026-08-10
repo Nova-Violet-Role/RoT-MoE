@@ -418,12 +418,12 @@
       ]
     },
     "dominance.sh": {
-      "hash": "56feaa886d4e",
-      "indexed_at": "2026-08-09T23:39:06.302689+00:00",
+      "hash": "6fd678bc1cc0",
+      "indexed_at": "2026-08-10T06:26:13.072525+00:00",
       "language": "shell",
-      "lines": 362,
-      "mtime_ns": 1786318743734039000,
-      "size": 17847,
+      "lines": 481,
+      "mtime_ns": 1786343170563051100,
+      "size": 24506,
       "symbols": [
         {
           "docstring": "Drive one event through the router. Echoes \"exit<TAB>stdout<TAB>stderrbytes\".",
@@ -482,18 +482,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "0509669aaf87",
-      "indexed_at": "2026-08-09T22:41:19.017332+00:00",
+      "hash": "495e098ce05f",
+      "indexed_at": "2026-08-10T01:22:01.504607+00:00",
       "language": "shell",
-      "lines": 405,
-      "mtime_ns": 1786315276668428900,
-      "size": 21039,
+      "lines": 406,
+      "mtime_ns": 1786324919287033800,
+      "size": 21276,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            165,
-            180
+            166,
+            181
           ],
           "name": "fires",
           "type": "function"
@@ -736,6 +736,15 @@
         }
       ]
     },
+    "log-integrity.sh": {
+      "hash": "0f5d6370b239",
+      "indexed_at": "2026-08-10T01:20:14.073880+00:00",
+      "language": "shell",
+      "lines": 325,
+      "mtime_ns": 1786324811965035700,
+      "size": 14375,
+      "symbols": []
+    },
     "log-replay.sh": {
       "hash": "22446d9fab76",
       "indexed_at": "2026-08-09T20:21:33.590326+00:00",
@@ -763,6 +772,15 @@
           "type": "function"
         }
       ]
+    },
+    "log-scan.js": {
+      "hash": "c0da59edc8d0",
+      "indexed_at": "2026-08-10T01:10:02.592451+00:00",
+      "language": "javascript",
+      "lines": 51,
+      "mtime_ns": 1786324200067314200,
+      "size": 2207,
+      "symbols": []
     },
     "marketplace-session.sh": {
       "hash": "6dd099320dd7",
@@ -1649,6 +1667,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-09T23:39:06.302818+00:00",
+  "generated_at": "2026-08-10T06:26:13.072642+00:00",
   "version": "1.0"
 }
