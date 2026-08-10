@@ -84,6 +84,7 @@ module claims (a per-module theorem/mutant count in the prose, bound to the sour
 plugin root consistency (every declared root exists; declarations agree) -- exit 3 SKIP with no config dir|fast||bash checker/plugin-root-consistency.sh
 dominance (does the routing layer STRICTLY EXTEND the default loop? D1-D7, each killable)|deep|hooks/,checker/dominance.sh,lean/Proofs/RotDominance.lean|bash checker/dominance.sh
 trap corpus (all traps? scorer symmetric? latency still ORDER-CONTROLLED?)|fast||bash checker/trap.sh
+mutation harness integrity (a filtered suite must exit 3; no suite may name another module)|deep|lean/mutate/,checker/mutate-harness.sh,lean/Proofs/RotSuiteVerdict.lean|bash checker/mutate-harness.sh
 debug-log integrity (RECORDS recovered, never corrupt lines -- both arms run live)|deep|hooks/rot-router.sh,hooks/rot-router.ps1,checker/log-integrity.sh,checker/log-scan.js,lean/Proofs/RotLogAtomicity.lean|bash checker/log-integrity.sh
 work-trace extractor controls (every P2.4 observable fired AND silenced on purpose)|fast||node bench/work-trace.js --selftest
 CI log skips (a step that printed SKIP but concluded green must be DECLARED)|deep|.github/workflows/,checker/ci-log-skips.sh,lean/Proofs/RotCiSkip.lean|bash checker/ci-log-skips.sh

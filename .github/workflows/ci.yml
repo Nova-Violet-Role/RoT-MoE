@@ -162,6 +162,23 @@ jobs:
         shell: bash
         run: bash checker/trap.sh
 
+      # THE MUTATION HARNESS IS ITSELF AN INSTRUMENT, AND NOTHING CHECKED IT.
+      #
+      # Measured 2026-08-10: `MUT_ONLY=NOSUCHID` on 21 of the 37 filterable
+      # suites ran ZERO mutants, printed "All 0 mutants killed", and exited 0.
+      # Two copy-paste defects rode along: 8 suites extracted dead theorems from
+      # `Proofs/RotTrap.lean` while mutating something else (the attribution
+      # field was always empty), and 7 verified their baseline by rebuilding
+      # `Proofs.RotOrdering` regardless of what they had mutated.
+      #
+      # Static sweep over every suite plus one live probe that RUNS a suite with
+      # a filter matching nothing and asserts exit 3. Three negative controls
+      # fire on a deliberately defective suite, so a silently broken regex
+      # cannot report a clean sweep. Proved in lean/Proofs/RotSuiteVerdict.lean.
+      - name: mutation harness integrity (a filtered suite must exit 3, never 0)
+        shell: bash
+        run: bash checker/mutate-harness.sh
+
       # THE DEBUG CHANNEL ITSELF. Every statistic this project quotes about lens
       # activity, lead share and R/s+ is read out of one JSONL file, and that
       # file was 8.2% unparseable (409 of 5000 lines) with nothing able to

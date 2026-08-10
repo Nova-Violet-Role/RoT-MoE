@@ -326,6 +326,16 @@ def shipped : List Gate :=
   -- claims the router caused it, so this runs on every commit rather than
   -- waiting for a path to match.
   , f "trap corpus (all traps? scorer symmetric? latency still ORDER-CONTROLLED?)"
+  -- `mutation harness integrity` joined 2026-08-10, DEEP tier. The mutation
+  -- suites are the instrument every "load-bearing" claim in this repo rests on,
+  -- and nothing was checking THEM. Measured that day: `MUT_ONLY=NOSUCHID` on 21
+  -- of the 37 filterable suites ran zero mutants, printed "All 0 mutants
+  -- killed", and exited 0 -- the second-counter defect CP51 fixed in ci-dryrun
+  -- and CP52 in mutate-checker, neither of which reached the per-module suites.
+  -- DEEP because it runs a real suite as a live probe rather than only reading
+  -- source; its triggers name the suite directory and the Lean witness, so
+  -- editing either re-runs it.
+  , d "mutation harness integrity (a filtered suite must exit 3; no suite may name another module)" ["lean/mutate/", "checker/mutate-harness.sh", "lean/Proofs/RotSuiteVerdict.lean"]
   -- `debug-log integrity` joined 2026-08-10, DEEP tier. DEEP is the right tier
   -- and the reason is cost, not importance: it starts a real PowerShell and
   -- drives seven live router turns, which a fast gate on every commit cannot
@@ -418,14 +428,18 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 56
+-- 57 since 2026-08-10, when `mutation harness integrity` joined the deep tier.
+#guard shipped.length = 57
 
--- Twenty-eight run on every commit.
+-- THIRTY-SEVEN run on every commit. The comment here read "Twenty-eight" while
+-- the guard beneath it said 37: the number was updated, the prose was not, and
+-- prose is what a reader believes. Both are recounted together from now on.
 #guard (fastSet shipped).length = 37
 
--- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
--- instruction compliance` 2026-08-08).
-#guard (deepSet shipped).length = 19
+-- TWENTY are escalated by path (`CI honesty` joined 2026-08-05, `A/B
+-- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10).
+-- This comment read "Sixteen" against a guard of 19 for the same reason.
+#guard (deepSet shipped).length = 20
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

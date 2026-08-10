@@ -3,7 +3,7 @@
   "files": {
     "P24-PREREGISTRATION.md": {
       "hash": "5f31b44a78c1",
-      "indexed_at": "2026-08-10T11:33:52.488568+00:00",
+      "indexed_at": "2026-08-10T17:56:45.411804+00:00",
       "language": "markdown",
       "lines": 130,
       "mtime_ns": 1786345151766742800,
@@ -94,7 +94,7 @@
     },
     "TRAP-PREREGISTRATION.md": {
       "hash": "c48db2fa80e8",
-      "indexed_at": "2026-08-10T11:33:52.491706+00:00",
+      "indexed_at": "2026-08-10T17:56:45.414587+00:00",
       "language": "markdown",
       "lines": 168,
       "mtime_ns": 1786310602072948200,
@@ -212,7 +212,7 @@
     },
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-10T11:33:52.471846+00:00",
+      "indexed_at": "2026-08-10T17:56:45.398228+00:00",
       "language": "javascript",
       "lines": 101,
       "mtime_ns": 1786205762889294800,
@@ -249,7 +249,7 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-10T11:33:52.473741+00:00",
+      "indexed_at": "2026-08-10T17:56:45.400149+00:00",
       "language": "javascript",
       "lines": 180,
       "mtime_ns": 1786277368570225200,
@@ -304,7 +304,7 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-10T11:33:52.476589+00:00",
+      "indexed_at": "2026-08-10T17:56:45.402772+00:00",
       "language": "shell",
       "lines": 385,
       "mtime_ns": 1786277829886864600,
@@ -339,7 +339,7 @@
     },
     "calib-prompts.js": {
       "hash": "887a4f5e2997",
-      "indexed_at": "2026-08-10T11:33:52.478527+00:00",
+      "indexed_at": "2026-08-10T17:56:45.404713+00:00",
       "language": "javascript",
       "lines": 219,
       "mtime_ns": 1786292666878221500,
@@ -413,7 +413,7 @@
     },
     "calib-score.js": {
       "hash": "b0381a1edbd7",
-      "indexed_at": "2026-08-10T11:33:52.480013+00:00",
+      "indexed_at": "2026-08-10T17:56:45.406129+00:00",
       "language": "javascript",
       "lines": 135,
       "mtime_ns": 1786295190750693100,
@@ -443,7 +443,7 @@
     },
     "calib-select.js": {
       "hash": "1e81c694de06",
-      "indexed_at": "2026-08-10T11:33:52.481224+00:00",
+      "indexed_at": "2026-08-10T17:56:45.407337+00:00",
       "language": "javascript",
       "lines": 125,
       "mtime_ns": 1786292666880220900,
@@ -452,7 +452,7 @@
     },
     "calib-verdict.js": {
       "hash": "9c6c50ce2439",
-      "indexed_at": "2026-08-10T11:33:52.482694+00:00",
+      "indexed_at": "2026-08-10T17:56:45.408675+00:00",
       "language": "javascript",
       "lines": 119,
       "mtime_ns": 1786292666880220900,
@@ -490,7 +490,7 @@
     },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-10T11:33:52.486112+00:00",
+      "indexed_at": "2026-08-10T17:56:45.409643+00:00",
       "language": "javascript",
       "lines": 105,
       "mtime_ns": 1786277739693226100,
@@ -519,7 +519,7 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-10T11:33:52.487866+00:00",
+      "indexed_at": "2026-08-10T17:56:45.411179+00:00",
       "language": "javascript",
       "lines": 136,
       "mtime_ns": 1786280334426837900,
@@ -574,7 +574,7 @@
     },
     "trap-latency.js": {
       "hash": "ac1796e5e1d6",
-      "indexed_at": "2026-08-10T11:33:52.490002+00:00",
+      "indexed_at": "2026-08-10T17:56:45.413062+00:00",
       "language": "javascript",
       "lines": 117,
       "mtime_ns": 1786311490514862800,
@@ -629,7 +629,7 @@
     },
     "trap-parse-controls.js": {
       "hash": "22761c05b246",
-      "indexed_at": "2026-08-10T11:33:52.490995+00:00",
+      "indexed_at": "2026-08-10T17:56:45.413940+00:00",
       "language": "javascript",
       "lines": 71,
       "mtime_ns": 1786310427035946800,
@@ -649,7 +649,7 @@
     },
     "trap-prompts.js": {
       "hash": "7a1e67e2adbd",
-      "indexed_at": "2026-08-10T11:33:52.493131+00:00",
+      "indexed_at": "2026-08-10T17:56:45.415845+00:00",
       "language": "javascript",
       "lines": 146,
       "mtime_ns": 1786307254658034100,
@@ -696,7 +696,7 @@
     },
     "trap-score-controls.js": {
       "hash": "d5ebc297f989",
-      "indexed_at": "2026-08-10T11:33:52.494502+00:00",
+      "indexed_at": "2026-08-10T17:56:45.416920+00:00",
       "language": "javascript",
       "lines": 72,
       "mtime_ns": 1786315174453429600,
@@ -742,7 +742,7 @@
     },
     "trap-score.js": {
       "hash": "4652f9c3c658",
-      "indexed_at": "2026-08-10T11:33:52.496682+00:00",
+      "indexed_at": "2026-08-10T17:56:45.418850+00:00",
       "language": "javascript",
       "lines": 221,
       "mtime_ns": 1786315206953430500,
@@ -818,7 +818,7 @@
     },
     "work-trace.js": {
       "hash": "fffe54e2ca5c",
-      "indexed_at": "2026-08-10T11:33:52.499515+00:00",
+      "indexed_at": "2026-08-10T17:56:45.421371+00:00",
       "language": "javascript",
       "lines": 328,
       "mtime_ns": 1786346150021870500,
@@ -910,6 +910,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-10T11:33:52.892457+00:00",
+  "generated_at": "2026-08-10T17:56:45.773609+00:00",
   "version": "1.0"
 }

@@ -23,6 +23,120 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The first full 57-suite mutation sweep, and the three defects only a full run could find
+
+`README.md` published **624** as both the applied and the killed figure, while
+the suites declared **634**. (The old pair is stated here as prose rather than in
+the `N applied, N killed` shape on purpose: `repo-complete.sh` scans the section
+being written *today* for that shape and checks it against source, which is
+correct behaviour — a historical figure must not be phrased so that a checker
+reads it as a claim about the current tree.) The
+gap was not a typo — the number had been carried forward while two new suites
+were added, and nothing recomputed it. So the claim was re-earned the only way it
+can be: every suite, every mutant, in one sequential sweep.
+
+Running all 57 exposed three defects that no per-suite run had ever surfaced,
+because each hides precisely when a suite is run alone and its output read by a
+human rather than parsed.
+
+| suite | defect | consequence |
+|---|---|---|
+| `mutate_rotinject.sh` | `_total` used twice, **assigned nowhere** | printed a clean verdict, then died `unbound variable`, **exit 1** |
+| `mutate_rotsessionlog.sh` | identical | same: text said 20 killed, exit code said failure |
+| `mutate_rotlog.sh` | the summary `echo` sat **above** four of its own mutants | printed `killed=10` while **14** ran and were killed |
+
+The first two are the more dangerous shape. The suite printed
+`=== RotInject: 9 killed, 0 survived, 0 discarded ===` and then exited **1**. A
+reader sees a clean sweep; a script sees a failure; neither can tell which is
+true without opening the file. Under `set -u` the summary line itself was the
+thing that killed the process, *after* every mutant had already been correctly
+scored.
+
+`mutate_rotlog.sh` is the inverse and it is worth being precise about what was
+and was not wrong: its **exit code was never wrong**. The survivor and discard
+guards sit at the foot of the file and read the live counters, so a survivor in
+`L11`–`L14` would still have failed the suite. What was wrong is the *printed*
+summary — emitted at line 262 with four mutants still to run. Any consumer
+parsing that line under-counted by four, which is exactly how the published 624
+could look self-consistent. A verdict printed before the work finishes is not a
+verdict.
+
+A fourth finding is an inconsistency rather than a bug: `mutate_rotgauge.sh`
+resolves its module as `${LEAN_ROOT:-.}/Proofs/RotGauge.lean` while its 56
+siblings resolve their own path, so from the repository root it refused with
+`FATAL: ./Proofs/RotGauge.lean not found`. It refused rather than scoring 12
+phantom kills — the guard behaved correctly — but a sweep that does not know
+about the variable silently loses a suite. Run with `LEAN_ROOT=lean` it reports
+12/12.
+
+**Measured, whole tree, after the repairs:**
+
+```
+57 suites   634 declared   634 ran   634 killed   0 survived   0 discarded
+```
+
+`declared` is counted with the checker's own rule,
+`^run_mut(_nth)? [A-Z][A-Za-z0-9]*[0-9] `, not with `^run_mut ` — the latter
+misses `run_mut_nth` in six suites and undercounts by eight. That is the same
+"counting the wrong token" defect `repo-complete.sh` exists to catch, and it
+caught it here on the author.
+
+`README.md:240` now reads **634 applied, 634 killed, 0 survived, 0 discarded**,
+and `CITATION.cff` moved from 1083 to the measured 1172 theorems.
+
+### The theorem counter could not fail, so the ratchet it feeds was decorative
+
+`checker/count-theorems.sh` had **three** paths to `0` with exit `0`, and each was
+indistinguishable from an honest count of zero:
+
+| invocation | mechanism | result |
+|---|---|---|
+| no arguments | `for f in "$@"` never iterates | `0`, exit 0 |
+| a missing file | awk fatal → `$(...)` empty → `total=$((total + ))` is a syntax error, and there is no `set -e` | `0`, exit 0 |
+| an unexpanded glob | same path as a missing file | `0`, exit 0 |
+
+`checker/axiom-audit.sh:291` then swallowed even the stderr with `2>/dev/null` and
+`n=${n:-0}`.
+
+This is worse than a wrong number. The count is a **ratchet** — the manifests
+publish it and CI asserts it never drops — so an instrument that reports `0` for
+*"I was handed nothing"* lets the ratchet be satisfied **by handing it nothing**.
+The count falls to zero and every gate stays green, because zero is not less than
+zero. The failure mode is silent and it flatters.
+
+**Repaired:** the counter now refuses — exit `2` — on an empty argument list, a
+missing file, an unreadable file, a non-numeric awk result, and `--per` with no
+files. An honest zero (a real file containing no declarations) still reports `0`
+with exit `0`; that distinction is the entire point and it is covered by a control.
+`--selftest` grew four negative controls, one per refusal, so the alarms have each
+been tripped on purpose.
+
+**Proved in Lean 4** — `lean/Proofs/RotCounter.lean`, 9 theorems, `#print axioms`
+clean, kernel re-verified, **5 of 5 mutants killed**:
+
+- `zero_is_ambiguous_under_naive` names the defect exactly: two invocations with
+  different meanings — *no input at all* and *one real file with no declarations* —
+  produce an **identical** observation under the old instrument, so no consumer
+  downstream can recover the difference. The information was destroyed at the
+  instrument.
+- `honest_separates_them` is the repair, stated as a separation rather than as a
+  property of any particular corpus.
+- `a_report_requires_every_file_read` is the durable form: a number is emitted only
+  when the files read equal the files handed in. It names no constant, so it does
+  not expire when the corpus grows.
+- `naive_admits_a_drop_that_lost_no_theorem` exhibits the ratchet attack the old
+  instrument permitted; `honest_refuses_the_fake_drop` closes it.
+
+### Published counts were stale in four places
+
+The manifests and README advertised **1083** theorems against a measured **1172**,
+and `58 modules / 55 suites / 67 checkers` against `63 / 57 / 68`. Corrected in
+`.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `README.md:65` and
+`README.md:557`, all four re-measured with the repaired counter rather than copied
+from each other. Zero `sorry` and zero `native_decide` re-confirmed — the four
+`sorry` hits in `lean/Proofs/` are prose in doc comments and one string literal in a
+keyword list, not tactics.
+
 ### A checker that skipped every single step exited 0 and printed PASS
 
 `checker/ci-dryrun.sh --from 9999` windowed out **all 75** extracted CI steps,

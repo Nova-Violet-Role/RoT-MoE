@@ -24,6 +24,12 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 F="Proofs/RotPartialRun.lean"
+# The module name, DERIVED from F rather than written out a second time.
+# Measured 2026-08-10: eight suites grepped for errors in Proofs/RotTrap.lean and
+# seven rebuilt Proofs.RotOrdering, both inherited by copy. A second hard-coded
+# name is a snapshot waiting to drift -- Proofs/RotSuiteVerdict.lean,
+# a_derived_extractor_always_attributes.
+MOD=${F##*/}; MOD=${MOD%.lean}
 BAK="$F.mutbak"
 OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotPartialRun.olean
 LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutciskip.XXXXXX")"
@@ -156,7 +162,7 @@ run_mut() {
     # A mutant build produces no olean, so every theorem in the module is
     # unusable downstream regardless of which line the elaborator complained at.
     local dead
-    dead=$(grep -oE "^error: Proofs/RotTrap\.lean:[0-9]+" "$LOG/$id.log" \
+    dead=$(grep -oE "^error: Proofs/$MOD.lean:[0-9]+" "$LOG/$id.log" \
       | grep -oE "[0-9]+$" | sort -un | while read -r ln; do
         awk -v L="$ln" '
           /^(theorem|def|private def|instance|structure|inductive|example)/ {
@@ -225,6 +231,29 @@ if [ "${discarded:-0}" -gt 0 ]; then
   echo "Fix the needle. A mutation that cannot be applied is not evidence of anything."
   exit 1
 fi
+
+# A FILTERED RUN IS NOT A SUITE RESULT.
+#
+# MEASURED 2026-08-10: `MUT_ONLY=NOSUCHID` selected no mutant at all, and this
+# script printed "All 0 mutants killed (13 ran, 0 survived, 0 discarded)" and
+# exited 0. Nothing had run. Both figures in that sentence were false.
+#
+# `skipped` was counted, folded into $_total, and then never consulted by the
+# verdict -- the same second-counter defect CP51 fixed in ci-dryrun.sh and CP52
+# fixed in mutate-checker.sh. The repair never reached the per-module suites:
+# 21 of the 37 that accept MUT_ONLY behaved this way.
+#
+# Exit 3 is this repository's skip code and is never a pass. It is placed AFTER
+# the survivor and discard tests on purpose, so a real finding is never
+# downgraded to a skip -- Proofs/RotSuiteVerdict.lean, a_survivor_outranks_a_skip.
+# The whole verdict is proved there: honest_is_never_weaker shows nothing the old
+# verdict rejected is now accepted.
+if [ "${skipped:-0}" -gt 0 ]; then
+  echo "PARTIAL: $skipped of $_total mutant(s) were NOT RUN (MUT_ONLY='${MUT_ONLY:-}')."
+  echo "         $killed killed, $survived survived, $discarded discarded, $skipped SKIPPED."
+  echo "         A filtered run has not tested this suite. This is exit 3, never a pass."
+  exit 3
+fi
 # RESTORE AND REBUILD -- a suite must leave the tree GREEN.
 #
 # Each mutant deletes the .olean, and the EXIT trap restores only the SOURCE.
@@ -232,7 +261,7 @@ fi
 # instrument (lake env leanchecker) fails for a reason unrelated to any proof.
 # Measured 2026-08-09 on Proofs.RotOrdering.
 cp "$BAK" "$F" 2>/dev/null
-( cd ${LEAN_ROOT:-.} && lake build Proofs.RotOrdering ) >/dev/null 2>&1
+( cd ${LEAN_ROOT:-.} && lake build Proofs.$MOD ) >/dev/null 2>&1
 _base=$?
 if [ "$_base" -ne 0 ]; then
   echo "FAIL: the baseline does NOT rebuild after this suite (exit $_base)."

@@ -3,60 +3,36 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 # Copyright 2026 Saimonokuma.
 #
-# =============================================================================
-# MUTATION SUITE -- Proofs/RotWorkTrace.lean (why one ordering cannot attribute)
 #
-# The contract, identical to the other suites in this directory:
-#   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
-#   2. assert the mutation LANDED after patching (needle gone, replacement present)
+# =============================================================================
+# MUTATION SUITE -- Proofs/RotCounter.lean (a partial run is not a pass)
+#
+#   1. assert the needle is present EXACTLY once before mutating; else DISCARDED
+#   2. assert the mutation LANDED after patching
 #   3. delete the stale .olean so Lake cannot skip the rebuild
 #   4. rebuild, read the exit code DIRECTLY
 #   5. restore from the backup, always
 #
-# DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
-# claim about the theorem. Folding them together manufactures reassurance.
+# DISCARDED != SURVIVED.
 #
-# WHAT THIS SUITE IS AIMED AT. The module constrains what bench/work-trace.js
-# is ALLOWED TO CONCLUDE. Its subject is an instrument that fails in the
-# reassuring direction: O4 asks "does this claim appear anywhere in the tool
-# output", and on a long session the output is megabytes, so every short number
-# matches by accident and the detector reports a clean 0 it did not earn.
-# Measured 2026-08-10: 42.2% of fabricated claims are "confirmed" by chance on a
-# 2.68 MB transcript, 24.0% at 1.20 MB, 3.0% at 152 KB.
-#
-# A blind instrument that reports 0 is a false green, so the mutants attack the
-# machinery that makes blindness DETECTABLE and REFUSED:
-#
-#   W01-W04  THE COUNTERS. Flagging inverted, or a counter that never counts.
-#            If these survive, every number the extractor prints is arithmetic
-#            on nothing.
-#   W05      THE GATE. The saturated fallback returns 'clean' instead of
-#            'noVerdict' -- precisely the false green
-#            a_saturated_haystack_is_never_clean forbids.
-#   W06-W08  DISTINCTNESS AND ORDER. Stop deduplicating, keep counting reads
-#            after the first write, or make rework structurally zero. These are
-#            O2 and O3, and each mutation makes the routed arm look tidier.
-#   W09-W10  THE BOTH-DIRECTIONS CONTROL. W10 is the sharp one: it makes the
-#            loosened detector honest, which no positive fixture can notice.
-#            Only the negative-direction theorem can kill it.
-#   W11-W12  THE MEASURED WITNESS. 42.2% is real data and 10% is the threshold
-#            it is compared against; move either and the executed #guards must
-#            notice.
+# AIMED AT a fake green measured in shipped code on 2026-08-10:
+# `checker/ci-dryrun.sh --from 9999` windowed out ALL 75 CI steps, printed an
+# honest PARTIAL paragraph, and then exited 0 with "ci-dryrun: PASS". The prose
+# was right and the exit code was wrong -- and gate-all.sh reads the exit code.
 # =============================================================================
-
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotWorkTrace.lean"
+F="Proofs/RotCounter.lean"
 # The module name, DERIVED from F rather than written out a second time.
 # Measured 2026-08-10: eight suites grepped for errors in Proofs/RotTrap.lean and
 # seven rebuilt Proofs.RotOrdering, both inherited by copy. A second hard-coded
-# name is a snapshot waiting to drift -- Proofs/RotSuiteVerdict.lean,
+# name is a snapshot waiting to drift -- Proofs/RotCounter.lean,
 # a_derived_extractor_always_attributes.
 MOD=${F##*/}; MOD=${MOD%.lean}
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotWorkTrace.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutworktrace.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCounter.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrotcounter.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -78,10 +54,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotWorkTrace ) >/tmp/mut_pre_rotworktrace.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotWorkTrace)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCounter ) >/tmp/mut_pre_rotcounter.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCounter)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotworktrace.log
+  tail -5 /tmp/mut_pre_rotcounter.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -104,7 +80,7 @@ cp "$F" "$BAK"
 # path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
 # that reported a real failure left the module with no .olean, and the NEXT
 # run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotWorkTrace ) >/dev/null 2>&1' EXIT
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCounter ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 
@@ -158,7 +134,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotWorkTrace ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCounter ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -208,24 +184,22 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotWorkTrace mutation suite ==="
+echo "=== RotCounter mutation suite ==="
 
 # Each needle is asserted present EXACTLY once before it is applied, and the
 # replacement is asserted present afterwards. A needle that does not match is
 # DISCARDED, never SURVIVED.
 
-run_mut W01 'def flagged (evidence : List Nat) (c : Nat) : Bool := !(evidence.contains c)' 'def flagged (evidence : List Nat) (c : Nat) : Bool := evidence.contains c' 'flagging inverted -- a claim counts as unsupported exactly when the evidence DOES support it'
-run_mut W02 '  decide (10 * confirmed e probes ≤ probes.length)' '  decide (1 * confirmed e probes ≤ probes.length)' 'the 10% usability bar drops to 100%, so a fully saturated haystack is declared usable'
-run_mut W03 '  | c :: rest => cond (flagged evidence c) 1 0 + countFlags evidence rest' '  | c :: rest => cond (flagged evidence c) 0 0 + countFlags evidence rest' 'O4 never counts anything: every transcript reports zero unsupported claims'
-run_mut W04 '  | p :: rest => cond (e.contains p) 1 0 + confirmed e rest' '  | p :: rest => cond (e.contains p) 0 0 + confirmed e rest' 'the chance-confirmation probe always reads zero, so saturation can never be detected'
-run_mut W05 '  else Verdict.noVerdict' '  else Verdict.clean' 'the saturated fallback reports CLEAN -- the exact false green the gate exists to prevent'
-run_mut W06 '  | x :: xs => if xs.contains x then dedup xs else x :: dedup xs' '  | x :: xs => x :: dedup xs' 'deduplication removed, so re-reading one file inflates O3 and rework stops being visible'
-run_mut W07 '  | Ev.write _ :: _ => []' '  | Ev.write _ :: rest => readsBefore rest' 'reads AFTER the first write keep counting -- O3 stops meaning read-before-you-write'
-run_mut W08 'def rework (writes : List Nat) : Nat := writes.length - (dedup writes).length' 'def rework (writes : List Nat) : Nat := (dedup writes).length - writes.length' 'rework is now structurally zero on every input: truncated subtraction hides all repeats'
-run_mut W09 'def isVerification (cmd : Nat) : Bool := cmd == 1' 'def isVerification (cmd : Nat) : Bool := cmd == 0' 'the verification predicate answers about the wrong command, inverting both control theorems'
-run_mut W10 'def loosened (_ : Nat) : Bool := true' 'def loosened (cmd : Nat) : Bool := cmd == 1' 'the loosened detector is made honest -- only the NEGATIVE-direction theorem can notice this'
-run_mut W11 'def measuredLongSession : Nat := 422' 'def measuredLongSession : Nat := 42' 'the measured 42.2% saturation rate is moved below the threshold it is supposed to exceed'
-run_mut W12 'def usableThreshold : Nat := 100' 'def usableThreshold : Nat := 900' 'the usability threshold is raised until the measured saturation no longer counts as saturated'
+run_mut C01 "  if i.files = 0 then 2" "  if i.files = 0 then 0" \
+  "honest_refuses_an_empty_invocation / honest_separates_them -- an empty invocation stops being refused, which is the original defect restored"
+run_mut C02 "  else if i.present ≠ i.files then 2" "  else if i.present ≠ i.files then 0" \
+  "honest_refuses_an_unread_file / a_report_requires_every_file_read -- a missing file or unexpanded glob stops being refused"
+run_mut C03 "def naiveExit (_ : Invocation) : Nat := 0" "def naiveExit (_ : Invocation) : Nat := 2" \
+  "naive_cannot_fail -- the whole premise is that the OLD instrument always exits 0"
+run_mut C04 "def noInput : Invocation := ⟨0, 0, 0⟩" "def noInput : Invocation := ⟨1, 1, 0⟩" \
+  "honest_separates_them -- if no-input equals the honest zero, the two cases are no longer distinguishable and the repair claims nothing"
+run_mut C05 "#guard honestExit measuredRun = 0" "#guard honestExit measuredRun = 2" \
+  "the measured corpus must be a COMPLETE run -- 61 of 61 files read"
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
@@ -268,7 +242,7 @@ fi
 #
 # Exit 3 is this repository's skip code and is never a pass. It is placed AFTER
 # the survivor and discard tests on purpose, so a real finding is never
-# downgraded to a skip -- Proofs/RotSuiteVerdict.lean, a_survivor_outranks_a_skip.
+# downgraded to a skip -- Proofs/RotCounter.lean, a_survivor_outranks_a_skip.
 # The whole verdict is proved there: honest_is_never_weaker shows nothing the old
 # verdict rejected is now accepted.
 if [ "${skipped:-0}" -gt 0 ]; then

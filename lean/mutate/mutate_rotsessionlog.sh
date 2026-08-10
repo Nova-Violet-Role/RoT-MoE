@@ -358,6 +358,11 @@ fi
 # A survivor and a discard mean different things and neither is a pass:
 #   SURVIVED  the mutation applied, the build stayed green -> COVERAGE GAP
 #   DISCARDED the mutation never applied -> NOTHING WAS TESTED
+# MEASURED 2026-08-10, first full 57-suite sweep: `_total` was used twice and
+# ASSIGNED IN NONE. Under set -u the suite printed its whole verdict and then
+# died on the summary line, exit 1 -- text said clean sweep, exit code said fail.
+_total=$((killed + survived + discarded))
+
 if [ "${survived:-0}" -gt 0 ]; then
   echo "FAIL: $survived of $_total mutant(s) SURVIVED -- those beliefs are NOT defended."
   echo "A survivor is a coverage gap. Add the theorem or the #guard; never delete the mutant."

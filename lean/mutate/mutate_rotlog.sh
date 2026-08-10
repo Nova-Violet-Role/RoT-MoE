@@ -259,7 +259,12 @@ run_mut L10 RotLog \
   'consistent_Rs_eq_gauge, consistent_Rs_unique, inconsistent_witness'
 
 echo
-echo "killed=$killed survived=$survived discarded=$discarded"
+# MEASURED 2026-08-10, first full 57-suite sweep: this summary USED TO BE PRINTED
+# HERE -- four mutants (L11-L14) are declared BELOW it, so the printed line said
+# `killed=10` while 14 mutants demonstrably ran and were killed. The exit-code
+# guards at the foot of the file were never wrong (they read the live counters
+# after every mutant), but any consumer PARSING the summary under-counted by 4.
+# A verdict printed before the work finishes is not a verdict. Moved to the end.
 echo
 # --- back to a VERIFIED green baseline ---------------------------------------
 # The contract at the top of this file promises step 5: "restore from the backup,
@@ -327,6 +332,10 @@ for m in $MODULES; do
 done
 if [ "$_baseline_bad" -ne 0 ]; then exit 2; fi
 echo "baseline restored and REBUILT green -- the workspace is as it was found"
+
+echo
+echo "killed=$killed survived=$survived discarded=$discarded"
+echo
 
 if [ "$discarded" -gt 0 ]; then
   echo "DISCARDED > 0: at least one patch never landed, so it tested NOTHING."

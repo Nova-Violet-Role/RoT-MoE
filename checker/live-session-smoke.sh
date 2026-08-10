@@ -71,6 +71,47 @@ JSON
 
 SESSION_TIMEOUT="${ROTMOE_SESSION_TIMEOUT:-180}"
 
+# ROTMOE_SMOKE_PHASES -- run a NAMED SUBSET of the three phases.
+#
+# Why this exists. Three phases run a real session each, and phase 3 retries
+# once at double the budget, so the worst case is 180+180+180+360 = 900 s in one
+# process. Every caller with a shorter bound was therefore reduced to killing
+# it, and phase 3 -- the only phase that asks whether the router's output
+# actually REACHES the model -- had never once been measured. Measured
+# 2026-08-10: a 420 s bound died mid-phase-3 with phases 1-2 already green.
+#
+# Lowering SESSION_TIMEOUT would have been the dishonest fix: it does not make
+# the check faster, it makes it fail sooner and call a slow machine a defect.
+#
+#   ROTMOE_SMOKE_PHASES=3 bash checker/live-session-smoke.sh
+#
+# A PARTIAL RUN IS NOT A PASS. Unselected phases are counted in `phase_notrun`,
+# the summary says PARTIAL, and the exit is 3 -- never 0. Only the default,
+# unset, can produce a pass, which is what CI and the gate table invoke.
+SMOKE_PHASES="${ROTMOE_SMOKE_PHASES:-1 2 3}"
+phase_notrun=0
+phase_selected () {
+  case " $SMOKE_PHASES " in
+    *" $1 "*) return 0 ;;
+    *) echo "  NOTRUN  phase $1 was not selected (ROTMOE_SMOKE_PHASES='$SMOKE_PHASES')"
+       phase_notrun=$((phase_notrun+1)); return 1 ;;
+  esac
+}
+
+# PHASE 2 CANNOT STAND ALONE, AND THE SCRIPT SAYS SO RATHER THAN PRETENDING.
+# Its whole content is the comparison `armed=N vs disarmed=M`, and N comes from
+# phase 1. Selecting 2 without 1 would compare against an unset variable and
+# report an attribution that was never measured -- a fake green built out of a
+# convenience flag. Refuse instead.
+case " $SMOKE_PHASES " in
+  *" 2 "*)
+    case " $SMOKE_PHASES " in
+      *" 1 "*) : ;;
+      *) echo "REFUSE: phase 2 is the negative control for phase 1 and reads its"
+         echo "        armed count. Select '1 2' or drop 2."; exit 2 ;;
+    esac ;;
+esac
+
 run_session () {   # run_session <tag> -> writes $WORK/<tag>.debug and .out
   tag="$1"
   # ISOLATION, and the first version got this wrong. `--settings` overrides only
@@ -105,6 +146,7 @@ MARKER='RoT MoE :: TIER 1 ->'
 
 # ============================================================================
 echo
+if phase_selected 1; then
 echo "-- phase 1: ARM, then run a session --"
 bash "$REPO/ARM_ROUTER.sh" > "$WORK/arm.log" 2>&1
 ARM_RC=$?
@@ -207,15 +249,39 @@ fi
 
 # The routing decision itself must be correct, not merely present. The prompt is
 # "lake build the theorem": three FORGE stems, so any other lane is a defect.
-if grep -hF "$MARKER" "$WORK/armed.debug" "$WORK/armed.out" 2>/dev/null | grep -c 'FORGE Claude' >/dev/null; then
-  ok "ARMED: routed CORRECTLY -- '$PROMPT' -> FORGE Claude"
-  grep -hF "$MARKER" "$WORK/armed.debug" "$WORK/armed.out" 2>/dev/null | head -1 | sed 's/^/        /'
+#
+# THE EXPECTED STRING IS READ FROM THE ROUTER, NOT FROZEN HERE. This was the
+# literal `FORGE Claude`, which would redden this checker on the day the FORGE
+# lead is renamed -- a correct change failing a green test, which is how real
+# coverage gets deleted. What must hold is that THIS PROMPT reaches THE FORGE
+# LANE; the lead's spelling belongs to the router source.
+EXPECT_FORGE=$(grep -oE '_lane="FORGE [A-Za-z]+"' "$REPO/hooks/rot-router.sh" \
+               | sed 's/_lane="//; s/"$//' | head -1)
+if [ -z "$EXPECT_FORGE" ]; then
+  bad "could not read the FORGE lane string out of hooks/rot-router.sh -- routing cannot be checked"
+# AND THE LINE PRINTED AS EVIDENCE IS THE LINE THAT SATISFIED THE CHECK.
+# It used to be `head -1` over ALL marker lines, which printed the SessionStart
+# emission (`CONVERGENT model`) directly underneath a PASS that had been earned
+# by a different, later line. The verdict was right and the evidence under it
+# was not the evidence -- exactly the shape this project exists to refuse.
+# R20: the match is COLLECTED, not tested through `grep -q`. Piping into
+# `grep -q` under pipefail makes a MATCH exit 141 (SIGPIPE kills the upstream
+# grep the moment -q stops reading), so the successful case reports failure.
+# Collecting the line once also means the evidence printed below is literally
+# the string that satisfied the check, not a second independent search.
+elif _FORGE_HIT=$(grep -hF "$MARKER" "$WORK/armed.debug" "$WORK/armed.out" 2>/dev/null \
+                    | grep -F "$EXPECT_FORGE" | head -1) && [ -n "$_FORGE_HIT" ]; then
+  ok "ARMED: routed CORRECTLY -- '$PROMPT' -> $EXPECT_FORGE"
+  printf '        %s\n' "$_FORGE_HIT"
 else
-  bad "ARMED: wrong lane for '$PROMPT' (expected FORGE Claude)"
+  bad "ARMED: wrong lane for '$PROMPT' (expected $EXPECT_FORGE)"
   grep -hF "$MARKER" "$WORK/armed.debug" "$WORK/armed.out" 2>/dev/null | head -2 | sed 's/^/        /'
 fi
 
+fi   # end phase 1
+
 # ============================================================================
+if phase_selected 2; then
 echo
 echo "-- phase 2: NEGATIVE CONTROL -- disarm, run the SAME prompt --"
 bash "$REPO/DISARM_ROUTER.sh" > "$WORK/disarm.log" 2>&1
@@ -242,7 +308,10 @@ else
   bad "armed=$ARMED_HIT vs disarmed=$DIS_HIT -- not attributable"
 fi
 
+fi   # end phase 2
+
 # ============================================================================
+if phase_selected 3; then
 echo
 echo "-- phase 3: DOES THE OUTPUT REACH THE MODEL? --"
 # WHAT PHASES 1-2 DO AND DO NOT ESTABLISH.
@@ -255,12 +324,37 @@ echo "-- phase 3: DOES THE OUTPUT REACH THE MODEL? --"
 # both runs having identical lifecycles.
 #
 # But a session that never reaches the model cannot demonstrate that the
-# router's line reaches the model's CONTEXT. That is a separate claim and it
-# needs a session that actually completes. Phase 3 makes it, using the real
-# config dir for CREDENTIALS ONLY while still pinning --settings to the scratch
-# file, and it verifies by byte count that the live settings.json is not
-# written. If there are no credentials, this phase SKIPS -- it never passes by
-# default.
+# router's line reaches the model's CONTEXT. That is a separate claim, and the
+# FIRST version of this phase got it wrong in three separate ways. All three
+# were measured on 2026-08-10, the first time this phase was ever executed:
+#
+#  (1) NO ISOLATION. It ran without CLAUDE_CONFIG_DIR "for credentials", which
+#      also inherits the live plugin root. The debug log recorded
+#      `Registered 68 hooks from 7 plugins`, and the author's own live copy of
+#      this very router was among them. Every marker hit was therefore
+#      unattributable: the packet under test and a second installed copy write
+#      byte-identical lines. Now the credential FILE is copied into the scratch
+#      dir and CLAUDE_CONFIG_DIR points there, measured `0 hooks from 0 plugins`.
+#
+#  (2) IT COULD NOT COMPLETE. The prompt was `lake build the theorem`, which
+#      starts a full agentic session; with 19 hooks per tool call it exited 124
+#      at 180 s and 124 again at 360 s. The claim under test -- "the line
+#      reaches the model" -- needs no tool use at all, so the agentic prompt was
+#      pure cost. The delivery prompt below completes in seconds.
+#
+#  (3) THE OBSERVABLE WAS THE WRONG CHANNEL, and the old comment below admitted
+#      it in prose while the code still counted it: the marker was grepped out
+#      of the hook DEBUG LOG, which is the hook's own echo of its own output. A
+#      hook that fires into a void writes exactly the same bytes there. The
+#      PASS condition is now the marker appearing in the session's STDOUT --
+#      the model's answer stream, which no hook can write -- in reply to a
+#      prompt that asks the model to quote the line back. Firing is still
+#      recorded from the debug log, but it is EVIDENCE, not the verdict.
+#
+# The pass condition is strictly STRONGER than the one it replaces: it demands
+# everything the old one did (session exit 0, marker present) plus delivery
+# through a channel the hook cannot reach, plus a disarmed negative control at
+# that same channel.
 LIVE_SETTINGS="$HOME/.claude/settings.json"
 LIVE_BEFORE=$(wc -c < "$LIVE_SETTINGS" 2>/dev/null || echo 0)
 # CREDENTIALS ARE `.credentials.json` OR AN API KEY. NOTHING ELSE.
@@ -275,58 +369,159 @@ LIVE_BEFORE=$(wc -c < "$LIVE_SETTINGS" 2>/dev/null || echo 0)
 # and the job was GREEN, because PARTIAL incremented neither counter.
 #
 # A test that manufactures its own precondition is not a test. The glob is gone.
-HAVE_CREDS=0
-[ -f "$HOME/.claude/.credentials.json" ] && HAVE_CREDS=1
-[ -n "${ANTHROPIC_API_KEY:-}" ] && HAVE_CREDS=1
+HAVE_CREDS=0; CRED_SRC=''
+[ -f "$HOME/.claude/.credentials.json" ] && { HAVE_CREDS=1; CRED_SRC='file'; }
+[ -n "${ANTHROPIC_API_KEY:-}" ] && { HAVE_CREDS=1; CRED_SRC="${CRED_SRC:-env}"; }
+
+# THE DELIVERY PROMPT. It asks for one line back and nothing else, so the
+# session needs no tool, no file and no build -- the entire agentic loop that
+# made the old prompt time out is simply not entered. The `NO-SUCH-LINE`
+# alternative is what makes the disarmed control readable: the model is given a
+# way to say "absent" that is distinguishable from "the session broke".
+DELIVERY_PROMPT="Output verbatim, and nothing else, the single line in your context that begins with the characters 'RoT MoE ::'. If no such line exists, output exactly NO-SUCH-LINE."
+
+# THE COPIED CREDENTIAL IS REMOVED ON EVERY EXIT PATH, INCLUDING A KILL.
+# $WORK is deliberately kept for artifacts, so a token left in it would outlive
+# the run in a world-readable temp dir. Failure to remove it is announced --
+# never swallowed -- because the operator has to know to delete it by hand.
+cleanup_creds () {
+  [ -f "$CLAUDE_DIR/.credentials.json" ] || return 0
+  rm -f "$CLAUDE_DIR/.credentials.json"
+  if [ -f "$CLAUDE_DIR/.credentials.json" ]; then
+    echo "  WARN  could not remove the copied credential:"
+    echo "        $CLAUDE_DIR/.credentials.json  -- DELETE IT BY HAND"
+  fi
+}
+trap cleanup_creds EXIT INT TERM
 
 if [ "$HAVE_CREDS" -eq 0 ]; then
   echo "  SKIP  no credentials found -- context delivery UNVERIFIED (not passed)"
 else
-  bash "$REPO/ARM_ROUTER.sh" > "$WORK/arm3.log" 2>&1
-  # ONE RETRY WITH A DOUBLED BUDGET, and it does not weaken the claim.
-  #
-  # A timeout is not evidence of a defect -- a busy machine changes the pacing,
-  # measured here at ${SESSION_TIMEOUT}s while the router itself fired 12 times
-  # perfectly. It is not evidence of success either, so it cannot be shrugged
-  # off the way the old PARTIAL branch did.
-  #
-  # The pass condition is UNCHANGED: the session must COMPLETE and carry the
-  # line. All the retry does is refuse to call a slow machine a defect on the
-  # first sample, and refuse to call it a pass on the second.
-  timeout "$SESSION_TIMEOUT" claude -p "$PROMPT" \
-    --settings "$SETTINGS" --debug hooks --debug-file "$WORK/ctx.debug" \
-    > "$WORK/ctx.out" 2> "$WORK/ctx.err"
-  CTX_RC=$?
-  if [ "$CTX_RC" -eq 124 ]; then
-    echo "  session[ctx] exit=124 at ${SESSION_TIMEOUT}s -- retrying ONCE at $((SESSION_TIMEOUT*2))s before calling it"
-    timeout "$((SESSION_TIMEOUT*2))" claude -p "$PROMPT" \
-      --settings "$SETTINGS" --debug hooks --debug-file "$WORK/ctx.debug" \
-      > "$WORK/ctx.out" 2> "$WORK/ctx.err"
-    CTX_RC=$?
-  fi
-  echo "  session[ctx] exit=$CTX_RC (real credentials, scratch --settings)"
-  CTX_HIT=$(grep -cF "$MARKER" "$WORK/ctx.debug" "$WORK/ctx.out" 2>/dev/null | awk -F: '{s+=$2} END{print s+0}')
-  if [ "$CTX_RC" -eq 0 ] && [ "$CTX_HIT" -gt 0 ]; then
-    ok "session COMPLETED (exit 0) and carried the router line $CTX_HIT time(s)"
-  elif [ "$CTX_HIT" -gt 0 ]; then
-    # THIS BRANCH USED TO INCREMENT NEITHER COUNTER, so a session that FAILED
-    # left the run green. The label was honest -- "firing is established;
-    # delivery is not" -- and the verdict still treated it as a non-failure,
-    # which is the whole defect: the marker is written by the hook when the
-    # prompt is submitted, BEFORE the session can die, so it is present in the
-    # failure path and cannot testify to anything about the outcome.
-    #
-    # We have credentials here (the branch requires them), so a non-zero exit is
-    # a real problem and is now counted as one. Inconclusive is not a pass.
-    if [ "$CTX_RC" -eq 124 ]; then
-      bad "the session TIMED OUT at ${SESSION_TIMEOUT}s -- the router line appeared $CTX_HIT time(s), but context DELIVERY is unproven. Evidence absent is not evidence of success."
+  # ISOLATION IS THE ATTRIBUTION. Copying the credential into the scratch dir
+  # lets CLAUDE_CONFIG_DIR stay pinned there, so the session loads the packet
+  # under test and NOTHING else. Without this the live plugin root came with
+  # the credentials -- measured `Registered 68 hooks from 7 plugins` -- and any
+  # second copy of this router installed on the machine forged the evidence.
+  if [ "$CRED_SRC" = 'file' ]; then
+    ( umask 077; cat "$HOME/.claude/.credentials.json" > "$CLAUDE_DIR/.credentials.json" )
+    if [ -s "$CLAUDE_DIR/.credentials.json" ]; then
+      ok "credential isolated into the scratch config dir (mode 600, removed on exit)"
     else
-      bad "the session EXITED $CTX_RC with credentials present -- the router line appeared $CTX_HIT time(s), which the hook writes on submission and so proves only that the hook ran. Context DELIVERY is unproven."
+      bad "could not isolate the credential -- refusing to fall back to the live config dir"
     fi
   else
-    bad "the router line never appeared in a completed session"
+    ok "credential comes from ANTHROPIC_API_KEY -- no file copy needed"
   fi
+
+  deliver_session () {   # deliver_session <tag> -> $WORK/<tag>.{out,err,debug}
+    CLAUDE_CONFIG_DIR="$CLAUDE_DIR" \
+    timeout "$SESSION_TIMEOUT" claude -p "$DELIVERY_PROMPT" \
+      --settings "$SETTINGS" --debug hooks --debug-file "$WORK/$1.debug" \
+      > "$WORK/$1.out" 2> "$WORK/$1.err"
+    rc=$?
+    # ONE RETRY WITH A DOUBLED BUDGET, and it does not weaken the claim: the
+    # pass condition is unchanged, the retry only refuses to call a slow
+    # machine a defect on the first sample, and refuses to call it a pass on
+    # the second.
+    if [ "$rc" -eq 124 ]; then
+      echo "  session[$1] exit=124 at ${SESSION_TIMEOUT}s -- retrying ONCE at $((SESSION_TIMEOUT*2))s"
+      CLAUDE_CONFIG_DIR="$CLAUDE_DIR" \
+      timeout "$((SESSION_TIMEOUT*2))" claude -p "$DELIVERY_PROMPT" \
+        --settings "$SETTINGS" --debug hooks --debug-file "$WORK/$1.debug" \
+        > "$WORK/$1.out" 2> "$WORK/$1.err"
+      rc=$?
+    fi
+    return $rc
+  }
+
+  # `grep -c` PRINTS 0 AND EXITS 1 ON NO MATCH. `grep -c ... || echo 0` emits
+  # TWO lines and poisons the arithmetic that reads it -- that bug cost a real
+  # debugging pass in this repo (CP52). Read the value, then sanitise it.
+  count_marker () {
+    _n=$(grep -cF "$MARKER" "$1" 2>/dev/null)
+    case "$_n" in ''|*[!0-9]*) _n=0 ;; esac
+    printf '%s' "$_n"
+  }
+
+  bash "$REPO/ARM_ROUTER.sh" > "$WORK/arm3.log" 2>&1
+  ARM3_RC=$?
+  [ "$ARM3_RC" -eq 0 ] && ok "phase 3 ARM_ROUTER exit 0" || bad "phase 3 ARM_ROUTER exit $ARM3_RC"
+
+  deliver_session ctx
+  CTX_RC=$?
+  echo "  session[ctx] exit=$CTX_RC (isolated config, armed)"
+
+  CTX_OUT_HIT=$(count_marker "$WORK/ctx.out")     # the MODEL's answer stream
+  CTX_DBG_HIT=$(count_marker "$WORK/ctx.debug")   # the hook's own echo
+
+  # THE VERDICT READS THE MODEL'S STREAM, NOT THE HOOK'S. A hook firing into a
+  # void writes the debug line either way; only stdout carries what the model
+  # actually received and repeated back.
+  if [ "$CTX_RC" -eq 0 ] && [ "$CTX_OUT_HIT" -gt 0 ]; then
+    ok "DELIVERED: the model quoted the router line back in its own output ($CTX_OUT_HIT line(s), session exit 0)"
+  elif [ "$CTX_RC" -ne 0 ]; then
+    bad "the session exited $CTX_RC with credentials present -- delivery unproven (hook fired $CTX_DBG_HIT time(s), which proves only that the hook ran)"
+  else
+    bad "the session completed but the model did NOT quote the line -- the hook fired $CTX_DBG_HIT time(s) into a context the model never received"
+    head -3 "$WORK/ctx.out" | sed 's/^/        /'
+  fi
+
+  # THE GRAMMAR IS READ FROM THE ROUTER SOURCE, NOT FROZEN HERE. Pinning today's
+  # lane list into this checker would redden a correct future the day a lane is
+  # added; deriving it means the check follows the router instead of fighting it.
+  LANES=$(grep -oE '_lane="[A-Z]+ ' "$REPO/hooks/rot-router.sh" \
+          | sed 's/_lane="//; s/ $//' | sort -u | tr '\n' '|' | sed 's/|$//')
+  ECHOED=$(grep -F "$MARKER" "$WORK/ctx.out" 2>/dev/null | head -1)
+  if [ -z "$LANES" ]; then
+    bad "could not derive the lane vocabulary from hooks/rot-router.sh -- the grammar check cannot run"
+  elif [ -z "$ECHOED" ]; then
+    echo "  NOTE  no echoed line to check the grammar of (covered by the failure above)"
+  # R20 again: collected, not piped into `grep -q`. Under pipefail a MATCH would
+  # exit 141 here and the grammar check would report failure on a correct line.
+  elif [ -n "$(printf '%s' "$ECHOED" | grep -E "^RoT MoE :: TIER 1 -> ($LANES) [^|]*\| R/s\+ [0-9]+\.[0-9]+")" ]; then
+    ok "the delivered line parses as a router line with a declared lane: $ECHOED"
+  else
+    bad "the delivered line does not match the router's own grammar: $ECHOED"
+  fi
+
+  # ---- NEGATIVE CONTROL AT THE SAME CHANNEL -------------------------------
+  # Without this a model that INVENTS the line passes phase 3. It also proves
+  # the isolation held: a leaked live plugin root would fire its own router
+  # here and put the marker back in the debug log with the scratch settings
+  # disarmed. Both counters must be zero.
   bash "$REPO/DISARM_ROUTER.sh" > "$WORK/disarm3.log" 2>&1
+  DIS3_RC=$?
+  [ "$DIS3_RC" -eq 0 ] && ok "phase 3 DISARM_ROUTER exit 0" || bad "phase 3 DISARM_ROUTER exit $DIS3_RC"
+
+  deliver_session ctx2
+  CTX2_RC=$?
+  echo "  session[ctx2] exit=$CTX2_RC (isolated config, DISARMED)"
+  CTX2_OUT_HIT=$(count_marker "$WORK/ctx2.out")
+  CTX2_DBG_HIT=$(count_marker "$WORK/ctx2.debug")
+
+  if [ "$CTX2_RC" -ne 0 ]; then
+    bad "the disarmed control session exited $CTX2_RC -- the control is absent, so the armed run attributes nothing"
+  elif [ "$CTX2_OUT_HIT" -eq 0 ] && [ "$CTX2_DBG_HIT" -eq 0 ]; then
+    ok "CONTROL: disarmed, the line is absent from BOTH the model's output and the hook log (0/0)"
+  elif [ "$CTX2_DBG_HIT" -gt 0 ]; then
+    bad "ISOLATION BROKEN: the marker appears $CTX2_DBG_HIT time(s) with the scratch settings disarmed -- another installed copy of the router is firing, and the armed run proves nothing"
+  else
+    bad "the model produced the line with the router DISARMED ($CTX2_OUT_HIT) -- it was invented, not delivered"
+  fi
+
+  if [ "$CTX_OUT_HIT" -gt 0 ] && [ "$CTX2_OUT_HIT" -eq 0 ]; then
+    ok "delivery is ATTRIBUTABLE: armed=$CTX_OUT_HIT vs disarmed=$CTX2_OUT_HIT at the model's own output"
+  else
+    bad "delivery NOT attributable: armed=$CTX_OUT_HIT vs disarmed=$CTX2_OUT_HIT at the model's own output"
+  fi
+
+  # INFORMATIVE ONLY -- the wording of this line belongs to the CLI, not to us,
+  # so it is reported and never made a verdict. The isolation VERDICT is the
+  # disarmed debug count above, which depends on no log wording at all.
+  PLUGINS=$(grep -oE 'Registered [0-9]+ hooks from [0-9]+ plugins' "$WORK/ctx.debug" 2>/dev/null | sort -u | head -1)
+  [ -n "$PLUGINS" ] && echo "  INFO  isolation, as the CLI reports it: $PLUGINS"
+
+  cleanup_creds
 fi
 
 LIVE_AFTER=$(wc -c < "$LIVE_SETTINGS" 2>/dev/null || echo 0)
@@ -336,9 +531,17 @@ else
   bad "LIVE settings.json CHANGED: $LIVE_BEFORE -> $LIVE_AFTER bytes"
 fi
 
+fi   # end phase 3
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"
 echo "  artifacts: $WORK"
 echo "  live ~/.claude untouched; no process signalled"
+
+# A PHASE THAT DID NOT RUN IS NOT A PHASE THAT PASSED.
+if [ "$phase_notrun" -gt 0 ]; then
+  echo "  R20: PARTIAL -- $phase_notrun phase(s) never ran (exit 3, never a pass)"
+  exit 3
+fi
 [ "$fail" -eq 0 ] && { echo "  R20: PASS"; exit 0; } || { echo "  R20: FAIL"; exit 1; }
