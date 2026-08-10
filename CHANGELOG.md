@@ -23,6 +23,85 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A checker that skipped every single step exited 0 and printed PASS
+
+`checker/ci-dryrun.sh --from 9999` windowed out **all 75** extracted CI steps,
+printed a completely honest paragraph about it —
+
+```
+  PARTIAL  75 step(s) were WINDOWED OUT (--from 9999).
+           This run is NOT a full pass. Windowed is not passed, not
+           deferred, and not skipped -- it is untested.
+```
+
+— and then exited **0** with `ci-dryrun: PASS`.
+
+The prose was right and the verdict was wrong, which is the worse half to get
+wrong. `checker/gate-all.sh` reads the **exit code**, not the paragraph. Zero
+steps executed, recorded as green, reachable with one flag. That is the "no
+skip, no fake green" rule broken inside the very checker whose job is to prove
+CI steps run.
+
+The fix is four lines: if `windowed > 0`, print `ci-dryrun: PARTIAL` and exit
+**3** — this repo's "did not run", which no caller counts as a pass. Measured
+before: exit 0. After: exit 3.
+
+**Why the windowing exists at all, and why deleting it would have been the wrong
+repair.** The full sweep does not fit in any caller's wall-clock bound, because
+it re-runs `checker/mutate-checker.sh` internally (418 s on its own). Cutting a
+run short with a signal is what emptied two shipped hooks earlier the same day.
+Windowing is the *safe* alternative to a kill; the bug was never the feature, it
+was a verdict function that consulted only the failure count.
+
+#### The same hole, closed in the mutation harness before it could open
+
+`checker/mutate-checker.sh` had no way to run a subset, so every caller who
+could not spare seven minutes killed it — three recorded times, the last leaving
+`hooks/prover-remind.sh` and `.ps1` at zero bytes. It now takes `MUT_ONLY="H00
+H01"`. Skipped mutants are counted in `notrun`, the summary says `PARTIAL`, and
+the exit code is **3**, never 0. Only an unset `MUT_ONLY` can produce a passing
+sweep, which is what the gate table invokes.
+
+The control that matters is a **typo**: `MUT_ONLY=NOSUCHID` selects nothing.
+Measured — `killed=0 survived=0 discarded=0 notrun=16`, exit 3. An empty
+selection cannot report a clean sweep of zero mutants.
+
+#### Both fixes are one theorem
+
+`lean/Proofs/RotPartialRun.lean` models a run as `⟨total, ran, failed⟩`.
+`naiveVerdict` is the shipped bug, `honestVerdict` is the fix.
+
+| theorem | what it settles |
+|---|---|
+| `naive_passes_a_run_that_did_nothing` | the bug, exactly as it shipped: `⟨75,0,0⟩` passes |
+| `honest_refuses_a_run_that_did_nothing` | the fix refuses it |
+| `naive_is_blind_to_windowing` | **why no care with the failure count could have caught it** — a full sweep and a run of nothing are the same value to it, though the runs differ |
+| `honest_separates_them` | the added condition is a real second test, not a restatement |
+| `honest_agrees_when_everything_ran` | **no false alarm**: on a complete run the fix changes nothing, so it cannot redden a good sweep |
+| `honest_never_passes_with_notrun` | anything held back forces a refusal whatever the failure count says |
+| `pass_implies_everything_ran` | the converse — a pass means the whole list executed |
+| `failures_still_refused` | the fix does not mask real failures |
+| `complementary_windows_compose_to_a_pass` | **segmenting stays legitimate**: the guard forbids lying about a partial run, not splitting one |
+| `a_gap_between_windows_is_refused` | a one-step gap between windows is still not a pass |
+
+Ten theorems, twelve `#guard`s, and a mutation suite of **10 mutants: 10 killed,
+0 survived, 0 discarded**. P01 restores the shipped bug verbatim and dies.
+
+#### What the two long checkers actually say, now that they have finished
+
+`checker/mutate-checker.sh` had **never once run to completion** in this
+repository. Its first complete run: 418 s, `killed=16 survived=0 discarded=0
+notrun=0`, baseline restored, both cross-diff arms exit 0. It was not failing —
+nobody had ever let it finish.
+
+`ci-dryrun` was covered by two complementary windows: `--to 40` (480 s) and
+`--from 41`, both with zero failures. The second window does not fit in one
+bound because it reaches `checker/live-session-smoke.sh`, whose phase 3 retries
+a 180 s session probe once at 360 s. That checker's phases 1–2 did complete, and
+they are the router-observable result the project is after: **`armed=3` router
+references versus `disarmed=0`, with the difference attributable to the
+install.** Phase 3 remains unmeasured and is reported as such.
+
 ### A file emptied on disk is invisible to every check that reads its text
 
 **The verification process that found this was my own, and it had the same

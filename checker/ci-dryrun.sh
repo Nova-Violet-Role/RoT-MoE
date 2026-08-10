@@ -408,4 +408,20 @@ rm -rf "$CLONE" 2>/dev/null || echo "  NOTE  temp tree still busy, left behind: 
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"
+
+# A WINDOWED RUN IS NOT A PASS, AND THE EXIT CODE MUST SAY SO.
+#
+# Measured 2026-08-10: `ci-dryrun.sh --from 9999` windowed out ALL 76 steps,
+# printed the honest PARTIAL paragraph above -- "This run is NOT a full pass" --
+# and then exited 0 with "ci-dryrun: PASS". The prose was right and the verdict
+# was wrong, which is the worse half to get wrong: checker/gate-all.sh reads the
+# EXIT CODE, not the paragraph. Zero steps executed, recorded as green.
+#
+# That is precisely the "no skip, no fake green" violation this repo bans, and
+# it was reachable with one flag. Exit 3 is this repo's "did not run", which no
+# caller counts as a pass.
+if [ "$windowed" -gt 0 ]; then
+  echo "  ci-dryrun: PARTIAL -- $windowed of $nsteps step(s) never ran (exit 3, never a pass)"
+  exit 3
+fi
 [ "$fail" -eq 0 ] && { echo "  ci-dryrun: PASS"; exit 0; } || { echo "  ci-dryrun: FAIL"; exit 1; }

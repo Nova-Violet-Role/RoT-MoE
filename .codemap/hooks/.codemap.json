@@ -3,7 +3,7 @@
   "files": {
     "plugin-detect.js": {
       "hash": "5b2d16afa47b",
-      "indexed_at": "2026-08-10T06:55:18.054111+00:00",
+      "indexed_at": "2026-08-10T11:33:52.700366+00:00",
       "language": "javascript",
       "lines": 156,
       "mtime_ns": 1785910029488575900,
@@ -22,10 +22,10 @@
     },
     "prover-remind.sh": {
       "hash": "9e6fac25f830",
-      "indexed_at": "2026-08-10T09:38:46.016741+00:00",
+      "indexed_at": "2026-08-10T11:33:52.709808+00:00",
       "language": "shell",
       "lines": 622,
-      "mtime_ns": 1786354723459724900,
+      "mtime_ns": 1786358676601195900,
       "size": 32209,
       "symbols": [
         {
@@ -143,10 +143,10 @@
     },
     "rot-router.sh": {
       "hash": "c8f8974d1c97",
-      "indexed_at": "2026-08-10T09:43:02.111478+00:00",
+      "indexed_at": "2026-08-10T11:33:52.719825+00:00",
       "language": "shell",
       "lines": 768,
-      "mtime_ns": 1786354316985726500,
+      "mtime_ns": 1786358676538196100,
       "size": 39967,
       "symbols": [
         {
@@ -232,7 +232,7 @@
     },
     "settings-merge.js": {
       "hash": "fefe1c2407f4",
-      "indexed_at": "2026-08-10T06:55:18.075927+00:00",
+      "indexed_at": "2026-08-10T11:33:52.721963+00:00",
       "language": "javascript",
       "lines": 315,
       "mtime_ns": 1786305181494166900,
@@ -240,6 +240,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-10T09:43:02.264247+00:00",
+  "generated_at": "2026-08-10T11:33:52.898694+00:00",
   "version": "1.0"
 }

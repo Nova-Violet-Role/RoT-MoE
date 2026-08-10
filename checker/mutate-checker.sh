@@ -147,9 +147,34 @@ done; }
 # run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker]
 # The 7th argument names the checker to run; it defaults to the router
 # cross-diff so every existing call site keeps its meaning unchanged.
+# MUT_ONLY -- run a NAMED SUBSET, so this harness never has to be killed.
+#
+# This exists because of the damage the alternative caused. A full sweep takes
+# longer than several callers' wall-clock bounds, and three times now it has
+# been cut short mid-mutation: 2026-08-05, 2026-08-07 and 2026-08-10, the last
+# leaving two shipped hooks at ZERO BYTES. Segmenting is the fix; a tighter
+# timeout is not.
+#
+#   MUT_ONLY="M01 M02" bash checker/mutate-checker.sh
+#
+# A PARTIAL RUN MAY NEVER LOOK LIKE A FULL ONE. Skipping is how a suite lies
+# reassuringly, so every skipped mutant is counted in `notrun`, the summary says
+# PARTIAL, and the exit code is 3 -- never 0. Only an unset MUT_ONLY can produce
+# a passing full sweep, which is what checker/gate-all.sh invokes.
+# Proved in lean/Proofs/RotTreeIntegrity.lean's sibling reasoning and enforced
+# below; the guard is asserted by the controls at the foot of this file.
+notrun=0
+selected () {
+  [ -z "${MUT_ONLY:-}" ] && return 0
+  case " $MUT_ONLY " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+}
+
 run () {
   local id="$1" f="$2" needle="$3" repl="$4" expect="$5" note="$6"
   local checker="${7:-checker/cross-diff.sh}"
+  if ! selected "$id"; then
+    notrun=$((notrun+1)); return
+  fi
   restore
   local n; n=$(grep -F -c -- "$needle" "$f")
   if [ "$n" -ne 1 ]; then
@@ -412,6 +437,17 @@ baseR=$?
 rm -f "$SH.mutbak" "$PS1.mutbak" "$RSH.mutbak" "$RPS1.mutbak"
 
 echo "---"
-echo "killed=$killed survived=$survived discarded=$discarded"
+echo "killed=$killed survived=$survived discarded=$discarded notrun=$notrun"
 echo "baseline restored -> cross-diff exit=$base, cross-diff-remind exit=$baseR"
+
+# A PARTIAL RUN IS NOT A PASS. If MUT_ONLY held anything back, say so loudly and
+# exit 3 -- the repo's convention for "did not run", which no caller counts as
+# green. Folding a partial sweep into exit 0 would make segmentation a way to
+# manufacture a clean result, which is exactly the fake green this project bans.
+if [ "$notrun" -gt 0 ]; then
+  echo "PARTIAL: $notrun mutant(s) were NOT RUN (MUT_ONLY='${MUT_ONLY:-}')."
+  echo "         A partial sweep is never a pass. Run with MUT_ONLY unset for the"
+  echo "         full set before treating this checker as green."
+  exit 3
+fi
 [ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && [ "$base" -eq 0 ] && [ "$baseR" -eq 0 ] && exit 0 || exit 1
