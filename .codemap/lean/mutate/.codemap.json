@@ -934,6 +934,24 @@
         }
       ]
     },
+    "mutate_rottreeintegrity.sh": {
+      "hash": "0d283aa85b89",
+      "indexed_at": "2026-08-10T09:57:10.385500+00:00",
+      "language": "shell",
+      "lines": 262,
+      "mtime_ns": 1786355826747056000,
+      "size": 13666,
+      "symbols": [
+        {
+          "lines": [
+            117,
+            199
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotupgrade.sh": {
       "hash": "3304b3bad1bd",
       "indexed_at": "2026-08-10T06:55:18.237326+00:00",
@@ -1041,6 +1059,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-10T08:29:29.476652+00:00",
+  "generated_at": "2026-08-10T09:57:10.414033+00:00",
   "version": "1.0"
 }

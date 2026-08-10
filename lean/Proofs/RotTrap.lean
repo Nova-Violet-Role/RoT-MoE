@@ -159,7 +159,7 @@ theorem trap_selection_ignores_the_answers (is : List Item) (f g : Item → Resp
   induction is with
   | nil => rfl
   | cons a as ih =>
-    by_cases h : isTrap a = true <;> simp [List.filter_cons, h, ih]
+    by_cases h : isTrap a = true <;> simp [h, ih]
 
 /-- The contrast that gives the previous theorem its teeth: `selectRoutedWins`
 does NOT have that property. Two answer assignments over one item list select

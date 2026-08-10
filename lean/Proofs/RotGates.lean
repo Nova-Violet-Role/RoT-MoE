@@ -230,6 +230,14 @@ def shipped : List Gate :=
   , f "release consistency"
   , f "tag consistency"
   , f "verdict freshness"
+    -- FAST, and that tier is the whole point. The state it looks for -- a
+    -- tracked file emptied on disk while git holds content -- is invisible to
+    -- every gate that reads source TEXT, because the offending text is exactly
+    -- what was deleted (RotTreeIntegrity.text_gate_is_blind_to_truncation).
+    -- A deep tier would not have caught the 2026-08-10 incident: deep gates run
+    -- only when their triggers are touched, and an interrupted mutation harness
+    -- touches nothing the trigger list names.
+  , f "tree integrity (no tracked file is EMPTY on disk while git holds content)"
   , f "mutation discipline"
     -- The INVERSE of mutation discipline: discipline proves each suite refuses
     -- to score a mutant whose patch did not apply; this proves the needles
@@ -410,10 +418,10 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
-#guard shipped.length = 55
+#guard shipped.length = 56
 
 -- Twenty-eight run on every commit.
-#guard (fastSet shipped).length = 36
+#guard (fastSet shipped).length = 37
 
 -- Sixteen are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08).
@@ -438,7 +446,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 41
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 42
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -448,14 +456,14 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 36
+#guard (stagedRun shipped []).length = 37
 
 -- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 42
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 43
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 37
+#guard (stagedRun shipped ["README.md".toList]).length = 38
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

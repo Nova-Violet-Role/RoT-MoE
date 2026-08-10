@@ -23,6 +23,106 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A file emptied on disk is invisible to every check that reads its text
+
+**The verification process that found this was my own, and it had the same
+defect it keeps finding in the repo.** I had been committing with `--no-verify`
+and verifying by running a *hand-maintained list* of checkers. That list is a
+stale snapshot by construction. Running the real aggregator instead —
+`bash checker/gate-all.sh --fast` — immediately reported **1 of 36 gates RED**
+(`SPDX sweep`, a header missing from `checker/ci-log-skips.sh`, introduced two
+commits earlier and never noticed). `verdict freshness` is likewise a *fast*
+gate that had been passed over by hand: `STATUS.md` was stale by four modules,
+four mutation suites and two checkers.
+
+Running the **deep** tier one gate at a time then produced the real finding.
+
+**What happened.** `checker/mutate-checker.sh` was bounded with `timeout 240`
+and killed. It left `hooks/prover-remind.sh` (32209 bytes in git) and
+`hooks/prover-remind.ps1` (28315 bytes) both at **zero bytes on disk**. This is
+the third recorded occurrence — 2026-08-05 (orphaned rather than signalled),
+2026-08-07 (SIGKILL inside a plain `cp`), and now.
+
+**Why the existing fix did not hold.** The 2026-08-07 repair made the swap
+atomic, and atomicity is necessary but not sufficient. Both `restore()` and the
+`EXIT INT TERM` trap do `cat "$f.mutbak" > "$f.rtmp" && mv -f "$f.rtmp" "$f"`
+guarded by `[ -f "$f.mutbak" ]` — **existence, not content**. An empty or
+half-written backup is therefore restored *atomically over the original*, with a
+successful exit code. Measured on the shipped pre-fix code, extracted verbatim
+by line range and run against a fixture:
+
+```
+RECOVERED: .../a differed from a leftover .../a.mutbak -- a previous run was
+           interrupted mid-mutation. Restoring the backup as the baseline.
+OLD_PROBE_EXIT=0
+a is now 0 bytes (was 16)
+```
+
+It announces success while destroying data. The same block after the fix:
+
+```
+REFUSING: .../a.mutbak is EMPTY -- it cannot be a valid baseline for a file
+          git holds content for. Discarding the backup and leaving .../a as is.
+PROBE_EXIT=0
+a is now 16 bytes (healthy = 16); stale backup removed: YES
+```
+
+The guard is `[ -s ]` instead of `[ -f ]`, applied at all three sites: the
+leftover-recovery loop, `restore()`, and the trap. The recovery loop mattered
+most — there the file being overwritten may be **perfectly healthy**, so a stale
+empty backup would turn a previous run's accident into a fresh corruption.
+
+**Why nothing caught the resulting state.** The harness's own header had already
+written it down: *"every fast gate reads source TEXT, and an empty file has no
+offending text in it."* Exactly one gate reacted, and it **mis-diagnosed**:
+`checker/portability.sh` reported *"the alarm warning is MISSING under CRLF —
+the exact CI defect is back"*. Nothing was wrong with CRLF. The hook it invokes
+was a zero-byte file, so it printed nothing and every content assertion
+downstream failed. A wrong diagnosis is worse than a silent gate: it sends the
+next person to re-fix a bug that is not there.
+
+**New instrument.** `checker/tree-integrity.sh`, **fast** tier so it runs on
+every commit, gate #56. It asserts that no tracked file is empty on disk while
+git holds content for it, and that no `.mutbak`/`.rtmp`/`.mtmp` leftover
+survives. It compares against `git ls-files` rather than a list of important
+paths, because a list stops covering whatever is added after it is written. A
+tracked file that is *also* empty in git is explicitly allowed — a check that
+cannot tell those apart would be deleted within a week.
+
+Tier choice is load-bearing and is recorded in `lean/Proofs/RotGates.lean`: a
+deep tier would **not** have caught this, because deep gates run only when their
+triggers are touched and an interrupted harness touches nothing a trigger names.
+
+Both controls fire, and the alarm was tripped on purpose against the real tree:
+truncating `hooks/prover-remind.ps1` gave exit 1 naming the file and its expected
+28315 bytes; `git checkout` restored it and the gate returned to 0.
+
+**Proved.** `lean/Proofs/RotTreeIntegrity.lean`, 10 theorems, 14 `#guard`s,
+and a mutation suite of **10 mutants: 10 killed, 0 survived, 0 discarded**.
+
+| theorem | what it settles |
+|---|---|
+| `empty_passes_every_text_gate` | an empty file passes *every* text gate, for every pattern |
+| `text_gate_is_blind_to_truncation` | a healthy-empty and a truncated file are indistinguishable to it |
+| `integrity_separates_them` | the size check distinguishes exactly that pair |
+| `integrity_detects_any_truncation` | any truncated file is caught, wherever it sits |
+| `legitimately_empty_is_not_flagged` | an intentionally empty tracked file is not an alarm |
+| `content_on_disk_is_never_truncated` | no false positive on a healthy file |
+| `empty_payload_restore_truncates` | **the bug**: restoring from an empty backup truncates |
+| `nonempty_payload_restore_is_safe` | a good backup restores safely |
+| `guarded_restore_never_empties` | **the repair**: the guard cannot empty a file that had content |
+| `guarded_restore_still_restores` | the guard costs nothing — a good backup still restores |
+
+This is the second instrument in two days with the same shape, and the module
+says so: `RotCiSkip.conclusion_audit_is_blind_to_a_skip` was a conclusion audit
+that could not see a step skipping inside a green run. **Absence of evidence is
+invisible to any instrument that only reads evidence.**
+
+Also fixed while sweeping the deep tier: 14 of 127 `.sh` files were mode
+`100644` in the git index and **would have failed on Linux** (2 mine, 12
+inherited); all are now `100755`. `Proofs/RotTrap.lean:162` carried an unused
+`simp` argument — the whole tree now builds at exit 0 with **zero warnings**.
+
 ### A step can print "SKIP" and still be green, and nothing was counting those
 
 `checker/ci-honesty.sh` had never been run against a real completed run from

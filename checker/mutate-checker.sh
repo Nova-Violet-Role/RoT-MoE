@@ -52,7 +52,17 @@ LOG="${TMPDIR:-/tmp}/rotmoe-mutchk"; mkdir -p "$LOG"
 # recover from being killed will eventually hand a mutant to the next reader --
 # and here that reader was `git commit`.
 for f in "$SH" "$PS1" "$RSH" "$RPS1"; do
-  if [ -f "$f.mutbak" ]; then
+  # AN EMPTY LEFTOVER BACKUP IS THE WORST CASE ON THIS PATH, because here the
+  # file being overwritten may be PERFECTLY HEALTHY: recovering from a stale
+  # empty .mutbak would newly truncate a good hook, turning a previous run's
+  # accident into this run's corruption. Guard on content, never existence --
+  # RotTreeIntegrity.empty_payload_restore_truncates.
+  if [ -f "$f.mutbak" ] && [ ! -s "$f.mutbak" ]; then
+    echo "REFUSING: $f.mutbak is EMPTY -- it cannot be a valid baseline for a file"
+    echo "          git holds content for. Discarding the backup and leaving $f as is."
+    echo "          If $f is also empty, recover with: git checkout HEAD -- $f"
+    rm -f "$f.mutbak"
+  elif [ -s "$f.mutbak" ]; then
     if ! cmp -s "$f" "$f.mutbak"; then
       echo "RECOVERED: $f differed from a leftover $f.mutbak -- a previous run was"
       echo "           interrupted mid-mutation. Restoring the backup as the baseline."
@@ -88,7 +98,9 @@ for f in "$SH" "$PS1" "$RSH" "$RPS1"; do cp "$f" "$f.mutbak"; done
 # kept as well; running it twice is harmless, and the trap must not be the only
 # thing standing between a normal run and a clean tree.
 trap 'for _tf in "$SH" "$PS1" "$RSH" "$RPS1"; do
-        [ -f "$_tf.mutbak" ] && { cp -p "$_tf" "$_tf.rtmp" && cat "$_tf.mutbak" > "$_tf.rtmp" && mv -f "$_tf.rtmp" "$_tf"; }
+        [ -s "$_tf.mutbak" ] && { cp -p "$_tf" "$_tf.rtmp" && cat "$_tf.mutbak" > "$_tf.rtmp" && mv -f "$_tf.rtmp" "$_tf"; }
+        [ -f "$_tf.mutbak" ] && [ ! -s "$_tf.mutbak" ] && \
+          echo "WARNING: $_tf.mutbak is EMPTY -- refusing to restore from it. git checkout HEAD -- $_tf" >&2
         rm -f "$_tf.mutbak" "$_tf.rtmp" "$_tf.mtmp"
       done' EXIT INT TERM
 
@@ -114,7 +126,23 @@ killed=0; survived=0; discarded=0
 # Writing to a temp file and renaming makes the swap ONE filesystem operation:
 # an interruption leaves the OLD content or the NEW content, never a truncated
 # file. lean/Proofs/RotObserve.lean §16 states it as a property.
-restore () { local _rf; for _rf in "$SH" "$PS1" "$RSH" "$RPS1"; do cp -p "$_rf" "$_rf.rtmp" && cat "$_rf.mutbak" > "$_rf.rtmp" && mv -f "$_rf.rtmp" "$_rf"; done; }
+# GUARD ON CONTENT, NOT EXISTENCE -- and this is the 2026-08-10 repair.
+# Atomicity was necessary and NOT sufficient. `cat "$f.mutbak" > "$f.rtmp"`
+# followed by `mv` restores whatever the backup holds; if the backup is empty or
+# half-written, that writes EMPTINESS over the original -- atomically, and with a
+# successful exit code. `[ -f ]` cannot tell those apart because it asks whether
+# the backup EXISTS, not whether it has content.
+# Proved: RotTreeIntegrity.empty_payload_restore_truncates (the bug) and
+# .guarded_restore_never_empties (this fix). Measured cost of the old form:
+# hooks/prover-remind.sh and .ps1 at zero bytes, twice in six days.
+restore () { local _rf; for _rf in "$SH" "$PS1" "$RSH" "$RPS1"; do
+  if [ -s "$_rf.mutbak" ]; then
+    cp -p "$_rf" "$_rf.rtmp" && cat "$_rf.mutbak" > "$_rf.rtmp" && mv -f "$_rf.rtmp" "$_rf"
+  else
+    echo "REFUSING to restore $_rf from an EMPTY or missing backup." >&2
+    echo "  The file is left as it is. Recover with: git checkout HEAD -- $_rf" >&2
+  fi
+done; }
 
 # run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker]
 # The 7th argument names the checker to run; it defaults to the router

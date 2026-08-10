@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 # Copyright 2026 Saimonokuma.
 #
+#
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotLogAtomicity.lean (why one ordering cannot attribute)
+# MUTATION SUITE -- Proofs/RotTreeIntegrity.lean (an emptied file is a mutant)
 #
 # The contract, identical to the other suites in this directory:
 #   1. assert the needle is present EXACTLY once before mutating; if not -> DISCARDED
@@ -16,38 +17,36 @@
 # DISCARDED != SURVIVED. The first is a defect in this harness, the second is a
 # claim about the theorem. Folding them together manufactures reassurance.
 #
-# WHAT THIS SUITE IS AIMED AT. The module models the debug log as lines of
-# pieces and proves that terminating a partial line before appending saves the
-# NEXT record, while the corrupt-LINE count cannot see the difference. That last
-# theorem is what the shipped gate is built on, so these mutants attack the
-# metric as hard as the writers.
+# WHAT THIS SUITE IS AIMED AT. On 2026-08-10 a bounded run of
+# checker/mutate-checker.sh was killed at 240 s and left hooks/prover-remind.sh
+# (32209 bytes in git) and hooks/prover-remind.ps1 (28315 bytes) both at ZERO
+# bytes on disk. Emptying a file is one of that harness's own mutants, so the
+# tree was carrying a live mutant with the evidence deleted.
 #
-#   L01-L02  READABILITY. What counts as a recoverable line at all. If these
-#            survive, every downstream count is measuring nothing.
-#   L03-L04  THE TWO WRITERS, swapped into each other. L03 makes appendSafe
-#            fuse like the naive one; L04 makes appendNaive split like the safe
-#            one. Either collapses the distinction the module exists to prove.
-#   L05-L06  THE TWO METRICS. Blank the recovered count; drop the negation in
-#            the corrupt count.
-#   L07-L09  THE STATE. An empty log that starts dirty, an interrupt that
-#            silently discards its fragment, a cleanliness test that always
-#            says yes.
-#   L10-L11  THE CONCRETE WITNESSES. The #guards compare a fused log against a
-#            repaired one; build each with the OTHER writer and the executed
-#            evidence stops discriminating.
+# Exactly one gate noticed, and it MIS-DIAGNOSED: checker/portability.sh
+# reported "the alarm warning is MISSING under CRLF -- the exact CI defect is
+# back". Nothing was wrong with CRLF; the hook it invokes was a zero-byte file,
+# so it printed nothing and every content assertion downstream failed.
 #
-# The defect this models was real and measured: 409 of 5000 lines in the live
-# log unparseable (8.2%), 27 carrying two "kind" keys, reproduced
-# deterministically and repaired in both router arms.
+# RotTreeIntegrity.lean states the two facts that follow, and this suite has to
+# be able to destroy both of them:
+#
+#   * a text-reading gate is BLIND to truncation, because the offending text is
+#     precisely what was deleted -- so no stricter pattern rescues it;
+#   * `cat "$f.mutbak" > "$f"` guarded by `[ -f ]` restores EMPTINESS over the
+#     original when the backup is empty, atomically and with exit 0. Measured:
+#     the pre-fix loop turned a healthy 16-byte file into 0 bytes while printing
+#     "RECOVERED". `[ -s ]` is the repair.
+#
+# A mutant that survives here means the corresponding theorem is decoration.
 # =============================================================================
-
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotLogAtomicity.lean"
+F="Proofs/RotTreeIntegrity.lean"
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotLogAtomicity.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutlogatomicity.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotTreeIntegrity.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutciskip.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -69,10 +68,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotLogAtomicity ) >/tmp/mut_pre_rotlogatomicity.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotLogAtomicity)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotTreeIntegrity ) >/tmp/mut_pre_rottreeintegrity.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotTreeIntegrity)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotlogatomicity.log
+  tail -5 /tmp/mut_pre_rottreeintegrity.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -95,7 +94,7 @@ cp "$F" "$BAK"
 # path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
 # that reported a real failure left the module with no .olean, and the NEXT
 # run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotLogAtomicity ) >/dev/null 2>&1' EXIT
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotTreeIntegrity ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 
@@ -149,7 +148,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotLogAtomicity ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotTreeIntegrity ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -199,23 +198,22 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotLogAtomicity mutation suite ==="
+echo "=== RotTreeIntegrity mutation suite ==="
 
 # Each needle is asserted present EXACTLY once before it is applied, and the
 # replacement is asserted present afterwards. A needle that does not match is
 # DISCARDED, never SURVIVED.
 
-run_mut L01 '  | [Piece.whole _] => true' '  | [Piece.whole _] => false' 'a lone whole record stops counting as readable -- every recovered-record count collapses'
-run_mut L02 '  | _               => false' '  | _               => true' 'a fused line counts as readable -- the corruption becomes invisible to the model'
-run_mut L03 '  | some p => ⟨L.lines ++ [[Piece.frag p], [Piece.whole r]], none⟩' '  | some p => ⟨L.lines ++ [[Piece.frag p, Piece.whole r]], none⟩' 'appendSafe fuses exactly like the naive writer -- the repair becomes a no-op'
-run_mut L04 '  | some p => ⟨L.lines ++ [[Piece.frag p, Piece.whole r]], none⟩' '  | some p => ⟨L.lines ++ [[Piece.frag p], [Piece.whole r]], none⟩' 'appendNaive splits like the safe writer -- the defect being modelled disappears'
-run_mut L05 'def readable (L : Log) : Nat := (L.lines.filter lineReadable).length' 'def readable (L : Log) : Nat := 0' 'the recovered-record metric returns zero -- the only metric that separates the writers'
-run_mut L06 'def corrupt (L : Log) : Nat := (L.lines.filter (fun l => !lineReadable l)).length' 'def corrupt (L : Log) : Nat := (L.lines.filter (fun l => lineReadable l)).length' 'the corrupt count loses its negation -- it now counts healthy lines'
-run_mut L07 'def empty : Log := ⟨[], none⟩' 'def empty : Log := ⟨[], some "x"⟩' 'the empty log starts with a dangling fragment -- no log is ever clean from birth'
-run_mut L08 'def interrupt (p : String) (L : Log) : Log := ⟨L.lines, some p⟩' 'def interrupt (p : String) (L : Log) : Log := ⟨L.lines, none⟩' 'an interrupted write silently drops its fragment -- the hazard cannot be expressed'
-run_mut L09 'def clean (L : Log) : Bool := L.lines.all lineReadable' 'def clean (L : Log) : Bool := true' 'every log reports clean -- the cleanliness precondition stops constraining anything'
-run_mut L10 'def fusedLog : Log := appendNaive' 'def fusedLog : Log := appendSafe' 'the fused witness is built with the SAFE writer -- the executed guards stop discriminating'
-run_mut L11 'def repairedLog : Log := appendSafe' 'def repairedLog : Log := appendNaive' 'the repaired witness is built with the NAIVE writer -- the guards compare like with like'
+run_mut T01 '  !(f.gitBytes == 0) && f.disk.isEmpty' '  f.disk.isEmpty' 'truncation no longer requires git to hold content -- every legitimately empty tracked file becomes an alarm, and legitimately_empty_is_not_flagged must die'
+run_mut T02 '  !(f.gitBytes == 0) && f.disk.isEmpty' '  !(f.gitBytes == 0)' 'the disk is no longer consulted at all -- a healthy file with content is reported truncated'
+run_mut T03 'def integrity (fs : List Tracked) : Bool := !(fs.any truncated)' 'def integrity (fs : List Tracked) : Bool := !(fs.all truncated)' 'the gate now demands EVERY file be truncated before it complains -- one emptied hook among many passes'
+run_mut T04 'def integrity (fs : List Tracked) : Bool := !(fs.any truncated)' 'def integrity (fs : List Tracked) : Bool := true' 'the integrity gate is disarmed outright: it can no longer separate the pair that defeated the text gate'
+run_mut T05 'def hasBad (bad : Nat) (f : Tracked) : Bool := f.disk.contains bad' 'def hasBad (bad : Nat) (f : Tracked) : Bool := true' 'the text gate now flags everything, including an empty file -- the blindness claim becomes false'
+run_mut T06 'def restoreFrom (payload : List Nat) (f : Tracked) : Tracked :=' 'def restoreFrom (_payload : List Nat) (f : Tracked) : Tracked :=' 'restoreFrom stops using its payload, so it can no longer model the cat-into-file overwrite that caused the incident'
+run_mut T07 '  cond payload.isEmpty f (restoreFrom payload f)' '  restoreFrom payload f' 'THE REPAIR ITSELF, REMOVED: the guarded restore becomes the unguarded one, which is exactly the shipped bug -- guarded_restore_never_empties must die'
+run_mut T08 '  cond payload.isEmpty f (restoreFrom payload f)' '  f' 'the guard over-fires and refuses every restore, so a good backup no longer restores -- guarded_restore_still_restores must die'
+run_mut T09 'def measuredShBytes : Nat := 32209' 'def measuredShBytes : Nat := 0' 'the measured witness is falsified: the file git holds 32209 bytes for is recorded as empty, collapsing the incident into a non-event'
+run_mut T10 'def measuredIncidents : Nat := 3' 'def measuredIncidents : Nat := 9' 'the recorded incident count no longer matches the three dated occurrences in the module doc'
 
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then

@@ -535,6 +535,15 @@ jobs:
         shell: bash
         run: bash checker/verdict-fresh.sh
 
+      # A tracked file emptied on disk is INVISIBLE to every text-reading check,
+      # because the offending text is exactly what was deleted. Measured
+      # 2026-08-10: an interrupted mutation harness left two shipped hooks at
+      # zero bytes and the only gate that reacted blamed a CRLF regression that
+      # did not exist. Proved in lean/Proofs/RotTreeIntegrity.lean.
+      - name: tree integrity -- no tracked file is EMPTY while git holds content
+        shell: bash
+        run: bash checker/tree-integrity.sh
+
       - name: scheduled verdict, three weeks with a real (local) remote
         shell: bash
         run: bash checker/verdict-schedule-sim.sh

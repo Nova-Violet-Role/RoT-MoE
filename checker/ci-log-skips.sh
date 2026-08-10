@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
 # ci-log-skips.sh -- count the checkers whose SUBSTANCE did not run in CI, and
 # refuse any that nobody declared.
 #

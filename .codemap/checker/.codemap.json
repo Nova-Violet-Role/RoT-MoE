@@ -235,18 +235,18 @@
       ]
     },
     "ci-log-skips.sh": {
-      "hash": "0acd40fe1a9d",
-      "indexed_at": "2026-08-10T08:35:42.915167+00:00",
+      "hash": "e34a104bcfab",
+      "indexed_at": "2026-08-10T09:18:00.006972+00:00",
       "language": "shell",
-      "lines": 244,
-      "mtime_ns": 1786350939958937200,
-      "size": 11403,
+      "lines": 248,
+      "mtime_ns": 1786353477665397200,
+      "size": 11524,
       "symbols": [
         {
           "docstring": "----------------------------------------------------------------------------- THE DECLARED BUDGET. One line per checker whose substance a public runne",
           "lines": [
-            45,
-            73
+            49,
+            77
           ],
           "name": "declared_reason",
           "type": "function"
@@ -254,16 +254,16 @@
         {
           "docstring": "----------------------------------------------------------------------------- Extract, per job log, the steps whose BODY printed a runtime skip. Echoe",
           "lines": [
-            80,
-            116
+            84,
+            120
           ],
           "name": "scan_dir",
           "type": "function"
         },
         {
           "lines": [
-            118,
-            134
+            122,
+            138
           ],
           "name": "judge_dir",
           "type": "function"
@@ -518,18 +518,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "d0fc7dce41af",
-      "indexed_at": "2026-08-10T08:36:12.512675+00:00",
+      "hash": "91bd8ec8be97",
+      "indexed_at": "2026-08-10T09:58:44.293019+00:00",
       "language": "shell",
-      "lines": 408,
-      "mtime_ns": 1786350970376937000,
-      "size": 21583,
+      "lines": 409,
+      "mtime_ns": 1786355921939055100,
+      "size": 21694,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            168,
-            183
+            169,
+            184
           ],
           "name": "fires",
           "type": "function"
@@ -900,18 +900,18 @@
       ]
     },
     "mutate-checker.sh": {
-      "hash": "aad95eb6c5b2",
-      "indexed_at": "2026-08-10T06:55:17.971932+00:00",
+      "hash": "23dc6a44b2ca",
+      "indexed_at": "2026-08-10T09:49:34.332019+00:00",
       "language": "shell",
-      "lines": 389,
-      "mtime_ns": 1786097472515638200,
-      "size": 19493,
+      "lines": 417,
+      "mtime_ns": 1786355371843007100,
+      "size": 21218,
       "symbols": [
         {
           "docstring": "run <id> <file> <needle> <replacement> <expect: RED|GREEN> <note> [checker] The 7th argument names the checker to run; it defaults to the router cross",
           "lines": [
-            122,
-            177
+            150,
+            205
           ],
           "name": "run",
           "type": "function"
@@ -1474,6 +1474,24 @@
       "size": 6308,
       "symbols": []
     },
+    "tree-integrity.sh": {
+      "hash": "96e388cd0562",
+      "indexed_at": "2026-08-10T09:43:02.076825+00:00",
+      "language": "shell",
+      "lines": 147,
+      "mtime_ns": 1786354979198282900,
+      "size": 6694,
+      "symbols": [
+        {
+          "lines": [
+            119,
+            129
+          ],
+          "name": "probe",
+          "type": "function"
+        }
+      ]
+    },
     "verdict-fresh.sh": {
       "hash": "a2271c0b7624",
       "indexed_at": "2026-08-10T06:55:18.030560+00:00",
@@ -1703,6 +1721,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-10T08:37:26.556522+00:00",
+  "generated_at": "2026-08-10T09:58:44.293181+00:00",
   "version": "1.0"
 }
