@@ -83,12 +83,12 @@ inf () {
 # probe has to read something the pusher does not control by writing one line.
 # -----------------------------------------------------------------------------
 LEDGER=$(cat <<'ROWS'
-corpus40|the 40-task corpus exists|test -s bench/corpus-40.jsonl
-pilot12Pairs|the pilot has at least 12 pairs|test "$(wc -l < bench/pilot-pairs.jsonl 2>/dev/null || echo 0)" -ge 12
-sessions160|160 sessions collected|test -s bench/sessions-160.done
-preferenceMeasured|a preference panel has run|test -s bench/panel-results.jsonl
-p22Established|P2.2 established|test -s bench/P22-ESTABLISHED.md
-verifyRunOnMain|a verify run exists on main|test -s .rot-moe/verify-on-main.stamp
+corpus40|40|the 40-task corpus exists|test "$(wc -l < bench/corpus-40.jsonl 2>/dev/null || echo 0)" -ge 40
+pilot12Pairs|12|the pilot has at least 12 pairs|test "$(wc -l < bench/pilot-pairs.jsonl 2>/dev/null || echo 0)" -ge 12
+sessions160|160|160 sessions collected|test "$(wc -l < bench/sessions-160.done 2>/dev/null || echo 0)" -ge 160
+preferenceMeasured|1|a preference panel has run|test -s bench/panel-results.jsonl
+p22Established|1|P2.2 established|test -s bench/P22-ESTABLISHED.md
+verifyRunOnMain|1|a verify run exists on main|test -s .rot-moe/verify-on-main.stamp
 ROWS
 )
 
@@ -105,7 +105,7 @@ inf "obligation ledger: $DECLARED row(s)"
 # -----------------------------------------------------------------------------
 OUTSTANDING=0
 FIRST_OPEN=""
-while IFS='|' read -r key desc probe; do
+while IFS='|' read -r key need desc probe; do
   [ -z "${key:-}" ] && continue
   if eval "$probe" >/dev/null 2>&1; then
     ok "$key -- $desc"
@@ -208,7 +208,7 @@ fi
 #
 #     The check: any `checker/*.sh` or `bench/*.sh` a probe invokes must exist.
 _unsat=0
-while IFS='|' read -r key desc probe; do
+while IFS='|' read -r key need desc probe; do
   [ -z "${key:-}" ] && continue
   for _tok in $probe; do
     case "$_tok" in
@@ -238,6 +238,100 @@ if [ "$_seen" -eq 1 ]; then
 else
   echo "  CONTROL FAILED: the satisfiability check missed a probe that names a"
   echo "  script which is not there, so control (d) proves nothing."
+  CTRL_FAIL=1
+fi
+
+# (e) PROBE STRENGTH. A row whose description names a number must have a probe
+# that COUNTS to at least that number. Four rows shipped as `test -s` -- a mere
+# non-emptiness test -- while their descriptions promised 40 tasks and 160
+# sessions, so `echo x > bench/corpus-40.jsonl` would have reported the 40-task
+# obligation MET. That is the permissive failure direction: the gate opens, and
+# nobody sees a red. Proved unsound in general (not just for 40) by
+# lean/Proofs/RotProbeStrength.lean:nonEmpty_cannot_witness_a_counted_obligation.
+# The converse is proved there too -- a probe demanding MORE than the obligation
+# would refuse work that was genuinely finished -- so this check demands
+# `>= the named number`, never `> `.
+# The demand is column 2 of the row, DECLARED -- not scraped out of the prose in
+# column 3. The first cut of this check parsed the description with a regex and
+# immediately mis-read `p22Established | P2.2 established` as demanding two of
+# something, flagging a row that is correct. Prose is not a data field. The Lean
+# model already had this right: `Obligation.required` is a structure field
+# (lean/Proofs/RotProbeStrength.lean), and the shell had drifted from it.
+weak_rows() {
+  # $1 = ledger text. Emits "name:demand" for every row whose probe cannot
+  # possibly witness the count the row itself declares.
+  printf '%s\n' "$1" | grep '^[a-zA-Z]' | while IFS='|' read -r _n _need _d _p; do
+    case "$_need" in ''|*[!0-9]*) continue ;; esac
+    [ "$_need" -ge 2 ] || continue
+    _bound=$(printf '%s' "$_p" | grep -oE -- '-ge[[:space:]]+[0-9]+' | grep -oE '[0-9]+' | head -1)
+    if [ -z "$_bound" ] || [ "$_bound" -lt "$_need" ]; then
+      printf '%s:%s\n' "$_n" "$_need"
+    fi
+  done
+}
+_weak=$(weak_rows "$LEDGER")
+if [ -z "$_weak" ]; then
+  inf "control: every row naming a count has a probe that counts to it"
+else
+  echo "  CONTROL FAILED: these rows name a number their probe never checks:"
+  printf '%s\n' "$_weak" | sed 's/^/    /'
+  CTRL_FAIL=1
+fi
+
+# (e2) That check must fire on a ledger with the exact defect this repo shipped.
+_weakledger='corpus40|40|the 40-task corpus exists|test -s bench/corpus-40.jsonl'
+if [ -n "$(weak_rows "$_weakledger")" ]; then
+  inf "control: the strength check DOES catch a non-emptiness probe on a counted row"
+else
+  echo "  CONTROL FAILED: a 'test -s' probe standing in for a 40-task obligation"
+  echo "  was accepted, so control (e) proves nothing."
+  CTRL_FAIL=1
+fi
+
+# (e2b) `weak_rows` SKIPS any row whose required column is missing or not a
+# number. A skip is not a pass: a row written `foo||desc|test -s x` would sail
+# past the strength check unexamined. Every row must therefore declare a numeric
+# demand of at least 1, and the count of well-formed rows must equal the count of
+# rows -- otherwise the strength check is silently covering fewer rows than the
+# ledger has.
+# NF >= 4, never == 4: three of the probes contain `|| echo 0`, so awk counts six
+# fields on a row the shell's `read -r _n _need _d _p` parses perfectly (the
+# fourth variable absorbs the remainder). The first cut demanded exactly four and
+# reported 3 of 6 well-formed -- a control that would have refused a ledger which
+# is correct, the same wall-shaped defect the Lean file proves about probes that
+# demand more than their obligation.
+_wellformed=$(printf '%s\n' "$LEDGER" | grep '^[a-zA-Z]' | awk -F'|' \
+  '$2 ~ /^[0-9]+$/ && $2 >= 1 && NF >= 4 { n++ } END { print n+0 }')
+if [ "$_wellformed" -eq "$DECLARED" ]; then
+  inf "control: all $DECLARED row(s) declare a numeric demand -- none skipped unexamined"
+else
+  echo "  CONTROL FAILED: only $_wellformed of $DECLARED row(s) declare a numeric"
+  echo "  demand in four fields. The rest are SKIPPED by the strength check, which"
+  echo "  reports no finding for them -- silence that reads as approval."
+  CTRL_FAIL=1
+fi
+
+# (e2c) ... and that well-formedness count must itself be able to fall short, on
+# both malformed shapes: an empty demand column, and a row missing it entirely.
+_malformed=$(printf '%s\n%s\n' 'foo||no demand declared|test -s x' \
+                               'bar|three fields only|test -s x' \
+  | grep '^[a-zA-Z]' | awk -F'|' \
+  '$2 ~ /^[0-9]+$/ && $2 >= 1 && NF >= 4 { n++ } END { print n+0 }')
+if [ "$_malformed" -eq 0 ]; then
+  inf "control: the well-formedness count DOES reject rows with no declared demand"
+else
+  echo "  CONTROL FAILED: $_malformed of 2 malformed rows were counted well-formed."
+  CTRL_FAIL=1
+fi
+
+# (e3) ... and must NOT fire on a correctly counted row, or it is a wall that
+# would go red on a ledger that is actually right.
+_strongledger='corpus40|40|the 40-task corpus exists|test "$(wc -l < bench/corpus-40.jsonl)" -ge 40'
+if [ -z "$(weak_rows "$_strongledger")" ]; then
+  inf "control: the strength check stays silent on a correctly counted row"
+else
+  echo "  CONTROL FAILED: the strength check flagged a row that counts to its own"
+  echo "  demand -- it would refuse a ledger that is correct."
   CTRL_FAIL=1
 fi
 

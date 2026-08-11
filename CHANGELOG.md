@@ -23,6 +23,72 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The push guard's own ledger could be opened by a one-line file
+
+`checker/push-guard.sh` refuses every push until six obligations are met. It was
+written with four controls, mutation-tested, and it has been refusing correctly
+for days. It was also **openable by `echo x > bench/corpus-40.jsonl`**.
+
+Four of its six probes tested only that a file is non-empty while their names
+promised a count:
+
+| row | promised | probe as shipped |
+|---|---|---|
+| `corpus40` | the 40-task corpus | `test -s bench/corpus-40.jsonl` |
+| `sessions160` | 160 sessions | `test -s bench/sessions-160.done` |
+| `preferenceMeasured` | a panel has run | `test -s bench/panel-results.jsonl` |
+| `p22Established` | P2.2 established | `test -s bench/P22-ESTABLISHED.md` |
+
+Only `pilot12Pairs` counted. This is the permissive half of the overclaim family
+and it is the more dangerous one: a theorem that says too little fails loudly the
+moment someone leans on it, while a **probe** that says too little reports
+success, opens the gate, and leaves everyone believing a guarantee that was never
+tested. It is the same shape as a mutation that silently fails to apply being
+scored `SURVIVED`.
+
+`lean/Proofs/RotProbeStrength.lean` (15 theorems, 8 mutants, all killed) proves
+the general fact rather than the incident:
+`nonEmpty_cannot_witness_a_counted_obligation` shows a non-emptiness test is
+unsound for **every** obligation demanding two or more — not merely for 40.
+
+The converse is proved deliberately in the same file.
+`an_inflated_probe_refuses_a_finished_obligation` shows a probe demanding *more*
+than its obligation is not `complete`: it would refuse a promise that had actually
+been kept, and the obvious repair at that point is to delete the row, destroying
+the coverage. Only `atLeast o.required` is both sound and complete, so the repair
+counts to the demand and never past it.
+
+The three rows whose obligation genuinely is "one artifact exists" are **correctly**
+served by `test -s`, and `nonEmpty_is_sound_for_a_single_artifact` says so. Two
+rows were wrong, not six; a panic that rewrote all of them would have been a
+different kind of error.
+
+Three findings came out of writing the repair, all of them defects in the check
+rather than in the guard:
+
+1. The first strength check scraped the demanded number out of the row's prose
+   with a regex and immediately mis-read `p22Established | P2.2 established` as
+   demanding *two* of something — flagging a row that is correct. Prose is not a
+   data field. The Lean model had this right all along (`Obligation.required` is
+   a structure field), and the shell had drifted from it. The ledger now carries
+   the demand as an explicit column and the check reads that column.
+2. `weak_rows` **skips** any row whose demand is missing or non-numeric, and a
+   skip is not a pass — a row written `foo||desc|test -s x` would have sailed
+   past unexamined. Control (e2b) now requires every row to be well-formed and
+   compares that count against the ledger size.
+3. That well-formedness check was first written `NF == 4`, which reported *3 of 6*
+   — three probes legitimately contain `|| echo 0`, so awk sees six fields on a
+   row the shell parses perfectly. A control that would have refused a correct
+   ledger: exactly the wall-shaped defect the Lean file proves about inflated
+   probes, this time in the checker. Now `NF >= 4`.
+
+The guard grew from 6 to **11 controls**. Negative control: reverting the
+`corpus40` row to `test -s` makes the guard exit 2 with `CONTROL FAILED`, naming
+`corpus40:40`; restoring it returns exit 0. The verdict itself is unchanged and
+unmoved — **6 of 6 obligations outstanding, exit 1** — because strengthening a
+probe does not manufacture evidence. It only stops the guard from accepting
+evidence that is not there.
+
 ### The gate declared nine lanes against a router that has ten, and "must equal" was enforced by nothing
 
 `checker/dominance.sh:53` carried `LANES_DECLARED=9  # must equal RotDominance.lanes`,
@@ -83,7 +149,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1379 theorems, 73 modules, 67 suites, 709 mutants, 70 checkers.
+1394 theorems, 74 modules, 68 suites, 717 mutants, 70 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -142,7 +208,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1379 theorems, 73 modules, 67 suites, 709 mutants, 70 checkers.
+1394 theorems, 74 modules, 68 suites, 717 mutants, 70 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -587,7 +653,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 709 applied, 709 killed,
+statistic. Across the whole tree the suites now stand at 717 applied, 717 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -939,7 +1005,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **709 applied, 709 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **717 applied, 717 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and
