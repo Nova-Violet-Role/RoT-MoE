@@ -2,12 +2,12 @@
   "directory": "bench",
   "files": {
     "P24-PREREGISTRATION.md": {
-      "hash": "5f31b44a78c1",
-      "indexed_at": "2026-08-11T12:12:10.020094+00:00",
+      "hash": "03434c097293",
+      "indexed_at": "2026-08-11T16:07:18.150878+00:00",
       "language": "markdown",
-      "lines": 130,
-      "mtime_ns": 1786345151766742800,
-      "size": 6551,
+      "lines": 174,
+      "mtime_ns": 1786464436015952900,
+      "size": 9432,
       "symbols": [
         {
           "docstring": "P2.2 asked whether the routed arm gives **better answers** and returned null five times. At least two of those nulls were guaranteed by the corpus, no",
@@ -40,7 +40,7 @@
           "docstring": "`circular_selection_forces_the_ceiling` proves that selecting tasks on the outcome drives the score to 100% by construction, and `circular_selection_i",
           "lines": [
             60,
-            79
+            92
           ],
           "name": "4. Task set \u2014 fixed now, chosen for verifiability, not for outcome",
           "type": "section"
@@ -48,8 +48,8 @@
         {
           "docstring": "A 10-task pilot per arm. The corpus is admitted only if `RotMoE.Saturation.admissibleBy 8` holds on the pilot's O5 score, i.e. at least 8 of 80 room i",
           "lines": [
-            80,
-            88
+            93,
+            101
           ],
           "name": "5. Admissibility \u2014 checked BEFORE the full run",
           "type": "section"
@@ -57,8 +57,8 @@
         {
           "docstring": "`RotOrdering.one_ordering_cannot_attribute` already proves a single-ordering artifact cannot attribute a difference. So, exactly as P2.3 was run:",
           "lines": [
-            89,
-            99
+            102,
+            112
           ],
           "name": "6. Ordering and deconfounding",
           "type": "section"
@@ -66,8 +66,8 @@
         {
           "docstring": "For each of O1\u2013O4, a two-sided sign test across the 40 tasks.",
           "lines": [
-            100,
-            113
+            113,
+            157
           ],
           "name": "7. Verdict rule \u2014 fixed",
           "type": "section"
@@ -75,8 +75,8 @@
         {
           "docstring": "- Nothing about **answer quality** as a reader would judge it. That is P2.2 and it stays open. `dominance_says_nothing_about_answer_quality` continues",
           "lines": [
-            114,
-            125
+            158,
+            169
           ],
           "name": "8. What this cannot establish",
           "type": "section"
@@ -84,8 +84,8 @@
         {
           "docstring": "**DESIGNED. NOT RUN.** No P2.4 data exists as of this commit. The Lean design gate (`RotSaturation`, 12 theorems, 11/11 mutants killed) is in place; t",
           "lines": [
-            126,
-            131
+            170,
+            175
           ],
           "name": "9. Status",
           "type": "section"
@@ -94,7 +94,7 @@
     },
     "TRAP-PREREGISTRATION.md": {
       "hash": "c48db2fa80e8",
-      "indexed_at": "2026-08-11T12:12:10.023255+00:00",
+      "indexed_at": "2026-08-11T15:58:06.864558+00:00",
       "language": "markdown",
       "lines": 168,
       "mtime_ns": 1786310602072948200,
@@ -212,7 +212,7 @@
     },
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-11T12:12:10.005579+00:00",
+      "indexed_at": "2026-08-11T15:58:06.846961+00:00",
       "language": "javascript",
       "lines": 101,
       "mtime_ns": 1786205762889294800,
@@ -249,7 +249,7 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-11T12:12:10.007401+00:00",
+      "indexed_at": "2026-08-11T15:58:06.849246+00:00",
       "language": "javascript",
       "lines": 180,
       "mtime_ns": 1786277368570225200,
@@ -304,7 +304,7 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-11T12:12:10.010404+00:00",
+      "indexed_at": "2026-08-11T15:58:06.852027+00:00",
       "language": "shell",
       "lines": 385,
       "mtime_ns": 1786277829886864600,
@@ -339,7 +339,7 @@
     },
     "calib-prompts.js": {
       "hash": "887a4f5e2997",
-      "indexed_at": "2026-08-11T12:12:10.012411+00:00",
+      "indexed_at": "2026-08-11T15:58:06.853906+00:00",
       "language": "javascript",
       "lines": 219,
       "mtime_ns": 1786292666878221500,
@@ -413,7 +413,7 @@
     },
     "calib-score.js": {
       "hash": "b0381a1edbd7",
-      "indexed_at": "2026-08-11T12:12:10.013932+00:00",
+      "indexed_at": "2026-08-11T15:58:06.855725+00:00",
       "language": "javascript",
       "lines": 135,
       "mtime_ns": 1786295190750693100,
@@ -443,7 +443,7 @@
     },
     "calib-select.js": {
       "hash": "1e81c694de06",
-      "indexed_at": "2026-08-11T12:12:10.015129+00:00",
+      "indexed_at": "2026-08-11T15:58:06.856911+00:00",
       "language": "javascript",
       "lines": 125,
       "mtime_ns": 1786292666880220900,
@@ -452,7 +452,7 @@
     },
     "calib-verdict.js": {
       "hash": "9c6c50ce2439",
-      "indexed_at": "2026-08-11T12:12:10.016516+00:00",
+      "indexed_at": "2026-08-11T15:58:06.858241+00:00",
       "language": "javascript",
       "lines": 119,
       "mtime_ns": 1786292666880220900,
@@ -490,7 +490,7 @@
     },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-11T12:12:10.017480+00:00",
+      "indexed_at": "2026-08-11T15:58:06.859307+00:00",
       "language": "javascript",
       "lines": 105,
       "mtime_ns": 1786277739693226100,
@@ -519,7 +519,7 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-11T12:12:10.019283+00:00",
+      "indexed_at": "2026-08-11T15:58:06.860921+00:00",
       "language": "javascript",
       "lines": 136,
       "mtime_ns": 1786280334426837900,
@@ -574,7 +574,7 @@
     },
     "trap-latency.js": {
       "hash": "ac1796e5e1d6",
-      "indexed_at": "2026-08-11T12:12:10.021635+00:00",
+      "indexed_at": "2026-08-11T15:58:06.862872+00:00",
       "language": "javascript",
       "lines": 117,
       "mtime_ns": 1786311490514862800,
@@ -629,7 +629,7 @@
     },
     "trap-parse-controls.js": {
       "hash": "22761c05b246",
-      "indexed_at": "2026-08-11T12:12:10.022620+00:00",
+      "indexed_at": "2026-08-11T15:58:06.863822+00:00",
       "language": "javascript",
       "lines": 71,
       "mtime_ns": 1786310427035946800,
@@ -649,7 +649,7 @@
     },
     "trap-prompts.js": {
       "hash": "7a1e67e2adbd",
-      "indexed_at": "2026-08-11T12:12:10.024680+00:00",
+      "indexed_at": "2026-08-11T15:58:06.865945+00:00",
       "language": "javascript",
       "lines": 146,
       "mtime_ns": 1786307254658034100,
@@ -696,7 +696,7 @@
     },
     "trap-score-controls.js": {
       "hash": "d5ebc297f989",
-      "indexed_at": "2026-08-11T12:12:10.025947+00:00",
+      "indexed_at": "2026-08-11T15:58:06.867177+00:00",
       "language": "javascript",
       "lines": 72,
       "mtime_ns": 1786315174453429600,
@@ -742,7 +742,7 @@
     },
     "trap-score.js": {
       "hash": "4652f9c3c658",
-      "indexed_at": "2026-08-11T12:12:10.028823+00:00",
+      "indexed_at": "2026-08-11T15:58:06.869010+00:00",
       "language": "javascript",
       "lines": 221,
       "mtime_ns": 1786315206953430500,
@@ -818,7 +818,7 @@
     },
     "work-trace.js": {
       "hash": "fffe54e2ca5c",
-      "indexed_at": "2026-08-11T12:12:10.031569+00:00",
+      "indexed_at": "2026-08-11T15:58:06.871500+00:00",
       "language": "javascript",
       "lines": 328,
       "mtime_ns": 1786346150021870500,
@@ -910,6 +910,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T12:12:10.468219+00:00",
+  "generated_at": "2026-08-11T16:07:18.151021+00:00",
   "version": "1.0"
 }

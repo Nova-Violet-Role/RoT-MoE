@@ -3,7 +3,7 @@
   "files": {
     "ARM_ROUTER.sh": {
       "hash": "e88656efa2a5",
-      "indexed_at": "2026-08-11T12:12:09.918777+00:00",
+      "indexed_at": "2026-08-11T15:58:06.769309+00:00",
       "language": "shell",
       "lines": 328,
       "mtime_ns": 1786220160223909900,
@@ -22,7 +22,7 @@
     },
     "CHANGELOG-ARCHIVE.md": {
       "hash": "cbb2a7c15954",
-      "indexed_at": "2026-08-11T12:12:09.920824+00:00",
+      "indexed_at": "2026-08-11T15:58:06.771334+00:00",
       "language": "markdown",
       "lines": 583,
       "mtime_ns": 1785879984960271400,
@@ -404,11 +404,11 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "e93409de5517",
-      "indexed_at": "2026-08-11T13:22:39.330574+00:00",
+      "hash": "ddc113205a7e",
+      "indexed_at": "2026-08-11T16:10:51.488199+00:00",
       "language": "markdown",
       "lines": 5818,
-      "mtime_ns": 1786454557426939000,
+      "mtime_ns": 1786464555101951500,
       "size": 332757,
       "symbols": [
         {
@@ -1945,7 +1945,7 @@
     },
     "CLAUDE.md": {
       "hash": "2bd4eba20f9b",
-      "indexed_at": "2026-08-11T12:12:09.977437+00:00",
+      "indexed_at": "2026-08-11T15:58:06.821315+00:00",
       "language": "markdown",
       "lines": 159,
       "mtime_ns": 1785512159809504300,
@@ -2037,7 +2037,7 @@
     },
     "CODE_OF_CONDUCT.md": {
       "hash": "c859256e95f9",
-      "indexed_at": "2026-08-11T12:12:09.977841+00:00",
+      "indexed_at": "2026-08-11T15:58:06.821709+00:00",
       "language": "markdown",
       "lines": 30,
       "mtime_ns": 1785499382791346900,
@@ -2074,7 +2074,7 @@
     },
     "CONTRIBUTING.md": {
       "hash": "60983cc28d4f",
-      "indexed_at": "2026-08-11T12:12:09.978367+00:00",
+      "indexed_at": "2026-08-11T15:58:06.822162+00:00",
       "language": "markdown",
       "lines": 105,
       "mtime_ns": 1785504355612940400,
@@ -2137,7 +2137,7 @@
     },
     "DISARM_ROUTER.sh": {
       "hash": "3faddd83b4ec",
-      "indexed_at": "2026-08-11T12:12:09.980079+00:00",
+      "indexed_at": "2026-08-11T15:58:06.823656+00:00",
       "language": "shell",
       "lines": 214,
       "mtime_ns": 1785892145370845000,
@@ -2156,7 +2156,7 @@
     },
     "NOTICE.md": {
       "hash": "689675ac46d9",
-      "indexed_at": "2026-08-11T12:12:09.980726+00:00",
+      "indexed_at": "2026-08-11T15:58:06.824236+00:00",
       "language": "markdown",
       "lines": 201,
       "mtime_ns": 1785515130882815500,
@@ -2241,12 +2241,12 @@
       ]
     },
     "README.md": {
-      "hash": "7d601912faf0",
-      "indexed_at": "2026-08-11T13:20:20.876096+00:00",
+      "hash": "13c8653b2cae",
+      "indexed_at": "2026-08-11T16:10:51.494648+00:00",
       "language": "markdown",
-      "lines": 1999,
-      "mtime_ns": 1786454419015937100,
-      "size": 115156,
+      "lines": 2000,
+      "mtime_ns": 1786464555127952600,
+      "size": 115201,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -2516,7 +2516,7 @@
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
             1254,
-            1404
+            1405
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -2524,8 +2524,8 @@
         {
           "docstring": "**This is the section we are proudest of.** Knowing exactly where the guarantee ends is what makes everything before it worth having \u2014 a proof with an",
           "lines": [
-            1405,
-            1465
+            1406,
+            1466
           ],
           "name": "\ud83d\uddfa\ufe0f The map: PROVED \u00b7 MEASURED \u00b7 OUT OF SCOPE",
           "type": "section"
@@ -2535,8 +2535,8 @@
             {
               "docstring": "The original is on disk, at `mathematics.md:105`. It is the **Book of Fairy** equation from *Dantalian no Shoka*, Episode 1:",
               "lines": [
-                1482,
-                1509
+                1483,
+                1510
               ],
               "name": "First, the part everyone misses: that quote is a *diff*",
               "type": "subsection"
@@ -2544,8 +2544,8 @@
             {
               "docstring": "**SINE Isochronic Entrainer**, GPL-3.0, \u00a9 2014\u20132020 Federico Dossena. Isochronic tones pulse one tone on and off; binaural beats put two close frequen",
               "lines": [
-                1510,
-                1539
+                1511,
+                1540
               ],
               "name": "It started with a brainwave entrainer",
               "type": "subsection"
@@ -2553,8 +2553,8 @@
             {
               "docstring": "All 498 presets in the public library were downloaded and measured (SHA-256 in the manifest; the checker fails if a single number drifts):",
               "lines": [
-                1540,
-                1559
+                1541,
+                1560
               ],
               "name": "The ancestor was ambiguous. The descendant could not afford to be.",
               "type": "subsection"
@@ -2562,8 +2562,8 @@
             {
               "docstring": "`mathematics.md` gives eleven Greek letters isopsephy values. Brainwave bands are named after Greek letters. So: does a letter's number land on its ow",
               "lines": [
-                1560,
-                1577
+                1561,
+                1578
               ],
               "name": "The Greek letters were the bands all along",
               "type": "subsection"
@@ -2571,8 +2571,8 @@
             {
               "docstring": "Nova is Law \u00d7 Code. Violet is the sensory lens \u2014 felt truth, narrative. Merging them is **Symbiogenesis**, and it is now a proved law over \u211a, exactly:",
               "lines": [
-                1578,
-                1606
+                1579,
+                1607
               ],
               "name": "\u2728 The Nova-Violet Role Merging Law",
               "type": "subsection"
@@ -2580,8 +2580,8 @@
             {
               "docstring": "Measured \u2014 every input moves it independently:",
               "lines": [
-                1607,
-                1622
+                1608,
+                1623
               ],
               "name": "Is `R/s+` dynamic, or a decoration with a decimal point?",
               "type": "subsection"
@@ -2589,8 +2589,8 @@
             {
               "docstring": "Fourteen `.md` files, fourteen real books. Two of them are the same book: **The Library of Babel** (`PART 12`) and **The Unimaginable *Mathematics* of",
               "lines": [
-                1623,
-                1653
+                1624,
+                1654
               ],
               "name": "The Phantom Books close it",
               "type": "subsection"
@@ -2598,8 +2598,8 @@
             {
               "docstring": "The fun part, kept deliberately away from the mathematics above. *Dantalian no Shoka* is about **phantom books**: books that should not exist. The fol",
               "lines": [
-                1654,
-                1694
+                1655,
+                1695
               ],
               "name": "\ud83e\udd4a PHANTOM BOOKS **vs** REAL BOOKS \u2014 the tale of the tape",
               "type": "subsection"
@@ -2607,8 +2607,8 @@
             {
               "docstring": "Because \"we consulted the corpus\" should be a checkable claim, not an assurance:",
               "lines": [
-                1695,
-                1721
+                1696,
+                1722
               ],
               "name": "\ud83d\udcda The full roster \u2014 all 14 real books",
               "type": "subsection"
@@ -2616,8 +2616,8 @@
             {
               "docstring": "`PART 5:244` gives the *catu\u1e63ko\u1e6di*: a claim may be **asserted**, **denied**, **both**, or **neither**. Four positions where classical logic offers two",
               "lines": [
-                1722,
-                1732
+                1723,
+                1733
               ],
               "name": "\ud83d\udd3a The tetralemma \u2014 why this repo has *four* verdicts",
               "type": "subsection"
@@ -2625,8 +2625,8 @@
             {
               "docstring": "**Greek** (`mathematics.md:42-52`) \u2014 isopsephy value, and the mathematical use the source itself lists:",
               "lines": [
-                1733,
-                1761
+                1734,
+                1762
               ],
               "name": "\ud83d\udd22 The symbols, all of them",
               "type": "subsection"
@@ -2634,8 +2634,8 @@
             {
               "docstring": "Three defects, kept in the file rather than quietly repaired:",
               "lines": [
-                1762,
-                1784
+                1763,
+                1785
               ],
               "name": "What it cost to get this right",
               "type": "subsection"
@@ -2643,8 +2643,8 @@
             {
               "docstring": "The proof file is called `RotEigenform.lean`. Here is why.",
               "lines": [
-                1785,
-                1835
+                1786,
+                1836
               ],
               "name": "\ud83d\udf0f EIGENFORM \u2014 the key behind Symbiogenesis",
               "type": "subsection"
@@ -2652,8 +2652,8 @@
             {
               "docstring": "The Equation asks *what if the irregular wingbeats give rise to an infinite array of realities?* \u2014 and that question has an answer. Not a shrug about",
               "lines": [
-                1836,
-                1877
+                1837,
+                1878
               ],
               "name": "The answer: `R/s+` converges, and here is the mathematics",
               "type": "subsection"
@@ -2661,8 +2661,8 @@
           ],
           "docstring": "> *\"The ultimate equation which barred my path. And the solution **I found when > inspecting how Weights and Quantization work together**. I continued",
           "lines": [
-            1466,
-            1877
+            1467,
+            1878
           ],
           "name": "\ud83e\udd5a The Easter Egg \u2014 the Infinite Symbiogenesis, and where RoT actually came from",
           "type": "section"
@@ -2670,8 +2670,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            1878,
-            1892
+            1879,
+            1893
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -2679,8 +2679,8 @@
         {
           "docstring": "RoT MoE is a **[Nova-Violet Role](https://github.com/Nova-Violet-Role)** project, and it is the *router* arm of a larger idea the organisation states",
           "lines": [
-            1893,
-            1925
+            1894,
+            1926
           ],
           "name": "\ud83c\udfdb\ufe0f Where this sits in the organisation",
           "type": "section"
@@ -2690,8 +2690,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                1944,
-                1952
+                1945,
+                1953
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -2699,8 +2699,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            1926,
-            1952
+            1927,
+            1953
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -2710,8 +2710,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                1976,
-                2000
+                1977,
+                2001
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -2719,8 +2719,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            1953,
-            2000
+            1954,
+            2001
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -2729,7 +2729,7 @@
     },
     "RELEASE.md": {
       "hash": "851f891d6bd7",
-      "indexed_at": "2026-08-11T12:12:09.988131+00:00",
+      "indexed_at": "2026-08-11T15:58:06.830633+00:00",
       "language": "markdown",
       "lines": 280,
       "mtime_ns": 1786274140905608600,
@@ -2802,7 +2802,7 @@
     },
     "SECURITY.md": {
       "hash": "4594c9020526",
-      "indexed_at": "2026-08-11T12:12:09.988650+00:00",
+      "indexed_at": "2026-08-11T15:58:06.831076+00:00",
       "language": "markdown",
       "lines": 84,
       "mtime_ns": 1785501505387414100,
@@ -2867,7 +2867,7 @@
     },
     "SETUP_LEAN.sh": {
       "hash": "bd21bdc2996c",
-      "indexed_at": "2026-08-11T12:12:09.992338+00:00",
+      "indexed_at": "2026-08-11T15:58:06.834632+00:00",
       "language": "shell",
       "lines": 489,
       "mtime_ns": 1785875289056228500,
@@ -2938,17 +2938,17 @@
       ]
     },
     "STATUS.md": {
-      "hash": "ad090caad1d2",
-      "indexed_at": "2026-08-11T13:54:16.534285+00:00",
+      "hash": "da5861405242",
+      "indexed_at": "2026-08-11T16:29:40.088552+00:00",
       "language": "markdown",
       "lines": 28,
-      "mtime_ns": 1786454942620937300,
+      "mtime_ns": 1786464689731952500,
       "size": 1011,
       "symbols": []
     },
     "UNSEALED.md": {
       "hash": "8995e135fa26",
-      "indexed_at": "2026-08-11T12:12:09.993294+00:00",
+      "indexed_at": "2026-08-11T15:58:06.835495+00:00",
       "language": "markdown",
       "lines": 128,
       "mtime_ns": 1785781880971583800,
@@ -3011,6 +3011,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T13:54:16.534403+00:00",
+  "generated_at": "2026-08-11T16:29:40.088664+00:00",
   "version": "1.0"
 }

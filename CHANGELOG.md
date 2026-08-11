@@ -214,7 +214,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1410 theorems, 75 modules, 69 suites, 725 mutants, 71 checkers.
+1433 theorems, 76 modules, 70 suites, 733 mutants, 71 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -273,7 +273,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1410 theorems, 75 modules, 69 suites, 725 mutants, 71 checkers.
+1433 theorems, 76 modules, 70 suites, 733 mutants, 71 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -718,7 +718,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 725 applied, 725 killed,
+statistic. Across the whole tree the suites now stand at 733 applied, 733 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1070,7 +1070,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **725 applied, 725 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **733 applied, 733 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and
