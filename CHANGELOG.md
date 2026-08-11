@@ -23,6 +23,67 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The experiment plan was audited before it was built, and four of its numbers were wrong
+
+A plan for six more Lean modules and a capstone was written out in full — module
+map, per-gap proof sketches, the ritual for each, the sequence. The cheap move
+was to start building it. Instead every arithmetic claim in it was run through
+`decide` first, and §10 of `lean/Proofs/RotExperiment.lean` now records what came
+back. Four claims did not survive.
+
+**The proposed symmetry repair would have admitted a total loss.** The plan
+observed, correctly, that `twoSidedTail` is not invariant under swapping the
+labels — `twoSidedTail 40 9 = 747171208` against `twoSidedTail 40 31 =
+2198822962104` — and proposed to fix it by folding the count through `min k (n-k)`.
+`the_min_repair_would_admit_a_total_loss` shows what that buys: under the repaired
+statistic, **40 losses out of 40 pairs reports `supported`**, and so does 31 of 40.
+The statistic and the verdict were being asked different questions. A two-sided
+tail answers *are the arms different*; `verdictM.supported` claims *the routed arm
+is better*. Symmetrising the first without changing what the second says converts a
+conservative test into one that cannot distinguish a triumph from a rout. The
+definition was right and the proposed symmetry was the overclaim, so the repair is
+recorded as a refuted proposal rather than applied.
+
+**Twelve comparisons do not move the forty-pair boundary.** The plan claimed the
+tolerated loss count "drops below 9" once the family-wise correction counts twelve
+comparisons instead of nine. `twelve_comparisons_do_not_move_the_forty_pair_boundary`
+pins the measured table: the last supported `k` is **9 for `m = 9` and 9 for
+`m = 12`**. The stricter correction is still worth adopting — it costs nothing at
+this sample size — but it must be adopted for honesty about the number of
+comparisons, not because it changes the answer.
+
+**The ten-task pilot was guaranteed null before a single task existed.**
+`a_ten_pair_pilot_cannot_reach_a_corrected_verdict` searches every possible
+outcome: under `m = 9` or `m = 12`, **no** loss count at ten pairs reaches
+`supported` — a clean ten-for-ten sweep included.
+`only_the_uncorrected_rule_passes_at_ten` shows the design is not merely strict but
+arithmetically sealed: only the *uncorrected* rule, at exactly zero losses, ever
+passes there. A pilot like that cannot produce evidence; it can only produce the
+appearance of having tried. `the_smallest_corrected_pilot_is_twelve_pairs` gives
+the replacement: **twelve pairs**, tolerating zero losses, is the smallest design
+that can return a corrected verdict at all, and sixteen pairs buys tolerance for
+one loss.
+
+That last number was itself the session's sharpest lesson. Thirteen was written
+first, then fourteen — both by reasoning about the shape of the tail rather than
+computing it, and `decide` refused both in turn. The theorem's docstring keeps
+that record. A bound that is *argued* is a guess wearing a proof's clothing; the
+twelve is a filter over every count up to seventeen.
+
+Three smaller incongruences are logged without ceremony: `runVerdict` in the plan
+collides with the existing `runVerdict : Run → Verdict` at
+`lean/Proofs/RotExperiment.lean:189`; a proposed `round_trip … := by decide`
+cannot elaborate because `Evidence` carries `Nat` fields and the domain is
+infinite, so it needs `cases e <;> rfl`; and two proposed theorems are decorative
+as written — one whose conclusion ignores its hypothesis, one true of every
+function of its type and therefore infrastructure, not evidence.
+
+Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
+repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
+by one, and these theorems die rather than quietly re-describe a different
+statistic. The suites now stand at 673 applied, 673 killed, 0 survived, 0
+discarded.
+
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
 
 Every report this project has written ended with the same admission — *artifact
@@ -372,9 +433,10 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **670 applied, 670 killed, 0 survived, 0 discarded** —
-the 634 swept, plus 5 each for `RotSweep` and `RotLogLock` and 12 for `RotExperiment`, each run and killed
-here — and `CITATION.cff` moved from 1083 to the measured 1293 theorems.
+`README.md:240` now reads **673 applied, 673 killed, 0 survived, 0 discarded** —
+the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
+9 for `RotProse` and 3 more for the plan audit, each run and killed here — and
+`CITATION.cff` moved from 1083 to the measured 1300 theorems.
 
 ### The repairs went through Lean 4, because a fixed harness is still an unproven harness
 

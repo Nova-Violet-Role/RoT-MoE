@@ -226,6 +226,12 @@ run_mut X16 "  (100 * e.comparisons * twoSidedTail e.n e.against ≤ 2 ^ e.n) &&
 run_mut X17 "  (e.corpusHash == e.expectedHash) &&" "  (0 == 0) &&" \
   "a_wrong_corpus_hash_is_refused -- disarm the corpus comparison and any corpus passes, which turns the one hypothesis the checker computes back into an assumption"
 
+run_mut X18 "def tailMinRepair (n k : Nat) : Nat := 2 * tail n (min k (n - k))" "def tailMinRepair (n k : Nat) : Nat := 2 * tail n k" \
+  "the_min_repair_would_admit_a_total_loss -- remove the min and the audited repair stops being the repair, so the theorem that REFUTES it no longer refutes anything"
+run_mut X19 "  if 100 * m * twoSidedTail n k ≤ 2 ^ n then .supported else .notSupported" "  if 100 * twoSidedTail n k ≤ 2 ^ n then .supported else .notSupported" \
+  "twelve_comparisons_do_not_move_the_forty_pair_boundary / a_ten_pair_pilot_cannot_reach_a_corrected_verdict -- drop the family-wise factor and ten of forty is admitted, and a ten-pair pilot starts passing"
+run_mut X20 "def tail (n k : Nat) : Nat := ((row n).take (k + 1)).foldl (· + ·) 0" "def tail (n k : Nat) : Nat := ((row n).take k).foldl (· + ·) 0" \
+  "the whole tail arithmetic -- an off-by-one in the cumulative sum moves every boundary this file pins, including the audited nine of forty"
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."

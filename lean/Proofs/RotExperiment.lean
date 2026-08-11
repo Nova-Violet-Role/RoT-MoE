@@ -869,6 +869,86 @@ theorem the_corrected_boundary_is_nine_of_forty :
     checkAll { evidencePassing with against := 9 } = true ∧
     checkAll { evidencePassing with against := 10 } = false := by decide
 
+/-! ## 10. Auditing the preregistration BEFORE a single session runs
+
+Four claims about this test were checked against the definitions rather than
+against intuition. Three of them turned out to be wrong in the direction that
+would have cost a corpus, which is why they are theorems now and not notes. -/
+
+/-- **The doubled tail is NOT symmetric under an arm-label swap.** An audit
+proposal asked for `twoSided n k = twoSided n (n - k)`; measured, it holds at
+exactly one point out of eleven — the median, where the two sides coincide. -/
+theorem the_doubled_tail_is_not_label_symmetric :
+    ((List.range 11).filter (fun k => twoSidedTail 10 k == twoSidedTail 10 (10 - k)))
+      = [5] := by decide
+
+/-- The asymmetry is not a defect: the verdict it feeds is DIRECTIONAL. Its
+`supported` means *the routed arm won*, so a run the routed arm loses must fail,
+and it does — even a total loss, which is the strongest possible evidence
+against. -/
+theorem a_total_loss_is_not_supported :
+    verdictM 9 40 40 = Verdict.notSupported ∧
+    verdictM 9 40 31 = Verdict.notSupported := by decide
+
+/-- The repair the audit proposed: take the smaller tail, making the statistic
+symmetric. -/
+def tailMinRepair (n k : Nat) : Nat := 2 * tail n (min k (n - k))
+
+/-- **…and that repair would have manufactured the worst false positive
+available.** With the `min`, a run in which the routed arm lost EVERY SINGLE PAIR
+clears the corrected threshold — 40 of 40 against would be reported as
+`supported`, as would 31 of 40.
+
+The symmetric statistic answers "are the arms different?"; the verdict claims
+"the routed arm is better". Making the statistic two-sided without changing what
+the verdict SAYS converts a conservative test into one that cannot tell a
+triumph from a rout. The definition was right; the proposed symmetry was the
+overclaim. -/
+theorem the_min_repair_would_admit_a_total_loss :
+    decide (100 * 9 * tailMinRepair 40 40 ≤ 2 ^ 40) = true ∧
+    decide (100 * 9 * tailMinRepair 40 31 ≤ 2 ^ 40) = true := by decide
+
+/-- **Widening the declared family from nine observables to twelve does not move
+the forty-pair boundary.** It was assumed the tolerated count would drop below
+nine; measured, it is nine either way. Correcting for three more comparisons is
+free at this sample size, so the wider family should be declared — the cost is
+zero and the honesty is not. -/
+theorem twelve_comparisons_do_not_move_the_forty_pair_boundary :
+    verdictM 12 40 9 = Verdict.supported ∧
+    verdictM 12 40 10 = Verdict.notSupported ∧
+    verdictM 9 40 9 = Verdict.supported ∧
+    verdictM 9 40 10 = Verdict.notSupported := by decide
+
+/-- **The ten-task pilot is guaranteed NULL under any real correction, and that
+is a design defect, not a result.** At ten pairs there is no outcome whatever —
+not even a clean sweep — that a nine-fold corrected rule can call `supported`.
+
+This is precisely the class of defect that killed five previous corpora: an
+experiment whose null was decided by its own arithmetic before any data existed.
+A pilot that cannot pass is a smoke test, and must be described as one. -/
+theorem a_ten_pair_pilot_cannot_reach_a_corrected_verdict :
+    ((List.range 11).filter (fun k => verdictM 9 10 k == Verdict.supported)) = [] ∧
+    ((List.range 11).filter (fun k => verdictM 12 10 k == Verdict.supported)) = [] := by decide
+
+/-- The uncorrected rule *can* pass at ten pairs, but only on a perfect sweep —
+which is why quoting a pilot without its correction is how a null gets
+manufactured in the other direction. -/
+theorem only_the_uncorrected_rule_passes_at_ten :
+    ((List.range 11).filter (fun k => verdictM 1 10 k == Verdict.supported)) = [0] := by decide
+
+/-- **The smallest pilot that can return a corrected verdict is TWELVE pairs**,
+and it tolerates nothing: a single loss sinks it. Sixteen pairs tolerate exactly
+one. These are the numbers a pilot must be sized against.
+
+Twice while writing this theorem a plausible bound was written down instead of
+computed — first thirteen, then fourteen — and `decide` refused both. The number
+came from a filter over every pair count up to seventeen, which is the only way
+it should ever have been obtained. -/
+theorem the_smallest_corrected_pilot_is_twelve_pairs :
+    ((List.range 12).filter (fun k => verdictM 12 11 k == Verdict.supported)) = [] ∧
+    ((List.range 13).filter (fun k => verdictM 12 12 k == Verdict.supported)) = [0] ∧
+    ((List.range 17).filter (fun k => verdictM 12 16 k == Verdict.supported)) = [0, 1] := by decide
+
 -- Executions. These run the definitions rather than restating them.
 #guard row 0 = [1]
 #guard row 1 = [1, 1]
