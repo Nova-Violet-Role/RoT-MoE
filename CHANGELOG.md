@@ -23,6 +23,102 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The cost gate was measuring the machine, and now says so instead of guessing
+
+**A gate that flips verdict on an unchanged tree is not measuring the tree.**
+Three consecutive runs of `checker/bench-router.sh` read **478.3 PASS / 809.6
+FAIL / 523.7 FAIL** with no commit between them.
+
+Two hypotheses were wrong before the third was right, and both are recorded:
+
+| suspect | measured | verdict |
+|---|---|---|
+| bash process startup | 20.1 ms idle | 3.5% of the total — not it |
+| `node` payload parse | 43.8 ms | not it |
+| **external process spawns** | **28, identical on 3 traces** | at 12 ms each = 336 ms vs a self-report of 327–341 |
+
+The router's code had not changed. What had changed was the machine: after 24
+live sessions its spawn tax went 12.0 → 20.1 ms and bash startup 20.1 → 92.8 ms,
+and **both router arms degraded together** — the PowerShell arm, historically
+93–133 ms, read 468–703 ms in the same window. A common-mode shift across two
+independent implementations is not a regression in either.
+
+**Three changes, none of which relax the bound. `msBound` is still 500.**
+
+1. **A deterministic check that judges the code.** Spawn count against
+   `spawnBudget = msBound / perSpawnMs = 41`, derived and never a literal.
+   Measured 22, inside budget, and load-independent. Its control fattens a copy
+   of the router with 30 extra subprocesses and requires the counter to notice —
+   it counts 52 and refuses.
+2. **A third outcome, because two were not enough.** A reading whose spread
+   exceeds a quarter of its median has measured the machine; calling that a pass
+   is a fake green and calling it a failure blames the router for the load.
+   `CostVerdict.unmeasurable` is **not green** and blocks release exactly as
+   `exceeded` does — `an_unmeasurable_reading_is_not_a_pass`,
+   `only_a_measured_pass_releases`. A quiet machine still reaches a verdict
+   (`a_quiet_machine_still_decides`) and a genuinely slow router is still caught
+   (`a_quiet_slow_router_is_still_caught`).
+3. **The median of three batches**, proved to be one of the readings and never
+   an average, so one spike cannot decide — while two slow readings still fail
+   (`two_slow_readings_still_fail`).
+
+**The gate is RED as of this entry, and that is the correct verdict.** The cost
+check reports `UNMEASURABLE` on a machine still settling from 24 sessions. It
+is not a pass and it is not being treated as one.
+
+**A wrong turn is recorded rather than deleted.** Normalising each batch by a
+spawn tax sampled beside it should cancel load. Measured, it does not — three
+consecutive batches gave 76.1 / 23.7 / 79.5 spawn-equivalents. Load moves faster
+than the samples. The denominator hunt was then **stopped deliberately**:
+changing the divisor until the gate goes green is the same fitting error
+retracted earlier this session, and which fork proxy is correct is left as a
+stated open question rather than settled by whichever answer was convenient.
+
+### M21 is closed: a textual property needed a textual instrument
+
+`RotFamily` mutant **M21** tried twice to catch a frozen *derived* value and
+survived both times, because `calibCorpus.outOf / preregMargin` and `10`
+elaborate to the same term — there is no behaviour to differ. It was recorded as
+an open defect.
+
+The defect was never in the mutation suite. It was a **category error**: "still
+derived" is a property of the source *text*, and a mutation suite tests
+*behaviour*. `checker/bench-router.sh` now greps for the derived form and its
+control rewrites it to `:= 41` and requires the check to reject it. Both pass.
+The same C01 mutant confirms the boundary from the other side: a *wrong* literal
+(`40`) is killed by the theorem, a *right-but-frozen* one is invisible to it.
+
+### The A/A null control ran, passed, and dissolved the pilot's apparent effect
+
+**PHASE 1 CLOSED.** Two **routed** arms, twelve tasks each, same corpus, same
+plugin, same primary rule, scored through the identical code path as the A/B
+analysis. Both plugin-ARMED: **165** and **167** route records.
+
+| arm | R4 score |
+|---|---|
+| routed #1 | 6 / 12 |
+| routed #2 | 8 / 12 |
+
+Discordant **6**, split **2–4**. **`notSupported`; `controlAdmissible = true`**
+— it ran, it found no support between identical arms, and it was not a sweep
+(`the_null_control_passed`, `the_control_passed_on_its_merits`). The apparatus
+does not manufacture significance, and the release is not voided.
+
+**Then it produced the finding it exists to produce.** Two *identical* arms
+disagreed on **6 of 12** tasks; the A/B pilot disagreed on **2**. **The A/B
+difference is no larger than the gap between two copies of the same arm, and
+points the other way** — `the_ab_difference_is_within_aa_noise`. The pilot's
+apparent advantage sits inside the range identical arms produce.
+
+That is not a disappointment, it is the control working. No quantity of A/B data
+could have shown it, which is the whole argument for running the control *first*.
+`reportable measuredAA measuredAB = some notSupported`: the A/B reading is
+licensed by the control's pass, and it is a null.
+
+Mutants N07–N09 pin the measured numbers — sweep the A/A split, empty it, or
+inflate the A/B comparison into a manufactured verdict. All three killed; the
+suite is 9/9.
+
 ### Gate 0 sealed: the pilot margin chosen before the pilot is re-run
 
 **The seal** (`bench/P24-PREREGISTRATION.md`, AMENDMENT 4), recorded so a later
@@ -437,7 +533,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1490 theorems, 77 modules, 71 suites, 751 mutants, 71 checkers.
+1526 theorems, 78 modules, 72 suites, 762 mutants, 71 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -496,7 +592,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1490 theorems, 77 modules, 71 suites, 751 mutants, 71 checkers.
+1526 theorems, 78 modules, 72 suites, 762 mutants, 71 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -941,7 +1037,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 751 applied, 751 killed,
+statistic. Across the whole tree the suites now stand at 762 applied, 762 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1293,7 +1389,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **751 applied, 751 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **762 applied, 762 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and

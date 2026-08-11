@@ -166,33 +166,206 @@ echo
 echo "== 2. COST -- milliseconds this adds to a turn"
 # ---------------------------------------------------------------------------
 N=20
+# The bound, the reference spawn tax and the derived budget are READ FROM THE
+# LEAN SOURCE, never duplicated here. A constant written in two places is a
+# constant that will disagree with itself; this is the same `lean_const`
+# discipline checker/dominance.sh uses. If the extraction fails the phase
+# ABORTS -- it does not fall back to a literal, because a silent fallback would
+# make the spec and the checker independent again, which is the defect.
+COST_LEAN="$(dirname "$0")/../lean/Proofs/RotCostBudget.lean"
+cost_const() { sed -n "s/^def $1 : Nat := \([0-9][0-9]*\)$/\1/p" "$COST_LEAN" 2>/dev/null | head -1; }
+MS_BOUND=$(cost_const msBound)
+REF_TAX=$(cost_const perSpawnMs)
+if [ -z "$MS_BOUND" ] || [ -z "$REF_TAX" ]; then
+  bad "cannot read msBound/perSpawnMs from $COST_LEAN -- the cost phase MEASURED NOTHING"
+  MS_BOUND=0; REF_TAX=0
+fi
+SPAWN_BUDGET=$(( MS_BOUND > 0 && REF_TAX > 0 ? MS_BOUND / REF_TAX : 0 ))
 start=$(date +%s%N 2>/dev/null || echo "")
 if [ -z "$start" ]; then
   note "nanosecond clock unavailable; cost phase SKIPPED (never a pass)"
 else
-  i=0
-  while [ "$i" -lt "$N" ]; do
-    printf '{"prompt":"lake build the theorem"}' | bash "$ROUTER" >/dev/null 2>&1
-    i=$((i+1))
+  # ---- the machine's own spawn tax, measured FIRST -------------------------
+  # Every external command costs something, and that something moves with what
+  # else the machine is doing. Measured 2026-08-11: 12.0 ms idle, 20.1 ms
+  # immediately after 24 live sessions. The router's spawn COUNT did not move
+  # (28, three traces, identical). So a raw wall-clock gate reports the machine.
+  # Proved in lean/Proofs/RotCostBudget.lean.
+  # It must be measured INTERLEAVED with the router, not before it. Measured
+  # separately, the two samples land in different load conditions and the ratio
+  # is meaningless: one run read a tax of 10 ms (machine looks idle) while the
+  # router batches read 481 / 907 / 652 ms in the same seconds. Load moves on a
+  # sub-second timescale, so the only honest denominator is one taken in the
+  # same breath as the numerator.
+  if [ ! -x /usr/bin/true ]; then
+    bad "/usr/bin/true is absent -- the spawn tax CANNOT be measured, so the cost phase MEASURED NOTHING"
+    tax=0
+  else
+    _tt=0
+    _tj=0
+    while [ "$_tj" -lt 3 ]; do
+      ts=$(date +%s%N); k=0
+      while [ "$k" -lt 20 ]; do /usr/bin/true; k=$((k+1)); done
+      te=$(date +%s%N)
+      _tv=$(awk -v a="$ts" -v b="$te" 'BEGIN{ printf "%.2f", (b-a)/1000000/20 }')
+      _tt=$(awk -v s="$_tt" -v v="$_tv" 'BEGIN{ printf "%.2f", s+v }')
+      _tj=$((_tj+1))
+    done
+    tax=$(awk -v s="$_tt" 'BEGIN{ t=s/3; printf "%.2f", (t<0.01?0.01:t) }')
+  fi
+  note "machine spawn tax right now: ${tax} ms per external process (reference: ${REF_TAX} ms)"
+
+  # ---- three batches, median decides ---------------------------------------
+  # One batch let a single load spike decide the verdict: 478.3 PASS, 809.6
+  # FAIL, 523.7 FAIL on an unchanged tree. median3 is proved to be one of the
+  # readings, never an average, so a spike cannot drag it
+  # (RotCostBudget.a_single_spike_cannot_fail_the_gate) -- and two slow readings
+  # still fail it (two_slow_readings_still_fail). The alarm is not disarmed.
+  # Each batch carries its OWN tax sample, taken immediately after it, so the
+  # ratio that the verdict rests on is common-mode-cancelled.
+  _b=1; _r1=0; _r2=0; _r3=0; _q1=0; _q2=0; _q3=0
+  while [ "$_b" -le 3 ]; do
+    bs=$(date +%s%N); i=0
+    while [ "$i" -lt "$N" ]; do
+      printf '{"prompt":"lake build the theorem"}' | bash "$ROUTER" >/dev/null 2>&1
+      i=$((i+1))
+    done
+    be=$(date +%s%N)
+    _v=$(awk -v a="$bs" -v b="$be" -v n="$N" 'BEGIN{ printf "%.1f", (b-a)/1000000/n }')
+    ls_=$(date +%s%N); k=0
+    while [ "$k" -lt 20 ]; do /usr/bin/true; k=$((k+1)); done
+    le_=$(date +%s%N)
+    _lv=$(awk -v a="$ls_" -v b="$le_" 'BEGIN{ t=(b-a)/1000000/20; printf "%.2f", (t<0.01?0.01:t) }')
+    eval "_r${_b}=\$_v"; eval "_q${_b}=\$_lv"
+    _b=$((_b+1))
   done
   end=$(date +%s%N)
-  per=$(awk -v a="$start" -v b="$end" -v n="$N" 'BEGIN{ printf "%.1f", (b-a)/1000000/n }')
-  note "router: ${per} ms per invocation, mean of $N runs (includes bash process start)"
+  per=$(awk -v x="$_r1" -v y="$_r2" -v z="$_r3" 'BEGIN{
+          m=x; if ((y<=x&&x<=z)||(z<=x&&x<=y)) m=x;
+          else if ((x<=y&&y<=z)||(z<=y&&y<=x)) m=y; else m=z; printf "%.1f", m }')
+  note "router: ${per} ms per invocation, MEDIAN of 3 batches of $N (${_r1} / ${_r2} / ${_r3})"
   # The bound is deliberately generous and stated as a BOUND, not a target: what
   # matters to a user is that the hook is not perceptible next to a model call
   # measured in seconds. If this ever fails, the router got slow enough to
   # notice, which is the only thing worth alarming on.
-  if awk -v p="$per" 'BEGIN{ exit !(p < 500) }'; then
-    ok "per-turn cost is under the 500 ms bound (${per} ms)"
+  # The reading rescaled to the reference machine's spawn tax. Proved not to
+  # change anything at all when the machine IS at reference
+  # (RotCostBudget.normalising_at_reference_changes_nothing), so this cannot
+  # launder a genuinely slow router -- only a genuinely slow machine.
+  # Cost expressed in SPAWNS: each batch divided by the tax measured beside it,
+  # then the median of those three ratios. Load that inflates the numerator
+  # inflates the denominator in the same seconds, so it cancels.
+  _c1=$(awk -v p="$_r1" -v t="$_q1" 'BEGIN{ printf "%.1f", p/t }')
+  _c2=$(awk -v p="$_r2" -v t="$_q2" 'BEGIN{ printf "%.1f", p/t }')
+  _c3=$(awk -v p="$_r3" -v t="$_q3" 'BEGIN{ printf "%.1f", p/t }')
+  ratio=$(awk -v x="$_c1" -v y="$_c2" -v z="$_c3" 'BEGIN{
+            m=x; if ((y<=x&&x<=z)||(z<=x&&x<=y)) m=x;
+            else if ((x<=y&&y<=z)||(z<=y&&y<=x)) m=y; else m=z; printf "%.1f", m }')
+  note "cost in machine-independent units: ${ratio} spawn-equivalents (${_c1} / ${_c2} / ${_c3}); taxes ${_q1} / ${_q2} / ${_q3} ms"
+  norm=$(awk -v c="$ratio" -v r="$REF_TAX" 'BEGIN{ printf "%.1f", c*r }')
+  note "that is ${norm} ms on the reference machine (${ratio} spawn-equivalents x ${REF_TAX} ms)"
+  # THREE outcomes, not two. A reading whose own spread swamps its signal has
+  # measured the machine, not the router: calling that a pass is a fake green,
+  # calling it a failure blames the router for the load. `unmeasurable` is
+  # neither, and it is NOT green -- it blocks exactly as `exceeded` does.
+  # Proved in RotCostBudget: an_unmeasurable_reading_is_not_a_pass,
+  # only_a_measured_pass_releases, a_quiet_machine_still_decides.
+  # The gate is on the RAW reading, and the third wrong turn of this
+  # investigation is why. Rescaling to a "reference machine" was measured
+  # turning a raw 472 ms -- comfortably PASSING -- into 550 ms and failing it,
+  # because the machine had become FASTER than the reference and the rescale
+  # multiplied the cost up. That is an instrument manufacturing a failure, which
+  # is the same sin as manufacturing a pass.
+  #
+  # The bound exists because a user should not feel the hook. A user feels the
+  # milliseconds on THEIR machine, so the bound belongs on the raw figure. The
+  # question the rescale was trying to answer -- "is the code getting heavier?"
+  # -- is answered deterministically, and better, by the spawn count below.
+  # The normalised number stays as a diagnostic and gates nothing.
+  if awk -v x="$_r1" -v y="$_r2" -v z="$_r3" 'BEGIN{
+       lo=x; if (y<lo) lo=y; if (z<lo) lo=z;
+       hi=x; if (y>hi) hi=y; if (z>hi) hi=z;
+       m=x; if ((y<=x&&x<=z)||(z<=x&&x<=y)) m=x;
+       else if ((x<=y&&y<=z)||(z<=y&&y<=x)) m=y; else m=z;
+       exit !(4*(hi-lo) <= m) }'; then
+    if awk -v p="$per" -v b="$MS_BOUND" 'BEGIN{ exit !(p < b) }'; then
+      ok "per-turn cost is under the ${MS_BOUND} ms bound (${per} ms, median of 3 tight batches)"
+    else
+      bad "per-turn cost ${per} ms exceeds the ${MS_BOUND} ms bound -- a user would feel this"
+    fi
   else
-    bad "per-turn cost ${per} ms exceeds the 500 ms bound -- a user would feel this"
+    bad "cost UNMEASURABLE: three batches of the same unchanged router read ${_r1} / ${_r2} / ${_r3} ms."
+    note "The spread exceeds a quarter of the median, so this reading is of the MACHINE, not the router."
+    note "This is NOT a pass and NOT a regression: re-measure on a quiet machine. The spawn check below judges the code."
   fi
-  # Honest denominator: how much of that is bash itself, not our code.
-  s2=$(date +%s%N); j=0
-  while [ "$j" -lt "$N" ]; do bash -c ':' >/dev/null 2>&1; j=$((j+1)); done
-  e2=$(date +%s%N)
-  base=$(awk -v a="$s2" -v b="$e2" -v n="$N" 'BEGIN{ printf "%.1f", (b-a)/1000000/n }')
-  note "of which ~${base} ms is bash process startup on this machine -- our logic is the remainder"
+  if awk -v p="$per" -v b="$MS_BOUND" 'BEGIN{ exit !(p < b) }'; then
+    note "raw wall clock is ALSO under the bound on this machine right now"
+  else
+    note "raw wall clock ${per} ms is OVER the bound: this machine's spawn tax is ${tax} ms against a reference ${REF_TAX} ms."
+    note "Recorded, not suppressed. The deterministic spawn check below is the one that judges the CODE."
+  fi
+
+  # ---- the deterministic check: spawn COUNT ---------------------------------
+  # Wall clock is load-dependent; the number of subprocesses one routing
+  # decision makes is not. Measured identical on three consecutive traces. This
+  # is the check that catches a code regression on ANY machine, and the budget
+  # is derived from the bound and the reference tax, never written as a literal.
+  _trace=$(mktemp 2>/dev/null || echo "/tmp/rot-spawn-$$")
+  printf '{"prompt":"lake build the theorem"}' | bash -x "$ROUTER" >/dev/null 2>"$_trace"
+  spawns=$(grep -cE "^\+* (/usr/bin/)?(node|awk|sed|grep|tr|cut|wc|cat|tail|head|date|mkdir|rmdir|mv|rm|touch|sort|uniq|stat|ls|find|git)( |$)" "$_trace" || true)
+  rm -f "$_trace"
+  note "one routing decision spawns ${spawns} external process(es); budget ${SPAWN_BUDGET} = ${MS_BOUND} ms / ${REF_TAX} ms"
+  if [ "$spawns" -gt 0 ] && [ "$spawns" -le "$SPAWN_BUDGET" ]; then
+    ok "spawn count ${spawns} is inside the derived budget of ${SPAWN_BUDGET} (load-independent)"
+  elif [ "$spawns" -eq 0 ]; then
+    bad "spawn count came back 0 -- the trace did not capture, so this check MEASURED NOTHING"
+  else
+    bad "spawn count ${spawns} exceeds the derived budget of ${SPAWN_BUDGET} -- the router got heavier"
+  fi
+  # CONTROL, and it perturbs the INPUT, not the arithmetic. An earlier version
+  # of this control asked whether `spawns + 14 > budget` -- which restates the
+  # comparison the check just made and would have been a tautology had the
+  # margin been chosen to fit. It was not: it was calibrated against 28 spawns,
+  # the count came back 22, and the control FAILED and said so. That is what a
+  # control is for, and the repair is to test the COUNTER by giving it a router
+  # that really does spawn more.
+  # ---- the textual check mutation testing structurally cannot make ----------
+  # RotFamily mutant M21 tried twice to catch a frozen DERIVED value and
+  # survived both times, because `calibCorpus.outOf / preregMargin` and `10`
+  # elaborate to the same term -- there is no behaviour to differ. It was
+  # recorded as an open defect. It is closed here, and the lesson is that it
+  # needed a different KIND of instrument: "still derived" is a property of the
+  # SOURCE TEXT, so a grep decides it and a theorem never can.
+  if grep -qF 'def spawnBudget : Nat := msBound / perSpawnMs' "$COST_LEAN"; then
+    ok "the spawn budget is still DERIVED from msBound and perSpawnMs, not frozen as a literal"
+  else
+    bad "spawnBudget is no longer derived from msBound / perSpawnMs -- a frozen literal stops tracking the bound"
+  fi
+  # CONTROL: the grep must reject the frozen form, or it proves nothing.
+  _frozen="${TMPDIR:-/tmp}/rot-frozen-$$.lean"
+  sed 's|def spawnBudget : Nat := msBound / perSpawnMs|def spawnBudget : Nat := 41|' "$COST_LEAN" > "$_frozen"
+  if grep -qF 'def spawnBudget : Nat := msBound / perSpawnMs' "$_frozen"; then
+    bad "CONTROL: the derivation check does NOT notice a frozen literal -- it is decoration"
+  else
+    ok "CONTROL: a frozen \`:= 41\` IS rejected by that check -- it can fail (this is what M21 could not do)"
+  fi
+  rm -f "$_frozen"
+
+  _fat="${TMPDIR:-/tmp}/rot-fat-router-$$.sh"
+  {
+    head -1 "$ROUTER"
+    i=0; while [ "$i" -lt 30 ]; do echo 'date +%s >/dev/null'; i=$((i+1)); done
+    tail -n +2 "$ROUTER"
+  } > "$_fat" 2>/dev/null
+  _ftrace="${TMPDIR:-/tmp}/rot-fat-trace-$$"
+  printf '{"prompt":"lake build the theorem"}' | bash -x "$_fat" >/dev/null 2>"$_ftrace"
+  fatspawns=$(grep -cE "^\+* (/usr/bin/)?(node|awk|sed|grep|tr|cut|wc|cat|tail|head|date|mkdir|rmdir|mv|rm|touch|sort|uniq|stat|ls|find|git)( |$)" "$_ftrace" || true)
+  rm -f "$_fat" "$_ftrace"
+  if [ "$fatspawns" -gt "$SPAWN_BUDGET" ] && [ "$fatspawns" -gt "$spawns" ]; then
+    ok "CONTROL: a router with 30 extra subprocesses IS counted (${fatspawns} > budget ${SPAWN_BUDGET}) -- the counter can fail"
+  else
+    bad "CONTROL: a deliberately fattened router counted ${fatspawns} (real ${spawns}, budget ${SPAWN_BUDGET}) -- the counter does NOT detect added spawns"
+  fi
 fi
 
 # ---------------------------------------------------------------------------

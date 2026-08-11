@@ -5,7 +5,7 @@
 #
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotNullControl.lean (a partial run is not a pass)
+# MUTATION SUITE -- Proofs/RotCostBudget.lean (a partial run is not a pass)
 #
 #   1. assert the needle is present EXACTLY once before mutating; else DISCARDED
 #   2. assert the mutation LANDED after patching
@@ -23,7 +23,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotNullControl.lean"
+F="Proofs/RotCostBudget.lean"
 # The module name, DERIVED from F rather than written out a second time.
 # Measured 2026-08-10: eight suites grepped for errors in Proofs/RotTrap.lean and
 # seven rebuilt Proofs.RotOrdering, both inherited by copy. A second hard-coded
@@ -31,8 +31,8 @@ F="Proofs/RotNullControl.lean"
 # a_derived_extractor_always_attributes.
 MOD=${F##*/}; MOD=${MOD%.lean}
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotNullControl.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrotnullcontrol.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotCostBudget.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrotcostbudget.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -54,10 +54,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotNullControl ) >/tmp/mut_pre_rotnullcontrol.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotNullControl)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotCostBudget ) >/tmp/mut_pre_rotcostbudget.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotCostBudget)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotnullcontrol.log
+  tail -5 /tmp/mut_pre_rotcostbudget.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -80,7 +80,7 @@ cp "$F" "$BAK"
 # path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
 # that reported a real failure left the module with no .olean, and the NEXT
 # run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotNullControl ) >/dev/null 2>&1' EXIT
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCostBudget ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 
@@ -134,7 +134,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotNullControl ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotCostBudget ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -184,30 +184,28 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotNullControl mutation suite ==="
+echo "=== RotCostBudget mutation suite ==="
 
 # Each needle is asserted present EXACTLY once before it is applied, and the
 # replacement is asserted present afterwards. A needle that does not match is
 # DISCARDED, never SURVIVED.
 
-run_mut N01 "  verdictM RotMoE.Family.m c.discordant (min c.favouring (c.discordant - c.favouring))" "  verdictM 1 c.discordant (min c.favouring (c.discordant - c.favouring))" \
-  "the_pilot_comparison_reaches_no_verdict, a_significant_null_control_fails_the_gate -- drop the multiplicity correction from the SHARED verdict function. m is 4 because four observables carry two-sided tests; running the control at m=1 makes it easier to satisfy than the experiment it guards"
-run_mut N02 "def controlPasses (c : Comparison) : Bool := aaClean c && !sweep c" "def controlPasses (c : Comparison) : Bool := aaClean c" \
-  "a_swept_null_control_is_refused, both_directions_of_sweep_are_refused, the_sweep_check_covers_what_the_verdict_misses -- remove the sweep check. A nine-pair one-sided A/A then passes as a clean control, which is precisely the manufacturing signature the control exists to catch: two identical arms cannot disagree systematically"
-run_mut N03 "def controlAdmissible (c : Comparison) : Bool := controlRan c && controlPasses c" "def controlAdmissible (c : Comparison) : Bool := controlPasses c" \
-  "an_empty_control_is_not_a_pass -- drop the did-it-run check, so a control that collected zero discordant pairs certifies the pipeline. A control that tested nothing is not a pass"
-run_mut N04 "  if controlAdmissible aa then some (runVerdict ab) else none" "  some (runVerdict ab)" \
-  "a_broken_control_suppresses_the_result -- report the A/B verdict regardless of whether the control passed. This is the mutation that matters most: it severs the dependency entirely, so a broken apparatus still emits a result"
-run_mut N05 "def aaClean (c : Comparison) : Bool := runVerdict c == Verdict.notSupported" "def aaClean (c : Comparison) : Bool := true" \
-  "a_significant_null_control_fails_the_gate, the_control_can_pass_and_can_fail -- make the control unable to fail. An instrument that cannot fail proves nothing, and this is the shape it takes here"
-run_mut N06 "  decide (0 < c.discordant) && (decide (c.favouring = c.discordant) || decide (c.favouring = 0))" "  decide (0 < c.discordant) && decide (c.favouring = c.discordant)" \
-  "both_directions_of_sweep_are_refused -- make the sweep check one-sided, so a sweep TOWARD the second-named side passes. Which arm is named first is an accident of the harness, so a one-sided check is a coin flip on whether the confound is caught"
-run_mut N07 "def measuredAA : Comparison := ⟨6, 2⟩" "def measuredAA : Comparison := ⟨6, 6⟩" \
-  "the_null_control_passed, the_control_passed_on_its_merits, a_swept_version_of_this_very_control_would_have_refused -- turn the measured A/A split into a sweep. Six discordant pairs all one way is the manufacturing signature; the control must refuse it, and if this mutant lived the recorded pass would be meaningless"
-run_mut N08 "def measuredAA : Comparison := ⟨6, 2⟩" "def measuredAA : Comparison := ⟨0, 0⟩" \
-  "the_null_control_passed, the_control_passed_on_its_merits -- empty the control. Zero discordant pairs means it never ran, and an unrun control that certifies the pipeline is worse than none at all"
-run_mut N09 "def measuredAB : Comparison := ⟨2, 2⟩" "def measuredAB : Comparison := ⟨20, 20⟩" \
-  "the_ab_result_is_reportable_and_is_a_null, the_ab_difference_is_within_aa_noise -- inflate the A/B comparison to a significant sweep. The pilot reached no verdict; a mutant that manufactures one must not survive, because the whole point of the recorded numbers is that they are the measured ones"
+run_mut C01 "def spawnBudget : Nat := msBound / perSpawnMs" "def spawnBudget : Nat := 40" \
+  "the_budget_is_derived_from_the_bound -- pin the budget VALUE. A mutation suite tests behaviour, so it can only catch a literal that is WRONG (40), never one that is right-but-frozen (41) -- that is the M21 blindness, and it is closed by a TEXTUAL check in checker/bench-router.sh, not here"
+run_mut C02 "def msBound : Nat := 500" "def msBound : Nat := 9000" \
+  "the_budget_is_derived_from_the_bound, the_bound_is_quotable, the_measured_run_was_unmeasurable -- relax the bound tenfold. The single most tempting way to make a red cost gate green, and every theorem that quotes 500 must die with it"
+run_mut C03 "  else CostVerdict.unmeasurable" "  else CostVerdict.within" \
+  "an_unmeasurable_reading_is_not_a_pass, the_measured_run_was_unmeasurable, all_three_cost_verdicts_are_reachable, this_run_does_not_release -- turn an untrustworthy reading into a PASS. This is the fake green the third outcome exists to forbid; if it survives, the whole module is decoration"
+run_mut C04 "def costReleases (v : CostVerdict) : Bool := v == CostVerdict.within" "def costReleases (v : CostVerdict) : Bool := v != CostVerdict.exceeded" \
+  "only_a_measured_pass_releases, this_run_does_not_release -- let unmeasurable ship. The subtle version of C03: the verdict stays honest but the release rule stops blocking on it"
+run_mut C05 "decide (4 * spread a b c ≤ median3 a b c)" "decide (400 * spread a b c ≤ median3 a b c)" \
+  "the_measured_run_was_unmeasurable, all_three_cost_verdicts_are_reachable -- tighten the trust test until nothing is ever trustworthy. The opposite failure to C03: a gate that always says unmeasurable never reports a regression either"
+run_mut C06 "def normalise (per tax : Nat) : Nat := per * refSpawnMs / tax" "def normalise (per tax : Nat) : Nat := per * refSpawnMs / (tax + 1)" \
+  "normalising_at_reference_changes_nothing, the_normalisation_reproduces_the_idle_self_report -- perturb the normalisation so it no longer is the identity at reference. That identity is the ONLY thing stopping normalisation from laundering a slow router"
+run_mut C07 "def measuredSpawns : Nat := 28" "def measuredSpawns : Nat := 99" \
+  "the_measured_router_is_within_budget, the_estimate_matches_the_self_report, the_estimated_cost_is_under_the_bound -- claim a spawn count that breaches the budget. The recorded measurement must be the measured one"
+run_mut C08 "def refSpawnMs : Nat := perSpawnMs" "def refSpawnMs : Nat := 24" \
+  "normalising_at_reference_changes_nothing, rescaling_can_manufacture_a_failure, the_verdict_is_taken_on_raw_readings -- untie the reference tax from the measured one. If refSpawnMs can drift from perSpawnMs, normalisation stops being the identity at reference and the anti-laundering guarantee is gone"
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."

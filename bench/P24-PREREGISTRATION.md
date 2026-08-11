@@ -139,6 +139,35 @@ theorem that stops this margin from being quietly set to 0.
 
 **If the pilot is inadmissible the corpus is rebuilt, not the rule.**
 
+### THE A/A NULL CONTROL — RUN 2026-08-11, IT PASSED, AND IT CHANGED THE READING
+
+Two **routed** arms, twelve tasks each, same corpus, same plugin, same primary
+rule (R4-committed), scored through the identical code path as the A/B analysis.
+
+| arm | route records | R4 score |
+|---|---|---|
+| routed #1 | 165 | 6 / 12 |
+| routed #2 | 167 | 8 / 12 |
+
+Discordant pairs **6**, split **2–4**. Both arms confirmed plugin-ARMED, so the
+manipulation check holds in the direction a control needs: neither arm was
+silently unrouted.
+
+**Verdict: `notSupported`. `controlAdmissible = true`.** It ran (6 discordant
+pairs, not zero), the apparatus found no support between two identical arms, and
+the split was not a sweep. `the_null_control_passed`. The release is not voided;
+this is what licenses reading an A/B result from this pipeline at all.
+
+**And then it did the job it was built for, which is not flattering.** Two
+*identical* arms disagreed on **6 of 12** tasks and split them 2–4. The A/B
+pilot disagreed on **2** and split them 2–0. **The A/B difference is no larger
+than the difference between two copies of the same arm, and points the other
+way** (`the_ab_difference_is_within_aa_noise`). The pilot's apparent advantage
+sits inside the range identical arms produce.
+
+No quantity of A/B data could have revealed this. It is the single strongest
+argument for running the control before the 160 sessions rather than after.
+
 ### AMENDMENT 4 (2026-08-11) — the pilot denominator, the sealed margin, and the seal itself
 
 **§5 never said what the pilot's O5 score is out of.** It is now a derived

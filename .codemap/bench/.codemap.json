@@ -2,12 +2,12 @@
   "directory": "bench",
   "files": {
     "P24-PREREGISTRATION.md": {
-      "hash": "8b2463bf935a",
-      "indexed_at": "2026-08-11T20:15:48.025244+00:00",
+      "hash": "3a579d750af0",
+      "indexed_at": "2026-08-11T22:11:31.123841+00:00",
       "language": "markdown",
-      "lines": 445,
-      "mtime_ns": 1786479345980976900,
-      "size": 24186,
+      "lines": 474,
+      "mtime_ns": 1786483766991869900,
+      "size": 25619,
       "symbols": [
         {
           "docstring": "P2.2 asked whether the routed arm gives **better answers** and returned null five times. At least two of those nulls were guaranteed by the corpus, no",
@@ -59,10 +59,19 @@
         {
           "children": [
             {
-              "docstring": "**\u00a75 never said what the pilot's O5 score is out of.** It is now a derived quantity: `pilotDenominator tasks orderings := tasks * orderings`. \u00a75's own",
+              "docstring": "Two **routed** arms, twelve tasks each, same corpus, same plugin, same primary rule (R4-committed), scored through the identical code path as the A/B",
               "lines": [
                 142,
-                186
+                170
+              ],
+              "name": "THE A/A NULL CONTROL \u2014 RUN 2026-08-11, IT PASSED, AND IT CHANGED THE READING",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**\u00a75 never said what the pilot's O5 score is out of.** It is now a derived quantity: `pilotDenominator tasks orderings := tasks * orderings`. \u00a75's own",
+              "lines": [
+                171,
+                215
               ],
               "name": "AMENDMENT 4 (2026-08-11) \u2014 the pilot denominator, the sealed margin, and the seal itself",
               "type": "subsection"
@@ -70,8 +79,8 @@
             {
               "docstring": "Recorded so that a later reader can tell what was fixed before any data existed from what was adjusted afterwards.",
               "lines": [
-                187,
-                203
+                216,
+                232
               ],
               "name": "THE SEAL (2026-08-11)",
               "type": "subsection"
@@ -79,35 +88,18 @@
             {
               "docstring": "**AMENDMENT 1's charge was false and AMENDMENT 2 is SUSPENDED.** Both are kept below, unedited, because a record that quietly removes a wrong claim is",
               "lines": [
-                204,
-                256
+                233,
+                285
               ],
               "name": "RETRACTION (2026-08-11, same day) \u2014 read this before AMENDMENT 1 or 2",
               "type": "subsection"
             },
             {
               "lines": [
-                257,
-                257
-              ],
-              "name": "AMENDMENT 1 (2026-08-11) \u2014 CONTESTED, see the retraction above",
-              "type": "subsection"
-            },
-            {
-              "lines": [
-                258,
-                258
-              ],
-              "name": "the gate above was unsatisfiable, and that is a",
-              "type": "subsection"
-            },
-            {
-              "docstring": "`admissibleBy m` requires margin `m` in BOTH directions: `m \u2264 hits` and `m \u2264 outOf \u2212 hits`. At the 10-task pilot fixed above with `m = 8` that demands",
-              "lines": [
-                259,
+                286,
                 286
               ],
-              "name": "defect in this document, not in the corpus",
+              "name": "AMENDMENT 1 (2026-08-11) \u2014 CONTESTED, see the retraction above",
               "type": "subsection"
             },
             {
@@ -115,14 +107,31 @@
                 287,
                 287
               ],
+              "name": "the gate above was unsatisfiable, and that is a",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`admissibleBy m` requires margin `m` in BOTH directions: `m \u2264 hits` and `m \u2264 outOf \u2212 hits`. At the 10-task pilot fixed above with `m = 8` that demands",
+              "lines": [
+                288,
+                315
+              ],
+              "name": "defect in this document, not in the corpus",
+              "type": "subsection"
+            },
+            {
+              "lines": [
+                316,
+                316
+              ],
               "name": "AMENDMENT 2 (2026-08-11) \u2014 SUSPENDED, see the retraction above",
               "type": "subsection"
             },
             {
               "docstring": "Fixed here, before any of the 160 sessions. Sealed by content hash so a later edit is visible:",
               "lines": [
-                288,
-                330
+                317,
+                359
               ],
               "name": "the margin, decided and sealed BEFORE the run",
               "type": "subsection"
@@ -130,8 +139,8 @@
             {
               "docstring": "**SUPERSEDED by the rescore.** Under the lenient rule the same 24 sessions score 9 of 12 and 7 of 12, so the corpus is NOT floor-saturated and the reb",
               "lines": [
-                331,
-                344
+                360,
+                373
               ],
               "name": "Consequence for the schedule",
               "type": "subsection"
@@ -139,8 +148,8 @@
             {
               "docstring": "12 paired tasks (3 per seed family, all ten router lanes), routed arm then unrouted arm, same prompts from `bench/pilot-prompts.txt`, same config dire",
               "lines": [
-                345,
-                372
+                374,
+                401
               ],
               "name": "The pilot of 2026-08-11 \u2014 what was actually run",
               "type": "subsection"
@@ -149,7 +158,7 @@
           "docstring": "A 10-task pilot per arm. The corpus is admitted only if `RotMoE.Saturation.admissibleBy 8` holds on the pilot's O5 score, i.e. at least 8 of 80 room i",
           "lines": [
             133,
-            372
+            401
           ],
           "name": "5. Admissibility \u2014 checked BEFORE the full run",
           "type": "section"
@@ -157,8 +166,8 @@
         {
           "docstring": "`RotOrdering.one_ordering_cannot_attribute` already proves a single-ordering artifact cannot attribute a difference. So, exactly as P2.3 was run:",
           "lines": [
-            373,
-            383
+            402,
+            412
           ],
           "name": "6. Ordering and deconfounding",
           "type": "section"
@@ -166,8 +175,8 @@
         {
           "docstring": "For each of O1\u2013O4, a two-sided sign test across the 40 tasks.",
           "lines": [
-            384,
-            428
+            413,
+            457
           ],
           "name": "7. Verdict rule \u2014 fixed",
           "type": "section"
@@ -175,8 +184,8 @@
         {
           "docstring": "- Nothing about **answer quality** as a reader would judge it. That is P2.2 and it stays open. `dominance_says_nothing_about_answer_quality` continues",
           "lines": [
-            429,
-            440
+            458,
+            469
           ],
           "name": "8. What this cannot establish",
           "type": "section"
@@ -184,8 +193,8 @@
         {
           "docstring": "**DESIGNED. NOT RUN.** No P2.4 data exists as of this commit. The Lean design gate (`RotSaturation`, 12 theorems, 11/11 mutants killed) is in place; t",
           "lines": [
-            441,
-            446
+            470,
+            475
           ],
           "name": "9. Status",
           "type": "section"
@@ -194,7 +203,7 @@
     },
     "TRAP-PREREGISTRATION.md": {
       "hash": "c48db2fa80e8",
-      "indexed_at": "2026-08-11T15:58:06.864558+00:00",
+      "indexed_at": "2026-08-11T22:11:31.130394+00:00",
       "language": "markdown",
       "lines": 168,
       "mtime_ns": 1786310602072948200,
@@ -312,7 +321,7 @@
     },
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-11T15:58:06.846961+00:00",
+      "indexed_at": "2026-08-11T22:11:31.102698+00:00",
       "language": "javascript",
       "lines": 101,
       "mtime_ns": 1786205762889294800,
@@ -349,7 +358,7 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-11T15:58:06.849246+00:00",
+      "indexed_at": "2026-08-11T22:11:31.104818+00:00",
       "language": "javascript",
       "lines": 180,
       "mtime_ns": 1786277368570225200,
@@ -404,7 +413,7 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-11T15:58:06.852027+00:00",
+      "indexed_at": "2026-08-11T22:11:31.107615+00:00",
       "language": "shell",
       "lines": 385,
       "mtime_ns": 1786277829886864600,
@@ -439,7 +448,7 @@
     },
     "calib-prompts.js": {
       "hash": "887a4f5e2997",
-      "indexed_at": "2026-08-11T15:58:06.853906+00:00",
+      "indexed_at": "2026-08-11T22:11:31.109605+00:00",
       "language": "javascript",
       "lines": 219,
       "mtime_ns": 1786292666878221500,
@@ -513,7 +522,7 @@
     },
     "calib-score.js": {
       "hash": "b0381a1edbd7",
-      "indexed_at": "2026-08-11T15:58:06.855725+00:00",
+      "indexed_at": "2026-08-11T22:11:31.112261+00:00",
       "language": "javascript",
       "lines": 135,
       "mtime_ns": 1786295190750693100,
@@ -543,7 +552,7 @@
     },
     "calib-select.js": {
       "hash": "1e81c694de06",
-      "indexed_at": "2026-08-11T15:58:06.856911+00:00",
+      "indexed_at": "2026-08-11T22:11:31.113436+00:00",
       "language": "javascript",
       "lines": 125,
       "mtime_ns": 1786292666880220900,
@@ -552,7 +561,7 @@
     },
     "calib-verdict.js": {
       "hash": "9c6c50ce2439",
-      "indexed_at": "2026-08-11T15:58:06.858241+00:00",
+      "indexed_at": "2026-08-11T22:11:31.116087+00:00",
       "language": "javascript",
       "lines": 119,
       "mtime_ns": 1786292666880220900,
@@ -590,7 +599,7 @@
     },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-11T15:58:06.859307+00:00",
+      "indexed_at": "2026-08-11T22:11:31.117247+00:00",
       "language": "javascript",
       "lines": 105,
       "mtime_ns": 1786277739693226100,
@@ -619,7 +628,7 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-11T15:58:06.860921+00:00",
+      "indexed_at": "2026-08-11T22:11:31.119419+00:00",
       "language": "javascript",
       "lines": 136,
       "mtime_ns": 1786280334426837900,
@@ -674,7 +683,7 @@
     },
     "pilot-rescore.js": {
       "hash": "db386b9df1b6",
-      "indexed_at": "2026-08-11T18:38:56.884084+00:00",
+      "indexed_at": "2026-08-11T22:11:31.125472+00:00",
       "language": "javascript",
       "lines": 110,
       "mtime_ns": 1786473534444558500,
@@ -721,7 +730,7 @@
     },
     "pilot-score.js": {
       "hash": "d6872242d77d",
-      "indexed_at": "2026-08-11T16:48:39.438288+00:00",
+      "indexed_at": "2026-08-11T22:11:31.127062+00:00",
       "language": "javascript",
       "lines": 148,
       "mtime_ns": 1786466916991589100,
@@ -760,7 +769,7 @@
     },
     "trap-latency.js": {
       "hash": "ac1796e5e1d6",
-      "indexed_at": "2026-08-11T15:58:06.862872+00:00",
+      "indexed_at": "2026-08-11T22:11:31.128602+00:00",
       "language": "javascript",
       "lines": 117,
       "mtime_ns": 1786311490514862800,
@@ -815,7 +824,7 @@
     },
     "trap-parse-controls.js": {
       "hash": "22761c05b246",
-      "indexed_at": "2026-08-11T15:58:06.863822+00:00",
+      "indexed_at": "2026-08-11T22:11:31.129597+00:00",
       "language": "javascript",
       "lines": 71,
       "mtime_ns": 1786310427035946800,
@@ -835,7 +844,7 @@
     },
     "trap-prompts.js": {
       "hash": "7a1e67e2adbd",
-      "indexed_at": "2026-08-11T15:58:06.865945+00:00",
+      "indexed_at": "2026-08-11T22:11:31.135962+00:00",
       "language": "javascript",
       "lines": 146,
       "mtime_ns": 1786307254658034100,
@@ -882,7 +891,7 @@
     },
     "trap-score-controls.js": {
       "hash": "d5ebc297f989",
-      "indexed_at": "2026-08-11T15:58:06.867177+00:00",
+      "indexed_at": "2026-08-11T22:11:31.137342+00:00",
       "language": "javascript",
       "lines": 72,
       "mtime_ns": 1786315174453429600,
@@ -928,7 +937,7 @@
     },
     "trap-score.js": {
       "hash": "4652f9c3c658",
-      "indexed_at": "2026-08-11T15:58:06.869010+00:00",
+      "indexed_at": "2026-08-11T22:11:31.139373+00:00",
       "language": "javascript",
       "lines": 221,
       "mtime_ns": 1786315206953430500,
@@ -1004,7 +1013,7 @@
     },
     "work-trace.js": {
       "hash": "fffe54e2ca5c",
-      "indexed_at": "2026-08-11T15:58:06.871500+00:00",
+      "indexed_at": "2026-08-11T22:11:31.145613+00:00",
       "language": "javascript",
       "lines": 328,
       "mtime_ns": 1786346150021870500,
@@ -1096,6 +1105,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T20:15:48.025406+00:00",
+  "generated_at": "2026-08-11T22:11:31.853899+00:00",
   "version": "1.0"
 }

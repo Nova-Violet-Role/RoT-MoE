@@ -170,4 +170,66 @@ have to guard. -/
 theorem the_pilot_comparison_reaches_no_verdict :
     runVerdict ⟨2, 2⟩ = Verdict.notSupported := by decide
 
+/-! ## THE CONTROL AS RUN — 2026-08-11
+
+Two routed arms, twelve tasks each, same corpus, same plugin, same primary rule
+(R4-committed), scored through the identical code path as the A/B analysis
+(`bench/pilot-rescore.js` on the A/A pair).
+
+| arm | route records | R4 score |
+|---|---|---|
+| routed #1 | 165 | 6 / 12 |
+| routed #2 | 167 | 8 / 12 |
+
+Discordant pairs **6**, favouring the first arm **2**. Both arms confirmed
+plugin-ARMED, so the manipulation check holds in the direction that matters for
+a control: *neither* arm was silently unrouted. -/
+
+/-- The A/A comparison as measured. -/
+def measuredAA : Comparison := ⟨6, 2⟩
+
+/-- The A/B pilot comparison as measured, under the same primary rule. -/
+def measuredAB : Comparison := ⟨2, 2⟩
+
+/-- **THE CONTROL PASSED.** It ran (6 discordant pairs), the apparatus found no
+support in two identical arms, and the split was not a sweep. This is what
+licenses reading an A/B result from the same pipeline at all. -/
+theorem the_null_control_passed :
+    controlRan measuredAA = true
+      ∧ aaClean measuredAA = true
+      ∧ sweep measuredAA = false
+      ∧ controlAdmissible measuredAA = true := by decide
+
+/-- **And it did not pass by being empty or lopsided** — the two ways a control
+can look clean while testing nothing. -/
+theorem the_control_passed_on_its_merits :
+    0 < measuredAA.discordant
+      ∧ measuredAA.favouring ≠ 0
+      ∧ measuredAA.favouring ≠ measuredAA.discordant := by decide
+
+/-- **The finding the control was built to produce, and it is not flattering.**
+Two IDENTICAL arms disagreed on 6 of 12 tasks and split those 2–4. The A/B pilot
+disagreed on 2 and split those 2–0. **The A/B difference (2) is no larger than
+the difference between two copies of the same arm (2), and points the other
+way.** The pilot's apparent advantage is inside the range identical arms
+produce — which is precisely what a null control exists to reveal, and precisely
+what no amount of A/B data could have told us. -/
+theorem the_ab_difference_is_within_aa_noise :
+    (measuredAB.favouring - (measuredAB.discordant - measuredAB.favouring))
+      ≤ (measuredAA.discordant - measuredAA.favouring) - measuredAA.favouring := by decide
+
+/-- **Neither comparison reaches a verdict**, and the A/B one is *reportable*
+only because the control was admissible. `reportable` returns `some` here; had
+the control failed it would return `none`. -/
+theorem the_ab_result_is_reportable_and_is_a_null :
+    reportable measuredAA measuredAB = some Verdict.notSupported := by decide
+
+/-- **The control could have voided the release and did not.** Stated with the
+counterfactual beside it so the pass is legible as a measurement rather than a
+formality: had the same six discordant pairs fallen one way, the control would
+have refused. -/
+theorem a_swept_version_of_this_very_control_would_have_refused :
+    controlAdmissible measuredAA = true
+      ∧ controlAdmissible ⟨measuredAA.discordant, measuredAA.discordant⟩ = false := by decide
+
 end RotMoE.NullControl
