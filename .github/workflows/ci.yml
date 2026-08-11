@@ -1088,6 +1088,23 @@ jobs:
       - name: hook footprint -- no network, no lake, Lean stays optional
         run: bash checker/hook-footprint.sh
 
+      # The static half only. The freshness half asks the API for the age of each
+      # workflow's youngest GREEN run, and inside a run of this very workflow that
+      # question is partly self-referential -- so it is measured from gate-all.sh
+      # on a developer machine. Exit 3 is this repository's skip code; it is
+      # accepted HERE and only here, and `checker/ci-log-skips.sh` requires the
+      # skip to be declared rather than silently swallowed.
+      - name: workflow roles -- a docs manager may not write code
+        run: |
+          set -uo pipefail
+          bash checker/workflow-roles.sh
+          ec=$?
+          case "$ec" in
+            0) echo "workflow-roles: PASS" ;;
+            3) echo "::notice::workflow-roles SKIPPED its API half (exit 3) -- not a pass, measured from gate-all.sh instead" ;;
+            *) exit "$ec" ;;
+          esac
+
       - name: axiom audit -- #print axioms on every theorem, zero sorryAx
         run: LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/axiom-audit.sh
 

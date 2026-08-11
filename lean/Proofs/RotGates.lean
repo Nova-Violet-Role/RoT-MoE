@@ -257,6 +257,12 @@ def shipped : List Gate :=
     -- whose absence let three runs report the same error while the repair sat
     -- uncommitted on one machine.
   , d "CI audit freshness (the run you read vs the tree you fixed) -- exit 3 SKIP without a credential" [".github/workflows/", "hooks/", "checker/"]
+    -- DEEP because the half that matters needs the network: the age of each
+    -- workflow's youngest GREEN run, which is not the age of its newest run.
+    -- Measured 2026-08-11, the docs manager's newest run was 19 h old and its
+    -- newest success 173 h old, so "did it run" called a workflow that had been
+    -- red for a week the freshest in the repository.
+  , d "workflow roles (a docs manager may not write code; freshness is measured on the youngest GREEN run, never the newest run)" [".github/workflows/", "checker/workflow-roles.sh", "lean/Proofs/RotWorkflowRoles.lean"]
   , f "dorks"
   , f "hook footprint"
   -- FAST because it reads two files in this repository and compares them to
@@ -428,18 +434,20 @@ def shipped : List Gate :=
 -- CAN move, added after two of the three published primaries were proved
 -- incapable of showing a win. It needs the raw transcripts, which are not
 -- committed, so in CI it can only skip.
--- 57 since 2026-08-10, when `mutation harness integrity` joined the deep tier.
-#guard shipped.length = 57
+-- 58 since 2026-08-11, when `workflow roles` joined the deep tier -- the gate
+-- that measures each workflow's youngest GREEN run rather than its newest run.
+#guard shipped.length = 58
 
 -- THIRTY-SEVEN run on every commit. The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
 -- prose is what a reader believes. Both are recounted together from now on.
 #guard (fastSet shipped).length = 37
 
--- TWENTY are escalated by path (`CI honesty` joined 2026-08-05, `A/B
--- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10).
+-- TWENTY-ONE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
+-- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
+-- `workflow roles` 2026-08-11).
 -- This comment read "Sixteen" against a guard of 19 for the same reason.
-#guard (deepSet shipped).length = 20
+#guard (deepSet shipped).length = 21
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

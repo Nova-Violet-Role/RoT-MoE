@@ -23,6 +23,82 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The freshest workflow in the repository had been broken for a week
+
+Four hand-written workflows, and until now the split between them lived in a
+comment. Two are **code gates** (`ci.yml`, `verify.yml`); two are **documentation
+managers** (`ads-manager.yml`, `tag-manager.yml`) whose job is to keep the
+repository alive between commits — the reason a visitor sees a project that moved
+today rather than one that stopped in August.
+
+Measured through the API on 2026-08-11:
+
+| workflow | newest run | youngest green |
+|---|---|---|
+| `tag-manager.yml` | success, 20 h | 20 h |
+| `verify.yml` | success, 21 h | 21 h |
+| `ci.yml` | success, 42 h | 42 h |
+| `ads-manager.yml` | **failure, 19 h** | **173 h** |
+
+Read the "newest run" column alone and the docs manager is the *healthiest* thing
+in the repository: nineteen hours, fresher than everything else. It had been red
+for seven days. The obvious freshness test — *has this run lately* — gives exactly
+the wrong answer, and gives it confidently.
+
+`lean/Proofs/RotWorkflowRoles.lean` decides the gap.
+`a_workflow_that_runs_is_not_a_workflow_that_works` shows the two tests
+disagreeing on the real numbers, and `the_healthy_three_agree_under_the_same_bound`
+shows the disagreement is a property of that workflow's state rather than an
+artefact of the bound chosen. The repair is not a swap:
+`green_freshness_is_strictly_stronger` proves, for **every** workflow and **every**
+bound, that anything the green test accepts the naive test accepts too — so
+measuring the youngest success can only ever reject more. The converse fails, and
+`the_naive_test_does_not_imply_the_honest_one` carries the witness.
+
+The role split is now a predicate rather than an intention.
+`a_docs_manager_may_not_write_to_the_proofs` and
+`a_docs_manager_may_not_write_to_the_router` refuse a scheduled job with
+`contents: write` that reaches into `lean/` or `hooks/`, and
+`the_allowlist_refuses_something` is the anti-vacuity witness — an allowlist that
+accepted everything would leave every other theorem green and meaningless.
+`neither_half_alone_is_enough` closes the last gap: a workflow cannot buy a pass
+with the easier clause.
+
+One premise is corrected here because it changes what may be claimed. Dependabot
+cannot be the documentation engine. Its only ecosystem in this repository is
+`github-actions` at `directory: "/"`, which edits workflow files — that is,
+**exclusively code gates**, the opposite of docs-only. There is no key that scopes
+it to named files; `ignore` filters by dependency name, never by path. Document
+freshness is the cron managers' job and nobody else's, which is why one of them
+being quietly red is a defect rather than an inconvenience.
+
+A second correction, on the author, in the same session: the first measurement of
+branch protection used `/branches/main/protection`, which answered
+`Branch not protected`. That would have been a false accusation against a comment
+in `ads-manager.yml` claiming four required checks. The legacy endpoint returns
+that for a repository protected by a **ruleset**, and `/rules/branches/main`
+reports the truth: `deletion`, `non_fast_forward`, and four required status
+checks. The comment was right and the instrument was wrong.
+`an_unregistered_gate_is_not_enforced` now pins the four measured contexts, with a
+witness that a plausible-looking name nobody registered is *not* enforced.
+
+`checker/workflow-roles.sh` binds all of it to the tree: roles declared and every
+workflow on disk required to carry one, the forbidden-path rule with both controls
+(a workflow writing `lean/Proofs` must be caught; one writing only `README.md`
+must not), cron presence, and the API half that reports **both** ages side by side
+so the difference is visible in the log rather than asserted in prose. Without a
+credential it exits 3 — a skip, never a pass.
+
+It is registered as a deep gate and **it is currently RED**, for the true reason:
+the documentation manager's last success really is older than the bound. That
+stays red until a green run exists; a checker adjusted to accept the state it was
+written to detect would be worth nothing.
+
+Mutants W01–W06: measure the newest run instead of the newest success, make the
+scope check always true, widen the allowlist by one path, drop the freshness
+conjunct, make every context report as enforced, or exempt the docs managers from
+their own role — six ran, six killed.
+
 ### A red CI job was right about the symptom and wrong about the cause
 
 The **Ads Manager** workflow has been failing on `cef996e` since 10 August:
@@ -142,7 +218,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 679 applied, 679 killed,
+statistic. Across the whole tree the suites now stand at 685 applied, 685 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -494,7 +570,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **679 applied, 679 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **685 applied, 685 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse` and 3 more for the plan audit, each run and killed here — and
 `CITATION.cff` moved from 1083 to the measured 1310 theorems.

@@ -98,6 +98,7 @@ mutation discipline|fast||bash checker/mutant-discipline.sh
 mutant needles (every needle still exists; no suite all-DISCARDED)|fast||bash checker/mutant-needles.sh
 local-only 1.0.x release regenerates from HEAD and cannot be published|deep|.claude-plugin/,CITATION.cff,RELEASE.md,checker/release|bash checker/release-local.sh
 CI audit freshness (the run you read vs the tree you fixed) -- exit 3 SKIP without a credential|deep|.github/workflows/,hooks/,checker/|bash checker/ci-audit-freshness.sh
+workflow roles (a docs manager may not write code; freshness is measured on the youngest GREEN run, never the newest run)|deep|.github/workflows/,checker/workflow-roles.sh,lean/Proofs/RotWorkflowRoles.lean|bash checker/workflow-roles.sh
 dorks|fast||bash checker/dorks.sh
 hook footprint|fast||bash checker/hook-footprint.sh
 hook timeout|fast||bash checker/hook-timeout.sh

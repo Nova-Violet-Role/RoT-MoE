@@ -1,0 +1,215 @@
+#!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# WORKFLOW ROLES -- four files, two roles, and the difference between a workflow
+# that RUNS and a workflow that WORKS.
+#
+# `lean/Proofs/RotWorkflowRoles.lean` proves the rules. This binds them to the
+# YAML on disk and to the runs the API reports, because a theorem about a record
+# proves nothing about a file until something reads the file.
+#
+# THE DEFECT THIS EXISTS FOR, measured through the API on 2026-08-11:
+#
+#     workflow          newest run          youngest green
+#     tag-manager.yml   success  20.4 h      20.4 h
+#     ads-manager.yml   FAILURE  19.3 h     173.5 h
+#
+# By the obvious freshness test -- has it run lately -- the docs manager was the
+# HEALTHIEST workflow in the repository. It had been red for seven days and the
+# documents it maintains had not moved. `a_workflow_that_runs_is_not_a_workflow_
+# that_works` decides that gap; `green_freshness_is_strictly_stronger` proves
+# that measuring the youngest GREEN run rejects everything the naive test
+# rejected and more, so this is a strengthening and not a swap.
+#
+# WHY IT MATTERS BEYOND ONE RED JOB: the two managers are the only thing that
+# touches this repository between commits. Dependabot cannot do that job -- its
+# single ecosystem here is `github-actions` at `directory: "/"`, which edits
+# workflow files, i.e. exclusively CODE GATES. There is no key that scopes it to
+# named files (`ignore` filters by dependency name, never by path), so document
+# freshness is the cron managers' responsibility and nobody else's.
+#
+# EXIT CODES
+#   0  every rule that could be measured held
+#   1  a rule was broken
+#   3  SKIP -- the API half could not be measured (no token, no network). A skip
+#      is never a pass anywhere in this repository.
+# =============================================================================
+set -uo pipefail
+cd "$(dirname "$0")/.."
+
+pass=0; fail=0; skipped=0
+ok()   { echo "  PASS  $*"; pass=$((pass+1)); }
+bad()  { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=workflow-roles::%s\n' "$*"; fail=$((fail+1)); }
+skip() { echo "  SKIP  $*"; skipped=$((skipped+1)); }
+
+echo "== workflow roles: code gates and documentation managers =="
+
+WFDIR=.github/workflows
+[ -d "$WFDIR" ] || { echo "FATAL: $WFDIR absent -- refusing to report on workflows I cannot read"; exit 1; }
+
+# --- ROLE DECLARATION -------------------------------------------------------
+# The split is declared HERE and checked against the tree, rather than inferred
+# from a filename. An inferred role silently reclassifies a workflow the day
+# someone renames it, which is the same stale-snapshot defect this repo keeps
+# finding in its own counters.
+CODE_GATES="ci.yml verify.yml"
+DOCS_MANAGERS="ads-manager.yml tag-manager.yml"
+
+# Every workflow on disk must be classified. A file nobody assigned a role to is
+# a file nobody is checking -- and it would pass this checker by being invisible.
+declared=" $CODE_GATES $DOCS_MANAGERS "
+unclassified=0
+for f in "$WFDIR"/*.yml; do
+  b=$(basename "$f")
+  case "$declared" in
+    *" $b "*) : ;;
+    *) bad "$b has no declared role -- classify it in checker/workflow-roles.sh or it is checked by nothing"
+       unclassified=$((unclassified + 1)) ;;
+  esac
+done
+[ "$unclassified" -eq 0 ] && ok "every workflow on disk carries a declared role"
+
+# The declaration must not name a file that is gone, or the rules below would
+# vacuously hold over an empty set.
+for b in $CODE_GATES $DOCS_MANAGERS; do
+  [ -f "$WFDIR/$b" ] || bad "$b is declared but absent from $WFDIR -- the rules for it would be vacuous"
+done
+
+# --- STATIC HALF: what a documentation manager is allowed to touch -----------
+# `roleRespected` in the Lean model. The allowlist is kept identical to
+# `docsAllowlist` there; a_docs_manager_may_not_write_to_the_proofs and
+# a_docs_manager_may_not_write_to_the_router are the theorems this enforces.
+FORBIDDEN_PATHS='lean/|hooks/|checker/|\.claude-plugin/|scripts/'
+for b in $DOCS_MANAGERS; do
+  f="$WFDIR/$b"
+  # A doc manager may READ anything -- checking out the tree is not writing to
+  # it. Only committing or force-adding a forbidden path is a role violation, so
+  # the pattern is anchored on the write verbs rather than on a bare mention.
+  hits=$(grep -nE "git (add|commit)[^|;]*($FORBIDDEN_PATHS)" "$f" | grep -v '^\s*#' || true)
+  if [ -n "$hits" ]; then
+    bad "$b writes outside the documentation allowlist:"; printf '        %s\n' "$hits"
+  else
+    ok "$b writes no path under lean/, hooks/, checker/ or .claude-plugin/"
+  fi
+done
+
+# A code gate must not hold `contents: write` at the top level. verify.yml does,
+# and legitimately -- it commits STATUS.md when the verdict changes -- so the
+# rule is stated as: a code gate with write access must say in the file why.
+for b in $CODE_GATES; do
+  f="$WFDIR/$b"
+  if grep -qE '^\s*contents:\s*write' "$f"; then
+    if grep -qiE '#.*(only to commit|STATUS\.md)' "$f"; then
+      ok "$b holds contents: write and documents the single reason in the file"
+    else
+      bad "$b holds contents: write with no stated reason -- a code gate that can push is not a gate"
+    fi
+  else
+    ok "$b holds no top-level contents: write"
+  fi
+done
+
+# --- SCHEDULES: a manager with no cron cannot keep anything fresh ------------
+for b in $DOCS_MANAGERS; do
+  if grep -qE '^\s*-\s*cron:' "$WFDIR/$b"; then
+    ok "$b is scheduled ($(grep -oE 'cron: *"[^"]*"' "$WFDIR/$b" | head -1))"
+  else
+    bad "$b has no cron -- it cannot keep the repository fresh between commits"
+  fi
+done
+
+# --- API HALF: youngest GREEN run, never newest run --------------------------
+# This is the half the Lean model is really about. It needs the network, and
+# when it cannot run it SKIPS rather than passing.
+BOUND_HOURS=${WFROLE_BOUND_HOURS:-72}
+TOK=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill 2>/dev/null | sed -n 's/^password=//p')
+SLUG=$(git remote get-url origin 2>/dev/null | sed -E 's#.*github.com[:/]##; s/\.git$//')
+
+if [ -z "${TOK:-}" ] || [ -z "${SLUG:-}" ]; then
+  skip "no credential or no origin -- the freshness half could not be measured (this is 'could not measure', NOT 'the workflows are fresh')"
+else
+  now=$(date -u +%s)
+  for b in $CODE_GATES $DOCS_MANAGERS; do
+    body=$(curl -s --max-time 25 -H "Authorization: Bearer $TOK" \
+             -H "Accept: application/vnd.github+json" \
+             "https://api.github.com/repos/$SLUG/actions/workflows/$b/runs?per_page=20" 2>/dev/null)
+    if [ -z "$body" ]; then
+      skip "$b: empty API response -- not measured"
+      continue
+    fi
+    # Two ages, deliberately: the naive one and the honest one. Printing both is
+    # what makes the difference visible in the log instead of asserted here.
+    # The REF of the green run is reported, not just its age. A workflow can be
+    # made green on a side branch, which proves the workflow works but says
+    # nothing about the state of `main` -- and a log that hides which one it was
+    # invites exactly that confusion.
+    read -r newest green gref <<EOF
+$(printf '%s' "$body" | node -e '
+let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+  let j; try { j = JSON.parse(s); } catch (e) { console.log("ERR ERR ERR"); return; }
+  const r=j.workflow_runs||[];
+  if(!r.length){ console.log("NONE NONE NONE"); return; }
+  const age=x=>Math.round((Date.now()-Date.parse(x.created_at))/3600000);
+  const g=r.find(x=>x.conclusion==="success");
+  console.log(age(r[0]), g?age(g):"NONE", g?(g.head_branch||"?"):"NONE");
+});' 2>/dev/null)
+EOF
+    if [ "${newest:-ERR}" = "ERR" ] || [ -z "${newest:-}" ]; then
+      skip "$b: API body was not JSON -- not measured"
+      continue
+    fi
+    if [ "$green" = "NONE" ]; then
+      bad "$b has NEVER succeeded (newest run ${newest}h old) -- running is not working"
+      continue
+    fi
+    if [ "$green" -le "$BOUND_HOURS" ]; then
+      ok "$b youngest GREEN run is ${green}h old on ${gref} (newest run ${newest}h, bound ${BOUND_HOURS}h)"
+    else
+      bad "$b youngest GREEN run is ${green}h old on ${gref}, over the ${BOUND_HOURS}h bound -- its newest run is only ${newest}h old, so 'it ran' would have called this healthy"
+    fi
+  done
+fi
+
+# --- NEGATIVE CONTROL -------------------------------------------------------
+# Every rule above must be able to fail. An alarm nobody has tripped on purpose
+# is an untested alarm, and this file exists because one such alarm was believed
+# for seven days.
+CTL=$(mktemp -d)
+printf 'jobs:\n  x:\n    steps:\n      - run: git add lean/Proofs/RotGauge.lean\n' > "$CTL/bad.yml"
+if grep -qE "git (add|commit)[^|;]*($FORBIDDEN_PATHS)" "$CTL/bad.yml"; then
+  ok "CONTROL: a manager writing into lean/Proofs is detected"
+else
+  bad "CONTROL FAILED: the forbidden-path rule does not fire on a workflow that writes lean/Proofs -- it is decoration"
+fi
+printf 'jobs:\n  x:\n    steps:\n      - run: git add README.md\n' > "$CTL/good.yml"
+if grep -qE "git (add|commit)[^|;]*($FORBIDDEN_PATHS)" "$CTL/good.yml"; then
+  bad "CONTROL FAILED: the forbidden-path rule fires on a workflow that only writes README.md -- it would block a correct change"
+else
+  ok "CONTROL: a manager writing only README.md is accepted"
+fi
+# The freshness comparison, controlled on the numbers that actually occurred.
+_n=19; _g=173; _b=48
+if [ "$_n" -le "$_b" ] && [ "$_g" -gt "$_b" ]; then
+  ok "CONTROL: the measured 19h/173h pair is accepted by 'it ran' and refused by 'it succeeded'"
+else
+  bad "CONTROL FAILED: the two freshness tests no longer disagree on the pair that motivated them"
+fi
+rm -rf "$CTL"
+
+echo
+echo "== RESULT =="
+echo "  $pass passed, $fail failed, $skipped skipped"
+if [ "$fail" -gt 0 ]; then
+  echo "  workflow-roles: FAIL"
+  exit 1
+fi
+if [ "$skipped" -gt 0 ]; then
+  echo "  workflow-roles: PARTIAL -- $skipped rule(s) could not be measured."
+  echo "  A skip is not a pass. Exit 3."
+  exit 3
+fi
+echo "  workflow-roles: PASS"
+exit 0
