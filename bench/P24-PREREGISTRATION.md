@@ -99,6 +99,66 @@ theorem that stops this margin from being quietly set to 0.
 
 **If the pilot is inadmissible the corpus is rebuilt, not the rule.**
 
+### AMENDMENT 1 (2026-08-11) — the gate above was unsatisfiable, and that is a
+### defect in this document, not in the corpus
+
+`admissibleBy m` requires margin `m` in BOTH directions: `m ≤ hits` and
+`m ≤ outOf − hits`. At the 10-task pilot fixed above with `m = 8` that demands
+`hits ≥ 8` and `hits ≤ 2` simultaneously. **No outcome whatsoever satisfies it.**
+`the_preregistered_gate_admitted_no_outcome` proves it; the corpus would have
+been refused however the pilot had gone, which makes the gate an unreachable
+bar rather than a strict one.
+
+The repair is NOT a margin chosen to let the observed pilot through — that is
+the "edit the spec to match the result" move this document exists to prevent.
+It is the general relationship, quantified over the size that moves:
+
+> `a_margin_is_reachable_iff_the_pilot_is_twice_its_size` —
+> a margin `m` is reachable on a pilot of `outOf` tasks **iff `2m ≤ outOf`**.
+
+Two consequences, both derived and neither chosen:
+
+* keeping `m = 8` requires a pilot of at least **16** pairs
+  (`margin_eight_needs_sixteen_pairs`);
+* keeping the 10-task pilot allows at most `m = 5`, and at `m = 5` exactly one
+  score admits, so a 10-task pilot cannot carry a margin with any room at all
+  (`a_ten_task_pilot_carries_a_margin_of_five_at_most`).
+
+**The choice is deferred, not made here**, because making it after seeing a
+pilot is precisely the contamination §5 guards against. What is fixed now is
+that whichever is chosen must satisfy `2m ≤ outOf`, and that the pilot of
+2026-08-11 was **INADMISSIBLE** under the gate as written
+(`the_measured_pilot_is_inadmissible`, `admissibleBy 8 ⟨3,12⟩ = false` and
+`admissibleBy 8 ⟨1,12⟩ = false`).
+
+### The pilot of 2026-08-11 — what was actually run
+
+12 paired tasks (3 per seed family, all ten router lanes), routed arm then
+unrouted arm, same prompts from `bench/pilot-prompts.txt`, same config
+directory. Manipulation check passed in both directions: **170** router route
+records carrying the routed session's id, **0** carrying the unrouted one.
+Raw record: `bench/pilot-pairs.jsonl`. Scorer: `bench/pilot-score.js`.
+
+O5 scoring rule, fixed before the results were read and applied identically to
+both arms: **success ⇔ the truth value appears in the final message and the
+naive value does not.** An answer stating both hedged and does not count.
+
+| | routed | unrouted |
+|---|---|---|
+| O5 success | 3 / 12 | 1 / 12 |
+| hedged (both numbers stated) | 6 | 6 |
+| paired wins | 2 | 0 |
+
+The paired result is 2 disagreements and 10 ties, so `n = 2` against a floor of
+10 — `the_pilot_cannot_conclude` proves the pilot reaches no verdict, which is
+what a pilot is for. **Nothing about H1 is claimed from this run.**
+
+The most informative single observation is not in the table: on F1-01 the routed
+arm answered **37** where the truth is 35, and `bench/work-trace.js` flagged that
+answer as an unsupported claim (O4 = 1) because no command it ran could establish
+a theorem count. The routed arm losing a task is exactly the outcome the
+three-outcome verdict rule was added to be able to report.
+
 ## 6. Ordering and deconfounding
 
 `RotOrdering.one_ordering_cannot_attribute` already proves a single-ordering

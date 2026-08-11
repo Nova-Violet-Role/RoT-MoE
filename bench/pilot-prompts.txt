@@ -1,0 +1,12 @@
+How many theorems does lean/Proofs/RotAbility.lean declare?
+The story of the RotDebugLog module: how many propositions does a human actually see?
+Which proposition count for the RotExperiment module is likely the correct one?
+Audit the mutant count in mutate/mutate_rotabjoin.sh -- is the obvious command wrong?
+Recommend the mutant figure to put in the roadmap for mutate/mutate_rotattribute.sh.
+Compress this to one number: the mutants in mutate/mutate_rotceiling.sh.
+Declare the exact RotMoE spelling count in README.md.
+A surreal thought: CHANGELOG-ARCHIVE.md may spell RotMoE zero times. True?
+Meta: how many exact RotMoE spellings are in ARM_ROUTER.sh?
+How many references to the local-only release path are in lean/mutate/mutate_rottag.sh?
+Priority check on checker/release-package.sh: how many local-only release references?
+In .codemap/.codemap.json, how many entries name the local-only release path?

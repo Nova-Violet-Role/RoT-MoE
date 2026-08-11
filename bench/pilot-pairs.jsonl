@@ -1,0 +1,336 @@
+{
+  "n": 12,
+  "armA_success": 3,
+  "armB_success": 1,
+  "ties": 10,
+  "routed_wins": 2,
+  "unrouted_wins": 0,
+  "hedged_A": 6,
+  "hedged_B": 6,
+  "rows": [
+    {
+      "id": "F1-01",
+      "family": "naive_count",
+      "lane": "FORGE",
+      "truth": "35",
+      "naive": "37",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 2,
+        "ms": 28093,
+        "answer": "It declares **35 theorems** — my earlier 37 included two `theorem` lines sitting inside `/- -/` comment blocks; stripping comments gives 35 distinct theorem nam"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 14,
+        "ms": 78654,
+        "answer": "Both are wrapped prose lines inside comments, not declarations. `lean/Proofs/RotAbility.lean` declares **35 theorems** (all with the `theorem` keyword at colum"
+      }
+    },
+    {
+      "id": "F1-04",
+      "family": "naive_count",
+      "lane": "EMPATHIC",
+      "truth": "18",
+      "naive": "19",
+      "arma": {
+        "present": true,
+        "success": true,
+        "truth_seen": true,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 4,
+        "ms": 70361,
+        "answer": "A human reading `lean/Proofs/RotDebugLog.lean` sees **21 propositions**: 18 named `theorem`s (§1 ambiguity, §2 marker, §3 rotation, §4 hook contract, plus the s"
+      },
+      "armb": {
+        "present": true,
+        "success": true,
+        "truth_seen": true,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 7,
+        "ms": 60228,
+        "answer": "`lean/Proofs/RotDebugLog.lean` puts 21 propositions in front of a reader: 18 named `theorem`s (§1 ambiguity ×5, §3 rotation ×4, §4 contract ×2, §R padding ×5, p"
+      }
+    },
+    {
+      "id": "F1-07",
+      "family": "naive_count",
+      "lane": "PREDICTIVE",
+      "truth": "66",
+      "naive": "68",
+      "arma": {
+        "present": true,
+        "success": true,
+        "truth_seen": true,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 2,
+        "ms": 20954,
+        "answer": "**66** is the correct count — the naive line count gives 69, but three of those `theorem` lines sit inside `/- -/` comment blocks (quoted/rejected propositions,"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 5,
+        "ms": 36102,
+        "answer": "**66** is the right count for `lean/Proofs/RotExperiment.lean` — that's what a strict declaration match gives (name followed by `(`, `:`, or `{`), and it's what"
+      }
+    },
+    {
+      "id": "F2-02",
+      "family": "definitions_vs_invocations",
+      "lane": "CLINICAL",
+      "truth": "8",
+      "naive": "9",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 5,
+        "ms": 51067,
+        "answer": "Yes — `grep -c run_mut` (and even the anchored `grep -c '^run_mut'`) returns **9**, but line 107 is the `run_mut() {` definition, so the real mutant count is **"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 5,
+        "ms": 28893,
+        "answer": "Yes — `grep -c run_mut` returns **9**, but one of those is the `run_mut()` definition at line 107; the suite actually runs **8** mutants, `A01`–`A08` (`grep -c "
+      }
+    },
+    {
+      "id": "F2-05",
+      "family": "definitions_vs_invocations",
+      "lane": "STRATEGIC",
+      "truth": "14",
+      "naive": "15",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 3,
+        "ms": 31320,
+        "answer": "Put **14** in the roadmap — `run_mut A01`–`A14` at lines 204–320, with `run_mut` invoked by exactly one driver (the `run_mut() {` definition at line 111 is what"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 3,
+        "ms": 14619,
+        "answer": "Put **14** in the roadmap — `mutate_rotattribute.sh` invokes `run_mut` fourteen times with distinct ids `A01`–`A14` (`grep -c run_mut` gives 15 only because it "
+      }
+    },
+    {
+      "id": "F2-08",
+      "family": "definitions_vs_invocations",
+      "lane": "STEALTH",
+      "truth": "8",
+      "naive": "9",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 2,
+        "ms": 15069,
+        "answer": "**8** — `run_mut C01`–`C08` at lines 200–235, with the ninth `run_mut` hit being the function definition at line 107. The header's \"The suite is 9 mutants\" (li"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 3,
+        "ms": 11194,
+        "answer": "**8** — `mutate_rotceiling.sh` invokes `run_mut` eight times, ids `C01`–`C08` (lines 200–235), each id used exactly once. The raw `grep -c run_mut` figure of 9 "
+      }
+    },
+    {
+      "id": "F3-03",
+      "family": "module_case",
+      "lane": "EXECUTIVE",
+      "truth": "0",
+      "naive": "9",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 2,
+        "ms": 23964,
+        "answer": "**Zero.** The exact spelling `RotMoE` occurs 0 times in `README.md` — the file uses `RoT MoE` (14 occurrences, the prose/product name) and `ROTMOE` (9, the env-"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 3,
+        "ms": 14682,
+        "answer": "The exact spelling `RotMoE` occurs **0 times** in README.md — it never appears in that form. What's actually there are 19 `rot-moe`, 14 `RoT MoE`, 9 `ROTMOE` (t"
+      }
+    },
+    {
+      "id": "F3-06",
+      "family": "module_case",
+      "lane": "CREATIVE",
+      "truth": "0",
+      "naive": "3",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": true,
+        "naive_seen": true,
+        "hedged": true,
+        "turns": 2,
+        "ms": 14199,
+        "answer": "True — `CHANGELOG-ARCHIVE.md` (583 lines) contains the exact spelling `RotMoE` **0 times**, and unlike the README it also never uses `RoT MoE` (0 occurrences); "
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": true,
+        "hedged": false,
+        "turns": 3,
+        "ms": 12058,
+        "answer": "True — `CHANGELOG-ARCHIVE.md` (583 lines) contains the exact spelling `RotMoE` zero times. The name appears only as `ROTMOE` (3×, the env-var prefix) and `RoT-M"
+      }
+    },
+    {
+      "id": "F3-09",
+      "family": "module_case",
+      "lane": "RECURSIVE",
+      "truth": "0",
+      "naive": "1",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 2,
+        "ms": 14129,
+        "answer": "**Zero** — `ARM_ROUTER.sh` (328 lines) never uses the exact spelling `RotMoE`; it uses `RoT MoE` 4 times and lowercase `rotmoe` once. That makes three files in"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": true,
+        "hedged": false,
+        "turns": 3,
+        "ms": 9455,
+        "answer": "**Zero** — `ARM_ROUTER.sh` (328 lines) never uses the exact spelling `RotMoE`. It writes the name as `RoT MoE` (4×), `RoT-MoE` (3×), and `rotmoe` (1×)."
+      }
+    },
+    {
+      "id": "F4-01",
+      "family": "path_that_ships",
+      "lane": "FORGE",
+      "truth": "0",
+      "naive": "6",
+      "arma": {
+        "present": true,
+        "success": true,
+        "truth_seen": true,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 3,
+        "ms": 26413,
+        "answer": "**Zero.** `lean/mutate/mutate_rottag.sh` (348 lines) contains no reference to the local-only release path in any spelling — `.release-local-only`, `local-only`,"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 3,
+        "ms": 20647,
+        "answer": "**Zero** — `lean/mutate/mutate_rottag.sh` (348 lines) contains no reference to `.release-local-only` or any `local-only` spelling. The six `.release` hits are a"
+      }
+    },
+    {
+      "id": "F4-05",
+      "family": "path_that_ships",
+      "lane": "STRATEGIC",
+      "truth": "0",
+      "naive": "1",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 3,
+        "ms": 25114,
+        "answer": "**Zero.** `checker/release-package.sh` (474 lines) has no local-only reference in any spelling; its only release-path reference is line 104, `OUT=\"${ROTMOE_RELE"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 3,
+        "ms": 27739,
+        "answer": "**Zero** — `checker/release-package.sh` (474 lines) has no occurrence of `.release-local-only` or any `local-only` / `LOCAL_ONLY` spelling. Worth flagging: the"
+      }
+    },
+    {
+      "id": "F4-10",
+      "family": "path_that_ships",
+      "lane": "CONVERGENT",
+      "truth": "2",
+      "naive": "3",
+      "arma": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 3,
+        "ms": 25832,
+        "answer": "**Two** — both are exclude patterns, `config.exclude_patterns[18]` = `**/.release-local-only/**` and `[19]` = `**/.release-local-only.count/**`; no key, no `dir"
+      },
+      "armb": {
+        "present": true,
+        "success": false,
+        "truth_seen": false,
+        "naive_seen": false,
+        "hedged": false,
+        "turns": 5,
+        "ms": 20123,
+        "answer": "**Two** — both are `exclude_patterns` entries at lines 22–23: `**/.release-local-only/**` and `**/.release-local-only.count/**`. They're distinct array elements"
+      }
+    }
+  ]
+}

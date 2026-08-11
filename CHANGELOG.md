@@ -23,6 +23,58 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The pilot ran, and the gate that was supposed to judge it could never pass
+
+`pilot12Pairs` is **MET** — 2 of 6 push-guard obligations now closed. 12 paired
+tasks, routed arm then unrouted, 24 real sessions. Manipulation check clean in
+both directions: **170** router route records carrying the routed session's id,
+**0** carrying the unrouted one. Raw record in `bench/pilot-pairs.jsonl`.
+
+**The pilot is INADMISSIBLE, and the fault is in the specification.** Section 5
+admits the corpus only if `admissibleBy 8` holds on a 10-task pilot. That gate
+wants margin in *both* directions — `8 ≤ hits` and `8 ≤ outOf − hits` — which at
+`outOf = 10` demands `hits ≥ 8` and `hits ≤ 2` at once. **No outcome satisfies
+it**, so the corpus would have been refused however the pilot had gone.
+`the_preregistered_gate_admitted_no_outcome` proves it.
+
+The repair is not a margin chosen to let this pilot through. It is the general
+relationship, quantified over the size that moves:
+`a_margin_is_reachable_iff_the_pilot_is_twice_its_size` — a margin `m` is
+reachable on `outOf` tasks **iff `2m ≤ outOf`**. Keeping `m = 8` needs 16 pairs;
+keeping the 10-task pilot allows `m ≤ 5`, and at 5 exactly one score admits. The
+choice between them is **deferred**, because making it after seeing a pilot is
+the contamination section 5 exists to prevent.
+
+**A claim of mine was proved false by `decide` mid-edit.** I wrote
+`twelve_pairs_admit_exactly_one_score = [4]`, reasoning that `up ⟨4,12⟩ = 8` met
+the margin. `decide` refused it: the gate also wants `down ⟨4,12⟩ = 4 ≥ 8`. The
+theorem is recorded as `twelve_pairs_admit_no_score` — the form the kernel
+accepted, not the form I guessed.
+
+**Measured result, scoring rule fixed before the results were read** (success ⇔
+the truth value appears and the naive value does not, applied identically to
+both arms):
+
+| | routed | unrouted |
+|---|---|---|
+| O5 success | 3 / 12 | 1 / 12 |
+| hedged (both numbers stated) | 6 | 6 |
+| paired wins | 2 | 0 |
+
+Two disagreements and ten ties means `n = 2` against a floor of 10, so
+`the_pilot_cannot_conclude` proves this run reaches no verdict — which is what a
+pilot is for. **Nothing about H1 is claimed.** The most informative single
+observation is that on F1-01 the routed arm answered **37** where the truth is
+35, and `bench/work-trace.js` flagged it as an unsupported claim because no
+command it ran could establish a theorem count. The routed arm losing a task is
+exactly what the new three-outcome rule exists to be able to report.
+
+New: `bench/pilot-prompts.txt`, `bench/pilot-manifest.jsonl`,
+`bench/pilot-score.js`, `bench/pilot-pairs.jsonl`, AMENDMENT 1 in
+`bench/P24-PREREGISTRATION.md`. `mutate_rotfamily.sh` grew to 10 mutants; M09
+reproduces the original defect by dropping the factor of two, M10 claims the
+measured pilot passed the gate. Both killed.
+
 ### The first promise obligation is MET: a 40-task corpus that discriminates and routes
 
 `bench/corpus-40.jsonl` now exists — 40 tasks, 10 per seed family, fixed before
@@ -214,7 +266,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1433 theorems, 76 modules, 70 suites, 733 mutants, 71 checkers.
+1440 theorems, 76 modules, 70 suites, 735 mutants, 71 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -273,7 +325,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1433 theorems, 76 modules, 70 suites, 733 mutants, 71 checkers.
+1440 theorems, 76 modules, 70 suites, 735 mutants, 71 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -718,7 +770,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 733 applied, 733 killed,
+statistic. Across the whole tree the suites now stand at 735 applied, 735 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1070,7 +1122,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **733 applied, 733 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **735 applied, 735 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and

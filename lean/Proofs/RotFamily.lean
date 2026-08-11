@@ -5,6 +5,7 @@
     Authors: Saimonokuma
 -/
 import Proofs.RotExperiment
+import Proofs.RotSaturation
 
 /-! # `m` was never settled, and the verdict could not say "contradicted"
 
@@ -253,5 +254,83 @@ theorem every_result_has_an_outcome (m n k : Nat) :
   by_cases h : verdictM m n k = Verdict.supported
   · simp [h]
   · by_cases h2 : verdictM m n (n - k) = Verdict.supported <;> simp [h, h2]
+
+/-! ## The admissibility gate was unsatisfiable at the preregistered pilot size
+
+Section 5 admits the corpus only if `RotMoE.Saturation.admissibleBy 8` holds on
+a **10-task** pilot. That gate asks for margin `m` in BOTH directions:
+`m ≤ hits` and `m ≤ outOf - hits`. At `outOf = 10` with `m = 8` it demands
+`hits ≥ 8` and `hits ≤ 2` at once — **no outcome whatsoever can satisfy it**.
+
+This is the mirror of a spec that forbids a correct future: a spec that forbids
+*every* future. It is not a strict gate, it is an unreachable one, and it would
+have refused the corpus no matter how the pilot had gone. The 2026-08-11 pilot
+was run at `outOf = 12`, where exactly one score is admissible.
+
+The repair is not to pick a margin that lets this pilot through. It is to state
+the relationship that makes a margin reachable at all, quantified over the size
+that moves. -/
+
+open RotMoE.Saturation in
+/-- **A margin is reachable exactly when the pilot is at least twice its size.**
+The durable statement: not a fact about 8 and 10, but about every `m` and every
+`outOf`. -/
+theorem a_margin_is_reachable_iff_the_pilot_is_twice_its_size (mg outOf : Nat) :
+    (∃ h, h ≤ outOf ∧ admissibleBy mg ⟨h, outOf⟩ = true) ↔ 2 * mg ≤ outOf := by
+  constructor
+  · rintro ⟨h, hle, ha⟩
+    rw [admissibleBy, Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ha
+    simp only [up, down] at ha
+    omega
+  · intro h2
+    refine ⟨mg, by omega, ?_⟩
+    rw [admissibleBy, Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
+    simp only [up, down]
+    omega
+
+open RotMoE.Saturation in
+/-- **The preregistered gate was unreachable.** Margin 8 on a 10-task pilot:
+no score admits, so the corpus was refused before it was built. -/
+theorem the_preregistered_gate_admitted_no_outcome :
+    ¬ (∃ h, h ≤ 10 ∧ admissibleBy 8 ⟨h, 10⟩ = true) := by
+  rw [a_margin_is_reachable_iff_the_pilot_is_twice_its_size]; omega
+
+open RotMoE.Saturation in
+/-- **At the twelve pairs actually run, NO score admits either.** I first wrote
+this as "exactly one score admits, `= [4]`", reasoning that `up ⟨4,12⟩ = 8` met
+the margin. `decide` proved that FALSE: the gate wants margin in both
+directions and `down ⟨4,12⟩ = 4`, so 12 pairs is short of the 16 the margin
+needs. The claim is recorded in the form the kernel accepted, not the form I
+guessed. -/
+theorem twelve_pairs_admit_no_score :
+    ((List.range 13).filter (fun h => admissibleBy 8 ⟨h, 12⟩)) = [] := by decide
+
+open RotMoE.Saturation in
+/-- **The smallest pilot at which margin 8 is reachable is 16.** Derived from the
+theorem above rather than chosen, and it is the number the preregistration needs
+if the margin is to stay at 8. -/
+theorem margin_eight_needs_sixteen_pairs :
+    ((List.range 25).filter (fun n => 2 * 8 ≤ n)).head? = some 16 := by decide
+
+open RotMoE.Saturation in
+/-- **The margin the preregistered 10-task pilot can actually carry is 5** — and
+at 5 exactly one score admits, so a 10-task pilot cannot carry a margin with any
+room at all. Both numbers, so the choice between enlarging the pilot and
+shrinking the margin is made on evidence. -/
+theorem a_ten_task_pilot_carries_a_margin_of_five_at_most :
+    ((List.range 11).filter (fun mg => 2 * mg ≤ 10)).getLast? = some 5
+      ∧ ((List.range 11).filter (fun h => admissibleBy 5 ⟨h, 10⟩)) = [5] := by decide
+
+open RotMoE.Saturation in
+/-- **The measured pilot is inadmissible, and so is its unrouted arm.** Stated
+about the numbers this run produced (3 of 12 routed, 1 of 12 unrouted) so the
+record cannot drift from what was observed. -/
+theorem the_measured_pilot_is_inadmissible :
+    admissibleBy 8 ⟨3, 12⟩ = false ∧ admissibleBy 8 ⟨1, 12⟩ = false := by decide
+
+/-- **The pilot's paired result cannot reach a verdict, exactly as designed.**
+Two disagreements out of twelve, none against — and `n = 2` is far below the
+ten-pair floor. A pilot that could conclude would not be a pilot. -/
+theorem the_pilot_cannot_conclude : verdictM m 2 0 = Verdict.notSupported := by decide
 
 end RotMoE.Family

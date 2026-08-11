@@ -1,0 +1,12 @@
+{"line":1,"id":"F1-01","family":"naive_count","lane":"FORGE","truth_cmd":"bash checker/count-theorems.sh lean/Proofs/RotAbility.lean | tail -1","naive_cmd":"grep -c '^theorem' lean/Proofs/RotAbility.lean"}
+{"line":2,"id":"F1-04","family":"naive_count","lane":"EMPATHIC","truth_cmd":"bash checker/count-theorems.sh lean/Proofs/RotDebugLog.lean | tail -1","naive_cmd":"grep -c '^theorem' lean/Proofs/RotDebugLog.lean"}
+{"line":3,"id":"F1-07","family":"naive_count","lane":"PREDICTIVE","truth_cmd":"bash checker/count-theorems.sh lean/Proofs/RotExperiment.lean | tail -1","naive_cmd":"grep -c '^theorem' lean/Proofs/RotExperiment.lean"}
+{"line":4,"id":"F2-02","family":"definitions_vs_invocations","lane":"CLINICAL","truth_cmd":"grep -cE '^run_mut(_nth)? [A-Z][A-Za-z0-9]*[0-9] ' lean/mutate/mutate_rotabjoin.sh","naive_cmd":"grep -c 'run_mut' lean/mutate/mutate_rotabjoin.sh"}
+{"line":5,"id":"F2-05","family":"definitions_vs_invocations","lane":"STRATEGIC","truth_cmd":"grep -cE '^run_mut(_nth)? [A-Z][A-Za-z0-9]*[0-9] ' lean/mutate/mutate_rotattribute.sh","naive_cmd":"grep -c 'run_mut' lean/mutate/mutate_rotattribute.sh"}
+{"line":6,"id":"F2-08","family":"definitions_vs_invocations","lane":"STEALTH","truth_cmd":"grep -cE '^run_mut(_nth)? [A-Z][A-Za-z0-9]*[0-9] ' lean/mutate/mutate_rotceiling.sh","naive_cmd":"grep -c 'run_mut' lean/mutate/mutate_rotceiling.sh"}
+{"line":7,"id":"F3-03","family":"module_case","lane":"EXECUTIVE","truth_cmd":"grep -c 'RotMoE' README.md","naive_cmd":"grep -ic 'rotmoe' README.md"}
+{"line":8,"id":"F3-06","family":"module_case","lane":"CREATIVE","truth_cmd":"grep -c 'RotMoE' CHANGELOG-ARCHIVE.md","naive_cmd":"grep -ic 'rotmoe' CHANGELOG-ARCHIVE.md"}
+{"line":9,"id":"F3-09","family":"module_case","lane":"RECURSIVE","truth_cmd":"grep -c 'RotMoE' ARM_ROUTER.sh","naive_cmd":"grep -ic 'rotmoe' ARM_ROUTER.sh"}
+{"line":10,"id":"F4-01","family":"path_that_ships","lane":"FORGE","truth_cmd":"grep -c '\\.release-local-only' lean/mutate/mutate_rottag.sh","naive_cmd":"grep -c '\\.release' lean/mutate/mutate_rottag.sh"}
+{"line":11,"id":"F4-05","family":"path_that_ships","lane":"STRATEGIC","truth_cmd":"grep -c '\\.release-local-only' checker/release-package.sh","naive_cmd":"grep -c '\\.release' checker/release-package.sh"}
+{"line":12,"id":"F4-10","family":"path_that_ships","lane":"CONVERGENT","truth_cmd":"grep -c '\\.release-local-only' .codemap/.codemap.json","naive_cmd":"grep -c '\\.release' .codemap/.codemap.json"}

@@ -206,6 +206,11 @@ run_mut M07 "    (m₁ m₂ n k : Nat) (hm : m₁ ≤ m₂) (h : verdictM m₂ n
   "a_larger_family_is_never_more_permissive -- reverse the hypothesis and the monotonicity claim points the wrong way; if this still built, the ordering assumption was carrying no weight"
 run_mut M08 ").getLast? = some 10 := by decide" ").getLast? = some 9 := by decide" \
   "the_forty_pair_boundary_at_the_settled_family, the_smallest_admissible_pilot_is_ten_pairs -- move the boundary literal by one. This mutant is why both theorems are stated as the LARGEST supported k and the SMALLEST admissible n: in their original witness-pair form (10 supported AND 11 not) the same edit produced a weaker statement that still built, so the mutant would have SURVIVED and the theorem name would have overclaimed"
+run_mut M09 "    (∃ h, h ≤ outOf ∧ admissibleBy mg ⟨h, outOf⟩ = true) ↔ 2 * mg ≤ outOf := by" "    (∃ h, h ≤ outOf ∧ admissibleBy mg ⟨h, outOf⟩ = true) ↔ mg ≤ outOf := by" \
+  "a_margin_is_reachable_iff_the_pilot_is_twice_its_size, the_preregistered_gate_admitted_no_outcome -- drop the factor of two and the reachability condition becomes the obvious-looking mg <= outOf, which is exactly the reading under which the preregistered margin 8 on a 10-task pilot looks satisfiable. This is the mutant that reproduces the original defect"
+run_mut M10 "    admissibleBy 8 ⟨3, 12⟩ = false ∧ admissibleBy 8 ⟨1, 12⟩ = false := by decide" "    admissibleBy 8 ⟨3, 12⟩ = true ∧ admissibleBy 8 ⟨1, 12⟩ = true := by decide" \
+  "the_measured_pilot_is_inadmissible -- claim the measured pilot passed the gate. The one mutation a reader most needs to fail, because a green build under this statement would mean the record of what was observed had drifted from the observation"
+
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."
