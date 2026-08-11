@@ -23,6 +23,65 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### "Nine lenses run on every turn" was two claims wearing one sentence
+
+My own NEXT list called the missing multi-lens evidence **corpus work**: `breadth`
+never exceeded 1 across 100 live records, so a richer corpus would surely activate
+two lenses at once. That diagnosis was wrong, and reading the router says so in one
+line. `hooks/rot-router.sh:625-629` and `hooks/rot-router.ps1:562-565` build the
+activation vector against a **single** routed lens and then **assign** `_br=1` —
+never increment it. Breadth cannot exceed 1 **by construction**, in both arms
+identically. No corpus could ever have produced a 2, and the re-measurement over
+the full log rather than the 100-record sample agrees: **3707 gauge records,
+`breadth ∈ {0,1}`, never once 2.** That is now explained rather than observed.
+
+`FUSE` and `ELEVATE` — the engine spec's multi-lens paths — are **not implemented**.
+A grep appeared to find seven of them in the POSIX arm; every hit was the word
+*refuse* or *fuses* inside a comment. Reading the matched lines instead of trusting
+the count is the only reason that did not become a false claim in this file.
+
+**So `README.md` had to be corrected, not defended.** "Nine lenses run on every
+turn" reads as nine lenses *firing*, and that is false. What is true, and now
+proved in `lean/Proofs/RotLensActivation.lean` (20 theorems):
+
+* **Scored, all nine.** `raising_an_inactive_lens_raises_the_gauge` — quantified
+  over every lens, every tail and every increase — proves the gauge is not a
+  function of the routed lens alone. Reweight a lens that stayed silent and `R/s+`
+  moves. `silencing_the_eight_changes_the_answer` puts a number on it: on a real
+  FORGE turn the eight silent lenses are **26.9%** of the gauge (`59784850` whole,
+  `43679530` routed-lens-only). The word "nine-lens" is earned at breadth 1.
+* **Activated, exactly one.** `the_router_can_never_report_more_than_one_active_lens`
+  and `fusion_is_unreachable` are stated over *every* roster and *every* lens, so
+  they are facts about the construction rather than about today's corpus.
+* **The honest half.** `the_breadth_field_separates_no_two_routed_turns`: on a
+  routed turn `breadth` is constant, so that log field carries zero information
+  about which turn it was. Worth knowing before anyone analyses it as a signal.
+
+**A latent defect the modelling exposed.** The vector is `names.map (· == lens)`
+while breadth is the literal `1`. Those agree only if the roster is duplicate-free:
+a repeated name matching the routed lens would set two bits while `breadth` still
+said one, and the gauge would divide activity by the wrong breadth.
+`the_assignment_is_honest_when_the_names_are_distinct` proves the agreement from
+distinctness, and `a_duplicated_name_makes_the_assignment_undercount` proves the
+hypothesis is load-bearing rather than decorative. Measured on disk: 9 names, 9
+distinct — so this is stated as a general theorem about distinctness, not as a fact
+about the current nine. A tenth lens is a change the project may legitimately make,
+and a spec that forbids a correct future is a defect.
+
+Two instrument notes, both self-caught. `reduceIte` silently failed to reduce
+`if false = true then 1 else 0` and omega then compared two differently-shaped
+atoms; the fix was found by probing a five-line scratch under `lake env lean`
+rather than by a fourth guess at the tactic. And the suite's own skip guard fired
+correctly on `LEAN_ROOT=lean` — the script already `cd`s into `lean/`, so the
+variable pointed at `lean/lean` — refusing at exit 3 instead of reporting a sweep
+over nothing.
+
+7 mutants, **7 killed, 0 survived, 0 discarded**. L05 is the one that matters: it
+rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
+decoration" would look like in code, and it kills three theorems.
+
+1375 theorems, 73 modules, 67 suites, 708 mutants, 70 checkers.
+
 ### A branch push is still a push — and the hook was installed where git does not look
 
 Fifty-eight gates existed when a branch was pushed to the remote while the
@@ -466,7 +525,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 701 applied, 701 killed,
+statistic. Across the whole tree the suites now stand at 708 applied, 708 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -818,9 +877,10 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **701 applied, 701 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **708 applied, 708 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
-9 for `RotProse` and 3 more for the plan audit, each run and killed here — and
+9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
+and killed here — and
 `CITATION.cff` moved from 1083 to the measured 1310 theorems.
 
 ### The repairs went through Lean 4, because a fixed harness is still an unproven harness

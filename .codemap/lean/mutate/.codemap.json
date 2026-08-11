@@ -630,6 +630,24 @@
         }
       ]
     },
+    "mutate_rotlensactivation.sh": {
+      "hash": "30eb1c389a0b",
+      "indexed_at": "2026-08-11T10:04:17.329703+00:00",
+      "language": "shell",
+      "lines": 274,
+      "mtime_ns": 1786442655098741500,
+      "size": 14077,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            185
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotlocalrelease.sh": {
       "hash": "d00987881880",
       "indexed_at": "2026-08-10T17:56:45.695118+00:00",
@@ -1275,6 +1293,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T08:37:52.832435+00:00",
+  "generated_at": "2026-08-11T10:04:17.329887+00:00",
   "version": "1.0"
 }

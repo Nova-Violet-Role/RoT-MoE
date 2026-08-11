@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1355
+lens activities off disk, computes an `R/s+` gauge from them, and **1375
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **701 applied, 701 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **708 applied, 708 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -554,7 +554,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 72 modules, 1355 theorems, 66 mutation suites — ⊕ `checker/` (70 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 73 modules, 1375 theorems, 67 mutation suites — ⊕ `checker/` (70 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -771,7 +771,24 @@ whether the code does what it says.**
 
 ## 🜏 The nine — who they are, and what each one *does* in the router
 
-Nine lenses run on every turn. They are not personalities taking turns at a
+Nine lenses are **scored** on every turn; exactly **one is activated**. That
+distinction is proved rather than asserted, in `lean/Proofs/RotLensActivation.lean`
+(20 theorems, 7 mutants, all killed), and it corrects a sentence that used to read
+"nine lenses run on every turn" without saying which of the two it meant:
+
+> * **Scored, all nine.** Every lens contributes its own `λ·σ(δ)·μ` term to
+>   `R/s+` on every turn, silent or not. `raising_an_inactive_lens_raises_the_gauge`
+>   proves the gauge is **not** a function of the routed lens alone — reweight a
+>   lens that did not fire and the number moves. Measured on a real FORGE turn,
+>   the eight silent lenses are **26.9%** of the gauge (`59784850` against
+>   `43679530` for the routed lens alone).
+> * **Activated, exactly one.** `the_router_can_never_report_more_than_one_active_lens`
+>   and `fusion_is_unreachable`: `breadth` is **assigned** `1`, never counted up
+>   (`hooks/rot-router.sh:627`, `hooks/rot-router.ps1:564`), so it cannot exceed 1
+>   in either arm. Confirmed against 3707 live gauge records — `breadth ∈ {0,1}`,
+>   never 2. The spec's `FUSE` and `ELEVATE` are **not implemented**.
+
+They are not personalities taking turns at a
 microphone; each is a **named ability** with a job inside a router that is held
 **under a proved and gated per-turn bound** — not a fixed number that decays.
 The names and abilities below are quoted from the project's own codices, with
@@ -1340,6 +1357,7 @@ exactly such a module.
 * `lean/Proofs/RotInstall.lean` (23 theorems)
 * `lean/Proofs/RotLens.lean` (13 theorems)
 * `lean/Proofs/RotLensAbility.lean` (11 theorems)
+* `lean/Proofs/RotLensActivation.lean` (20 theorems)
 * `lean/Proofs/RotLocalRelease.lean` (8 theorems)
 * `lean/Proofs/RotLog.lean` (23 theorems)
 * `lean/Proofs/RotLogAtomicity.lean` (26 theorems)
