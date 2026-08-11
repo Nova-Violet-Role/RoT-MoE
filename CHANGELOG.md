@@ -23,6 +23,96 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Gate 0 sealed: the pilot margin chosen before the pilot is re-run
+
+**The seal** (`bench/P24-PREREGISTRATION.md`, AMENDMENT 4), recorded so a later
+reader can tell what was fixed before any data existed from what was adjusted
+afterwards:
+
+```
+governing text  TASKS/PROMISE-TODO.md   34c1274fca8e7616e916f115257e2afd7a93e084
+task corpus     bench/corpus-40.jsonl   b3b9e3f084a0a0af4563cb1d47f63be534b7e27b
+scoring + gate  lean/Proofs/RotFamily.lean       0cc120e6aefb36bd35d79acc3826551d60f4ad87
+null control    lean/Proofs/RotNullControl.lean  fa702b710e5b86d80be21d5e6206af205757e9ca
+parent commit   001cf21735d78bff9d1f250d367b6cb005f997e6
+```
+
+At the moment of sealing the P2.4 verdict **did not exist** — the pilot reached
+no verdict under any of the four rules, the A/A control was designed but not
+run, and the 160 sessions had not started.
+
+**The old release condition is struck, with the date, in the governing text
+itself.** `TASKS/PROMISE-TODO.md` now holds exactly one clause, and it states in
+prose what `RotMoE.Family.Outcome` states in the type: all three of SUPPORTED,
+NOT ESTABLISHED and CONTRADICTED ship as 1.0.0.
+
+**The pilot margin is derived, not picked.** 8 of 80 is exactly one tenth — a
+relation between two declared constants. `marginDivisor` is *computed* as
+`calibCorpus.outOf / preregMargin`, so `pilotMargin` yields 1 at twelve pairs
+and 2 at twenty, both inside the proved bands, and
+`a_one_tenth_margin_is_reachable_at_every_pilot_size` keeps the choice from
+expiring when the pilot size changes. The justification cites no pilot score;
+applied afterwards, the pilot admits under the primary rule *and* both
+sensitivity rules.
+
+**This resolves the CONTESTED fractional-margin section.** Its diagnosis was
+right — a fraction flattened into a number — and its fraction was wrong: I wrote
+`/ 5` believing the denominator was the 40-task corpus. Against the real 80 it
+is `/ 10`.
+
+**OPEN DEFECT, found and NOT closed: a frozen derived value is invisible to
+mutation testing.** Mutant M21 tried twice — restating the proportion over
+literals, then replacing the computed divisor with `10`. **Both survived, and
+both had to.** `calibCorpus.outOf / preregMargin` *is* 10 today, so the derived
+form and its current value elaborate to the same term and no build distinguishes
+them. "This number is still derived" is a **textual** property; a mutation suite
+tests **behaviour**. M21 is withdrawn from the suite rather than counted as
+defended, the reasoning is written into `mutate_rotfamily.sh` where the next
+reader will meet it, and **the instrument that would defend this does not exist
+yet**. Every other contingent-constant guard in this repo has the same blind
+spot.
+
+### The A/A null control, and a pilot denominator that is finally derived
+
+**A0.1 closed.** §5 never said what the pilot's O5 score is *out of*. It is now
+derived from the two quantities the document does fix — tasks and orderings:
+`pilotDenominator tasks orderings := tasks * orderings`. The run pilot was
+**12**; §5's own 10-task pilot under §6's both-orderings rule is **20**, not 80.
+`the_inherited_margin_is_inapplicable_to_any_pilot` proves the calibration
+corpus's 8-of-80 is *inapplicable* — not failing — at either, so §5 must state a
+pilot margin rather than borrow one. `the_reachable_pilot_margins` gives the
+bands (≤ 6 at twelve, ≤ 10 at twenty) as a range rather than a chosen value,
+because choosing one after seeing the pilot is the contamination §5 exists to
+prevent.
+
+**A1.1: `lean/Proofs/RotNullControl.lean`, 11 theorems.** An A/B experiment
+cannot tell you whether your pipeline would report a difference between two
+*identical* arms. That is the one defect undiscoverable after the fact, so the
+control runs routed-against-routed and the apparatus must return
+`notSupported`.
+
+Three properties make it a control rather than a ritual:
+
+* **One verdict function.** `runVerdict` is shared by the experiment and its
+  control — a control with its own scoring path tests a second apparatus, not
+  the one that produces the result. Mutant **N04** severs the dependency and is
+  killed.
+* **A perfect sweep is REFUSED, not celebrated.** Two identical arms cannot
+  disagree systematically; a sweep is the manufacturing signature of an
+  ordering, caching or position confound.
+  `the_sweep_check_covers_what_the_verdict_misses` measures exactly where the
+  check earns its keep: a full sweep is `notSupported` up to **9** pairs and
+  `supported` from 10, so without it a nine-pair one-sided A/A passes as clean.
+  I first wrote that theorem at ten pairs and `decide` refused it.
+* **An empty control is not a pass.** Zero discordant pairs means the control
+  never ran; `controlAdmissible` requires that it did.
+
+`reportable` makes the dependency a function: a broken control returns `none`,
+never a verdict with a caveat — the same discipline as `Margin.applyTo`.
+
+**Release condition changed** in `TASKS/PROMISE-TODO.md`: apparatus integrity,
+not outcome direction. A **NOT ESTABLISHED** result ships as 1.0.0.
+
 ### RETRACTION: I read the wrong denominator and charged the spec with my error
 
 **The two entries below are CONTESTED and AMENDMENT 2 is SUSPENDED.** Kept
@@ -347,7 +437,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1468 theorems, 76 modules, 70 suites, 743 mutants, 71 checkers.
+1490 theorems, 77 modules, 71 suites, 751 mutants, 71 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -406,7 +496,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1468 theorems, 76 modules, 70 suites, 743 mutants, 71 checkers.
+1490 theorems, 77 modules, 71 suites, 751 mutants, 71 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -851,7 +941,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 743 applied, 743 killed,
+statistic. Across the whole tree the suites now stand at 751 applied, 751 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1203,7 +1293,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **743 applied, 743 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **751 applied, 751 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and

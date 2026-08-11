@@ -5,7 +5,7 @@
 #
 #
 # =============================================================================
-# MUTATION SUITE -- Proofs/RotFamily.lean (a partial run is not a pass)
+# MUTATION SUITE -- Proofs/RotNullControl.lean (a partial run is not a pass)
 #
 #   1. assert the needle is present EXACTLY once before mutating; else DISCARDED
 #   2. assert the mutation LANDED after patching
@@ -23,7 +23,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-F="Proofs/RotFamily.lean"
+F="Proofs/RotNullControl.lean"
 # The module name, DERIVED from F rather than written out a second time.
 # Measured 2026-08-10: eight suites grepped for errors in Proofs/RotTrap.lean and
 # seven rebuilt Proofs.RotOrdering, both inherited by copy. A second hard-coded
@@ -31,8 +31,8 @@ F="Proofs/RotFamily.lean"
 # a_derived_extractor_always_attributes.
 MOD=${F##*/}; MOD=${MOD%.lean}
 BAK="$F.mutbak"
-OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotFamily.olean
-LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrotfamily.XXXXXX")"
+OLEAN=${LEAN_ROOT:-.}/.lake/build/lib/lean/Proofs/RotNullControl.olean
+LOG="$(mktemp -d "${TMPDIR:-/tmp}/mutrotnullcontrol.XXXXXX")"
 
 [ -f "$F" ] || {
   echo "FATAL: $F not found. Refusing to run: every mutant would fail to build"
@@ -54,10 +54,10 @@ if [ ! -d "$_WSDIR/.lake/packages" ] || [ ! -f "$OLEAN" ]; then
   exit 3
 fi
 
-if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotFamily ) >/tmp/mut_pre_rotfamily.log 2>&1; then
-  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotFamily)."
+if ! ( cd "${LEAN_ROOT:-.}" && lake build Proofs.RotNullControl ) >/tmp/mut_pre_rotnullcontrol.log 2>&1; then
+  echo "FATAL: the UNMUTATED baseline does not build (Proofs.RotNullControl)."
   echo "A kill measured against a red baseline is unattributable. Fix the tree first."
-  tail -5 /tmp/mut_pre_rotfamily.log
+  tail -5 /tmp/mut_pre_rotnullcontrol.log
   exit 2
 fi
 echo "preflight: baseline builds GREEN, $F present -- kills are attributable"
@@ -80,7 +80,7 @@ cp "$F" "$BAK"
 # path -- DISCARDED and SURVIVED included. With it in the tail only, a suite
 # that reported a real failure left the module with no .olean, and the NEXT
 # run reported SKIP (exit 3) instead of the failure. Measured 2026-08-09.
-trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotFamily ) >/dev/null 2>&1' EXIT
+trap 'cp "$BAK" "$F" 2>/dev/null; rm -f "$BAK"; ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotNullControl ) >/dev/null 2>&1' EXIT
 
 killed=0; survived=0; discarded=0
 
@@ -134,7 +134,7 @@ run_mut() {
   fi
 
   rm -f "$OLEAN"
-  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotFamily ) > "$LOG/$id.log" 2>&1
+  ( cd ${LEAN_ROOT:-.} && lake build Proofs.RotNullControl ) > "$LOG/$id.log" 2>&1
   local ec=$?
 
   # --- IS THIS KILL ATTRIBUTABLE? -------------------------------------------
@@ -184,75 +184,24 @@ run_mut() {
   cp "$BAK" "$F"
 }
 
-echo "=== RotFamily mutation suite ==="
+echo "=== RotNullControl mutation suite ==="
 
 # Each needle is asserted present EXACTLY once before it is applied, and the
 # replacement is asserted present afterwards. A needle that does not match is
 # DISCARDED, never SURVIVED.
 
-run_mut M01 "  , (\"O5 task success\",               .sideCondition)" "  , (\"O5 task success\",               .twoSidedTest)" \
-  "the_family_size_is_derived_not_chosen, the_side_condition_is_not_a_test -- promote the non-inferiority side condition to a test of its own and m becomes 5; over-correcting is not the safe direction, it buries a real effect while looking rigorous"
-run_mut M02 "  , (\"O6 lens breadth and lead\",      .descriptive)" "  , (\"O6 lens breadth and lead\",      .twoSidedTest)" \
-  "the_family_size_is_derived_not_chosen, descriptive_observables_do_not_inflate_the_family -- section 3 declares O6 descriptive; spending alpha on something never claimed is the inflation this theorem exists to refuse"
-run_mut M03 "def m : Nat := (observables.filter (fun o => o.2 == Role.twoSidedTest)).length" "def m : Nat := 12" \
-  "the_family_size_is_derived_not_chosen, adding_a_test_raises_the_family_size, retagging_a_test_as_descriptive_lowers_the_family_size -- THE mutant for this module: hard-code m and it stops tracking the observable table, which is exactly the unsettled state the pilot was blocked on"
-run_mut M04 "def symmetricTail (n k : Nat) : Nat := 2 * min (tail n k) (tail n (n - k))" "def symmetricTail (n k : Nat) : Nat := 2 * tail n k" \
-  "the_symmetric_repair_would_admit_a_total_loss -- collapse the symmetric statistic back onto the directional one and the refutation has nothing to refute; the case for keeping twoSidedTail asymmetric would rest on prose alone"
-run_mut M05 "  else if verdictM m n (n - k) = Verdict.supported then .contradicted" "  else if verdictM m n k = Verdict.supported then .contradicted" \
-  "a_thirty_one_of_forty_defeat_was_reported_as_a_null, all_three_outcomes_are_reachable, a_total_loss_is_contradicted -- test the same side twice and CONTRADICTED becomes unreachable, restoring the two-outcome rule that section 7 forbids"
-run_mut M06 "  if verdictM m n k = Verdict.supported then .supported" "  if verdictM 1 n k = Verdict.supported then .supported" \
-  "the_new_rule_agrees_wherever_the_old_one_spoke -- drop the correction from the first branch only: the three-way rule would then report SUPPORTED at k=11 where the corrected two-way rule says notSupported, so the refinement claim would be false"
-run_mut M07 "    (m₁ m₂ n k : Nat) (hm : m₁ ≤ m₂) (h : verdictM m₂ n k = Verdict.supported) :" "    (m₁ m₂ n k : Nat) (hm : m₂ ≤ m₁) (h : verdictM m₂ n k = Verdict.supported) :" \
-  "a_larger_family_is_never_more_permissive -- reverse the hypothesis and the monotonicity claim points the wrong way; if this still built, the ordering assumption was carrying no weight"
-run_mut M08 ").getLast? = some 10 := by decide" ").getLast? = some 9 := by decide" \
-  "the_forty_pair_boundary_at_the_settled_family, the_smallest_admissible_pilot_is_ten_pairs -- move the boundary literal by one. This mutant is why both theorems are stated as the LARGEST supported k and the SMALLEST admissible n: in their original witness-pair form (10 supported AND 11 not) the same edit produced a weaker statement that still built, so the mutant would have SURVIVED and the theorem name would have overclaimed"
-run_mut M09 "    (∃ h, h ≤ outOf ∧ admissibleBy mg ⟨h, outOf⟩ = true) ↔ 2 * mg ≤ outOf := by" "    (∃ h, h ≤ outOf ∧ admissibleBy mg ⟨h, outOf⟩ = true) ↔ mg ≤ outOf := by" \
-  "a_margin_is_reachable_iff_the_pilot_is_twice_its_size, the_preregistered_gate_admitted_no_outcome -- drop the factor of two and the reachability condition becomes the obvious-looking mg <= outOf, which is exactly the reading under which the preregistered margin 8 on a 10-task pilot looks satisfiable. This is the mutant that reproduces the original defect"
-run_mut M10 "    admissibleBy 8 ⟨3, 12⟩ = false ∧ admissibleBy 8 ⟨1, 12⟩ = false := by decide" "    admissibleBy 8 ⟨3, 12⟩ = true ∧ admissibleBy 8 ⟨1, 12⟩ = true := by decide" \
-  "the_measured_pilot_is_inadmissible -- claim the measured pilot passed the gate. The one mutation a reader most needs to fail, because a green build under this statement would mean the record of what was observed had drifted from the observation"
-
-run_mut M11 "def marginFor (outOf : Nat) : Nat := outOf / 5" "def marginFor (outOf : Nat) : Nat := outOf / 10" \
-  "the_margin_was_a_fraction_of_the_corpus_not_an_absolute, the_corpus_is_refused_and_must_be_rebuilt -- loosen the fraction to a tenth. This is the CONVENIENT mutation: it is the one setting under which the measured pilot passes, and marginFor 40 would be 4 instead of the preregistered 8. If this ever survives, the margin has stopped tracking the document it came from"
-run_mut M12 "  admissibleBy mg a && admissibleBy mg b" "  admissibleBy mg a" \
-  "the_corpus_is_refused_and_must_be_rebuilt -- judge admissibility on the routed arm alone. The routed arm passes, so this mutation turns a refused corpus into an admitted one while changing nothing about the data; a corpus the unrouted arm always fails cannot show a difference between the arms"
-
-run_mut M13 "  if s.outOf = mg.outOf then some (admissibleBy mg.room s) else none" "  some (admissibleBy mg.room s)" \
-  "a_mismatched_denominator_is_not_a_verdict -- remove the denominator guard, so a margin declared against 80 will happily judge a score out of 10 and return false. THIS MUTANT IS THE BUG THAT CAUSED THE 2026-08-11 RETRACTION: with the guard gone, a category error looks exactly like a specification defect"
-run_mut M14 "  ⟨RotMoE.Saturation.preregMargin, RotMoE.Saturation.calibCorpus.outOf⟩" "  ⟨8, 10⟩" \
-  "the_margin_is_the_p22_one_against_the_calibration_corpus, the_preregistered_margin_is_well_formed, it_refuses_the_calibration_corpus_as_section_one_says -- replace the DERIVED margin with the literal denominator I originally assumed. 8-of-10 is not well formed, so it is refused at declaration instead of producing a misleading verdict later. This mutant also enforces that the margin stays bound to RotSaturation's objects rather than to digits that happen to match"
-run_mut M15 "def routedByRule   : List Nat := [3, 9, 5, 8]" "def routedByRule   : List Nat := [3, 3, 3, 3]" \
-  "the_scorer_moves_the_score_more_than_the_arm_does, the_lenient_rule_shows_no_floor_saturation -- flatten the rescore so the choice of rule appears not to matter. That is the reading under which the corpus looks floor-saturated and gets needlessly rebuilt"
-
-run_mut M16 "  , (\"R4-committed\", RuleRole.primary) ]" "  , (\"R4-committed\", RuleRole.sensitivity) ]" \
-  "exactly_one_primary_rule, the_primary_rule_is_the_commitment_rule -- demote the primary so NO rule is primary. A rule set with no primary defers the choice to whoever reads the output, which is exactly the freedom the preregistration removes"
-run_mut M17 "  , (\"R3-leading\",   RuleRole.excluded)" "  , (\"R3-leading\",   RuleRole.sensitivity)" \
-  "the_excluded_rule_is_named_in_advance -- promote the excluded rule to a sensitivity analysis. R3 measures prose habit rather than knowledge; averaging it in dilutes the signal with a metric declared not to measure the construct"
-run_mut M18 "  observables ++ [(\"O8 hedge rate\", Role.descriptive)]" "  observables ++ [(\"O8 hedge rate\", Role.twoSidedTest)]" \
-  "the_hedge_rate_does_not_inflate_the_family -- retag the hedge rate as a two-sided test, which would raise m from 4 to 5 and tighten every boundary. A descriptive observable must never enter the multiplicity correction"
-
-run_mut M19 "def pilotDenominator (tasks orderings : Nat) : Nat := tasks * orderings" "def pilotDenominator (tasks orderings : Nat) : Nat := tasks" \
-  "the_section_five_pilot_denominator_is_twenty -- drop the orderings factor, so a pilot run in both orders is scored as if it ran in one. Section 6 requires both orderings; ignoring the second halves the denominator and tightens every margin derived from it"
-run_mut M20 "def pilotMargin (outOf : Nat) : Margin := ⟨outOf / marginDivisor, outOf⟩" "def pilotMargin (outOf : Nat) : Margin := ⟨outOf / 5, outOf⟩" \
-  "the_sealed_pilot_margin_is_inside_the_reachable_band, the_measured_pilot_admits_at_the_sealed_margin -- restore the CONTESTED one-fifth fraction. 8 of 80 is exactly one tenth; one fifth was arithmetic done against the 40-task corpus I wrongly believed was the denominator, and it refuses scores the sound margin admits"
-# M21 WITHDRAWN FROM THIS SUITE -- and the reason is a finding, not an excuse.
-#
-# M21 tried, in two different forms, to catch a frozen derived value:
-#   (a) restate the_preregistered_margin_is_exactly_one_tenth over literals (8 * 10 = 80)
-#       instead of the two declared constants;
-#   (b) after marginDivisor was made a COMPUTED definition, replace that computation
-#       with the literal 10.
-# BOTH SURVIVED, and both had to. calibCorpus.outOf / preregMargin IS 10 today, so a
-# build cannot distinguish the derived form from its current value -- they elaborate to
-# the same term. The property "this number is still derived" is TEXTUAL; a mutation
-# suite tests BEHAVIOUR. No mutant can close this, and pretending one did would be the
-# fake green this repository exists to refuse.
-#
-# The definition change was still worth making: marginDivisor now computes from the two
-# declared constants, so a future change to EITHER constant moves every derived margin.
-# What is missing is an instrument that fails when someone freezes it back to a literal.
-# That instrument must read the source text and does not exist yet -- tracked as an OPEN
-# defect in CHANGELOG.md and TASKS/PROMISE-TODO.md, NOT counted as defended here.
-
+run_mut N01 "  verdictM RotMoE.Family.m c.discordant (min c.favouring (c.discordant - c.favouring))" "  verdictM 1 c.discordant (min c.favouring (c.discordant - c.favouring))" \
+  "the_pilot_comparison_reaches_no_verdict, a_significant_null_control_fails_the_gate -- drop the multiplicity correction from the SHARED verdict function. m is 4 because four observables carry two-sided tests; running the control at m=1 makes it easier to satisfy than the experiment it guards"
+run_mut N02 "def controlPasses (c : Comparison) : Bool := aaClean c && !sweep c" "def controlPasses (c : Comparison) : Bool := aaClean c" \
+  "a_swept_null_control_is_refused, both_directions_of_sweep_are_refused, the_sweep_check_covers_what_the_verdict_misses -- remove the sweep check. A nine-pair one-sided A/A then passes as a clean control, which is precisely the manufacturing signature the control exists to catch: two identical arms cannot disagree systematically"
+run_mut N03 "def controlAdmissible (c : Comparison) : Bool := controlRan c && controlPasses c" "def controlAdmissible (c : Comparison) : Bool := controlPasses c" \
+  "an_empty_control_is_not_a_pass -- drop the did-it-run check, so a control that collected zero discordant pairs certifies the pipeline. A control that tested nothing is not a pass"
+run_mut N04 "  if controlAdmissible aa then some (runVerdict ab) else none" "  some (runVerdict ab)" \
+  "a_broken_control_suppresses_the_result -- report the A/B verdict regardless of whether the control passed. This is the mutation that matters most: it severs the dependency entirely, so a broken apparatus still emits a result"
+run_mut N05 "def aaClean (c : Comparison) : Bool := runVerdict c == Verdict.notSupported" "def aaClean (c : Comparison) : Bool := true" \
+  "a_significant_null_control_fails_the_gate, the_control_can_pass_and_can_fail -- make the control unable to fail. An instrument that cannot fail proves nothing, and this is the shape it takes here"
+run_mut N06 "  decide (0 < c.discordant) && (decide (c.favouring = c.discordant) || decide (c.favouring = 0))" "  decide (0 < c.discordant) && decide (c.favouring = c.discordant)" \
+  "both_directions_of_sweep_are_refused -- make the sweep check one-sided, so a sweep TOWARD the second-named side passes. Which arm is named first is an accident of the harness, so a one-sided check is a coin flip on whether the confound is caught"
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."

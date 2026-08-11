@@ -139,6 +139,68 @@ theorem that stops this margin from being quietly set to 0.
 
 **If the pilot is inadmissible the corpus is rebuilt, not the rule.**
 
+### AMENDMENT 4 (2026-08-11) — the pilot denominator, the sealed margin, and the seal itself
+
+**§5 never said what the pilot's O5 score is out of.** It is now a derived
+quantity: `pilotDenominator tasks orderings := tasks * orderings`. §5's own
+10-task pilot, under §6's requirement that every task run in both orders, has a
+denominator of **20** (`the_section_five_pilot_denominator_is_twenty`). The
+12-task run of 2026-08-11 used one ordering per arm and so has a denominator of
+**12**.
+
+**The inherited 8-of-80 margin is INAPPLICABLE at either**, not failing:
+`no_pilot_size_can_receive_the_inherited_margin` proves no pilot size up to 40
+can receive it. §5 must therefore state a pilot margin rather than borrow the
+calibration corpus's.
+
+**The pilot margin, chosen before the pilot is re-run.** The only margin this
+project ever preregistered is 8 against 80, which is **exactly one tenth** — a
+relation between two declared constants, not a fit
+(`the_preregistered_margin_is_exactly_one_tenth`). The pilot margin preserves
+that proportion at whatever denominator the pilot has:
+`pilotMargin outOf := ⟨outOf / marginDivisor, outOf⟩` with `marginDivisor`
+*computed* as `calibCorpus.outOf / preregMargin`. That yields **1** at twelve
+pairs and **2** at twenty, both inside the proved reachable bands (≤ 6 and
+≤ 10), and `a_one_tenth_margin_is_reachable_at_every_pilot_size` shows the
+choice does not expire when the pilot size changes.
+
+The justification cites no pilot score. Applied afterwards, the measured pilot
+admits at the sealed margin under the primary rule and under both sensitivity
+rules — reported because a gate that passed only under the primary rule would be
+weaker than it looks.
+
+**This also resolves the CONTESTED fractional-margin section.** Its diagnosis —
+a fraction flattened into a number — was right; its fraction was wrong. I wrote
+`/ 5` believing the denominator was the 40-task corpus. Against the real 80 the
+proportion is `/ 10`.
+
+**An open defect this amendment could NOT close.** Mutant M21 tried twice to
+catch a *frozen derived value* — first by restating the proportion over
+literals, then by replacing the computed divisor with `10`. **Both survived, and
+both had to:** `calibCorpus.outOf / preregMargin` **is** 10 today, so the
+derived form and its current value elaborate to the same term and no build can
+tell them apart. "This number is still derived" is a **textual** property; a
+mutation suite tests **behaviour**. M21 is withdrawn rather than counted, and
+the instrument that would defend this does not exist yet. It is recorded as
+open, not as closed.
+
+### THE SEAL (2026-08-11)
+
+Recorded so that a later reader can tell what was fixed before any data existed
+from what was adjusted afterwards.
+
+```
+governing text  TASKS/PROMISE-TODO.md   34c1274fca8e7616e916f115257e2afd7a93e084
+task corpus     bench/corpus-40.jsonl   b3b9e3f084a0a0af4563cb1d47f63be534b7e27b
+scoring + gate  lean/Proofs/RotFamily.lean       0cc120e6aefb36bd35d79acc3826551d60f4ad87
+null control    lean/Proofs/RotNullControl.lean  fa702b710e5b86d80be21d5e6206af205757e9ca
+parent commit   001cf21735d78bff9d1f250d367b6cb005f997e6
+```
+
+At the moment of this seal the P2.4 verdict **did not exist**: the pilot reached
+no verdict under any of the four scoring rules, the A/A null control had been
+designed but not run, and the 160 sessions had not started.
+
 ### RETRACTION (2026-08-11, same day) — read this before AMENDMENT 1 or 2
 
 **AMENDMENT 1's charge was false and AMENDMENT 2 is SUSPENDED.** Both are kept

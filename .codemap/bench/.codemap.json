@@ -2,12 +2,12 @@
   "directory": "bench",
   "files": {
     "P24-PREREGISTRATION.md": {
-      "hash": "1620e7b47a48",
-      "indexed_at": "2026-08-11T19:08:44.855701+00:00",
+      "hash": "8b2463bf935a",
+      "indexed_at": "2026-08-11T20:15:48.025244+00:00",
       "language": "markdown",
-      "lines": 383,
-      "mtime_ns": 1786475322480166300,
-      "size": 20791,
+      "lines": 445,
+      "mtime_ns": 1786479345980976900,
+      "size": 24186,
       "symbols": [
         {
           "docstring": "P2.2 asked whether the routed arm gives **better answers** and returned null five times. At least two of those nulls were guaranteed by the corpus, no",
@@ -59,26 +59,44 @@
         {
           "children": [
             {
-              "docstring": "**AMENDMENT 1's charge was false and AMENDMENT 2 is SUSPENDED.** Both are kept below, unedited, because a record that quietly removes a wrong claim is",
+              "docstring": "**\u00a75 never said what the pilot's O5 score is out of.** It is now a derived quantity: `pilotDenominator tasks orderings := tasks * orderings`. \u00a75's own",
               "lines": [
                 142,
-                194
+                186
+              ],
+              "name": "AMENDMENT 4 (2026-08-11) \u2014 the pilot denominator, the sealed margin, and the seal itself",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Recorded so that a later reader can tell what was fixed before any data existed from what was adjusted afterwards.",
+              "lines": [
+                187,
+                203
+              ],
+              "name": "THE SEAL (2026-08-11)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**AMENDMENT 1's charge was false and AMENDMENT 2 is SUSPENDED.** Both are kept below, unedited, because a record that quietly removes a wrong claim is",
+              "lines": [
+                204,
+                256
               ],
               "name": "RETRACTION (2026-08-11, same day) \u2014 read this before AMENDMENT 1 or 2",
               "type": "subsection"
             },
             {
               "lines": [
-                195,
-                195
+                257,
+                257
               ],
               "name": "AMENDMENT 1 (2026-08-11) \u2014 CONTESTED, see the retraction above",
               "type": "subsection"
             },
             {
               "lines": [
-                196,
-                196
+                258,
+                258
               ],
               "name": "the gate above was unsatisfiable, and that is a",
               "type": "subsection"
@@ -86,16 +104,16 @@
             {
               "docstring": "`admissibleBy m` requires margin `m` in BOTH directions: `m \u2264 hits` and `m \u2264 outOf \u2212 hits`. At the 10-task pilot fixed above with `m = 8` that demands",
               "lines": [
-                197,
-                224
+                259,
+                286
               ],
               "name": "defect in this document, not in the corpus",
               "type": "subsection"
             },
             {
               "lines": [
-                225,
-                225
+                287,
+                287
               ],
               "name": "AMENDMENT 2 (2026-08-11) \u2014 SUSPENDED, see the retraction above",
               "type": "subsection"
@@ -103,8 +121,8 @@
             {
               "docstring": "Fixed here, before any of the 160 sessions. Sealed by content hash so a later edit is visible:",
               "lines": [
-                226,
-                268
+                288,
+                330
               ],
               "name": "the margin, decided and sealed BEFORE the run",
               "type": "subsection"
@@ -112,8 +130,8 @@
             {
               "docstring": "**SUPERSEDED by the rescore.** Under the lenient rule the same 24 sessions score 9 of 12 and 7 of 12, so the corpus is NOT floor-saturated and the reb",
               "lines": [
-                269,
-                282
+                331,
+                344
               ],
               "name": "Consequence for the schedule",
               "type": "subsection"
@@ -121,8 +139,8 @@
             {
               "docstring": "12 paired tasks (3 per seed family, all ten router lanes), routed arm then unrouted arm, same prompts from `bench/pilot-prompts.txt`, same config dire",
               "lines": [
-                283,
-                310
+                345,
+                372
               ],
               "name": "The pilot of 2026-08-11 \u2014 what was actually run",
               "type": "subsection"
@@ -131,7 +149,7 @@
           "docstring": "A 10-task pilot per arm. The corpus is admitted only if `RotMoE.Saturation.admissibleBy 8` holds on the pilot's O5 score, i.e. at least 8 of 80 room i",
           "lines": [
             133,
-            310
+            372
           ],
           "name": "5. Admissibility \u2014 checked BEFORE the full run",
           "type": "section"
@@ -139,8 +157,8 @@
         {
           "docstring": "`RotOrdering.one_ordering_cannot_attribute` already proves a single-ordering artifact cannot attribute a difference. So, exactly as P2.3 was run:",
           "lines": [
-            311,
-            321
+            373,
+            383
           ],
           "name": "6. Ordering and deconfounding",
           "type": "section"
@@ -148,8 +166,8 @@
         {
           "docstring": "For each of O1\u2013O4, a two-sided sign test across the 40 tasks.",
           "lines": [
-            322,
-            366
+            384,
+            428
           ],
           "name": "7. Verdict rule \u2014 fixed",
           "type": "section"
@@ -157,8 +175,8 @@
         {
           "docstring": "- Nothing about **answer quality** as a reader would judge it. That is P2.2 and it stays open. `dominance_says_nothing_about_answer_quality` continues",
           "lines": [
-            367,
-            378
+            429,
+            440
           ],
           "name": "8. What this cannot establish",
           "type": "section"
@@ -166,8 +184,8 @@
         {
           "docstring": "**DESIGNED. NOT RUN.** No P2.4 data exists as of this commit. The Lean design gate (`RotSaturation`, 12 theorems, 11/11 mutants killed) is in place; t",
           "lines": [
-            379,
-            384
+            441,
+            446
           ],
           "name": "9. Status",
           "type": "section"
@@ -1078,6 +1096,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T19:08:44.855854+00:00",
+  "generated_at": "2026-08-11T20:15:48.025406+00:00",
   "version": "1.0"
 }

@@ -679,6 +679,123 @@ from looking like it bought one. -/
 theorem the_primary_rule_reaches_no_verdict :
     verdictM m 2 0 = Verdict.notSupported := by decide
 
+/-! ### §5's pilot denominator, derived rather than inherited
+
+§5 gave a margin (8) and a denominator (80) that belong to the P2.2 calibration
+corpus, and a pilot size (10 tasks) that belongs to P2.4. It never said what the
+pilot's O5 score is *out of*. That is derived here, from the two quantities the
+document does fix: how many tasks the pilot runs, and how many orderings §6
+requires of each. -/
+
+/-- **The pilot's O5 denominator: one scored answer per task per ordering.** -/
+def pilotDenominator (tasks orderings : Nat) : Nat := tasks * orderings
+
+/-- What the 2026-08-11 run actually produced: 12 tasks, one ordering per arm. -/
+theorem the_run_pilot_denominator_is_twelve : pilotDenominator 12 1 = 12 := by decide
+
+/-- What §5's own 10-task pilot yields once §6's both-orderings requirement is
+applied: **20**, not 80. -/
+theorem the_section_five_pilot_denominator_is_twenty :
+    pilotDenominator 10 2 = 20 := by decide
+
+open RotMoE.Saturation in
+/-- **The inherited 8-of-80 margin is INAPPLICABLE at either pilot denominator.**
+Not "fails" — *inapplicable*, which is the distinction the whole retraction turns
+on. §5 must state a pilot margin; it cannot borrow the calibration corpus's. -/
+theorem the_inherited_margin_is_inapplicable_to_any_pilot :
+    preregisteredMargin.applyTo ⟨3, pilotDenominator 12 1⟩ = none
+      ∧ preregisteredMargin.applyTo ⟨3, pilotDenominator 10 2⟩ = none := by decide
+
+/-- **The band of margins a pilot CAN carry, at each denominator.** Stated as the
+reachable range rather than a chosen value, because choosing one after seeing the
+pilot is the contamination §5 exists to prevent. Whoever fixes the pilot margin
+must land inside these. -/
+theorem the_reachable_pilot_margins :
+    ((List.range 13).filter (fun mg => 2 * mg ≤ pilotDenominator 12 1)).getLast? = some 6
+      ∧ ((List.range 21).filter (fun mg => 2 * mg ≤ pilotDenominator 10 2)).getLast? = some 10 := by
+  decide
+
+/-! ### The pilot margin, chosen and sealed BEFORE the pilot is re-run
+
+A margin has to come from somewhere other than the data it will judge. The only
+margin this project ever preregistered is `preregMargin = 8` against
+`calibCorpus.outOf = 80`, and that pair is **exactly one tenth** — a fact about
+the declared numbers, not a fit to anything. So the pilot margin preserves the
+proportion the project already committed to, at whatever denominator the pilot
+turns out to have.
+
+**This also resolves the CONTESTED fractional-margin section above.** Its
+diagnosis — "the margin was a fraction that had been flattened into a number" —
+was right. Its fraction was wrong: I wrote `outOf / 5` because I believed the
+denominator was the 40-task corpus. Against the real denominator of 80 the
+proportion is `/ 10`. The disease was correctly identified and the arithmetic
+was done against the wrong number, which is the same error as the retraction. -/
+
+/-- **The preregistered margin is exactly one tenth of its denominator.**
+Stated as a relation between the two declared constants, so it holds however
+they move rather than asserting the digits 8 and 80. -/
+theorem the_preregistered_margin_is_exactly_one_tenth :
+    RotMoE.Saturation.preregMargin * 10 = RotMoE.Saturation.calibCorpus.outOf := by decide
+
+/-- **The proportion itself, derived from the two declared constants.**
+
+Written as a definition rather than the literal `10` after mutant **M21**
+survived: M21 restated `the_preregistered_margin_is_exactly_one_tenth` over
+literals, and no build can catch that, because "the statement mentions the
+constants" is a *textual* property and a mutation suite tests *behaviour*. The
+repair is to put the constants where behaviour depends on them — now moving
+`preregMargin` or `calibCorpus` moves every margin derived here. -/
+def marginDivisor : Nat :=
+  RotMoE.Saturation.calibCorpus.outOf / RotMoE.Saturation.preregMargin
+
+/-- The divisor is one tenth, and it is *computed*. -/
+theorem the_divisor_is_derived_from_the_declared_constants :
+    marginDivisor = 10 := by decide
+
+/-- The pilot margin: the project's own proportion, at the pilot's denominator. -/
+def pilotMargin (outOf : Nat) : Margin := ⟨outOf / marginDivisor, outOf⟩
+
+/-- **It is well formed at both pilot denominators**, so it is a margin that can
+be applied rather than one that must be argued about. -/
+theorem the_pilot_margin_is_well_formed_at_both_denominators :
+    wellFormed (pilotMargin (pilotDenominator 12 1)) = true
+      ∧ wellFormed (pilotMargin (pilotDenominator 10 2)) = true := by decide
+
+/-- **And it lands inside the proved reachable band** — 1 at twelve pairs
+(band ≤ 6), 2 at twenty (band ≤ 10). The numeral is a consequence of the
+proportion, not a choice made while looking at scores. -/
+theorem the_sealed_pilot_margin_is_inside_the_reachable_band :
+    (pilotMargin (pilotDenominator 12 1)).room = 1
+      ∧ (pilotMargin (pilotDenominator 10 2)).room = 2
+      ∧ 2 * (pilotMargin (pilotDenominator 12 1)).room ≤ pilotDenominator 12 1
+      ∧ 2 * (pilotMargin (pilotDenominator 10 2)).room ≤ pilotDenominator 10 2 := by decide
+
+/-- **A margin of one tenth is reachable at every denominator of ten or more.**
+The general property, so the seal does not expire the moment the pilot size
+changes — the defect this file exists to prevent. -/
+theorem a_one_tenth_margin_is_reachable_at_every_pilot_size (n : Nat) (h : 10 ≤ n) :
+    2 * (pilotMargin n).room ≤ n := by
+  have hd : marginDivisor = 10 := the_divisor_is_derived_from_the_declared_constants
+  simp only [pilotMargin, hd]
+  omega
+
+/-- **Applied to the pilot as measured, under the PRIMARY rule.** Arm scores
+8-of-12 and 6-of-12 (R4-committed). Both admit at the sealed margin, so the
+corpus is not at floor or ceiling and the pilot is admissible. The margin was
+fixed by the paragraph above before these numbers were substituted in. -/
+theorem the_measured_pilot_admits_at_the_sealed_margin :
+    (pilotMargin 12).applyTo ⟨8, 12⟩ = some true
+      ∧ (pilotMargin 12).applyTo ⟨6, 12⟩ = some true := by decide
+
+/-- **And the strict rule's scores admit too**, so admissibility does not hinge
+on which of the declared rules is read — reported because a gate that passed
+only under the primary rule would be a weaker claim than it appears. -/
+theorem the_pilot_admits_under_the_sensitivity_rules_as_well :
+    (pilotMargin 12).applyTo ⟨3, 12⟩ = some true
+      ∧ (pilotMargin 12).applyTo ⟨1, 12⟩ = some true
+      ∧ (pilotMargin 12).applyTo ⟨9, 12⟩ = some true
+      ∧ (pilotMargin 12).applyTo ⟨7, 12⟩ = some true := by decide
+
 /-! ### O8 — the hedge rate, promoted from footnote to observable
 
 Six of twelve answers in **each** arm named both numbers. That is a real
