@@ -23,6 +23,59 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The packet was three modules behind the tree, and the gauge was measured live
+
+The local release packet is required to track the last commit. It did not: the
+installed plugin carried neither `RotReadmeTable.lean`, nor `RotWorkflowRoles.lean`,
+nor `RotVerdictDecision.lean`. Rebuilt from `commit HEAD`, stamp `1.0.0-local.83`,
+source `7e18ce1`, and installed into all four places that must agree — the live
+plugin cache, its marketplace mirror, the Claude-Test plugin cache, and the CTT
+release directory. Every retired copy was kept, never deleted. Both plugin trees
+now carry **70 modules / 1333 theorems**, and `diff -rq` between the live install
+and the CTT install exits 0.
+
+**Two instrument failures on the way in, both worth recording because both were
+mine and neither was the tool's fault.**
+
+The first: `ARM_ROUTER.sh` run from the unpacked temp directory armed
+`settings.json` with hook commands pointing at `/d/Temp/pkt83/hooks/...`. The
+installer did exactly what it was told; being told the wrong thing was the defect.
+Restored from the backup taken beforehand, and the live config verified clean —
+**0 commands pointing into a temp directory**. RoT MoE's router is installed
+through the *plugin* arm, whose hooks live in the plugin's own `hooks.json`, so
+`settings.json` was never the right place for it.
+
+The second: reading that config with `JSON.parse` threw on a **UTF-8 BOM**. Before
+calling that a defect it was traced — `hooks/settings-merge.js:103-104` strips the
+BOM, `:268` restores it, and `:280` *asserts* the BOM state survived the write. The
+installer handles this deliberately and correctly. The instrument was mine and it
+was the one that was wrong.
+
+**The live-session evidence, which is the point of all of it.** With the fresh
+packet installed, `checker/ctt-session.sh` ran a real Claude-Test session: twenty
+turns, **zero failed**, **100 route records written this run**, and **zero trace
+leaks** — the internal-only seal held on every turn. From those records, measured
+rather than asserted:
+
+| property | measured |
+|---|---|
+| gauge computations | 100 (plus 100 route records) |
+| distinct `Rs` values | **16**, spanning `0.157 … 0.664` |
+| `Rs == 0`, the forbidden placeholder | **never** |
+| `K` | 9 on every single record |
+| distinct lens-activation vectors | 8 |
+| `breadth` observed | 0–1 |
+
+So **`R/s+` is dynamic: MEASURED**, not proved — sixteen distinct values out of a
+hundred computations, on nine lenses, with the placeholder value never occurring.
+And the honest limit alongside it: `breadth` never exceeded 1, meaning that corpus
+never activated two lenses on the same turn. Multi-lens divergence is therefore
+**not** measured by this run, and no claim here rests on it. The corpus needs turns
+that move more than one lens before that number means anything.
+
+`checker/plugin-root-consistency.sh`, `checker/install-parity.sh` and
+`checker/release-install.sh` (24 checks) all exit 0 against the new install.
+
 ### Two skipped steps were innocent; the decision underneath them was not
 
 Run 31367304632 of `verify.yml` finished green with two steps skipped, and one of
