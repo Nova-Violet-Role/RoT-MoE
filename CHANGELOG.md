@@ -23,6 +23,52 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A zero gauge is always a zero input, and the division guard was load-bearing
+
+The live run measured `breadth ∈ {0, 1}`. `breadth = 0` is not an anomaly — it is
+every turn on which no lens fires — and the router divides by it at
+`hooks/rot-router.sh:437`:
+
+    H  = (breadth > 0 ? act / breadth : 0.0);    # share of the turn breadth
+
+Probed in both directions rather than assumed, and the guard turns out to be
+holding up production:
+
+    awk 'BEGIN{ H = 0/0 }'                        -> fatal: division by zero, exit 2
+    awk 'BEGIN{ H = (0>0 ? 0/0 : 0.0); print H }' -> H=0,   exit 0
+    awk 'BEGIN{ H = (2>0 ? 1/2 : 0.0); print H }' -> H=0.5, exit 0
+
+Without it, every CONVERGENT turn would kill the gauge process outright.
+
+**What Lean can and cannot settle here, said before the theorems rather than
+after.** Lean cannot reproduce that crash: `Nat` division is *total*, `n / 0 = 0`
+is a theorem of core Lean, so a Lean model of the unguarded expression would be
+perfectly well behaved and would prove nothing about `awk`. The crash is MEASURED
+and stays measured. `lean/Proofs/RotGaugePositivity.lean` settles the part a
+measurement cannot:
+
+* `the_guard_agrees_wherever_division_was_defined` — over every activity and every
+  positive breadth, the guard changes nothing it was not added to change
+* `the_guard_is_total_at_zero_breadth` — total at the value production actually hits
+* `a_term_vanishes_only_when_a_factor_does` — a lens contributes nothing exactly
+  when one of λ, σ, μ is nothing; there is no third way for a term to vanish, which
+  is what makes a zero *attributable*
+* `the_gauge_vanishes_only_if_every_lens_did` — over every possible ensemble: the
+  sum is never the cause of a zero
+* `one_live_lens_is_enough` — one lens with all three factors present forces the
+  gauge non-zero regardless of the other eight. `R/s+ = 0.0` therefore cannot come
+  from a live ensemble in which anything fired at all, which is what makes the
+  engine's "a zero gauge is a violation" law enforceable instead of aspirational
+* `the_witness_is_the_full_ensemble` / `the_witness_gauge_is_positive` — the
+  anti-vacuity pair: nine lenses, not a convenient subset, and a positive result
+* `the_forbidden_zero_needs_every_lens_dead` and
+  `killing_a_single_lens_does_not_zero_the_gauge` — the failure exhibited, and the
+  robustness that nine lenses buy
+
+Mutants G01–G06: change the zero-breadth branch, turn a product into a sum, drop
+the head term from the fold, make the empty sum non-zero, set `K` to eight, or
+shorten the witness to eight lenses — six ran, six killed.
+
 ### The packet was three modules behind the tree, and the gauge was measured live
 
 The local release packet is required to track the last commit. It did not: the
@@ -346,7 +392,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 691 applied, 691 killed,
+statistic. Across the whole tree the suites now stand at 697 applied, 697 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -698,7 +744,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **691 applied, 691 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **697 applied, 697 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse` and 3 more for the plan audit, each run and killed here — and
 `CITATION.cff` moved from 1083 to the measured 1310 theorems.
