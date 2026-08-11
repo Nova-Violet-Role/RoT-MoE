@@ -104,13 +104,73 @@ jobs:
           else
             : > /tmp/verdict.old
           fi
+          # THE THIRD OUTCOME (added 2026-08-11). This comparison had two answers
+          # and three causes. `/tmp/verdict.old` is empty whenever STATUS.md or
+          # its markers are absent, and `/tmp/verdict.new` would be empty if the
+          # generator ever produced nothing while exiting 0 -- a renamed marker,
+          # a grep that matches no rows, an early return. Measured, five lines,
+          # both directions:
+          #
+          #     two empty files     -> diff says IDENTICAL -> changed=no -> SKIP -> GREEN
+          #     empty vs non-empty  -> differ                                     (correct)
+          #
+          # So a silent generator printed "verdict UNCHANGED -- this is the
+          # correct outcome", skipped the staleness check, and finished green
+          # having measured nothing. Equality is not evidence when both sides can
+          # vanish together; this is the same defect as an emptied file being
+          # invisible to every check that reads its text.
+          #
+          # `lean/Proofs/RotVerdictDecision.lean` proves the repair:
+          #   * an_absent_verdict_is_never_called_unchanged -- for EVERY previous
+          #     verdict, not just today's;
+          #   * the_repair_agrees_wherever_the_old_check_was_meaningful -- on any
+          #     verdict that actually exists the answer is unchanged, so nothing
+          #     was traded away for the new strictness;
+          #   * skipping_and_failing_never_both_apply -- the outcomes partition,
+          #     so no implementer gets to pick the convenient one.
+          if [ ! -s /tmp/verdict.new ]; then
+            echo "changed=unmeasured" >> "$GITHUB_OUTPUT"
+            echo "::error title=verdict::the verdict generator produced NOTHING while exiting 0."
+            echo "The comparison below would have called this 'unchanged' and skipped the"
+            echo "staleness check. Nothing was measured. Failing instead."
+            exit 1
+          fi
           if diff -q /tmp/verdict.old /tmp/verdict.new >/dev/null 2>&1; then
             echo "changed=no" >> "$GITHUB_OUTPUT"
-            echo "verdict UNCHANGED -- nothing will be written or committed (this is the correct outcome)"
+            echo "verdict UNCHANGED against a verdict that was actually produced"
+            echo "($(wc -l < /tmp/verdict.new) lines) -- nothing will be written or committed."
           else
             echo "changed=yes" >> "$GITHUB_OUTPUT"
             echo "verdict CHANGED:"
             diff -u /tmp/verdict.old /tmp/verdict.new || true
+          fi
+
+      # The alarm must be able to fire, or it is decoration. This runs the same
+      # emptiness test against a deliberately empty file and fails the job if the
+      # test does NOT trip -- and against a non-empty one, so it cannot pass by
+      # rejecting everything.
+      - name: Verdict emptiness NEGATIVE CONTROL
+        run: |
+          set -uo pipefail
+          : > /tmp/ctl.empty
+          printf 'row\n' > /tmp/ctl.full
+          if [ ! -s /tmp/ctl.empty ]; then
+            echo "control: an empty verdict IS detected"
+          else
+            echo "::error::CONTROL FAILED -- the emptiness test does not fire on an empty file"
+            exit 1
+          fi
+          if [ ! -s /tmp/ctl.full ]; then
+            echo "::error::CONTROL FAILED -- the emptiness test fires on a real verdict; it would block every correct run"
+            exit 1
+          else
+            echo "control: a real verdict is accepted"
+          fi
+          if diff -q /tmp/ctl.empty /tmp/ctl.empty >/dev/null 2>&1; then
+            echo "control: two empty verdicts DO compare equal -- which is exactly why the test above must come first"
+          else
+            echo "::error::CONTROL INVALID -- diff no longer calls two empty files identical, so the defect this guards is not the one measured"
+            exit 1
           fi
 
       - name: Write STATUS.md (only when the verdict changed)

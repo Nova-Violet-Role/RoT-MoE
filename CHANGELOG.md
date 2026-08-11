@@ -23,6 +23,66 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Two skipped steps were innocent; the decision underneath them was not
+
+Run 31367304632 of `verify.yml` finished green with two steps skipped, and one of
+them was **"Publish the verdict, and FAIL if the committed one is stale"**. A green
+job whose staleness check never ran is the exact shape this project refuses to
+accept on trust, so it was read rather than assumed.
+
+The skips are legitimate. Both carry `if: steps.decide.outputs.changed == 'yes'`
+and the verdict genuinely had not changed. The defect is one layer below them.
+
+`/tmp/verdict.old` is `awk`-extracted from between two markers in `STATUS.md` and
+is deliberately empty when the file or the markers are missing. `/tmp/verdict.new`
+is the stdout of `checker/status-verdict.sh`. The step then asks `diff -q` whether
+they match. Measured here, five lines, both directions:
+
+    two empty files      -> diff says IDENTICAL -> changed=no -> both steps SKIP -> job GREEN
+    empty vs non-empty   -> differ                                              (correct)
+
+So if the generator ever produced nothing while exiting 0 — a renamed marker, a
+`grep` matching no rows, an early return — the comparison would succeed against an
+equally empty predecessor, the log would print *"verdict UNCHANGED — this is the
+correct outcome"*, the staleness check would skip, and the job would be green
+having measured nothing. Equality is not evidence when both sides can vanish
+together. This is the same defect the repository already fixed elsewhere: an
+emptied file is invisible to every check that reads its text.
+
+The repair is not to distrust equality. It is that the step had **three** causes
+and only ever admitted two answers. `lean/Proofs/RotVerdictDecision.lean` gives the
+third one a name and a consequence:
+
+* `a_vanished_verdict_looks_exactly_like_an_unchanged_one` — the blindness, decided
+  on both inputs at once
+* `an_absent_verdict_is_never_called_unchanged` — stated over **every** possible
+  previous verdict, so no future `STATUS.md` can reintroduce it
+* `an_absent_verdict_is_not_reported_as_a_change` — `unmeasured` is its own answer,
+  not a lean toward the noisy side
+* `the_repair_agrees_wherever_the_old_check_was_meaningful` — for any verdict that
+  actually exists, the new decision reports a change exactly when the old one did.
+  Nothing was traded for the strictness
+* `an_unchanged_real_verdict_is_still_unchanged` — the weekly job still stays quiet
+  when nothing moved
+* `skipping_and_failing_never_both_apply` and
+  `every_decision_has_a_defined_treatment` — the outcomes partition and the
+  partition is total, so no implementer gets to pick the convenient reading
+* `all_three_outcomes_are_reachable` — the anti-vacuity witness; a third
+  constructor no input can produce would leave the rest green and pointless
+* `the_run_that_prompted_this_was_actually_fine` — closing the loop: that run was
+  correct, and now for a reason somebody checked
+
+`verify.yml` fails the job when the generator produces nothing, and the new
+emptiness test has its own negative control that fires in three directions: it must
+detect an empty verdict, must **not** fire on a real one, and must confirm that two
+empty files still compare equal — because the day `diff` stops saying that, the
+control is guarding a defect that is no longer the one measured.
+
+Mutants V01–V06: collapse `unmeasured` back into `unchanged`, invert the
+comparison, flip the model of the shipped step, let an unmeasured verdict skip
+quietly, drop the obligation to fail, or forbid a real unchanged verdict from
+skipping — six ran, six killed.
+
 ### The freshest workflow in the repository had been broken for a week
 
 Four hand-written workflows, and until now the split between them lived in a
@@ -233,7 +293,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 685 applied, 685 killed,
+statistic. Across the whole tree the suites now stand at 691 applied, 691 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -585,7 +645,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **685 applied, 685 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **691 applied, 691 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse` and 3 more for the plan audit, each run and killed here — and
 `CITATION.cff` moved from 1083 to the measured 1310 theorems.

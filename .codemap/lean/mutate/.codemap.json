@@ -1184,6 +1184,24 @@
         }
       ]
     },
+    "mutate_rotverdictdecision.sh": {
+      "hash": "df5d91019556",
+      "indexed_at": "2026-08-11T06:54:39.132391+00:00",
+      "language": "shell",
+      "lines": 272,
+      "mtime_ns": 1786431276739189500,
+      "size": 13412,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            185
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotworkflowroles.sh": {
       "hash": "6fe4fa078649",
       "indexed_at": "2026-08-11T06:15:54.897445+00:00",
@@ -1221,6 +1239,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T06:15:54.917306+00:00",
+  "generated_at": "2026-08-11T06:54:39.154145+00:00",
   "version": "1.0"
 }
