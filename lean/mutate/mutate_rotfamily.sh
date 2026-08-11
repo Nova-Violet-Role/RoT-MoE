@@ -211,6 +211,11 @@ run_mut M09 "    (∃ h, h ≤ outOf ∧ admissibleBy mg ⟨h, outOf⟩ = true) 
 run_mut M10 "    admissibleBy 8 ⟨3, 12⟩ = false ∧ admissibleBy 8 ⟨1, 12⟩ = false := by decide" "    admissibleBy 8 ⟨3, 12⟩ = true ∧ admissibleBy 8 ⟨1, 12⟩ = true := by decide" \
   "the_measured_pilot_is_inadmissible -- claim the measured pilot passed the gate. The one mutation a reader most needs to fail, because a green build under this statement would mean the record of what was observed had drifted from the observation"
 
+run_mut M11 "def marginFor (outOf : Nat) : Nat := outOf / 5" "def marginFor (outOf : Nat) : Nat := outOf / 10" \
+  "the_margin_was_a_fraction_of_the_corpus_not_an_absolute, the_corpus_is_refused_and_must_be_rebuilt -- loosen the fraction to a tenth. This is the CONVENIENT mutation: it is the one setting under which the measured pilot passes, and marginFor 40 would be 4 instead of the preregistered 8. If this ever survives, the margin has stopped tracking the document it came from"
+run_mut M12 "  admissibleBy mg a && admissibleBy mg b" "  admissibleBy mg a" \
+  "the_corpus_is_refused_and_must_be_rebuilt -- judge admissibility on the routed arm alone. The routed arm passes, so this mutation turns a refused corpus into an admitted one while changing nothing about the data; a corpus the unrouted arm always fails cannot show a difference between the arms"
+
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."

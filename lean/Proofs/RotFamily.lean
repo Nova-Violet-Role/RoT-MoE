@@ -333,4 +333,84 @@ Two disagreements out of twelve, none against — and `n = 2` is far below the
 ten-pair floor. A pilot that could conclude would not be a pilot. -/
 theorem the_pilot_cannot_conclude : verdictM m 2 0 = Verdict.notSupported := by decide
 
+/-! ## The admissibility decision, and why it is not a choice
+
+The deferred decision has to be made before the 160 sessions run, or the whole
+run is contaminated. It is made here, and the justification does NOT come from
+the pilot's results.
+
+**Where the 8 came from.** Section 4 fixes a 40-task corpus; section 5 asks for
+margin 8. `8 = 40 / 5` — the margin was **twenty percent of the corpus**, and it
+is correct at that size. The defect was writing it as an absolute and then
+applying it to a 10-task pilot, where 8 is eighty percent and unreachable. So
+the margin is not a number to re-pick, it is a FRACTION that was flattened into
+a number. Restoring the fraction recovers the preregistered value exactly at the
+size it was written for, which is what makes this a repair and not a re-choice.
+
+**This choice is worse for the router, not better.** Under the restored margin
+the routed arm admits and the unrouted arm does not, so the corpus is refused
+and must be rebuilt — section 5's own instruction. A margin chosen to make the
+observed pilot pass would have been 10%, and that is stated below rather than
+left for someone to discover. -/
+
+/-- **The margin as it was meant: a fifth of the pilot, in both directions.** -/
+def marginFor (outOf : Nat) : Nat := outOf / 5
+
+/-- **It recovers the preregistered number at the size it was written for.**
+`marginFor 40 = 8` is the whole argument that this is a repair rather than a new
+parameter. -/
+theorem the_margin_was_a_fraction_of_the_corpus_not_an_absolute :
+    marginFor 40 = 8 := by decide
+
+/-- **A fractional margin is reachable at every size**, so the unsatisfiable
+gate cannot recur no matter how the pilot or the corpus is resized. This is the
+durable form: quantified over the size that moves. -/
+theorem a_fractional_margin_is_always_reachable (outOf : Nat) :
+    2 * marginFor outOf ≤ outOf := by
+  unfold marginFor; omega
+
+open RotMoE.Saturation in
+/-- Consequently some score always admits — the property the flattened margin
+lost. -/
+theorem a_fractional_margin_always_admits_some_score (outOf : Nat) :
+    ∃ h, h ≤ outOf ∧ admissibleBy (marginFor outOf) ⟨h, outOf⟩ = true :=
+  (a_margin_is_reachable_iff_the_pilot_is_twice_its_size (marginFor outOf) outOf).mpr
+    (a_fractional_margin_is_always_reachable outOf)
+
+/-- The margin at the two pilot sizes in play. -/
+theorem the_margin_at_the_pilot_sizes :
+    marginFor 10 = 2 ∧ marginFor 12 = 2 := by decide
+
+open RotMoE.Saturation in
+/-- **The measured pilot: the routed arm admits, the unrouted arm does not.**
+3 of 12 leaves room in both directions; 1 of 12 is against the floor. Both
+numbers are what the 2026-08-11 run produced. -/
+theorem the_routed_arm_admits_and_the_unrouted_arm_does_not :
+    admissibleBy (marginFor 12) ⟨3, 12⟩ = true
+      ∧ admissibleBy (marginFor 12) ⟨1, 12⟩ = false := by decide
+
+open RotMoE.Saturation in
+/-- **Admissibility requires BOTH arms**, because a corpus saturated for one arm
+cannot show a difference between them. One-armed admissibility would let a
+corpus that the unrouted arm always fails count as usable, which is the
+floor-saturation twin of the ceiling effect `RotSaturation` was written for. -/
+def corpusAdmissible (mg : Nat) (a b : Score) : Bool :=
+  admissibleBy mg a && admissibleBy mg b
+
+open RotMoE.Saturation in
+/-- **So the corpus is REFUSED and must be rebuilt.** Section 5: "If the pilot
+is inadmissible the corpus is rebuilt, not the rule." -/
+theorem the_corpus_is_refused_and_must_be_rebuilt :
+    corpusAdmissible (marginFor 12) ⟨3, 12⟩ ⟨1, 12⟩ = false := by decide
+
+open RotMoE.Saturation in
+/-- **The margin that WOULD have admitted this pilot is a tenth, and naming it
+is the point.** A ten-percent margin passes the run that a twenty-percent margin
+refuses. Recording the number that would have been convenient is what stops it
+from being quietly adopted later; the twenty percent is fixed because
+`marginFor 40 = 8` reproduces the preregistration, not because of how it scores. -/
+theorem a_ten_percent_margin_would_have_admitted_the_floor :
+    corpusAdmissible (12 / 10) ⟨3, 12⟩ ⟨1, 12⟩ = true
+      ∧ corpusAdmissible (12 / 5) ⟨3, 12⟩ ⟨1, 12⟩ = false := by decide
+
 end RotMoE.Family

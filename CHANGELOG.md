@@ -23,6 +23,41 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The margin was a fraction that had been flattened into a number
+
+AMENDMENT 2 in `bench/P24-PREREGISTRATION.md`, sealed by content hash
+(`69ab3837…`, parent `b85b2424…`) **before** any of the 160 sessions run,
+because a design decision made after the data is a contaminated decision.
+
+**Where the 8 came from: `8 = 40 / 5`.** §5's margin was always *twenty percent
+of the 40-task corpus* in §4. The defect was flattening that fraction into a
+number and then applying the number to a 10-task pilot, where 8 is eighty
+percent and unreachable. `the_margin_was_a_fraction_of_the_corpus_not_an_
+absolute` proves `marginFor 40 = 8` — the restored fraction reproduces the
+preregistered value exactly at the size it was written for, which is the whole
+argument that this is a repair and not a re-choice.
+`a_fractional_margin_is_always_reachable` proves `2·marginFor outOf ≤ outOf` for
+every size, so the unsatisfiable gate cannot recur at any size chosen later.
+
+**The decision goes against the router.** At `marginFor 12 = 2` the routed arm
+(3/12) admits and the unrouted arm (1/12) does not, and `corpusAdmissible`
+requires both — a corpus the unrouted arm always fails cannot show a difference
+between the arms, which is floor saturation, the twin of the ceiling effect
+`RotSaturation` was written for. So `the_corpus_is_refused_and_must_be_rebuilt`,
+which is §5's own remedy.
+
+**The convenient alternative is named, not left to be found.** A ten-percent
+margin would have admitted this pilot:
+`a_ten_percent_margin_would_have_admitted_the_floor` proves
+`corpusAdmissible (12/10) ⟨3,12⟩ ⟨1,12⟩ = true` beside the twenty-percent
+`false`. Mutant M11 applies exactly that loosening and is killed; M12 judges
+admissibility on the routed arm alone and is killed.
+
+**Schedule consequence: the 160 sessions do not start yet.** The corpus is
+refused at the floor, and six of twelve answers in *each* arm hedged by stating
+both numbers. The corpus is too hard, or the tasks invite hedging, or both.
+Rebuilding happens before collection, not after.
+
 ### The pilot ran, and the gate that was supposed to judge it could never pass
 
 `pilot12Pairs` is **MET** — 2 of 6 push-guard obligations now closed. 12 paired
@@ -266,7 +301,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1440 theorems, 76 modules, 70 suites, 735 mutants, 71 checkers.
+1447 theorems, 76 modules, 70 suites, 737 mutants, 71 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -325,7 +360,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1440 theorems, 76 modules, 70 suites, 735 mutants, 71 checkers.
+1447 theorems, 76 modules, 70 suites, 737 mutants, 71 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -770,7 +805,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 735 applied, 735 killed,
+statistic. Across the whole tree the suites now stand at 737 applied, 737 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1122,7 +1157,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **735 applied, 735 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **737 applied, 737 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and

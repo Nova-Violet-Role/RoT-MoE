@@ -124,12 +124,59 @@ Two consequences, both derived and neither chosen:
   score admits, so a 10-task pilot cannot carry a margin with any room at all
   (`a_ten_task_pilot_carries_a_margin_of_five_at_most`).
 
-**The choice is deferred, not made here**, because making it after seeing a
-pilot is precisely the contamination §5 guards against. What is fixed now is
-that whichever is chosen must satisfy `2m ≤ outOf`, and that the pilot of
-2026-08-11 was **INADMISSIBLE** under the gate as written
+The pilot of 2026-08-11 was **INADMISSIBLE** under the gate as written
 (`the_measured_pilot_is_inadmissible`, `admissibleBy 8 ⟨3,12⟩ = false` and
-`admissibleBy 8 ⟨1,12⟩ = false`).
+`admissibleBy 8 ⟨1,12⟩ = false`) — as was every other outcome it could have had.
+
+### AMENDMENT 2 (2026-08-11) — the margin, decided and sealed BEFORE the run
+
+Fixed here, before any of the 160 sessions. Sealed by content hash so a later
+edit is visible:
+
+```
+decision   margin is a FRACTION: marginFor outOf = outOf / 5   (twenty percent)
+witness    lean/Proofs/RotFamily.lean
+blob       69ab38374a48cbf95fdf6501522dddf98d1ea177
+parent     b85b2424ed4eb5c6627046f5ecbbdbfc31883100
+```
+
+**The justification does not come from the pilot's results.** `8 = 40 / 5`: §5's
+margin was always *twenty percent of the 40-task corpus* in §4. The defect was
+flattening a fraction into a number and then applying that number to a 10-task
+pilot, where 8 is eighty percent and unreachable. Restoring the fraction
+reproduces the preregistered value exactly at the size it was written for —
+`the_margin_was_a_fraction_of_the_corpus_not_an_absolute` proves
+`marginFor 40 = 8`. That is what makes this a repair rather than a re-choice,
+and it is the whole of the argument.
+
+`a_fractional_margin_is_always_reachable` proves `2 · marginFor outOf ≤ outOf`
+for **every** size, so the unsatisfiable gate cannot recur at any pilot or
+corpus size chosen later.
+
+**Admissibility requires BOTH arms.** `corpusAdmissible` is the conjunction. A
+corpus the unrouted arm always fails cannot show a difference between the arms —
+that is floor saturation, the twin of the ceiling effect `RotSaturation` exists
+to catch.
+
+**The decision goes AGAINST the router, and that is the test of it being
+honest.** At `marginFor 12 = 2` the routed arm (3/12) admits and the unrouted
+arm (1/12) does not:
+`the_routed_arm_admits_and_the_unrouted_arm_does_not`. Therefore
+`the_corpus_is_refused_and_must_be_rebuilt`, which is §5's own instruction.
+
+**The convenient alternative is named rather than left to be discovered.** A ten
+percent margin would have admitted this pilot:
+`a_ten_percent_margin_would_have_admitted_the_floor` proves
+`corpusAdmissible (12/10) ⟨3,12⟩ ⟨1,12⟩ = true` beside the twenty percent
+`false`. Mutant M11 in `lean/mutate/mutate_rotfamily.sh` applies exactly that
+loosening and must always be killed.
+
+### Consequence for the schedule
+
+**The 160 sessions do not start yet.** The corpus is refused at the floor: the
+unrouted arm scored 1 of 12, and six of twelve answers in *each* arm hedged by
+stating both numbers. The corpus is too hard, or the tasks invite hedging, or
+both. Rebuilding it is §5's remedy and it happens before collection, not after.
 
 ### The pilot of 2026-08-11 — what was actually run
 
