@@ -23,6 +23,80 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A branch push is still a push — and the hook was installed where git does not look
+
+Fifty-eight gates existed when a branch was pushed to the remote while the
+completion promise was unfulfilled. Not one of them was about the push **action** —
+every gate judged the *tree*. The reasoning at the time was *"pushing a branch is
+evidence-gathering, not publishing"*, and it is not: the branch was visible on the
+remote, CI ran against it, and its green was then cited as evidence about `main`.
+
+`lean/Proofs/RotPushGuard.lean` is written to make that sentence unstatable rather
+than merely discouraged. The load-bearing theorem is
+`the_target_cannot_change_the_verdict`: for every state and every *pair* of
+destinations the guard returns the same answer, so "it is only a side branch" and
+"it is only a tag" cannot move it. `permission_is_exactly_an_empty_outstanding_list`
+supplies the other direction — a gate that can never open is a wall, and the first
+person to finish the work would delete it.
+
+**Three findings came out of building it, and all three were defects in the new
+work rather than in the old.**
+
+*The hook was installed where git does not look.* `.git/hooks/pre-push` was written,
+made executable, and `git push --dry-run` **exited 0 with no output at all**. The
+repository sets `core.hooksPath = .githooks`, so the file was dead on arrival. A
+deliberately-failing probe hook confirmed it: still exit 0. Reinstalled at
+`.githooks/pre-push`, which also means the guard now ships with the tree instead of
+living in one clone. Re-measured: `main`, a side branch and a tag are now **all
+refused at exit 1**, and the remote is untouched at `cef996e`.
+
+*A control that matched itself.* The first target-independence check grepped its own
+source for a literal — and the pattern string contained the thing the pattern looked
+for, so it reported CONTROL FAILED on a clean script. Assembling the needle at
+runtime fixed that and then flagged six lines, three of which were `ok()`, `bad()`
+and `inf()` using their own `$1`. A function's parameter is not the script's argv and
+no text pattern separates them reliably. The check is now **behavioural**: the guard
+re-runs itself against main, a side branch and a tag and fails if the three verdicts
+ever differ — the theorem, executed. Its own negative control confirms the
+comparison catches a script that *does* branch on its destination.
+
+*A probe that could never succeed.* The pilot row originally ran
+`bash checker/pilot-size.sh` — a script that does not exist. The obligation could
+never be met, so the guard would have refused forever even after the pilot was
+genuinely finished, and the obvious repair at that point is to delete the row and
+destroy the coverage. A gate that cannot open on correct work is a defect, not a
+safeguard. Control (d) now asserts every probe invokes only scripts that exist, and
+(d2) proves that control can fire.
+
+**Mutation P04 found a real spec gap and it was closed, not explained away.**
+Replacing one ledger entry with a duplicate of another left six entries, kept
+`allObligations.length = 6` true, and left every theorem green while silently
+dropping an obligation from the guard. Length is not coverage. Two theorems close
+it: `the_ledger_lists_every_obligation` (constructor by constructor, so adding a
+case to `Obligation` without listing it fails to compile) and
+`the_ledger_repeats_nothing`. P04 then died. Four mutants, four killed — after the
+first run reported **1 survived**, and one earlier attempt was correctly recorded as
+**DISCARDED** because the replacement contained its own needle.
+
+The guard refuses right now, 6 of 6 outstanding, first outstanding `corpus40`. That
+is the honest state and it is the point.
+
+**And that honest state immediately broke the gate suite, which is the fourth
+finding.** Registered as a gate, `push-guard.sh` turned `gate-all` red: the
+registry's contract is "exit 0 is green", and the guard's correct answer today is
+exit 1. A permanently red suite is not a strict suite — it is one that gets deleted,
+and deleting it would remove the only gate that judges the transmission.
+
+So the script now has two modes, and the distinction is the whole point. Default
+mode answers *may anything be transmitted right now* — exit 1 until the promise is
+fulfilled, and that is what `.githooks/pre-push` calls. `--instrument` answers *is
+this guard sound*, ignoring which way it points: exit 0 when the verdict is
+determinate **and all six controls reported**, exit 1 only when the guard cannot
+stand behind its own answer. `gate-all.sh` and CI call that one, sharing a single
+implementation so the two can never drift.
+
+The gate asks the question that CAN pass today. The hook asks the one that must not.
+
 ### A zero gauge is always a zero input, and the division guard was load-bearing
 
 The live run measured `breadth ∈ {0, 1}`. `breadth = 0` is not an anomaly — it is
@@ -392,7 +466,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 697 applied, 697 killed,
+statistic. Across the whole tree the suites now stand at 701 applied, 701 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -744,7 +818,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **697 applied, 697 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **701 applied, 701 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse` and 3 more for the plan audit, each run and killed here — and
 `CITATION.cff` moved from 1083 to the measured 1310 theorems.

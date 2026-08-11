@@ -1105,6 +1105,37 @@ jobs:
             *) exit "$ec" ;;
           esac
 
+      # WHAT THIS STEP ASSERTS, and what it deliberately does NOT.
+      # push-guard.sh answers "may anything be transmitted right now". On any
+      # commit before the promise is fulfilled the honest answer is NO, so a CI
+      # step demanding exit 0 would fail every build until the research is
+      # finished -- and the repair everyone reaches for is to delete the step.
+      # A gate that cannot pass on correct work is a defect, not a safeguard.
+      #
+      # So CI verifies the INSTRUMENT, not the verdict: exit 0 and exit 1 are both
+      # acceptable outcomes because both are determinate. Exit 2 is not -- that is
+      # the guard saying its own controls failed and it cannot stand behind any
+      # answer. "I could not tell" is not "yes", and it is not a pass either.
+      - name: push guard -- the instrument must be sound, whatever its verdict
+        run: |
+          set -uo pipefail
+          # --instrument asks whether the guard is SOUND, not which way it points.
+          # One implementation, shared with gate-all.sh, so the two can never drift.
+          bash checker/push-guard.sh --instrument
+          ec=$?
+          [ "$ec" -eq 0 ] || { echo "::error::push-guard is not sound (exit $ec)"; exit 1; }
+
+          # And the verdict itself, reported but never demanded. Exit 1 is the
+          # correct answer until the promise is fulfilled; exit 2 never is.
+          bash checker/push-guard.sh > /tmp/pushguard.txt 2>&1
+          vc=$?
+          cat /tmp/pushguard.txt
+          case "$vc" in
+            0) echo "push-guard: promise FULFILLED -- transmission permitted" ;;
+            1) echo "::notice::push-guard REFUSES (exit 1) -- obligations outstanding. Correct answer today, not a failure of this step." ;;
+            *) echo "::error::push-guard could not determine the promise state (exit $vc)"; exit 1 ;;
+          esac
+
       - name: axiom audit -- #print axioms on every theorem, zero sorryAx
         run: LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/axiom-audit.sh
 

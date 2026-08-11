@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# pre-push -- refuse to transmit while the completion promise is unfulfilled.
+#
+# Installed 2026-08-11 after a branch was pushed to the remote on the reasoning
+# that "pushing a branch is evidence-gathering, not publishing". It is not.
+# lean/Proofs/RotPushGuard.lean proves the_target_cannot_change_the_verdict:
+# for every state and every pair of destinations the answer is identical.
+#
+# git hands this hook the remote name and URL on argv, and the refs on stdin.
+# IT IS DELIBERATE THAT NONE OF THEM ARE READ. Reading the destination is the
+# thing the theorem forbids, and checker/push-guard.sh has a behavioural control
+# that re-runs itself against main, a side branch and a tag and fails if the
+# three verdicts ever differ.
+#
+# Exit 1 blocks the push. `git push --no-verify` is the Socio's override and is
+# the only legitimate way past this -- state which obligations were outstanding
+# when you use it.
+set -uo pipefail
+
+_root="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$_root" ] || [ ! -f "$_root/checker/push-guard.sh" ]; then
+  echo "pre-push: cannot locate checker/push-guard.sh -- REFUSING." >&2
+  echo "A guard that cannot find itself must not report permission." >&2
+  exit 1
+fi
+
+bash "$_root/checker/push-guard.sh"
+_rc=$?
+
+case "$_rc" in
+  0) exit 0 ;;
+  1) echo "pre-push: BLOCKED by checker/push-guard.sh (exit 1)." >&2; exit 1 ;;
+  *) echo "pre-push: push-guard could not determine the promise state (exit $_rc)." >&2
+     echo "Refusing -- 'I could not tell' is not 'yes'." >&2
+     exit 1 ;;
+esac

@@ -263,6 +263,7 @@ def shipped : List Gate :=
     -- newest success 173 h old, so "did it run" called a workflow that had been
     -- red for a week the freshest in the repository.
   , d "workflow roles (a docs manager may not write code; freshness is measured on the youngest GREEN run, never the newest run)" [".github/workflows/", "checker/workflow-roles.sh", "lean/Proofs/RotWorkflowRoles.lean"]
+  , d "push guard (a branch push is still a push; the verdict may not depend on the destination -- the GATE asks whether the guard is sound, the pre-push HOOK asks the verdict)" ["checker/push-guard.sh", ".githooks/pre-push", "lean/Proofs/RotPushGuard.lean"]
   , f "dorks"
   , f "hook footprint"
   -- FAST because it reads two files in this repository and compares them to
@@ -436,18 +437,22 @@ def shipped : List Gate :=
 -- committed, so in CI it can only skip.
 -- 58 since 2026-08-11, when `workflow roles` joined the deep tier -- the gate
 -- that measures each workflow's youngest GREEN run rather than its newest run.
-#guard shipped.length = 58
+-- 59 later the same day, when `push guard` joined it: the first gate in the table
+-- that judges the TRANSMISSION rather than the tree. Fifty-eight gates existed
+-- when a branch was pushed while the promise was unfulfilled, and not one of them
+-- was about the push action.
+#guard shipped.length = 59
 
 -- THIRTY-SEVEN run on every commit. The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
 -- prose is what a reader believes. Both are recounted together from now on.
 #guard (fastSet shipped).length = 37
 
--- TWENTY-ONE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
+-- TWENTY-TWO are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
--- `workflow roles` 2026-08-11).
+-- `workflow roles` 2026-08-11, `push guard` 2026-08-11).
 -- This comment read "Sixteen" against a guard of 19 for the same reason.
-#guard (deepSet shipped).length = 21
+#guard (deepSet shipped).length = 22
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

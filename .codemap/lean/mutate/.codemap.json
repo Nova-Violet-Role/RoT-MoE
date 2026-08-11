@@ -836,6 +836,24 @@
         }
       ]
     },
+    "mutate_rotpushguard.sh": {
+      "hash": "a8f55487a33e",
+      "indexed_at": "2026-08-11T08:37:52.832305+00:00",
+      "language": "shell",
+      "lines": 267,
+      "mtime_ns": 1786437460102391000,
+      "size": 13063,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            185
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotreadmetable.sh": {
       "hash": "677c73a71843",
       "indexed_at": "2026-08-11T04:20:26.548373+00:00",
@@ -1257,6 +1275,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T07:56:09.095358+00:00",
+  "generated_at": "2026-08-11T08:37:52.832435+00:00",
   "version": "1.0"
 }
