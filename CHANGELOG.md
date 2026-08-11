@@ -89,10 +89,25 @@ must not), cron presence, and the API half that reports **both** ages side by si
 so the difference is visible in the log rather than asserted in prose. Without a
 credential it exits 3 — a skip, never a pass.
 
-It is registered as a deep gate and **it is currently RED**, for the true reason:
-the documentation manager's last success really is older than the bound. That
-stays red until a green run exists; a checker adjusted to accept the state it was
-written to detect would be worth nothing.
+It is registered as a deep gate, and it was **RED** when it was written — for the
+true reason, the documentation manager's last success really being older than the
+bound. It was left red rather than adjusted; a checker tuned to accept the state
+it was built to detect is worth nothing.
+
+**Where the green came from, stated before the green is claimed.** The repaired
+workflow was dispatched against a **side branch**, not against `main`. It ran
+eleven steps with zero non-success — the previous run skipped two, including its
+own negative control — and both controls fired inside CI: the drift control
+refused a README off by one module, and the coverage control refused a README
+missing a module whose absence left the sum at 1322 either way. That is real
+evidence and it is why the audit repair is trusted here.
+
+It is not evidence about `main`. The branch should never have been pushed: the
+promise this repository publishes under was not fulfilled at the time, and the
+branch has since been deleted. `main` has **not** run this workflow.
+`checker/workflow-roles.sh` prints the ref of every green run precisely so this
+distinction cannot be lost — it reports `0h old on ci/workflow-roles`, and it will
+keep naming that ref until a run on `main` replaces it.
 
 Mutants W01–W06: measure the newest run instead of the newest success, make the
 scope check always true, widen the allowlist by one path, drop the freshness
