@@ -215,6 +215,17 @@ run_mut X11 "  (v.nova < u.nova || v.violet < u.violet || v.antiVenom < u.antiVe
 run_mut X12 "def profileEmpathic : LensVector := ⟨0, 9, 0, 0, 0, 0, 0, 0, 0⟩" "def profileEmpathic : LensVector := ⟨0, 0, 9, 0, 0, 0, 0, 0, 0⟩" \
   "violet_is_not_cosmetic -- collapse the empathic profile onto the cautious one and the witness stops distinguishing the lens it was written to distinguish"
 
+run_mut X13 "  else .incomparable" "  else .better" \
+  "a_scalar_tie_is_reported_as_incomparable / better_implies_a_higher_total -- report every non-dominating pair as a WIN. This is the exact defect the three-valued verdict exists to prevent: laundering a projection tie into a finding"
+run_mut X14 "  decide (scoreW w b * ((a.costSec : Int) + 1) < scoreW w a * ((b.costSec : Int) + 1))" "  decide (scoreW w a * ((b.costSec : Int) + 1) < scoreW w b * ((a.costSec : Int) + 1))" \
+  "integer_division_manufactures_a_tie -- swap the operands of the cross-multiplication and the density verdict inverts, so the direction of the ratio is load-bearing and not a convention"
+run_mut X15 "  (e.art.falseGreen == 0) && (e.art.pipedReads == 0)" "  (e.art.pipedReads == 0)" \
+  "a_single_false_green_is_refused -- stop checking for false greens in the evidence record. The one unforgivable output would pass the gate that exists to catch it"
+run_mut X16 "  (100 * e.comparisons * twoSidedTail e.n e.against ≤ 2 ^ e.n) &&" "  (100 * twoSidedTail e.n e.against ≤ 2 ^ e.n) &&" \
+  "the_corrected_boundary_is_nine_of_forty -- drop the multiplicity correction from the computed premise and 10 against out of 40 is admitted, which is the family-wise error the correction was added to close"
+run_mut X17 "  (e.corpusHash == e.expectedHash) &&" "  (0 == 0) &&" \
+  "a_wrong_corpus_hash_is_refused -- disarm the corpus comparison and any corpus passes, which turns the one hypothesis the checker computes back into an assumption"
+
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."

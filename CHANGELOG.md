@@ -23,6 +23,78 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The axiom that became a measurement: one hypothesis the checker computes
+
+An `axiom` for the empirical claim would have laundered it — the kernel would
+trust a hole exactly where the world belongs. A hypothesis supplied by hand is
+honest, but the caller can lie. `RotExperiment.lean` §9 uses the third form:
+
+| shape | meaning | verdict |
+|---|---|---|
+| `axiom margins_are_good : …` | a hole the kernel trusts | **forbidden** — launders the claim |
+| `theorem … (h : margins = m)` | premise supplied by the world | honest; the caller can lie |
+| `theorem … (h : checkAll ev = true)` | premise **computed by the checker**, closed by `decide` | this is convergence |
+
+`structure Evidence` folds every confound into ONE record — corpus hash,
+preregistered hash, the nine-lens vector, the seven artifact observables, pairs,
+pairs-against, comparisons, and the four design bits. `checkAll` is one function
+over that record, and `attributable` takes exactly one hypothesis:
+
+    theorem attributable (e : Evidence) (h : checkAll e = true) :
+      e.corpusHash = e.expectedHash ∧ … ∧
+      verdictM e.comparisons e.n e.against = Verdict.supported ∧
+      e.art.falseGreen = 0 ∧ e.art.pipedReads = 0
+
+Nothing is assumed. A Boolean is computed from data the checker wrote, and the
+kernel checks the implication. Nine witnesses prove the gate can REFUSE — one per
+clause, each differing from a passing record in a single field — so `checkAll` is
+not a rubber stamp. Two of them matter most: a single `falseGreen` sinks a record
+whatever its margin, and a perfect protocol with ten-of-forty against is refused,
+because the corrected boundary is **nine**, not ten.
+
+**What no theorem here establishes, stated in the file and repeated here:** that
+the transcripts came from real sessions rather than an editor. `corpusHash`
+reduces provenance to one comparison, but a hash proves INTEGRITY, never ORIGIN.
+That is a trust root. Calling it an axiom or a proof would both be wrong.
+
+### The scalar was reductive; now it is licensed, with a domain
+
+Section 6 proved the nine-lens scalar loses the profile. That was an objection,
+not a repair — it left the scalar defined everywhere and trusted nowhere. Three
+theorems now say where it may be believed:
+
+* **Faithfulness** — `dominates u v = true → total v < total u`. The scalar can
+  never contradict the vector. This is also what makes the equal weighting
+  load-bearing: zero one lens in `total` and a profile can dominate by winning on
+  the ignored lens alone.
+* **Honest incomparability** — `compareV` is three-valued, and the two profiles
+  that tie on the scalar return `incomparable`, not equal. A projection tie is no
+  longer laundered into a finding. X13 reports non-dominating pairs as wins and
+  kills the module.
+* **Density without division** — `costSec / 60` was a defect, not a rounding
+  convenience: every latency difference under a minute was invisible.
+  Cross-multiplication removes the division, and
+  `integer_division_manufactures_a_tie` exhibits the pair it hid — 5 s against
+  50 s, identical under the old bucket, separated now. The dense comparison also
+  refuses three times the work at ten times the cost, for every admissible
+  weighting.
+
+### A transient network failure was being reported as a stale CI run
+
+`ci-audit-freshness.sh` went RED inside a parallel pre-commit sweep with
+`SyntaxError: Unexpected end of JSON input` — curl had returned an empty body. Run
+standalone, with stdin closed, and with the hook's `GIT_DIR` set, it passed every
+time. The cause was the network blinking, not a stale run.
+
+"The API did not answer" and "the audited run predates your fix" are OPPOSITE
+findings, and the first was being reported as the second — the same class of
+error as scoring a mutant that never applied as SURVIVED. The fetch is now
+bounded and retried three times, and an unanswered API is a SKIP (exit 3), which
+`RotCiSkip.lean` already proves adds no coverage and is never a pass. The
+staleness FAIL path is untouched; this is not a weakening, because a staleness
+failure still requires actually reading a run. Negative control: pointed at an
+invalid host it exits 3 in 8 s.
+
 ### Five corpora died of experiment defects, so the experiment is now the thing that is proved
 
 P2.2 has returned NULL five times, and **not one of those nulls was a measured
@@ -239,9 +311,9 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **656 applied, 656 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **661 applied, 661 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock` and 12 for `RotExperiment`, each run and killed
-here — and `CITATION.cff` moved from 1083 to the measured 1235 theorems.
+here — and `CITATION.cff` moved from 1083 to the measured 1254 theorems.
 
 ### The repairs went through Lean 4, because a fixed harness is still an unproven harness
 

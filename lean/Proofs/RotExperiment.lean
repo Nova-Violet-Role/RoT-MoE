@@ -622,6 +622,253 @@ theorem correction_only_makes_it_harder (m n k : Nat) (hm : 1 ≤ m)
       _ ≤ (100 * m) * twoSidedTail n k := Nat.mul_le_mul_right _ this
   omega
 
+/-! ## 8. Faithfulness, honest incomparability, and density without division
+
+Section 6 proved the scalar is reductive. That is an objection, not a repair — it
+leaves the scalar defined everywhere and trusted nowhere. This section says
+exactly where it may be believed.
+
+**The scalar may never contradict the vector.** Where dominance holds, the
+totals must agree; where it does not, the verdict must say *incomparable* rather
+than invent a tie. Both are theorems below, so "we collapsed nine numbers into
+one" stops being a confession and becomes a licence with a stated domain. -/
+
+/-- **Faithfulness.** Pareto dominance on the nine lenses implies a strictly
+greater total. The collapse is legitimate exactly here: on the comparable
+sub-domain the scalar cannot reverse the vector's verdict.
+
+This is what makes the equal weighting load-bearing rather than cosmetic. Give
+one lens weight 0 in `total` and this theorem dies, because a profile can then
+dominate by winning on the ignored lens alone — which is precisely what X10
+demonstrates by deleting Violet. -/
+theorem dominance_never_contradicts_the_scalar (u v : LensVector)
+    (h : dominates u v = true) : total v < total u := by
+  unfold dominates at h
+  simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at h
+  unfold total
+  omega
+
+/-- The three-valued comparison. `incomparable` is a VERDICT, not a failure to
+compute: it is what the experiment must report when the profiles cross. -/
+inductive Comparison where
+  | better
+  | worse
+  | incomparable
+  deriving Repr, DecidableEq
+
+/-- The vector comparison the write-up is required to use. Note it never
+consults `total`: the scalar is a summary, never the arbiter. -/
+def compareV (u v : LensVector) : Comparison :=
+  if dominates u v then .better
+  else if dominates v u then .worse
+  else .incomparable
+
+/-- **Honest incomparability.** The two profiles that tie on the scalar are
+reported `incomparable`, not equal. The scalar's tie is an artefact of
+projection; the verdict refuses to launder it into a finding. -/
+theorem a_scalar_tie_is_reported_as_incomparable :
+    total profileCautious = total profileExploratory ∧
+    compareV profileCautious profileExploratory = Comparison.incomparable ∧
+    compareV profileExploratory profileCautious = Comparison.incomparable := by decide
+
+/-- **The verdict is authoritative only where dominance holds** — and there, it
+agrees with the scalar. So a `better` verdict always survives the collapse. -/
+theorem better_implies_a_higher_total (u v : LensVector)
+    (h : compareV u v = Comparison.better) : total v < total u := by
+  unfold compareV at h
+  by_cases hd : dominates u v = true
+  · exact dominance_never_contradicts_the_scalar u v hd
+  · rw [if_neg hd] at h
+    split at h <;> simp at h
+
+/-- Symmetrically, `worse` is the mirror image and not a second way to win. -/
+theorem worse_implies_a_lower_total (u v : LensVector)
+    (h : compareV u v = Comparison.worse) : total u < total v := by
+  unfold compareV at h
+  by_cases hd : dominates u v = true
+  · rw [if_pos hd] at h; simp at h
+  · rw [if_neg hd] at h
+    by_cases he : dominates v u = true
+    · exact dominance_never_contradicts_the_scalar v u he
+    · rw [if_neg he] at h; simp at h
+
+/-- Nothing is `better` than itself, so "the routed arm wins" can never be
+trivially true. -/
+theorem nothing_beats_itself (v : LensVector) : compareV v v = Comparison.incomparable := by
+  unfold compareV
+  rw [nothing_dominates_itself v]
+  simp
+
+/-! ### Density: cost-normalised comparison that never loses a bit
+
+`costSec / 60` was a defect, not a rounding convenience: it made every latency
+difference under a minute INVISIBLE. Cross-multiplication removes the division
+entirely, so the comparison is exact over `Int` and no bit is discarded. -/
+
+/-- `a` is denser than `b`: more score per unit cost, decided by
+cross-multiplication rather than by dividing. `+1` on each cost keeps the
+comparison total — a zero-cost artifact is comparable, not a division by zero. -/
+def denser (w : Weights) (a b : Artifacts) : Bool :=
+  decide (scoreW w b * ((a.costSec : Int) + 1) < scoreW w a * ((b.costSec : Int) + 1))
+
+/-- Two runs identical but for a 5-second and a 50-second cost. -/
+def cheapRun : Artifacts := ⟨5, 0, 0, 0, 0, 0, 5⟩
+def slowRun  : Artifacts := ⟨5, 0, 0, 0, 0, 0, 50⟩
+
+/-- **The division manufactured the tie, and cross-multiplication finds the
+difference it hid.** Under `costSec / 60` these two runs were indistinguishable —
+10x the latency, same reported cost bucket. Density separates them. This is the
+non-degeneracy theorem for the ratio: without it, "density" would be a word. -/
+theorem integer_division_manufactures_a_tie :
+    cheapRun.costSec / 60 = slowRun.costSec / 60 ∧
+    denser defaultW cheapRun slowRun = true ∧
+    denser defaultW slowRun cheapRun = false := by decide
+
+/-- **Density is not the scalar in disguise**: at equal cost it agrees with the
+score, so it adds information without contradicting what is already proved. -/
+theorem at_equal_cost_density_is_the_score :
+    denser defaultW ⟨6, 0, 0, 0, 0, 0, 10⟩ ⟨5, 0, 0, 0, 0, 0, 10⟩ = true ∧
+    denser defaultW ⟨5, 0, 0, 0, 0, 0, 10⟩ ⟨6, 0, 0, 0, 0, 0, 10⟩ = false := by decide
+
+/-- **Three times the work at ten times the cost loses on density too, for every
+admissible weighting.** Section 5 proved this for the raw score; the ratio must
+not quietly reverse it, or the experiment could be won by being slower. -/
+theorem the_dense_comparison_also_refuses_ten_times_the_cost (w : Weights)
+    (h : admissible w = true) :
+    denser w ⟨5, 0, 0, 0, 0, 0, 600⟩ ⟨15, 0, 0, 0, 0, 0, 6000⟩ = true := by
+  unfold admissible at h
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at h
+  unfold denser scoreW credit debit
+  simp only [decide_eq_true_eq]
+  omega
+
+/-! ## 9. The premise the checker computes
+
+An `axiom` would launder the empirical claim: the kernel would trust a hole where
+the world belongs. A hypothesis supplied by hand is honest but the caller can
+lie. The third form is the one this section builds — a premise that is a
+**decidable proposition over data the checker produced**, discharged by `decide`
+once the record exists. Nothing is assumed; a Boolean is computed and the kernel
+checks the implication.
+
+`Evidence` folds every confound into ONE record, so the composite takes one
+hypothesis instead of five separate bits that a caller could satisfy piecemeal. -/
+
+/-- One record, written by the checker, carrying every confound the design must
+close plus the observables it must weigh. -/
+structure Evidence where
+  /-- Hash of the regenerated corpus. The checker regenerates the corpus and
+  compares byte-for-byte; this field is the comparison's subject, never its
+  author. -/
+  corpusHash    : Nat
+  /-- The hash written at preregistration time, before any session ran. -/
+  expectedHash  : Nat
+  /-- Nine lens activations, read from the gauge records. -/
+  vec           : LensVector
+  /-- Seven decidable artifact observables. -/
+  art           : Artifacts
+  /-- Paired sessions. -/
+  n             : Nat
+  /-- Pairs that went against the routed arm. -/
+  against       : Nat
+  /-- Comparisons made, for the multiplicity correction. -/
+  comparisons   : Nat
+  /-- Every task run in both orderings. -/
+  bothOrderings : Bool
+  /-- The scorer never saw the arm. Enforced by the TYPE of `score`; recorded
+  here so a violation is visible in the data as well as impossible in the code. -/
+  blindedScorer : Bool
+  /-- The corpus saturated the router: every lane reachable, no lane starved. -/
+  saturated     : Bool
+  /-- The protocol was fixed before the first session. -/
+  preregistered : Bool
+  deriving Repr, DecidableEq
+
+/-- **One function, all confounds.** Every clause is computed from the record —
+none is asserted. The corrected verdict is folded in, so a run cannot pass the
+protocol checks and then be waved through on an uncorrected margin. -/
+def checkAll (e : Evidence) : Bool :=
+  (e.corpusHash == e.expectedHash) &&
+  e.bothOrderings && e.blindedScorer && e.saturated && e.preregistered &&
+  (0 < e.comparisons) && (0 < e.n) &&
+  (e.against ≤ e.n) &&
+  (100 * e.comparisons * twoSidedTail e.n e.against ≤ 2 ^ e.n) &&
+  (e.art.falseGreen == 0) && (e.art.pipedReads == 0)
+
+/-- **The axiom becoming a measurement.** One hypothesis, discharged by `decide`
+once the checker has written the record, and every conclusion below follows from
+it by kernel-checked implication:
+
+* the corpus is the preregistered one;
+* the design closed order, blinding, saturation and preregistration;
+* the margin clears the FAMILY-WISE threshold, not the naive one;
+* no false green and no piped exit read is present in the scored work.
+
+What this does NOT establish, and no theorem can: that the transcripts came from
+real sessions rather than an editor. `corpusHash` reduces provenance to one
+comparison, but a hash proves INTEGRITY, never ORIGIN. That is a trust root, and
+calling it either an axiom or a proof would be the overclaim. -/
+theorem attributable (e : Evidence) (h : checkAll e = true) :
+    e.corpusHash = e.expectedHash ∧
+    e.bothOrderings = true ∧ e.blindedScorer = true ∧
+    e.saturated = true ∧ e.preregistered = true ∧
+    verdictM e.comparisons e.n e.against = Verdict.supported ∧
+    e.art.falseGreen = 0 ∧ e.art.pipedReads = 0 := by
+  unfold checkAll at h
+  simp only [Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
+  refine ⟨h.1.1.1.1.1.1.1.1.1.1, h.1.1.1.1.1.1.1.1.1.2, h.1.1.1.1.1.1.1.1.2,
+    h.1.1.1.1.1.1.1.2, h.1.1.1.1.1.1.2, ?_, h.1.2, h.2⟩
+  unfold verdictM
+  rw [if_pos h.1.1.2]
+
+/-- **The gate can refuse.** A record failing any single clause is rejected, so
+`checkAll` is not a rubber stamp. Each witness below differs from a passing
+record in exactly one field. -/
+def evidencePassing : Evidence :=
+  ⟨777, 777, ⟨1,1,1,1,1,1,1,1,1⟩, ⟨12, 0, 0, 0, 0, 3, 900⟩, 40, 9, 9,
+   true, true, true, true⟩
+
+theorem the_gate_admits_a_clean_record : checkAll evidencePassing = true := by decide
+
+theorem a_wrong_corpus_hash_is_refused :
+    checkAll { evidencePassing with corpusHash := 778 } = false := by decide
+
+theorem one_ordering_only_is_refused :
+    checkAll { evidencePassing with bothOrderings := false } = false := by decide
+
+theorem an_unblinded_scorer_is_refused :
+    checkAll { evidencePassing with blindedScorer := false } = false := by decide
+
+theorem an_unsaturated_corpus_is_refused :
+    checkAll { evidencePassing with saturated := false } = false := by decide
+
+theorem a_post_hoc_protocol_is_refused :
+    checkAll { evidencePassing with preregistered := false } = false := by decide
+
+/-- **A single false green sinks the record**, whatever the margin. The one
+unforgivable output cannot be outvoted by any number of theorems. -/
+theorem a_single_false_green_is_refused :
+    checkAll { evidencePassing with art := { evidencePassing.art with falseGreen := 1 } }
+      = false := by decide
+
+/-- A piped exit read is refused on the same footing: it is the mechanism by
+which a false green is produced. -/
+theorem a_piped_exit_read_is_refused :
+    checkAll { evidencePassing with art := { evidencePassing.art with pipedReads := 1 } }
+      = false := by decide
+
+/-- **The margin still has to be there.** Protocol perfection does not buy a
+verdict: 10 against out of 40 fails the corrected threshold, and the record is
+refused even though every design bit is set. -/
+theorem a_perfect_protocol_with_a_thin_margin_is_refused :
+    checkAll { evidencePassing with against := 10 } = false := by decide
+
+/-- …and the boundary is exactly where section 7 computed it: nine comparisons
+over forty pairs tolerate nine against, not ten. -/
+theorem the_corrected_boundary_is_nine_of_forty :
+    checkAll { evidencePassing with against := 9 } = true ∧
+    checkAll { evidencePassing with against := 10 } = false := by decide
+
 -- Executions. These run the definitions rather than restating them.
 #guard row 0 = [1]
 #guard row 1 = [1, 1]
