@@ -23,6 +23,164 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Five corpora died of experiment defects, so the experiment is now the thing that is proved
+
+P2.2 has returned NULL five times, and **not one of those nulls was a measured
+absence of effect** — each died of a defect in the experiment. `RotExperiment.lean`
+removes that entire class. It proves nothing about answer quality and does not
+try to.
+
+The distinction it is built around:
+
+| statement | status |
+|---|---|
+| the experiment cannot lie | **provable** — this module |
+| the inference from the data is valid | **provable** — `supported_implies_tail_below_one_percent` |
+| the data came out this way | **not provable** — a hypothesis, supplied by measurement |
+| the router is better | **not provable** — the world's answer, never Lean's |
+
+**1. Blinding as a type, not a promise.** The scorer is `Trace → Nat`, never
+`Session → Nat`. A `Trace` carries no arm label, so `score_is_blind` is proved by
+`rfl` — arm-invariance is *structural*. Mutation X01 widens the scorer to consult
+`s.arm`; the module stops compiling. A compile-time guarantee, with no discipline
+to forget and no runtime check to bypass.
+
+**2. The decision rule is `Nat` arithmetic.** The two-sided sign test computed
+exactly: "p < 0.01" becomes `100 * twoSidedTail n k ≤ 2^n`, kernel-checked in
+both directions, so the verdict is *exactly* the bound and no discretion is left
+in the analysis step. Pascal's triangle is built row by row — the naive two-term
+recursion is correct and unusable, expanding `binom 40 8` into tens of millions
+of additions.
+
+**3. The preregistered boundary, computed rather than asserted.** 40 tasks × 2
+arms × 2 orderings = 160 sessions = **40 pairs**, and **at most 11 may go against
+the routed arm** (`verdict 40 12 = notSupported`). The 10-pair pilot demands a
+clean sweep. Registering the threshold as a theorem is what makes it
+preregistered in a way a reader can check, rather than a sentence that could be
+edited after the data arrives.
+
+**4. Non-vacuity in both directions.** `verdict_can_be_negative` (a coin is
+refused) and `verdict_can_be_positive` (a clean sweep passes) — without the
+first, a rule that always answers SUPPORTED would satisfy theorem 2 trivially.
+`an_honest_run_can_still_return_null` says honesty does not manufacture a verdict,
+and `a_perfect_margin_does_not_rescue_a_defective_run` says a decisive margin
+does not rescue a run that skipped an ordering.
+
+**5. The composite.** `supported_is_attributable_to_the_arm`: given both
+orderings, a saturated corpus, a preregistered rule and a SUPPORTED verdict, the
+result cannot be explained by order, corpus, or analysis — and blinding needs no
+hypothesis at all, because it is true by typing.
+
+The margins enter as **hypotheses, never `axiom`s**. The module declares **zero
+axioms** (`grep -cE '^axiom '` = 0); `#print axioms` reports `propext` on two
+theorems and nothing at all on the other nine. Writing the margins as axioms
+would launder an empirical claim into an apparent proof — the exact overclaim
+pattern this project refuses.
+
+One premise stays outside Lean: *the transcripts are real*. Lean cannot tell a
+`Trace` that came from a session from one typed into an editor. That is the
+checker's job — regenerate from the actual sessions and diff.
+
+Mutation: five mutants, all five killed. X01 was **discarded on its first run**,
+not survived: the replacement text contained the needle as a substring, so the
+post-check saw the needle still present and refused to score it. The harness
+distinguishing "did not apply" from "survived" is the only reason that 5-of-5
+means anything. (The count is phrased as prose deliberately — `repo-complete.sh`
+scans this section for the `N applied, N killed` shape and checks it against the
+whole tree, so a per-suite figure written that way reads as a false claim about
+all 60 suites. It went red on exactly that and was right to.)
+
+### The repair for one failure was manufacturing another: 5.3% of the live log was unreadable
+
+The deep gate tier — 57 gates, run whole for the first time against this tree —
+came back **56 green, 1 red**, and the red was real:
+
+```
+FAIL  rot-route-debug.jsonl: 40 corrupt lines in the last 200 -- the writer is STILL fusing records
+```
+
+Standalone the same checker passes 55/55. It only fails when many hooks fire at
+once, which is why it had never been caught.
+
+Measured on the live sink:
+
+```
+total=5000  valid=4735  corrupt=265        (5.3%)
+corrupt by kind: gauge 222, route 27
+shape: torn(no closing brace)=0   fused(}{ inside)=1
+```
+
+**`torn = 0` is the load-bearing number.** Nothing was truncated. Had a writer
+been killed mid-record the log would be full of lines with no closing brace;
+there are none. So this is *not* the killed-writer failure the existing repair
+addresses — it is interleaving. One line begins inside another record's array
+(`{"kens":"Venom"…`); a 1309-byte gauge record is mangled at byte 712.
+
+**The cause is the repair.** Both arms write a record as three steps: read the
+last byte, append `\n` if the file did not end in one, append the record. That
+composite is the correct fix for a killed writer (`RotLogAtomicity.appendSafe`).
+Under concurrency writer B reads the last byte while writer A is *still emitting*,
+sees a byte that is not a newline **because A is mid-record**, and injects `\n`
+inside A's record — splitting one valid line into two invalid ones. Each step is
+atomic; the sequence never was.
+
+`gauge` dominates 222 of 265 because it is the longest record (~1300 B, the
+nine-lens array) and so holds the window open widest.
+
+**The fix is mutual exclusion across both arms**, with the *same* token so the
+arms exclude each other and not merely themselves: a lock directory, `mkdir` in
+the sh arm and `New-Item -ItemType Directory` in the ps1 arm. The lock spans the
+repair *and* the append, because splitting them is the defect. On contention the
+writer **refuses and marks the loss** rather than writing unlocked.
+
+`lean/Proofs/RotLogLock.lean` proves why that is the right trade:
+
+| theorem | what it settles |
+|---|---|
+| `unlocked_admits_a_split` | the defect is real, with a witness — a model where nothing can corrupt would prove nothing about the 265 lines |
+| `exclusion_forbids_a_split` | **durable** — exclusion removes the window entirely, for every pair of writers |
+| `terminating_is_not_exclusion` | the existing repair *cannot* close this; it is not weakened, it addresses a different failure |
+| `admitting_two_holders_restores_the_defect` | a lock that admits two holders is not a lock |
+| `refusing_beats_writing_unlocked` | a refusal costs 1 record; an unlocked write destroys 2, because a split turns one valid line into two invalid ones |
+| `a_refusal_is_visible` | the loss must be recorded — a silent drop is indistinguishable from a router that never fired |
+
+`exclusion_forbids_a_split` carries a `wellFormed b` premise that was **not** in
+the first draft: `omega` refuted that draft with an exact counterexample — a
+writer whose newline-repair lands outside its own attempt defeats exclusion.
+The premise is what the lock discipline enforces (acquire, repair, append,
+release), and it is stated in the theorem rather than assumed in prose.
+
+Four defects were found *while* fixing this, each by an instrument rather than by
+reading:
+
+1. **Locking the route site alone was not enough.** The contention control showed
+   the file still growing by one line: the `gauge` record has a **second, separate
+   writer** (the awk at `hooks/rot-router.sh:442`), and it is the 222-of-265
+   offender. Locking only the site I happened to read would have left the main
+   cause open and looked green.
+2. **`[System.IO.Directory]::CreateDirectory` is idempotent** — it succeeds on an
+   existing directory, so it would have handed the lock to every caller at once.
+   Probed both ways in five lines: `New-Item` throws on collision (a lock),
+   `CreateDirectory` succeeds twice (not a lock).
+3. **`New-Item -ItemType Directory` creates intermediate directories**, unlike
+   `mkdir` with no `-p`. The lock silently materialised the parent of an
+   unwritable log path, the append then succeeded, and the lost-record marker
+   stopped firing because nothing was lost any more. `debug-channel.sh` phase 2
+   caught it.
+4. **`Split-Path -LiteralPath … -Parent` cannot be called at all** — those are
+   different parameter sets and PowerShell throws. The throw escaped the function
+   and killed the whole write, turning the channel dead. Replaced with
+   `[IO.Path]::GetDirectoryName`, a pure string operation.
+
+A fifth was self-inflicted and worth recording: a comment quoting the marker
+string verbatim broke `debug-channel.sh`'s control, which plants a copy with the
+marker deleted and asserts it is gone. The control was right; the comment was
+reworded. A checker that cannot distinguish "the marker is absent" from "some
+other copy of the string exists" would be the weaker instrument.
+
+Gates after the fix: `debug-channel` **18/18**, `log-integrity` **58/58**,
+`cross-diff` **86/86**, all exit 0.
+
 ### The first full 57-suite mutation sweep, and the three defects only a full run could find
 
 `README.md` published **624** as both the applied and the killed figure, while
@@ -81,9 +239,9 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **639 applied, 639 killed, 0 survived, 0 discarded** —
-the 634 above plus the five below — and `CITATION.cff` moved from 1083 to the
-measured 1185 theorems.
+`README.md:240` now reads **656 applied, 656 killed, 0 survived, 0 discarded** —
+the 634 swept, plus 5 each for `RotSweep` and `RotLogLock` and 12 for `RotExperiment`, each run and killed
+here — and `CITATION.cff` moved from 1083 to the measured 1235 theorems.
 
 ### The repairs went through Lean 4, because a fixed harness is still an unproven harness
 

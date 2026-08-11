@@ -83,10 +83,42 @@ MODE=gate
 
 RUN_ID="${1:-}"
 if [ -z "$RUN_ID" ]; then
-  RUN_ID=$(curl -s -H "Authorization: Bearer $TOKEN" \
-    "https://api.github.com/repos/$SLUG/actions/runs?per_page=1" \
-    | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{
-        const r=JSON.parse(d).workflow_runs;process.stdout.write(r&&r[0]?String(r[0].id):"")})')
+  # A BOUNDED, RETRIED FETCH -- and an unanswered API is a SKIP, never a FAIL.
+  #
+  # Measured 2026-08-11: this gate went RED inside a parallel pre-commit sweep
+  # with `SyntaxError: Unexpected end of JSON input` -- curl returned an EMPTY
+  # body. Run standalone one minute later, and again with stdin closed and with
+  # the hook's GIT_DIR/GIT_INDEX_FILE set, it passed every time. The cause was a
+  # transient network failure, not a stale run.
+  #
+  # That is the defect being fixed. "The API did not answer" and "the audited run
+  # predates your fix" are OPPOSITE findings, and the first was being reported as
+  # the second -- the same class as scoring a mutant that never applied as
+  # SURVIVED. A red gate that means "the network blinked" trains the reader to
+  # dismiss the gate, which costs exactly the alarm it exists to raise.
+  #
+  # This is NOT a weakening: a genuine staleness FAIL requires actually reading a
+  # run, and that path is untouched below. What changes is that a checker which
+  # could not measure now says so.
+  _try=0
+  while [ "$_try" -lt 3 ]; do
+    _body=$(curl -s --max-time 20 -H "Authorization: Bearer $TOKEN" \
+      "https://api.github.com/repos/$SLUG/actions/runs?per_page=1")
+    if [ -n "$_body" ]; then
+      RUN_ID=$(printf '%s' "$_body" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{
+          try{const r=JSON.parse(d).workflow_runs;process.stdout.write(r&&r[0]?String(r[0].id):"")}
+          catch(e){process.stdout.write("")}})')
+    fi
+    [ -n "$RUN_ID" ] && break
+    _try=$((_try+1))
+    sleep 2
+  done
+  if [ -z "$RUN_ID" ]; then
+    inf "the GitHub API did not answer in 3 bounded attempts -- SKIP, and a skip is NEVER a pass"
+    inf "this is 'could not measure', which is NOT the same finding as 'the audited run is stale'"
+    echo "== ci-audit-freshness: SKIPPED (exit 3)"
+    exit 3
+  fi
 fi
 if [ -z "$RUN_ID" ]; then
   bad "could not determine a run id -- refusing to report on a run I cannot name"

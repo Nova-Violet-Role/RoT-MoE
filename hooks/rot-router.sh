@@ -206,6 +206,58 @@ _rot_terminate () {
   return 0
 }
 
+# MUTUAL EXCLUSION ACROSS BOTH ARMS -- `RotLogLock.exclusion_forbids_a_split`.
+#
+# `_rot_terminate` above is the correct repair for a writer KILLED mid-record,
+# and under concurrency it is the CAUSE of a second, different corruption. Writer
+# B reads the last byte while writer A is still emitting, sees a byte that is not
+# a newline BECAUSE A IS MID-RECORD, and injects `\n` inside A's record --
+# splitting one valid line into two invalid ones.
+#
+# Measured on the live sink 2026-08-11: 265 of 5000 lines unparseable (5.3%),
+# `gauge` 222 of them. Crucially torn(no closing brace)=0 -- NOTHING was
+# truncated, so this is not the killed-writer failure. One line began inside
+# another record's array (`{"kens":"Venom"...`); a 1309-byte gauge record was
+# mangled at byte 712. `gauge` dominates because it is the longest record
+# (~1300 B, nine-lens array) and so holds the window open widest.
+#
+# The three steps are each atomic; the SEQUENCE was not, and nothing made it so.
+# `terminating_is_not_exclusion` proves the existing repair cannot close this:
+# both writers terminating still admits the split.
+#
+# `mkdir` is the primitive because it is the only one BOTH arms share and both
+# get atomically from the OS -- it either creates the directory or fails, never
+# half-creates. A lock file written with `>` would race exactly like the append
+# it is meant to protect.
+#
+# On contention we REFUSE and record the loss rather than write unlocked:
+# `refusing_beats_writing_unlocked` -- a refusal costs 1 record, an unlocked
+# write destroys 2, because the split turns one valid line into two invalid ones.
+# The loss is flagged, never silent: `a_refusal_is_visible`.
+_rot_lock_acquire () {
+  [ -n "${1:-}" ] || return 1
+  _lk="$1.lock"
+  _n=0
+  while [ "$_n" -lt 50 ]; do
+    if mkdir "$_lk" 2>/dev/null; then return 0; fi
+    # A holder that died leaves the directory behind and would disable logging
+    # forever. Break it only when it is demonstrably older than any real write,
+    # which takes milliseconds -- 30 s is four orders of magnitude of headroom.
+    if [ -d "$_lk" ] && [ -z "$(find "$_lk" -maxdepth 0 -newermt '-30 seconds' 2>/dev/null)" ]; then
+      rmdir "$_lk" 2>/dev/null || :
+    fi
+    _n=$((_n + 1))
+    sleep 0.02 2>/dev/null || :
+  done
+  return 1
+}
+
+_rot_lock_release () {
+  [ -n "${1:-}" ] || return 0
+  rmdir "$1.lock" 2>/dev/null || :
+  return 0
+}
+
 convener () {
   if [ -n "$ROTMOE_MODEL" ]; then printf '%s' "$ROTMOE_MODEL"; return 0; fi
   _cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
@@ -334,11 +386,30 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
   # fragment must be closed. awk's `print rec >> dbg` cannot inspect the tail
   # byte itself without reopening the file, and doing it here keeps the single
   # implementation of the rule in one place -- see `_rot_terminate` above.
-  _rot_terminate "${ROTMOE_DEBUG_LOG:-}"
-  _rot_terminate "$_loc_g"
+  # THIS is the writer that produced the measured corruption. Of 265 unparseable
+  # lines in the live sink, 222 were `kind":"gauge"` -- this record -- because at
+  # ~1300 bytes (the nine-lens array) it holds the terminate-then-append window
+  # open widest. The route record below is the same composite and only 27 of the
+  # 265. Locking the route site alone would have left the main offender open,
+  # which the contention control caught: the file still grew by one line.
+  #
+  # Both sinks are locked here because ONE awk invocation writes both. The order
+  # is fixed dbg-then-loc and no other site ever holds two at once, so no cycle
+  # exists -- and every acquire is bounded anyway, so contention degrades to a
+  # refusal rather than a hang.
+  #
+  # A sink whose lock we could not take is BLANKED, and awk's own
+  # `if (dbg != "")` guard then skips it. Refusing one record beats splitting a
+  # neighbour: `RotLogLock.refusing_beats_writing_unlocked`.
+  _g_dbg="${ROTMOE_DEBUG_LOG:-}"
+  _g_loc="$_loc_g"
+  if [ -n "$_g_dbg" ]; then _rot_lock_acquire "$_g_dbg" || _g_dbg=''; fi
+  if [ -n "$_g_loc" ]; then _rot_lock_acquire "$_g_loc" || _g_loc=''; fi
+  _rot_terminate "$_g_dbg"
+  _rot_terminate "$_g_loc"
   printf '%s|%s|%s|%s|%s|%s|%s|%s\n' \
     "$_acts" "$_breadth" "$_M" "$_C" "$_T" "$LAMBDAS" "$MUS" "$NAMES" |
-  awk -F'|' -v dbg="${ROTMOE_DEBUG_LOG:-}" -v loc="$_loc_g" -v sess="$_rot_sess" -v src="$_rot_src" -v ts="$(date -Is 2>/dev/null || date)" '
+  awk -F'|' -v dbg="$_g_dbg" -v loc="$_g_loc" -v sess="$_rot_sess" -v src="$_rot_src" -v ts="$(date -Is 2>/dev/null || date)" '
     # Match PowerShell ToString("0.##"): round, then strip trailing zeros and a
     # bare trailing dot. 0.90 -> "0.9", 1.00 -> "1", 0.09 -> "0.09".
     # Formatting is part of the observable: the cross-diff compares these
@@ -393,6 +464,12 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
       printf "R/s+ = %s [%s] mean=%s breadth=%d K=%d lenses=%s\n",
              fmt(R, 2), band, fmt(mean, 3), breadth, K, active;
     }'
+  # Release in the reverse of the acquire order. A lock left behind would make
+  # every later writer wait out its bound and then refuse -- logging would go
+  # silent 30 s at a time until the staleness breaker fired.
+  [ -n "$_g_loc" ] && _rot_lock_release "$_g_loc"
+  [ -n "$_g_dbg" ] && _rot_lock_release "$_g_dbg"
+  return 0
 }
 
 # --- HOOK MODE ---------------------------------------------------------------
@@ -669,12 +746,35 @@ hook_mode () {
       *)   _rot_local_lost=1; _loc='' ;;
     esac
     if [ -n "$_loc" ]; then
-      _rot_terminate "$_loc"
-      printf '%s\n' "$_rec" 2>/dev/null >> "$_loc" || _rot_local_lost=1
+      # The lock spans terminate+append together: splitting them is the defect.
+      if _rot_lock_acquire "$_loc"; then
+        _rot_terminate "$_loc"
+        printf '%s\n' "$_rec" 2>/dev/null >> "$_loc" || _rot_local_lost=1
+        _rot_lock_release "$_loc"
+      else
+        _rot_local_lost=1
+      fi
     fi
 
-    _rot_terminate "$ROTMOE_DEBUG_LOG"
-    if printf '%s\n' "$_rec" 2>/dev/null >> "$ROTMOE_DEBUG_LOG"
+    if _rot_lock_acquire "$ROTMOE_DEBUG_LOG"; then
+      _rot_terminate "$ROTMOE_DEBUG_LOG"
+      _rot_wrote=0
+      printf '%s\n' "$_rec" 2>/dev/null >> "$ROTMOE_DEBUG_LOG" && _rot_wrote=1
+      _rot_lock_release "$ROTMOE_DEBUG_LOG"
+    else
+      # Contended past the bound: refuse and MARK it. `_dbg_lost` is the flag the
+      # marker actually reads (consumed by the lost-record branch further down);
+      # an invented name here would be an alarm that cannot fire.
+      #
+      # That branch's message string is deliberately NOT repeated in any comment:
+      # checker/debug-channel.sh plants a copy with the marker deleted and then
+      # asserts it is gone, so a second textual occurrence anywhere in this file
+      # makes the control unable to prove anything. Measured -- the first draft
+      # of this comment quoted it and turned the control red.
+      _rot_wrote=0
+      _dbg_lost=1
+    fi
+    if [ "$_rot_wrote" = 1 ]
     then
       # Bound the file. `tail -n` keeps the LAST cap lines, which is the
       # `rotate` of the Lean module: drop from the front, retain the newest.

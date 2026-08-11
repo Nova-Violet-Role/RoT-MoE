@@ -22,10 +22,10 @@
     },
     "prover-remind.sh": {
       "hash": "9e6fac25f830",
-      "indexed_at": "2026-08-10T17:56:45.602808+00:00",
+      "indexed_at": "2026-08-11T01:10:26.974753+00:00",
       "language": "shell",
       "lines": 622,
-      "mtime_ns": 1786358676601195900,
+      "mtime_ns": 1786410402327066000,
       "size": 32209,
       "symbols": [
         {
@@ -142,12 +142,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "c8f8974d1c97",
-      "indexed_at": "2026-08-10T17:56:45.611979+00:00",
+      "hash": "94214d025d07",
+      "indexed_at": "2026-08-11T01:10:25.462388+00:00",
       "language": "shell",
-      "lines": 768,
-      "mtime_ns": 1786358676538196100,
-      "size": 39967,
+      "lines": 868,
+      "mtime_ns": 1786410402264067900,
+      "size": 44855,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -177,9 +177,26 @@
           "type": "function"
         },
         {
+          "docstring": "MUTUAL EXCLUSION ACROSS BOTH ARMS -- `RotLogLock.exclusion_forbids_a_split`.  `_rot_terminate` above is the correct repair for a writer KILLED mid-rec",
           "lines": [
-            209,
-            218
+            237,
+            253
+          ],
+          "name": "_rot_lock_acquire",
+          "type": "function"
+        },
+        {
+          "lines": [
+            255,
+            259
+          ],
+          "name": "_rot_lock_release",
+          "type": "function"
+        },
+        {
+          "lines": [
+            261,
+            270
           ],
           "name": "convener",
           "type": "function"
@@ -187,8 +204,8 @@
         {
           "docstring": "A STEM MUST START A WORD. Until 0.7.0 this was a plain substring test, and that is why `prove`, `proof` and `lemma` could not be added to the FORGE li",
           "lines": [
-            265,
-            281
+            317,
+            333
           ],
           "name": "fired",
           "type": "function"
@@ -196,16 +213,16 @@
         {
           "docstring": "route emits \"<LANE LENS>|<matched stem>\". The separator is the LAST `|`, so a convener model name containing one cannot swallow the stem. Callers that",
           "lines": [
-            287,
-            301
+            339,
+            353
           ],
           "name": "route",
           "type": "function"
         },
         {
           "lines": [
-            314,
-            769
+            366,
+            869
           ],
           "name": "gauge",
           "type": "function"
@@ -213,8 +230,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            417,
-            769
+            494,
+            869
           ],
           "name": "hook_mode",
           "type": "function"
@@ -222,8 +239,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            738,
-            745
+            838,
+            845
           ],
           "name": "need_value",
           "type": "function"
@@ -240,6 +257,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-10T17:56:45.779730+00:00",
+  "generated_at": "2026-08-11T01:10:27.161574+00:00",
   "version": "1.0"
 }

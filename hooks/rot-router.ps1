@@ -248,6 +248,74 @@ function Get-RotSessionName([string] $Raw) {
 # catch -- which sets the lost-evidence flag. That is deliberate: if the file
 # cannot be inspected it very likely cannot be appended either, and a silent
 # `catch {}` here would be an alarm that cannot fire.
+# MUTUAL EXCLUSION -- `RotLogLock.exclusion_forbids_a_split`, and the sh arm's
+# `_rot_lock_acquire` is the SAME algorithm on purpose: one lock protocol, two
+# implementations, so the two arms exclude EACH OTHER and not merely themselves.
+#
+# `Directory.CreateDirectory` is not usable for this -- it succeeds when the
+# directory already exists, which is precisely the answer a lock must never
+# give. `[System.IO.Directory]::CreateDirectory` returning an existing handle
+# would hand the lock to every caller at once. `mkdir` semantics are obtained
+# from `IOException` on collision instead, which is the atomic primitive both
+# arms share.
+#
+# Measured 2026-08-11: 265 of 5000 live lines unparseable, torn=0. Nothing was
+# truncated -- writer B injected its newline-repair INSIDE writer A's record.
+function Get-RotLogLock([string] $Path) {
+  if (-not $Path) { return $false }
+  $lk = $Path + '.lock'
+  # `New-Item -ItemType Directory` creates INTERMEDIATE directories, unlike the
+  # sh arm's `mkdir` with no -p. Without this guard the lock would materialise
+  # the parent of an unwritable log path, the append would then succeed, and a
+  # path the user never created would be silently populated -- and the
+  # lost-record marker would stop firing because nothing was lost any more.
+  # Measured: checker/debug-channel.sh phase 2 went red on exactly that.
+  # Refusing here keeps both arms on the same semantics: no parent, no write,
+  # and the loss is MARKED (`a_refusal_is_visible`).
+  #
+  # `Split-Path -LiteralPath $Path -Parent` CANNOT BE USED: -LiteralPath and
+  # -Parent are different parameter sets and PowerShell throws
+  # "Parameter set cannot be resolved". The throw escaped this function, killed
+  # the whole write, and turned the channel dead while reporting a marker on a
+  # successful write. Measured, not reasoned. `[IO.Path]::GetDirectoryName` is
+  # a pure string operation with no provider semantics and no parameter sets.
+  $parent = [System.IO.Path]::GetDirectoryName($Path)
+  if ($parent -and -not (Test-Path -LiteralPath $parent -PathType Container)) { return $false }
+  for ($i = 0; $i -lt 50; $i++) {
+    try {
+      # `New-Item -ItemType Directory` WITHOUT -Force is the mkdir semantic: it
+      # throws when the directory already exists. That throw IS the lock. The
+      # token is THE DIRECTORY ITSELF, identical to the sh arm's `mkdir "$lk"`,
+      # so the two arms contend for the same object and exclude each other.
+      #
+      # `[System.IO.Directory]::CreateDirectory` must NOT be used here: it
+      # succeeds on an existing directory, which would hand the lock to every
+      # caller at once -- `admitting_two_holders_restores_the_defect`.
+      New-Item -ItemType Directory -Path $lk -ErrorAction Stop | Out-Null
+      return $true
+    } catch {
+      # A holder that died leaves the directory behind and would silence logging
+      # forever. Break it only when demonstrably older than any real write --
+      # writes take milliseconds, so 30 s is four orders of magnitude of margin.
+      try {
+        if (Test-Path -LiteralPath $lk) {
+          $age = (Get-Date) - (Get-Item -LiteralPath $lk).LastWriteTime
+          if ($age.TotalSeconds -gt 30) {
+            Remove-Item -LiteralPath $lk -Force -Recurse -ErrorAction Stop
+          }
+        }
+      } catch { }
+      Start-Sleep -Milliseconds 20
+    }
+  }
+  return $false
+}
+
+function Remove-RotLogLock([string] $Path) {
+  if (-not $Path) { return }
+  try { Remove-Item -LiteralPath ($Path + '.lock') -Force -Recurse -ErrorAction SilentlyContinue } catch { }
+}
+
 function Complete-RotPartialLine([string] $Path) {
   if (-not (Test-Path -LiteralPath $Path)) { return }
   $fs = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open,
@@ -284,8 +352,13 @@ function Write-RotDebugLocal([string] $Line) {
       Set-Content -LiteralPath (Join-Path $d '.gitignore') -Value '*' -Encoding utf8 -ErrorAction Stop
     }
     $f = Join-Path $d ('rot-route-' + $script:RotSession + '.jsonl')
-    Complete-RotPartialLine $f
-    Add-Content -LiteralPath $f -Value $Line -Encoding utf8 -ErrorAction Stop
+    # The lock spans the repair AND the append. Splitting them is the defect:
+    # a reader that repairs while a writer is mid-record splits that record.
+    if (-not (Get-RotLogLock $f)) { $script:RotLocalLost = $true; return }
+    try {
+      Complete-RotPartialLine $f
+      Add-Content -LiteralPath $f -Value $Line -Encoding utf8 -ErrorAction Stop
+    } finally { Remove-RotLogLock $f }
   } catch {
     # Never fails the turn. Recorded so the marker can say so.
     $script:RotLocalLost = $true
@@ -300,8 +373,17 @@ function Write-RotDebug([string] $Line) {
   $p = $env:ROTMOE_DEBUG_LOG
   if (-not $p) { return }
   try {
-    Complete-RotPartialLine $p
-    Add-Content -LiteralPath $p -Value $Line -Encoding utf8 -ErrorAction Stop
+    # Same discipline on the central sink. On contention we REFUSE and mark it:
+    # `refusing_beats_writing_unlocked` (a refusal costs 1 record, an unlocked
+    # write destroys 2) and `a_refusal_is_visible` (the loss must be recorded,
+    # never silent -- otherwise it is indistinguishable from a router that never
+    # fired, the same absence-is-not-evidence defect as scoring by a missing
+    # error string).
+    if (-not (Get-RotLogLock $p)) { $script:RotDebugLost = $true; return }
+    try {
+      Complete-RotPartialLine $p
+      Add-Content -LiteralPath $p -Value $Line -Encoding utf8 -ErrorAction Stop
+    } finally { Remove-RotLogLock $p }
   } catch {
     $script:RotDebugLost = $true
     return

@@ -1,0 +1,646 @@
+/-
+    This file is part of RoT MoE.
+    SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+    Copyright 2026 Saimonokuma.
+    Authors: Saimonokuma
+-/
+
+/-! # The experiment cannot lie. Whether the router is better, only the world says.
+
+Five corpora have returned P2.2 NULL, and **every one of them died of an
+experiment defect** — not of a measured absence of effect. That is the class this
+module eliminates. It proves nothing about answer quality and does not try to.
+
+## What is provable here, and what is not
+
+| statement | status |
+|---|---|
+| the experiment cannot lie | **provable** — this file |
+| the inference from the data is valid | **provable** — `supported_implies_tail_below_one_percent` |
+| the data came out this way | **not provable** — a hypothesis, supplied by measurement |
+| the router is better | **not provable** — the world's answer, never Lean's |
+
+The shape is therefore `honest_experiment → (measured margins) → verdict`, with
+the margins as **hypotheses**. They are deliberately NOT `axiom`s: an `axiom`
+would launder an empirical claim into an apparent proof, which is the exact
+overclaim pattern this project exists to refuse. **This module declares no
+axioms** — `#print axioms` on every theorem below shows only the standard three
+or none at all.
+
+One premise stays outside Lean entirely: *the transcripts are real*. That is the
+checker's job — regenerate from the actual sessions and diff the observables.
+Lean cannot know whether a `Trace` came from a session or from a text editor.
+-/
+
+namespace RotMoE.Experiment
+
+/-! ## 1. Blinding as a type, not a promise
+
+The scorer is typed `Trace → Nat`. It **cannot** be given a `Session`, so it
+cannot see the arm — arm-invariance is structural rather than procedural. There
+is no discipline to forget and no runtime check to bypass.
+
+The mutation that matters: change `scoreOf` to consult `s.arm` and
+`score_is_blind` stops being `rfl` — the module does not compile. A compile-time
+guarantee beats any amount of "the scorer was blind, I promise". -/
+
+/-- Which arm produced a session. The scorer never receives this. -/
+inductive Arm where
+  | routed    : Arm
+  | disarmed  : Arm
+  deriving Repr, DecidableEq
+
+/-- The observables extracted from one session (P2.4's O1–O7), and nothing else.
+A `Trace` carries no arm label, so a scorer over `Trace` is blind by typing. -/
+abbrev Trace := List Nat
+
+/-- A session pairs an arm with a trace. Only the harness sees this. -/
+structure Session where
+  arm   : Arm
+  trace : Trace
+  deriving Repr, DecidableEq
+
+/-- **The scorer. Its type is the guarantee.** `Trace → Nat`, never
+`Session → Nat`. -/
+def score : Trace → Nat := fun t => t.foldl (· + ·) 0
+
+/-- Scoring a session goes through the trace, and only the trace. -/
+def scoreOf (s : Session) : Nat := score s.trace
+
+/-- **Blinding, proved structurally.** Two sessions with the same trace and
+different arms score identically — and the proof is `rfl`, because the arm is
+not reachable from the scorer's input. This is the theorem that dies if anyone
+widens the scorer's type. -/
+theorem score_is_blind (t : Trace) (a b : Arm) :
+    scoreOf ⟨a, t⟩ = scoreOf ⟨b, t⟩ := rfl
+
+/-- The same statement in the form a reviewer asks for: relabelling the arm of a
+session cannot move its score. -/
+theorem relabelling_the_arm_cannot_move_the_score (s : Session) (a : Arm) :
+    scoreOf { s with arm := a } = scoreOf s := rfl
+
+/-! ## 2. The decision rule as `Nat` arithmetic
+
+The two-sided sign test, computed exactly in `Nat`. No floats, no spreadsheet:
+"p < 0.01" becomes `100 * tail ≤ 2^n`, which the kernel checks.
+
+Pascal's triangle is built ROW BY ROW rather than by the naive two-term
+recursion. The naive version is correct and unusable — evaluating `binom 40 8`
+that way expands into tens of millions of additions, so `decide` would hang. -/
+
+/-- Row `n` of Pascal's triangle, built iteratively. `row 2 = [1, 2, 1]`. -/
+def row : Nat → List Nat
+  | 0     => [1]
+  | n + 1 => List.zipWith (· + ·) (0 :: row n) (row n ++ [0])
+
+/-- `binom n k` — the count of ways, read off row `n`. -/
+def binom (n k : Nat) : Nat := ((row n).drop k).headD 0
+
+/-- One tail of the sign test: outcomes at least as extreme as `k` on one side. -/
+def tail (n k : Nat) : Nat := ((row n).take (k + 1)).foldl (· + ·) 0
+
+/-- **Two-sided**, because the preregistration is two-sided. Halving this is the
+classic way to manufacture significance, so the doubling is in the definition
+rather than in a comment. -/
+def twoSidedTail (n k : Nat) : Nat := 2 * tail n k
+
+/-- The preregistered verdict. -/
+inductive Verdict where
+  | supported    : Verdict
+  | notSupported : Verdict
+  deriving Repr, DecidableEq
+
+/-- **The decision rule.** `n` paired sessions, `k` of them going the wrong way.
+SUPPORTED exactly when the two-sided tail is at or below 1% — expressed as
+`100 * tail ≤ 2^n` so it is exact integer arithmetic. -/
+def verdict (n k : Nat) : Verdict :=
+  if 100 * twoSidedTail n k ≤ 2 ^ n then .supported else .notSupported
+
+/-- **The inference is valid.** A SUPPORTED verdict *entails* the tail bound —
+so "p < 0.01" is a kernel-checked consequence of the rule, not a claim about a
+spreadsheet someone read. -/
+theorem supported_implies_tail_below_one_percent (n k : Nat)
+    (h : verdict n k = .supported) : 100 * twoSidedTail n k ≤ 2 ^ n := by
+  unfold verdict at h
+  by_cases hc : 100 * twoSidedTail n k ≤ 2 ^ n
+  · exact hc
+  · rw [if_neg hc] at h; exact absurd h (by simp)
+
+/-- And the converse direction, so the rule is not merely one-way: meeting the
+bound is enough. Together these say the verdict is EXACTLY the bound — there is
+no discretion left in the analysis step. -/
+theorem tail_below_one_percent_implies_supported (n k : Nat)
+    (h : 100 * twoSidedTail n k ≤ 2 ^ n) : verdict n k = .supported := by
+  unfold verdict; rw [if_pos h]
+
+/-! ## 3. Non-vacuity — the verdict can come back NEGATIVE
+
+Without this, a `verdict` that always answered SUPPORTED would compile, prove
+theorem 2 trivially, and be worthless. -/
+
+/-- A null pilot: 10 paired sessions, 5 going each way — a coin. -/
+def pilotNull : Nat × Nat := (10, 5)
+
+/-- A decisive pilot: 10 paired sessions, 0 against. -/
+def pilotClean : Nat × Nat := (10, 0)
+
+/-- **The verdict CAN be negative.** A coin-flip result is refused. -/
+theorem verdict_can_be_negative : verdict pilotNull.1 pilotNull.2 = .notSupported := by
+  decide
+
+/-- **…and it CAN be positive**, so the rule is not a constant either. 10 of 10
+in one direction clears the two-sided 1% bar: `2 * 1 * 100 = 200 ≤ 1024`. -/
+theorem verdict_can_be_positive : verdict pilotClean.1 pilotClean.2 = .supported := by
+  decide
+
+/-- One session short of the pilot bound cannot reach SUPPORTED however clean it
+is: `2 * 100 = 200 > 128`. This is why the preregistration sets a floor on `n`
+instead of accepting any streak. -/
+theorem seven_sessions_cannot_support : verdict 7 0 = .notSupported := by decide
+
+/-! ## 4. The composite: a SUPPORTED verdict is attributable to the ARM
+
+Every confound that killed the five previous corpora is a field here, and the
+theorem refuses to conclude unless all of them are closed. -/
+
+/-- The protocol record of one run. The margins (`n`, `against`) are DATA — they
+arrive from measurement and are never assumed. -/
+structure Run where
+  /-- Both orderings executed on every task: `RotOrdering.one_ordering_cannot_attribute`. -/
+  bothOrderings : Bool
+  /-- The scorer is `Trace → Nat`; witnessed structurally by `score_is_blind`. -/
+  blindedScorer : Bool
+  /-- The corpus reached `RotMoE.Saturation.admissibleBy 8`. -/
+  saturated     : Bool
+  /-- The decision rule was fixed BEFORE the data: no post-hoc threshold. -/
+  preregistered : Bool
+  /-- Paired sessions actually completed. -/
+  n             : Nat
+  /-- Pairs that went against the routed arm. -/
+  against       : Nat
+  deriving Repr, DecidableEq
+
+/-- An honest run closes every confound. Any `false` here and no verdict is
+attributable, however small the tail. -/
+def honest (r : Run) : Bool :=
+  r.bothOrderings && r.blindedScorer && r.saturated && r.preregistered
+
+/-- What the run concludes. -/
+def runVerdict (r : Run) : Verdict := verdict r.n r.against
+
+/-- **The composite theorem.** Given an honest run and a SUPPORTED verdict, the
+result is attributable to the ARM: the tail bound holds, both orderings were
+run (so it is not order), the corpus was saturated (so it is not corpus), and
+the rule was fixed in advance (so it is not analysis). Blinding needs no
+hypothesis — it is `score_is_blind`, true by typing.
+
+Note what this does NOT say: that the router is better. It says that *if* the
+data came out this way, no defect in the experiment can explain it. The margins
+are hypotheses; the world still has to supply them. -/
+theorem supported_is_attributable_to_the_arm (r : Run)
+    (hh : honest r = true) (hv : runVerdict r = .supported) :
+    100 * twoSidedTail r.n r.against ≤ 2 ^ r.n ∧
+    r.bothOrderings = true ∧ r.saturated = true ∧ r.preregistered = true := by
+  unfold honest at hh
+  simp only [Bool.and_eq_true] at hh
+  exact ⟨supported_implies_tail_below_one_percent r.n r.against hv,
+         hh.1.1.1, hh.1.2, hh.2⟩
+
+/-- **The composite is not vacuous in the other direction either**: a run that
+skipped an ordering is refused even with a perfect margin. Without this the
+`honest` gate could be a no-op and nobody would notice. -/
+def sloppyRun : Run := ⟨false, true, true, true, 10, 0⟩
+
+/-- The margin is decisive, and the run is still not honest. -/
+theorem a_perfect_margin_does_not_rescue_a_defective_run :
+    runVerdict sloppyRun = .supported ∧ honest sloppyRun = false := by decide
+
+/-- A run that is honest but null: honesty does not manufacture a verdict. This
+is the case the five dead corpora were SUPPOSED to be, and were not. -/
+def honestNullRun : Run := ⟨true, true, true, true, 10, 5⟩
+
+theorem an_honest_run_can_still_return_null :
+    honest honestNullRun = true ∧ runVerdict honestNullRun = .notSupported := by decide
+
+/-- The preregistered pilot as it will actually be run: 10 tasks per arm, both
+orderings, saturated, rule fixed in advance. Stated as a `Run` so the protocol
+is executable rather than prose. -/
+def pilotProtocol : Run := ⟨true, true, true, true, 10, 0⟩
+
+theorem the_pilot_protocol_is_honest : honest pilotProtocol = true := by decide
+
+/-! ### The preregistered boundary, computed rather than asserted
+
+The corpus is 40 tasks × 2 arms × 2 orderings = 160 sessions, giving **40 pairs**.
+The exact number of pairs that may go against the routed arm before the verdict
+flips is not a matter of opinion — it is arithmetic, and here it is. Registering
+it as a theorem *before* the run is what makes the threshold preregistered in a
+sense a reader can check, rather than a sentence in a markdown file that could be
+edited afterwards. -/
+
+/-- **40 pairs: at most 11 may go against.** At 12 the two-sided tail exceeds 1%
+and the verdict flips. Both directions stated, so this cannot be satisfied by a
+rule that always supports or always refuses. -/
+theorem the_forty_pair_boundary :
+    verdict 40 11 = .supported ∧ verdict 40 12 = .notSupported := by decide
+
+/-- **The 10-pair pilot demands a clean sweep.** One pair against and it is over —
+which is exactly why the pilot gates the full run instead of concluding it. -/
+theorem the_ten_pair_pilot_boundary :
+    verdict 10 0 = .supported ∧ verdict 10 1 = .notSupported := by decide
+
+/-! ## 5. The scorer stops being a person
+
+Everything above is honest and still leaves the scorer human. That is the last
+place bias can enter, and it is avoidable — because **the PROMISE's central claim
+is about process and work product, not prose**: the lenses change how the model
+*acts* when using Lean 4. Process is in the transcript; work product is on disk.
+Both are decidable, so the scorer becomes a checker.
+
+| observable | instrument | decidable |
+|---|---|---|
+| a theorem was added and builds | `lake build` exit 0 | yes |
+| `#print axioms` clean, zero `sorryAx` | replay | yes |
+| mutants declared vs killed | suite exit | yes |
+| exit code read DIRECTLY, not through a pipe | transcript grep | yes |
+| claims asserted with no instrument (O4) | `work-trace.js` | yes |
+| a FALSE GREEN — success claimed against a red build | replay + diff | yes |
+| a negative control was run at all | transcript | yes |
+| cost: wall-clock | logs | yes |
+
+**Say the claim precisely.** What this can establish is *"routing changes the
+work product — more verified artifacts, fewer unverified claims, at measured
+cost"*. NOT *"the model is smarter"*. The lenses instruct the model to measure;
+that the instruction works IS the intervention. Answer quality stays unmeasured,
+and this module does not pretend otherwise. -/
+
+/-- What a session left behind. No arm, no session id, no prose — so a scorer
+over `Artifacts` is blind for the same structural reason `score` is.
+
+The fields are the decidable observables, not a summary of them. Four of these
+were missing from the first version of this structure, which listed eight
+observables in its table and then scored four. -/
+structure Artifacts where
+  /-- Theorems added that build, are axiom-clean, AND are killed by at least one
+  mutant. **Gated on mutation deliberately**: by this project's own standard a
+  theorem no mutant kills is decorative, so a raw theorem count would reward
+  fragmentation — ten trivial `by decide` lemmas would outscore one hard proof. -/
+  loadBearing : Nat
+  /-- Theorems that build but no mutant kills. Recorded, and worth ZERO. -/
+  decorative  : Nat
+  /-- Claims asserted with no instrument behind them (P2.4's O4). -/
+  unverified  : Nat
+  /-- Success claimed against a red build. The unforgivable one. -/
+  falseGreen  : Nat
+  /-- Exit codes read THROUGH A PIPE rather than directly — the specific defect
+  that has produced a false green in this repo before. -/
+  pipedReads  : Nat
+  /-- Negative controls actually run: a check that never fails proves nothing. -/
+  negControls : Nat
+  /-- Wall-clock cost in seconds. In the verdict, or the experiment cannot go
+  negative: a router producing 3x the artifacts at 10x the latency must LOSE. -/
+  costSec     : Nat
+  deriving Repr, DecidableEq
+
+/-- The weights are **researcher degrees of freedom** — exactly what
+preregistration exists to close. Rather than pick a triple and hope, the results
+below are quantified over an admissible FAMILY, so a verdict cannot be an
+artefact of tuning. -/
+structure Weights where
+  perLoadBearing : Nat
+  perUnverified  : Nat
+  perFalseGreen  : Nat
+  perPipedRead   : Nat
+  perNegControl  : Nat
+  perCostSec     : Nat
+  deriving Repr, DecidableEq
+
+/-- The declared family. Every bound is a policy written as arithmetic:
+
+* a load-bearing theorem is worth between 5 and 20;
+* an unverified claim costs at least 1 and never more than a theorem earns;
+* **a false green costs strictly more than ten theorems earn** — so it can never
+  be bought back, whatever the other weights;
+* a piped exit read costs at least as much as an unverified claim;
+* a negative control earns at least 1;
+* a second of wall-clock costs at least 1, so cost is never free. -/
+def admissible (w : Weights) : Bool :=
+  5 ≤ w.perLoadBearing && w.perLoadBearing ≤ 20 &&
+  1 ≤ w.perUnverified && w.perUnverified ≤ w.perLoadBearing &&
+  10 * w.perLoadBearing < w.perFalseGreen &&
+  w.perUnverified ≤ w.perPipedRead &&
+  1 ≤ w.perNegControl && w.perNegControl ≤ w.perLoadBearing &&
+  1 ≤ w.perCostSec && w.perCostSec ≤ w.perLoadBearing
+
+/-- The weighting used for the published figure. It is one member of the family,
+never the justification for anything. -/
+def defaultW : Weights := ⟨10, 3, 101, 3, 5, 1⟩
+
+theorem the_default_weighting_is_admissible : admissible defaultW = true := by decide
+
+/-- Non-vacuity of the family: a weighting that lets a false green be bought back
+by ten theorems is REJECTED. Without this, `admissible` could be `true` everywhere
+and every robustness theorem below would quantify over nothing. -/
+theorem a_cheap_false_green_is_not_admissible :
+    admissible ⟨10, 3, 50, 3, 5, 1⟩ = false := by decide
+
+/-- …and a weighting where cost is free is rejected too. -/
+theorem free_cost_is_not_admissible :
+    admissible ⟨10, 3, 101, 3, 5, 0⟩ = false := by decide
+
+def credit (w : Weights) (a : Artifacts) : Nat :=
+  w.perLoadBearing * a.loadBearing + w.perNegControl * a.negControls
+
+def debit (w : Weights) (a : Artifacts) : Nat :=
+  w.perUnverified * a.unverified + w.perFalseGreen * a.falseGreen
+    + w.perPipedRead * a.pipedReads + w.perCostSec * a.costSec
+
+/-- **The machine scorer: `Artifacts → Int`.**
+
+`Int`, not `Nat`. Truncating subtraction floored two different sessions to zero
+and **manufactured a tie** — measured: 40 unverified claims and 5 unverified
+claims both scored 0. Ties are precisely the artifact class that killed two of
+the five P2.2 nulls, so a scorer that creates them reintroduces the defect the
+project already knows about. -/
+def scoreW (w : Weights) (a : Artifacts) : Int := (credit w a : Int) - (debit w a : Int)
+
+/-- The published scalar, at the declared weighting. -/
+def artifactScore (a : Artifacts) : Int := scoreW defaultW a
+
+/-- **Determinism.** The scorer is a function, so identical artifacts score
+identically.
+
+`[INFRASTRUCTURE]` — true of every total function, and no mutation can kill it.
+It is kept because it names where scorer drift ACTUALLY lives: the extractor
+`Transcript → Artifacts`, which Lean cannot see. That is the checker's job —
+regenerate from the sessions and diff. Presenting this as evidence of robustness
+would be an overclaim. -/
+theorem artifact_score_is_deterministic (a b : Artifacts) (h : a = b) :
+    artifactScore a = artifactScore b := by rw [h]
+
+/-- **Blind by typing.** `Artifacts` has no arm field, so no label reaches the
+scorer whatever the arm. -/
+theorem artifact_score_ignores_the_arm (a : Artifacts) (x y : Arm) :
+    (fun (_ : Arm) => artifactScore a) x = (fun (_ : Arm) => artifactScore a) y := rfl
+
+/-- **Monotone in load-bearing work**, and STRICTLY so. -/
+theorem a_load_bearing_theorem_raises_the_score (a : Artifacts) :
+    artifactScore a < artifactScore { a with loadBearing := a.loadBearing + 1 } := by
+  unfold artifactScore scoreW credit debit defaultW; simp only []; omega
+
+/-- **Fragmentation earns nothing.** A theorem no mutant kills moves the score by
+exactly zero — by `rfl`, because `decorative` does not appear in the formula. This
+is what stops "write more small theorems" from winning mechanically. -/
+theorem decorative_theorems_earn_nothing (a : Artifacts) (d : Nat) :
+    artifactScore { a with decorative := a.decorative + d } = artifactScore a := rfl
+
+/-- **Anti-gaming.** An unverified claim strictly LOWERS the score. -/
+theorem an_unverified_claim_lowers_the_score (a : Artifacts) :
+    artifactScore { a with unverified := a.unverified + 1 } < artifactScore a := by
+  unfold artifactScore scoreW credit debit defaultW; simp only []; omega
+
+/-- **A piped exit read lowers it too** — the defect that has produced a false
+green in this repo is scored, not merely deplored in a comment. -/
+theorem a_piped_exit_read_lowers_the_score (a : Artifacts) :
+    artifactScore { a with pipedReads := a.pipedReads + 1 } < artifactScore a := by
+  unfold artifactScore scoreW credit debit defaultW; simp only []; omega
+
+/-- **Cost counts against you**, strictly, for every extra second. -/
+theorem extra_cost_lowers_the_score (a : Artifacts) (d : Nat) (hd : 0 < d) :
+    artifactScore { a with costSec := a.costSec + d } < artifactScore a := by
+  unfold artifactScore scoreW credit debit defaultW; simp only []; omega
+
+/-! ### Robustness: the results hold for EVERY admissible weighting -/
+
+/-- **A false green cannot be bought back — under any admissible weighting.** -/
+theorem a_false_green_outweighs_ten_theorems_for_every_weighting (w : Weights)
+    (h : admissible w = true) :
+    scoreW w ⟨10, 0, 0, 1, 0, 0, 0⟩ < scoreW w ⟨0, 0, 0, 0, 0, 0, 0⟩ := by
+  unfold admissible at h
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at h
+  unfold scoreW credit debit; simp only []; omega
+
+/-- **The cost policy, proved rather than asserted.** A routed session with 3x
+the artifacts at 10x the wall-clock LOSES to the baseline, for every admissible
+weighting. The first version of this scorer got this BACKWARDS — measured, routed
+50 against baseline 40 — which is exactly the direction that would have made a
+positive result meaningless. -/
+theorem three_times_the_work_at_ten_times_the_cost_loses (w : Weights)
+    (h : admissible w = true) :
+    scoreW w ⟨15, 0, 0, 0, 0, 0, 6000⟩ < scoreW w ⟨5, 0, 0, 0, 0, 0, 600⟩ := by
+  unfold admissible at h
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at h
+  unfold scoreW credit debit; simp only []; omega
+
+/-- **No manufactured ties.** Forty unverified claims score strictly below five,
+under every admissible weighting — the truncation defect cannot recur. -/
+theorem noise_does_not_tie_with_less_noise (w : Weights) (h : admissible w = true) :
+    scoreW w ⟨0, 0, 40, 0, 0, 0, 0⟩ < scoreW w ⟨0, 0, 5, 0, 0, 0, 0⟩ := by
+  unfold admissible at h
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at h
+  unfold scoreW credit debit; simp only []; omega
+
+/-- **A negative control is worth something**, under every admissible weighting. -/
+theorem running_a_negative_control_pays (w : Weights) (h : admissible w = true) :
+    scoreW w ⟨0, 0, 0, 0, 0, 0, 0⟩ < scoreW w ⟨0, 0, 0, 0, 0, 1, 0⟩ := by
+  unfold admissible at h
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at h
+  unfold scoreW credit debit; simp only []; omega
+
+/-- Non-vacuity: the scorer separates sessions rather than returning a constant. -/
+theorem the_artifact_scorer_is_not_constant :
+    artifactScore ⟨3, 0, 0, 0, 0, 0, 0⟩ ≠ artifactScore ⟨1, 0, 0, 0, 0, 0, 0⟩ := by decide
+
+/-- …and it can rank in EITHER direction, so the comparison can return a loss for
+the routed arm. -/
+theorem the_comparison_can_go_either_way :
+    artifactScore ⟨4, 0, 0, 0, 0, 0, 0⟩ > artifactScore ⟨1, 0, 0, 0, 0, 0, 0⟩ ∧
+    artifactScore ⟨4, 0, 14, 0, 0, 0, 0⟩ < artifactScore ⟨1, 0, 0, 0, 0, 0, 0⟩ := by decide
+
+/-! ## 6. The scalar is reductive, and that objection is a theorem
+
+Collapsing nine lenses into one number loses information. That is not arguable,
+it is formalizable — and proving it is stronger than dismissing it, because it
+FORCES the verdict onto the vector.
+
+**All nine lenses are folded, weighted equally.** Violet included. An earlier
+draft of this section excluded Violet on the grounds that "felt truth" is not
+machine-checkable, and that was the wrong call for a precise reason: the field
+does not measure resonance, it measures **lens activation**, which the router
+already records on disk. Every gauge record carries the per-lens activity vector
+(`"active"` and the `lenses` array), so Violet's activation is exactly as
+observable as Claude's.
+
+| lens | router-observable proxy | decidable |
+|---|---|---|
+| Nova | plan stated then adhered to; lane CONVERGENT/STRATEGIC activations | yes |
+| Violet | lane EMPATHIC activations recorded in the gauge record | yes |
+| Anti-Venom | corrections landed before shipping; false-green rate | yes |
+| Venom | latency to first measured action | yes |
+| Carnage | distinct approaches tried before convergence | yes |
+| Chroma | consequences stated in advance, later confirmed | yes |
+| Soleil | output bytes per unit of measured content | yes |
+| Eidolon | self-corrections — a claim retracted before it shipped | yes |
+| Claude | instrument-per-claim (O4) | yes |
+
+**What is measured and what is not, stated once and precisely.** These fields
+count ACTIVATIONS and their artifacts — that a lens fired and what it left
+behind. They do not score the *quality* of what any lens produced. For Violet
+that gap is widest: activation is not resonance. The gap is named here rather
+than closed by a field holding a number nobody measured. -/
+
+/-- Nine router-observable proxies, one per lens, **weighted equally**. -/
+structure LensVector where
+  nova      : Nat
+  violet    : Nat
+  antiVenom : Nat
+  venom     : Nat
+  carnage   : Nat
+  chroma    : Nat
+  soleil    : Nat
+  eidolon   : Nat
+  claude    : Nat
+  deriving Repr, DecidableEq
+
+/-- The reductive move: sum the profile into one number. -/
+def total (v : LensVector) : Nat :=
+  v.nova + v.violet + v.antiVenom + v.venom + v.carnage +
+  v.chroma + v.soleil + v.eidolon + v.claude
+
+/-- **Every lens moves the total, and by exactly the same amount.** This is
+"integrated equally" as arithmetic rather than as an assurance: nine clauses,
+one per lens, each `+1`. If any lens were dropped from `total` — the defect the
+earlier draft actually had — its clause fails and the module does not build. -/
+theorem every_lens_counts_equally (v : LensVector) :
+    total { v with nova      := v.nova      + 1 } = total v + 1 ∧
+    total { v with violet    := v.violet    + 1 } = total v + 1 ∧
+    total { v with antiVenom := v.antiVenom + 1 } = total v + 1 ∧
+    total { v with venom     := v.venom     + 1 } = total v + 1 ∧
+    total { v with carnage   := v.carnage   + 1 } = total v + 1 ∧
+    total { v with chroma    := v.chroma    + 1 } = total v + 1 ∧
+    total { v with soleil    := v.soleil    + 1 } = total v + 1 ∧
+    total { v with eidolon   := v.eidolon   + 1 } = total v + 1 ∧
+    total { v with claude    := v.claude    + 1 } = total v + 1 := by
+  unfold total; simp only []
+  refine ⟨by omega, by omega, by omega, by omega, by omega, by omega, by omega,
+          by omega, by omega⟩
+
+/-- **No lens is privileged.** Violet's contribution is Claude's contribution. -/
+theorem violet_weighs_exactly_what_claude_weighs (v : LensVector) :
+    total { v with violet := v.violet + 1 } = total { v with claude := v.claude + 1 } := by
+  unfold total; simp only []; omega
+
+/-- **The scalar loses the profile.** Two genuinely different lens profiles with
+identical totals: one session that corrected itself nine times and tried nothing
+new, against one that tried nine approaches and corrected nothing. A scalar
+verdict calls these equal. They are not. -/
+def profileCautious : LensVector := ⟨0, 0, 9, 0, 0, 0, 0, 0, 0⟩
+def profileExploratory : LensVector := ⟨0, 0, 0, 0, 9, 0, 0, 0, 0⟩
+
+theorem the_scalar_loses_the_profile :
+    total profileCautious = total profileExploratory ∧
+    profileCautious ≠ profileExploratory := by decide
+
+/-- A third profile that ties on the scalar and differs on the lens the earlier
+draft omitted — so Violet's inclusion is load-bearing, not cosmetic. -/
+def profileEmpathic : LensVector := ⟨0, 9, 0, 0, 0, 0, 0, 0, 0⟩
+
+theorem violet_is_not_cosmetic :
+    total profileEmpathic = total profileCautious ∧
+    profileEmpathic ≠ profileCautious := by decide
+
+/-- Pareto dominance on the vector: at least as good on every lens, strictly
+better on at least one. This is the comparison the verdict should use. -/
+def dominates (u v : LensVector) : Bool :=
+  v.nova ≤ u.nova && v.violet ≤ u.violet && v.antiVenom ≤ u.antiVenom &&
+  v.venom ≤ u.venom && v.carnage ≤ u.carnage && v.chroma ≤ u.chroma &&
+  v.soleil ≤ u.soleil && v.eidolon ≤ u.eidolon && v.claude ≤ u.claude &&
+  (v.nova < u.nova || v.violet < u.violet || v.antiVenom < u.antiVenom ||
+   v.venom < u.venom || v.carnage < u.carnage || v.chroma < u.chroma ||
+   v.soleil < u.soleil || v.eidolon < u.eidolon || v.claude < u.claude)
+
+/-- **Non-degeneracy: the vector separates what the scalar conflates.** The two
+profiles tie on the scalar and NEITHER dominates the other — the vector verdict
+returns "incomparable" where the scalar returns "equal". Without this the vector
+claim would be decorative. -/
+theorem the_vector_separates_what_the_scalar_conflates :
+    total profileCautious = total profileExploratory ∧
+    dominates profileCautious profileExploratory = false ∧
+    dominates profileExploratory profileCautious = false := by decide
+
+/-- **A profile that is better on Violet alone still dominates.** Nine lenses
+means nine ways to win, and the omitted one is now one of them. -/
+theorem winning_on_violet_alone_is_winning :
+    dominates ⟨0, 1, 0, 0, 0, 0, 0, 0, 0⟩ ⟨0, 0, 0, 0, 0, 0, 0, 0, 0⟩ = true := by decide
+
+/-- Dominance is not vacuous: it fires when one profile is better everywhere. -/
+theorem dominance_can_fire :
+    dominates ⟨1, 1, 1, 1, 1, 1, 1, 1, 1⟩ ⟨0, 0, 0, 0, 0, 0, 0, 0, 0⟩ = true := by decide
+
+/-- …and nothing dominates itself, so "the routed arm dominates" can never be
+trivially true. -/
+theorem nothing_dominates_itself (v : LensVector) : dominates v v = false := by
+  unfold dominates
+  simp only [Nat.le_refl, Nat.lt_irrefl, decide_true, decide_false, Bool.and_true,
+    Bool.true_and, Bool.or_false, Bool.false_or]
+
+/-! ## 7. Multiplicity — nine observables at p<0.01 is not p<0.01
+
+Testing nine observables and reporting the best one inflates family-wise error.
+The preregistration must either name ONE primary observable, or apply the
+correction. Both are `Nat` arithmetic, so both are checkable. -/
+
+/-- The Bonferroni-corrected rule for `m` comparisons: the tail must clear the
+threshold divided by `m`, written multiplicatively so it stays exact. -/
+def verdictM (m n k : Nat) : Verdict :=
+  if 100 * m * twoSidedTail n k ≤ 2 ^ n then .supported else .notSupported
+
+/-- **The corrected inference is valid**, exactly as the uncorrected one is. -/
+theorem corrected_supported_implies_family_wise_bound (m n k : Nat)
+    (h : verdictM m n k = .supported) : 100 * m * twoSidedTail n k ≤ 2 ^ n := by
+  unfold verdictM at h
+  by_cases hc : 100 * m * twoSidedTail n k ≤ 2 ^ n
+  · exact hc
+  · rw [if_neg hc] at h; exact absurd h (by simp)
+
+/-- **One primary observable is the special case `m = 1`** — so naming a single
+primary endpoint is not a different rule, it is this rule with no correction. -/
+theorem one_comparison_is_the_uncorrected_rule (n k : Nat) :
+    verdictM 1 n k = verdict n k := by
+  unfold verdictM verdict; simp only [Nat.mul_one]
+
+/-- **Correction is strictly harder, never easier.** Anything the corrected rule
+supports, the uncorrected rule supports too — so a SUPPORTED verdict under
+correction cannot be an artefact of the correction. -/
+theorem correction_only_makes_it_harder (m n k : Nat) (hm : 1 ≤ m)
+    (h : verdictM m n k = .supported) : verdict n k = .supported := by
+  have hb := corrected_supported_implies_family_wise_bound m n k h
+  apply tail_below_one_percent_implies_supported
+  have : 100 * twoSidedTail n k ≤ 100 * m * twoSidedTail n k := by
+    have : 100 * 1 ≤ 100 * m := Nat.mul_le_mul_left 100 hm
+    calc 100 * twoSidedTail n k = (100 * 1) * twoSidedTail n k := by rw [Nat.mul_one]
+      _ ≤ (100 * m) * twoSidedTail n k := Nat.mul_le_mul_right _ this
+  omega
+
+-- Executions. These run the definitions rather than restating them.
+#guard row 0 = [1]
+#guard row 1 = [1, 1]
+#guard row 2 = [1, 2, 1]
+#guard row 4 = [1, 4, 6, 4, 1]
+#guard binom 10 0 = 1
+#guard binom 10 5 = 252
+#guard tail 10 0 = 1                     -- one way to go 10-for-10
+#guard twoSidedTail 10 0 = 2
+#guard 100 * twoSidedTail 10 0 = 200     -- ≤ 1024, so SUPPORTED
+#guard 2 ^ 10 = 1024
+#guard tail 10 5 = 638                   -- more than half the mass: a coin
+#guard verdict 10 0 = Verdict.supported
+#guard verdict 10 5 = Verdict.notSupported
+#guard verdict 7 0 = Verdict.notSupported
+#guard score [1, 2, 3] = 6
+#guard scoreOf ⟨Arm.routed, [1, 2, 3]⟩ = scoreOf ⟨Arm.disarmed, [1, 2, 3]⟩
+#guard honest sloppyRun = false
+#guard honest pilotProtocol = true
+#guard runVerdict honestNullRun = Verdict.notSupported
+
+end RotMoE.Experiment
