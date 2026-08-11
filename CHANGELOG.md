@@ -23,7 +23,53 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
-### The margin was a fraction that had been flattened into a number
+### RETRACTION: I read the wrong denominator and charged the spec with my error
+
+**The two entries below are CONTESTED and AMENDMENT 2 is SUSPENDED.** Kept
+unedited, because a record that quietly removes a wrong claim is worth less than
+one that shows it withdrawn.
+
+*The pilot was scored out of 12; §5 says 80.* §5 reads "A 10-task pilot per arm
+… at least 8 of **80** room". I took "10-task" as fixing the O5 denominator and
+never derived the 80. **80 = 40 tasks (§4) × 2 orderings (§6)** — the same
+arithmetic that makes `sessions160` be 40 × 2 arms × 2 orderings. At `outOf = 80`
+the gate admits every score from 8 to 72, 65 of 81 outcomes:
+`the_preregistered_gate_is_satisfiable`, `the_sound_gate_admits_a_wide_band`.
+**The gate was sound.** The accusing theorem is renamed to what it proves,
+`a_margin_of_eight_admits_no_score_out_of_ten`.
+
+**The open defect is a denominator mismatch**: one sentence names a 10-task
+pilot and an 80-denominator score. Unreconciled, and nothing downstream of it is
+decidable.
+
+**Root cause is a type.** `admissibleBy` took a bare `Nat` margin and a `Score`
+with nothing binding them, so a margin declared for 80 could judge a score out
+of 10 and return a well-typed `false` — which I read as a defect in the
+document. `Margin` now carries its own denominator and `Margin.applyTo` returns
+**`none`** on a mismatch instead of a verdict
+(`a_mismatched_denominator_is_not_a_verdict`); `wellFormed` refuses `⟨8,10⟩` at
+declaration. Mutant M13 removes that guard — it is this session's bug preserved
+as a test. `a_well_formed_margin_always_admits_something` proves the
+unsatisfiable-gate failure cannot recur for any well-formed margin at any size.
+
+**The rescore retires the other conclusion too.** Same 24 sessions, four rules,
+no new runs (`bench/pilot-rescore.js`):
+
+| rule | routed | unrouted |
+|---|---|---|
+| R1 strict (shipped) | 3/12 | 1/12 |
+| **R2 lenient** | **9/12** | **7/12** |
+| R3 leading | 5/12 | 5/12 |
+| R4 committed | 8/12 | 6/12 |
+
+**The corpus is not floor-saturated and the rebuild is withdrawn.** The bigger
+finding: the scoring rule moves a score by **6 of 12** while the arms differ by
+at most **2** — `the_scorer_moves_the_score_more_than_the_arm_does`. The scorer
+is a larger uncontrolled variable than the effect it measures, and it must be
+preregistered before the full run. No rule favours the unrouted arm; none
+reaches the ten-pair floor, so there is still no verdict.
+
+### The margin was a fraction that had been flattened into a number [CONTESTED]
 
 AMENDMENT 2 in `bench/P24-PREREGISTRATION.md`, sealed by content hash
 (`69ab3837…`, parent `b85b2424…`) **before** any of the 160 sessions run,
@@ -58,7 +104,7 @@ refused at the floor, and six of twelve answers in *each* arm hedged by stating
 both numbers. The corpus is too hard, or the tasks invite hedging, or both.
 Rebuilding happens before collection, not after.
 
-### The pilot ran, and the gate that was supposed to judge it could never pass
+### The pilot ran, and the gate that was supposed to judge it could never pass [CONTESTED]
 
 `pilot12Pairs` is **MET** — 2 of 6 push-guard obligations now closed. 12 paired
 tasks, routed arm then unrouted, 24 real sessions. Manipulation check clean in
@@ -301,7 +347,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1447 theorems, 76 modules, 70 suites, 737 mutants, 71 checkers.
+1468 theorems, 76 modules, 70 suites, 743 mutants, 71 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -360,7 +406,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1447 theorems, 76 modules, 70 suites, 737 mutants, 71 checkers.
+1468 theorems, 76 modules, 70 suites, 743 mutants, 71 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -805,7 +851,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 737 applied, 737 killed,
+statistic. Across the whole tree the suites now stand at 743 applied, 743 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1157,7 +1203,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **737 applied, 737 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **743 applied, 743 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and

@@ -52,8 +52,48 @@ routed arm can lose on any of these measures.
 | O6 | lens breadth and lead per turn | the debug log's `gauge` records | descriptive only |
 | O7 | wall time per turn | the debug log's `ms` | descriptive only — already settled by P2.3 |
 
-O6 and O7 are **descriptive**: they characterise what the router did, and are
-not part of the verdict. Reporting them is not the same as claiming them.
+| O8 | hedge rate — answers naming BOTH the true and the naive value | the scorer | descriptive only |
+
+O6, O7 and O8 are **descriptive**: they characterise what happened, and are not
+part of the verdict. Reporting them is not the same as claiming them.
+`the_hedge_rate_does_not_inflate_the_family` re-proves that adding O8 leaves
+`m = 4` — a descriptive observable may never enter the multiplicity correction.
+
+O8 was promoted from footnote on 2026-08-11: the pilot measured **6 of 12 in
+each arm**, identical, which makes hedging a property of the prompt rather than
+of the routing (`the_hedge_rate_was_identical_in_both_arms`). It is already
+extracted, so it costs nothing.
+
+### AMENDMENT 3 (2026-08-11) — the scoring rule, preregistered
+
+**The rule was the largest uncontrolled variable in the design.** Measured on
+the pilot's own stored sessions: the choice of rule moves a score by **6 of 12**
+while the arms differ by at most **2** — `the_scorer_moves_the_score_more_than_
+the_arm_does`. A rule chosen by whoever reads the results is exactly what §5
+exists to forbid, and until this amendment that is what P2.4 had.
+
+Fixed the same way `m` was: declared as a set, with roles, in
+`RotMoE.Family.rules`.
+
+| rule | definition | role |
+|---|---|---|
+| R1-strict | truth appears and naive does not | sensitivity |
+| R2-lenient | truth appears at all | sensitivity |
+| R3-leading | the first number in the text is truth | **excluded** |
+| **R4-committed** | truth appears, and precedes naive if both do | **PRIMARY** |
+
+**Why R4, argued without reference to the pilot's numbers.** R1 penalises an
+answer that gives the right number *and explains why the naive one is wrong* —
+better epistemic behaviour, punished. R2 rewards an answer that leads with the
+wrong number and mentions the right one in a caveat. R3 measures prose habit,
+not knowledge, and is **excluded in advance rather than averaged in**. R4 asks
+what the answer *committed to*, which is what a task with a machine-checkable
+ground truth tests. R4 is neither the most nor the least favourable — R2 gives
+the routed arm its highest raw score.
+
+`exactly_one_primary_rule` forbids deferring the choice to the reader.
+The sensitivity analyses are reported **beside** the primary, never substituted
+for it, so "the sign held under all of them" is a claim registered in advance.
 
 **O4 is the one that can embarrass the router most**, which is why it is in.
 
@@ -99,7 +139,61 @@ theorem that stops this margin from being quietly set to 0.
 
 **If the pilot is inadmissible the corpus is rebuilt, not the rule.**
 
-### AMENDMENT 1 (2026-08-11) — the gate above was unsatisfiable, and that is a
+### RETRACTION (2026-08-11, same day) — read this before AMENDMENT 1 or 2
+
+**AMENDMENT 1's charge was false and AMENDMENT 2 is SUSPENDED.** Both are kept
+below, unedited, because a record that quietly removes a wrong claim is worth
+less than one that shows it being withdrawn.
+
+*The pilot was scored out of 12; §5 says 80.* That is the whole error. I read
+"a 10-task pilot per arm" as fixing the O5 denominator at 10, when the very same
+sentence says "at least 8 of **80** room". At `outOf = 80` the gate is
+satisfiable with room to spare: every score from 8 to 72 admits, 65 of 81
+possible outcomes. `the_preregistered_gate_is_satisfiable` and
+`the_sound_gate_admits_a_wide_band` prove it. **The gate was sound.**
+
+**Where the 80 actually comes from — measured, after a first answer that was
+merely plausible.** This retraction first said "80 = 40 tasks (§4) × 2 orderings
+(§6)". That arithmetic does give 80, and it is **not** the document's 80. §1's
+own table reads "`rotmoe-calib` | 1/80 in band | refused — floor, margin 8", and
+`lean/Proofs/RotSaturation.lean:205` defines `calibCorpus : Score := ⟨1, 80⟩`
+with `preregMargin := 8` at `:212`. **80 is the size of the P2.2 calibration
+corpus**, and §5's "8 of 80" is that sentence carried over verbatim.
+
+Fitting a number to a plausible story instead of measuring it is the same error
+as the one being retracted, committed inside the retraction. It is recorded
+rather than silently fixed. `preregisteredMargin` is now *defined* as
+`⟨preregMargin, calibCorpus.outOf⟩` — the objects, not the digits — and
+`it_refuses_the_calibration_corpus_as_section_one_says` checks it behaves on
+`calibCorpus` exactly as §1 records.
+
+**So the open defect is sharper than "a mismatch": §5 never fixed a pilot
+denominator at all.** It inherited a margin declared against an 80-item corpus
+and paired it with a 10-task pilot. `no_pilot_size_can_receive_the_inherited_margin`
+proves no pilot size up to 40 can receive that margin — the question cannot be
+answered by accident; it has to be decided and written down.
+
+The theorem that carried the accusation has been renamed to what it actually
+proves — `a_margin_of_eight_admits_no_score_out_of_ten`, true mathematics about
+a denominator §5 never named.
+
+**The real defect in §5 is a denominator mismatch, and it is still open.** One
+sentence names a 10-task pilot and an 80-denominator score. A 10-task pilot
+cannot produce a score out of 80, so either the pilot is larger than 10 tasks,
+or the O5 score counts something other than tasks, or "8 of 80" is residue from
+an earlier design. **That question is not answered here and nothing downstream
+of it is decidable until it is.**
+
+**The root cause is a type, not a number.** `admissibleBy` takes a bare `Nat`
+margin and a `Score`, and nothing binds them, so a margin meant for 80 could be
+applied to a score out of 10 and return a perfectly well-typed `false` — which I
+read as a defect in this document. `RotMoE.Family.Margin` now carries its own
+denominator and `Margin.applyTo` returns **`none`** on a size mismatch rather
+than a verdict (`a_mismatched_denominator_is_not_a_verdict`). The category error
+that produced this retraction is no longer expressible.
+
+### AMENDMENT 1 (2026-08-11) — CONTESTED, see the retraction above
+### the gate above was unsatisfiable, and that is a
 ### defect in this document, not in the corpus
 
 `admissibleBy m` requires margin `m` in BOTH directions: `m ≤ hits` and
@@ -128,7 +222,8 @@ The pilot of 2026-08-11 was **INADMISSIBLE** under the gate as written
 (`the_measured_pilot_is_inadmissible`, `admissibleBy 8 ⟨3,12⟩ = false` and
 `admissibleBy 8 ⟨1,12⟩ = false`) — as was every other outcome it could have had.
 
-### AMENDMENT 2 (2026-08-11) — the margin, decided and sealed BEFORE the run
+### AMENDMENT 2 (2026-08-11) — SUSPENDED, see the retraction above
+### the margin, decided and sealed BEFORE the run
 
 Fixed here, before any of the 160 sessions. Sealed by content hash so a later
 edit is visible:
@@ -173,7 +268,14 @@ loosening and must always be killed.
 
 ### Consequence for the schedule
 
-**The 160 sessions do not start yet.** The corpus is refused at the floor: the
+**SUPERSEDED by the rescore.** Under the lenient rule the same 24 sessions score
+9 of 12 and 7 of 12, so the corpus is NOT floor-saturated and the rebuild below
+is withdrawn. What the rescore showed instead is bigger: the choice of scoring
+rule moves a score by 6 of 12 while the arms differ by at most 2
+(`the_scorer_moves_the_score_more_than_the_arm_does`). The scoring rule is the
+dominant uncontrolled variable and must be fixed before the full run.
+
+ORIGINAL, WITHDRAWN: The corpus is refused at the floor: the
 unrouted arm scored 1 of 12, and six of twelve answers in *each* arm hedged by
 stating both numbers. The corpus is too hard, or the tasks invite hedging, or
 both. Rebuilding it is §5's remedy and it happens before collection, not after.

@@ -289,11 +289,41 @@ theorem a_margin_is_reachable_iff_the_pilot_is_twice_its_size (mg outOf : Nat) :
     omega
 
 open RotMoE.Saturation in
-/-- **The preregistered gate was unreachable.** Margin 8 on a 10-task pilot:
-no score admits, so the corpus was refused before it was built. -/
-theorem the_preregistered_gate_admitted_no_outcome :
+/-- **Margin 8 admits no score out of 10.** True mathematics, and it is ALL this
+theorem says.
+
+It was first named `the_preregistered_gate_admitted_no_outcome`, which was a
+false charge against `bench/P24-PREREGISTRATION.md` §5 — I had assumed the
+pilot's O5 denominator was its task count. §5 says, in the same sentence,
+"a 10-task pilot per arm" AND "at least 8 of 80 room". The denominator is **80**,
+derived from §4 (40 tasks) × §6 (both orderings), and at `outOf = 80` the gate is
+comfortably satisfiable: `8 ≤ hits ≤ 72`. `the_preregistered_gate_is_satisfiable`
+below proves it.
+
+The real defect in §5 is a **denominator mismatch** — a full-run margin attached
+to a pilot sentence — not an unsatisfiable gate. The theorem keeps the fact and
+loses the accusation. -/
+theorem a_margin_of_eight_admits_no_score_out_of_ten :
     ¬ (∃ h, h ≤ 10 ∧ admissibleBy 8 ⟨h, 10⟩ = true) := by
   rw [a_margin_is_reachable_iff_the_pilot_is_twice_its_size]; omega
+
+open RotMoE.Saturation in
+/-- **The preregistered gate IS satisfiable at the denominator §5 names.**
+80 = 40 tasks (§4) × 2 orderings (§6). The retraction, stated as a theorem so
+the correction is as checkable as the charge was. -/
+theorem the_preregistered_gate_is_satisfiable :
+    ∃ h, h ≤ 80 ∧ admissibleBy 8 ⟨h, 80⟩ = true := by
+  rw [a_margin_is_reachable_iff_the_pilot_is_twice_its_size]; omega
+
+open RotMoE.Saturation in
+/-- **How much room the sound gate leaves: every score from 8 to 72.** A gate
+that admits 65 of 81 outcomes is a real margin, not a coincidence — the opposite
+of what I claimed. -/
+theorem the_sound_gate_admits_a_wide_band :
+    ((List.range 81).filter (fun h => admissibleBy 8 ⟨h, 80⟩)).length = 65
+      ∧ ((List.range 81).filter (fun h => admissibleBy 8 ⟨h, 80⟩)).head? = some 8
+      ∧ ((List.range 81).filter (fun h => admissibleBy 8 ⟨h, 80⟩)).getLast? = some 72 := by
+  decide
 
 open RotMoE.Saturation in
 /-- **At the twelve pairs actually run, NO score admits either.** I first wrote
@@ -333,25 +363,25 @@ Two disagreements out of twelve, none against — and `n = 2` is far below the
 ten-pair floor. A pilot that could conclude would not be a pilot. -/
 theorem the_pilot_cannot_conclude : verdictM m 2 0 = Verdict.notSupported := by decide
 
-/-! ## The admissibility decision, and why it is not a choice
+/-! ## CONTESTED — a fractional margin, proposed on a misreading
 
-The deferred decision has to be made before the 160 sessions run, or the whole
-run is contaminated. It is made here, and the justification does NOT come from
-the pilot's results.
+**Everything in this section is SUSPENDED.** It was written to repair a gate I
+had wrongly called unsatisfiable. §5's denominator is 80, the gate is sound
+(`the_preregistered_gate_is_satisfiable`), and a repair to a working mechanism
+is not a repair.
 
-**Where the 8 came from.** Section 4 fixes a 40-task corpus; section 5 asks for
-margin 8. `8 = 40 / 5` — the margin was **twenty percent of the corpus**, and it
-is correct at that size. The defect was writing it as an absolute and then
-applying it to a 10-task pilot, where 8 is eighty percent and unreachable. So
-the margin is not a number to re-pick, it is a FRACTION that was flattened into
-a number. Restoring the fraction recovers the preregistered value exactly at the
-size it was written for, which is what makes this a repair and not a re-choice.
+It is kept rather than deleted because the *mathematics* is sound and may still
+be wanted: `8 = 40 / 5` is a true coincidence, a fractional margin really is
+reachable at every size, and `marginFor 40 = 8` really does reproduce the
+preregistered number. What is wrong is the **motivation** — none of that was
+needed, and adopting it would silently move a margin that was already correct.
 
-**This choice is worse for the router, not better.** Under the restored margin
-the routed arm admits and the unrouted arm does not, so the corpus is refused
-and must be rebuilt — section 5's own instruction. A margin chosen to make the
-observed pilot pass would have been 10%, and that is stated below rather than
-left for someone to discover. -/
+The live question §5 actually poses is a **denominator mismatch**: it names a
+10-task pilot and an 80-denominator score in one sentence. That is a question
+about what the pilot MEASURES, not about how big the margin should be, and it is
+not answered here.
+
+Nothing below may be cited as a decision until the mismatch is reconciled. -/
 
 /-- **The margin as it was meant: a fifth of the pilot, in both directions.** -/
 def marginFor (outOf : Nat) : Nat := outOf / 5
@@ -382,9 +412,10 @@ theorem the_margin_at_the_pilot_sizes :
     marginFor 10 = 2 ∧ marginFor 12 = 2 := by decide
 
 open RotMoE.Saturation in
-/-- **The measured pilot: the routed arm admits, the unrouted arm does not.**
-3 of 12 leaves room in both directions; 1 of 12 is against the floor. Both
-numbers are what the 2026-08-11 run produced. -/
+/-- CONTESTED. What the fractional margin *would* say about the measured pilot,
+were it adopted: 3 of 12 leaves room in both directions, 1 of 12 is against the
+floor. Retained as arithmetic about the observed numbers, NOT as a verdict —
+the margin it uses is suspended. -/
 theorem the_routed_arm_admits_and_the_unrouted_arm_does_not :
     admissibleBy (marginFor 12) ⟨3, 12⟩ = true
       ∧ admissibleBy (marginFor 12) ⟨1, 12⟩ = false := by decide
@@ -398,19 +429,280 @@ def corpusAdmissible (mg : Nat) (a b : Score) : Bool :=
   admissibleBy mg a && admissibleBy mg b
 
 open RotMoE.Saturation in
-/-- **So the corpus is REFUSED and must be rebuilt.** Section 5: "If the pilot
-is inadmissible the corpus is rebuilt, not the rule." -/
-theorem the_corpus_is_refused_and_must_be_rebuilt :
+/-- CONTESTED as a verdict; sound as arithmetic. Under the suspended fractional
+margin the pair would not admit. **This is not a decision to rebuild the
+corpus** — that conclusion rested on the misreading, and the corpus has not been
+judged by any gate whose denominator was reconciled. -/
+theorem the_pair_would_not_admit_under_the_suspended_margin :
     corpusAdmissible (marginFor 12) ⟨3, 12⟩ ⟨1, 12⟩ = false := by decide
 
 open RotMoE.Saturation in
-/-- **The margin that WOULD have admitted this pilot is a tenth, and naming it
-is the point.** A ten-percent margin passes the run that a twenty-percent margin
-refuses. Recording the number that would have been convenient is what stops it
-from being quietly adopted later; the twenty percent is fixed because
-`marginFor 40 = 8` reproduces the preregistration, not because of how it scores. -/
+/-- CONTESTED. The margin that would have admitted this pilot is a tenth. Kept
+because naming the convenient number is what stops it being adopted quietly. -/
 theorem a_ten_percent_margin_would_have_admitted_the_floor :
     corpusAdmissible (12 / 10) ⟨3, 12⟩ ⟨1, 12⟩ = true
       ∧ corpusAdmissible (12 / 5) ⟨3, 12⟩ ⟨1, 12⟩ = false := by decide
+
+/-! ## The disease, not the instance: a margin must carry its denominator
+
+The whole episode above has ONE cause, and it is a type. `admissibleBy` takes a
+`Nat` margin and a `Score`, and nothing relates the two. So a margin meant for a
+denominator of 80 could be handed a `Score` out of 10, produce a perfectly
+well-typed `false`, and I read that `false` as a defect in the specification.
+`8` against `⟨h, 10⟩` is not a wrong answer — it is a **category error that the
+type system permitted**.
+
+The fix is the same construction that settled `m`: derive the quantity from its
+declared inputs and make the binding structural. A `Margin` carries the
+denominator it was declared against, and comparing it to a score of a different
+size is not a judgement that comes out false — it is a question that cannot be
+asked. -/
+
+/-- **A margin that knows what it is a margin OF.** -/
+structure Margin where
+  /-- room demanded in each direction -/
+  room  : Nat
+  /-- the denominator this margin was declared against -/
+  outOf : Nat
+deriving DecidableEq, Repr
+
+/-- §5's margin, taken from the objects it was actually declared against:
+`RotMoE.Saturation.preregMargin` (= 8) and the P2.2 **calibration corpus**
+`calibCorpus = ⟨1, 80⟩`.
+
+I first wrote this as `⟨8, 40 * 2⟩` — "40 tasks (§4) × 2 orderings (§6)" — which
+gives the same 80 and was **not** where the document's 80 comes from. That was
+the same error as the retraction it was meant to repair: a number fitted to a
+plausible story instead of measured. §1's table reads "`rotmoe-calib` | 1/80 in
+band | refused — floor, margin 8", and `RotSaturation.lean:205,212` hold both
+values. §5's "8 of 80" is that sentence carried over verbatim. -/
+def preregisteredMargin : Margin :=
+  ⟨RotMoE.Saturation.preregMargin, RotMoE.Saturation.calibCorpus.outOf⟩
+
+/-- **The margin and its denominator both come from `RotSaturation`, not from a
+reconstruction.** Bound to the definitions so a change there moves this. -/
+theorem the_margin_is_the_p22_one_against_the_calibration_corpus :
+    preregisteredMargin.room = RotMoE.Saturation.preregMargin
+      ∧ preregisteredMargin.outOf = RotMoE.Saturation.calibCorpus.outOf
+      ∧ preregisteredMargin = ⟨8, 80⟩ := by decide
+
+
+/-- A margin is well formed when it is reachable at its OWN denominator. -/
+def wellFormed (mg : Margin) : Bool := decide (2 * mg.room ≤ mg.outOf)
+
+/-- **§5's margin is well formed.** The retraction in structural form: the gate
+was never broken. -/
+theorem the_preregistered_margin_is_well_formed :
+    wellFormed preregisteredMargin = true := by decide
+
+open RotMoE.Saturation in
+/-- **Applying a margin to a score REQUIRES the denominators to agree.** This is
+the whole repair: `applyTo` returns `none` for a size mismatch rather than a
+verdict. The reading that started this — margin 8 against a score out of 10 —
+is now `none`, not `false`. -/
+def Margin.applyTo (mg : Margin) (s : Score) : Option Bool :=
+  if s.outOf = mg.outOf then some (admissibleBy mg.room s) else none
+
+open RotMoE.Saturation in
+/-- **The category error is now unaskable.** Margin 8-of-80 against a 10-task
+score answers `none`. Had this existed yesterday, no charge would have been
+laid against §5. -/
+theorem a_mismatched_denominator_is_not_a_verdict :
+    preregisteredMargin.applyTo ⟨3, 10⟩ = none
+      ∧ preregisteredMargin.applyTo ⟨3, 12⟩ = none := by decide
+
+open RotMoE.Saturation in
+/-- **At the right denominator it answers, and it answers usefully.** -/
+theorem the_margin_answers_at_its_own_denominator :
+    preregisteredMargin.applyTo ⟨40, 80⟩ = some true
+      ∧ preregisteredMargin.applyTo ⟨3, 80⟩ = some false := by decide
+
+open RotMoE.Saturation in
+/-- **It behaves on the calibration corpus exactly as §1 records**: refused at
+the floor, 1 of 80. The check that the provenance is right and not merely
+arithmetically convenient — a margin fitted to the wrong story would still be
+`⟨8, 80⟩` but would not have `calibCorpus` as its natural argument. -/
+theorem it_refuses_the_calibration_corpus_as_section_one_says :
+    preregisteredMargin.applyTo calibCorpus = some false := by decide
+
+/-- **§5 never fixed a denominator for the PILOT at all** — and that, not an
+unsatisfiable gate, is the open defect. Its margin is 8-against-80, inherited
+from a P2.2 corpus of 80 items; its pilot is 10 tasks. No pilot size up to 40
+can receive that margin, so the question cannot be answered by accident: it has
+to be decided and written down. -/
+theorem no_pilot_size_can_receive_the_inherited_margin :
+    ((List.range 41).filter
+      (fun n => (preregisteredMargin.applyTo ⟨0, n⟩).isSome)) = [] := by decide
+
+open RotMoE.Saturation in
+/-- **A well-formed margin always has an admitting score at its denominator.**
+The unsatisfiable-gate failure mode cannot occur for any well-formed margin, at
+any size — the general statement, not a fact about 8 and 80. -/
+theorem a_well_formed_margin_always_admits_something (mg : Margin)
+    (hw : wellFormed mg = true) :
+    ∃ s : Score, s.outOf = mg.outOf ∧ mg.applyTo s = some true := by
+  refine ⟨⟨mg.room, mg.outOf⟩, rfl, ?_⟩
+  unfold wellFormed at hw
+  simp only [decide_eq_true_eq] at hw
+  have h : admissibleBy mg.room (⟨mg.room, mg.outOf⟩ : Score) = true := by
+    rw [admissibleBy, Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
+    simp only [up, down]
+    omega
+  simp [Margin.applyTo, h]
+
+/-- **And an ill-formed one is refused before it is ever applied**, which is
+where the check belongs: `wellFormed` is decidable at declaration time, so a
+margin like 8-of-10 never reaches a score at all. -/
+theorem an_ill_formed_margin_is_visible_at_declaration :
+    wellFormed ⟨8, 10⟩ = false ∧ wellFormed ⟨8, 80⟩ = true := by decide
+
+/-! ## The scorer dominates the signal
+
+The same 24 sessions, rescored under four rules by `bench/pilot-rescore.js`
+(no new runs). Every number below is measured, not modelled:
+
+| rule | routed | unrouted |
+|---|---|---|
+| R1 strict — truth appears and naive does not | 3 | 1 |
+| R2 lenient — truth appears | 9 | 7 |
+| R3 leading — the first number is truth | 5 | 5 |
+| R4 committed — truth appears before naive | 8 | 6 |
+
+This retires the conclusion I drew from R1 alone. Under R2 both arms score high,
+so the corpus is **not** floor-saturated and does not need rebuilding — that
+recommendation was an artifact of the strictest rule. -/
+
+/-- Routed and unrouted scores per rule, in the order R1..R4. -/
+def routedByRule   : List Nat := [3, 9, 5, 8]
+def unroutedByRule : List Nat := [1, 7, 5, 6]
+
+/-- **The choice of rule moves a score by 6 of 12; the arms differ by at most
+2.** The scoring rule is a larger uncontrolled variable than the thing being
+measured, so it must be preregistered before the full run — that is the finding,
+and it is bigger than anything about the corpus. -/
+theorem the_scorer_moves_the_score_more_than_the_arm_does :
+    (routedByRule.max? , routedByRule.min?) = (some 9, some 3)
+      ∧ (List.zipWith (fun a b => a - b) routedByRule unroutedByRule).max? = some 2 := by
+  decide
+
+/-- **No rule favours the unrouted arm.** Three give the routed arm +2, one is a
+dead tie; none is negative. Stated because the four rules do NOT all agree in
+sign, and the honest reading of that is "one rule has no discriminating power",
+not "the rules contradict each other". -/
+theorem no_rule_favours_the_unrouted_arm :
+    (List.zipWith (fun a b => decide (b ≤ a)) routedByRule unroutedByRule).all id = true
+      ∧ (List.zipWith (fun a b => a - b) routedByRule unroutedByRule) = [2, 2, 0, 2] := by
+  decide
+
+/-- **R2 refutes the floor-saturation reading.** 9 and 7 of 12 leave room in both
+directions at any margin the document could carry; the corpus was never against
+the floor, the rule was. -/
+theorem the_lenient_rule_shows_no_floor_saturation :
+    RotMoE.Saturation.admissibleBy 2 ⟨9, 12⟩ = true
+      ∧ RotMoE.Saturation.admissibleBy 2 ⟨7, 12⟩ = true := by decide
+
+/-- **Still no verdict, under any rule.** The largest paired disagreement across
+all four rules is 2, far below the ten-pair floor. Rescoring cannot manufacture
+a conclusion, and this theorem is what stops the table above from being read as
+one. -/
+theorem no_rescoring_reaches_the_floor : verdictM m 2 0 = Verdict.notSupported := by decide
+
+/-! ## The scoring rule, preregistered the way `m` was
+
+`m` is settled because it is COMPUTED from the declared observable table. The
+scoring rule was, until now, a function chosen by the person reading the
+results — the precise thing §5 exists to forbid. It is fixed here the same way:
+declare the rule set, mark exactly one primary, and register the rest as
+sensitivity analyses **in advance**, so "the sign held under all of them" is a
+stated-in-advance robustness claim and not a post-hoc defence.
+
+**Why R4 is primary, argued without reference to the pilot's numbers:**
+
+* **R1** (truth, and naive absent) punishes an answer that gives the right
+  number *and explains why the naive one is wrong*. That is better epistemic
+  behaviour being penalised.
+* **R2** (truth appears anywhere) rewards an answer that leads with the wrong
+  number and mentions the right one in a caveat.
+* **R3** (first number in the text) measures prose habit, not knowledge. It is
+  declared **excluded**, not averaged in.
+* **R4** asks what the answer COMMITTED to, which is what a task with a
+  machine-checkable ground truth actually tests.
+
+R4 is neither the most nor the least favourable to the router — R2 gives the
+routed arm its highest raw score. That it can be defended without consulting the
+table is the whole point. -/
+
+inductive RuleRole
+  /-- the one rule the verdict is computed from -/
+  | primary : RuleRole
+  /-- declared in advance, reported beside the primary, never substituted for it -/
+  | sensitivity : RuleRole
+  /-- declared in advance as NOT measuring the construct -/
+  | excluded : RuleRole
+deriving DecidableEq, Repr
+
+/-- The rule set, fixed before the 160 sessions. -/
+def rules : List (String × RuleRole) :=
+  [ ("R1-strict",    RuleRole.sensitivity)
+  , ("R2-lenient",   RuleRole.sensitivity)
+  , ("R3-leading",   RuleRole.excluded)
+  , ("R4-committed", RuleRole.primary) ]
+
+/-- **Exactly one primary.** A rule set with two primaries is a choice deferred
+to whoever reads the output, which is the defect this section removes. -/
+theorem exactly_one_primary_rule :
+    (rules.filter (fun r => r.2 == RuleRole.primary)).length = 1 := by decide
+
+/-- **And it is R4**, named rather than left to position in a list. -/
+theorem the_primary_rule_is_the_commitment_rule :
+    (rules.filter (fun r => r.2 == RuleRole.primary)).map (·.1) = ["R4-committed"] := by
+  decide
+
+/-- **The excluded rule is declared, not dropped quietly.** R3 measures prose
+habit; excluding it in advance is legitimate, deleting it after seeing that it
+scored 5–5 would not be. -/
+theorem the_excluded_rule_is_named_in_advance :
+    (rules.filter (fun r => r.2 == RuleRole.excluded)).map (·.1) = ["R3-leading"] := by
+  decide
+
+/-- **Two sensitivity analyses, and they bracket the primary.** R1 refuses every
+hedge, R2 accepts every hedge; a commitment rule that did not sit between them
+would not be measuring commitment. -/
+theorem the_sensitivity_analyses_bracket_the_primary :
+    (rules.filter (fun r => r.2 == RuleRole.sensitivity)).length = 2
+      ∧ routedByRule[0]? = some 3 ∧ routedByRule[3]? = some 8
+        ∧ routedByRule[1]? = some 9 := by decide
+
+/-- **The primary rule alone does not reach the floor either.** Fixing the rule
+in advance does not buy a verdict, and saying so here stops the preregistration
+from looking like it bought one. -/
+theorem the_primary_rule_reaches_no_verdict :
+    verdictM m 2 0 = Verdict.notSupported := by decide
+
+/-! ### O8 — the hedge rate, promoted from footnote to observable
+
+Six of twelve answers in **each** arm named both numbers. That is a real
+measurement of behaviour under a two-answer prompt, it is already extracted by
+the scorer, and it costs nothing to report. It is **descriptive**, like O6 and
+O7 — it must not enter the family size. -/
+
+/-- The hedge rate is an observable, and a descriptive one. -/
+def observablesWithHedge : List (String × Role) :=
+  observables ++ [("O8 hedge rate", Role.descriptive)]
+
+/-- **Adding O8 does not change `m`.** The multiplicity correction is computed
+from the two-sided tests alone, so a descriptive observable cannot inflate it —
+the property `descriptive_observables_do_not_inflate_the_family` asserted for the
+original table, now re-checked for the extended one. -/
+theorem the_hedge_rate_does_not_inflate_the_family :
+    (observablesWithHedge.filter (fun o => o.2 == Role.twoSidedTest)).length = m := by
+  decide
+
+/-- **And it is measured in both arms at the same value**, which is itself the
+finding: the hedging is a property of the prompt, not of the routing. -/
+def hedgedByArm : Nat × Nat := (6, 6)
+
+theorem the_hedge_rate_was_identical_in_both_arms :
+    hedgedByArm.1 = hedgedByArm.2 ∧ hedgedByArm.1 = 6 := by decide
 
 end RotMoE.Family

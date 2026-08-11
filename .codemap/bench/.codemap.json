@@ -2,12 +2,12 @@
   "directory": "bench",
   "files": {
     "P24-PREREGISTRATION.md": {
-      "hash": "d27a86265e3a",
-      "indexed_at": "2026-08-11T17:33:19.251752+00:00",
+      "hash": "1620e7b47a48",
+      "indexed_at": "2026-08-11T19:08:44.855701+00:00",
       "language": "markdown",
-      "lines": 281,
-      "mtime_ns": 1786469597122005300,
-      "size": 14839,
+      "lines": 383,
+      "mtime_ns": 1786475322480166300,
+      "size": 20791,
       "symbols": [
         {
           "docstring": "P2.2 asked whether the routed arm gives **better answers** and returned null five times. At least two of those nulls were guaranteed by the corpus, no",
@@ -28,10 +28,21 @@
           "type": "section"
         },
         {
+          "children": [
+            {
+              "docstring": "**The rule was the largest uncontrolled variable in the design.** Measured on the pilot's own stored sessions: the choice of rule moves a score by **6",
+              "lines": [
+                67,
+                99
+              ],
+              "name": "AMENDMENT 3 (2026-08-11) \u2014 the scoring rule, preregistered",
+              "type": "subsection"
+            }
+          ],
           "docstring": "| # | observable | extracted from | direction claimed | |---|---|---|---| | O1 | verification steps invoked (build / test / proof / checker) | transcr",
           "lines": [
             43,
-            59
+            99
           ],
           "name": "3. Observables \u2014 all router- or transcript-derived, none judged",
           "type": "section"
@@ -39,8 +50,8 @@
         {
           "docstring": "`circular_selection_forces_the_ceiling` proves that selecting tasks on the outcome drives the score to 100% by construction, and `circular_selection_i",
           "lines": [
-            60,
-            92
+            100,
+            132
           ],
           "name": "4. Task set \u2014 fixed now, chosen for verifiability, not for outcome",
           "type": "section"
@@ -48,36 +59,61 @@
         {
           "children": [
             {
+              "docstring": "**AMENDMENT 1's charge was false and AMENDMENT 2 is SUSPENDED.** Both are kept below, unedited, because a record that quietly removes a wrong claim is",
               "lines": [
-                102,
-                102
+                142,
+                194
               ],
-              "name": "AMENDMENT 1 (2026-08-11) \u2014 the gate above was unsatisfiable, and that is a",
+              "name": "RETRACTION (2026-08-11, same day) \u2014 read this before AMENDMENT 1 or 2",
+              "type": "subsection"
+            },
+            {
+              "lines": [
+                195,
+                195
+              ],
+              "name": "AMENDMENT 1 (2026-08-11) \u2014 CONTESTED, see the retraction above",
+              "type": "subsection"
+            },
+            {
+              "lines": [
+                196,
+                196
+              ],
+              "name": "the gate above was unsatisfiable, and that is a",
               "type": "subsection"
             },
             {
               "docstring": "`admissibleBy m` requires margin `m` in BOTH directions: `m \u2264 hits` and `m \u2264 outOf \u2212 hits`. At the 10-task pilot fixed above with `m = 8` that demands",
               "lines": [
-                103,
-                130
+                197,
+                224
               ],
               "name": "defect in this document, not in the corpus",
               "type": "subsection"
             },
             {
-              "docstring": "Fixed here, before any of the 160 sessions. Sealed by content hash so a later edit is visible:",
               "lines": [
-                131,
-                173
+                225,
+                225
               ],
-              "name": "AMENDMENT 2 (2026-08-11) \u2014 the margin, decided and sealed BEFORE the run",
+              "name": "AMENDMENT 2 (2026-08-11) \u2014 SUSPENDED, see the retraction above",
               "type": "subsection"
             },
             {
-              "docstring": "**The 160 sessions do not start yet.** The corpus is refused at the floor: the unrouted arm scored 1 of 12, and six of twelve answers in *each* arm he",
+              "docstring": "Fixed here, before any of the 160 sessions. Sealed by content hash so a later edit is visible:",
               "lines": [
-                174,
-                180
+                226,
+                268
+              ],
+              "name": "the margin, decided and sealed BEFORE the run",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**SUPERSEDED by the rescore.** Under the lenient rule the same 24 sessions score 9 of 12 and 7 of 12, so the corpus is NOT floor-saturated and the reb",
+              "lines": [
+                269,
+                282
               ],
               "name": "Consequence for the schedule",
               "type": "subsection"
@@ -85,8 +121,8 @@
             {
               "docstring": "12 paired tasks (3 per seed family, all ten router lanes), routed arm then unrouted arm, same prompts from `bench/pilot-prompts.txt`, same config dire",
               "lines": [
-                181,
-                208
+                283,
+                310
               ],
               "name": "The pilot of 2026-08-11 \u2014 what was actually run",
               "type": "subsection"
@@ -94,8 +130,8 @@
           ],
           "docstring": "A 10-task pilot per arm. The corpus is admitted only if `RotMoE.Saturation.admissibleBy 8` holds on the pilot's O5 score, i.e. at least 8 of 80 room i",
           "lines": [
-            93,
-            208
+            133,
+            310
           ],
           "name": "5. Admissibility \u2014 checked BEFORE the full run",
           "type": "section"
@@ -103,8 +139,8 @@
         {
           "docstring": "`RotOrdering.one_ordering_cannot_attribute` already proves a single-ordering artifact cannot attribute a difference. So, exactly as P2.3 was run:",
           "lines": [
-            209,
-            219
+            311,
+            321
           ],
           "name": "6. Ordering and deconfounding",
           "type": "section"
@@ -112,8 +148,8 @@
         {
           "docstring": "For each of O1\u2013O4, a two-sided sign test across the 40 tasks.",
           "lines": [
-            220,
-            264
+            322,
+            366
           ],
           "name": "7. Verdict rule \u2014 fixed",
           "type": "section"
@@ -121,8 +157,8 @@
         {
           "docstring": "- Nothing about **answer quality** as a reader would judge it. That is P2.2 and it stays open. `dominance_says_nothing_about_answer_quality` continues",
           "lines": [
-            265,
-            276
+            367,
+            378
           ],
           "name": "8. What this cannot establish",
           "type": "section"
@@ -130,8 +166,8 @@
         {
           "docstring": "**DESIGNED. NOT RUN.** No P2.4 data exists as of this commit. The Lean design gate (`RotSaturation`, 12 theorems, 11/11 mutants killed) is in place; t",
           "lines": [
-            277,
-            282
+            379,
+            384
           ],
           "name": "9. Status",
           "type": "section"
@@ -618,6 +654,53 @@
         }
       ]
     },
+    "pilot-rescore.js": {
+      "hash": "db386b9df1b6",
+      "indexed_at": "2026-08-11T18:38:56.884084+00:00",
+      "language": "javascript",
+      "lines": 110,
+      "mtime_ns": 1786473534444558500,
+      "size": 4747,
+      "symbols": [
+        {
+          "lines": [
+            37,
+            42
+          ],
+          "name": "run",
+          "signature": "(cmd)",
+          "type": "function"
+        },
+        {
+          "docstring": "standalone-token match, so 35 does not match inside 350",
+          "lines": [
+            45,
+            49
+          ],
+          "name": "present",
+          "signature": "(text, value)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            50,
+            50
+          ],
+          "name": "nums",
+          "signature": "(text)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            52,
+            58
+          ],
+          "name": "readTurn",
+          "signature": "(arm, line)",
+          "type": "function"
+        }
+      ]
+    },
     "pilot-score.js": {
       "hash": "d6872242d77d",
       "indexed_at": "2026-08-11T16:48:39.438288+00:00",
@@ -995,6 +1078,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T17:33:19.251893+00:00",
+  "generated_at": "2026-08-11T19:08:44.855854+00:00",
   "version": "1.0"
 }

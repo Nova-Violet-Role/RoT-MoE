@@ -216,6 +216,20 @@ run_mut M11 "def marginFor (outOf : Nat) : Nat := outOf / 5" "def marginFor (out
 run_mut M12 "  admissibleBy mg a && admissibleBy mg b" "  admissibleBy mg a" \
   "the_corpus_is_refused_and_must_be_rebuilt -- judge admissibility on the routed arm alone. The routed arm passes, so this mutation turns a refused corpus into an admitted one while changing nothing about the data; a corpus the unrouted arm always fails cannot show a difference between the arms"
 
+run_mut M13 "  if s.outOf = mg.outOf then some (admissibleBy mg.room s) else none" "  some (admissibleBy mg.room s)" \
+  "a_mismatched_denominator_is_not_a_verdict -- remove the denominator guard, so a margin declared against 80 will happily judge a score out of 10 and return false. THIS MUTANT IS THE BUG THAT CAUSED THE 2026-08-11 RETRACTION: with the guard gone, a category error looks exactly like a specification defect"
+run_mut M14 "  ⟨RotMoE.Saturation.preregMargin, RotMoE.Saturation.calibCorpus.outOf⟩" "  ⟨8, 10⟩" \
+  "the_margin_is_the_p22_one_against_the_calibration_corpus, the_preregistered_margin_is_well_formed, it_refuses_the_calibration_corpus_as_section_one_says -- replace the DERIVED margin with the literal denominator I originally assumed. 8-of-10 is not well formed, so it is refused at declaration instead of producing a misleading verdict later. This mutant also enforces that the margin stays bound to RotSaturation's objects rather than to digits that happen to match"
+run_mut M15 "def routedByRule   : List Nat := [3, 9, 5, 8]" "def routedByRule   : List Nat := [3, 3, 3, 3]" \
+  "the_scorer_moves_the_score_more_than_the_arm_does, the_lenient_rule_shows_no_floor_saturation -- flatten the rescore so the choice of rule appears not to matter. That is the reading under which the corpus looks floor-saturated and gets needlessly rebuilt"
+
+run_mut M16 "  , (\"R4-committed\", RuleRole.primary) ]" "  , (\"R4-committed\", RuleRole.sensitivity) ]" \
+  "exactly_one_primary_rule, the_primary_rule_is_the_commitment_rule -- demote the primary so NO rule is primary. A rule set with no primary defers the choice to whoever reads the output, which is exactly the freedom the preregistration removes"
+run_mut M17 "  , (\"R3-leading\",   RuleRole.excluded)" "  , (\"R3-leading\",   RuleRole.sensitivity)" \
+  "the_excluded_rule_is_named_in_advance -- promote the excluded rule to a sensitivity analysis. R3 measures prose habit rather than knowledge; averaging it in dilutes the signal with a metric declared not to measure the construct"
+run_mut M18 "  observables ++ [(\"O8 hedge rate\", Role.descriptive)]" "  observables ++ [(\"O8 hedge rate\", Role.twoSidedTest)]" \
+  "the_hedge_rate_does_not_inflate_the_family -- retag the hedge rate as a two-sided test, which would raise m from 4 to 5 and tighten every boundary. A descriptive observable must never enter the multiplicity correction"
+
 _total=$((killed + survived + discarded + skipped))
 if [ "${_total:-0}" -eq 0 ]; then
   echo "FAIL: ZERO mutants ran. This suite measured NOTHING."
