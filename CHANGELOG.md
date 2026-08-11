@@ -23,6 +23,71 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The first promise obligation is MET: a 40-task corpus that discriminates and routes
+
+`bench/corpus-40.jsonl` now exists — 40 tasks, 10 per seed family, fixed before
+either arm runs exactly as `bench/P24-PREREGISTRATION.md` section 4 requires.
+`corpus40` is the first of the six push-guard obligations to close. The guard
+still **REFUSES**, now at 5 of 6 outstanding, first outstanding `pilot12Pairs`.
+
+**The corpus stores commands, not numbers.** Each task carries a `truth_cmd` and
+a `naive_cmd`; the expected values are never written down. That is a deliberate
+design decision and `lean/Proofs/RotTaskCorpus.lean` (16 theorems, 8 mutants, all
+killed) proves why: `the_frozen_check_claims_discrimination_that_is_not_there`
+exhibits a world in which a corpus holding today's answer reports a task as
+discriminating when the two instruments have in fact converged. A frozen expected
+value is a contingent fact wearing the costume of a specification — it expires on
+the next commit, and it expires *permissively*.
+
+**Two properties are checked, and both can fail.** `checker/corpus-verify.sh`:
+
+* **DISCRIMINATION** — the truth command and the naive command must disagree. A
+  task the naive command gets right is a free point for both arms; it still
+  counts toward n and dilutes the sign test.
+  `an_indiscriminate_task_cannot_separate_the_arms` proves its contribution is
+  exactly zero, and `a_corpus_of_ties_is_vacuous` proves a corpus of such tasks
+  reports a dead heat however good either arm is.
+* **LANE BINDING** — each prompt must route to the lane it declares, measured by
+  running the shipped `hooks/rot-router.sh --route`. Without this the `lane`
+  field is decoration.
+
+The lane check is why this is a script and not a `wc -l`, and it earned its place
+immediately. It found **twenty-one** defects in the first draft of the corpus:
+
+| cause | tasks | detail |
+|---|---|---|
+| `Proofs/` begins with the FORGE stem `proof` | 9 | every prompt naming the directory routed FORGE, not its declared lane |
+| `ship`, `shipping`, `install`, `lean` are FORGE stems | 11 | my wording, plus two target paths |
+| target did not discriminate | 1 | `RotEigenform.lean` gives 2 and 2 |
+
+None of those were visible to a line count, and all of them would have silently
+degraded a benchmark that reported n = 40.
+
+A separate harness fault surfaced in the same run: `grep -c` **exits 1 when the
+count is zero**, and the first verifier treated a non-zero exit as an error, so
+seven tasks with a legitimate answer of 0 read as broken. A count of zero is a
+measurement; only a missing file is a fault — the same distinction
+`count-theorems.sh` draws between "no input" and "measured zero". Control (c) now
+pins it.
+
+**All ten router lanes are covered, including `CONVERGENT`.** The existing bench
+key reaches 9 of 10; the fallback that fires when no stem matches was never
+exercised, so no benchmark could see it regress. The corpus is the 4 families
+crossed with the 10 lanes, which makes balance, coverage and distinctness
+consequences of the construction — `every_lane_has_four`,
+`the_plan_repeats_nothing`, `forty_rows_does_not_imply_coverage`. That last one
+exists because a corpus that drops the CONVERGENT column and doubles another lane
+still has 40 rows.
+
+New gate 60, `P2.4 corpus`, deep tier, triggered by `hooks/rot-router.sh` among
+others: editing a stem list without re-checking the corpus would silently
+invalidate forty lane bindings. `lean/Proofs/RotGates.lean` moved with it —
+`shipped.length = 60`, `deepSet = 23`, and the router-staged run 43 -> 44.
+
+Negative controls, both on the real file: making one task non-discriminating gives
+exit 1 naming `F1-01(=35)`; relabelling `F1-10`'s lane gives exit 1 naming
+`F1-10(CONVERGENT!=FORGE)`; restoring gives exit 0.
+
 ### The push guard's own ledger could be opened by a one-line file
 
 `checker/push-guard.sh` refuses every push until six obligations are met. It was
@@ -149,7 +214,7 @@ Renamed `D12`; suite and counter now agree at 12 and 709.
 `D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
 entry repairs.
 
-1394 theorems, 74 modules, 68 suites, 717 mutants, 70 checkers.
+1410 theorems, 75 modules, 69 suites, 725 mutants, 71 checkers.
 
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
@@ -208,7 +273,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1394 theorems, 74 modules, 68 suites, 717 mutants, 70 checkers.
+1410 theorems, 75 modules, 69 suites, 725 mutants, 71 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -653,7 +718,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 717 applied, 717 killed,
+statistic. Across the whole tree the suites now stand at 725 applied, 725 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1005,7 +1070,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **717 applied, 717 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **725 applied, 725 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and

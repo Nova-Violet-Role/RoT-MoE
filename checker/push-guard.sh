@@ -83,7 +83,7 @@ inf () {
 # probe has to read something the pusher does not control by writing one line.
 # -----------------------------------------------------------------------------
 LEDGER=$(cat <<'ROWS'
-corpus40|40|the 40-task corpus exists|test "$(wc -l < bench/corpus-40.jsonl 2>/dev/null || echo 0)" -ge 40
+corpus40|40|the 40-task corpus exists and verifies|test "$(wc -l < bench/corpus-40.jsonl 2>/dev/null || echo 0)" -ge 40 && bash checker/corpus-verify.sh >/dev/null 2>&1
 pilot12Pairs|12|the pilot has at least 12 pairs|test "$(wc -l < bench/pilot-pairs.jsonl 2>/dev/null || echo 0)" -ge 12
 sessions160|160|160 sessions collected|test "$(wc -l < bench/sessions-160.done 2>/dev/null || echo 0)" -ge 160
 preferenceMeasured|1|a preference panel has run|test -s bench/panel-results.jsonl

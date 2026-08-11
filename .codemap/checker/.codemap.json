@@ -316,6 +316,15 @@
         }
       ]
     },
+    "corpus-verify.sh": {
+      "hash": "a10d11bbfc99",
+      "indexed_at": "2026-08-11T13:03:56.260261+00:00",
+      "language": "shell",
+      "lines": 184,
+      "mtime_ns": 1786453433927790900,
+      "size": 9412,
+      "symbols": []
+    },
     "count-theorems.sh": {
       "hash": "ce5fa5671603",
       "indexed_at": "2026-08-11T12:12:10.070134+00:00",
@@ -543,18 +552,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "b5f43080826f",
-      "indexed_at": "2026-08-11T12:12:10.094519+00:00",
+      "hash": "049f3c4eca05",
+      "indexed_at": "2026-08-11T13:14:51.769547+00:00",
       "language": "shell",
-      "lines": 412,
-      "mtime_ns": 1786439783785911900,
-      "size": 22417,
+      "lines": 413,
+      "mtime_ns": 1786454089813790200,
+      "size": 22651,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            172,
-            187
+            173,
+            188
           ],
           "name": "fires",
           "type": "function"
@@ -1113,12 +1122,12 @@
       ]
     },
     "push-guard.sh": {
-      "hash": "6c2c966302ad",
-      "indexed_at": "2026-08-11T12:12:10.158622+00:00",
+      "hash": "337c564c4066",
+      "indexed_at": "2026-08-11T13:06:08.948907+00:00",
       "language": "shell",
       "lines": 389,
-      "mtime_ns": 1786450294577235900,
-      "size": 19014,
+      "mtime_ns": 1786453566863792500,
+      "size": 19076,
       "symbols": [
         {
           "lines": [
@@ -1832,6 +1841,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-11T12:12:10.470014+00:00",
+  "generated_at": "2026-08-11T13:14:51.769674+00:00",
   "version": "1.0"
 }

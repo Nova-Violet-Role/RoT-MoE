@@ -264,6 +264,7 @@ def shipped : List Gate :=
     -- red for a week the freshest in the repository.
   , d "workflow roles (a docs manager may not write code; freshness is measured on the youngest GREEN run, never the newest run)" [".github/workflows/", "checker/workflow-roles.sh", "lean/Proofs/RotWorkflowRoles.lean"]
   , d "push guard (a branch push is still a push; the verdict may not depend on the destination -- the GATE asks whether the guard is sound, the pre-push HOOK asks the verdict)" ["checker/push-guard.sh", ".githooks/pre-push", "lean/Proofs/RotPushGuard.lean"]
+  , d "P2.4 corpus (every task must DISCRIMINATE and route to its declared lane; a line count sees neither)" ["bench/corpus-40.jsonl", "checker/corpus-verify.sh", "hooks/rot-router.sh", "lean/Proofs/RotTaskCorpus.lean"]
   , f "dorks"
   , f "hook footprint"
   -- FAST because it reads two files in this repository and compares them to
@@ -441,18 +442,23 @@ def shipped : List Gate :=
 -- that judges the TRANSMISSION rather than the tree. Fifty-eight gates existed
 -- when a branch was pushed while the promise was unfulfilled, and not one of them
 -- was about the push action.
-#guard shipped.length = 59
+-- 60 with `P2.4 corpus`, the first gate that measures the BENCHMARK rather than
+-- the code: every task must discriminate (a task the naive command gets right is
+-- a free point for both arms) and must route to the lane it declares, measured
+-- against the shipped router. Writing it found nine tasks silently routing to
+-- FORGE because the directory name `Proofs/` begins with the FORGE stem `proof`.
+#guard shipped.length = 60
 
 -- THIRTY-SEVEN run on every commit. The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
 -- prose is what a reader believes. Both are recounted together from now on.
 #guard (fastSet shipped).length = 37
 
--- TWENTY-TWO are escalated by path (`CI honesty` joined 2026-08-05, `A/B
+-- TWENTY-THREE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
--- `workflow roles` 2026-08-11, `push guard` 2026-08-11).
+-- `workflow roles` 2026-08-11, `push guard` 2026-08-11, `P2.4 corpus` 2026-08-11).
 -- This comment read "Sixteen" against a guard of 19 for the same reason.
-#guard (deepSet shipped).length = 22
+#guard (deepSet shipped).length = 23
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length
@@ -485,8 +491,11 @@ def shipped : List Gate :=
 -- unconditional. They follow the table; they never lead it.
 #guard (stagedRun shipped []).length = 37
 
--- Touching the router escalates the gates that cross-check it.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 43
+-- Touching the router escalates the gates that cross-check it. 44 since the
+-- `P2.4 corpus` gate joined: it names `hooks/rot-router.sh` as a trigger because
+-- every task's declared lane is a claim about THAT file, and a stem list edited
+-- without re-checking the corpus would silently invalidate forty lane bindings.
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 44
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.

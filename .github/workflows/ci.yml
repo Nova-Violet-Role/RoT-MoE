@@ -1085,6 +1085,16 @@ jobs:
       - name: gate split -- the runner's tiers match the Lean witness
         run: bash checker/gate-split.sh
 
+      # The P2.4 task corpus is a BENCHMARK, and a benchmark degrades silently.
+      # Two ways, both checked here: a task whose naive answer happens to be
+      # right contributes nothing while still counting toward n, and a prompt
+      # that no longer routes to its declared lane makes the lane field a
+      # fiction. The lane half is measured by running the shipped router, so
+      # this step also fails if a stem list is edited without re-checking the
+      # forty prompts that depend on it. Proved in lean/Proofs/RotTaskCorpus.lean.
+      - name: P2.4 corpus -- every task discriminates and routes to its lane
+        run: bash checker/corpus-verify.sh
+
       - name: hook footprint -- no network, no lake, Lean stays optional
         run: bash checker/hook-footprint.sh
 

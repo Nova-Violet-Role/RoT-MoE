@@ -1132,6 +1132,24 @@
         }
       ]
     },
+    "mutate_rottaskcorpus.sh": {
+      "hash": "64d1fa0205d6",
+      "indexed_at": "2026-08-11T13:12:37.123490+00:00",
+      "language": "shell",
+      "lines": 276,
+      "mtime_ns": 1786453955306790700,
+      "size": 14553,
+      "symbols": [
+        {
+          "lines": [
+            103,
+            185
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rottrap.sh": {
       "hash": "3e39a36b72f0",
       "indexed_at": "2026-08-11T12:12:10.434198+00:00",
@@ -1311,6 +1329,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T12:14:07.676842+00:00",
+  "generated_at": "2026-08-11T13:12:37.123626+00:00",
   "version": "1.0"
 }
