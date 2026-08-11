@@ -199,7 +199,28 @@ jobs:
           # from its own file, so drift in ANY module line fails, not just the first one, and
           # no scope confusion is possible. The total is then checked as the SUM, which is the
           # relationship that actually has to hold rather than a snapshot of one number.
-          sum=0
+          # THE SUM WAS A PROXY FOR COVERAGE, AND IT IS NOT A SOUND ONE. Run
+          # 31374576959 went red with "claims sum to 316; sources have 832" and the
+          # obvious reading -- a wrong number in the README -- was wrong: all
+          # seventeen documented counts were exact. The shortfall meant fifty
+          # modules were undocumented, which the message could not say because a
+          # shortfall in an integer does not carry the identity of what is missing.
+          #
+          # `lean/Proofs/RotReadmeTable.lean` measures how good the proxy is:
+          #   the_sum_detects_an_omitted_module_that_has_theorems   -- it works, and
+          #   the_sum_is_blind_to_an_omitted_module_with_no_theorems -- until the
+          # omitted module has no theorems, which `RotVacuity.lean` actually is. So
+          # coverage is now checked BY NAME and the missing modules are named.
+          #
+          # mentioning_a_module_twice_breaks_the_sum_but_not_the_truth is the second
+          # defect: the appendix that makes the README complete mentions the narrated
+          # modules a second time, correctly, and the old clause failed on it. The
+          # sum is therefore taken over DISTINCT modules -- which is what "the
+          # per-module claims sum to the total" always meant. Neither change relaxes
+          # anything: every row is still recounted from its own file, and a
+          # contradiction between two mentions is still caught by that recount
+          # (two_mentions_that_disagree_are_still_caught).
+          claims=$(mktemp)
           while IFS= read -r line; do
             f=$(printf '%s' "$line" | sed -n 's|.*`lean/Proofs/\([A-Za-z0-9_]*\.lean\)`.*|\1|p')
             n=$(printf '%s' "$line" | sed -n 's|.*(\([0-9]\{1,\}\) theorems.*|\1|p')
@@ -211,15 +232,30 @@ jobs:
             if [ "$a" != "$n" ]; then
               echo "::error::README says lean/Proofs/$f has $n theorems; it has $a"; fail=1
             fi
-            sum=$((sum + n))
+            printf '%s %s\n' "$f" "$n" >> "$claims"
           done < <(grep -nE '`lean/Proofs/[A-Za-z0-9_]*\.lean`.*\([0-9]+ theorems' README.md || true)
-          if [ "$sum" -eq 0 ]; then
+
+          rows=$(wc -l < "$claims")
+          if [ "$rows" -eq 0 ]; then
             echo "::error::no per-module theorem claims found in README -- the audit would be vacuous"
             fail=1
-          elif [ "$sum" -ne "${{ steps.gt.outputs.thms }}" ]; then
-            echo "::error::README per-module claims sum to $sum; sources have ${{ steps.gt.outputs.thms }}"
-            fail=1
+          else
+            # COVERAGE, BY NAME. Named, so the failure tells you what to write.
+            missing=0
+            for p in lean/Proofs/*.lean; do
+              b=$(basename "$p")
+              if ! cut -d' ' -f1 "$claims" | grep -qxF "$b"; then
+                echo "::error::README states no theorem count for lean/Proofs/$b -- every module is documented, and coverage is checked by name rather than inferred from a sum"
+                missing=$((missing + 1)); fail=1
+              fi
+            done
+            sum=$(sort -k1,1 -u "$claims" | awk '{s+=$2} END{print s+0}')
+            if [ "$sum" -ne "${{ steps.gt.outputs.thms }}" ]; then
+              echo "::error::README per-module claims sum to $sum over distinct modules; sources have ${{ steps.gt.outputs.thms }} ($missing module(s) undocumented)"
+              fail=1
+            fi
           fi
+          rm -f "$claims"
 
           # THE HEADLINE CLAIM WAS UNBOUND -- and it is the sentence everyone reads.
           # README.md:65 states the total as bold text, and the per-module loop above
@@ -333,6 +369,46 @@ jobs:
             echo "::error::the audit accepted a README with a wrong module count -- it is decoration"; exit 1
           fi
           echo "control: the audit refused the drifted README (module mismatch=$cfail, sum=$csum vs ${{ steps.gt.outputs.thms }})"
+
+          # SECOND CONTROL, for the coverage clause added alongside the distinct
+          # sum. The drift control above cannot exercise it: a wrong NUMBER and a
+          # missing MODULE are different failures, and the new clause is the one
+          # nobody has broken on purpose yet. An alarm never tripped deliberately
+          # is an untested alarm, so this trips it.
+          #
+          # The module removed is chosen to be the one the arithmetic is provably
+          # blind to -- `RotVacuity.lean` holds no theorems, so dropping it leaves
+          # the distinct sum EXACTLY equal to the total. If coverage were still
+          # inferred from arithmetic this control would pass and prove nothing.
+          # That blindness is not a guess: `lean/Proofs/RotReadmeTable.lean`,
+          # the_sum_is_blind_to_an_omitted_module_with_no_theorems, decides it.
+          grep -v 'lean/Proofs/RotVacuity\.lean' README.md > /tmp/uncovered-readme.md
+          before=$(grep -c 'lean/Proofs/RotVacuity\.lean' README.md || true)
+          after=$(grep -c 'lean/Proofs/RotVacuity\.lean' /tmp/uncovered-readme.md || true)
+          if [ "$before" -eq 0 ] || [ "$after" -ne 0 ]; then
+            echo "::error::coverage control did not apply (before=$before after=$after) -- it proves nothing"; exit 1
+          fi
+          vclaims=$(mktemp)
+          while IFS= read -r line; do
+            f=$(printf '%s' "$line" | sed -n 's|.*`lean/Proofs/\([A-Za-z0-9_]*\.lean\)`.*|\1|p')
+            n=$(printf '%s' "$line" | sed -n 's|.*(\([0-9]\{1,\}\) theorems.*|\1|p')
+            [ -n "$f" ] && [ -n "$n" ] || continue
+            printf '%s %s\n' "$f" "$n" >> "$vclaims"
+          done < <(grep -nE '`lean/Proofs/[A-Za-z0-9_]*\.lean`.*\([0-9]+ theorems' /tmp/uncovered-readme.md || true)
+          vmiss=0
+          for p in lean/Proofs/*.lean; do
+            b=$(basename "$p")
+            cut -d' ' -f1 "$vclaims" | grep -qxF "$b" || vmiss=$((vmiss + 1))
+          done
+          vsum=$(sort -k1,1 -u "$vclaims" | awk '{s+=$2} END{print s+0}')
+          rm -f "$vclaims"
+          if [ "$vmiss" -eq 0 ]; then
+            echo "::error::the coverage clause accepted a README missing a module -- it is decoration"; exit 1
+          fi
+          if [ "$vsum" -ne "${{ steps.gt.outputs.thms }}" ]; then
+            echo "::error::control invalid: dropping a zero-theorem module changed the sum ($vsum vs ${{ steps.gt.outputs.thms }}), so this did not test coverage in isolation"; exit 1
+          fi
+          echo "control: coverage refused a README missing $vmiss module(s) whose absence left the sum untouched at $vsum"
 
       # REPORT, DO NOT PUSH -- see tag-manager.yml for the measurement. `main`
       # is protected (no deletion, no force-push, four required checks) and the

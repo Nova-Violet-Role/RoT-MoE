@@ -2,12 +2,12 @@
   "directory": ".github\\workflows",
   "files": {
     "ads-manager.yml": {
-      "hash": "4d9e99d2219f",
-      "indexed_at": "2026-08-10T17:56:45.391215+00:00",
+      "hash": "014524b45518",
+      "indexed_at": "2026-08-11T04:05:34.636121+00:00",
       "language": "yaml",
-      "lines": 353,
-      "mtime_ns": 1785704915095282300,
-      "size": 19811,
+      "lines": 429,
+      "mtime_ns": 1786421132863040900,
+      "size": 24746,
       "symbols": [
         {
           "docstring": "Ads Manager",
@@ -217,8 +217,8 @@
                         {
                           "docstring": "0) : ;;                       # claim absent, nothing to check",
                           "lines": [
-                            295,
-                            303
+                            331,
+                            339
                           ],
                           "name": "0",
                           "type": "key"
@@ -226,7 +226,7 @@
                       ],
                       "lines": [
                         189,
-                        303
+                        339
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -234,16 +234,16 @@
                     {
                       "docstring": "Audit negative control",
                       "lines": [
-                        304,
-                        304
+                        340,
+                        340
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        305,
-                        341
+                        341,
+                        417
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -251,16 +251,16 @@
                     {
                       "docstring": "Fail if PROMO.md has drifted (never commit it)",
                       "lines": [
-                        342,
-                        342
+                        418,
+                        418
                       ],
                       "name": "name",
                       "type": "item"
                     },
                     {
                       "lines": [
-                        343,
-                        354
+                        419,
+                        430
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -268,7 +268,7 @@
                   ],
                   "lines": [
                     42,
-                    354
+                    430
                   ],
                   "name": "steps",
                   "type": "list"
@@ -276,7 +276,7 @@
               ],
               "lines": [
                 40,
-                354
+                430
               ],
               "name": "copy",
               "type": "section"
@@ -284,7 +284,7 @@
           ],
           "lines": [
             39,
-            354
+            430
           ],
           "name": "jobs",
           "type": "section"
@@ -3124,6 +3124,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-10T17:56:45.768083+00:00",
+  "generated_at": "2026-08-11T04:05:34.636268+00:00",
   "version": "1.0"
 }

@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1300
+lens activities off disk, computes an `R/s+` gauge from them, and **1310
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **673 applied, 673 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **679 applied, 679 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -554,7 +554,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 67 modules, 1300 theorems, 61 mutation suites — ⊕ `checker/` (68 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 68 modules, 1310 theorems, 62 mutation suites — ⊕ `checker/` (68 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1294,6 +1294,87 @@ Do not take the counts in this README on faith — the **Ads Manager** workflow
 does not either. It recounts the theorems from source on every run and fails
 the build if this file disagrees with the sources, or if any sentence here
 claims a proof about output *quality*.
+
+<details>
+<summary><strong>Every module, recounted — the complete list</strong></summary>
+
+The bullets above narrate the modules that carry an argument. This list is
+the whole of `lean/Proofs/`, so that coverage is a fact about a set of names
+rather than a coincidence between two integers. `RotReadmeTable.lean` proves
+why that distinction is not pedantry: the arithmetic check is blind to an
+omitted module that happens to contain no theorems, and `RotVacuity.lean` is
+exactly such a module.
+
+* `lean/Proofs/RotAbility.lean` (35 theorems)
+* `lean/Proofs/RotAbJoin.lean` (7 theorems)
+* `lean/Proofs/RotAbVerdict.lean` (9 theorems)
+* `lean/Proofs/RotAcquire.lean` (9 theorems)
+* `lean/Proofs/RotAttribute.lean` (19 theorems)
+* `lean/Proofs/RotCalibration.lean` (18 theorems)
+* `lean/Proofs/RotCaseFold.lean` (14 theorems)
+* `lean/Proofs/RotCeiling.lean` (10 theorems)
+* `lean/Proofs/RotCiSkip.lean` (10 theorems)
+* `lean/Proofs/RotCite.lean` (10 theorems)
+* `lean/Proofs/RotCorpus.lean` (11 theorems)
+* `lean/Proofs/RotCounter.lean` (9 theorems)
+* `lean/Proofs/RotDebugLog.lean` (18 theorems)
+* `lean/Proofs/RotDelivery.lean` (35 theorems)
+* `lean/Proofs/RotDeployment.lean` (12 theorems)
+* `lean/Proofs/RotDominance.lean` (17 theorems)
+* `lean/Proofs/RotDorks.lean` (5 theorems)
+* `lean/Proofs/RotDuplicate.lean` (10 theorems)
+* `lean/Proofs/RotEffectiveLog.lean` (11 theorems)
+* `lean/Proofs/RotEigenform.lean` (115 theorems)
+* `lean/Proofs/RotEndpoint.lean` (18 theorems)
+* `lean/Proofs/RotEnsemble.lean` (24 theorems)
+* `lean/Proofs/RotEvent.lean` (16 theorems)
+* `lean/Proofs/RotExperiment.lean` (66 theorems)
+* `lean/Proofs/RotGates.lean` (50 theorems)
+* `lean/Proofs/RotGauge.lean` (47 theorems)
+* `lean/Proofs/RotGaugeZero.lean` (24 theorems)
+* `lean/Proofs/RotGoalCap.lean` (7 theorems)
+* `lean/Proofs/RotGrounding.lean` (8 theorems)
+* `lean/Proofs/RotGuard.lean` (25 theorems)
+* `lean/Proofs/RotInject.lean` (8 theorems)
+* `lean/Proofs/RotInstall.lean` (23 theorems)
+* `lean/Proofs/RotLens.lean` (13 theorems)
+* `lean/Proofs/RotLensAbility.lean` (11 theorems)
+* `lean/Proofs/RotLocalRelease.lean` (8 theorems)
+* `lean/Proofs/RotLog.lean` (23 theorems)
+* `lean/Proofs/RotLogAtomicity.lean` (26 theorems)
+* `lean/Proofs/RotLogLock.lean` (10 theorems)
+* `lean/Proofs/RotMutant.lean` (33 theorems)
+* `lean/Proofs/RotObserve.lean` (91 theorems)
+* `lean/Proofs/RotOrdering.lean` (12 theorems)
+* `lean/Proofs/RotPartialRun.lean` (15 theorems)
+* `lean/Proofs/RotPath.lean` (12 theorems)
+* `lean/Proofs/RotPluginRoot.lean` (6 theorems)
+* `lean/Proofs/RotProse.lean` (39 theorems)
+* `lean/Proofs/RotReadmeTable.lean` (10 theorems)
+* `lean/Proofs/RotRelease.lean` (15 theorems)
+* `lean/Proofs/RotRemind.lean` (8 theorems)
+* `lean/Proofs/RotRootDecl.lean` (9 theorems)
+* `lean/Proofs/RotRotationCost.lean` (17 theorems)
+* `lean/Proofs/RotRoute.lean` (18 theorems)
+* `lean/Proofs/RotSample.lean` (11 theorems)
+* `lean/Proofs/RotSaturation.lean` (12 theorems)
+* `lean/Proofs/RotScan.lean` (14 theorems)
+* `lean/Proofs/RotSeal.lean` (13 theorems)
+* `lean/Proofs/RotSessionLog.lean` (38 theorems)
+* `lean/Proofs/RotStem.lean` (13 theorems)
+* `lean/Proofs/RotSuiteVerdict.lean` (21 theorems)
+* `lean/Proofs/RotSweep.lean` (13 theorems)
+* `lean/Proofs/RotSymbiogenesis.lean` (21 theorems)
+* `lean/Proofs/RotTag.lean` (9 theorems)
+* `lean/Proofs/RotTrap.lean` (11 theorems)
+* `lean/Proofs/RotTreeIntegrity.lean` (10 theorems)
+* `lean/Proofs/RotUpgrade.lean` (12 theorems)
+* `lean/Proofs/RotVacuity.lean` (0 theorems)
+* `lean/Proofs/RotVariants.lean` (7 theorems)
+* `lean/Proofs/RotVerdict.lean` (11 theorems)
+* `lean/Proofs/RotWorkTrace.lean` (18 theorems)
+
+</details>
 
 ---
 

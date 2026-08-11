@@ -23,6 +23,67 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A red CI job was right about the symptom and wrong about the cause
+
+The **Ads Manager** workflow has been failing on `cef996e` since 10 August:
+
+    ::error::README per-module claims sum to 316; sources have 832
+
+Read literally that says the README has a wrong number in it. It does not. Every
+one of the seventeen per-module counts the README stated was recounted from its
+own file and every one was exact — measured on this tree, seventeen rows, zero
+drift. What the audit had actually found was that fifty modules were
+*undocumented*, and its final clause could not say so, because a shortfall in an
+integer does not carry the identity of what is missing.
+
+The clause was an arithmetic proxy for a set-theoretic property: *the table covers
+every module*. `lean/Proofs/RotReadmeTable.lean` measures how good a proxy it is,
+and the answer is *good, but not sound*.
+
+`the_sum_detects_an_omitted_module_that_has_theorems` shows the proxy earning its
+keep — omit a module with theorems in it and the sums disagree.
+`the_sum_is_blind_to_an_omitted_module_with_no_theorems` shows where it stops: a
+module with **no** theorems can be dropped from the README and the sums still
+agree exactly. That is not a hypothetical shape. `lean/Proofs/RotVacuity.lean`
+holds zero theorems by design, and it is precisely the kind of file nobody
+remembers to document. So coverage is now checked **by name**, and the failure
+message names the modules that are missing.
+
+The second defect is the one worth dwelling on, because it fails in the direction
+that looks like success. Completing the README means adding an appendix listing
+all sixty-eight modules — at which point the seventeen narrated ones are mentioned
+twice, in two places, with the same correct number both times.
+`mentioning_a_module_twice_breaks_the_sum_but_not_the_truth` decides what the old
+clause did with that: every row exact, every module covered, and the audit red.
+A check that fails when two values coincide has assumed they must always differ.
+The sum is now taken over **distinct** modules, which is what "the per-module
+claims sum to the total" meant in the first place —
+`the_distinct_sum_accepts_it_and_still_rejects_an_omission` confirms the repair
+does not cost the detection, and `two_mentions_that_disagree_are_still_caught`
+confirms two contradictory mentions are still refused by the recount.
+
+Neither change relaxes anything. The recount half was already sound and
+`a_documented_count_is_bound_to_disk` states it generally: under `exact`, every
+published number is bound to a file on disk, for any catalogue and any table.
+`naming_the_gaps_agrees_with_the_coverage_test` binds the diagnostic to the gate,
+so the list of missing modules and the pass/fail decision can never drift apart.
+
+The README gained the appendix: every module in `lean/Proofs/`, recounted from
+source, sixty-eight entries. The audit now passes because the property holds, not
+because the arithmetic happened to agree.
+
+The new coverage clause also got its own negative control in the workflow, and the
+module it deletes is chosen deliberately: `RotVacuity.lean`, whose absence leaves
+the distinct sum **exactly** unchanged. If coverage were still inferred from
+arithmetic that control would pass while testing nothing — the control asserts the
+sum stayed put, so it fails loudly if it ever stops isolating coverage. An alarm
+nobody has tripped on purpose is an untested alarm; this one has been tripped
+three times, twice locally and once in its own CI step.
+
+Mutants R01–R06 defend the module: turn `covers` into an `any`, turn `exact` into
+an `any`, stop comparing the count, drop the negation in the diagnostic, remove
+the deduplication, or make `documented` always say yes — six ran, six killed.
+
 ### The experiment plan was audited before it was built, and four of its numbers were wrong
 
 A plan for six more Lean modules and a capstone was written out in full — module
@@ -81,8 +142,8 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. The suites now stand at 673 applied, 673 killed, 0 survived, 0
-discarded.
+statistic. Across the whole tree the suites now stand at 679 applied, 679 killed,
+0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
 
@@ -433,10 +494,10 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **673 applied, 673 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **679 applied, 679 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse` and 3 more for the plan audit, each run and killed here — and
-`CITATION.cff` moved from 1083 to the measured 1300 theorems.
+`CITATION.cff` moved from 1083 to the measured 1310 theorems.
 
 ### The repairs went through Lean 4, because a fixed harness is still an unproven harness
 
