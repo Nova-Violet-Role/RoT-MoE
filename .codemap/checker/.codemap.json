@@ -462,18 +462,35 @@
       ]
     },
     "dominance.sh": {
-      "hash": "6fd678bc1cc0",
-      "indexed_at": "2026-08-11T10:03:20.432748+00:00",
+      "hash": "12d1018ebe1f",
+      "indexed_at": "2026-08-11T12:00:11.333745+00:00",
       "language": "shell",
-      "lines": 481,
-      "mtime_ns": 1786343170563051100,
-      "size": 24506,
+      "lines": 533,
+      "mtime_ns": 1786445705021801900,
+      "size": 27231,
       "symbols": [
+        {
+          "docstring": "--- \"MUST EQUAL\" WAS ENFORCED BY NOTHING ------------------------------------ Both comments above said \"must equal <the Lean constant>\" and no code ch",
+          "lines": [
+            67,
+            69
+          ],
+          "name": "lean_const",
+          "type": "function"
+        },
+        {
+          "lines": [
+            70,
+            73
+          ],
+          "name": "lean_roster_len",
+          "type": "function"
+        },
         {
           "docstring": "Drive one event through the router. Echoes \"exit<TAB>stdout<TAB>stderrbytes\".",
           "lines": [
-            69,
-            80
+            89,
+            100
           ],
           "name": "drive",
           "type": "function"
@@ -1806,6 +1823,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-11T10:03:20.774730+00:00",
+  "generated_at": "2026-08-11T12:00:11.333883+00:00",
   "version": "1.0"
 }

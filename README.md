@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1375
+lens activities off disk, computes an `R/s+` gauge from them, and **1379
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **708 applied, 708 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **709 applied, 709 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -554,7 +554,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 73 modules, 1375 theorems, 67 mutation suites — ⊕ `checker/` (70 checkers) ⊕ `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 73 modules, 1379 theorems, 67 mutation suites — ⊕ `checker/` (70 checkers) ⊕ `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1337,7 +1337,7 @@ exactly such a module.
 * `lean/Proofs/RotDebugLog.lean` (18 theorems)
 * `lean/Proofs/RotDelivery.lean` (35 theorems)
 * `lean/Proofs/RotDeployment.lean` (12 theorems)
-* `lean/Proofs/RotDominance.lean` (17 theorems)
+* `lean/Proofs/RotDominance.lean` (21 theorems)
 * `lean/Proofs/RotDorks.lean` (5 theorems)
 * `lean/Proofs/RotDuplicate.lean` (10 theorems)
 * `lean/Proofs/RotEffectiveLog.lean` (11 theorems)
@@ -1642,7 +1642,7 @@ implement.
 |---|---|---|---|
 | Library of Babel | 25¹³¹²⁰⁰⁰ texts | one book | reading |
 | SINE | every envelope drawable | 498 written presets | `lerpWithPow` |
-| **RoT MoE** | every prompt | **one of nine lanes** | `blend`, `σ(δ)` |
+| **RoT MoE** | every prompt | **one of ten lanes** | `blend`, `σ(δ)` |
 | method of loci | every thought | one locus | recall |
 
 Four finite indexings into a combinatorial space. **A role is the index.** That

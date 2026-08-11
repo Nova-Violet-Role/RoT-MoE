@@ -922,7 +922,7 @@ and it is why the machines in this file are the same machine:
 |---|---|---|---|
 | Library of Babel | 25 ^ 1312000 texts | one book | reading |
 | SINE | every envelope you could draw | 498 written presets | `lerpWithPow` |
-| RoT MoE | every prompt | one of nine lanes | `blend`, `σ(δ)` |
+| RoT MoE | every prompt | one of ten lanes | `blend`, `σ(δ)` |
 | method of loci | every thought | one locus | recall |
 
 Four finite indexings into a combinatorial space. **Role** of Thoughts is the

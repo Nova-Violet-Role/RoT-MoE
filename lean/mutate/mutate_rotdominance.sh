@@ -214,9 +214,17 @@ run_mut D03 \
   "the_baseline_fails_on_addition -- without it the DEFAULT loop would qualify"
 
 run_mut D04 \
-  "def lanes : Nat := 9" \
+  "def lanes : Nat := laneRoster.length" \
   "def lanes : Nat := 0" \
-  "discrimination_is_measured_against_the_declared_lane_count -- shrinking the bar is not passing it"
+  "discrimination_is_measured_against_the_declared_lane_count, the_declared_count_is_the_roster_length -- shrinking the bar is not passing it, and the count is now DERIVED so a literal here also breaks the tie to the roster"
+
+# Added 2026-08-11 with the 9 -> 10 correction. The old D04 needle was
+# `def lanes : Nat := 9`, which the fix deleted -- left alone it would have been
+# reported DISCARDED (needle absent), which is the harness working, not a pass.
+run_mut D12 \
+  "   \"CREATIVE\", \"PREDICTIVE\", \"STEALTH\", \"RECURSIVE\", \"CONVERGENT\"]" \
+  "   \"CREATIVE\", \"PREDICTIVE\", \"STEALTH\", \"RECURSIVE\"]" \
+  "the_fallback_lane_is_counted, losing_a_lane_fails_discrimination -- dropping CONVERGENT is EXACTLY the defect this correction fixed: nine lens-led lanes look complete, and the most-travelled lane in the router is the one that vanishes"
 
 run_mut D05 \
   "def msBound : Nat := 500" \

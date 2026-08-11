@@ -50,7 +50,27 @@ cd "$REPO"
 ROUTER="${ROTMOE_ROUTER:-hooks/rot-router.sh}"
 HOOKS_JSON="hooks/hooks.json"
 MS_BOUND=500          # must equal RotDominance.msBound
-LANES_DECLARED=9      # must equal RotDominance.lanes
+LANES_DECLARED=10     # must equal RotDominance.lanes
+DOMINANCE_LEAN="lean/Proofs/RotDominance.lean"
+
+# --- "MUST EQUAL" WAS ENFORCED BY NOTHING ------------------------------------
+# Both comments above said "must equal <the Lean constant>" and no code checked
+# it. Measured 2026-08-11: LANES_DECLARED was 9 while the router declares TEN
+# lanes (hooks/rot-router.sh:341-350, nine lens-led plus CONVERGENT), so D4 ran
+# with a full lane of slack -- the router could have lost CONVERGENT entirely
+# and this gate would still have printed ok. The run that exposed it reported
+# "10 distinct lanes reached (>= 9 declared)": the evidence was on screen and
+# nobody compared the two numbers.
+#
+# A comment is not a binding. These two lines make it one, and the control below
+# proves the binding can fail.
+lean_const() {   # lean_const <name> -> the Nat literal, or empty
+  sed -n "s/^def $1 : Nat := \([0-9][0-9]*\)$/\1/p" "$DOMINANCE_LEAN" 2>/dev/null | head -1
+}
+lean_roster_len() {   # length of laneRoster, counted from the source list
+  awk '/^def laneRoster : List String :=/{f=1;next} f{print; if (/\]/) exit}' \
+    "$DOMINANCE_LEAN" 2>/dev/null | grep -o '"[A-Z][A-Z]*"' | wc -l | tr -d ' '
+}
 
 TMP="${TMPDIR:-/tmp}/rotmoe-dominance.$$"
 mkdir -p "$TMP" || { echo "FATAL: cannot create $TMP"; exit 2; }
@@ -171,6 +191,38 @@ if [ "${_lanes:-0}" -ge "$LANES_DECLARED" ]; then
 else
   bad "D4 DISCRIMINATION: only $_lanes distinct lane(s) reached; the layer is not discriminating"
   grep -o '"lane":"[A-Z]*"' "$LOG" 2>/dev/null | sort -u | while IFS= read -r l; do printf '         %s\n' "$l"; done
+fi
+
+# --- THE CONSTANTS THIS SCRIPT SHARES WITH THE PROOF -------------------------
+_lean_lanes=$(lean_roster_len)
+_lean_ms=$(lean_const msBound)
+if [ "${_lean_lanes:-0}" -eq "$LANES_DECLARED" ]; then
+  ok "BINDING: LANES_DECLARED=$LANES_DECLARED equals RotDominance.laneRoster ($_lean_lanes entries)"
+else
+  bad "BINDING: LANES_DECLARED=$LANES_DECLARED but RotDominance.laneRoster has ${_lean_lanes:-0} entries"
+  echo "         The gate and the proof would be judging different routers."
+fi
+if [ "${_lean_ms:-0}" -eq "$MS_BOUND" ]; then
+  ok "BINDING: MS_BOUND=$MS_BOUND equals RotDominance.msBound"
+else
+  bad "BINDING: MS_BOUND=$MS_BOUND but RotDominance.msBound is ${_lean_ms:-unreadable}"
+fi
+
+# CONTROL: the binding must be able to FAIL, or it is decoration. The extractor
+# is run against a source whose roster is deliberately one entry short.
+_ctl="$TMP/rotdom-ctl.lean"
+{ echo 'def laneRoster : List String :='
+  echo '  ["FORGE", "CLINICAL", "EXECUTIVE", "EMPATHIC", "STRATEGIC",'
+  echo '   "CREATIVE", "PREDICTIVE", "STEALTH", "RECURSIVE"]'
+  echo 'def msBound : Nat := 999'
+} > "$_ctl"
+_ctl_lanes=$(DOMINANCE_LEAN="$_ctl" lean_roster_len)
+_ctl_ms=$(DOMINANCE_LEAN="$_ctl" lean_const msBound)
+if [ "${_ctl_lanes:-0}" -eq 9 ] && [ "${_ctl_ms:-0}" -eq 999 ]; then
+  ok "CONTROL: the extractor reads a DIFFERENT roster/bound (9 / 999), so the binding can fail"
+else
+  bad "CONTROL: the extractor returned ${_ctl_lanes:-0} / ${_ctl_ms:-unreadable} on a source built to give 9 / 999"
+  echo "         An extractor that cannot tell two sources apart proves nothing above."
 fi
 
 # ===========================================================================

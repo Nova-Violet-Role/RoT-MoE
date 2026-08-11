@@ -23,6 +23,68 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The gate declared nine lanes against a router that has ten, and "must equal" was enforced by nothing
+
+`checker/dominance.sh:53` carried `LANES_DECLARED=9  # must equal RotDominance.lanes`,
+and `RotDominance.lanes` was `9`. The router declares **ten**
+(`hooks/rot-router.sh:341-350`: nine lens-led lanes plus `CONVERGENT`, which by
+design has no lead lens). So D4 DISCRIMINATION ran with a **full lane of slack** —
+the router could have lost `CONVERGENT` entirely, the most-travelled lane, and this
+gate would still have printed `ok`.
+
+The evidence had been on screen for some time: the gate's own line reads
+**"D4 DISCRIMINATION: 10 distinct lanes reached (>= 9 declared)"**. Ten and nine
+were printed side by side and nobody subtracted them. The tree already knew, too —
+`RotLens.lean:74` calls nine "the lanes that have a lens of their own, i.e. every
+lane except" `CONVERGENT`, and `RotAttribute.lean:306` warns in as many words that
+quoting nine "is quoting nine lanes and dropping the tenth".
+
+**The repair is derivation, not a bigger number.** `RotDominance.lanes` is now
+`laneRoster.length` over the ten lanes as the router ships them, so the count and
+the roster cannot drift because there is only one of them.
+`the_declared_count_is_the_roster_length` states it, `the_fallback_lane_is_counted`
+pins `CONVERGENT` as a lane rather than a corner case, and
+`losing_a_lane_fails_discrimination` shows the gate now refuses what it used to
+wave through. `the_roster_repeats_no_lane` closes the counting hole that
+`length` would otherwise leave — the same "length is not coverage" gap mutation
+P04 found in the push guard last week.
+
+**The second defect was the comment itself.** Both `MS_BOUND` and `LANES_DECLARED`
+said *must equal* a Lean constant and **no code checked either**. A comment is not
+a binding. `checker/dominance.sh` now extracts both constants from
+`lean/Proofs/RotDominance.lean` and compares them, with a control that runs the
+same extractor over a source built to yield different values (9 / 999) so the
+binding is proved able to fail. Measured end to end: forcing `LANES_DECLARED=11`
+turns the gate **red at exit 1** with both the binding and D4 failing, and restoring
+returns **16 passed, 0 failed**. The gate went from 13 checks to 16.
+
+**A stale artifact produced a false green, and it was mine.** Delivering the
+corrected module to the shared Lean workspace failed — `bad import 'Proofs.RotCeiling'`,
+because the shared tree namespaces modules under `Proofs.RotMoe.` — and
+`lake env leanchecker` returned **exit 0 anyway**. It re-verifies the `.olean`, and
+the one on disk was dated two days earlier from a previous delivery; the failed
+build never replaced it. A kernel re-check is only evidence about the source that
+produced the artifact it read. The delivery ritual now deletes the `.olean` first.
+
+That prompted a sweep of the whole shared tree, which found a second cross-wiring:
+`Proofs/RotMoe/RotLog.lean` imported the **top-level** `Proofs.RotGauge` rather
+than `Proofs.RotMoe.RotGauge` — a different file, six days older. It had been
+verified against the wrong gauge. Both imports repaired, and the subtree now
+measures **71 of 71 modules building and 71 of 71 re-checked by the kernel, with
+zero missing oleans** (nine had none at all before this).
+
+**One more silent miscount, self-inflicted.** The new mutant was first called
+`D04b`, and the repo-wide counter requires a mutant ID ending in a digit
+(`^run_mut(_nth)? [A-Z][A-Za-z0-9]*[0-9] `). The suite ran and killed 12 mutants
+while the counter saw 11 — a mutant doing real work and reporting to nobody.
+Renamed `D12`; suite and counter now agree at 12 and 709.
+
+12 mutants for `RotDominance`, **12 killed, 0 survived, 0 discarded** — including
+`D12`, which drops `CONVERGENT` from the roster and is exactly the defect this
+entry repairs.
+
+1379 theorems, 73 modules, 67 suites, 709 mutants, 70 checkers.
+
 ### "Nine lenses run on every turn" was two claims wearing one sentence
 
 My own NEXT list called the missing multi-lens evidence **corpus work**: `breadth`
@@ -80,7 +142,7 @@ over nothing.
 rewrites `gauge` to score only the routed lens, which is exactly what "nine-lens is
 decoration" would look like in code, and it kills three theorems.
 
-1375 theorems, 73 modules, 67 suites, 708 mutants, 70 checkers.
+1379 theorems, 73 modules, 67 suites, 709 mutants, 70 checkers.
 
 ### A branch push is still a push — and the hook was installed where git does not look
 
@@ -525,7 +587,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 708 applied, 708 killed,
+statistic. Across the whole tree the suites now stand at 709 applied, 709 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -877,7 +939,7 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **708 applied, 708 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **709 applied, 709 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
 9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
 and killed here — and

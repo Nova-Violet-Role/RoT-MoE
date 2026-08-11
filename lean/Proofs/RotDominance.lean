@@ -95,8 +95,26 @@ def defaultLoop (events caps : Nat) : Layer :=
 /-- The latency ceiling the shipped gate enforces, in milliseconds. -/
 def msBound : Nat := 500
 
-/-- The number of lanes the router declares. -/
-def lanes : Nat := 9
+/-- The routing table exactly as `hooks/rot-router.sh:341-350` ships it. Nine
+lens-led lanes plus `CONVERGENT`, which by design has no lead lens
+(`hooks/rot-router.sh:155`). -/
+def laneRoster : List String :=
+  ["FORGE", "CLINICAL", "EXECUTIVE", "EMPATHIC", "STRATEGIC",
+   "CREATIVE", "PREDICTIVE", "STEALTH", "RECURSIVE", "CONVERGENT"]
+
+/-- The number of lanes the router declares — **derived from the roster, never a
+magic number**.
+
+Corrected 2026-08-11: this read `9` while the doc comment said "the number of
+lanes the router declares" and the router declares **ten**. Nine is the count of
+*lens-led* lanes, which the tree already knew — `RotLens.lean:74` calls them "the
+nine lanes that have a lens of their own, i.e. every lane except" `CONVERGENT`,
+and `RotAttribute.lean:306` warns that quoting nine "is quoting nine lanes and
+dropping the tenth". `checker/dominance.sh` measured **10 distinct lanes reached
+against 9 declared** on the run that exposed this, so D4 was passing with a full
+lane of slack: the router could have lost `CONVERGENT` entirely and still been
+green. Deriving the number from the roster is what stops the two drifting again. -/
+def lanes : Nat := laneRoster.length
 
 def D1_total (l : Layer) : Bool := l.eventsHandled == l.eventsOffered
 def D2_conserves (l : Layer) : Bool := l.survivingCaps == l.baselineCaps
@@ -140,7 +158,7 @@ each near-miss below. -/
 def full : Layer :=
   { eventsOffered := 31, eventsHandled := 31
     baselineCaps := 10, survivingCaps := 10
-    records := 62, distinctOutcomes := 9
+    records := 62, distinctOutcomes := 10
     reproducibleReplays := 20, replaysAttempted := 20
     recomputed := 15, gaugeRecords := 15, worstMs := 258 }
 
@@ -258,6 +276,27 @@ theorem more_lanes_than_declared_still_discriminates (l : Layer)
     (h : lanes ≤ l.distinctOutcomes) : D4_discriminates l = true := by
   simp [D4_discriminates, h]
 
+/-- **The declared count is the roster, not a number someone typed.** This is the
+whole point of deriving it: the two cannot drift, because there is only one of
+them. -/
+theorem the_declared_count_is_the_roster_length : lanes = laneRoster.length := rfl
+
+/-- **CONVERGENT is a lane.** The tenth entry is exactly what the old constant
+dropped, and it is the fallback every unmatched prompt reaches
+(`hooks/rot-router.sh:350`) — the most-travelled lane, not a corner case. -/
+theorem the_fallback_lane_is_counted : "CONVERGENT" ∈ laneRoster := by decide
+
+/-- **Losing a lane now fails D4.** With the count at nine a router that dropped
+one of its ten lanes still passed; against the roster it cannot. Stated for the
+measured layer, which is the one the gate actually judges. -/
+theorem losing_a_lane_fails_discrimination :
+    D4_discriminates { full with distinctOutcomes := laneRoster.length - 1 } = false := by
+  decide
+
+/-- The roster has no duplicate lane, so `length` really is the number of
+distinct routing outcomes rather than a count of lines. -/
+theorem the_roster_repeats_no_lane : laneRoster.Nodup := by decide
+
 /-! ### Why the DETERMINISM test was wrong, and why more samples was not the fix
 
 Found by a mutant router, not by inspection. `checker/dominance.sh` replayed one
@@ -330,7 +369,9 @@ theorem varying_stride_separates_period_three :
 -- 31 hook events, all handled, 62 records: measured 2026-08-09 by hooksweep.sh.
 #guard D1_total full = true
 #guard D3_adds full = true
--- Nine lanes reached: measured by lensscore.js over 3825 gauge records.
+-- Ten lanes reached: `checker/dominance.sh` 2026-08-11, "D4 DISCRIMINATION: 10
+-- distinct lanes reached". The earlier figure of nine came from lensscore.js over
+-- 3825 gauge records and counted lens-led lanes only, omitting CONVERGENT.
 #guard D4_discriminates full = true
 -- 258 ms worst case: from the live route record of 2026-08-09T19:26:20.
 #guard D7_bounded full = true
