@@ -23,6 +23,67 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
+
+Every report this project has written ended with the same admission — *artifact
+quality is measured, answer quality is not*. That sentence was doing two jobs,
+and only one of them was honest.
+
+* Honest: **no Lean file will ever contain a theorem whose conclusion is "the
+  prose is better".** Any file claiming that has an `axiom` in it.
+* Not honest: leaving it there implied nothing about prose could be measured.
+  What cannot be measured is *quality*. **Preference under a stated protocol** is
+  a different object, and it is measurable to the same standard as everything
+  else here.
+
+`lean/Proofs/RotProse.lean` — 39 theorems, zero axiom declarations, nine mutants
+declared and nine killed.
+
+**First the impossibility, because it licenses everything after it.** A machine
+prose scorer is not merely hard, it is refused by a theorem:
+`no_length_monotone_metric_is_faithful` shows that any metric padding cannot
+lower is a metric that rewards padding — and `the_obvious_metric_is_gameable`
+exhibits the byte count doing exactly that, strictly raised while
+`informative` is unchanged. That is the same argument shape that killed
+`verified`-as-a-raw-count in the artifact scorer. The panel is human **by proof**,
+not by resignation, and that is why no `def quality : Prose → Nat` exists in this
+repository.
+
+**Then the human judgment becomes data**, with every confound around it decidable:
+
+| element | Lean form | what it closes |
+|---|---|---|
+| forced choice | `inductive Choice \| left \| right \| tie` | scale drift between raters |
+| blinding | `Rater := Pair → Choice`, and `Pair` HAS NO ARM FIELD | conditioning on the arm — P01 widens it to `Judged → Choice` and the module dies |
+| position bias | `swap` involution, `normalise` | a constant left-picker scores exactly the positions, proved for every schedule |
+| panel | odd, `majority`, ties reported | one rater swinging a 4–1 |
+| reliability | `meetsFloor`, cross-multiplied | an unreliable panel supporting a verdict |
+| length confound | `confounded`, all picks track bytes | the one bias Lean can actually catch |
+| inference | `verdictM` reused from `RotExperiment` | family-wise error across nine comparisons |
+
+**The conclusion is worded to say only what it may.** `prose_attributable` takes
+one computed hypothesis and concludes: blinded raters, forced choice, both
+orderings, positions flipped, agreement above floor, not length-confounded,
+preferred the routed arm at a corrected p<0.01. **It does not say the prose is
+better.** `renderHash` proves the text scored is the text produced — integrity,
+never origin, and never taste.
+
+Eleven refusals prove the gate can fail, one per clause, including a
+length-confounded run refused at any margin and the corrected boundary at nine of
+forty rather than the uncorrected eleven.
+
+**A claim in this file's own first draft was false, and the file now says so.**
+Section 6 asserted that a floor checked by integer division would round a split
+panel into a pass, by analogy with the `costSec / 60` defect. An exhaustive check
+over every panel size 1–12, every agreement count and every floor 0–100 — 15 700
+cases — found **zero** disagreements, and `Nat.le_div_iff_mul_le` proves why: for
+an integer floor the two forms are the same test. The theorem
+`the_floor_test_is_equivalent_to_the_divided_form` now records that, and
+`division_ties_two_panels_that_cross_multiplication_separates` states where
+truncation *does* destroy information — comparing two panels, where 2/3 and
+67/101 both read as 66. The analogy was the overclaim; the arithmetic corrected
+it.
+
 ### The axiom that became a measurement: one hypothesis the checker computes
 
 An `axiom` for the empirical claim would have laundered it — the kernel would
@@ -311,9 +372,9 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **661 applied, 661 killed, 0 survived, 0 discarded** —
+`README.md:240` now reads **670 applied, 670 killed, 0 survived, 0 discarded** —
 the 634 swept, plus 5 each for `RotSweep` and `RotLogLock` and 12 for `RotExperiment`, each run and killed
-here — and `CITATION.cff` moved from 1083 to the measured 1254 theorems.
+here — and `CITATION.cff` moved from 1083 to the measured 1293 theorems.
 
 ### The repairs went through Lean 4, because a fixed harness is still an unproven harness
 
