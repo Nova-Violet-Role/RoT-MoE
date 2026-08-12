@@ -23,6 +23,74 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The O4 verdict was retracted by its own control, and the live lane probe was measuring the default
+
+Two findings, and both say an **instrument** was wrong rather than the code.
+
+**1. The O4 result published hours earlier was withdrawn.** It was reported as
+CONTRADICTED — 40 of 40 discordant pairs forward, 39 of 39 reverse, every one
+against the routed arm — and licensed with a null control of ⟨6, 2⟩. **That
+control was measured on the R4 answer-text scorer**, a different instrument
+reading a different quantity. Using it to attribute an O4 result is the exact
+error P2.4 was rebuilt to fix, and it was made in the direction that flatters
+the apparatus.
+
+The control that was actually needed was built from data already collected.
+Both orderings run the same 40 tasks, so pairing forward-routed against
+reverse-routed by task is an A/A: same arm, same task, only the position
+differs. O4 moves on **32 of 40 tasks with no routing difference at all**. Then
+the decisive probe — across every A/B pair differing in both O4 and evidence
+volume, does the side with the *smaller* haystack carry the *higher* O4?
+
+> **79 comparable pairs. 79 agreements. Rate 1.000.**
+
+`no_statistic_can_separate_them` proves what that costs: when observed signs
+equal the confound's predicted signs pointwise, *every* function of those signs
+returns the identical value. No test and no re-scoring can recover an arm
+effect, because the signs contain none. `a_separating_statistic_needs_a_disagreeing_pair`
+states the useful contrapositive — an instrument earns its verdict by exhibiting
+a pair that disagrees with the confound, and O4 exhibited zero.
+
+**This does not turn into a win.** Three observables were saturated and the
+fourth is inadmissible, so P2.4 produced no evidence in either direction;
+`p24_does_not_establish_better_work` still stands and was not weakened. What was
+withdrawn is the claim *against* the router, because an unfavourable overclaim
+is still an overclaim. Both the verdict and its retraction are kept side by side
+in `bench/P24-PREREGISTRATION.md` §10 and §11; editing the first into agreement
+with the second would destroy the only evidence that the apparatus caught
+itself.
+
+**2. `checker/marketplace-session.sh` was reading a marker that cannot carry a
+lane.** It reported "only 1 of 4 live sessions routed to the expected lane" and
+"CONTROL DEAD: only 1 distinct live lane" — while, in the same run, the offline
+table passed *all 10 lanes routed correctly* and the marker reached the session
+4 of 4. The router is bound to 31 events, so a session emits many markers, and
+the probe took the **first**: SessionStart, which has no prompt to route
+(`chars = 0`, empty stem) and falls to the CONVERGENT default. All four probes
+read CONVERGENT, and the single row expecting CONVERGENT "passed". **A check
+whose only pass is the row matching the default is measuring the default.**
+
+The probe now selects by **event** rather than by position, and a regression
+control asserts the session-level marker is CONSTANT while the prompt lane
+varies — so the old read is demonstrably useless rather than merely
+discouraged. Result: **10 passed, 0 failed**, with 4 of 4 live sessions on
+their expected lane across 4 distinct lanes. Nothing was relaxed: the marker
+check, the lane-variation control and the plugin-disabled negative control are
+unchanged and all still fire.
+
+Live measurement behind the new `RotLiveRouting`: **517 prompt-routing
+decisions, 10 of 10 distinct lanes, 10 distinct R/s+ values.** A constant-lane
+router and a constant gauge are both excluded by theorem rather than by
+assertion — `constant_lane_cannot_cover_ten` and `constant_gauge_has_one_value`
+are stated over an arbitrary router so they are facts about constancy, not about
+this log. That is a claim about what the router *does*, and
+`routing_is_measured_quality_is_not` welds it to the fact that answer quality
+remains unestablished, so neither half can be quoted without the other.
+
+New: `lean/Proofs/RotP24Control.lean` (8/8 mutants killed, 0 survived),
+`lean/Proofs/RotLiveRouting.lean` (8/8 killed, 0 survived),
+`bench/p24-aa-control.js`.
+
 ### The preregistered observables had never been extracted, and one of them contradicts the router
 
 **The headline is the unfavourable half: O4 came back against the routed arm in
@@ -1166,7 +1234,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 770 applied, 770 killed,
+statistic. Across the whole tree the suites now stand at 786 applied, 786 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not

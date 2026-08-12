@@ -731,3 +731,76 @@ and all eight mutants of those counts kill the module.
 The next step is **not** to rescore this corpus. It is a corpus of *engineering
 tasks* — tasks that build, edit and verify — on which O1–O3 can vary at all. That
 is a new collection with its own preregistration, not a reanalysis of this one.
+
+---
+
+## 11. RETRACTION — THE O4 VERDICT WAS WITHDRAWN BY ITS OWN CONTROL
+
+**Same day, 2026-08-12, before §10 was pushed anywhere.** §10 reported O4 as
+**CONTRADICTED** and licensed that reading with an A/A control of ⟨6, 2⟩.
+**That control was measured on the R4 answer-text scorer.** It is a different
+instrument reading a different quantity, and using it to attribute an O4 result
+is the same class of error P2.4 was rebuilt to fix — scoring one hypothesis with
+another hypothesis's observable. §10's attribution was unearned.
+
+### The control that was needed, built from data already collected
+
+Both orderings run the **same 40 tasks**, so pairing `forward-routed[task]`
+against `reverse-routed[task]` is an A/A: same arm, same task, only position
+differs. Routing cannot explain any difference there.
+
+| control | discordant | favouring | instrument |
+|---|---|---|---|
+| routed vs routed | **32** | 26 | `bench/p24-aa-control.js`, exit 0 |
+| unrouted vs unrouted | **15** | 3 | same |
+
+O4 moves on **32 of 40 tasks** between two runs of the *same* arm.
+
+### The probe that settles it
+
+O4 counts a number in the final message absent from preceding tool output. So
+the question was put directly: across every A/B pair differing in both O4 and
+evidence volume, does the side with the **smaller** haystack carry the **higher**
+O4?
+
+> **79 comparable pairs. 79 agreements. Rate 1.000.**
+
+Not most — **every one**. `no_statistic_can_separate_them` proves the
+consequence: when observed signs equal confound-predicted signs pointwise, *any*
+function of those signs returns the identical value on both. No test, no
+correction and no re-scoring can recover an arm effect, because the signs
+contain none. `a_separating_statistic_needs_a_disagreeing_pair` states the
+useful contrapositive — an instrument earns its verdict by exhibiting a pair
+that disagrees with the confound, and O4 exhibited zero.
+
+### The corrected verdict
+
+| observable | §10 said | §11 says |
+|---|---|---|
+| O1, O2, O3 | SATURATED | SATURATED (unchanged) |
+| O4 | **CONTRADICTED** | **INADMISSIBLE — instrument confounded at rate 1.000** |
+
+**This does not rescue the router.** "The routed arm does better work" remains
+**NOT ESTABLISHED**: three observables were saturated and the fourth is
+inadmissible, so P2.4 as run produced no evidence in either direction.
+`p24_does_not_establish_better_work` still holds and is not weakened.
+
+**It does retract the claim against the router**, because an unfavourable
+overclaim is still an overclaim. §10's docstring called the confound "a
+limitation shipped beside the verdict". That was too weak. **A confound measured
+at rate 1.000 is not a limitation; it is a refutation of the instrument.**
+
+§10 is left standing above, uncorrected, with this section after it. Editing a
+published verdict into agreement with its own retraction would destroy the only
+evidence that the apparatus caught itself.
+
+### What O4 must have before it may be used again
+
+1. A haystack-independent definition, or an explicit denominator declared in
+   advance.
+2. **The A/A control run on O4 itself**, not on a neighbouring instrument.
+3. The confound probe re-run, with a disagreement rate strictly below 1 as a
+   preregistered admissibility condition.
+
+Instruments: `lean/Proofs/RotP24Control.lean` — build exit 0, `leanchecker`
+exit 0 / 0 bytes, **8/8 mutants killed, 0 survived, 0 discarded**.

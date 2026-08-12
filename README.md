@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1546
+lens activities off disk, computes an `R/s+` gauge from them, and **1566
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **770 applied, 770 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **786 applied, 786 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -562,7 +562,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 80 modules, 1546 theorems, 73 mutation suites — plus `checker/` (72 checkers) and `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1566 theorems, 75 mutation suites — plus `checker/` (72 checkers) and `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1350,6 +1350,7 @@ exactly such a module.
 * `lean/Proofs/RotCiSkip.lean` (10 theorems)
 * `lean/Proofs/RotCite.lean` (10 theorems)
 * `lean/Proofs/RotCorpus.lean` (11 theorems)
+* `lean/Proofs/RotCostBudget.lean` (31 theorems)
 * `lean/Proofs/RotCounter.lean` (9 theorems)
 * `lean/Proofs/RotDebugLog.lean` (18 theorems)
 * `lean/Proofs/RotDelivery.lean` (35 theorems)
@@ -1376,14 +1377,18 @@ exactly such a module.
 * `lean/Proofs/RotLens.lean` (13 theorems)
 * `lean/Proofs/RotLensAbility.lean` (11 theorems)
 * `lean/Proofs/RotLensActivation.lean` (20 theorems)
+* `lean/Proofs/RotLiveRouting.lean` (11 theorems)
 * `lean/Proofs/RotLocalRelease.lean` (8 theorems)
 * `lean/Proofs/RotLog.lean` (23 theorems)
 * `lean/Proofs/RotLogAtomicity.lean` (26 theorems)
 * `lean/Proofs/RotLogLock.lean` (10 theorems)
+* `lean/Proofs/RotMainRun.lean` (5 theorems)
 * `lean/Proofs/RotMutant.lean` (33 theorems)
-* `lean/Proofs/RotObserve.lean` (91 theorems)
 * `lean/Proofs/RotNullControl.lean` (16 theorems)
+* `lean/Proofs/RotObserve.lean` (91 theorems)
 * `lean/Proofs/RotOrdering.lean` (12 theorems)
+* `lean/Proofs/RotP24Control.lean` (9 theorems)
+* `lean/Proofs/RotP24Run.lean` (15 theorems)
 * `lean/Proofs/RotPartialRun.lean` (15 theorems)
 * `lean/Proofs/RotPath.lean` (12 theorems)
 * `lean/Proofs/RotPluginRoot.lean` (6 theorems)
@@ -1538,13 +1543,27 @@ transcript. They were extracted per task, from the same 160 sessions:
 | O1 verification steps | routed higher | 0 / 0 | 0 / 0 | saturated — no verdict possible |
 | O2 rework edits | routed lower | 0 / 0 | 0 / 0 | saturated — no verdict possible |
 | O3 reads before first write | routed higher | 0 / 0 | 0 / 0 | saturated — no verdict possible |
-| O4 unverified claims | routed **lower** | **40 / 0** | **39 / 0** | ❌ **CONTRADICTED** |
+| O4 unverified claims | routed **lower** | 40 / 0 | 39 / 0 | ⛔ **INADMISSIBLE — the instrument is confounded** |
 
-**O4 went against the router in every single discordant pair, in both
-orderings.** The preregistration says such a result "gets written up as
-prominently as a win would be", and §5 named O4 in advance as the observable
-most able to embarrass the router. That is why it is on this page and not in a
-footnote.
+**O4 first read as a total sweep against the router, and then its own control
+retracted it.** The sweep was real; the attribution was not. O4 counts a number
+in the final message appearing in no preceding tool output, so it is sensitive
+to how much tool output there was. Asked directly — across every pair differing
+in both O4 and evidence volume, does the side with the *smaller* haystack carry
+the *higher* O4? — the answer was **79 of 79. Rate 1.000.**
+
+`no_statistic_can_separate_them` proves what that costs: when observed signs
+equal the confound's predicted signs pointwise, *every* function of those signs
+returns the same value on both. No test and no re-scoring can extract an arm
+effect, because the signs contain none.
+
+**This does not turn into a win.** Three observables were saturated and the
+fourth is inadmissible, so P2.4 produced **no evidence in either direction** —
+`p24_does_not_establish_better_work` still stands. What was withdrawn is the
+claim *against* the router, because an unfavourable overclaim is still an
+overclaim. Both the verdict and its retraction are kept in
+`bench/P24-PREREGISTRATION.md` §10 and §11; editing the first to agree with the
+second would destroy the only evidence that the apparatus caught itself.
 
 **Three of the four could not vary at all.** The corpus asks knowledge
 questions; no task builds, edits or writes a file, so O1–O3 are zero in both

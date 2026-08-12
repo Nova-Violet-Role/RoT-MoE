@@ -2,12 +2,12 @@
   "directory": "bench",
   "files": {
     "P24-PREREGISTRATION.md": {
-      "hash": "9706661e202b",
-      "indexed_at": "2026-08-12T05:45:38.854441+00:00",
+      "hash": "d4d07fe1620d",
+      "indexed_at": "2026-08-12T08:45:57.745834+00:00",
       "language": "markdown",
-      "lines": 733,
-      "mtime_ns": 1786513535883759300,
-      "size": 38769,
+      "lines": 806,
+      "mtime_ns": 1786524355126438000,
+      "size": 42179,
       "symbols": [
         {
           "docstring": "P2.2 asked whether the routed arm gives **better answers** and returned null five times. At least two of those nulls were guaranteed by the corpus, no",
@@ -324,7 +324,7 @@
               "docstring": "**P2.4 did not establish that the routed arm does better work.** Three observables were silent and the fourth went the other way; `p24_does_not_establ",
               "lines": [
                 724,
-                734
+                736
               ],
               "name": "What is now established, and what the next honest step is",
               "type": "subsection"
@@ -333,16 +333,63 @@
           "docstring": "**Run 2026-08-12.** \u00a79 above reported the R4 *answer-text* scoring. That is not what this document preregistered. \u00a73 declares O1\u2013O4 as **process** obs",
           "lines": [
             635,
-            734
+            736
           ],
           "name": "10. THE P2.4 OBSERVABLES WERE EXTRACTED \u2014 RESULT: 3 SATURATED, 1 CONTRADICTED",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Both orderings run the **same 40 tasks**, so pairing `forward-routed[task]` against `reverse-routed[task]` is an A/A: same arm, same task, only positi",
+              "lines": [
+                746,
+                758
+              ],
+              "name": "The control that was needed, built from data already collected",
+              "type": "subsection"
+            },
+            {
+              "docstring": "O4 counts a number in the final message absent from preceding tool output. So the question was put directly: across every A/B pair differing in both O",
+              "lines": [
+                759,
+                775
+              ],
+              "name": "The probe that settles it",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| observable | \u00a710 said | \u00a711 says | |---|---|---| | O1, O2, O3 | SATURATED | SATURATED (unchanged) | | O4 | **CONTRADICTED** | **INADMISSIBLE \u2014 instr",
+              "lines": [
+                776,
+                796
+              ],
+              "name": "The corrected verdict",
+              "type": "subsection"
+            },
+            {
+              "docstring": "1. A haystack-independent definition, or an explicit denominator declared in advance. 2. **The A/A control run on O4 itself**, not on a neighbouring i",
+              "lines": [
+                797,
+                807
+              ],
+              "name": "What O4 must have before it may be used again",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**Same day, 2026-08-12, before \u00a710 was pushed anywhere.** \u00a710 reported O4 as **CONTRADICTED** and licensed that reading with an A/A control of \u27e86, 2\u27e9.",
+          "lines": [
+            737,
+            807
+          ],
+          "name": "11. RETRACTION \u2014 THE O4 VERDICT WAS WITHDRAWN BY ITS OWN CONTROL",
           "type": "section"
         }
       ]
     },
     "TRAP-PREREGISTRATION.md": {
       "hash": "c48db2fa80e8",
-      "indexed_at": "2026-08-11T22:11:31.130394+00:00",
+      "indexed_at": "2026-08-12T08:44:37.402145+00:00",
       "language": "markdown",
       "lines": 168,
       "mtime_ns": 1786310602072948200,
@@ -460,7 +507,7 @@
     },
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-11T22:11:31.102698+00:00",
+      "indexed_at": "2026-08-12T08:44:37.371954+00:00",
       "language": "javascript",
       "lines": 101,
       "mtime_ns": 1786205762889294800,
@@ -497,7 +544,7 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-11T22:11:31.104818+00:00",
+      "indexed_at": "2026-08-12T08:44:37.373748+00:00",
       "language": "javascript",
       "lines": 180,
       "mtime_ns": 1786277368570225200,
@@ -552,7 +599,7 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-11T22:11:31.107615+00:00",
+      "indexed_at": "2026-08-12T08:44:37.376667+00:00",
       "language": "shell",
       "lines": 385,
       "mtime_ns": 1786277829886864600,
@@ -587,7 +634,7 @@
     },
     "calib-prompts.js": {
       "hash": "887a4f5e2997",
-      "indexed_at": "2026-08-11T22:11:31.109605+00:00",
+      "indexed_at": "2026-08-12T08:44:37.378656+00:00",
       "language": "javascript",
       "lines": 219,
       "mtime_ns": 1786292666878221500,
@@ -661,7 +708,7 @@
     },
     "calib-score.js": {
       "hash": "b0381a1edbd7",
-      "indexed_at": "2026-08-11T22:11:31.112261+00:00",
+      "indexed_at": "2026-08-12T08:44:37.382670+00:00",
       "language": "javascript",
       "lines": 135,
       "mtime_ns": 1786295190750693100,
@@ -691,7 +738,7 @@
     },
     "calib-select.js": {
       "hash": "1e81c694de06",
-      "indexed_at": "2026-08-11T22:11:31.113436+00:00",
+      "indexed_at": "2026-08-12T08:44:37.384006+00:00",
       "language": "javascript",
       "lines": 125,
       "mtime_ns": 1786292666880220900,
@@ -700,7 +747,7 @@
     },
     "calib-verdict.js": {
       "hash": "9c6c50ce2439",
-      "indexed_at": "2026-08-11T22:11:31.116087+00:00",
+      "indexed_at": "2026-08-12T08:44:37.385551+00:00",
       "language": "javascript",
       "lines": 119,
       "mtime_ns": 1786292666880220900,
@@ -738,7 +785,7 @@
     },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-11T22:11:31.117247+00:00",
+      "indexed_at": "2026-08-12T08:44:37.386595+00:00",
       "language": "javascript",
       "lines": 105,
       "mtime_ns": 1786277739693226100,
@@ -767,7 +814,7 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-11T22:11:31.119419+00:00",
+      "indexed_at": "2026-08-12T08:44:37.388325+00:00",
       "language": "javascript",
       "lines": 136,
       "mtime_ns": 1786280334426837900,
@@ -822,7 +869,7 @@
     },
     "main-score.js": {
       "hash": "b60b38ef8196",
-      "indexed_at": "2026-08-12T02:46:04.208927+00:00",
+      "indexed_at": "2026-08-12T08:44:37.389994+00:00",
       "language": "javascript",
       "lines": 131,
       "mtime_ns": 1786502760963970100,
@@ -877,9 +924,48 @@
         }
       ]
     },
+    "p24-aa-control.js": {
+      "hash": "66f6b215963b",
+      "indexed_at": "2026-08-12T08:44:37.391271+00:00",
+      "language": "javascript",
+      "lines": 142,
+      "mtime_ns": 1786524013684301200,
+      "size": 5523,
+      "symbols": [
+        {
+          "lines": [
+            60,
+            60
+          ],
+          "name": "key",
+          "signature": "(r)",
+          "type": "function"
+        },
+        {
+          "docstring": "--- the A/A pairs: same arm, same task, the two orderings -------------------",
+          "lines": [
+            64,
+            86
+          ],
+          "name": "aa",
+          "signature": "(arm)",
+          "type": "function"
+        },
+        {
+          "docstring": "agree with byte count; a detector reading haystack size agrees almost always.",
+          "lines": [
+            92,
+            110
+          ],
+          "name": "haystack",
+          "signature": "()",
+          "type": "function"
+        }
+      ]
+    },
     "p24-score.js": {
       "hash": "c709cbd4c765",
-      "indexed_at": "2026-08-12T05:21:28.229045+00:00",
+      "indexed_at": "2026-08-12T08:44:37.394349+00:00",
       "language": "javascript",
       "lines": 108,
       "mtime_ns": 1786512085478299200,
@@ -898,7 +984,7 @@
     },
     "pilot-rescore.js": {
       "hash": "db386b9df1b6",
-      "indexed_at": "2026-08-11T22:11:31.125472+00:00",
+      "indexed_at": "2026-08-12T08:44:37.396021+00:00",
       "language": "javascript",
       "lines": 110,
       "mtime_ns": 1786473534444558500,
@@ -945,7 +1031,7 @@
     },
     "pilot-score.js": {
       "hash": "d6872242d77d",
-      "indexed_at": "2026-08-11T22:11:31.127062+00:00",
+      "indexed_at": "2026-08-12T08:44:37.398623+00:00",
       "language": "javascript",
       "lines": 148,
       "mtime_ns": 1786466916991589100,
@@ -984,7 +1070,7 @@
     },
     "trap-latency.js": {
       "hash": "ac1796e5e1d6",
-      "indexed_at": "2026-08-11T22:11:31.128602+00:00",
+      "indexed_at": "2026-08-12T08:44:37.400117+00:00",
       "language": "javascript",
       "lines": 117,
       "mtime_ns": 1786311490514862800,
@@ -1039,7 +1125,7 @@
     },
     "trap-parse-controls.js": {
       "hash": "22761c05b246",
-      "indexed_at": "2026-08-11T22:11:31.129597+00:00",
+      "indexed_at": "2026-08-12T08:44:37.401083+00:00",
       "language": "javascript",
       "lines": 71,
       "mtime_ns": 1786310427035946800,
@@ -1059,7 +1145,7 @@
     },
     "trap-prompts.js": {
       "hash": "7a1e67e2adbd",
-      "indexed_at": "2026-08-11T22:11:31.135962+00:00",
+      "indexed_at": "2026-08-12T08:44:37.403903+00:00",
       "language": "javascript",
       "lines": 146,
       "mtime_ns": 1786307254658034100,
@@ -1106,7 +1192,7 @@
     },
     "trap-score-controls.js": {
       "hash": "d5ebc297f989",
-      "indexed_at": "2026-08-11T22:11:31.137342+00:00",
+      "indexed_at": "2026-08-12T08:44:37.405350+00:00",
       "language": "javascript",
       "lines": 72,
       "mtime_ns": 1786315174453429600,
@@ -1152,7 +1238,7 @@
     },
     "trap-score.js": {
       "hash": "4652f9c3c658",
-      "indexed_at": "2026-08-11T22:11:31.139373+00:00",
+      "indexed_at": "2026-08-12T08:44:37.407583+00:00",
       "language": "javascript",
       "lines": 221,
       "mtime_ns": 1786315206953430500,
@@ -1228,7 +1314,7 @@
     },
     "work-trace-tasks.js": {
       "hash": "48dbf481dfec",
-      "indexed_at": "2026-08-12T05:20:17.903765+00:00",
+      "indexed_at": "2026-08-12T08:44:37.408970+00:00",
       "language": "javascript",
       "lines": 133,
       "mtime_ns": 1786512014397804600,
@@ -1277,7 +1363,7 @@
     },
     "work-trace.js": {
       "hash": "554cb385b008",
-      "indexed_at": "2026-08-12T05:18:40.616341+00:00",
+      "indexed_at": "2026-08-12T08:44:37.414630+00:00",
       "language": "javascript",
       "lines": 342,
       "mtime_ns": 1786511917969197200,
@@ -1369,6 +1455,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T05:45:38.860833+00:00",
+  "generated_at": "2026-08-12T08:45:57.746021+00:00",
   "version": "1.0"
 }

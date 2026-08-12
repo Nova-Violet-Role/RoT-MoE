@@ -148,16 +148,67 @@ if [ "${ROTMOE_LANES_FULL:-0}" = "1" ]; then
 else
   LIVE="$(lane_table | sed -n '1p;3p;8p;10p')"
 fi
-tries=0; marker_runs=0; lane_ok=0; seen=""
+tries=0; marker_runs=0; lane_ok=0; seen=""; sessionlevel=""
+# --- WHICH MARKER, AND WHY THE FIRST ONE WAS THE WRONG ONE -------------------
+# MEASURED 2026-08-12: this probe reported "only 1 of 4 live sessions routed to
+# the expected lane" and "CONTROL DEAD: only 1 distinct live lane". Both were
+# artefacts of THIS loop, not of the router -- in the same run the offline table
+# passed "installed router: all 10 lanes routed correctly" and the marker
+# reached the session 4 of 4.
+#
+# The router is bound to 31 events. A session therefore emits MANY markers, and
+# `head -1` took the earliest: SessionStart. A SessionStart route has no prompt
+# to route -- `chars=0`, `stem=""` -- so it falls to the CONVERGENT default and
+# CANNOT carry the prompt's lane. All four probes read CONVERGENT, and the one
+# row that happens to expect CONVERGENT "passed". A check whose only pass is the
+# row matching the default is measuring the default.
+#
+# Taking the LAST marker is no better: Stop and SessionEnd fire after the prompt
+# and are session-level for the same reason. The prompt's lane is in the middle,
+# so it is selected BY EVENT from the router's own structured log rather than by
+# position. The harness log keeps its separate job below -- proving the marker
+# reached the session at all -- so the "never trust the model" principle is
+# intact: neither source is the model, and the weaker positional read is the
+# only thing removed.
 while IFS='|' read -r prompt expect; do
   [ -n "$prompt" ] || continue
   tries=$((tries+1))
   rm -f "$WORK/debug/"*.txt 2>/dev/null
+  RLOG="$WORK/route$tries.jsonl"
+  rm -f "$RLOG"
+  # The config dir is already isolated, so nothing else writes here. The path is
+  # handed over in the form the CLI resolves, exactly as CLAUDE_CONFIG_DIR is.
+  export ROTMOE_DEBUG_LOG="$WORKWIN/route$tries.jsonl"
   run 300 claude -p "$prompt -- reply only: ok" --debug < /dev/null > "$WORK/sess$tries.log" 2>&1
   L="$(ls -t "$WORK"/debug/*.txt 2>/dev/null | head -1)"
   [ -n "$L" ] || continue
-  got=$(grep -ho 'RoT MoE :: TIER 1 -> [A-Za-z]*' "$L" 2>/dev/null | head -1 | sed 's/.*-> //')
-  [ -n "$got" ] && marker_runs=$((marker_runs+1))
+  # The marker check is UNCHANGED and still reads the harness log: it answers
+  # "did the router reach this session", which is a different question from
+  # "which lane did the prompt get".
+  grep -q 'RoT MoE :: TIER 1 -> ' "$L" 2>/dev/null && marker_runs=$((marker_runs+1))
+  got=$(node -e '
+    const fs=require("fs");
+    const p=process.argv[1];
+    if(!fs.existsSync(p)) process.exit(0);
+    for(const line of fs.readFileSync(p,"utf8").split("\n")){
+      if(!line.trim()) continue;
+      let o; try{o=JSON.parse(line)}catch(e){continue}
+      if(o.kind==="route" && o.event==="UserPromptSubmit"){ process.stdout.write(String(o.lane||"")); break; }
+    }
+  ' "$RLOG" 2>/dev/null)
+  # The session-level lane is captured too, purely so the regression control
+  # below can show the old read was constant across every prompt.
+  sl=$(node -e '
+    const fs=require("fs");
+    const p=process.argv[1];
+    if(!fs.existsSync(p)) process.exit(0);
+    for(const line of fs.readFileSync(p,"utf8").split("\n")){
+      if(!line.trim()) continue;
+      let o; try{o=JSON.parse(line)}catch(e){continue}
+      if(o.kind==="route" && o.event==="SessionStart"){ process.stdout.write(String(o.lane||"")); break; }
+    }
+  ' "$RLOG" 2>/dev/null)
+  [ -n "$sl" ] && sessionlevel="$sessionlevel|$sl"
   if [ "$got" = "$expect" ]; then
     lane_ok=$((lane_ok+1))
     case "$seen" in *"|$got|"*) : ;; *) seen="$seen|$got|" ;; esac
@@ -177,6 +228,30 @@ distinct=$(printf '%s' "$seen" | tr '|' '\n' | grep -c '[A-Z]' || true)
 [ "${distinct:-0}" -ge 3 ] \
   && ok "CONTROL: the live lane VARIED across $distinct distinct lanes -- not a constant" \
   || bad "CONTROL DEAD: only ${distinct:-0} distinct live lane(s) -- a constant-lane router would pass this"
+
+# --- REGRESSION CONTROL: the marker this probe used to read is a CONSTANT ----
+# This pins the defect fixed on 2026-08-12 rather than trusting a comment to
+# stop it coming back. The SessionStart route has no prompt, so its lane is the
+# same for every prompt in the table. If a future edit goes back to reading a
+# session-level marker by position, the lane check above would once again pass
+# only on the row that expects the default -- and this control says so out loud
+# by demanding that the session-level read be USELESS for discrimination.
+#
+# It is deliberately an assertion about the OLD read, not about the router: if
+# SessionStart ever DID vary by prompt, that would itself be worth knowing, and
+# this line would fail and say so.
+sl_distinct=$(printf '%s' "$sessionlevel" | tr '|' '\n' | grep -c '[A-Z]' || true)
+sl_uniq=$(printf '%s' "$sessionlevel" | tr '|' '\n' | grep '[A-Z]' | sort -u | tr '\n' ' ')
+if [ "${sl_distinct:-0}" -eq 0 ]; then
+  bad "the session-level route was never recorded -- the structured log did not reach $WORK,"
+  bad "so the lane read above cannot be attributed either. This is a harness fault, not a result."
+elif [ "$(printf '%s' "$sl_uniq" | wc -w)" -eq 1 ] && [ "${distinct:-0}" -ge 3 ]; then
+  ok "CONTROL: the session-level marker is CONSTANT ($sl_uniq) while the prompt lane varies --"
+  ok "         reading it by position, as this probe did before 2026-08-12, measures the default"
+else
+  bad "the session-level marker varied ($sl_uniq) or the prompt lane did not -- the two reads are"
+  bad "no longer distinguishable, so the fix for the 2026-08-12 defect can no longer be shown to hold"
+fi
 
 # --- NEGATIVE CONTROL: disable the plugin, the marker must vanish -----------
 # Without this the test could be passing on a marker that comes from anywhere
