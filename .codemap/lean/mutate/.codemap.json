@@ -828,6 +828,24 @@
         }
       ]
     },
+    "mutate_rotp24run.sh": {
+      "hash": "bf331321173e",
+      "indexed_at": "2026-08-12T05:43:25.978544+00:00",
+      "language": "shell",
+      "lines": 270,
+      "mtime_ns": 1786513378700759400,
+      "size": 14015,
+      "symbols": [
+        {
+          "lines": [
+            104,
+            186
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotpartialrun.sh": {
       "hash": "dc009fc4836e",
       "indexed_at": "2026-08-11T22:11:31.738166+00:00",
@@ -1366,10 +1384,10 @@
     },
     "mutate_rotworktrace.sh": {
       "hash": "4bb54b12ff3f",
-      "indexed_at": "2026-08-11T22:11:31.834169+00:00",
+      "indexed_at": "2026-08-12T05:41:29.666374+00:00",
       "language": "shell",
       "lines": 297,
-      "mtime_ns": 1786377166686830100,
+      "mtime_ns": 1786513287053274300,
       "size": 15868,
       "symbols": [
         {
@@ -1383,6 +1401,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-11T22:46:13.824817+00:00",
+  "generated_at": "2026-08-12T05:43:26.080621+00:00",
   "version": "1.0"
 }

@@ -23,6 +23,135 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### The preregistered observables had never been extracted, and one of them contradicts the router
+
+**The headline is the unfavourable half: O4 came back against the routed arm in
+every discordant pair, in both orderings.** 40 of 40 forward, 39 of 39 reverse,
+zero favouring. §7 of `bench/P24-PREREGISTRATION.md` calls that **CONTRADICTED**,
+and §5 said in advance that O4 "is the one that can embarrass the router most,
+which is why it is in". It is reported here as prominently as a win would have
+been, because that was the promise.
+
+**The reason it had never been seen is worse than the result.** §9 reported the
+R4 answer-text scoring of the 160 sessions and called it the P2.4 result. It is
+not: §3 declares O1–O4 as *process* observables read out of the transcript, and
+§7 scores them per task. The transcripts existed, `bench/work-trace.js` existed
+and passed its 16 controls, and nothing had ever joined the two. The run was
+scored on the observable P2.4 was rebuilt to stop using.
+
+**Three of the four observables are structurally silent on this corpus.** O1, O2
+and O3 produced **zero** discordant pairs — both arms zero on every task, both
+orderings. The 40 tasks are knowledge questions; none builds, edits or writes a
+file. `RotSaturation` was written after exactly this failure on the 84/84
+corpus, and the corpus was reused for the process question without checking the
+process observables could vary on it. `a_saturated_observable_cannot_conclude`
+now proves the general form for any favouring count, and
+`saturation_is_not_evidence_for_either_side` proves the zeros are not quiet good
+news either.
+
+**The sweep is attributable, and that is the A/A control earning its keep.** A
+total sweep between two identical arms would mean the pipeline manufactures
+them; the A/A control measured ⟨6, 2⟩ — it produced pairs and did not sweep.
+
+**The confound is declared and NOT applied.** The unrouted arm ran 103 and 109
+tool calls against 49 and 55, and emitted 76 150 and 46 461 evidence bytes
+against 9 652 and 9 864. O4 counts a number appearing in no preceding tool
+output, so a larger haystack mechanically lowers it and a terser answer scores
+worse by construction — `work-trace.js` says so in its own docstring. No length
+normalisation was declared in §3 or §7, **so none is applied**; inventing a
+correction after seeing an unfavourable result is the freedom preregistration
+exists to remove. The verdict stands and the limitation ships beside it.
+
+New: `bench/work-trace-tasks.js` (segmentation measured from the transcript
+format — a task prompt is a `user` record with STRING content, a tool result is
+a `user` record with ARRAY content; refuses at exit 3 unless exactly 40 segments
+appear), `bench/p24-score.js` (counts `d` and `f`, emits **no pooled row**, and
+leaves the decision to Lean), `bench/p24-worktrace.jsonl` (160 per-task rows),
+`lean/Proofs/RotP24Run.lean` (build 0, leanchecker 0 bytes, **8/8 mutants
+killed, 0 survived, 0 discarded**), `lean/mutate/mutate_rotp24run.sh`.
+
+`work-trace.js` now exports its functions and guards its CLI with
+`require.main`, so there is exactly **one** extractor: the 16 controls exercise
+the same code path the per-task scorer imports. Copying `observables` into the
+second script would have let the certified extractor and the publishing one
+drift apart.
+
+**A near-miss worth recording: this work was first written straight over an
+existing tracked module.** `lean/Proofs/RotWorkTrace.lean` already existed — 18
+theorems about the *extractor* (haystack saturation, the positive/negative
+control asymmetry, rework and reads-before-write) — and a `Write` replaced it
+wholesale, together with its 12-mutant suite. Nothing in the build noticed: the
+new file compiled, its own suite passed 8/8, `leanchecker` returned zero bytes.
+**Every instrument was green while eighteen theorems were gone.**
+
+What caught it was `checker/repo-complete.sh`, on an arithmetic mismatch nobody
+had aimed at this: the theorem count went *down* by three while a module was
+supposedly being added, and the module count did not move. A counter that
+cross-checks a claim against the tree found a deletion that no proof, no kernel
+re-check and no mutation suite could see — because all three ask "is what is
+here correct", never "is what was here still here".
+
+Both files are restored from `HEAD` and the new work lives in
+`lean/Proofs/RotP24Run.lean` under `RotMoE.P24Run`, which is the right name for
+it anyway: `RotWorkTrace` is about the instrument, `RotP24Run` is about the run
+it measured. The lesson is narrower than "be careful" — **a green build says
+nothing about what a file used to contain**, so a new module gets a name checked
+against the tree before it is written, not after.
+
+### The largest obligation in the push guard could be closed by `seq 160`
+
+`sessions160` was probed with `test "$(wc -l < bench/sessions-160.done)" -ge 160`
+— a line count, on a file the pusher writes. `seq 160 > bench/sessions-160.done`
+closed it. The guard's own docstring forbids exactly this: *"the probe has to
+read something the pusher does not control by writing one line."* The rule was
+stated at the top of the ledger and broken three rows below it.
+
+`checker/sessions-manifest.sh` now runs as part of that probe. The manifest
+carries six fields per turn — ordering, arm, turn number, session id,
+stop reason, content digest — and the checker requires four blocks of forty,
+complete turn numbering inside each, exactly four distinct session ids with none
+shared between blocks, and **160 distinct digests**. Two forgeries are negative
+controls, both of which satisfy the old line count: 160 counted integers, and
+one real block cloned four times with its labels rewritten.
+
+**The instrument caught itself first.** Its controls called the check function
+directly, so a forgery's nine expected failures were added to the real tally and
+the script failed a manifest it had just certified — `17 passed, 9 failed` with
+every genuine row PASS. Redirecting output does not isolate shell state; a
+subshell does. Fixed, then verified in both directions: green on the real
+manifest, exit 1 on one corrupted digest, green again after restore.
+
+The probe got **stricter**. Nothing about the obligation was relaxed to close it,
+and the three obligations that remain outstanding are still outstanding.
+
+### Two obligations are declared UNMET, and the guard is left refusing
+
+`preferenceMeasured` and `p22Established` are one obligation under two names:
+both need a preference panel — odd n ≥ 3, author excluded — judging answer
+quality. That is recruitment, not engineering, and no further measurement here
+closes it. Both probes are `test -s` against a file; `touch` satisfies either.
+Neither file was created. `checker/push-guard.sh` exits 1 with three rows open,
+which is the correct verdict on this tree.
+
+### The main run is scored, and Lean is the one refusing to conclude
+
+`Proofs/RotMainRun.lean` (5 theorems, tree now **1531 theorems / 79
+modules**) binds the R4 main-run scoring — frozen corpus `b3b9e3f0`, 160
+sessions — to the preregistered verdict function. MEASURED: forward 3
+discordant / 2 favouring, reverse 12 / 10. PROVED (`decide`, axiom-free,
+`leanchecker` exit 0 with zero bytes): both orderings lean the same way,
+forward sits below the ten-pair floor, reverse at ⟨12, 10⟩ misses the
+Bonferroni-corrected two-sided tail, the run as a whole reaches no
+verdict, and even the forbidden pooled ⟨15, 12⟩ would conclude nothing.
+Mutation: 4 rounds, 5/5 theorems died, restored green — the ⟨10, 10⟩
+mutants flipped to `supported` in agreement with `RotFamily`'s
+`verdictM m 10 0 = supported`, which is the cross-module control. Count
+claims in `README.md`, `CITATION.cff`, `plugin.json` and
+`marketplace.json` were recounted to 1531/79; `STATUS.md` was
+regenerated by `checker/status-verdict.sh --write`, never by hand. A
+direction the apparatus repeats twice is worth reporting; it is not yet
+a difference the rule certifies.
+
 ### The cost gate was measuring the machine, and now says so instead of guessing
 
 **A gate that flips verdict on an unchanged tree is not measuring the tree.**
@@ -1037,7 +1166,7 @@ function of its type and therefore infrastructure, not evidence.
 Mutants X18–X20 make the audit load-bearing: strip the `min` from the refuted
 repair, drop the family-wise factor from `verdictM`, or shift the cumulative tail
 by one, and these theorems die rather than quietly re-describe a different
-statistic. Across the whole tree the suites now stand at 762 applied, 762 killed,
+statistic. Across the whole tree the suites now stand at 770 applied, 770 killed,
 0 survived, 0 discarded.
 
 ### Prose quality stops being the permanent excuse: the protocol is proved, the taste is not
@@ -1389,11 +1518,16 @@ misses `run_mut_nth` in six suites and undercounts by eight. That is the same
 "counting the wrong token" defect `repo-complete.sh` exists to catch, and it
 caught it here on the author.
 
-`README.md:240` now reads **762 applied, 762 killed, 0 survived, 0 discarded** —
-the 634 swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`,
-9 for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each run
-and killed here — and
-`CITATION.cff` moved from 1083 to the measured 1310 theorems.
+`README.md:240` was corrected the same day to the measured tally — the 634
+swept, plus 5 each for `RotSweep` and `RotLogLock`, 12 for `RotExperiment`, 9
+for `RotProse`, 3 more for the plan audit and 7 for `RotLensActivation`, each
+run and killed here — and `CITATION.cff` moved from 1083 to the measured 1310
+theorems.
+
+*(The mutant total is deliberately not repeated in this sentence. It was, and
+the figure went stale the next time a suite was added — a count quoted twice is
+a count that will disagree with itself. The live tally is `README.md:240`, which
+`repo-complete.sh` cross-checks against the suites on every run.)*
 
 ### The repairs went through Lean 4, because a fixed harness is still an unproven harness
 

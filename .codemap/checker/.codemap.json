@@ -552,18 +552,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "049f3c4eca05",
-      "indexed_at": "2026-08-11T22:11:31.228718+00:00",
+      "hash": "4d00517742db",
+      "indexed_at": "2026-08-12T03:24:20.013223+00:00",
       "language": "shell",
-      "lines": 413,
-      "mtime_ns": 1786454089813790200,
-      "size": 22651,
+      "lines": 414,
+      "mtime_ns": 1786505058068156900,
+      "size": 22882,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            173,
-            188
+            174,
+            189
           ],
           "name": "fires",
           "type": "function"
@@ -1122,12 +1122,12 @@
       ]
     },
     "push-guard.sh": {
-      "hash": "337c564c4066",
-      "indexed_at": "2026-08-11T22:11:31.324484+00:00",
+      "hash": "4cd00c843116",
+      "indexed_at": "2026-08-12T02:52:59.884951+00:00",
       "language": "shell",
-      "lines": 389,
-      "mtime_ns": 1786453566863792500,
-      "size": 19076,
+      "lines": 397,
+      "mtime_ns": 1786503177495186400,
+      "size": 19680,
       "symbols": [
         {
           "lines": [
@@ -1140,8 +1140,8 @@
         {
           "docstring": "(e) PROBE STRENGTH. A row whose description names a number must have a probe that COUNTS to at least that number. Four rows shipped as `test -s` -- a",
           "lines": [
-            260,
-            271
+            268,
+            279
           ],
           "name": "weak_rows",
           "type": "function"
@@ -1494,6 +1494,25 @@
         }
       ]
     },
+    "sessions-manifest.sh": {
+      "hash": "9b50dd5180e7",
+      "indexed_at": "2026-08-12T02:51:52.488746+00:00",
+      "language": "shell",
+      "lines": 162,
+      "mtime_ns": 1786503110122187300,
+      "size": 7914,
+      "symbols": [
+        {
+          "docstring": "--- the check, as a function, so the control can run it on a forgery --------",
+          "lines": [
+            65,
+            112
+          ],
+          "name": "check_manifest",
+          "type": "function"
+        }
+      ]
+    },
     "spdx-sweep.sh": {
       "hash": "e7538638c1a2",
       "indexed_at": "2026-08-11T22:11:31.397219+00:00",
@@ -1841,6 +1860,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-11T22:40:40.243338+00:00",
+  "generated_at": "2026-08-12T03:24:20.013402+00:00",
   "version": "1.0"
 }

@@ -509,6 +509,225 @@ obvious way costs — a 40-of-40 defeat would read as SUPPORTED.
 
 ## 9. Status
 
-**DESIGNED. NOT RUN.** No P2.4 data exists as of this commit. The Lean design
-gate (`RotSaturation`, 12 theorems, 11/11 mutants killed) is in place; the
-extractor (T13) is not written yet.
+**RUN 2026-08-12. VERDICT: NOT ESTABLISHED.** This section previously read
+"DESIGNED. NOT RUN." and was left stale after collection — recorded here rather
+than silently overwritten, because a status line that lies about whether data
+exists is the same defect class as a stale expected value.
+
+### Collection — all four blocks, measured
+
+| block | turns | valid | route records | required |
+|---|---|---|---|---|
+| forward, arm A (routed) | 40 | 40 | **427** | > 0 ✅ |
+| forward, arm B (unrouted) | 40 | 40 | **0** | exactly 0 ✅ |
+| reverse, arm A (routed) | 40 | 40 | **452** | > 0 ✅ |
+| reverse, arm B (unrouted) | 40 | 40 | **0** | exactly 0 ✅ |
+
+160 sessions, 0 failed turns, 0 unparsable result files. "Valid" is
+`is_error = false` with a `stop_reason` and `num_turns ≥ 1` — counted per turn,
+never per file, because a timed-out turn still writes one.
+
+**The manipulation check holds in both directions in both orderings.** The
+forward half passing does not carry the reverse half; each arm was joined to the
+router log by its own session id.
+
+**A counting trap, recorded because it nearly produced a wrong number.** The
+router writes *two* lines per event — one `"kind":"route"` and one
+`"kind":"gauge"`. A naive `grep -c <session-id>` returns 854 and 904, exactly
+double the route-record counts above. The manipulation check is on `route`
+records; the doubled figure is not a second measurement of anything.
+
+**And the log the records land in is not the one the harness exports.** An `env`
+block in the CTT `settings.json` beats the inherited `ROTMOE_DEBUG_LOG`, so the
+records are in `Claude_Test/.claude/rot-route-debug.jsonl`. Counting against the
+exported path returns 0 for every arm — a false "arm A was never routed", which
+is the failure direction `bench/ab-session.sh:133-147` already documents and
+resolves. Verified again here.
+
+### Verdict under §7, R4 primary, per ordering — never pooled
+
+| ordering | discordant | favouring routed | sign | verdict |
+|---|---|---|---|---|
+| forward | 3 | 2 | + | no verdict (below the ten-pair floor) |
+| reverse | 12 | 10 | + | no verdict (misses the corrected tail) |
+
+**The sign agrees in both orderings.** That is the §6 requirement met, and it is
+the strongest statement the run supports. It is *not* significance: neither
+ordering clears the Bonferroni-corrected two-sided tail at the settled family
+size. Per §7, anything other than p < 0.01 in **both** orderings is
+**NOT ESTABLISHED**, and that is the verdict.
+
+Proved, not asserted — `lean/Proofs/RotMainRun.lean`, 5 theorems, `decide`,
+axiom-free, `leanchecker` exit 0 with zero bytes:
+`both_orderings_lean_the_same_way`, `forward_cannot_conclude`,
+`reverse_does_not_clear_the_tail`, `the_main_run_does_not_conclude`, and
+`even_the_forbidden_pool_reaches_no_verdict` — the last proving that the
+forbidden pooled ⟨15, 12⟩ would conclude nothing either, so no incentive to
+break the no-pooling rule ever existed.
+
+### Sensitivity analyses, declared in AMENDMENT 3, reported beside the primary
+
+| rule | forward A/B | reverse A/B | role |
+|---|---|---|---|
+| R1-strict | 18 / 17 | 22 / 17 | sensitivity |
+| R2-lenient | 31 / 29 | 29 / 20 | sensitivity |
+| **R4-committed** | **29 / 28** | **28 / 20** | **PRIMARY** |
+| R3-leading | — | — | **excluded in advance** |
+
+R3 is not implemented in `bench/main-score.js` at all, so it cannot be reported
+by accident. The sensitivity rules agree with the primary in sign and none of
+them reaches a verdict either.
+
+### Two obligations are DECLARED UNMET, and the guard is left refusing
+
+`preferenceMeasured` and `p22Established` are both outstanding after this run,
+and neither is closed by anything in it.
+
+They are **the same obligation wearing two names**: P2.2 asks whether the routed
+arm gives *better answers as a reader would judge them*, and the only instrument
+for that is a preference panel — odd n ≥ 3, the author excluded. That is
+**recruitment, not engineering.** No amount of further measurement on this
+machine closes it, and P2.4 was designed from the start not to try: §8 already
+says this experiment claims "nothing about answer quality as a reader would
+judge it."
+
+**Both could be closed in ten seconds and will not be.** The probes are
+`test -s bench/panel-results.jsonl` and `test -s bench/P22-ESTABLISHED.md` —
+`touch` satisfies either. Creating those files without a panel is the fake green
+this whole apparatus exists to make impossible, and it would be worse here than
+anywhere else: it would manufacture the *one* claim the project has refused to
+make five times.
+
+So `checker/push-guard.sh` exits 1 with three rows outstanding, and that is the
+correct verdict, not an obstacle to route around. Publishing requires either a
+real panel or an explicit decision by the maintainer to push with named
+obligations open — a decision the guard documents as being above the script, and
+which nobody may infer on his behalf.
+
+### O8 hedge rate — descriptive, both arms, both orderings
+
+| ordering | routed | unrouted |
+|---|---|---|
+| forward | 13 / 40 | 12 / 40 |
+| reverse | 7 / 40 | 3 / 40 |
+
+Computed by `bench/main-score.js`, printed apart from the rule table so it
+cannot be misread as a rule. It enters no test and does not inflate `m` —
+`the_hedge_rate_does_not_inflate_the_family` proves adding it leaves `m = 4`.
+
+The pilot measured hedging as *identical* in both arms (6 of 12 each), which is
+what made it a property of the prompt rather than of the routing. At 40 tasks
+the two arms differ by 1 in forward and 4 in reverse, and the rate roughly
+halves between orderings in both arms — a presentation-order effect on hedging,
+present in the unrouted arm too. Recorded as description. **No claim is made
+from it**, and its behaviour across orderings is itself a reason not to.
+
+### The A/A null control, printed beside the result as required
+
+`notSupported`, `controlAdmissible = true` — it ran (6 discordant pairs), found
+no support between two identical arms, and was not a sweep. That is what
+licenses reading an A/B result from this pipeline at all. It also showed the
+pilot's apparent advantage sat inside the range two copies of the same arm
+produce.
+
+---
+
+## 10. THE P2.4 OBSERVABLES WERE EXTRACTED — RESULT: 3 SATURATED, 1 CONTRADICTED
+
+**Run 2026-08-12.** §9 above reported the R4 *answer-text* scoring. That is not
+what this document preregistered. §3 declares O1–O4 as **process** observables
+read out of the transcript, and §7 scores them by a sign test **across the 40
+tasks**. Until now they had never been extracted from the main run — the
+transcripts existed, `bench/work-trace.js` existed and passed its 16 controls,
+and nobody had joined the two. Reporting §9 as "the P2.4 result" was answering a
+different question than the one registered here.
+
+### What was run
+
+| step | instrument | exit |
+|---|---|---|
+| parser controls | `node bench/work-trace.js --selftest` | 0 — **16 passed, 0 failed** |
+| per-task extraction | `node bench/work-trace-tasks.js <transcript> <ordering> <arm>` | 0 ×4 — 40 segments each |
+| pairing and counting | `node bench/p24-score.js bench/p24-worktrace.jsonl` | 0 |
+| verdict | `lean/Proofs/RotP24Run.lean` | build 0, leanchecker 0/0 bytes, 8/8 mutants killed |
+
+Segmentation was **measured, not assumed**: a task prompt is a `type:"user"`
+record whose `message.content` is a STRING, while every tool result is also
+`type:"user"` but carries an ARRAY. Each transcript yields exactly 40 of the
+former against 49+ of the latter, and the extractor **refuses** (exit 3) rather
+than guessing if the count is not 40.
+
+### The counts
+
+| observable | claimed direction (§3) | forward d/f | reverse d/f | verdict (§7) |
+|---|---|---|---|---|
+| O1 verification steps | routed higher | 0 / 0 | 0 / 0 | **SATURATED — no verdict possible** |
+| O2 rework edits | routed lower | 0 / 0 | 0 / 0 | **SATURATED — no verdict possible** |
+| O3 reads before first write | routed higher | 0 / 0 | 0 / 0 | **SATURATED — no verdict possible** |
+| O4 unverified claims | routed **lower** | **40 / 0** | **39 / 0** | **CONTRADICTED** |
+
+### Finding 1 — three of four observables could not express a difference
+
+O1, O2 and O3 produced **zero discordant pairs**: both arms scored zero on every
+task, in both orderings. The 40-task corpus asks knowledge questions; no task
+builds, edits or writes a file, so three of the four preregistered observables
+are structurally silent on it.
+
+This is the failure `RotSaturation` was written after and it happened again, one
+corpus later. `saturated_pair_is_a_tie` proved the 84/84 ceiling was a
+structural tie before P2.4 was designed; `a_saturated_observable_cannot_conclude`
+now proves the general form — an observable with no discordant pairs returns
+`notSupported` for **any** favouring count, so the three zeros are not evidence
+for the router either. `saturation_is_not_evidence_for_either_side` states that
+second half explicitly, because a reader who wants good news will otherwise find
+it in a row of zeros.
+
+**This is a defect in the fit between instrument and corpus, and it is ours.**
+The corpus was frozen for the answer-text question and then reused for the
+process question without checking that the process observables could vary on it.
+
+### Finding 2 — O4 came back against the router, in both orderings, without exception
+
+Of **40** discordant pairs forward and **39** reverse, the routed arm carried
+*more* unverified claims in **every single one**. `f = 0` twice.
+
+§7 calls that **CONTRADICTED** and says it "gets written up as prominently as a
+win would be". §5 said in advance that O4 "is the one that can embarrass the
+router most, which is why it is in". Both promises are kept here.
+
+The sweep is **attributable** rather than an artefact: `RotNullControl.sweep`
+exists because a total sweep between two *identical* arms would mean the
+pipeline manufactures them. The A/A control on this same apparatus measured
+⟨6, 2⟩ — it produced pairs and did not sweep (`the_null_control_did_not_sweep`).
+
+### The confound, declared and NOT applied
+
+O4 counts a number in the final message appearing in no preceding tool output.
+Measured alongside the verdict:
+
+| | routed | unrouted |
+|---|---|---|
+| tool calls (fwd / rev) | 49 / 55 | **103 / 109** |
+| evidence bytes (fwd / rev) | 9 652 / 9 864 | **76 150 / 46 461** |
+
+The unrouted arm produced a strictly larger haystack in both orderings
+(`the_unrouted_arm_had_the_larger_haystack`), and a larger haystack mechanically
+lowers this count. A terser answer therefore scores worse **by construction**,
+and `bench/work-trace.js` says so itself: "a restated number and a re-derived one
+look identical here."
+
+**No length normalisation was declared in §3 or §7, so none is applied.**
+Inventing a correction after seeing an unfavourable result is exactly the
+freedom preregistration removes. The verdict stands as CONTRADICTED and the
+confound ships beside it as a limitation — not instead of it.
+
+### What is now established, and what the next honest step is
+
+**P2.4 did not establish that the routed arm does better work.** Three
+observables were silent and the fourth went the other way;
+`p24_does_not_establish_better_work` binds that summary to the measured counts,
+and all eight mutants of those counts kill the module.
+
+The next step is **not** to rescore this corpus. It is a corpus of *engineering
+tasks* — tasks that build, edit and verify — on which O1–O3 can vary at all. That
+is a new collection with its own preregistration, not a reanalysis of this one.

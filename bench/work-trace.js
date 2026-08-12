@@ -314,15 +314,29 @@ function selftest() {
 }
 
 // ---------------------------------------------------------------------------
-const arg = process.argv[2];
-if (arg === "--selftest") {
-  process.exit(selftest());
+// EXPORTED so there is exactly ONE extractor in this repository.
+//
+// `bench/work-trace-tasks.js` needs the same O1-O4 logic applied per TASK
+// rather than per session, and §7 of the preregistration scores a sign test
+// across the 40 tasks -- a session total cannot feed it. The obvious shortcut is
+// to copy `observables` into the second script, and that shortcut is how two
+// extractors drift until the selftest certifies one of them while the other
+// produces the published number. So the functions are exported and the CLI is
+// guarded by `require.main`: the 16 controls in `--selftest` exercise the SAME
+// code path that the per-task scorer imports.
+module.exports = { parseEvents, observables, claimTokens, isVerification, selftest };
+
+if (require.main === module) {
+  const arg = process.argv[2];
+  if (arg === "--selftest") {
+    process.exit(selftest());
+  }
+  if (!arg) {
+    console.error("usage: node bench/work-trace.js <transcript.jsonl> | --selftest");
+    process.exit(2);
+  }
+  let raw;
+  try { raw = fs.readFileSync(arg, "utf8"); }
+  catch (e) { console.error("cannot read " + arg + ": " + e.message); process.exit(2); }
+  console.log(JSON.stringify(observables(parseEvents(raw)), null, 2));
 }
-if (!arg) {
-  console.error("usage: node bench/work-trace.js <transcript.jsonl> | --selftest");
-  process.exit(2);
-}
-let raw;
-try { raw = fs.readFileSync(arg, "utf8"); }
-catch (e) { console.error("cannot read " + arg + ": " + e.message); process.exit(2); }
-console.log(JSON.stringify(observables(parseEvents(raw)), null, 2));

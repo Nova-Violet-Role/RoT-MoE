@@ -101,6 +101,7 @@ CI audit freshness (the run you read vs the tree you fixed) -- exit 3 SKIP witho
 workflow roles (a docs manager may not write code; freshness is measured on the youngest GREEN run, never the newest run)|deep|.github/workflows/,checker/workflow-roles.sh,lean/Proofs/RotWorkflowRoles.lean|bash checker/workflow-roles.sh
 push guard (a branch push is still a push; the verdict may not depend on the destination -- the GATE asks whether the guard is sound, the pre-push HOOK asks the verdict)|deep|checker/push-guard.sh,.githooks/pre-push,lean/Proofs/RotPushGuard.lean|bash checker/push-guard.sh --instrument
 P2.4 corpus (every task must DISCRIMINATE and route to its declared lane; a line count sees neither)|deep|bench/corpus-40.jsonl,checker/corpus-verify.sh,hooks/rot-router.sh,lean/Proofs/RotTaskCorpus.lean|bash checker/corpus-verify.sh
+session manifest (the sessions160 obligation was closable by 'seq 160'; four blocks, four ids, 160 distinct digests)|deep|bench/sessions-160.done,checker/sessions-manifest.sh,checker/push-guard.sh|bash checker/sessions-manifest.sh
 dorks|fast||bash checker/dorks.sh
 hook footprint|fast||bash checker/hook-footprint.sh
 hook timeout|fast||bash checker/hook-timeout.sh

@@ -2,12 +2,12 @@
   "directory": "bench",
   "files": {
     "P24-PREREGISTRATION.md": {
-      "hash": "d20442d96486",
-      "indexed_at": "2026-08-12T01:00:47.962925+00:00",
+      "hash": "9706661e202b",
+      "indexed_at": "2026-08-12T05:45:38.854441+00:00",
       "language": "markdown",
-      "lines": 514,
-      "mtime_ns": 1786496445676947100,
-      "size": 27388,
+      "lines": 733,
+      "mtime_ns": 1786513535883759300,
+      "size": 38769,
       "symbols": [
         {
           "docstring": "P2.2 asked whether the routed arm gives **better answers** and returned null five times. At least two of those nulls were guaranteed by the corpus, no",
@@ -209,12 +209,133 @@
           "type": "section"
         },
         {
-          "docstring": "**DESIGNED. NOT RUN.** No P2.4 data exists as of this commit. The Lean design gate (`RotSaturation`, 12 theorems, 11/11 mutants killed) is in place; t",
+          "children": [
+            {
+              "docstring": "| block | turns | valid | route records | required | |---|---|---|---|---| | forward, arm A (routed) | 40 | 40 | **427** | > 0 \u2705 | | forward, arm B (u",
+              "lines": [
+                517,
+                546
+              ],
+              "name": "Collection \u2014 all four blocks, measured",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| ordering | discordant | favouring routed | sign | verdict | |---|---|---|---|---| | forward | 3 | 2 | + | no verdict (below the ten-pair floor) | |",
+              "lines": [
+                547,
+                567
+              ],
+              "name": "Verdict under \u00a77, R4 primary, per ordering \u2014 never pooled",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| rule | forward A/B | reverse A/B | role | |---|---|---|---| | R1-strict | 18 / 17 | 22 / 17 | sensitivity | | R2-lenient | 31 / 29 | 29 / 20 | sensi",
+              "lines": [
+                568,
+                580
+              ],
+              "name": "Sensitivity analyses, declared in AMENDMENT 3, reported beside the primary",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`preferenceMeasured` and `p22Established` are both outstanding after this run, and neither is closed by anything in it.",
+              "lines": [
+                581,
+                606
+              ],
+              "name": "Two obligations are DECLARED UNMET, and the guard is left refusing",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| ordering | routed | unrouted | |---|---|---| | forward | 13 / 40 | 12 / 40 | | reverse | 7 / 40 | 3 / 40 |",
+              "lines": [
+                607,
+                624
+              ],
+              "name": "O8 hedge rate \u2014 descriptive, both arms, both orderings",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`notSupported`, `controlAdmissible = true` \u2014 it ran (6 discordant pairs), found no support between two identical arms, and was not a sweep. That is wh",
+              "lines": [
+                625,
+                634
+              ],
+              "name": "The A/A null control, printed beside the result as required",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**RUN 2026-08-12. VERDICT: NOT ESTABLISHED.** This section previously read \"DESIGNED. NOT RUN.\" and was left stale after collection \u2014 recorded here ra",
           "lines": [
             510,
-            515
+            634
           ],
           "name": "9. Status",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "| step | instrument | exit | |---|---|---| | parser controls | `node bench/work-trace.js --selftest` | 0 \u2014 **16 passed, 0 failed** | | per-task extrac",
+              "lines": [
+                645,
+                659
+              ],
+              "name": "What was run",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| observable | claimed direction (\u00a73) | forward d/f | reverse d/f | verdict (\u00a77) | |---|---|---|---|---| | O1 verification steps | routed higher | 0 /",
+              "lines": [
+                660,
+                668
+              ],
+              "name": "The counts",
+              "type": "subsection"
+            },
+            {
+              "docstring": "O1, O2 and O3 produced **zero discordant pairs**: both arms scored zero on every task, in both orderings. The 40-task corpus asks knowledge questions;",
+              "lines": [
+                669,
+                688
+              ],
+              "name": "Finding 1 \u2014 three of four observables could not express a difference",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Of **40** discordant pairs forward and **39** reverse, the routed arm carried *more* unverified claims in **every single one**. `f = 0` twice.",
+              "lines": [
+                689,
+                702
+              ],
+              "name": "Finding 2 \u2014 O4 came back against the router, in both orderings, without exception",
+              "type": "subsection"
+            },
+            {
+              "docstring": "O4 counts a number in the final message appearing in no preceding tool output. Measured alongside the verdict:",
+              "lines": [
+                703,
+                723
+              ],
+              "name": "The confound, declared and NOT applied",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**P2.4 did not establish that the routed arm does better work.** Three observables were silent and the fourth went the other way; `p24_does_not_establ",
+              "lines": [
+                724,
+                734
+              ],
+              "name": "What is now established, and what the next honest step is",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**Run 2026-08-12.** \u00a79 above reported the R4 *answer-text* scoring. That is not what this document preregistered. \u00a73 declares O1\u2013O4 as **process** obs",
+          "lines": [
+            635,
+            734
+          ],
+          "name": "10. THE P2.4 OBSERVABLES WERE EXTRACTED \u2014 RESULT: 3 SATURATED, 1 CONTRADICTED",
           "type": "section"
         }
       ]
@@ -700,12 +821,12 @@
       ]
     },
     "main-score.js": {
-      "hash": "a5f527f994c7",
-      "indexed_at": "2026-08-12T01:10:12.311534+00:00",
+      "hash": "b60b38ef8196",
+      "indexed_at": "2026-08-12T02:46:04.208927+00:00",
       "language": "javascript",
-      "lines": 116,
-      "mtime_ns": 1786497006670588400,
-      "size": 5300,
+      "lines": 131,
+      "mtime_ns": 1786502760963970100,
+      "size": 6135,
       "symbols": [
         {
           "docstring": "reverse -> task i answered in turn 40-i.",
@@ -752,6 +873,25 @@
           ],
           "name": "readTurn",
           "signature": "(arm, turn)",
+          "type": "function"
+        }
+      ]
+    },
+    "p24-score.js": {
+      "hash": "c709cbd4c765",
+      "indexed_at": "2026-08-12T05:21:28.229045+00:00",
+      "language": "javascript",
+      "lines": 108,
+      "mtime_ns": 1786512085478299200,
+      "size": 4372,
+      "symbols": [
+        {
+          "lines": [
+            37,
+            106
+          ],
+          "name": "main",
+          "signature": "()",
           "type": "function"
         }
       ]
@@ -1086,13 +1226,62 @@
         }
       ]
     },
-    "work-trace.js": {
-      "hash": "fffe54e2ca5c",
-      "indexed_at": "2026-08-11T22:11:31.145613+00:00",
+    "work-trace-tasks.js": {
+      "hash": "48dbf481dfec",
+      "indexed_at": "2026-08-12T05:20:17.903765+00:00",
       "language": "javascript",
-      "lines": 328,
-      "mtime_ns": 1786346150021870500,
-      "size": 15457,
+      "lines": 133,
+      "mtime_ns": 1786512014397804600,
+      "size": 5467,
+      "symbols": [
+        {
+          "docstring": "--- the corpus, in its frozen order ---------------------------------------",
+          "lines": [
+            38,
+            46
+          ],
+          "name": "loadCorpus",
+          "signature": "(root)",
+          "type": "function"
+        },
+        {
+          "docstring": "the session ran them.",
+          "lines": [
+            51,
+            70
+          ],
+          "name": "segment",
+          "signature": "(raw)",
+          "type": "function"
+        },
+        {
+          "docstring": "one function so the two scripts cannot drift apart on it.",
+          "lines": [
+            76,
+            78
+          ],
+          "name": "corpusIndexOf",
+          "signature": "(position, ordering)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            80,
+            130
+          ],
+          "name": "main",
+          "signature": "()",
+          "type": "function"
+        }
+      ]
+    },
+    "work-trace.js": {
+      "hash": "554cb385b008",
+      "indexed_at": "2026-08-12T05:18:40.616341+00:00",
+      "language": "javascript",
+      "lines": 342,
+      "mtime_ns": 1786511917969197200,
+      "size": 16266,
       "symbols": [
         {
           "lines": [
@@ -1180,6 +1369,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T01:10:12.779219+00:00",
+  "generated_at": "2026-08-12T05:45:38.860833+00:00",
   "version": "1.0"
 }

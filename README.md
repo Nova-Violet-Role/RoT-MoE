@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1526
+lens activities off disk, computes an `R/s+` gauge from them, and **1546
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -237,7 +237,7 @@ happened to this codebase.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **762 applied, 762 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **770 applied, 770 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -258,7 +258,15 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 > and wrote the reason into the file, where the next reader will find it.
 > `NOTICE.md` §C keeps the full engineering log for anyone who wants it.
 
-### 📐 The ten modules
+### 📐 The modules that carry an argument
+
+Fifteen are described below, out of 79 in the tree. This heading read *"the ten
+modules"* while listing fifteen — a count frozen when the section was written and
+never recounted as modules joined it. The section is **not** an inventory and
+does not try to be: it walks the modules where the *proof* is the interesting
+part, and each one states the defect it was written after. The full count is
+machine-generated, and lives in the release table and `STATUS.md` rather than in
+a heading that has to be edited by hand every time the tree grows.
 
 * **`lean/Proofs/RotGates.lean`** (50 theorems) — **what may be deferred at a
   commit, and what may never be skipped in CI.** Two regimes, and the module
@@ -554,8 +562,8 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | ⊕ `lean/` — 78 modules, 1526 theorems, 72 mutation suites — ⊕ `checker/` (71 checkers) ⊕ `SETUP_LEAN` |
-| **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | ⊕ `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 80 modules, 1546 theorems, 73 mutation suites — plus `checker/` (72 checkers) and `SETUP_LEAN` |
+| **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
 own machine. Take **Router + Lean + Extra** if you want the policy argument as
@@ -701,17 +709,17 @@ Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:
 | ambiguous prompts (two lanes match) | resolve by the **proved** priority order, deterministically |
 | armed vs disarmed in a real `claude` session | **1 emission vs 0** — attributable to the install |
 
-A **range**, not a single figure, and the reason is worth one sentence: three
-consecutive runs of twenty invocations gave 178.5, 175.9 and 170.4 ms on this
-machine. Quoting one of those as *the* number would be a snapshot pretending to
-be a constant, and the next run on another machine would make the README look
-wrong when nothing had regressed. The durable claim is the row beneath it — the
-**bound** is what `bench-router.sh` enforces, and a bound is a property rather
-than a measurement.
+**No figure, not even a range**, and the reason is worth a sentence. Three
+consecutive runs of twenty invocations on an *unchanged* tree have differed by a
+factor of two here — enough that the gate reports `unmeasurable` rather than
+pretend a verdict. Any number written on this page would be a snapshot
+pretending to be a constant, and the next run on another machine would make the
+README look wrong when nothing had regressed. The durable claim is the row
+beneath — the **bound**, which is a property rather than a measurement.
 
-The previous figure here read ≈154 ms and was genuinely out of date: the router
-now computes the `R/s+` gauge on every invocation, which the earlier number
-predates. It was re-measured rather than adjusted.
+This paragraph has been rewritten three times, each time to correct a figure
+that had gone stale: ≈154 ms, then a range, then a different range. That history
+is the argument for quoting none of them.
 
 The last row is the one that matters most: the router is not "probably running",
 it was watched firing and watched going silent when disarmed.
@@ -794,17 +802,19 @@ microphone; each is a **named ability** with a job inside a router that is held
 The names and abilities below are quoted from the project's own codices, with
 the line they came from — none of them is invented here.
 
-> **On the cost figure, and why it is written as a bound.** This page used to say
-> *"a 130-millisecond shell script"*. That was true of the first pre-release and
-> is no longer true of anything: measured 2026-08-10 over ten runs of the shipped
-> `hooks/rot-router.sh`, the range is **380–436 ms, median ≈ 398**. The router
-> grew a live log, a nine-lens ensemble and an `R/s+` gauge in between.
+> **On the cost figure, and why this page no longer quotes one.** It used to say
+> *"a 130-millisecond shell script"* — true of the first pre-release and of
+> nothing since. It was replaced by a range, which drifted too, and by the time
+> four different figures sat on this page they disagreed with each other.
 >
-> Replacing `130` with `398` would only schedule the same defect for next month.
-> The durable statement is the one a gate can enforce: **`D7 BOUNDED COST`,
-> `msBound = 500`**, proved load-bearing in `lean/Proofs/RotDominance.lean` and
-> re-measured against the shipped router by `checker/dominance.sh` on every deep
-> run. A snapshot expires; a bound fails the build the day it is broken.
+> Replacing a stale number with a fresh one only schedules the same defect for
+> next month. **So the numbers are gone and the bound is the claim:**
+> `D7 BOUNDED COST`, `msBound = 500`, proved load-bearing in
+> `lean/Proofs/RotDominance.lean` and re-measured against the shipped router by
+> `checker/dominance.sh` on every deep run. `checker/bench-router.sh` prints the
+> live figure for the arm that actually runs — and reports it separately from
+> interpreter startup, because those two timers differ by more than the router's
+> own work costs. A snapshot expires; a bound fails the build the day it breaks.
 >
 > The current median sits at ~80% of that bound, which is a real margin and a
 > real warning: the next feature that costs 100 ms turns `D7` red, and that is
@@ -856,10 +866,11 @@ flowchart LR
 | no per-lens subprocess | nine lenses, **one** process — the weights are a vector, not nine programs |
 | no state on disk | nothing to corrupt between turns; the same prompt routes the same way, always |
 
-Of the ~194–256 ms measured on this machine, **≈20 ms is bash process startup**,
-which is the operating system's, not ours. Next to a model call measured in
-seconds, the router is not perceptible — and that, not the raw figure, is what
-`checker/bench-router.sh` actually enforces as a bound.
+A large share of the wall-clock cost is interpreter startup — the operating
+system's, not ours — which is why the gate reports that term separately from the
+router's own logic. Next to a model call measured in seconds, the router is not
+perceptible, and that is what `checker/bench-router.sh` enforces as a bound
+rather than as a quoted figure.
 
 **The difference behind it**, stated plainly: a normal router picks *one* expert
 and discards the rest — that is what "mixture of experts" usually means, and it
@@ -916,7 +927,7 @@ kills the module (`lean/mutate/mutate_rotability.sh`).
 | confidence enters linearly, and `C=0` collapses the gauge whatever the divergence | **PROVED** | `gauge_scales_in_C`, `gauge_zero_of_C_zero` |
 | the three modifiers commute — pre-multiplied or applied in the loop is the same engine | **PROVED** | `gauge_modifiers_commute` |
 | the reported `R/s+` is **recomputable** from the logged per-lens terms | **MEASURED** 240/240 in an 80-turn live session, 2/2 in-gate | `checker/ctt-session.sh --report`, `bench-router.sh` §5 |
-| per-turn cost | **MEASURED** 194–256 ms in-gate; median **116 ms**, p95 **175 ms** over 145 live firings | `bench-router.sh` §2, `checker/ctt-session.sh` |
+| per-turn cost | **BOUNDED, not quoted** — `msBound = 500`, enforced on the live arm and re-measured every deep run; the figure itself is printed by the gate, never frozen on this page | `bench-router.sh` §2, `checker/dominance.sh` D7 |
 | `CREATIVE` really is 🩸 Carnage's lane — every other lens carries strictly less λ **than Carnage does** | **PROVED** ×8 | `carnage_leads_creative` |
 | `EMPATHIC` really is 🎷 Violet's lane, by the same standard | **PROVED** ×8 | `violet_leads_empathic` |
 | a lane **amplifies** its lead rather than merely naming it (Carnage 0.6 → 2.5, Violet 0.6 → 2.3, Chroma 1.0 → 2.4) | **PROVED** | `creative_amplifies_carnage`, `empathic_amplifies_violet`, `predictive_amplifies_chroma`, `lane_leads_carry_weight` |
@@ -1028,8 +1039,8 @@ flowchart TD
 
     ROK --> S
     subgraph S["2 · COST — what a turn actually pays"]
-        S1["20 runs, mean wall time"] --> S2{"under the<br/>500 ms bound?"}
-        S2 -- yes --> SOK["PASS<br/>≈20 ms of it is bash startup"]
+        S1["3 batches of 20,<br/>median wall time"] --> S2{"under the<br/>500 ms bound?"}
+        S2 -- yes --> SOK["PASS<br/>startup reported separately"]
         S2 -- no --> SNO["FAIL<br/>a user would feel this"]
     end
 
@@ -1136,7 +1147,7 @@ negative controls below were fired to prove the report can fail.
 | `R/s+` recomputed from per-lens terms | **240/240 exact** (tol 2e-5), zero mismatches |
 | lenses per record / `K` | **9 / 9 on all 240** — the ninth lens never dropped out |
 | lanes reached | **all 10**: FORGE 78, CONVERGENT 42, CLINICAL 24, EXECUTIVE 8, EMPATHIC 7, RECURSIVE 7, STEALTH 7, CREATIVE 6, PREDICTIVE 6, STRATEGIC 2 |
-| router cost, live bash arm | median **116 ms**, mean **125.7 ms**, p95 **175 ms**, max **335 ms** over 145 timed firings |
+| router cost, live bash arm | every firing inside the 500 ms bound; the distribution is printed by `ctt-session.sh --report`, not frozen here |
 | prompt text in the log | **none** — length only, safe to paste into an issue |
 
 The whole lane table was exercised **inside one long conversation**, not in nine
@@ -1160,10 +1171,16 @@ The debug log's `ms` field starts *inside* the script
 Measured like for like (`bench-router.sh` §6, both arms, same prompt, same
 wall-clock timer):
 
-| arm | in-script logic | interpreter startup | **wall clock per turn** |
+| arm | in-script logic | interpreter startup | wall clock per turn |
 |---|---|---|---|
-| `rot-router.sh` (bash) | ≈178 ms | ≈20 ms | **≈198 ms** |
-| `rot-router.ps1` (PowerShell, Windows) | ≈88–125 ms | ≈160–300 ms | **≈284–388 ms** |
+| `rot-router.sh` (bash) | printed by the gate | printed by the gate | bounded at 500 ms |
+| `rot-router.ps1` (PowerShell, Windows) | printed by the gate | printed by the gate | bounded at 500 ms |
+
+The cells say *printed by the gate* rather than carrying numbers on purpose.
+Every figure this table has ever held went stale, and the two timers move for
+different reasons — the router's logic changes when the router changes, the
+interpreter startup changes when the machine is busy. `bench-router.sh` §6
+reports both, per arm, on the run in front of you.
 
 The PowerShell arm's *logic* is genuinely faster; its *interpreter* is an order
 of magnitude more expensive to start, so the turn costs **more**, not less. Both
@@ -1216,8 +1233,8 @@ fails the build over if they ever drift from the Lean corpus.
 | lane coverage of the key | 9 lanes | `bench-router.sh` §1 | **MEASURED** |
 | collision priority | 3 cases, deterministic | `bench-router.sh` §1b + `RotRoute.lean` | **PROVED** in Lean 4 |
 | per-turn cost | **under 500 ms** | `bench-router.sh` §2 | **CLAIM** — the bound is the promise |
-| the latency figure itself | ≈194–256 ms in-gate; median 116 ms live | 20-run mean; 145 live firings | **MEASURED, and it varies** |
-| bash startup inside that | ≈20 ms | subtracted baseline | **MEASURED** |
+| the latency figure itself | printed by the gate, not quoted here | median of 3 batches of 20, per arm | **MEASURED, and it varies enough that freezing it misleads** |
+| interpreter startup inside that | reported separately by the gate | measured beside each batch | **MEASURED** |
 | armed-vs-disarmed effect | A/B in a live session | `live-session-smoke.sh` | **MEASURED**, not proved |
 
 > **Why the latency row is a bound and not a number.** Two consecutive runs on
@@ -1404,7 +1421,7 @@ exactly such a module.
 
 ---
 
-## 🗺️ The map: PROVED · MEASURED · OUT OF SCOPE
+## 🗺️ The map: PROVED · REFUTED · MEASURED · OUT OF SCOPE
 
 **This is the section we are proudest of.** Knowing exactly where the guarantee
 ends is what makes everything before it worth having — a proof with an unmarked
@@ -1415,8 +1432,16 @@ says MEASURED is labelled MEASURED in the source too.
 | | |
 |:--|:--|
 | ✅ **PROVED** | the gauge is positive, bounded below, non-constant, divides by the lenses it summed · the router is total, has no dead lane, and every lane is characterised in both directions · arming preserves every key you own, including keys nobody has invented yet · the two path spellings converge · `disarm ∘ arm` is the identity exactly when the freshness hypothesis holds — and provably not otherwise |
+| ❌ **REFUTED** | the corner the map was missing, and the repository has four entries in it. `decide` disproved the first version of `RotVerdict`'s freshness rule; the sealed P2.2 margin was proved **inapplicable to any pilot size up to 40** rather than merely unmet; the P2.4 main run is **NOT ESTABLISHED** in both orderings; and normalising the cost gate by a spawn tax was shown to *manufacture* a failure on a machine faster than the reference. A claim that was tried and disproved is not the same as one nobody tested, and filing them together loses the difference |
 | 📏 **MEASURED** | the `Float` mirror agrees with the live hook to two decimals · both arms produce byte-identical output on 49 + 23 corpus rows · the installer round trip is byte-identical on a canonical file · the plugin loads in a real session |
 | 🚫 **OUT OF SCOPE** | anything about output *quality* — see below |
+
+**Why REFUTED is a corner and not a footnote.** The heading above this table read
+`PROVED · MEASURED · OUT OF SCOPE` for months while the tetralemma section below
+cited *four* corners and `verdict_is_a_tetralemma` proved the type has exactly
+four inhabitants. Three of the four were on the map. The missing one is the only
+corner that records the apparatus **working against its author** — which is the
+evidence a reader has the most reason to want and the least reason to expect.
 
 And the specifics, because a map with no detail is a poster:
 
@@ -1462,6 +1487,134 @@ And the specifics, because a map with no detail is a poster:
   `--decide` takes the measured inputs as arguments, so both arms are compared
   exactly. That the two arms read the same things off disk and off git is
   asserted by construction, not by proof.
+
+---
+
+## 🔬 The preregistered experiment, and what it returned
+
+**The verdict is NOT ESTABLISHED, and it ships that way.** The rule that decides
+it was sealed before any data existed, and the seal is a git hash in
+`TASKS/PROMISE-TODO.md` (`34c1274f`), not a promise in prose.
+
+| | forward ordering | reverse ordering |
+|---|---|---|
+| discordant pairs | 3 | 12 |
+| favouring the routed arm | 2 | 10 |
+| sign | **+** | **+** |
+| verdict | no conclusion (below the ten-pair floor) | no conclusion (misses the corrected tail) |
+
+160 sessions, a 40-task corpus frozen and hashed *before* session one
+(`b3b9e3f0…`), every task run in **both** presentation orderings, scored by
+`bench/main-score.js` under a rule fixed in advance (R4), with R1 and R2 as
+sensitivity analyses declared in advance and R3 excluded in advance.
+
+**Each ordering is reported alone. The orderings are never pooled** — pooling is
+how an ordering effect disappears into an average, and the reason 160 sessions
+exist rather than 80 is to make that effect visible. The sign agrees in both,
+which is the strongest statement the run supports; it is not significance.
+`even_the_forbidden_pool_reaches_no_verdict` proves the pooled ⟨15, 12⟩ concludes
+nothing either, so the temptation is not merely forbidden — it is worthless.
+
+**The A/A null control is what licenses reading any of this.** The same
+apparatus, both arms routed identically, returned `notSupported` with
+`controlAdmissible = true`: two *identical* arms disagreed on 6 of 12 pairs,
+while the A/B pilot difference was 2 — and pointed the other way. A pipeline
+that cannot tell an arm from its own twin cannot be trusted to tell one arm from
+another, and this one was checked before the result was read.
+
+The manipulation check held in both orderings and in both directions: the routed
+arm produced 427 and 452 router records, the unrouted arm produced **exactly
+zero** both times.
+
+### The process observables — and the one that went against the router
+
+The table above scores the *answers*. P2.4 was designed because answer text is
+the wrong observable for a hook that acts on the reasoning layer, so §3 of the
+preregistration declares four **process** observables read out of the
+transcript. They were extracted per task, from the same 160 sessions:
+
+| observable | claimed direction | forward d/f | reverse d/f | verdict |
+|---|---|---|---|---|
+| O1 verification steps | routed higher | 0 / 0 | 0 / 0 | saturated — no verdict possible |
+| O2 rework edits | routed lower | 0 / 0 | 0 / 0 | saturated — no verdict possible |
+| O3 reads before first write | routed higher | 0 / 0 | 0 / 0 | saturated — no verdict possible |
+| O4 unverified claims | routed **lower** | **40 / 0** | **39 / 0** | ❌ **CONTRADICTED** |
+
+**O4 went against the router in every single discordant pair, in both
+orderings.** The preregistration says such a result "gets written up as
+prominently as a win would be", and §5 named O4 in advance as the observable
+most able to embarrass the router. That is why it is on this page and not in a
+footnote.
+
+**Three of the four could not vary at all.** The corpus asks knowledge
+questions; no task builds, edits or writes a file, so O1–O3 are zero in both
+arms on every task. That is a defect in the fit between instrument and corpus,
+it is ours, and `a_saturated_observable_cannot_conclude` proves such an
+observable is silent in *both* directions — the zeros are not quiet good news.
+
+**The confound is stated and deliberately not applied.** The unrouted arm ran
+roughly twice the tool calls and produced five to eight times the evidence
+bytes; O4 counts a number appearing in no preceding tool output, so a terser
+answer scores worse by construction. No length normalisation was preregistered,
+so none was added after the fact. The verdict stands, and the limitation ships
+beside it.
+
+## 🔨 How this apparatus refuted itself
+
+Five times the machinery contradicted its author, and all five are load-bearing
+enough to be worth a section rather than a footnote.
+
+1. **`decide` proved me wrong about my own freshness rule.** The first version of
+   `RotVerdict`'s rule was stated, then disproved by the kernel — not by a
+   reviewer, and not by a test that happened to fail.
+2. **A retraction, kept in the CHANGELOG.** I read the wrong denominator and
+   charged the specification with my error. The retraction is still there under
+   its own heading, above the entry that corrected it. History does not get
+   rewritten to look tidier.
+3. **A theorem was renamed because its name overclaimed.** The statement was
+   true and the name promised more than the statement delivered, which is the
+   more dangerous half — a wrong name is believed without being read.
+4. **M21 survived twice, and the second survival changed the definition rather
+   than the theorem.** A mutation that freezes a derived value as a literal
+   cannot be caught by a test of behaviour, because the frozen value is *right
+   today*. The fix was to make the value derived in the source and to check that
+   textually — a property of text needs a textual instrument, and no theorem can
+   supply one.
+5. **Normalising the cost gate manufactured a failure.** Dividing by a spawn tax
+   sampled beside each batch was supposed to cancel machine load. On a machine
+   *faster* than the reference it turned a passing 472 ms into a failing 550 ms.
+   The verdict moved back to the raw reading and the normalisation was demoted to
+   a diagnostic, with `rescaling_can_manufacture_a_failure` proving the effect.
+
+There is a sixth, smaller and more embarrassing, and it is here because it is the
+one most likely to recur: a checker of mine reported `17 passed, 9 failed` on a
+file it had just certified, because its own negative controls wrote into the
+shared pass/fail counters. An instrument that cannot tell *"the forgery failed,
+as intended"* from *"the real thing failed"* is not measuring what it claims.
+
+## 🚧 What this experiment does not claim
+
+**Lead with the number that matters most:** the choice of scoring rule moved a
+score by **6 of 12** in the pilot, while the two arms differed by at most **2**.
+The metric is a larger source of variation than the effect being measured. That
+is why the rule was frozen in advance, why two sensitivity analyses were declared
+in advance, and why a result read under a rule chosen *after* seeing data would
+be worthless here.
+
+- **No claim that routed output is better.** Not smarter, not more correct, not
+  more useful. No theorem in this repository says so, and none can — it is not a
+  property Lean can see.
+- **No claim of statistical significance.** Neither ordering clears the
+  Bonferroni-corrected two-sided tail. The sign agreeing twice is a direction,
+  not a difference.
+- **No claim about answer *quality*.** That is P2.2, it needs a preference panel
+  with the author excluded, and it is **outstanding** — the push guard refuses
+  to certify a release while it is.
+- **No claim that these 40 tasks represent your work.** They are a frozen corpus
+  chosen for one property: each one discriminates between a knowing answer and a
+  naive one.
+- **No claim that the hedge rate means anything.** It is reported because it was
+  declared, both arms and both orderings, and it enters no test.
 
 ---
 

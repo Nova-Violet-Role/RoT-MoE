@@ -265,6 +265,12 @@ def shipped : List Gate :=
   , d "workflow roles (a docs manager may not write code; freshness is measured on the youngest GREEN run, never the newest run)" [".github/workflows/", "checker/workflow-roles.sh", "lean/Proofs/RotWorkflowRoles.lean"]
   , d "push guard (a branch push is still a push; the verdict may not depend on the destination -- the GATE asks whether the guard is sound, the pre-push HOOK asks the verdict)" ["checker/push-guard.sh", ".githooks/pre-push", "lean/Proofs/RotPushGuard.lean"]
   , d "P2.4 corpus (every task must DISCRIMINATE and route to its declared lane; a line count sees neither)" ["bench/corpus-40.jsonl", "checker/corpus-verify.sh", "hooks/rot-router.sh", "lean/Proofs/RotTaskCorpus.lean"]
+    -- DEEP, and it is the first gate that judges an OBLIGATION PROBE rather than
+    -- the thing the obligation is about. `push-guard.sh` closed `sessions160` on
+    -- `wc -l >= 160`, which `seq 160` satisfies -- the largest row in the ledger,
+    -- forgeable in one command. Its triggers are the manifest, the checker, and
+    -- the guard itself: weakening the probe back to a line count must re-run this.
+  , d "session manifest (the sessions160 obligation was closable by 'seq 160'; four blocks, four ids, 160 distinct digests)" ["bench/sessions-160.done", "checker/sessions-manifest.sh", "checker/push-guard.sh"]
   , f "dorks"
   , f "hook footprint"
   -- FAST because it reads two files in this repository and compares them to
@@ -447,7 +453,13 @@ def shipped : List Gate :=
 -- a free point for both arms) and must route to the lane it declares, measured
 -- against the shipped router. Writing it found nine tasks silently routing to
 -- FORGE because the directory name `Proofs/` begins with the FORGE stem `proof`.
-#guard shipped.length = 60
+-- 61 with `session manifest`, the first gate that judges an OBLIGATION PROBE
+-- rather than the subject of the obligation. `push-guard.sh` closed `sessions160`
+-- with `wc -l >= 160` on a file the pusher writes; `seq 160` satisfied the
+-- largest row in the ledger. The gate checks the manifest has the shape a real
+-- collection makes -- four blocks of forty, four distinct session ids, 160
+-- distinct digests -- and carries both forgeries as negative controls.
+#guard shipped.length = 61
 
 -- THIRTY-SEVEN run on every commit. The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
@@ -456,9 +468,10 @@ def shipped : List Gate :=
 
 -- TWENTY-THREE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
--- `workflow roles` 2026-08-11, `push guard` 2026-08-11, `P2.4 corpus` 2026-08-11).
+-- `workflow roles` 2026-08-11, `push guard` 2026-08-11, `P2.4 corpus` 2026-08-11,
+-- `session manifest` 2026-08-12).
 -- This comment read "Sixteen" against a guard of 19 for the same reason.
-#guard (deepSet shipped).length = 23
+#guard (deepSet shipped).length = 24
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

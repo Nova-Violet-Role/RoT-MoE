@@ -81,11 +81,19 @@ inf () {
 # NOTE ON WHY THESE ARE PROBES AND NOT A FILE OF BOOLEANS: a hand-maintained
 # "promise.json" would be edited by the same process that wants to push. The
 # probe has to read something the pusher does not control by writing one line.
+#
+# `sessions160` VIOLATED THAT RULE UNTIL 2026-08-12. Its probe was a line count,
+# and `seq 160 > bench/sessions-160.done` satisfied it -- one line the pusher
+# fully controls, closing the largest obligation in the ledger. It now also runs
+# `checker/sessions-manifest.sh`, which requires four blocks of forty, four
+# distinct session ids, complete turn numbering and 160 distinct content
+# digests. Both forgeries that beat the line count are negative controls there.
+# The probe got STRICTER; nothing about the obligation was relaxed to close it.
 # -----------------------------------------------------------------------------
 LEDGER=$(cat <<'ROWS'
 corpus40|40|the 40-task corpus exists and verifies|test "$(wc -l < bench/corpus-40.jsonl 2>/dev/null || echo 0)" -ge 40 && bash checker/corpus-verify.sh >/dev/null 2>&1
 pilot12Pairs|12|the pilot has at least 12 pairs|test "$(wc -l < bench/pilot-pairs.jsonl 2>/dev/null || echo 0)" -ge 12
-sessions160|160|160 sessions collected|test "$(wc -l < bench/sessions-160.done 2>/dev/null || echo 0)" -ge 160
+sessions160|160|160 sessions collected|test "$(wc -l < bench/sessions-160.done 2>/dev/null || echo 0)" -ge 160 && bash checker/sessions-manifest.sh >/dev/null 2>&1
 preferenceMeasured|1|a preference panel has run|test -s bench/panel-results.jsonl
 p22Established|1|P2.2 established|test -s bench/P22-ESTABLISHED.md
 verifyRunOnMain|1|a verify run exists on main|test -s .rot-moe/verify-on-main.stamp

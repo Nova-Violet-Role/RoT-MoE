@@ -106,6 +106,21 @@ for (const [name, f] of Object.entries(RULES)) {
     String(aw).padStart(4) + " " + String(bw).padStart(4) + "  " +
     String(d).padStart(3) + " " + String(fav).padStart(4));
 }
+// O8 -- hedge rate: answers naming BOTH the true and the naive value.
+// DESCRIPTIVE ONLY. It is declared descriptive in AMENDMENT 3 and
+// `the_hedge_rate_does_not_inflate_the_family` proves adding it leaves m = 4.
+// It is printed apart from the rule table so it cannot be misread as a rule,
+// and it carries no discordant/favouring columns because it enters no test.
+let hedgeA = 0, hedgeB = 0;
+tasks.forEach((k, i) => {
+  if (present(answers[i].a, truth[i]) && present(answers[i].a, naive[i])) hedgeA++;
+  if (present(answers[i].b, truth[i]) && present(answers[i].b, naive[i])) hedgeB++;
+});
+console.log("");
+console.log("  O8 hedge rate (DESCRIPTIVE, enters no test, does not inflate m):");
+console.log("     routed   " + String(hedgeA).padStart(2) + "/40");
+console.log("     unrouted " + String(hedgeB).padStart(2) + "/40");
+
 console.log("");
 const r4 = out["R4 committed truth before naive"];
 console.log("  R4 PRIMARY (" + ORDERING + "): discordant=" + r4.d + " favouring=" + r4.fav +

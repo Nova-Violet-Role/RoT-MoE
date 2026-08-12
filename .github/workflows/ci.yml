@@ -1095,6 +1095,17 @@ jobs:
       - name: P2.4 corpus -- every task discriminates and routes to its lane
         run: bash checker/corpus-verify.sh
 
+      # The `sessions160` obligation in checker/push-guard.sh was probed by a
+      # LINE COUNT on a file the pusher writes, which `seq 160` satisfies -- the
+      # largest row in the ledger, closable in one command, three lines below the
+      # docstring forbidding exactly that. The manifest now carries six fields
+      # per turn and this step requires the shape a real collection makes: four
+      # blocks of forty, complete turn numbering, four distinct session ids none
+      # shared between blocks, and 160 distinct content digests. Both forgeries
+      # that beat the old probe are negative controls inside the script.
+      - name: session manifest -- the obligation is not closable by counting to 160
+        run: bash checker/sessions-manifest.sh
+
       - name: hook footprint -- no network, no lake, Lean stays optional
         run: bash checker/hook-footprint.sh
 
