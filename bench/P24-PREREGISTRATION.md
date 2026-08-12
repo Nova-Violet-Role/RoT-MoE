@@ -139,6 +139,46 @@ theorem that stops this margin from being quietly set to 0.
 
 **If the pilot is inadmissible the corpus is rebuilt, not the rule.**
 
+### THE CORPUS FREEZE — 2026-08-12, WRITTEN BEFORE SESSION ONE OF THE 160
+
+The 40-task corpus is frozen as of this line. Recorded **before** any session of
+the main run was executed, so that the tasks cannot be adjusted after seeing an
+outcome — which is the only thing a corpus hash is for.
+
+```
+bench/corpus-40.jsonl
+  git-hash   b3b9e3f084a0a0af4563cb1d47f63be534b7e27b
+  sha256     b85f2e053518535b3b77412ccb2a806cd40def490ea651385a6f076eaee048da
+  lines      40
+  ids        40 unique
+```
+
+Both presentation orderings are generated *from* that file and are checked to be
+non-identical at the head, free of embedded newlines (a line-indexed prompt file
+desyncs silently otherwise) and 40 lines each:
+
+```
+bench/corpus40-forward.txt   40 lines   corpus order
+bench/corpus40-reverse.txt   40 lines   reversed
+```
+
+The run is **40 tasks x 2 arms x 2 orderings = 160 sessions**. The ordering
+factor exists because task order is a nuisance variable that no amount of sample
+size removes: if the routed arm always saw the corpus in the same sequence, any
+ordering effect would be perfectly confounded with the arm.
+
+### DEVIATION — 2026-08-12, DECLARED BEFORE SCORING
+
+The plan called for re-running the 12-pair pilot under R4 at the sealed margin
+before the main run. That re-run was **skipped**; collection went straight to
+arm A of the 160. It is defensible because
+`the_measured_pilot_admits_at_the_sealed_margin` was proved **before** the main
+run, not after — the pilot's admissibility at the sealed margin is a theorem
+about already-collected data, and re-executing the same twelve prompts would
+have produced a second sample, not a stronger license. It is recorded here
+because an undeclared deviation is worse than a declared one, whatever its
+defence.
+
 ### THE A/A NULL CONTROL — RUN 2026-08-11, IT PASSED, AND IT CHANGED THE READING
 
 Two **routed** arms, twelve tasks each, same corpus, same plugin, same primary

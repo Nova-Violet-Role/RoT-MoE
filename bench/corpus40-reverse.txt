@@ -1,0 +1,40 @@
+In .codemap/.codemap.json, how many entries name the local-only release path?
+Meta-question on CHANGELOG.md: how many references are to the local-only release path?
+Token-efficient answer: local-only release references in .gitignore.
+Predict the local-only release reference count in checker/workflow-lint.sh.
+Disrupt the assumption: does checker/release-session.sh name the local-only release path?
+Priority check on checker/release-package.sh: how many local-only release references?
+It feels wrong that checker/release-longsession.sh might not name the local-only release path at all.
+Declare how many local-only release references .codemap/_root.codemap.json holds.
+Audit checker/gate-split.sh: how many references name the local-only release path?
+How many references to the local-only release path are in lean/mutate/mutate_rottag.sh?
+In docs/SCRUTINY-LOG.md, how many times is RotMoE written with that casing?
+Meta: how many exact RotMoE spellings are in ARM_ROUTER.sh?
+One byte of answer: exact RotMoE spellings in .github/topics.md.
+Forecast the exact RotMoE count in bench/P24-PREREGISTRATION.md.
+A surreal thought: CHANGELOG-ARCHIVE.md may spell RotMoE zero times. True?
+For the roadmap: how many exact RotMoE spellings does .github/workflows/ci.yml contain?
+Human question about UNSEALED.md: how often is RotMoE written with that exact casing?
+Declare the exact RotMoE spelling count in README.md.
+Security audit: how many exact RotMoE spellings are in CHANGELOG.md?
+How many times does agents/lean4-prover.md spell the namespace RotMoE exactly?
+Count the mutants in mutate/mutate_rotcite.sh.
+Refactor question: which regex is the ontology of a mutant in mutate/mutate_rotciskip.sh?
+Compress this to one number: the mutants in mutate/mutate_rotceiling.sh.
+What is the likely mutant count for mutate/mutate_rotcasefold.sh?
+Invent a reason the two mutant counts for mutate/mutate_rotcalibration.sh disagree.
+Recommend the mutant figure to put in the roadmap for mutate/mutate_rotattribute.sh.
+I feel like mutate/mutate_rotacquire.sh has more mutants than it really does.
+Declare the mutant total for mutate/mutate_rotabverdict.sh.
+Audit the mutant count in mutate/mutate_rotabjoin.sh -- is the obvious command wrong?
+How many run_mut invocations are in lean/mutate/mutate_rotability.sh?
+How many propositions are in the RotObserve module?
+The meta question: what does proposition count even mean for the RotGauge module?
+Give a concise proposition count for the RotGates module.
+Which proposition count for the RotExperiment module is likely the correct one?
+A paradox: two counts for the RotEnsemble module, both defensible. Which one is real?
+Recommend which proposition count to publish for the RotEigenform module.
+The story of the RotDebugLog module: how many propositions does a human actually see?
+Decide the true proposition count for the RotCite module now.
+Audit the proposition count for the RotCaseFold module -- a plain grep disagrees with the counter.
+How many theorems does lean/Proofs/RotAbility.lean declare?
