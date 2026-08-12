@@ -708,8 +708,25 @@ inv_check () {   # <regex with one capture> <expected> <label>
     # by this block. Closing the gap properly needs a live-claim marker in the
     # changelog, not a broader regex.
     [ "$f" = "CHANGELOG.md" ] && continue
-    local body
-    body=$(cat "$REPO/$f")
+    # GREP THE FILE DIRECTLY. The previous form slurped the whole file into
+    # `body=$(cat ...)` and re-emitted it with `printf '%s\n' "$body"`, which
+    # CRASHED on macOS: run 31635348645, checkers (macos-latest), a stream of
+    #
+    #   checker/repo-complete.sh: line 683: 12035 Bus error: 10  printf '%s\n' "$body"
+    #
+    # macOS ships bash 3.2, and a single argument holding an entire README is
+    # enough to take it down with SIGBUS. Ubuntu and Windows (both modern bash)
+    # scanned the same file and passed, so this read as a macOS-only phantom.
+    #
+    # WHAT THE CRASH ACTUALLY DID is the part worth recording: the subshell died
+    # producing NO output, so the loop below simply saw no claims. The scan did
+    # not report an error -- it reported nothing, which is indistinguishable from
+    # "this file makes no claim". Only the `hits -eq 0` guard further down turned
+    # that silence into a FAIL. Without it, a checker crashing on every file
+    # would have printed a clean green.
+    #
+    # Passing the filename to grep removes the giant-argument path entirely, and
+    # is what the theorem loop already does.
     while IFS= read -r got; do
       [ -n "$got" ] || continue
       hits=$((hits+1))
@@ -717,7 +734,7 @@ inv_check () {   # <regex with one capture> <expected> <label>
         echo "  FAIL  $f claims $got $label; the tree has $want"
         fail=$((fail+1)); bad=$((bad+1))
       fi
-    done < <(printf '%s\n' "$body" | grep -oE "$re" 2>/dev/null | grep -oE '[0-9]+')
+    done < <(grep -oE "$re" "$REPO/$f" 2>/dev/null | grep -oE '[0-9]+')
   done < <(cd "$REPO" && git ls-files -z)
   if [ "$hits" -eq 0 ]; then
     # Zero sites is not a pass. If the phrasing changes, this check silently
