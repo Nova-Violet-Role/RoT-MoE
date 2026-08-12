@@ -69,6 +69,28 @@ declared_reason () {
     # skip is real (no token, no completed run yet, or logs expired) and the
     # block prints a ::notice saying it is not a pass. Declared here because the
     # gate keys on a run block's FIRST LINE, which for this block is a comment.
+    # workflow-roles, AFTER the 2026-08-12 repair. Its API half needs a
+    # credential a fork does not have, so it reports SKIP and exits 3; the step
+    # accepts that as a ::notice and goes green. Declared under the block's new
+    # distinctive first line.
+    'Run # workflow-roles: its API half needs a credential a fork does not have')
+      printf '%s' "workflow-roles: the freshness half needs a credential; reported as ::notice, a skip is not a pass" ;;
+    # push-guard, likewise given a distinctive first line on 2026-08-12.
+    'Run # push-guard: instrument soundness first, then the verdict it reports')
+      printf '%s' "push-guard: the verdict is reported, never demanded; exit 1 is its normal answer while an obligation is open" ;;
+    # BEFORE that repair both blocks opened with a bare `set -uo pipefail`, and
+    # GitHub labelled their log groups with THAT line. The label is therefore the
+    # only key run 31622038695's log offers for them. Declared so the log of the
+    # run that CONTAINED the defect can still be judged.
+    #
+    # COARSE, AND SAID SO -- exactly the limitation this file already records for
+    # the two inline blocks above: this key would also match a future block that
+    # opens with `set -uo pipefail`. That is why both real blocks were given
+    # distinctive first lines in the same commit; this entry covers only the
+    # historical logs, and should be deleted once no judged run predates the
+    # repair.
+    'Run set -uo pipefail')
+      printf '%s' "historical: pre-2026-08-12 label for workflow-roles/push-guard, before both were given distinctive first lines" ;;
     'Run # GitHub runs this block as `bash -e {0}`, so a non-zero exit ABORTS')
       printf '%s' "deferred closure: exit 3 means no token or no completed run yet; reported as ::notice, never counted as a pass" ;;
     # TWO INLINE MULTI-CHECKER BLOCKS. GitHub labels a log group with the run

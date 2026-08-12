@@ -165,7 +165,20 @@ jobs:
           mkdir -p "$CFG"
           # The declaration under test points at THIS checkout, whose manifest
           # is the artifact we are about to publish.
-          printf '{\n  "extraKnownMarketplaces": {\n    "rot-moe": {\n      "source": {\n        "source": "directory",\n        "path": "%s"\n      }\n    }\n  }\n}\n' "$GITHUB_WORKSPACE" > "$CFG/settings.json"
+          # MEASURED on the windows runner, run 31622038695: GITHUB_WORKSPACE is
+          # a drive-letter path with backslash separators, and a lone backslash
+          # is an ILLEGAL JSON
+          # escape -- the checker read the file and reported
+          #   FAIL UNPARSEABLE .../settings.json: Bad escaped character at position 118
+          # which is the checker working correctly on a file this step wrote
+          # wrongly. Forward slashes are valid on Windows and need no escaping.
+          WS_JSON="${GITHUB_WORKSPACE//\\//}"
+          printf '{\n  "extraKnownMarketplaces": {\n    "rot-moe": {\n      "source": {\n        "source": "directory",\n        "path": "%s"\n      }\n    }\n  }\n}\n' "$WS_JSON" > "$CFG/settings.json"
+          # Prove the file we just wrote is parseable BEFORE handing it to the
+          # checker, so a malformed fixture can never be mistaken for a finding
+          # about the plugin roots.
+          node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"))' "$CFG/settings.json" \
+            || { echo "::error title=plugin-root::the fixture this step wrote is not valid JSON -- that is a defect in the step, not in the plugin roots"; cat "$CFG/settings.json"; exit 1; }
           test -s .claude-plugin/plugin.json || { echo "REFUSE: no plugin manifest to declare"; exit 1; }
           # `bash -e` aborts the step BEFORE `rc=$?` can be read -- measured in
           # run 30695224024 on the deferred-closure step below, and this block
@@ -592,6 +605,23 @@ jobs:
       - name: verdict freshness -- is the committed STATUS.md true of this tree
         shell: bash
         run: bash checker/verdict-fresh.sh
+
+      # The README's counts, recomputed from the tree. Same reasoning as the
+      # verdict block directly above: a number typed into prose is true on the
+      # day it is written and silently false afterwards. Both are in the default
+      # local set as well, because a check CI can fail that the local sweep
+      # cannot is a local sweep that lies about being green.
+      - name: README FACTS block -- the published counts against the tree
+        shell: bash
+        run: bash checker/facts-block.sh
+
+      # `rc=$?` after a bare command is DEAD CODE under GitHub's `bash -e {0}`.
+      # Three steps in this very file carried that shape, and their carefully
+      # written tolerance branches had never once executed. This gate scans the
+      # workflows so a fourth cannot appear.
+      - name: workflow exit reads -- every $? must actually be reachable
+        shell: bash
+        run: bash checker/workflow-exit-reads.sh
 
       # A tracked file emptied on disk is INVISIBLE to every text-reading check,
       # because the offending text is exactly what was deleted. Measured
@@ -1158,9 +1188,21 @@ jobs:
       # skip to be declared rather than silently swallowed.
       - name: workflow roles -- a docs manager may not write code
         run: |
+          # workflow-roles: its API half needs a credential a fork does not have
+          # This first line is deliberately distinctive. GitHub labels a log
+          # group with the run block's FIRST LINE, and checker/ci-log-skips.sh
+          # keys its declarations on that label -- so a block beginning with a
+          # generic `set -uo pipefail` shares a key with every other block that
+          # does, and declaring THAT key would excuse skips anywhere in the file.
+          # A unique first line keeps the declaration narrow.
           set -uo pipefail
-          bash checker/workflow-roles.sh
-          ec=$?
+          # `set -uo pipefail` does NOT cancel the `-e` in GitHub's default
+          # `bash -e {0}`. MEASURED in run 31622038695: this checker reported
+          # "10 passed, 0 failed, 1 skipped ... Exit 3", the case below was
+          # written precisely to accept that as a notice, and the step died at
+          # the invocation without ever reaching the case. The exit-3 branch has
+          # never once executed. Third occurrence of this hazard in this file.
+          if bash checker/workflow-roles.sh; then ec=0; else ec=$?; fi
           case "$ec" in
             0) echo "workflow-roles: PASS" ;;
             3) echo "::notice::workflow-roles SKIPPED its API half (exit 3) -- not a pass, measured from gate-all.sh instead" ;;
@@ -1180,17 +1222,27 @@ jobs:
       # answer. "I could not tell" is not "yes", and it is not a pass either.
       - name: push guard -- the instrument must be sound, whatever its verdict
         run: |
+          # push-guard: instrument soundness first, then the verdict it reports
+          # A distinctive first line, for the same reason as the block above:
+          # ci-log-skips.sh keys its declarations on the log group's label, which
+          # GitHub takes from a run block's FIRST LINE. A generic
+          # `set -uo pipefail` there would make one declaration silently cover
+          # every block that happens to open the same way.
           set -uo pipefail
           # --instrument asks whether the guard is SOUND, not which way it points.
           # One implementation, shared with gate-all.sh, so the two can never drift.
-          bash checker/push-guard.sh --instrument
-          ec=$?
+          # `-e` is on (GitHub runs this as `bash -e {0}`) and `set -uo pipefail`
+          # does not cancel it, so a bare invocation aborts the step before its
+          # status can be read. Both reads below use the `if` form for that
+          # reason; the second matters most, because exit 1 is the guard's
+          # NORMAL answer while an obligation is open and the bare form would
+          # have killed the step without ever printing the verdict it captured.
+          if bash checker/push-guard.sh --instrument; then ec=0; else ec=$?; fi
           [ "$ec" -eq 0 ] || { echo "::error::push-guard is not sound (exit $ec)"; exit 1; }
 
           # And the verdict itself, reported but never demanded. Exit 1 is the
           # correct answer until the promise is fulfilled; exit 2 never is.
-          bash checker/push-guard.sh > /tmp/pushguard.txt 2>&1
-          vc=$?
+          if bash checker/push-guard.sh > /tmp/pushguard.txt 2>&1; then vc=0; else vc=$?; fi
           cat /tmp/pushguard.txt
           case "$vc" in
             0) echo "push-guard: promise FULFILLED -- transmission permitted" ;;

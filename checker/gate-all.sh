@@ -94,6 +94,8 @@ licence bridge|fast||bash checker/license-bridge.sh
 release consistency|fast||bash checker/release-consistency.sh
 tag consistency|fast||bash checker/tags-consistency.sh
 verdict freshness|fast||bash checker/verdict-fresh.sh
+README FACTS block matches the tree|fast||bash checker/facts-block.sh
+workflow exit reads are reachable under bash -e|fast||bash checker/workflow-exit-reads.sh
 tree integrity (no tracked file is EMPTY on disk while git holds content)|fast||bash checker/tree-integrity.sh
 mutation discipline|fast||bash checker/mutant-discipline.sh
 mutant needles (every needle still exists; no suite all-DISCARDED)|fast||bash checker/mutant-needles.sh

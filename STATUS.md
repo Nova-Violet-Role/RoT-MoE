@@ -13,7 +13,7 @@ that script on the run that produced it -- none is a description.
 | theorems | 1566 |
 | modules | 82 |
 | mutation suites | 75 |
-| checkers | 73 |
+| checkers | 75 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |
 | files containing `native_decide` | 0 |

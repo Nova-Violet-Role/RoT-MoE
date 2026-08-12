@@ -83,7 +83,12 @@ if [ -f bench/trap-score-controls.js ]; then
   if node bench/trap-score-controls.js >/tmp/trap_ctl.log 2>&1; then
     ok "scorer controls pass"
   else
-    bad "scorer controls FAIL -- see /tmp/trap_ctl.log"
+    # An alarm that points at a file the reader does not have is an alarm that
+    # cannot report itself. On a CI runner /tmp/trap_ctl.log is discarded with
+    # the container, so "see /tmp/trap_ctl.log" told run 31622038695's reader
+    # exactly nothing. Print the evidence INTO the failure.
+    bad "scorer controls FAIL -- output follows (also at /tmp/trap_ctl.log)"
+    sed -n '1,40p' /tmp/trap_ctl.log | sed 's/^/    | /'
   fi
 else
   bad "bench/trap-score-controls.js is missing -- the scorer has no negative control"

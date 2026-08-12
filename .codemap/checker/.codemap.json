@@ -235,18 +235,18 @@
       ]
     },
     "ci-log-skips.sh": {
-      "hash": "af98ce472f7a",
-      "indexed_at": "2026-08-12T17:10:36.378310+00:00",
+      "hash": "32fe50f19f96",
+      "indexed_at": "2026-08-12T17:49:34.121009+00:00",
       "language": "shell",
-      "lines": 264,
-      "mtime_ns": 1786554634210743500,
-      "size": 12878,
+      "lines": 286,
+      "mtime_ns": 1786556971525395800,
+      "size": 14505,
       "symbols": [
         {
           "docstring": "----------------------------------------------------------------------------- THE DECLARED BUDGET. One line per checker whose substance a public runne",
           "lines": [
             49,
-            93
+            115
           ],
           "name": "declared_reason",
           "type": "function"
@@ -254,16 +254,16 @@
         {
           "docstring": "----------------------------------------------------------------------------- Extract, per job log, the steps whose BODY printed a runtime skip. Echoe",
           "lines": [
-            100,
-            136
+            122,
+            158
           ],
           "name": "scan_dir",
           "type": "function"
         },
         {
           "lines": [
-            138,
-            154
+            160,
+            176
           ],
           "name": "judge_dir",
           "type": "function"
@@ -551,19 +551,45 @@
         }
       ]
     },
-    "gate-all.sh": {
-      "hash": "459b27fbcbee",
-      "indexed_at": "2026-08-12T11:05:39.398998+00:00",
+    "facts-block.sh": {
+      "hash": "c7576ba44af2",
+      "indexed_at": "2026-08-12T17:46:54.577427+00:00",
       "language": "shell",
-      "lines": 415,
-      "mtime_ns": 1786532733805712400,
-      "size": 23022,
+      "lines": 169,
+      "mtime_ns": 1786556802364815800,
+      "size": 8377,
+      "symbols": [
+        {
+          "lines": [
+            70,
+            94
+          ],
+          "name": "emit_block",
+          "type": "function"
+        },
+        {
+          "lines": [
+            96,
+            99
+          ],
+          "name": "extract_block",
+          "type": "function"
+        }
+      ]
+    },
+    "gate-all.sh": {
+      "hash": "8d03992cf8b0",
+      "indexed_at": "2026-08-12T18:04:31.392971+00:00",
+      "language": "shell",
+      "lines": 417,
+      "mtime_ns": 1786557868693750100,
+      "size": 23182,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            175,
-            190
+            177,
+            192
           ],
           "name": "fires",
           "type": "function"
@@ -1615,12 +1641,12 @@
       ]
     },
     "trap.sh": {
-      "hash": "8b9e2ef93d2e",
-      "indexed_at": "2026-08-12T08:44:37.591190+00:00",
+      "hash": "9aec389c4717",
+      "indexed_at": "2026-08-12T17:28:58.383673+00:00",
       "language": "shell",
-      "lines": 145,
-      "mtime_ns": 1786315157095430100,
-      "size": 6308,
+      "lines": 150,
+      "mtime_ns": 1786555735799445500,
+      "size": 6682,
       "symbols": []
     },
     "tree-integrity.sh": {
@@ -1725,6 +1751,25 @@
             224
           ],
           "name": "ctl",
+          "type": "function"
+        }
+      ]
+    },
+    "workflow-exit-reads.sh": {
+      "hash": "56f2ecb8caaf",
+      "indexed_at": "2026-08-12T17:46:54.578110+00:00",
+      "language": "shell",
+      "lines": 135,
+      "mtime_ns": 1786556802410815800,
+      "size": 6362,
+      "symbols": [
+        {
+          "docstring": "scan <file> -> prints \"line:text\" for each UNREACHABLE exit-code read",
+          "lines": [
+            60,
+            78
+          ],
+          "name": "scan",
           "type": "function"
         }
       ]
@@ -1879,6 +1924,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-12T17:10:36.378450+00:00",
+  "generated_at": "2026-08-12T18:04:31.398763+00:00",
   "version": "1.0"
 }

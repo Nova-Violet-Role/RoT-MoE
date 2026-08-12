@@ -231,6 +231,12 @@ def shipped : List Gate :=
   , f "release consistency"
   , f "tag consistency"
   , f "verdict freshness"
+    -- FAST for the same reason as the row above: both recompute a published
+    -- number from the tree and finish in well under a second, and a check CI
+    -- can fail that the default local sweep cannot is a local sweep that lies
+    -- about being green.
+  , f "README FACTS block matches the tree"
+  , f "workflow exit reads are reachable under bash -e"
     -- FAST, and that tier is the whole point. The state it looks for -- a
     -- tracked file emptied on disk while git holds content -- is invisible to
     -- every gate that reads source TEXT, because the offending text is exactly
@@ -469,13 +475,15 @@ def shipped : List Gate :=
 -- had started to read like a design. The gate asks the general question rather
 -- than naming those two modules, so it still works on modules written after it,
 -- and it found a second collision (`RotMoE.Run`) on its first run.
-#guard shipped.length = 62
+#guard shipped.length = 64
 
--- THIRTY-EIGHT run on every commit (37 until `name collision` was added on
+-- FORTY run on every commit (38 until `README FACTS block` and `workflow exit
+-- reads` were added on 2026-08-12; 37 until `name collision`, added the same
+-- day). This prose is recounted with the guard beneath it, never after it.
 -- 2026-08-12). The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
 -- prose is what a reader believes. Both are recounted together from now on.
-#guard (fastSet shipped).length = 38
+#guard (fastSet shipped).length = 40
 
 -- TWENTY-THREE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
@@ -503,7 +511,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 43
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 45
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -513,17 +521,17 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 38
+#guard (stagedRun shipped []).length = 40
 
 -- Touching the router escalates the gates that cross-check it. 44 since the
 -- `P2.4 corpus` gate joined: it names `hooks/rot-router.sh` as a trigger because
 -- every task's declared lane is a claim about THAT file, and a stem list edited
 -- without re-checking the corpus would silently invalidate forty lane bindings.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 45
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 47
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 39
+#guard (stagedRun shipped ["README.md".toList]).length = 41
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.
