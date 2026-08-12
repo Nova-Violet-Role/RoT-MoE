@@ -1310,12 +1310,12 @@
       ]
     },
     "trap-score-controls.js": {
-      "hash": "d5ebc297f989",
-      "indexed_at": "2026-08-12T08:44:37.405350+00:00",
+      "hash": "ceaf9a8336a8",
+      "indexed_at": "2026-08-12T18:50:19.591801+00:00",
       "language": "javascript",
-      "lines": 72,
-      "mtime_ns": 1786315174453429600,
-      "size": 3612,
+      "lines": 85,
+      "mtime_ns": 1786560616996610000,
+      "size": 4376,
       "symbols": [
         {
           "lines": [
@@ -1336,9 +1336,19 @@
           "type": "function"
         },
         {
+          "docstring": "survives that round trip.",
           "lines": [
-            35,
-            35
+            43,
+            45
+          ],
+          "name": "why",
+          "signature": "(r)",
+          "type": "function"
+        },
+        {
+          "lines": [
+            48,
+            48
           ],
           "name": "ok",
           "signature": "(m)",
@@ -1346,8 +1356,8 @@
         },
         {
           "lines": [
-            36,
-            36
+            49,
+            49
           ],
           "name": "bad",
           "signature": "(m)",
@@ -1574,6 +1584,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T12:41:04.044833+00:00",
+  "generated_at": "2026-08-12T18:50:19.591977+00:00",
   "version": "1.0"
 }
