@@ -44,7 +44,7 @@ bad () { printf '  FAIL %s\n' "$1"; failed=$((failed+1)); }
 
 [ -d "$MUTDIR" ] || { echo "FATAL: $MUTDIR not found"; exit 2; }
 
-# THE REPO PATH CONTAINS SPACES ("C:/GIT External Repo/RoT MoE").
+# THE REPO PATH CONTAINS SPACES (the checkout directory has two of them).
 #
 # The first version of this file iterated `for f in $SUITES` over an unquoted
 # variable. Every path split on its spaces, every grep failed with

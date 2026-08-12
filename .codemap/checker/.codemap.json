@@ -1020,12 +1020,12 @@
       ]
     },
     "mutate-harness.sh": {
-      "hash": "7fd6c12464bd",
-      "indexed_at": "2026-08-12T08:44:37.530989+00:00",
+      "hash": "c5be7752f61b",
+      "indexed_at": "2026-08-12T19:41:14.753336+00:00",
       "language": "shell",
       "lines": 225,
-      "mtime_ns": 1786378161613209400,
-      "size": 10324,
+      "mtime_ns": 1786563672221374800,
+      "size": 10332,
       "symbols": []
     },
     "name-collision.sh": {
@@ -1048,12 +1048,12 @@
       ]
     },
     "no-local-paths.sh": {
-      "hash": "d920d24f1666",
-      "indexed_at": "2026-08-12T08:44:37.532611+00:00",
+      "hash": "94ae9d9aee30",
+      "indexed_at": "2026-08-12T19:42:25.111958+00:00",
       "language": "shell",
-      "lines": 212,
-      "mtime_ns": 1785928173987474600,
-      "size": 9833,
+      "lines": 240,
+      "mtime_ns": 1786563742600376000,
+      "size": 11693,
       "symbols": []
     },
     "plugin-install.sh": {
@@ -1924,6 +1924,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-12T18:04:31.398763+00:00",
+  "generated_at": "2026-08-12T19:42:25.112084+00:00",
   "version": "1.0"
 }

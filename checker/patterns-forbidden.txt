@@ -8,3 +8,4 @@ Yeah!Tort
 CLAUDE_ROT_LEAN
 .elan\toolchains
 Saimono\.claude
+C:/GIT External Repo

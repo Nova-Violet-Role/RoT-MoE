@@ -6,10 +6,25 @@
 //   4 routed wins only because arm a was SILENT  -> explained away -> null
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const { spawnSync } = require("child_process");
 
-const ROOT = "C:/GIT External Repo/RoT MoE";
-const T = "D:/Temp/ctt-pub/trapctl";
+// BOTH OF THESE WERE HARDCODED WINDOWS DRIVE PATHS, AND IT COST TWO RED CI JOBS.
+// Measured on run 31629035282 (ubuntu + macos): all four scenarios exited 1,
+// including the one whose expected verdict is exit 3, because
+// spawning node against an absolute Windows checkout path for bench/trap-score.js
+// resolves to nothing on a Linux runner -> MODULE_NOT_FOUND -> 1. The scorer was
+// never executed at all, so the suite reported four scoring failures when the
+// real fault was that no scoring had happened. That is why the failure text had
+// to be taught to print the scorer's stderr first: the exit code alone said
+// "the scorer disagrees" when the truth was "the scorer is absent".
+//
+// `checker/no-local-paths.sh` exists to catch exactly this and did NOT, because
+// `checker/patterns-forbidden.txt` listed only the BACKSLASH spellings of the
+// checkout and temp roots, and this file used forward slashes. The needle was
+// narrower than the gate's description. Widened there; derived here.
+const ROOT = path.join(__dirname, "..");
+const T = path.join(os.tmpdir(), "rotmoe-trapctl");
 fs.rmSync(T, { recursive: true, force: true });
 
 const items = [];

@@ -40,6 +40,34 @@ rc=0
 
 [ -f "$PAT" ] || { echo "FAIL: pattern file missing: $PAT"; exit 2; }
 
+# WHY THE PATTERN FILE CARRIES NO COMMENTS: it is consumed by `grep -F -f`, so
+# every line is a literal needle. A line beginning with `#` would not document
+# anything -- it would become a search string matching every shell comment in
+# the tree and turn the sweep into a permanent red. The reasoning therefore
+# lives here.
+#
+# 2026-08-12, THE SPELLING GAP THIS SWEEP HAD, and it was not theoretical.
+# The list banned `C:\GIT External Repo` and `D:\` -- the BACKSLASH spellings
+# only. `bench/trap-score-controls.js` hardcoded the FORWARD-slash form
+# (a drive-letter checkout path) to locate bench/trap-score.js, this sweep saw
+# nothing, and the file shipped. On ubuntu and macos that path resolves to
+# nothing: MODULE_NOT_FOUND, exit 1, all four scenarios red on two platforms
+# across runs 31629035282 and earlier. A gate whose needle is narrower than its
+# own description is worse than no gate, because its green is read as a clearance.
+# The forward-slash checkout path is now banned too, so the ban is spelling-
+# independent for the one path that can never be correct anywhere else.
+#
+# WHAT IS DELIBERATELY *NOT* BANNED, so nobody later reads this list as complete:
+# `D:/Temp/...` and `C:/Users/Saimono/...` still appear as OVERRIDABLE DEFAULTS
+# -- `${ROTMOE_AB_CORPUS:-D:/Temp/rotmoe-ab}` (checker/ab-analyze.sh:31),
+# `${ROTMOE_CONFIG_DIRS:-...}` (checker/plugin-root-consistency.sh:56),
+# `process.argv[2] || ...` (bench/pilot-rescore.js:32). Those are machine-local
+# by nature and CI overrides every one of them. Banning the string outright
+# would fail a correct file and the obvious repair would be to delete the
+# default -- destroying real coverage to satisfy a gate. The property that
+# actually matters is not "the string is absent" but "nothing resolves a
+# drive-letter path UNCONDITIONALLY", and an overridable default does not.
+
 # --- POSITIVE CONTROL --------------------------------------------------------
 # Plant a file containing the first forbidden pattern. If the sweep does not
 # find it, the sweep is blind and every clean result it has ever produced is
