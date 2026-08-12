@@ -50,7 +50,7 @@ one line of reasoning, and this module is the reasoning.
 
 A mutant is characterised by three observables the shell harness really has:
 the patch tool's exit status, whether the output is empty, and whether the
-output differs from the original. `classify` maps those to an outcome, and
+output differs from the original. `classifyOutcome` maps those to an outcome, and
 `accepts` is the assertion under test. Nothing here models *what* the patch did
 — it does not need to. The claim is about **when a result may be counted**, and
 that is decidable from the three observables alone.
@@ -97,7 +97,7 @@ the mutated input — `true` means the assertion was happy with the broken file.
 The order matters and is the whole point: whether the patch landed is decided
 **before** the assertion's opinion is consulted. An assertion's verdict on a
 file that was never validly produced carries no information. -/
-def classify (r : Run) (accepts : Bool) : Outcome :=
+def classifyOutcome (r : Run) (accepts : Bool) : Outcome :=
   if landed r then (if accepts then Outcome.survived else Outcome.killed)
   else Outcome.discarded
 
@@ -113,35 +113,35 @@ def counts (o : Outcome) : Bool :=
 route 1 and route 2 both violate, and it is quantified over every `accepts`, so
 it cannot be satisfied by a harness that merely happens to be right today. -/
 theorem not_landed_discarded (r : Run) (accepts : Bool) (h : landed r = false) :
-    classify r accepts = Outcome.discarded := by
-  simp [classify, h]
+    classifyOutcome r accepts = Outcome.discarded := by
+  simp [classifyOutcome, h]
 
 /-- A failing patch tool can never produce a kill. This is route 2 exactly:
 `sed` exited 1, and the harness printed a pass. -/
 theorem tool_failed_never_killed (r : Run) (accepts : Bool) (h : r.toolExit ≠ 0) :
-    classify r accepts ≠ Outcome.killed := by
+    classifyOutcome r accepts ≠ Outcome.killed := by
   have : landed r = false := by
     simp [landed, beq_iff_eq, h]
-  simp [classify, this]
+  simp [classifyOutcome, this]
 
 /-- An empty mutant can never produce a kill, even when the tool reported
 success. `sed` can exit 0 and still write nothing. -/
 theorem empty_never_killed (r : Run) (accepts : Bool) (h : r.empty = true) :
-    classify r accepts ≠ Outcome.killed := by
+    classifyOutcome r accepts ≠ Outcome.killed := by
   have : landed r = false := by simp [landed, h]
-  simp [classify, this]
+  simp [classifyOutcome, this]
 
 /-- An unchanged file can never produce a kill. This is route 1: the `sed`
 matched nothing, so the "mutant" is the original and the assertion's verdict on
 it is a statement about the ORIGINAL, not about any mutation. -/
 theorem unchanged_never_killed (r : Run) (accepts : Bool) (h : r.changed = false) :
-    classify r accepts ≠ Outcome.killed := by
+    classifyOutcome r accepts ≠ Outcome.killed := by
   have : landed r = false := by simp [landed, h]
-  simp [classify, this]
+  simp [classifyOutcome, this]
 
 /-- Nothing that failed to land is ever counted. -/
 theorem discarded_never_counts (r : Run) (accepts : Bool) (h : landed r = false) :
-    counts (classify r accepts) = false := by
+    counts (classifyOutcome r accepts) = false := by
   simp [counts, not_landed_discarded r accepts h]
 
 /-- **The converse, and it is what stops this spec being vacuous.** When the
@@ -149,31 +149,31 @@ patch really landed, the outcome follows the assertion and is always counted. A
 "safe" harness that discarded everything would satisfy every theorem above and
 test nothing; this forbids it. -/
 theorem landed_counts (r : Run) (accepts : Bool) (h : landed r = true) :
-    counts (classify r accepts) = true := by
-  cases accepts <;> simp [counts, classify, h]
+    counts (classifyOutcome r accepts) = true := by
+  cases accepts <;> simp [counts, classifyOutcome, h]
 
 /-- A landed patch the assertion REJECTS is a kill — the only way to earn one. -/
 theorem landed_rejected_killed (r : Run) (h : landed r = true) :
-    classify r false = Outcome.killed := by
-  simp [classify, h]
+    classifyOutcome r false = Outcome.killed := by
+  simp [classifyOutcome, h]
 
 /-- A landed patch the assertion ACCEPTS is a survivor, never silently a kill.
 This is the direction that keeps a harness honest about its blind spots. -/
 theorem landed_accepted_survived (r : Run) (h : landed r = true) :
-    classify r true = Outcome.survived := by
-  simp [classify, h]
+    classifyOutcome r true = Outcome.survived := by
+  simp [classifyOutcome, h]
 
 /-- `killed` requires ALL THREE landing conditions. Stated as one theorem
 because a harness that checks two of the three is exactly what shipped: the
 original `ctl` tested `changed` alone, which is why an empty file passed. -/
 theorem killed_implies_all_three (r : Run) (accepts : Bool)
-    (h : classify r accepts = Outcome.killed) :
+    (h : classifyOutcome r accepts = Outcome.killed) :
     r.toolExit = 0 ∧ r.empty = false ∧ r.changed = true := by
   by_cases hl : landed r = true
   · have h3 : (r.toolExit == 0) = true ∧ (!r.empty) = true ∧ r.changed = true := by
       simpa [landed, Bool.and_eq_true, and_assoc] using hl
     exact ⟨by simpa using h3.1, by simpa using h3.2.1, h3.2.2⟩
-  · rw [classify, if_neg hl] at h
+  · rw [classifyOutcome, if_neg hl] at h
     exact absurd h (by decide)
 
 /-- The three outcomes are genuinely distinct. Without this the whole
@@ -194,22 +194,22 @@ than floating free of them. `#guard` fails the build if any disagrees. -/
 rejected that empty file (`accepts = false`), and the old harness called it a
 kill. The model says `discarded`. -/
 def route2 : Run := { toolExit := 1, empty := true, changed := true }
-#guard classify route2 false = Outcome.discarded
-#guard counts (classify route2 false) = false
+#guard classifyOutcome route2 false = Outcome.discarded
+#guard counts (classifyOutcome route2 false) = false
 
 /-- Route 1, measured: `sed` succeeded but matched nothing, so the mutant was
 byte-identical to the original. -/
 def route1 : Run := { toolExit := 0, empty := false, changed := false }
-#guard classify route1 false = Outcome.discarded
+#guard classifyOutcome route1 false = Outcome.discarded
 
 /-- A real, landed mutation that the assertion caught — the only shape that may
 be reported as a kill. -/
 def landedKill : Run := { toolExit := 0, empty := false, changed := true }
-#guard classify landedKill false = Outcome.killed
-#guard counts (classify landedKill false) = true
+#guard classifyOutcome landedKill false = Outcome.killed
+#guard counts (classifyOutcome landedKill false) = true
 
 -- The same landed mutation when the assertion is blind to it.
-#guard classify landedKill true = Outcome.survived
+#guard classifyOutcome landedKill true = Outcome.survived
 
 -- EXHAUSTIVE: over every combination of the three observables and both
 -- assertion verdicts, `killed` occurs only where all three landing conditions
@@ -220,7 +220,7 @@ def landedKill : Run := { toolExit := 0, empty := false, changed := true }
       [true, false].all fun ch =>
         [true, false].all fun acc =>
           let r : Run := { toolExit := e, empty := em, changed := ch }
-          (classify r acc == Outcome.killed) == (e == 0 && !em && ch && !acc)
+          (classifyOutcome r acc == Outcome.killed) == (e == 0 && !em && ch && !acc)
 
 
 /-! ## The CLASSIFIER: which files owe mutation discipline at all

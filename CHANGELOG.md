@@ -23,6 +23,67 @@ this file for live count claims, and without a bracketed heading here the 0.9.x
 section — a record of what that release actually shipped — was being read as a
 claim about today's tree. History does not get rewritten to satisfy a counter.
 
+### A name collision made the shared Lean tree unbuildable while all 61 gates stayed green
+
+`Proofs/RotGauge.lean` and `Proofs/RotMutant.lean` both declared
+`RotMoE.classify` — one a `Band` classifier over reals, one an `Outcome`
+classifier over runs. **Nothing in this repository imported both, so every gate
+was green and the library looked healthy.** It was not healthy, it was *latent*:
+the moment anything imported both, lean refused the entire environment with
+`environment already contains 'RotMoE.classify' from Proofs.RotGauge`.
+
+That is precisely what had happened to the shared Lean tree at `D:/Lean/proofs`,
+whose aggregator imports every delivered module. A bare `lake build` there was
+**red for days** on a tree where all 83 modules built individually — and it is
+shared, so it was red for every other session on the machine too.
+
+**The repo had adapted to the defect instead of fixing it.** `checker/axiom-audit.sh`
+and `checker/axiom-class.sh` both carried comments explaining that per-module
+isolation was "not optional" *because* of the clash. A workaround had started to
+read like a design decision. A constraint that survives only as long as a bug
+does is not a design, and documenting a bug eloquently enough makes it
+invisible. Both comments are corrected: the isolation is kept, because it is
+right — it keeps each axiom answer attributable to the module named beside it —
+but no longer justified by a clash that no longer exists.
+
+Repair: `RotMutant`'s is now `classifyOutcome`; the combined import elaborates,
+measured with `#check` returning both with distinct signatures. Its mutation
+suite re-ran at **21/21 killed, 0 survived, 0 discarded**.
+
+**`checker/name-collision.sh` is the durable part**, and it is deliberately not
+the check that was tempting to write. "RotGauge and RotMutant must not both
+declare `classify`" is true today and dead the moment those names change. This
+one knows nothing about which modules or names exist — it asks whether *any two
+modules contribute the same qualified name*, so it keeps working on modules
+written after it. Namespaced declarations are not collisions:
+`RotMoE.SessionLog.classify` and `RotMoE.LocalRelease.classify` coexist and
+always did, so the comparison is over the qualified name, which is what lean
+itself compares.
+
+It found a **second, previously unknown collision on its first run**:
+`RotMoE.Run`, declared by both `RotMutant.lean:78` and `RotVerdict.lean:65`.
+The latter is now `ScheduledRun`, which is what its own docstring already called
+it; that suite re-ran at 7/7 killed.
+
+Its first run also produced a **false positive**, and that is recorded rather
+than quietly patched: a line-shaped matcher read the prose "theorem that was
+missing when…" (`RotAbility.lean:471`) and "theorem that earns the phrase…"
+(`RotGauge.lean:623`) as declarations of `RotMoE.that`. A checker whose first
+output is a false positive gets switched off, so the extractor now tracks
+block-comment depth — `/-` nests in Lean, so it is counted rather than toggled.
+Two controls guard it in both directions: a planted duplicate **must** be
+detected, and two differently namespaced declarations of the same short name
+**must not** be, since flagging those would forbid a correct tree.
+
+Gate table: **61 → 62**, with `fastSet` 37 → 38 and every `stagedRun` count
+moved with it. The prose count in `RotGates.lean` was updated in the same edit,
+as that file's own rule requires. `gate-split.sh` re-binds the shell table to
+the Lean witness: 12 passed, 0 failed.
+
+Result: the shared tree's bare `lake build` now exits **0**, and all 83 delivered
+modules pass `leanchecker` with the absent-module negative control still exiting
+1.
+
 ### The O4 verdict was retracted by its own control, and the live lane probe was measuring the default
 
 Two findings, and both say an **instrument** was wrong rather than the code.

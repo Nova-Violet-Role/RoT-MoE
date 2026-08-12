@@ -122,6 +122,17 @@ jobs:
         shell: bash
         run: sh checker/lean-module-case.sh
 
+      # A LATENT defect: RotGauge and RotMutant both declared `RotMoE.classify`.
+      # Nothing imported both, so all 61 gates were green while the shared Lean
+      # tree -- whose aggregator imports every module -- could not build at all.
+      # Two checkers had even grown comments calling per-module isolation "not
+      # optional" BECAUSE of the clash, so a bug had begun to read like a design.
+      # The check is general (any two modules, any qualified name), not a list of
+      # today's names, and it found a second collision on its first run.
+      - name: name collision (two modules, one qualified name)
+        shell: bash
+        run: bash checker/name-collision.sh
+
       # A per-module count in the prose was bound to nothing: README said
       # RotEigenform.lean had 101 theorems and 38 mutants when the source had
       # 115 and 41. repo-complete.sh binds the TOTALS, and the totals were

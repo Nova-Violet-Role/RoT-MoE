@@ -223,6 +223,7 @@ def shipped : List Gate :=
   , f "SPDX sweep"
   , f "no machine-local paths"
   , f "lean module case (imports match the disk EXACTLY; a case-folding filesystem hides this)"
+  , f "name collision (no two modules declare the same qualified name -- latent until something imports both)"
   , f "module claims (a per-module theorem/mutant count in the prose, bound to the source)"
   , f "plugin root consistency (every declared root exists; declarations agree) -- exit 3 SKIP with no config dir"
   , f "install-document lint"
@@ -459,12 +460,22 @@ def shipped : List Gate :=
 -- largest row in the ledger. The gate checks the manifest has the shape a real
 -- collection makes -- four blocks of forty, four distinct session ids, 160
 -- distinct digests -- and carries both forgeries as negative controls.
-#guard shipped.length = 61
+-- 62 with `name collision`, the first gate that judges a LATENT defect -- one
+-- that breaks nothing today and breaks the next correct change. RotGauge and
+-- RotMutant both declared `RotMoE.classify`; nothing imported both, so all 61
+-- gates stayed green while the shared Lean tree, whose aggregator DOES import
+-- everything, could not build at all. Two checkers had grown comments calling
+-- per-module isolation "not optional" BECAUSE of the clash -- a workaround that
+-- had started to read like a design. The gate asks the general question rather
+-- than naming those two modules, so it still works on modules written after it,
+-- and it found a second collision (`RotMoE.Run`) on its first run.
+#guard shipped.length = 62
 
--- THIRTY-SEVEN run on every commit. The comment here read "Twenty-eight" while
+-- THIRTY-EIGHT run on every commit (37 until `name collision` was added on
+-- 2026-08-12). The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
 -- prose is what a reader believes. Both are recounted together from now on.
-#guard (fastSet shipped).length = 37
+#guard (fastSet shipped).length = 38
 
 -- TWENTY-THREE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
@@ -492,7 +503,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 42
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 43
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -502,17 +513,17 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 37
+#guard (stagedRun shipped []).length = 38
 
 -- Touching the router escalates the gates that cross-check it. 44 since the
 -- `P2.4 corpus` gate joined: it names `hooks/rot-router.sh` as a trigger because
 -- every task's declared lane is a claim about THAT file, and a stem list edited
 -- without re-checking the corpus would silently invalidate forty lane bindings.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 44
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 45
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 38
+#guard (stagedRun shipped ["README.md".toList]).length = 39
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

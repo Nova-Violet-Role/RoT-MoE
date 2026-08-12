@@ -49,18 +49,18 @@
       ]
     },
     "axiom-audit.sh": {
-      "hash": "0be6d7782bf0",
-      "indexed_at": "2026-08-12T08:44:37.424920+00:00",
+      "hash": "ab4b68a7013c",
+      "indexed_at": "2026-08-12T10:31:21.767494+00:00",
       "language": "shell",
-      "lines": 409,
-      "mtime_ns": 1786290791997716100,
-      "size": 19868,
+      "lines": 422,
+      "mtime_ns": 1786530679603581400,
+      "size": 20614,
       "symbols": [
         {
           "docstring": "--- theorem names, from the SOURCE, comment- and namespace-aware ------------ Lean block comments NEST, so a boolean flag is wrong. Doc comments carry",
           "lines": [
             74,
-            410
+            423
           ],
           "name": "names_of",
           "type": "function"
@@ -68,16 +68,16 @@
         {
           "docstring": "--- the audit itself -------------------------------------------------------",
           "lines": [
-            185,
-            270
+            198,
+            283
           ],
           "name": "audit_module",
           "type": "function"
         },
         {
           "lines": [
-            339,
-            343
+            352,
+            356
           ],
           "name": "cleanup_ctl",
           "type": "function"
@@ -85,16 +85,16 @@
         {
           "docstring": "--- CONTROL: the unwrapper must not turn a bad axiom into a clean line -------  The unwrap added 2026-08-09 folds continuation lines onto the record t",
           "lines": [
-            383,
-            389
+            396,
+            402
           ],
           "name": "_unwrap",
           "type": "function"
         },
         {
           "lines": [
-            390,
-            393
+            403,
+            406
           ],
           "name": "_whitelisted",
           "type": "function"
@@ -102,12 +102,12 @@
       ]
     },
     "axiom-class.sh": {
-      "hash": "d2232acf1808",
-      "indexed_at": "2026-08-12T08:44:37.431297+00:00",
+      "hash": "e631e43f03cb",
+      "indexed_at": "2026-08-12T10:31:39.582666+00:00",
       "language": "shell",
-      "lines": 367,
-      "mtime_ns": 1786215257277596900,
-      "size": 16956,
+      "lines": 374,
+      "mtime_ns": 1786530697111580800,
+      "size": 17330,
       "symbols": [
         {
           "lines": [
@@ -121,15 +121,15 @@
           "docstring": "--- extracting declaration names --------------------------------------------- A `sed` for `^theorem` is the obvious approach and it is WRONG, measure",
           "lines": [
             129,
-            368
+            375
           ],
           "name": "names_in",
           "type": "function"
         },
         {
           "lines": [
-            339,
-            346
+            346,
+            353
           ],
           "name": "classify_line",
           "type": "function"
@@ -552,18 +552,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "4d00517742db",
-      "indexed_at": "2026-08-12T08:44:37.482993+00:00",
+      "hash": "459b27fbcbee",
+      "indexed_at": "2026-08-12T11:05:39.398998+00:00",
       "language": "shell",
-      "lines": 414,
-      "mtime_ns": 1786505058068156900,
-      "size": 22882,
+      "lines": 415,
+      "mtime_ns": 1786532733805712400,
+      "size": 23022,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            174,
-            189
+            175,
+            190
           ],
           "name": "fires",
           "type": "function"
@@ -1001,6 +1001,25 @@
       "mtime_ns": 1786378161613209400,
       "size": 10324,
       "symbols": []
+    },
+    "name-collision.sh": {
+      "hash": "ba51669169eb",
+      "indexed_at": "2026-08-12T10:33:47.321753+00:00",
+      "language": "shell",
+      "lines": 197,
+      "mtime_ns": 1786530824955879200,
+      "size": 8548,
+      "symbols": [
+        {
+          "docstring": "--- extract (qualifiedName, file) for every top-level declaration ----------- The namespace in force is tracked as a stack, because a declaration's re",
+          "lines": [
+            76,
+            111
+          ],
+          "name": "emit_decls",
+          "type": "function"
+        }
+      ]
     },
     "no-local-paths.sh": {
       "hash": "d920d24f1666",
@@ -1860,6 +1879,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-12T08:58:23.676464+00:00",
+  "generated_at": "2026-08-12T11:05:39.399152+00:00",
   "version": "1.0"
 }

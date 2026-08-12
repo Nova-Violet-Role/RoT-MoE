@@ -31,7 +31,7 @@ This module proves what three weeks cannot reach: the property for **every** k.
 
 A `Verdict` is the measurement block `checker/status-verdict.sh` emits — the
 numbers and the toolchain, and nothing that changes merely because time passed.
-A `Run` carries that block, the previous one, and the clock and commit id the
+A `ScheduledRun` carries that block, the previous one, and the clock and commit id the
 run would stamp. Two decision functions are defined: `commits`, which is the
 shipped design, and `commitsOld`, which is the defect, reconstructed so the two
 can be compared inside the same theorem rather than across a changelog.
@@ -62,7 +62,7 @@ structure Verdict where
 /-- One scheduled run. `prev` is the block extracted from the committed
 `STATUS.md` (`none` on the very first run); `cur` is what was just measured;
 `clock` and `sha` are what the run would stamp into the file as provenance. -/
-structure Run where
+structure ScheduledRun where
   prev      : Option Verdict
   prevClock : Nat
   prevSha   : Nat
@@ -72,12 +72,12 @@ structure Run where
   deriving Repr
 
 /-- **The shipped decision**: compare the verdict block, and only that. -/
-def commits (r : Run) : Bool :=
+def commits (r : ScheduledRun) : Bool :=
   if r.prev = some r.cur then false else true
 
 /-- **The defect**, reconstructed: the compared payload carried the clock and
 the commit id, so a run was "changed" whenever time had passed. -/
-def commitsOld (r : Run) : Bool :=
+def commitsOld (r : ScheduledRun) : Bool :=
   match r.prev with
   | none    => true
   | some pv => if pv = r.cur ∧ r.prevClock = r.clock ∧ r.prevSha = r.sha
@@ -105,7 +105,7 @@ theorem first_run_commits (q : Verdict) (pc ps c s : Nat) :
   simp [commits]
 
 /-- The full characterisation: it commits exactly when the verdict differs. -/
-theorem commits_iff_changed (r : Run) :
+theorem commits_iff_changed (r : ScheduledRun) :
     commits r = true ↔ r.prev ≠ some r.cur := by
   simp [commits]
 
@@ -131,7 +131,7 @@ theorem old_design_commits_when_only_the_clock_moved
 /-- And the two designs genuinely disagree on such a week — so the change was
 not cosmetic. -/
 theorem designs_disagree :
-    ∃ r : Run, commits r = false ∧ commitsOld r = true := by
+    ∃ r : ScheduledRun, commits r = false ∧ commitsOld r = true := by
   refine ⟨⟨some ⟨1, 1, 1, 1, "t", 0, 0⟩, 0, 0, ⟨1, 1, 1, 1, "t", 0, 0⟩, 1, 0⟩, ?_, ?_⟩
   · simp [commits]
   · simp [commitsOld]

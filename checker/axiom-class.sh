@@ -222,9 +222,16 @@ for m in $MODULES; do
   # Same hoist as checker/axiom-audit.sh: `lake env lean` re-resolves the
   # package before every probe, and this loop pays it once per module. The
   # answer cannot change during the run, so it is captured once above and
-  # `lean` is invoked directly. Per-module isolation is UNCHANGED and is not
-  # optional -- Proofs.RotGauge and Proofs.RotMutant both define
-  # `RotMoE.classify`, so a single combined import is refused by lean itself.
+  # `lean` is invoked directly. Per-module isolation is UNCHANGED and remains
+  # deliberate: it is what makes each axiom answer attributable to the module
+  # that is named beside it.
+  #
+  # CORRECTED 2026-08-12: this used to justify the isolation by saying a
+  # combined import "is refused by lean itself", because Proofs.RotGauge and
+  # Proofs.RotMutant both declared `RotMoE.classify`. That collision has been
+  # repaired -- RotMutant's is `classifyOutcome` -- and the combined import now
+  # elaborates. Isolation stays because it is correct, not because a name clash
+  # enforced it.
   # Falls back to the original command whenever the fast path is unavailable.
   if [ "${AXC_FAST:-0}" -eq 1 ]; then
     run_bounded 1800 env LEAN_PATH="$AXC_LEAN_PATH" lean "$P" >> "$WORK/ax.txt" 2>&1

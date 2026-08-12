@@ -562,7 +562,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1566 theorems, 75 mutation suites — plus `checker/` (72 checkers) and `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1566 theorems, 75 mutation suites — plus `checker/` (73 checkers) and `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1626,9 +1626,30 @@ be worthless here.
 - **No claim of statistical significance.** Neither ordering clears the
   Bonferroni-corrected two-sided tail. The sign agreeing twice is a direction,
   not a difference.
-- **No claim about answer *quality*.** That is P2.2, it needs a preference panel
-  with the author excluded, and it is **outstanding** — the push guard refuses
-  to certify a release while it is.
+- **No claim about answer *quality*, and P2.2 has now been ATTEMPTED and found
+  INADMISSIBLE.** On 2026-08-12 the panel was run live — twelve tasks, both arms,
+  arming verified in both directions (162 route records routed, 0 unrouted). The
+  run is recorded in [`bench/P22-ESTABLISHED.md`](bench/P22-ESTABLISHED.md) with
+  raw rows in [`bench/panel-results.jsonl`](bench/panel-results.jsonl).
+
+  **Its result is withdrawn, in both directions, for a harness confound:** tools
+  were disabled in both arms (`bench/ab-session.sh:188`) so no arm could verify
+  anything; the sandbox was an empty directory outside the repo so the tasks were
+  unanswerable; and the unrouted arm ran with the plugin fully disabled, so the
+  router was never isolated from the proof-discipline reminder that ships beside
+  it.
+
+  A first draft of this section headlined an observation as a finding **against**
+  the router. That was the same overclaim this project retracted for O4 — a
+  direction read off an instrument that could not support one — and an
+  unfavourable overclaim is still an overclaim. The re-run is preregistered:
+  tools enabled, the repository as sandbox, and **three** arms so the router can
+  be separated from the reminder.
+
+  **What survives, and is measured:** the router *routes* — 517 prompt-routing
+  decisions, 10 of 10 declared lanes, 10 distinct R/s+ values, 31 hook parameters
+  over 31 events. Routing is established. **Quality is not**, and this release
+  does not claim it.
 - **No claim that these 40 tasks represent your work.** They are a frozen corpus
   chosen for one property: each one discriminates between a knowing answer and a
   naive one.

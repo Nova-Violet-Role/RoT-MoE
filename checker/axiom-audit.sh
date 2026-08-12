@@ -164,10 +164,23 @@ echo "== axiom audit over ${#modules[@]} modules shipped by this repo (list read
 # gate's 186s, spent re-answering a question whose answer cannot change during
 # the run. Capturing LEAN_PATH once and invoking `lean` directly removes it.
 #
-# Every module is still probed in its OWN process. That is not an optimisation
-# target: `import`ing them together is IMPOSSIBLE -- Proofs.RotGauge and
-# Proofs.RotMutant both define `RotMoE.classify`, and lean refuses with
-# "environment already contains". Measured, not assumed.
+# Every module is still probed in its OWN process, and that is deliberate: a
+# combined import would let one module's `open`s and instances change how a
+# LATER module's axioms resolve, so the isolation is what makes each answer
+# attributable to the module it names.
+#
+# CORRECTED 2026-08-12. This comment used to say isolation was FORCED because
+# Proofs.RotGauge and Proofs.RotMutant both defined `RotMoE.classify` and lean
+# refused with "environment already contains". That collision was real, and it
+# has now been repaired at the source: RotMutant's is `classifyOutcome`, and the
+# combined import elaborates (measured -- `#check` returns both, with distinct
+# signatures). The isolation is kept because it is right, not because a name
+# clash cornered us into it -- a constraint that survives only as long as a bug
+# does is not a design.
+#
+# `checker/name-collision.sh` now fails if any two modules declare the same
+# fully-qualified name, so the condition this paragraph used to describe cannot
+# come back silently.
 #
 # The fallback is the original command, used whenever the fast path is not
 # demonstrably available: no LEAN_PATH, or no usable `lean` on PATH. A speedup

@@ -1,6 +1,52 @@
 {
   "directory": "bench",
   "files": {
+    "P22-ESTABLISHED.md": {
+      "hash": "348fbc117512",
+      "indexed_at": "2026-08-12T12:41:04.044699+00:00",
+      "language": "markdown",
+      "lines": 92,
+      "mtime_ns": 1786538461645242400,
+      "size": 4849,
+      "symbols": [
+        {
+          "docstring": "Three defects, each sufficient on its own, all present at once.",
+          "lines": [
+            14,
+            33
+          ],
+          "name": "VERDICT: INADMISSIBLE \u2014 harness confound",
+          "type": "section"
+        },
+        {
+          "docstring": "| observed, 12 tasks, tools disabled in both arms | routed | unrouted | |---|---|---| | answers asserting verification that did not occur | 9 / 12 | 0",
+          "lines": [
+            34,
+            57
+          ],
+          "name": "What was actually observed, stated as observation only",
+          "type": "section"
+        },
+        {
+          "docstring": "Fixed now, before any of it is executed:",
+          "lines": [
+            58,
+            79
+          ],
+          "name": "The re-run, preregistered here",
+          "type": "section"
+        },
+        {
+          "docstring": "**P2.2 is measured as ATTEMPTED and INADMISSIBLE. No quality claim stands in either direction.** The project's central claim \u2014 that nine-lens routing",
+          "lines": [
+            80,
+            93
+          ],
+          "name": "Where this leaves the central claim",
+          "type": "section"
+        }
+      ]
+    },
     "P24-PREREGISTRATION.md": {
       "hash": "d4d07fe1620d",
       "indexed_at": "2026-08-12T08:45:57.745834+00:00",
@@ -383,6 +429,79 @@
             807
           ],
           "name": "11. RETRACTION \u2014 THE O4 VERDICT WAS WITHDRAWN BY ITS OWN CONTROL",
+          "type": "section"
+        }
+      ]
+    },
+    "PANEL-PREREGISTRATION.md": {
+      "hash": "5f1ca3908e32",
+      "indexed_at": "2026-08-12T11:52:51.350220+00:00",
+      "language": "markdown",
+      "lines": 113,
+      "mtime_ns": 1786535568894446800,
+      "size": 5788,
+      "symbols": [
+        {
+          "docstring": "`bench/P24-PREREGISTRATION.md` \u00a7\"Two obligations are DECLARED UNMET\" said P2.2 needs **human judges, odd n \u2265 3, the author excluded**, and called that",
+          "lines": [
+            11,
+            35
+          ],
+          "name": "0. What changed from the earlier plan, and why it is disclosed",
+          "type": "section"
+        },
+        {
+          "docstring": "> Does the nine-lens router produce answers a blind reader prefers?",
+          "lines": [
+            36,
+            45
+          ],
+          "name": "1. The claim under test",
+          "type": "section"
+        },
+        {
+          "docstring": "| decision | value | why fixed now | |---|---|---| | tasks | first **12** of `bench/corpus-40.jsonl` in file order | file order is not chosen by me; p",
+          "lines": [
+            46,
+            58
+          ],
+          "name": "2. Design, fixed in advance",
+          "type": "section"
+        },
+        {
+          "docstring": "These are exit-3 refusals in `bench/panel-run.sh` / `bench/panel-judge.js`. A refusal is an honest non-result; a repaired-after-the-fact run is not.",
+          "lines": [
+            59,
+            71
+          ],
+          "name": "3. Refusal conditions \u2014 the run REFUSES rather than reports",
+          "type": "section"
+        },
+        {
+          "docstring": "**C1 \u2014 A/A control (the one P2.4 lacked).** Judges also see pairs where both answers come from the **same arm**, different runs. A judge that prefers",
+          "lines": [
+            72,
+            94
+          ],
+          "name": "4. CONTROLS \u2014 declared before any result, and each can fail",
+          "type": "section"
+        },
+        {
+          "docstring": "| outcome | what may be written | |---|---| | routed wins majority, all controls pass | \"MEASURED: an automated blind panel preferred the routed arm o",
+          "lines": [
+            95,
+            107
+          ],
+          "name": "5. What the result may and may not be called",
+          "type": "section"
+        },
+        {
+          "docstring": "12 tasks is small. Under a fair coin, 10-or-more wins out of 12 has probability about 0.019 \u2014 so only a lopsided result is worth remarking on, and any",
+          "lines": [
+            108,
+            114
+          ],
+          "name": "6. Sample size, stated honestly in advance",
           "type": "section"
         }
       ]
@@ -1455,6 +1574,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T08:45:57.746021+00:00",
+  "generated_at": "2026-08-12T12:41:04.044833+00:00",
   "version": "1.0"
 }
