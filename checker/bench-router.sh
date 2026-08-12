@@ -352,9 +352,24 @@ else
   rm -f "$_frozen"
 
   _fat="${TMPDIR:-/tmp}/rot-fat-router-$$.sh"
+  # Enough extras to clear the budget from THIS platform's measured baseline,
+  # with 10 of headroom, and never fewer than the historical 30.
+  _fatn=$(( SPAWN_BUDGET - spawns + 10 ))
+  [ "$_fatn" -lt 30 ] && _fatn=30
   {
     head -1 "$ROUTER"
-    i=0; while [ "$i" -lt 30 ]; do echo 'date +%s >/dev/null'; i=$((i+1)); done
+    # MEASURED 2026-08-12 on the first CI run at this commit: a FIXED count of 30
+    # extras made this control PLATFORM-DEPENDENT and it failed on Linux --
+    # "fattened router counted 40 (real 10, budget 41)". The real spawn count is
+    # lower on Linux than on Windows, so a constant fattening no longer crossed
+    # the budget and the control could not fire. A control that cannot fire is an
+    # untested alarm, which is the exact defect it exists to prevent.
+    #
+    # The repair derives the fattening from the MEASURED baseline and the budget
+    # instead of assuming one platform's numbers. SPAWN_BUDGET is NOT touched --
+    # it is the product bound, and tuning it to make a control pass would be the
+    # fake green this whole file argues against.
+    i=0; while [ "$i" -lt "$_fatn" ]; do echo 'date +%s >/dev/null'; i=$((i+1)); done
     tail -n +2 "$ROUTER"
   } > "$_fat" 2>/dev/null
   _ftrace="${TMPDIR:-/tmp}/rot-fat-trace-$$"
@@ -362,7 +377,7 @@ else
   fatspawns=$(grep -cE "^\+* (/usr/bin/)?(node|awk|sed|grep|tr|cut|wc|cat|tail|head|date|mkdir|rmdir|mv|rm|touch|sort|uniq|stat|ls|find|git)( |$)" "$_ftrace" || true)
   rm -f "$_fat" "$_ftrace"
   if [ "$fatspawns" -gt "$SPAWN_BUDGET" ] && [ "$fatspawns" -gt "$spawns" ]; then
-    ok "CONTROL: a router with 30 extra subprocesses IS counted (${fatspawns} > budget ${SPAWN_BUDGET}) -- the counter can fail"
+    ok "CONTROL: a router with ${_fatn} extra subprocesses IS counted (${fatspawns} > budget ${SPAWN_BUDGET}, real ${spawns}) -- the counter can fail"
   else
     bad "CONTROL: a deliberately fattened router counted ${fatspawns} (real ${spawns}, budget ${SPAWN_BUDGET}) -- the counter does NOT detect added spawns"
   fi

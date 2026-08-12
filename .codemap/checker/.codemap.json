@@ -137,12 +137,12 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "e31dc44cfbc5",
-      "indexed_at": "2026-08-12T08:44:37.437525+00:00",
+      "hash": "f9cd390853ac",
+      "indexed_at": "2026-08-12T16:58:41.287091+00:00",
       "language": "shell",
-      "lines": 770,
-      "mtime_ns": 1786488037957098100,
-      "size": 40683,
+      "lines": 785,
+      "mtime_ns": 1786553918875857700,
+      "size": 41699,
       "symbols": [
         {
           "lines": [
@@ -235,18 +235,18 @@
       ]
     },
     "ci-log-skips.sh": {
-      "hash": "e34a104bcfab",
-      "indexed_at": "2026-08-12T08:44:37.448215+00:00",
+      "hash": "af98ce472f7a",
+      "indexed_at": "2026-08-12T17:10:36.378310+00:00",
       "language": "shell",
-      "lines": 248,
-      "mtime_ns": 1786353477665397200,
-      "size": 11524,
+      "lines": 264,
+      "mtime_ns": 1786554634210743500,
+      "size": 12878,
       "symbols": [
         {
           "docstring": "----------------------------------------------------------------------------- THE DECLARED BUDGET. One line per checker whose substance a public runne",
           "lines": [
             49,
-            77
+            93
           ],
           "name": "declared_reason",
           "type": "function"
@@ -254,16 +254,16 @@
         {
           "docstring": "----------------------------------------------------------------------------- Extract, per job log, the steps whose BODY printed a runtime skip. Echoe",
           "lines": [
-            84,
-            120
+            100,
+            136
           ],
           "name": "scan_dir",
           "type": "function"
         },
         {
           "lines": [
-            122,
-            138
+            138,
+            154
           ],
           "name": "judge_dir",
           "type": "function"
@@ -1879,6 +1879,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-12T11:05:39.399152+00:00",
+  "generated_at": "2026-08-12T17:10:36.378450+00:00",
   "version": "1.0"
 }

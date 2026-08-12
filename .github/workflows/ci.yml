@@ -144,9 +144,39 @@ jobs:
       # Registered late: workflow-lint found this gate was in the shell table
       # and the Lean witness but in NO workflow, so CI had never run it once.
       # Exits 3 (SKIP) when no config dir is present, which is not a pass.
+      # MEASURED 2026-08-12, at the first push that ran this step: it FAILED on
+      # all three runners, and the cause was this wiring, not the checker. The
+      # checker exits 3 (SKIP) when no Claude config dir exists; a CI runner has
+      # no ~/.claude; and under `bash -e` an exit 3 is a failure. So the step
+      # could NEVER be green here -- it was a check that only ever reported the
+      # absence of the thing it wanted to inspect.
+      #
+      # Skipping it would be the fake green this repo forbids. Instead CI is
+      # given a REAL config dir that declares this repository's own shipped
+      # plugin root, and the checker inspects that. This is a genuine
+      # measurement: if .claude-plugin/plugin.json were missing, or the declared
+      # path did not resolve, or a marketplace were declared at two paths, the
+      # checker fails exactly as it would on a developer's machine.
       - name: plugin root consistency (declared roots exist and agree)
         shell: bash
-        run: bash checker/plugin-root-consistency.sh
+        run: |
+          set -euo pipefail
+          CFG="$RUNNER_TEMP/rotmoe-cfg/.claude"
+          mkdir -p "$CFG"
+          # The declaration under test points at THIS checkout, whose manifest
+          # is the artifact we are about to publish.
+          printf '{\n  "extraKnownMarketplaces": {\n    "rot-moe": {\n      "source": {\n        "source": "directory",\n        "path": "%s"\n      }\n    }\n  }\n}\n' "$GITHUB_WORKSPACE" > "$CFG/settings.json"
+          test -s .claude-plugin/plugin.json || { echo "REFUSE: no plugin manifest to declare"; exit 1; }
+          # `bash -e` aborts the step BEFORE `rc=$?` can be read -- measured in
+          # run 30695224024 on the deferred-closure step below, and this block
+          # had the identical bug when first written. An `if` makes the exit
+          # status part of a compound command, which `-e` does not act on.
+          if ROTMOE_CONFIG_DIRS="$CFG" bash checker/plugin-root-consistency.sh; then rc=0; else rc=$?; fi
+          if [ "$rc" -eq 3 ]; then
+            echo "::error title=plugin-root::checker reported exit 3 even with a config dir present -- the scratch dir was not seen, so nothing was inspected"
+            exit 1
+          fi
+          exit "$rc"
 
       # The central structural claim, measured against the shipped router:
       # D1 totality, D2 conservation, D3 addition, D4 discrimination,

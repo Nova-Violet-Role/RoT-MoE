@@ -55,6 +55,22 @@ declared_reason () {
     checker/portability.sh)         printf '%s' "drive-letter paths do not exist on POSIX runners" ;;
     checker/marketplace-session.sh) printf '%s' "needs the claude CLI and credentials" ;;
     checker/bench-router.sh)        printf '%s' "its measurement phase is credential-gated" ;;
+    # NOT a tolerated skip -- the opposite. This checker exits 3 when no Claude
+    # config dir exists, and on 2026-08-12 that made its CI step UNPASSABLE:
+    # a runner has no ~/.claude, and under `bash -e` exit 3 is a failure, so the
+    # step only ever reported the absence of what it wanted to inspect. ci.yml
+    # now builds a REAL config dir declaring this repo's own plugin root, and
+    # explicitly converts a still-SKIPPING run into a hard error. The entry is
+    # here because this table is what the gate reads; the reason records that a
+    # skip is FORBIDDEN here, not excused.
+    checker/plugin-root-consistency.sh) printf '%s' "ci.yml supplies a real config dir; a SKIP there is converted to a hard failure, never admitted" ;;
+    # The deferred-closure block: it tolerates exit 3 and exits 0, which is
+    # exactly "printed SKIP, concluded green" -- so it MUST be declared. The
+    # skip is real (no token, no completed run yet, or logs expired) and the
+    # block prints a ::notice saying it is not a pass. Declared here because the
+    # gate keys on a run block's FIRST LINE, which for this block is a comment.
+    'Run # GitHub runs this block as `bash -e {0}`, so a non-zero exit ABORTS')
+      printf '%s' "deferred closure: exit 3 means no token or no completed run yet; reported as ::notice, never counted as a pass" ;;
     # TWO INLINE MULTI-CHECKER BLOCKS. GitHub labels a log group with the run
     # block's FIRST LINE, not the step's name, so these are the only keys the
     # log offers. Both skips were read before being declared, and both are real
