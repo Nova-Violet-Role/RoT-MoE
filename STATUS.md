@@ -20,7 +20,7 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-END -->
 
 Regenerated locally by `bash checker/status-verdict.sh --write` on top
-of commit `efad566a59ea4ccdde0c3c109d08e74c18e546aa`. That line is PROVENANCE and is excluded from the
+of commit `a918b4112348ea58c4e16564c208f2cea12f6c03`. That line is PROVENANCE and is excluded from the
 comparison that decides whether the verdict changed: it records WHERE the
 numbers were counted, and claims nothing about gates having passed.
 
