@@ -244,12 +244,12 @@
       ]
     },
     "ci-log-skips.sh": {
-      "hash": "32fe50f19f96",
-      "indexed_at": "2026-08-12T17:49:34.121009+00:00",
+      "hash": "9c5e81ecc154",
+      "indexed_at": "2026-08-13T16:24:01.124925+00:00",
       "language": "shell",
-      "lines": 286,
-      "mtime_ns": 1786556971525395800,
-      "size": 14505,
+      "lines": 343,
+      "mtime_ns": 1786638238452101700,
+      "size": 18226,
       "symbols": [
         {
           "docstring": "----------------------------------------------------------------------------- THE DECLARED BUDGET. One line per checker whose substance a public runne",
@@ -264,15 +264,15 @@
           "docstring": "----------------------------------------------------------------------------- Extract, per job log, the steps whose BODY printed a runtime skip. Echoe",
           "lines": [
             122,
-            158
+            190
           ],
           "name": "scan_dir",
           "type": "function"
         },
         {
           "lines": [
-            160,
-            176
+            192,
+            208
           ],
           "name": "judge_dir",
           "type": "function"
@@ -1961,6 +1961,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-13T11:05:51.495281+00:00",
+  "generated_at": "2026-08-13T16:24:01.125078+00:00",
   "version": "1.0"
 }

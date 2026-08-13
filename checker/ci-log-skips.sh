@@ -147,8 +147,40 @@ scan_dir () {   # <dir> -> one line per skipping step
         # one printed the skip. Measured: that heuristic blamed ab-compliance.sh
         # and live-session-smoke.sh for skips inside multi-checker blocks. The
         # group line is the only reliable key, so the budget is keyed on steps.
+        # SKIP MUST BE THE MARKER OF THE LINE, NOT A WORD INSIDE IT.
+        # (No apostrophes below: this awk program is single-quoted, and one
+        # stray apostrophe closes the quote and turns the regex into a shell
+        # syntax error. That is exactly how this edit failed the first time.)
+        #
+        # A bare /SKIP/ substring test cannot tell a step that SKIPPED from a
+        # step that MENTIONED skipping, and this repository produces the second
+        # kind on every run: the mutation suite for RotCiSkip prints
+        #   "expected: a step that printed SKIP now counts as having exercised
+        #    its subject"
+        # as the description of a mutant. That line is evidence the detector is
+        # being TESTED, and the outer detector read it as evidence that the
+        # mutation step had itself skipped -- flagging "Run set -e", the group
+        # header GitHub gives an unnamed run: block. Measured on run
+        # 31709955709: one undeclared skipper, zero real skips behind it.
+        #
+        # The repair is to ask WHERE the token sits. Every genuine skip in this
+        # tree prints the marker in the reporting position -- "  SKIP  no
+        # credentials found", "SKIP (3): ...", "SKIPPED BY DESIGN" -- because
+        # that is what ok/bad/skip emit. Prose that merely names the concept
+        # never leads with it. So strip the runner timestamp, the ANSI colour
+        # and the indentation, then require the marker to START what remains.
+        #
+        # This narrows the test on PURPOSE and therefore needs its own control:
+        # "a mention is not a skip" below fails if this line is reverted, and
+        # "an undeclared skipping step IS detected" fails if it is narrowed too
+        # far. A detector that cannot be shown to still fire is not a repair,
+        # it is a silencer.
+        bare = line
+        sub(/^[0-9][0-9-]*T[0-9:.]*Z[[:space:]]*/, "", bare)
+        gsub(ESC "\\[[0-9;]*m", "", bare)
+        sub(/^[[:space:]]*(\.\.\.\.)?[[:space:]]*/, "", bare)
         if (index(line, ESC "[36;1m") == 0 &&
-            (line ~ /SKIP/ || line ~ /no credentials/ ||
+            (bare ~ /^SKIP/ || line ~ /no credentials/ ||
              line ~ /NOT RUN/ || line ~ /not on this machine/))
           hit = 1
       }
@@ -182,7 +214,7 @@ judge_dir () {  # <dir> -> 0 clean, 1 an undeclared skipper
 CTL="$(mktemp -d "${TMPDIR:-/tmp}/rot-cilogskip.XXXXXX")" || exit 2
 trap 'rm -rf "$CTL"' EXIT
 
-mkdir -p "$CTL/undeclared" "$CTL/declared" "$CTL/clean"
+mkdir -p "$CTL/undeclared" "$CTL/declared" "$CTL/clean" "$CTL/mention" "$CTL/indented"
 
 printf '##[group]Run bash checker/totally-new-thing.sh\nSKIP: no credentials on the runner\n' \
   > "$CTL/undeclared/0_job.txt"
@@ -190,6 +222,17 @@ printf '##[group]Run bash checker/ab-analyze.sh\nSKIP: the raw A/B transcripts a
   > "$CTL/declared/0_job.txt"
 printf '##[group]Run bash checker/repo-complete.sh\n  53 passed, 0 failed\n' \
   > "$CTL/clean/0_job.txt"
+# A MENTION IS NOT A SKIP. This is the real line, verbatim, from the RotCiSkip
+# mutation suite on run 31709955709 -- a mutant DESCRIBING the skip rule, inside
+# a step that skipped nothing. A detector that flags this is reading the word
+# and not the event, and it cost a red gate on a correct tree.
+printf '##[group]Run set -e\nC02  KILLED     exit=1  MODULE DEAD\n        expected: a step that printed SKIP now counts as having exercised its subject\n' \
+  > "$CTL/mention/0_job.txt"
+# ...and the narrowing must not go too far: a REAL skip is indented by the
+# reporting helpers, and often prefixed with the "...." continuation marker.
+# If this stops being detected, the repair has become a silencer.
+printf '##[group]Run bash checker/another-new-thing.sh\n  SKIP  no credentials found -- context delivery UNVERIFIED\n' \
+  > "$CTL/indented/0_job.txt"
 
 echo "== controls: the detector must fire AND stay silent =="
 if judge_dir "$CTL/undeclared" >/dev/null 2>&1; then
@@ -206,6 +249,20 @@ if judge_dir "$CTL/clean" >/dev/null 2>&1; then
   ok "CONTROL: a step with no skip is not flagged"
 else
   bad "CONTROL: a clean step was flagged as skipping"
+fi
+# The two controls the narrowing owes. Without the first, a bare /SKIP/ substring
+# test passes everything here and the false positive returns silently. Without
+# the second, narrowing to "^SKIP" with no allowance for indentation would mute
+# every real skip the helpers print -- a green gate that measures nothing.
+if judge_dir "$CTL/mention" >/dev/null 2>&1; then
+  ok "CONTROL: a mention is not a skip (the RotCiSkip mutant description does not trip it)"
+else
+  bad "CONTROL: a MENTION of SKIP was read as a skip -- the detector reads the word, not the event"
+fi
+if judge_dir "$CTL/indented" >/dev/null 2>&1; then
+  bad "CONTROL: an INDENTED real skip was MISSED -- the narrowing became a silencer"
+else
+  ok "CONTROL: an indented real skip is still detected (the narrowing did not blind it)"
 fi
 
 # A budget that swallows everything is the documented loosening. Assert the
