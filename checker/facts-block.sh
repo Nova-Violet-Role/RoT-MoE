@@ -145,9 +145,30 @@ fi
 
 # --- CONTROLS: an instrument that cannot fail proves nothing -----------------
 # C1: a single corrupted digit must be caught.
-_c1="$(printf '%s' "$fresh" | sed '0,/\*\*[0-9]/s//**9999/')"
-if [ "$_c1" != "$fresh" ]; then ok "CONTROL: a corrupted count differs from the truth (the comparison can fail)"
-else bad "CONTROL: corrupting a count changed nothing -- the comparison is blind"; fi
+#
+# PORTABILITY DEFECT, CAUGHT BY macOS CI AND NOT BY ANY LOCAL RUN. This was
+# `sed '0,/\*\*[0-9]/s//**9999/'`. The `0,/re/` address is a GNU extension:
+# GNU sed treats it as "from the start until the first match", BSD sed (macOS)
+# has no line 0, so the range NEVER matches, the corruption never lands, and
+# the control compared the block against an identical copy of itself.
+#
+# The failure mode is worth naming because it is the good one: the control
+# reported ITSELF blind rather than reporting the instrument sound. It said
+# "corrupting a count changed nothing", which is exactly true -- on that
+# platform nothing had been corrupted. A control that fails when it cannot
+# corrupt is doing its job; one that passed here would have certified a
+# comparison nobody had tested.
+#
+# Replaced with awk, which is portable, and the corruption is now ASSERTED to
+# have landed rather than inferred from a difference -- an empty `_c1` from a
+# sed that errored would also "differ", and would have read as a pass.
+_c1="$(printf '%s\n' "$fresh" | awk '!d && sub(/\*\*[0-9]+\*\*/, "**9999**") { d=1 } { print }')"
+if printf '%s' "$_c1" | grep -q '\*\*9999\*\*'; then
+  if [ "$_c1" != "$fresh" ]; then ok "CONTROL: a corrupted count differs from the truth (the comparison can fail)"
+  else bad "CONTROL: corrupting a count changed nothing -- the comparison is blind"; fi
+else
+  bad "CONTROL: the corruption did NOT LAND -- this control tested nothing, which is not the same as the comparison being sound"
+fi
 
 # C2: a README with the markers stripped must be rejected.
 _c2="$(mktemp)"; grep -vF "$BEGIN" "$README" > "$_c2"

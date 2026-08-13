@@ -194,6 +194,63 @@ else
   bad "control: naming the wrong lead was NOT detected -- lead_is_max is decorative"
 fi
 
+# ---------------------------------------------------------------------------
+# THE FALLBACK BRANCH WAS UNTESTED CODE, and a mutation proved it.
+#
+# `select_profile` ends in `*) LAMBDAS=$L_CONVERGENT; MUS=$M_CONVERGENT ;;`.
+# Mutation H04 in checker/mutate-checker.sh detached `MUS` in exactly that
+# branch and SURVIVED -- every checker stayed green while the fallback's quality
+# multipliers were empty. Nothing here ever asked what an UNKNOWN profile does,
+# so the branch could be broken in any way at all and no gate would notice.
+#
+# The claim it should satisfy is small and exact: an unrecognised profile name
+# behaves as CONVERGENT, which is the router's documented default. Asserted by
+# byte-comparing the two runs.
+#
+# AND the comparison is proved non-vacuous against a THIRD profile. Without that
+# arm, a router that ignored `--profile` entirely would pass this check --
+# everything would equal everything. STEALTH is the witness that the flag is
+# read at all.
+_ROUTER="hooks/rot-router.sh"
+if [ -x "$_ROUTER" ] || [ -f "$_ROUTER" ]; then
+  # COMMA-separated, and the first draft of this probe got it wrong in a way
+  # worth recording: `--vector '1 0 1 ...'` is accepted but parsed as a SINGLE
+  # lens, so the run reported `K=1 lenses=Nova` and the mu vector barely
+  # participated. The probe then could not tell a detached mu vector from an
+  # intact one -- it compared two nearly-degenerate runs and called them equal.
+  # An instrument fed the wrong input shape is not a weaker instrument, it is a
+  # different one, and this one was measuring almost nothing.
+  _vec='1,0,1,0,1,0,1,0,1'
+  # `--profile STEALTH` FIRST, and this is the whole instrument.
+  #
+  # A bare `--profile ZZZ` cannot see a broken fallback: the router already
+  # mounts CONVERGENT at startup, so a fallback that assigns nothing at all
+  # leaves exactly the CONVERGENT weights in place and looks correct. Measured
+  # -- with the mu vector deliberately detached, bare-ZZZ read 0.74 and so did
+  # the baseline. The bug was invisible because the correct answer was already
+  # sitting in the variable.
+  #
+  # Mounting STEALTH first makes the fallback DO something: it must overwrite
+  # both vectors, not just agree with what was there. Measured with the same
+  # mutation: 0.67 against a baseline 0.74. The probe went from blind to sharp
+  # by changing the starting state, not the assertion.
+  _unknown=$(sh "$_ROUTER" --profile STEALTH --profile ZZZ_NOT_A_PROFILE --vector "$_vec" 2>/dev/null)
+  _default=$(sh "$_ROUTER" --profile CONVERGENT        --vector "$_vec" 2>/dev/null)
+  _other=$(sh   "$_ROUTER" --profile STEALTH           --vector "$_vec" 2>/dev/null)
+
+  if [ -z "$_unknown" ] || [ -z "$_default" ]; then
+    bad "fallback: the router produced NO output for one of the probes -- this check measured nothing"
+  elif [ "$_default" = "$_other" ]; then
+    bad "fallback: CONVERGENT and STEALTH are indistinguishable -- --profile is not being read, so the fallback test would be vacuous"
+  elif [ "$_unknown" = "$_default" ]; then
+    ok "fallback: an unknown profile behaves exactly as CONVERGENT (and STEALTH differs, so the probe discriminates)"
+  else
+    bad "fallback: an unknown profile does NOT fall back to CONVERGENT -- got [$_unknown] vs [$_default]"
+  fi
+else
+  bad "fallback: $_ROUTER not found -- the fallback branch cannot be exercised"
+fi
+
 echo
 echo "== profile binding: $pass passed, $fail failed"
 [ "$fail" -eq 0 ] || exit 1

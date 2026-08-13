@@ -598,6 +598,13 @@ select_profile () {   # <LANE>
     STEALTH)    LAMBDAS=$L_STEALTH;    MUS=$M_STEALTH    ;;
     RECURSIVE)  LAMBDAS=$L_RECURSIVE;  MUS=$M_RECURSIVE  ;;
     FORGE)      LAMBDAS=$L_FORGE;      MUS=$M_FORGE      ;;
+    # CONVERGENT gets its OWN arm even though `*)` would already serve it, and
+    # that redundancy is deliberate. While the two shared a branch, "an unknown
+    # profile falls back to CONVERGENT" was a TAUTOLOGY -- both took the same
+    # line, so no test could distinguish them and mutation H04 detached the mu
+    # vector here and survived every checker. Separating them turns the fallback
+    # into a claim that can be tested, and profile-bind.sh now tests it.
+    CONVERGENT) LAMBDAS=$L_CONVERGENT; MUS=$M_CONVERGENT ;;
     *)          LAMBDAS=$L_CONVERGENT; MUS=$M_CONVERGENT ;;
   esac
   ROT_PROFILE=$1

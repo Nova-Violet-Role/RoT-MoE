@@ -236,14 +236,31 @@ run H00 "$SH" \
   '# --- THE GAUGE (no-op comment edit) ---' \
   GREEN 'meta-control: a comment change must not turn the checker red'
 
+# H01, H02 and H04 ALL NAMED SHAPES THAT NO LONGER EXIST, and the harness said
+# so rather than pretending otherwise. Measured on the ubuntu CI runner:
+#
+#   H01  DISCARDED  needle occurs 0 times, expected 1 -- patch NOT applied
+#   H02  DISCARDED  needle occurs 0 times, expected 1 -- patch NOT applied
+#   H04  DISCARDED  needle occurs 11 times, expected 1 -- patch NOT applied
+#
+# Profile switching replaced the single `LAMBDAS=` / `MUS=` tables with ten
+# `L_<PROFILE>=` / `M_<PROFILE>=` pairs. The old needles matched nothing (or, for
+# `MUS=`, matched eleven places at once), so three mutations were quietly not
+# being applied.
+#
+# THIS IS THE HARNESS WORKING. `DISCARDED` is a claim about the harness -- "I
+# could not test this" -- and it is deliberately NOT folded into `survived`,
+# which would have been a claim about the checker being robust. Three mutations
+# reported as survived here would have read as three pieces of evidence the
+# checker is sound, when they were three pieces of no evidence at all.
 run H01 "$SH" \
-  "LAMBDAS='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.3'" \
-  "LAMBDAS='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.4'" \
-  RED 'one lambda changed in the POSIX arm (Claude 2.3 -> 2.4)'
+  "L_FORGE='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.3'" \
+  "L_FORGE='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.4'" \
+  RED 'one lambda changed in the POSIX arm (FORGE Claude 2.3 -> 2.4)'
 
 run H02 "$PS1" \
-  '$Lambdas = @(1.4, 0.6, 1.9, 1.2, 0.6, 1.0, 1.0, 1.2, 2.3)' \
-  '$Lambdas = @(1.4, 0.6, 1.9, 1.2, 0.6, 1.0, 1.0, 1.2, 2.4)' \
+  'FORGE      = @{ L = @(1.4,0.6,1.9,1.2,0.6,1.0,1.0,1.2,2.3)' \
+  'FORGE      = @{ L = @(1.4,0.6,1.9,1.2,0.6,1.0,1.0,1.2,2.4)' \
   RED 'one lambda changed in the WINDOWS arm only -- the arms must disagree'
 
 run H03 "$SH" \
@@ -251,10 +268,27 @@ run H03 "$SH" \
   'R = 1.2;' \
   RED 'gauge hardcoded to a constant -- the "the number is decoration" failure mode'
 
+# `MUS=` alone now matches eleven places (the mount plus ten profile tables), so
+# the needle is anchored to the MOUNT -- the one assignment the gauge reads.
+# JUDGED BY profile-bind.sh, NOT cross-diff.sh -- and the reason is the finding.
+#
+# Pointed at cross-diff, this mutation SURVIVED: cross-diff routes real prompts,
+# every real prompt matches a real profile, so the `*)` fallback is never taken
+# and detaching its mu vector changes nothing cross-diff can see. The branch was
+# untested code that no gate covered.
+#
+# Rather than retire the mutation, the coverage was added: profile-bind.sh now
+# probes `--profile ZZZ_NOT_A_PROFILE` and asserts it behaves exactly as
+# CONVERGENT, with STEALTH as the third arm proving the probe discriminates. The
+# mutation is what found the hole; the check is what closes it.
+# The needle carries its `*)` so it hits the FALLBACK and not the explicit
+# CONVERGENT arm beside it -- the two lines are otherwise identical, and a
+# needle without the marker matches both and is discarded.
 run H04 "$SH" \
-  'MUS=' \
-  'MUS_UNUSED=' \
-  RED 'mu vector detached -- every quality multiplier silently becomes empty'
+  '*)          LAMBDAS=$L_CONVERGENT; MUS=$M_CONVERGENT ;;' \
+  '*)          LAMBDAS=$L_CONVERGENT; MUS_UNUSED=$M_CONVERGENT ;;' \
+  RED 'mu vector detached in the profile fallback -- every quality multiplier silently becomes empty' \
+  checker/profile-bind.sh
 
 # H05 REPLACED, and the reason is a finding rather than a fix.
 #
