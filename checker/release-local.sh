@@ -70,8 +70,27 @@ command -v unzip >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 2; }
 command -v tar   >/dev/null 2>&1 || { echo "REFUSE: tar absent";   exit 2; }
 
 LOCALDIR="$REPO/.release-local-only"
-LOCALVER="1.0"                      # MAJOR.MINOR; the packager derives .0/.1/.2
 MANIFEST=".claude-plugin/plugin.json"
+
+# MAJOR.MINOR, DERIVED FROM THE MANIFEST -- never frozen. The packager derives
+# .0/.1/.2 from this.
+#
+# This line read `LOCALVER="1.0"` until 2026-08-13, and it is the SAME defect
+# phase 5 below already documents having fixed once: a contingent fact written
+# down as if it were an invariant. When the family was legitimately bumped to
+# 2.0.x this gate went RED on a CORRECT tree and reported
+# `rot-moe-1.0.0-core.zip is MISSING` -- an alarm that names the wrong culprit,
+# because nothing was missing; the checker was looking for last version's name.
+#
+# The tempting repair is to edit "1.0" to "2.0", which buys exactly one release
+# before the same red returns. The durable statement is that this script tracks
+# WHATEVER family the manifest declares, so the next bump needs no edit here at
+# all. Derived, so it cannot drift.
+LOCALVER="$(sed -n 's/.*"version": "\([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*/\1.\2/p' "$REPO/$MANIFEST" | head -1)"
+case "$LOCALVER" in
+  [0-9]*.[0-9]*) : ;;
+  *) echo "REFUSE: could not derive MAJOR.MINOR from $MANIFEST (got '$LOCALVER')"; exit 2 ;;
+esac
 
 # --- phase 5 baseline, captured BEFORE any packaging runs -------------------
 # Phase 5 asks whether THIS SCRIPT modified the tracked manifest. It used to ask
@@ -84,7 +103,7 @@ MANIFEST=".claude-plugin/plugin.json"
 _MANIFEST_BEFORE="$(cksum < "$REPO/$MANIFEST" 2>/dev/null || echo unreadable)"
 _MANIFEST_VER_BEFORE="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$REPO/$MANIFEST" | head -1)"
 
-echo "== release local-only :: 1.0.x from HEAD, never published =="
+echo "== release local-only :: ${LOCALVER}.x from HEAD, never published =="
 
 # --- phase 1: it must be IMPOSSIBLE to publish this by accident ---------------
 # Checked BEFORE anything is built. A local-only directory that git can see is
