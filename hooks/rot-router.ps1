@@ -181,6 +181,37 @@ $Names   = @('Nova','Violet','AntiVenom','Venom','Carnage','Chroma','Soleil','Ei
 $Lambdas = @(1.4, 0.6, 1.9, 1.2, 0.6, 1.0, 1.0, 1.2, 2.3)
 $Mus     = @(1.05, 0.85, 1.10, 1.05, 0.90, 1.10, 0.95, 1.10, 1.15)
 
+# THE SECTION 2 DEFAULT ROSTER -- the table Symbiogenesis is defined over.
+# $Lambdas/$Mus above are the FORGE PROFILE (section 4) and score the turn; they
+# are NOT the operands of the merge law, which rot-lean.md section 3 defines over
+# these defaults. nova_violet_hybrid in RotEigenform.lean is 33/20 =
+# (1.6 + 1.3)/2 + 0.2, using Nova 1.6 and Violet 1.3 -- not the FORGE 1.4/0.6.
+#
+# HUNDREDTHS AS INTEGERS, matching the POSIX arm byte for byte. PowerShell has
+# decimals and could compute this directly, and that is exactly why it must not:
+# the two arms have to agree on every emitted digit, and floating point is where
+# they would silently stop agreeing. Every value is an exact multiple of 0.01 and
+# every lambda a multiple of 0.10, so integer hundredths reproduce the Lean
+# rationals exactly, in both arms, with no rounding rule to keep in sync.
+# H is the UPPER bound of each section 2 range (nova 7/20, violet 9/20).
+$DefLam = @(160, 130, 150, 170, 110, 120,  80, 140, 150)
+$DefMu  = @(100,  95, 100, 105, 120, 125,  90, 110, 105)
+$DefH   = @( 35,  45,  30,  28,  55,  38,  22,  38,  30)
+
+function Get-NsilHybrid {
+  param([string]$A, [string]$B)
+  $i = [Array]::IndexOf($Names, $A); $j = [Array]::IndexOf($Names, $B)
+  if ($i -lt 0 -or $j -lt 0 -or $i -eq $j) { return $null }
+  @{
+    lam = [int]((($DefLam[$i] + $DefLam[$j]) / 2) + 20)
+    mu  = [Math]::Max($DefMu[$i], $DefMu[$j])
+    h   = [Math]::Max($DefH[$i],  $DefH[$j]) + 5
+  }
+}
+
+# hundredths -> the same decimal string the POSIX arm's printf produces.
+function Format-Hund { param([int]$V) '{0}.{1:d2}' -f [math]::Floor($V / 100), ($V % 100) }
+
 # Mirrors ToString('0.##') / ('0.###'): round, then drop trailing zeros and a
 # bare trailing dot. Written explicitly rather than relying on the format
 # string, so that the rounding rule is visible next to the awk one it must match.
@@ -612,6 +643,19 @@ if ($nsilAct.Count -ge 2) {
   $nsilAct = @($lens)
 }
 
+# SYMBIOGENESIS, EVALUATED -- only for exactly two lenses. rot-lean.md section 3
+# defines the hybrid over TWO leads; folding pairwise would add +0.2 per fold
+# (+0.4 at three, +0.6 at four), an escalation no theorem sanctions. Staying
+# silent above two is the honest answer until the Socio decides the n-way rule.
+$nsilHyb = ''
+if ($nsilDecision -eq 'FUSE' -and $nsilAct.Count -eq 2) {
+  $h = Get-NsilHybrid $nsilAct[0] $nsilAct[1]
+  if ($null -ne $h) {
+    $nsilHyb = ',"hybrid":{{"pair":"{0}x{1}","lam":{2},"mu":{3},"h":{4}}}' -f `
+      $nsilAct[0], $nsilAct[1], (Format-Hund $h.lam), (Format-Hund $h.mu), (Format-Hund $h.h)
+  }
+}
+
 $acts  = @()
 $br    = 0
 foreach ($n in $Names) {
@@ -640,8 +684,11 @@ if ($env:ROTMOE_DEBUG_LOG) {
     $cand = [string]$j.hook_event_name
     if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
   }
-  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11},"arm":"ps1","ms":{6}}}' -f `
-    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br)
+  # {12} is $nsilHyb, already a finished string with LITERAL braces -- `-f`
+  # substitutes argument values verbatim and only parses braces in the FORMAT
+  # string, so it must not be double-escaped a second time here.
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11}{12},"arm":"ps1","ms":{6}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br, $nsilHyb)
 }
 
 # The marker rides the router's own stdout, not a sidecar file: if the log path

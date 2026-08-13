@@ -468,6 +468,59 @@ NAMES='Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude'
 NSIL_FLOOR=0
 for _rs_x in $NAMES; do NSIL_FLOOR=$((NSIL_FLOOR+1)); done
 
+# ---------------------------------------------------------------------------
+# THE SECTION 2 DEFAULT ROSTER -- the table Symbiogenesis is defined over.
+#
+# LAMBDAS/MUS above are the FORGE PROFILE (section 4) and are what the gauge
+# scores a turn with. They are NOT the operands of the merge law. rot-lean.md
+# section 3 defines the hybrid over the section 2 DEFAULTS, and the proof agrees:
+# `nova_violet_hybrid` in RotEigenform.lean is 33/20 = (1.6 + 1.3)/2 + 0.2, which
+# uses Nova 1.6 and Violet 1.3 -- not the FORGE 1.4 and 0.6. Mixing the two
+# tables silently produces a hybrid that no theorem describes, which is exactly
+# the trap FULL-CHECKLIST.md logged as TRAP 1 before this table existed.
+#
+# STORED AS HUNDREDTHS, AS INTEGERS, ON PURPOSE. POSIX sh has no float
+# arithmetic, and reaching for `awk` would cost a fork per turn on a router
+# whose budget is counted in spawns -- the same mistake that put this file 27 ms
+# over the bound earlier today. Every value in the law is an exact multiple of
+# 0.01, every lambda is a multiple of 0.10 so `(a+b)/2` is always exact, and the
+# gains are +0.20 and +0.05. So integer hundredths reproduce the Lean rationals
+# EXACTLY -- no rounding, no epsilon, no float comparison anywhere.
+#
+# H is the UPPER bound of each section 2 range, the convention nova = 7/20 and
+# violet = 9/20 already fixed in RotEigenform.lean.
+#          Nova Violet AntiV Venom Carn Chroma Soleil Eido Claude
+DEF_LAM='  160  130    150   170   110  120    80     140  150'
+DEF_MU='   100  95     100   105   120  125    90     110  105'
+DEF_H='    35   45     30    28    55   38     22     38   30'
+
+# merge, per rot-lean.md section 3 -- lambda=(l1+l2)/2+0.2, mu=max, H=max+0.05.
+# Sets HYB_LAM/HYB_MU/HYB_H in hundredths. No subshell, no external process.
+nsil_hybrid () {   # <name1> <name2>
+  HYB_LAM=''; HYB_MU=''; HYB_H=''
+  _h_i=0; _h_l1=''; _h_l2=''; _h_m1=''; _h_m2=''; _h_h1=''; _h_h2=''
+  for _h_n in $NAMES; do
+    _h_i=$((_h_i+1))
+    if [ "$_h_n" = "$1" ] || [ "$_h_n" = "$2" ]; then
+      _h_j=0
+      for _h_v in $DEF_LAM; do _h_j=$((_h_j+1)); [ "$_h_j" -eq "$_h_i" ] && { [ -z "$_h_l1" ] && _h_l1=$_h_v || _h_l2=$_h_v; }; done
+      _h_j=0
+      for _h_v in $DEF_MU;  do _h_j=$((_h_j+1)); [ "$_h_j" -eq "$_h_i" ] && { [ -z "$_h_m1" ] && _h_m1=$_h_v || _h_m2=$_h_v; }; done
+      _h_j=0
+      for _h_v in $DEF_H;   do _h_j=$((_h_j+1)); [ "$_h_j" -eq "$_h_i" ] && { [ -z "$_h_h1" ] && _h_h1=$_h_v || _h_h2=$_h_v; }; done
+    fi
+  done
+  [ -n "$_h_l2" ] || return 1
+  HYB_LAM=$(( (_h_l1 + _h_l2) / 2 + 20 ))
+  HYB_MU=$_h_m1;  [ "$_h_m2" -gt "$HYB_MU" ] && HYB_MU=$_h_m2
+  HYB_H=$_h_h1;   [ "$_h_h2" -gt "$HYB_H" ]  && HYB_H=$_h_h2
+  HYB_H=$((HYB_H + 5))
+  return 0
+}
+
+# hundredths -> decimal string, builtin printf only (no fork).
+hund () { printf '%d.%02d' $(( $1 / 100 )) $(( $1 % 100 )); }
+
 gauge () {   # gauge "a1,..,a9" breadth M C T
   _acts="$1"; _breadth="$2"; _M="$3"; _C="$4"; _T="$5"
   # The second sink is resolved in the shell, not in awk: creating a directory
@@ -786,6 +839,31 @@ hook_mode () {
     _nsil_act=$_lens
   fi
 
+  # SYMBIOGENESIS, EVALUATED. When exactly two lenses fused, the merge law has a
+  # defined answer and the router can now state it -- the section 2 default table
+  # above is the piece that was missing, not the law, which RotEigenform.lean has
+  # proved over ℚ all along.
+  #
+  # Deliberately NOT computed for three or more. rot-lean.md section 3 defines
+  # the hybrid over TWO leads, and folding pairwise would add +0.2 per fold
+  # (+0.4 at three lenses, +0.6 at four) -- an escalation no theorem sanctions.
+  # That is a spec question for the Socio, not a default to be invented by
+  # whichever code path happened to run first. Silence here is the honest answer
+  # until it is decided.
+  NSIL_HYB=''
+  if [ "$NSIL_DECISION" = 'FUSE' ]; then
+    _hy_n=0; _hy_a=''; _hy_b=''
+    for _hy_x in $_nsil_act; do
+      _hy_n=$((_hy_n+1))
+      [ "$_hy_n" -eq 1 ] && _hy_a=$_hy_x
+      [ "$_hy_n" -eq 2 ] && _hy_b=$_hy_x
+    done
+    if [ "$_hy_n" -eq 2 ] && nsil_hybrid "$_hy_a" "$_hy_b"; then
+      NSIL_HYB=$(printf ',"hybrid":{"pair":"%sx%s","lam":%s,"mu":%s,"h":%s}' \
+        "$_hy_a" "$_hy_b" "$(hund "$HYB_LAM")" "$(hund "$HYB_MU")" "$(hund "$HYB_H")")
+    fi
+  fi
+
   _vec=''; _br=0
   for _n in $NAMES; do
     _on=0
@@ -894,8 +972,8 @@ hook_mode () {
     # meaningful together: FUSE with breadth 2 and FUSE with breadth 4 are
     # different turns, and the visible marker deliberately shows nothing at all
     # for CONFIRM.
-    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","nsil":"%s","breadth":%s,"arm":"sh","ms":%s}' \
-         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$NSIL_DECISION" "$_br" "$_ms")
+    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","nsil":"%s","breadth":%s%s,"arm":"sh","ms":%s}' \
+         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$NSIL_DECISION" "$_br" "$NSIL_HYB" "$_ms")
 
     # The partial-line guard is `_rot_terminate`, defined at TOP LEVEL near
     # `convener` -- it has to be reachable by the awk gauge writer too, which
