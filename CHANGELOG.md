@@ -69,7 +69,7 @@ sensor attached must stay quiet.
 ### Proofs
 
 `lean/Proofs/RotNsilBoost.lean` (9 theorems) and `lean/Proofs/RotBandMonitor.lean`
-(11 theorems). Total **1603**, zero `sorry`, `leanchecker` clean. Six mutations
+(11 theorems). Total **1611**, zero `sorry`, `leanchecker` clean. Six mutations
 applied and verified present; all six killed. One further mutation was
 **discarded** — the patch did not land — and is reported as discarded, never as
 survived.
@@ -153,7 +153,7 @@ lenses take distinct positions, then collapses as they converge on one solution.
 
 ### Proofs
 
-**1603 theorems, zero `sorry`**, kernel re-verified. New this release: four in
+**1611 theorems, zero `sorry`**, kernel re-verified. New this release: four in
 `RotLensActivation.lean` for TIER 3 and four in `RotEigenform.lean` for the
 36-hybrid space, including `lambda_alone_does_not_identify_a_hybrid` — a
 conjunction, so neither half can be quoted without the other. Mutation: the depth

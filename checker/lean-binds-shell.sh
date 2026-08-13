@@ -44,9 +44,127 @@ echo "== Lean witness vs shipped weights =="
 [ -f "$SH" ]   || { echo "  FAIL  missing $SH";   exit 1; }
 [ -f "$LEAN" ] || { echo "  FAIL  missing $LEAN"; exit 1; }
 
-# --- extract from the shell ------------------------------------------------
-sh_lam=$(grep -m1 "^LAMBDAS=" "$SH" | sed "s/^LAMBDAS='//; s/'$//")
-sh_mu=$(grep  -m1 "^MUS="     "$SH" | sed "s/^MUS='//; s/'$//")
+# --- ALL TEN PROFILES, not just the one that used to be the only one --------
+#
+# THIS CHECK NEARLY DIED OF ITS OWN SUCCESS. It was written when the router
+# mounted a single weight table, so `^LAMBDAS=` found that table and comparing
+# it against Lean's `forge` covered 100% of the shipped weights.
+#
+# Profile switching added nine more tables. `^LAMBDAS=` then matched
+# `LAMBDAS=$L_CONVERGENT` -- an INDIRECTION, not a table -- and the shell side
+# became the literal string "LAMBDAS=$L_CONVERGENT", one "lens" long. It failed
+# loudly, which is luck: had the pattern happened to match a real 9-number line
+# for one profile, this check would have gone green while nine tables sat
+# unverified behind it.
+#
+# The durable repair is not to re-pin FORGE. It is to verify EVERY profile the
+# shell ships against a Lean witness of the same name, and to REFUSE if the two
+# sides disagree about which profiles exist -- so the next table added to the
+# router cannot be silently unbound.
+PROFILES='CONVERGENT CLINICAL EXECUTIVE EMPATHIC STRATEGIC CREATIVE PREDICTIVE STEALTH RECURSIVE FORGE'
+
+# The Lean witness names them in lower camel, and two differ from a plain
+# lower-casing: RECURSIVE is `recursiveP` (`recursive` is reserved-adjacent and
+# reads badly beside Lean's own recursion), FORGE is `forge`. Mapped explicitly
+# rather than transformed, because a transformation that silently produced a
+# non-existent name would extract zero pairs and pass vacuously.
+lean_name_for () {
+  case $1 in
+    CONVERGENT) echo convergent ;; CLINICAL) echo clinical ;;
+    EXECUTIVE)  echo executive  ;; EMPATHIC) echo empathic ;;
+    STRATEGIC)  echo strategic  ;; CREATIVE) echo creative ;;
+    PREDICTIVE) echo predictive ;; STEALTH)  echo stealth  ;;
+    RECURSIVE)  echo recursiveP ;; FORGE)    echo forge    ;;
+    *) echo '' ;;
+  esac
+}
+
+# Pull one profile's weights out of the shell's `L_<NAME>=` / `M_<NAME>=` pair.
+#
+# NOT ANCHORED AT COLUMN 0, and that is the point: the router writes both tables
+# on ONE line (`L_STEALTH='...';    M_STEALTH='...'`), so a `^M_` pattern matches
+# nothing and every M comparison silently reports "the shell has no table".
+# Measured -- it produced ten identical false failures in a row, which is at
+# least an honest way to be wrong.
+#
+# The leading `[^A-Za-z0-9_]` guard stops `M_STEALTH` from also matching some
+# hypothetical `X_M_STEALTH`, and `\{0,1\}` keeps it optional so a column-0
+# assignment still matches.
+sh_weights_for () {   # <PROFILE> <L|M> -> the nine numbers
+  sed -n "s/.*[^A-Za-z0-9_]\{0,1\}$2_$1='\([^']*\)'.*/\1/p" "$SH" | head -1
+}
+
+# Pull one profile's pairs out of the Lean witness.
+lean_pairs_for () {   # <leanName>
+  awk -v want="$1" '
+    $0 ~ "^def " want " " { inside = 1; next }
+    inside && $0 !~ /^[ \t]*\|/ { inside = 0 }
+    inside {
+      if (match($0, /[0-9]+\.[0-9]+, *[0-9]+\.[0-9]+/)) {
+        s = substr($0, RSTART, RLENGTH); gsub(/ /, "", s); print s
+      }
+    }' "$LEAN"
+}
+
+# Numeric comparison, tolerant of 1.1 vs 1.10 -- a formatting difference is not
+# a disagreement, and treating it as one would train people to ignore this.
+norm () { printf '%s\n' $1 | awk '{printf "%.4f ", $1+0}'; }
+
+for _p in $PROFILES; do
+  _ln=$(lean_name_for "$_p")
+  if [ -z "$_ln" ]; then bad "no Lean witness NAME mapped for profile $_p"; continue; fi
+
+  _shl=$(sh_weights_for "$_p" L)
+  _shm=$(sh_weights_for "$_p" M)
+  if [ -z "$_shl" ] || [ -z "$_shm" ]; then
+    bad "profile $_p: the SHELL has no L_$_p / M_$_p table"
+    continue
+  fi
+
+  _pairs=$(lean_pairs_for "$_ln")
+  _nl=$(printf '%s\n' "$_pairs" | grep -c .)
+  _ns=$(printf '%s\n' $_shl | grep -c .)
+
+  # The extractor must actually find something, or every comparison below is a
+  # vacuous pass -- the same failure this repo keeps hunting.
+  if [ "$_nl" -eq 0 ]; then
+    bad "profile $_p: extracted NOTHING from Lean's \`$_ln\` -- would pass vacuously"
+    continue
+  fi
+  if [ "$_nl" -ne "$_ns" ]; then
+    bad "profile $_p: lens COUNT differs -- shell $_ns, Lean $_nl"
+    continue
+  fi
+
+  _ll=$(printf '%s\n' "$_pairs" | cut -d, -f1 | tr '\n' ' ' | sed 's/ $//')
+  _lm=$(printf '%s\n' "$_pairs" | cut -d, -f2 | tr '\n' ' ' | sed 's/ $//')
+
+  if [ "$(norm "$_shl")" = "$(norm "$_ll")" ]; then
+    ok "profile $_p: lambdas agree ($_ns lenses)"
+  else
+    bad "profile $_p: LAMBDAS DIFFER -- shell [$_shl] vs Lean [$_ll]"
+  fi
+  if [ "$(norm "$_shm")" = "$(norm "$_lm")" ]; then
+    ok "profile $_p: mus agree"
+  else
+    bad "profile $_p: MUS DIFFER -- shell [$_shm] vs Lean [$_lm]"
+  fi
+done
+
+# THE SHELL MUST NOT SHIP A PROFILE THIS CHECK DOES NOT KNOW ABOUT. Without
+# this, adding an eleventh table to the router would leave it unverified and
+# every line above would still say PASS.
+sh_profile_count=$(grep -c "^L_[A-Z][A-Z]*=" "$SH")
+want_count=$(printf '%s\n' $PROFILES | grep -c .)
+if [ "$sh_profile_count" -eq "$want_count" ]; then
+  ok "the shell ships exactly the $want_count profiles this check verifies"
+else
+  bad "the shell ships $sh_profile_count profile tables but this check verifies $want_count -- an unbound table would go unchecked"
+fi
+
+# --- the legacy single-table comparison, kept for the roster checks below ---
+sh_lam=$(sh_weights_for FORGE L)
+sh_mu=$(sh_weights_for FORGE M)
 
 # --- extract from the Lean witness ------------------------------------------
 # The forge table is a list of ⟨lam, mu⟩ pairs, one per line, with the

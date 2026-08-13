@@ -481,6 +481,156 @@ def forge : Face → Lens
   | .eidolon => ⟨1.2, 1.10⟩
   | .claude => ⟨2.3, 1.15⟩
 
+/-! ### The other nine §4 profiles
+
+**FORGE used to be the only witness, and for a while that was accurate: the
+router mounted one weight table for every lane.** Profile switching changed that,
+and for one release the consequence went unnoticed — nine of the ten shipped
+tables had *no* Lean witness at all, so `checker/lean-binds-shell.sh` was
+verifying one tenth of the weights while reading as though it covered them.
+
+That is the exact failure mode the checker exists to prevent, arriving through
+the back door: not a retuned constant, but a *new table the witness never knew
+about*. Transcribed from §4 below, one `def` per profile, so the binding grows
+with the router instead of aging against it. -/
+
+/-- §4 CONVERGENT — the convener, and the router's startup default. -/
+def convergent : Face → Lens
+  | .nova => ⟨1.6, 1.00⟩
+  | .violet => ⟨1.3, 0.95⟩
+  | .antiVenom => ⟨1.5, 1.00⟩
+  | .venom => ⟨1.7, 1.05⟩
+  | .carnage => ⟨1.1, 1.20⟩
+  | .chroma => ⟨1.2, 1.25⟩
+  | .soleil => ⟨0.8, 0.90⟩
+  | .eidolon => ⟨1.4, 1.10⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 CLINICAL — Anti-Venom lead. -/
+def clinical : Face → Lens
+  | .nova => ⟨1.4, 1.00⟩
+  | .violet => ⟨0.7, 0.90⟩
+  | .antiVenom => ⟨2.5, 1.20⟩
+  | .venom => ⟨1.0, 1.00⟩
+  | .carnage => ⟨0.5, 0.80⟩
+  | .chroma => ⟨1.0, 1.10⟩
+  | .soleil => ⟨1.2, 1.00⟩
+  | .eidolon => ⟨1.3, 1.10⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 EXECUTIVE — Venom lead. -/
+def executive : Face → Lens
+  | .nova => ⟨1.5, 1.05⟩
+  | .violet => ⟨0.8, 0.90⟩
+  | .antiVenom => ⟨1.3, 1.00⟩
+  | .venom => ⟨2.4, 1.20⟩
+  | .carnage => ⟨0.7, 1.00⟩
+  | .chroma => ⟨1.1, 1.10⟩
+  | .soleil => ⟨1.0, 0.90⟩
+  | .eidolon => ⟨1.0, 1.00⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 EMPATHIC — Violet lead. -/
+def empathic : Face → Lens
+  | .nova => ⟨0.8, 0.90⟩
+  | .violet => ⟨2.3, 1.15⟩
+  | .antiVenom => ⟨0.9, 0.95⟩
+  | .venom => ⟨0.8, 0.90⟩
+  | .carnage => ⟨1.8, 1.30⟩
+  | .chroma => ⟨1.4, 1.20⟩
+  | .soleil => ⟨0.7, 0.85⟩
+  | .eidolon => ⟨1.0, 1.00⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 STRATEGIC — Nova lead. -/
+def strategic : Face → Lens
+  | .nova => ⟨2.2, 1.15⟩
+  | .violet => ⟨0.9, 0.95⟩
+  | .antiVenom => ⟨1.8, 1.00⟩
+  | .venom => ⟨1.6, 1.10⟩
+  | .carnage => ⟨0.7, 1.20⟩
+  | .chroma => ⟨1.5, 1.25⟩
+  | .soleil => ⟨0.6, 0.90⟩
+  | .eidolon => ⟨1.3, 1.10⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 CREATIVE — Carnage lead. -/
+def creative : Face → Lens
+  | .nova => ⟨1.0, 1.00⟩
+  | .violet => ⟨1.6, 1.15⟩
+  | .antiVenom => ⟨0.8, 0.90⟩
+  | .venom => ⟨0.7, 1.00⟩
+  | .carnage => ⟨2.5, 1.35⟩
+  | .chroma => ⟨1.2, 1.10⟩
+  | .soleil => ⟨0.9, 0.85⟩
+  | .eidolon => ⟨1.5, 1.15⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 PREDICTIVE — Chroma lead. -/
+def predictive : Face → Lens
+  | .nova => ⟨1.4, 1.10⟩
+  | .violet => ⟨1.0, 1.00⟩
+  | .antiVenom => ⟨1.2, 1.00⟩
+  | .venom => ⟨1.2, 1.05⟩
+  | .carnage => ⟨0.9, 1.00⟩
+  | .chroma => ⟨2.4, 1.25⟩
+  | .soleil => ⟨0.8, 0.90⟩
+  | .eidolon => ⟨1.3, 1.10⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 STEALTH — Soleil lead. The only lane measured INSIDE its own §5 band. -/
+def stealth : Face → Lens
+  | .nova => ⟨0.7, 0.90⟩
+  | .violet => ⟨0.6, 0.85⟩
+  | .antiVenom => ⟨1.5, 1.10⟩
+  | .venom => ⟨0.8, 0.90⟩
+  | .carnage => ⟨0.5, 0.80⟩
+  | .chroma => ⟨0.7, 0.90⟩
+  | .soleil => ⟨2.5, 1.20⟩
+  | .eidolon => ⟨1.0, 1.00⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- §4 RECURSIVE — Eidolon lead. -/
+def recursiveP : Face → Lens
+  | .nova => ⟨1.5, 1.10⟩
+  | .violet => ⟨1.0, 1.00⟩
+  | .antiVenom => ⟨1.6, 1.10⟩
+  | .venom => ⟨0.8, 0.95⟩
+  | .carnage => ⟨1.1, 1.20⟩
+  | .chroma => ⟨1.2, 1.15⟩
+  | .soleil => ⟨0.9, 0.90⟩
+  | .eidolon => ⟨2.3, 1.20⟩
+  | .claude => ⟨1.5, 1.05⟩
+
+/-- Every §4 profile gives its own lead the largest λ in that profile.
+
+This is what makes a profile a *profile* rather than nine arbitrary numbers, and
+it is stated over the whole table rather than spot-checked: if a transcription
+slipped a digit and demoted a lead below one of its own supporting lenses, the
+table would still elaborate and this theorem would not. -/
+theorem each_lead_dominates_its_profile :
+    (∀ i, i ≠ Face.antiVenom → (clinical i).lam < (clinical Face.antiVenom).lam) ∧
+    (∀ i, i ≠ Face.venom → (executive i).lam < (executive Face.venom).lam) ∧
+    (∀ i, i ≠ Face.violet → (empathic i).lam < (empathic Face.violet).lam) ∧
+    (∀ i, i ≠ Face.nova → (strategic i).lam < (strategic Face.nova).lam) ∧
+    (∀ i, i ≠ Face.carnage → (creative i).lam < (creative Face.carnage).lam) ∧
+    (∀ i, i ≠ Face.chroma → (predictive i).lam < (predictive Face.chroma).lam) ∧
+    (∀ i, i ≠ Face.soleil → (stealth i).lam < (stealth Face.soleil).lam) ∧
+    (∀ i, i ≠ Face.eidolon → (recursiveP i).lam < (recursiveP Face.eidolon).lam) ∧
+    (∀ i, i ≠ Face.claude → (forge i).lam < (forge Face.claude).lam) := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
+    (intro i hi; cases i <;> first | (exact absurd rfl hi) | norm_num [clinical, executive,
+      empathic, strategic, creative, predictive, stealth, recursiveP, forge])
+
+/-- CONVERGENT deliberately has **no** dominant lead — it is the convener, where
+all nine co-reason. Venom carries the largest λ there, which is *not* a defect:
+`§3` names CONVERGENT "the default with no trigger", and its lead lens is the
+model itself rather than a roster entry. Pinned so nobody later "fixes" it. -/
+theorem convergent_has_no_roster_lead :
+    (convergent Face.venom).lam = 1.7 ∧
+    (convergent Face.nova).lam < (convergent Face.venom).lam := by
+  constructor <;> norm_num [convergent]
+
 /-- The shipped profile satisfies the positivity hypothesis every theorem above
 runs on. Without this, `gauge_pos`, `gauge_not_constant` and the rest would be
 true of *some* ensemble and say nothing about ours. -/
