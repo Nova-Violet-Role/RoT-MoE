@@ -865,6 +865,7 @@ hook_mode () {
   fi
 
   _vec=''; _br=0
+  # (TIER 3 is derived below, once breadth is known -- see NSIL_DEPTH.)
   for _n in $NAMES; do
     _on=0
     for _a in $_nsil_act; do [ "$_a" = "$_n" ] && _on=1; done
@@ -894,6 +895,31 @@ hook_mode () {
       _dbg_lost=1
       ROTMOE_DEBUG_LOG=''
     fi
+  fi
+
+  # TIER 3 -- THE COMPLEXITY GATE, DERIVED, NOT GUESSED.
+  #
+  # rot-lean.md section 3: "TIER 3 -- complexity gate. TRIVIAL / STANDARD / DEEP.
+  # It regulates ONLY how much thinking is spent, never whether the mechanism
+  # runs." Because it governs effort and not output, it is purely additive here:
+  # it cannot move the marker, the lane, the vector or R/s+. That is why it is
+  # safe to land while profile switching is not.
+  #
+  # THE THRESHOLDS ARE DERIVED FROM TIER 2 RATHER THAN INVENTED. The obvious
+  # implementation is word-count cutoffs, and it would have been three arbitrary
+  # constants that no theorem and no measurement justifies -- the kind of number
+  # that later gets tuned until an output looks right. Instead the depth is read
+  # off what Nova already decided:
+  #
+  #   nothing engaged, nothing to reason about ......... TRIVIAL   (breadth 0)
+  #   one lens carries the turn ........................ STANDARD  (breadth 1)
+  #   several lenses contribute a point of view ........ DEEP      (FUSE/ELEVATE)
+  #
+  # So TIER 3 is a function of TIER 2, adds no constant, and moves automatically
+  # if the FUSE or ELEVATE criteria ever change.
+  if [ "$_br" -ge 2 ]; then NSIL_DEPTH='DEEP'
+  elif [ "$_br" -eq 1 ]; then NSIL_DEPTH='STANDARD'
+  else NSIL_DEPTH='TRIVIAL'
   fi
 
   _rs=$(gauge "$_vec" "$_br" 1 1 1 | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
@@ -972,8 +998,8 @@ hook_mode () {
     # meaningful together: FUSE with breadth 2 and FUSE with breadth 4 are
     # different turns, and the visible marker deliberately shows nothing at all
     # for CONFIRM.
-    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","nsil":"%s","breadth":%s%s,"arm":"sh","ms":%s}' \
-         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$NSIL_DECISION" "$_br" "$NSIL_HYB" "$_ms")
+    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","nsil":"%s","breadth":%s,"depth":"%s"%s,"arm":"sh","ms":%s}' \
+         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$NSIL_DECISION" "$_br" "$NSIL_DEPTH" "$NSIL_HYB" "$_ms")
 
     # The partial-line guard is `_rot_terminate`, defined at TOP LEVEL near
     # `convener` -- it has to be reachable by the awk gauge writer too, which

@@ -448,4 +448,73 @@ theorem the_ensemble_keeps_all_nine_while_the_router_activates_one
   · simp [assignedBreadth, h]
   · simp [routerVector, shippedNames]
 
+/-! ## TIER 3 — the complexity gate
+
+`rot-lean.md` §3: "TIER 3 — complexity gate. TRIVIAL / STANDARD / DEEP. It
+regulates ONLY how much thinking is spent, never whether the mechanism runs."
+
+The router derives depth from **breadth** rather than from word-count cutoffs.
+That choice is the whole point and is worth stating plainly: three invented
+thresholds would be three constants nothing justifies, and constants nothing
+justifies are what later get tuned until an output looks right. Deriving from
+TIER 2 means the gate moves automatically if the FUSE or ELEVATE criteria ever
+change, and there is no number to tune. -/
+
+inductive Depth where
+  | trivial
+  | standard
+  | deep
+  deriving DecidableEq, Repr
+
+/-- The shipped rule, transcribed from both arms. -/
+def depthOf (breadth : Nat) : Depth :=
+  if 2 ≤ breadth then Depth.deep
+  else if breadth = 1 then Depth.standard
+  else Depth.trivial
+
+/-- **The gate is total and deterministic**: every breadth gets exactly one
+depth. Trivial to state, and it is the property that makes the field safe to log
+— a classifier with a gap would write an empty column that readers would take
+for "not measured" rather than "not classified". -/
+theorem every_breadth_has_exactly_one_depth (b : Nat) :
+    depthOf b = Depth.trivial ∨ depthOf b = Depth.standard ∨ depthOf b = Depth.deep := by
+  unfold depthOf
+  split
+  · exact Or.inr (Or.inr rfl)
+  · split
+    · exact Or.inr (Or.inl rfl)
+    · exact Or.inl rfl
+
+/-- **DEEP is exactly fusion.** The durable statement of the TIER 3 ↔ TIER 2
+binding: a turn is deep precisely when two or more lenses contribute. Stated as
+an iff over *every* breadth rather than as a table of the values that happen to
+occur today, so widening the roster cannot falsify it. -/
+theorem deep_iff_at_least_two_lenses (b : Nat) :
+    depthOf b = Depth.deep ↔ 2 ≤ b := by
+  unfold depthOf
+  by_cases h1 : 2 ≤ b
+  · simp [h1]
+  · by_cases h2 : b = 1 <;> simp [h1, h2]
+
+/-- **TRIVIAL is exactly silence**, and it is not the same as STANDARD. The
+distinction matters because breadth 0 and breadth 1 produce nearly the same R/s+
+(0.16 vs 0.47 measured), so the gauge alone cannot tell them apart — the depth
+field can. -/
+theorem trivial_iff_nothing_engaged (b : Nat) :
+    depthOf b = Depth.trivial ↔ b = 0 := by
+  unfold depthOf
+  by_cases h1 : 2 ≤ b
+  · simp [h1]; omega
+  · by_cases h2 : b = 1
+    · simp [h1, h2]
+    · simp [h1, h2]; omega
+
+/-- The three depths are genuinely distinct constructors — a guard against the
+classifier silently collapsing, which would make the column look populated while
+carrying no information. -/
+theorem the_three_depths_are_distinct :
+    Depth.trivial ≠ Depth.standard ∧ Depth.standard ≠ Depth.deep
+      ∧ Depth.trivial ≠ Depth.deep := by
+  refine ⟨?_, ?_, ?_⟩ <;> decide
+
 end RotMoE.LensActivation

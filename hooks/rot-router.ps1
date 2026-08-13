@@ -661,6 +661,15 @@ $br    = 0
 foreach ($n in $Names) {
   if ($nsilAct -contains $n) { $acts += '1'; $br = $br + 1 } else { $acts += '0' }
 }
+# TIER 3 -- the complexity gate, DERIVED from TIER 2 rather than from invented
+# word-count cutoffs. rot-lean.md section 3 says it regulates only how much
+# thinking is spent, never whether the mechanism runs, so it is purely additive:
+# it cannot move the marker, the lane, the vector or R/s+.
+#   breadth 0 -> TRIVIAL   nothing engaged
+#   breadth 1 -> STANDARD  one lens carries the turn
+#   breadth 2+ -> DEEP     several lenses contribute a point of view
+$nsilDepth = if ($br -ge 2) { 'DEEP' } elseif ($br -eq 1) { 'STANDARD' } else { 'TRIVIAL' }
+
 $g  = Invoke-Gauge ($acts -join ',') $br 1 1 1
 $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
 
@@ -687,8 +696,8 @@ if ($env:ROTMOE_DEBUG_LOG) {
   # {12} is $nsilHyb, already a finished string with LITERAL braces -- `-f`
   # substitutes argument values verbatim and only parses braces in the FORMAT
   # string, so it must not be double-escaped a second time here.
-  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11}{12},"arm":"ps1","ms":{6}}}' -f `
-    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br, $nsilHyb)
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11},"depth":"{13}"{12},"arm":"ps1","ms":{6}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br, $nsilHyb, $nsilDepth)
 }
 
 # The marker rides the router's own stdout, not a sidecar file: if the log path

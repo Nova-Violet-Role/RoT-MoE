@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1579
+lens activities off disk, computes an `R/s+` gauge from them, and **1583
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -239,7 +239,7 @@ happened to this codebase.
 | what | how many | recomputed by |
 |---|---|---|
 | Lean modules in `lean/Proofs/` | **82** | `ls lean/Proofs/*.lean \| wc -l` |
-| theorems and lemmas proved | **1579** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
+| theorems and lemmas proved | **1583** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
 | mutation suites | **75** | `ls lean/mutate/mutate_*.sh \| wc -l` |
 | checkers | **75** | `ls checker/*.sh \| wc -l` |
 | hook events wired by the plugin | **31** | keys of `hooks/hooks.json` |
@@ -583,7 +583,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1579 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1583 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1432,7 +1432,7 @@ exactly such a module.
 * `lean/Proofs/RotInstall.lean` (23 theorems)
 * `lean/Proofs/RotLens.lean` (13 theorems)
 * `lean/Proofs/RotLensAbility.lean` (11 theorems)
-* `lean/Proofs/RotLensActivation.lean` (29 theorems)
+* `lean/Proofs/RotLensActivation.lean` (33 theorems)
 * `lean/Proofs/RotLiveRouting.lean` (11 theorems)
 * `lean/Proofs/RotLocalRelease.lean` (8 theorems)
 * `lean/Proofs/RotLog.lean` (23 theorems)
@@ -1688,7 +1688,7 @@ Each line below names what decides it. Nothing here is aspirational.
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | 82 modules, **1579 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
+| The corpus is real | **MEASURED** | 82 modules, **1583 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all 82 modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
 
