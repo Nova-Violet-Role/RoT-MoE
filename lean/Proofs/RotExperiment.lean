@@ -582,7 +582,7 @@ trivially true. -/
 theorem nothing_dominates_itself (v : LensVector) : dominates v v = false := by
   unfold dominates
   simp only [Nat.le_refl, Nat.lt_irrefl, decide_true, decide_false, Bool.and_true,
-    Bool.true_and, Bool.or_false, Bool.false_or]
+    Bool.true_and, Bool.or_false]
 
 /-! ## 7. Multiplicity — nine observables at p<0.01 is not p<0.01
 

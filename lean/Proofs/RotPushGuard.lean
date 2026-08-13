@@ -151,7 +151,7 @@ theorem meeting_more_never_withdraws_permission
   rw [permission_is_exactly_an_empty_outstanding_list] at h ⊢
   intro x hx
   have := h x hx
-  simp [List.contains_cons] at this ⊢
+  simp at this ⊢
   exact Or.inr this
 
 /-! ## Non-vacuity, and the state as it actually is -/

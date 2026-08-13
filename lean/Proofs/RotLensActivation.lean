@@ -506,7 +506,7 @@ theorem trivial_iff_nothing_engaged (b : Nat) :
   by_cases h1 : 2 ≤ b
   · simp [h1]; omega
   · by_cases h2 : b = 1
-    · simp [h1, h2]
+    · simp [h2]
     · simp [h1, h2]; omega
 
 /-- The three depths are genuinely distinct constructors — a guard against the

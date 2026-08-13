@@ -105,7 +105,7 @@ theorem slack_skips_the_steady_state_rotation (cap slack : Nat) (h : 0 < slack) 
 /-- The bound is still respected: a log never exceeds `cap + slack`. This is the
 weakening, stated explicitly — the file may hold up to `slack` extra records
 between trims, and in exchange the trim runs `slack + 1` times less often. -/
-theorem length_stays_bounded (cap slack len : Nat) (h : len ≤ cap + slack) :
+theorem length_stays_bounded (cap slack len : Nat) (_h : len ≤ cap + slack) :
     afterAppend cap slack len ≤ cap + slack := by
   simp only [afterAppend]
   split

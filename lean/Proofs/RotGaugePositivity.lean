@@ -107,7 +107,7 @@ theorem the_gauge_vanishes_only_if_every_lens_did (ts : List Term) :
   induction ts with
   | nil => simp [gaugeSum]
   | cons t ts ih =>
-    simp only [gaugeSum, List.mem_cons, Nat.add_eq_zero, ih]
+    simp only [gaugeSum, List.mem_cons, Nat.add_eq_zero_iff, ih]
     constructor
     · rintro ⟨h1, h2⟩ x (rfl | hx)
       · exact h1

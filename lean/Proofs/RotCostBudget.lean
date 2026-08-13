@@ -131,7 +131,7 @@ theorem median3_is_one_of_the_readings (a b c : Nat) :
   rcases Nat.le_total a b with hab | hab <;>
   rcases Nat.le_total b c with hbc | hbc <;>
   rcases Nat.le_total a c with hac | hac <;>
-  simp [Nat.min_def, Nat.max_def, hab, hbc, hac] <;> omega
+  simp [hab, hbc, hac] <;> omega
 
 /-- The median lies between the extremes. -/
 theorem median3_is_between (a b c : Nat) :
@@ -140,7 +140,7 @@ theorem median3_is_between (a b c : Nat) :
   rcases Nat.le_total a b with hab | hab <;>
   rcases Nat.le_total b c with hbc | hbc <;>
   rcases Nat.le_total a c with hac | hac <;>
-  simp [Nat.min_def, Nat.max_def, hab, hbc, hac] <;> omega
+  simp [hab, hbc, hac] <;> omega
 
 /-- **The property the repair exists for.** If two of the three readings are
 under the bound, the median is under the bound — so a single load spike, however
@@ -349,7 +349,7 @@ theorem a_quiet_machine_still_decides (a t : Reading) :
     costVerdict a a a t = CostVerdict.within ∨ costVerdict a a a t = CostVerdict.exceeded := by
   simp only [costVerdict, trustworthy, spread, median3]
   rcases Nat.lt_or_ge (max a (max a a)) t with h | h <;>
-    simp [Nat.max_self, Nat.min_self, h] <;> omega
+    simp <;> omega
 
 /-- **A quiet machine can still FAIL.** Three agreeing readings over budget give
 `exceeded`, so a genuine regression is caught and the alarm is intact. -/
