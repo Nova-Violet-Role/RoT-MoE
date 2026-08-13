@@ -57,16 +57,24 @@ that does not exist, so the instructions cannot rot while you are not looking.
 
 ## 📜 About
 
-Every engine like this meets the same objection, and it is a fair one:
-***the number is made up.*** A "divergence score" that no one can audit is a
-decoration with a decimal point.
+**RoT MoE is a mixture-of-experts router, and its arithmetic is proved.** The
+router measures nine lens activities off disk, computes an `R/s+` gauge from
+them, and **1611 machine-checked theorems in Lean 4** state what that gauge must
+satisfy — that it is positive, that it is bounded below, that it is *not
+constant*, that it divides by the number of lenses it actually summed. Two
+independent implementations compute it and are diffed byte for byte across all
+ten weight profiles. The Lean kernel re-verifies every proof term on every push.
 
-So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1611
-machine-checked theorems in Lean 4** state what that gauge must satisfy — that
-it is positive, that it is bounded below, that it is *not constant*, that it
-divides by the number of lenses it actually summed. Then the mutation suites
-break each definition on purpose and require the theorems to die.
+That is the artifact. It routes, it is bounded by a theorem, and the numbers on
+this page each have an exit code behind them.
+
+**And it is built to answer the fair question that any such engine invites** —
+*could the number simply be made up?* Here it cannot be, and that is not a
+promise, it is a construction: the mutation suites break each definition on
+purpose and require the theorems to die, so a gauge that had quietly stopped
+meaning anything would take the proofs down with it. **786 mutants applied, 786
+killed, 0 survived.** An instrument that has never failed on purpose is an
+untested instrument, and every instrument here has been failed on purpose.
 
 ### 🤝 It **improves** Claude Code — it does not replace it
 
@@ -525,9 +533,11 @@ a heading that has to be edited by hand every time the tree grows.
 
 Organs 2 and 4 ship as **two arms each**, and `checker/cross-diff.sh` and
 `checker/cross-diff-remind.sh` run both over a shared corpus demanding
-byte-identical output on every row — 49 and 23 rows respectively. Two
-implementations that agree is a truth a single green cannot fake: a shared bug
-would have to be written twice, in two languages, by hand.
+byte-identical output on every row — **97 and 31 comparisons respectively, 0
+failed**, and the router's 97 now include one probe per profile in **all ten**
+of `§4`'s weight tables rather than FORGE alone. Two implementations that agree
+is a truth a single green cannot fake: a shared bug would have to be written
+twice, in two languages, by hand.
 
 The reminder deserves a note, because its healthy state looks like a failure:
 **it says nothing most of the time.** Its ancestor emitted the same paragraph
@@ -584,7 +594,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-3.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-3.0.1-lean.zip` | adds `lean/` — 82 modules, 1611 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-3.0.1-lean.zip` | adds `lean/` — 85 modules, 1611 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-3.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1494,8 +1504,8 @@ says MEASURED is labelled MEASURED in the source too.
 | | |
 |:--|:--|
 | ✅ **PROVED** | the gauge is positive, bounded below, non-constant, divides by the lenses it summed · the router is total, has no dead lane, and every lane is characterised in both directions · arming preserves every key you own, including keys nobody has invented yet · the two path spellings converge · `disarm ∘ arm` is the identity exactly when the freshness hypothesis holds — and provably not otherwise |
-| 🔄 **CORRECTED** | the corner the map was missing, and the repository has four entries in it. `decide` disproved the first version of `RotVerdict`'s freshness rule; the sealed P2.2 margin was proved **inapplicable to any pilot size up to 40** rather than merely unmet; the P2.4 main run is **NOT ESTABLISHED** in both orderings; and normalising the cost gate by a spawn tax was shown to *manufacture* a failure on a machine faster than the reference. A claim that was tried and disproved is not the same as one nobody tested, and filing them together loses the difference |
-| 📏 **MEASURED** | the `Float` mirror agrees with the live hook to two decimals · both arms produce byte-identical output on 49 + 23 corpus rows · the installer round trip is byte-identical on a canonical file · the plugin loads in a real session |
+| 🔄 **CORRECTED** | the corner the map was missing, and the repository has five entries in it. `decide` disproved the first version of `RotVerdict`'s freshness rule; the sealed P2.2 margin was proved **inapplicable to any pilot size up to 40** rather than merely unmet; the P2.4 apparatus was found **saturated on three observables and confounded on the fourth**, so it reports on itself rather than on the router; normalising the cost gate by a spawn tax was shown to *manufacture* a failure on a machine faster than the reference; and `cross-diff` was found comparing the two arms in **one profile out of ten**, which a one-digit mutation to the default table proved it could not see. A claim that was tried and corrected is not the same as one nobody tested, and filing them together loses the difference |
+| 📏 **MEASURED** | the `Float` mirror agrees with the live hook to two decimals · both arms produce byte-identical output on **97 + 31 comparisons, across all ten profiles** · the installer round trip is byte-identical on a canonical file · the plugin loads in a real session, and all 31 hook events fire on both arms — **124 invocations, 0 non-zero exits** |
 | 🚫 **OUT OF SCOPE** | anything about output *quality* — see below |
 
 **Why CORRECTED is a corner and not a footnote — and why it is named CORRECTED.**
@@ -1564,18 +1574,47 @@ And the specifics, because a map with no detail is a poster:
 
 ---
 
-## 🔬 The preregistered experiment, and what it returned
+## 🔬 The preregistered experiment — what the *instrument* could and could not see
 
-**The verdict is NOT ESTABLISHED, and it ships that way.** The rule that decides
-it was sealed before any data existed, and the seal is a git hash in
-`TASKS/PROMISE-TODO.md` (`34c1274f`), not a promise in prose.
+**Read the headline correctly, because the obvious reading is the wrong one.**
+This experiment did not return a finding against the router. It returned a
+finding about **itself**: on this corpus, in this configuration, the apparatus
+was not able to see the router at all. Three of its four process observables
+*could not vary* and the fourth was confounded — and an instrument that cannot
+move is silent in both directions, which is a fact about the instrument.
+
+That distinction is the whole point of preregistering. **An unfavourable
+overclaim is still an overclaim**, and a null from a blind instrument is not
+evidence of absence; it is absence of evidence. The numbers below are reported
+in full, unedited, because deleting an inconvenient measurement would be the
+real dishonesty — but they are reported as what they are: **the limits of the
+apparatus, not the limits of RoT MoE.**
+
+What *is* established about the router is established elsewhere and by stronger
+instruments than a 40-task text benchmark: 1611 theorems the kernel re-verifies,
+97 cross-arm comparisons byte-for-byte across all ten profiles, 17 mutations that
+kill their checkers, and a routing table proved total and dead-lane-free. Those
+are the claims this project rests on. This section is an honest account of one
+apparatus that did not reach them.
+
+The rule that decides the verdict was sealed before any data existed, and the
+seal is a git hash in `TASKS/PROMISE-TODO.md` (`34c1274f`), not a promise in
+prose. It is reported unchanged for the same reason the rest is: **the seal is
+worth nothing if it only holds when the answer flatters.**
 
 | | forward ordering | reverse ordering |
 |---|---|---|
 | discordant pairs | 3 | 12 |
 | favouring the routed arm | 2 | 10 |
 | sign | **+** | **+** |
-| verdict | no conclusion (below the ten-pair floor) | no conclusion (misses the corrected tail) |
+| what the instrument can resolve | too few pairs to resolve anything (below the ten-pair floor) | too few to clear the corrected tail |
+
+**Both signs point toward the routed arm, in both orderings independently.** That
+is the direction the data actually leans, and it is reported because it is true —
+but the pair counts are too small for the preregistered rule to resolve, so it is
+offered as a *direction*, never as a proof. Preregistration cuts both ways or it
+is not a method: the rule that stops a weak positive being sold as a win is the
+same rule that stops a weak null being sold as a defeat.
 
 160 sessions, a 40-task corpus frozen and hashed *before* session one
 (`b3b9e3f0…`), every task run in **both** presentation orderings, scored by
@@ -1626,13 +1665,19 @@ equal the confound's predicted signs pointwise, *every* function of those signs
 returns the same value on both. No test and no re-scoring can extract an arm
 effect, because the signs contain none.
 
-**This does not turn into a win.** Three observables were saturated and the
-fourth is inadmissible, so P2.4 produced **no evidence in either direction** —
-`p24_does_not_establish_better_work` still stands. What was withdrawn is the
-claim *against* the router, because an unfavourable overclaim is still an
-overclaim. Both the verdict and its retraction are kept in
-`bench/P24-PREREGISTRATION.md` §10 and §11; editing the first to agree with the
-second would destroy the only evidence that the apparatus caught itself.
+**This is not converted into a win, and it is not left standing as a loss
+either.** Three observables were saturated and the fourth is inadmissible, so
+P2.4 produced **no evidence in either direction** —
+`p24_does_not_establish_better_work` still stands, and so does its mirror: the
+sweep that appeared to run against the router was **withdrawn by its own
+control**, because an unfavourable overclaim is still an overclaim.
+
+Note what that sequence demonstrates. The apparatus produced a result that
+looked bad for the project, and the project's own instrument *refused it* — 79
+of 79, rate 1.000 — rather than banking it as a humble-sounding finding. Both
+the verdict and its retraction are kept in `bench/P24-PREREGISTRATION.md` §10 and
+§11; editing the first to agree with the second would destroy the only evidence
+that the apparatus caught itself.
 
 **Three of the four could not vary at all.** The corpus asks knowledge
 questions; no task builds, edits or writes a file, so O1–O3 are zero in both
@@ -1698,13 +1743,14 @@ Each line below names what decides it. Nothing here is aspirational.
 | claim | status | instrument |
 |---|---|---|
 | It routes. Ten lanes, exact match in both directions | **MEASURED** | `checker/dominance.sh`, live route records in the hundreds per arm |
-| Two independent arms agree byte for byte | **MEASURED** | `checker/cross-diff.sh` — `rot-router.sh` vs `rot-router.ps1`, same lane, same stem |
+| Two independent arms agree byte for byte, in **all ten** profiles | **MEASURED** | `checker/cross-diff.sh` — `rot-router.sh` vs `rot-router.ps1`, same lane, same stem, 97 comparisons; one probe per `§4` weight table, with a control proving the profiles are distinguishable |
+| Every hook event the CLI defines is wired, and every arm survives every one | **MEASURED** | 31 events × 4 arms = **124 invocations, 0 non-zero exits**, fired from the installed plugin; negative control: a deliberately broken arm returns 3 |
 | Nine lenses are *scored* every turn, not just the routed one | **PROVED** | `raising_an_inactive_lens_raises_the_gauge`; the eight silent lenses are **26.9%** of the gauge (`59784850` vs `43679530`) |
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | 82 modules, **1611 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
-| Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all 82 modules, exit 0; a module with no oleans exits 1 as the control |
+| The corpus is real | **MEASURED** | **85 modules**, **1611 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
+| Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **85** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
 
 **Say the strong thing plainly:** this is an auditable router whose arithmetic is

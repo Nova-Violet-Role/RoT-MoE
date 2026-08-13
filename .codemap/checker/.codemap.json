@@ -137,12 +137,12 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "f9cd390853ac",
-      "indexed_at": "2026-08-12T16:58:41.287091+00:00",
+      "hash": "36a3939a5875",
+      "indexed_at": "2026-08-13T06:01:08.458443+00:00",
       "language": "shell",
-      "lines": 785,
-      "mtime_ns": 1786553918875857700,
-      "size": 41699,
+      "lines": 850,
+      "mtime_ns": 1786600866117010600,
+      "size": 45630,
       "symbols": [
         {
           "lines": [
@@ -153,11 +153,20 @@
           "type": "function"
         },
         {
+          "docstring": "THIS CHECK NOW READS THE LAYER IT IS ACTUALLY ABOUT, and the distinction is not pedantry -- it is the difference between a real regression and a stale",
           "lines": [
-            149,
-            158
+            171,
+            179
           ],
           "name": "check_priority",
+          "type": "function"
+        },
+        {
+          "lines": [
+            180,
+            189
+          ],
+          "name": "check_final",
           "type": "function"
         }
       ]
@@ -361,25 +370,25 @@
       "symbols": []
     },
     "cross-diff.sh": {
-      "hash": "b8d174e82521",
-      "indexed_at": "2026-08-12T08:44:37.460929+00:00",
+      "hash": "ea45ec90bfde",
+      "indexed_at": "2026-08-13T11:04:31.045484+00:00",
       "language": "shell",
-      "lines": 386,
-      "mtime_ns": 1786251100082712100,
-      "size": 19809,
+      "lines": 430,
+      "mtime_ns": 1786619068601572800,
+      "size": 22427,
       "symbols": [
         {
           "lines": [
-            172,
-            183
+            216,
+            227
           ],
           "name": "_stem_of",
           "type": "function"
         },
         {
           "lines": [
-            184,
-            191
+            228,
+            235
           ],
           "name": "_drive",
           "type": "function"
@@ -387,8 +396,8 @@
         {
           "docstring": "NONE (no gauge record) / ABSENT (no such field) / EMPTY (present but \"\") are reported as three DIFFERENT strings on purpose. Collapsing them is how th",
           "lines": [
-            254,
-            264
+            298,
+            308
           ],
           "name": "_gfield",
           "type": "function"
@@ -396,8 +405,8 @@
         {
           "docstring": "This checker exports ROTMOE_DEBUG_SRC=test, so \"no declaration\" must be expressed with `env -u`. `${x:+...}` leaves the INHERITED value in place -- me",
           "lines": [
-            270,
-            291
+            314,
+            335
           ],
           "name": "_pdrive",
           "type": "function"
@@ -471,12 +480,12 @@
       ]
     },
     "dominance.sh": {
-      "hash": "12d1018ebe1f",
-      "indexed_at": "2026-08-12T08:44:37.477964+00:00",
+      "hash": "c38bf9f84fc7",
+      "indexed_at": "2026-08-13T06:07:23.870502+00:00",
       "language": "shell",
-      "lines": 533,
-      "mtime_ns": 1786445705021801900,
-      "size": 27231,
+      "lines": 587,
+      "mtime_ns": 1786601241397926700,
+      "size": 30538,
       "symbols": [
         {
           "docstring": "--- \"MUST EQUAL\" WAS ENFORCED BY NOTHING ------------------------------------ Both comments above said \"must equal <the Lean constant>\" and no code ch",
@@ -552,12 +561,12 @@
       ]
     },
     "facts-block.sh": {
-      "hash": "c7576ba44af2",
-      "indexed_at": "2026-08-12T17:46:54.577427+00:00",
+      "hash": "9751bcfa1789",
+      "indexed_at": "2026-08-13T09:36:30.671333+00:00",
       "language": "shell",
-      "lines": 169,
-      "mtime_ns": 1786556802364815800,
-      "size": 8377,
+      "lines": 195,
+      "mtime_ns": 1786613787966517200,
+      "size": 9926,
       "symbols": [
         {
           "lines": [
@@ -625,12 +634,12 @@
       ]
     },
     "gauge-cross.sh": {
-      "hash": "8ee832dfb24b",
-      "indexed_at": "2026-08-12T08:44:37.486873+00:00",
+      "hash": "14735d72bb46",
+      "indexed_at": "2026-08-13T04:25:40.333015+00:00",
       "language": "shell",
       "lines": 201,
-      "mtime_ns": 1786037922190409800,
-      "size": 9410,
+      "mtime_ns": 1786595136818233900,
+      "size": 9426,
       "symbols": [
         {
           "lines": [
@@ -643,12 +652,12 @@
       ]
     },
     "gauge-hook-corpus.sh": {
-      "hash": "90859dc1a1c1",
-      "indexed_at": "2026-08-12T08:44:37.488389+00:00",
+      "hash": "33e9295f2869",
+      "indexed_at": "2026-08-13T03:11:02.157968+00:00",
       "language": "shell",
       "lines": 157,
-      "mtime_ns": 1786089000647012200,
-      "size": 7681,
+      "mtime_ns": 1786590658355625800,
+      "size": 7697,
       "symbols": [
         {
           "docstring": "The hook arm. `sh`, not bash, because that is how the router is invoked.",
@@ -780,13 +789,41 @@
       ]
     },
     "lean-binds-shell.sh": {
-      "hash": "5d6bb1343316",
-      "indexed_at": "2026-08-12T08:44:37.503223+00:00",
+      "hash": "3f6e2360df53",
+      "indexed_at": "2026-08-13T05:52:00.337626+00:00",
       "language": "shell",
-      "lines": 193,
-      "mtime_ns": 1785903877637674200,
-      "size": 9496,
-      "symbols": []
+      "lines": 311,
+      "mtime_ns": 1786600317926045200,
+      "size": 14520,
+      "symbols": [
+        {
+          "docstring": "The Lean witness names them in lower camel, and two differ from a plain lower-casing: RECURSIVE is `recursiveP` (`recursive` is reserved-adjacent and",
+          "lines": [
+            71,
+            80
+          ],
+          "name": "lean_name_for",
+          "type": "function"
+        },
+        {
+          "docstring": "Pull one profile's weights out of the shell's `L_<NAME>=` / `M_<NAME>=` pair.  NOT ANCHORED AT COLUMN 0, and that is the point: the router writes both",
+          "lines": [
+            93,
+            95
+          ],
+          "name": "sh_weights_for",
+          "type": "function"
+        },
+        {
+          "docstring": "Pull one profile's pairs out of the Lean witness.",
+          "lines": [
+            98,
+            107
+          ],
+          "name": "lean_pairs_for",
+          "type": "function"
+        }
+      ]
     },
     "lean-module-case.sh": {
       "hash": "e8ba022144b4",
@@ -994,12 +1031,12 @@
       ]
     },
     "mutate-checker.sh": {
-      "hash": "6900d67fb1b8",
-      "indexed_at": "2026-08-12T08:44:37.529208+00:00",
+      "hash": "730d7526d2e6",
+      "indexed_at": "2026-08-13T11:05:51.495141+00:00",
       "language": "shell",
-      "lines": 453,
-      "mtime_ns": 1786357995894181200,
-      "size": 22936,
+      "lines": 506,
+      "mtime_ns": 1786619149103572500,
+      "size": 26289,
       "symbols": [
         {
           "lines": [
@@ -1122,12 +1159,12 @@
       ]
     },
     "profile-bind.sh": {
-      "hash": "3c809217b257",
-      "indexed_at": "2026-08-12T08:44:37.544036+00:00",
+      "hash": "732aea35da15",
+      "indexed_at": "2026-08-13T08:43:35.946524+00:00",
       "language": "shell",
-      "lines": 200,
-      "mtime_ns": 1785903878212673900,
-      "size": 8158,
+      "lines": 257,
+      "mtime_ns": 1786610613435025600,
+      "size": 11521,
       "symbols": [
         {
           "docstring": "--- spec side: lens -> lambda for one \u00a74 block ------------------------------",
@@ -1240,26 +1277,26 @@
       ]
     },
     "release-local.sh": {
-      "hash": "6530d0f7435f",
-      "indexed_at": "2026-08-12T08:44:37.556681+00:00",
+      "hash": "1d8470a0a5a0",
+      "indexed_at": "2026-08-13T03:38:54.288503+00:00",
       "language": "shell",
-      "lines": 364,
-      "mtime_ns": 1786282954471868700,
-      "size": 19098,
+      "lines": 383,
+      "mtime_ns": 1786592314721604800,
+      "size": 20112,
       "symbols": [
         {
           "docstring": "--- phase 2: build from a PRISTINE export of HEAD, never the working tree ----",
           "lines": [
-            152,
-            204
+            171,
+            223
           ],
           "name": "build_into",
           "type": "function"
         },
         {
           "lines": [
-            261,
-            271
+            280,
+            290
           ],
           "name": "digest_of",
           "type": "function"
@@ -1924,6 +1961,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-12T21:05:22.308503+00:00",
+  "generated_at": "2026-08-13T11:05:51.495281+00:00",
   "version": "1.0"
 }

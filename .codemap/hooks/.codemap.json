@@ -142,12 +142,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "94214d025d07",
-      "indexed_at": "2026-08-12T19:57:20.057604+00:00",
+      "hash": "fbb9bcfb591e",
+      "indexed_at": "2026-08-13T08:19:29.656906+00:00",
       "language": "shell",
-      "lines": 868,
-      "mtime_ns": 1786562812112481900,
-      "size": 44855,
+      "lines": 1461,
+      "mtime_ns": 1786609167106925900,
+      "size": 77308,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -205,7 +205,7 @@
           "docstring": "A STEM MUST START A WORD. Until 0.7.0 this was a plain substring test, and that is why `prove`, `proof` and `lemma` could not be added to the FORGE li",
           "lines": [
             317,
-            333
+            348
           ],
           "name": "fired",
           "type": "function"
@@ -213,16 +213,69 @@
         {
           "docstring": "route emits \"<LANE LENS>|<matched stem>\". The separator is the LAST `|`, so a convener model name containing one cannot swallow the stem. Callers that",
           "lines": [
-            339,
-            353
+            354,
+            368
           ],
           "name": "route",
           "type": "function"
         },
         {
+          "docstring": "--- TIER 2: NSIL -- FUSE and ELEVATE ---------------------------------------- These two were SPECIFIED in rot-lean.md section 3 and NOT IMPLEMENTED. T",
           "lines": [
-            366,
-            869
+            409,
+            1462
+          ],
+          "name": "nsil_active_lenses",
+          "type": "function"
+        },
+        {
+          "docstring": "Word count with ZERO spawns. `set --` inside a function replaces that FUNCTION's positional parameters, not the caller's, so this is contained.  `set",
+          "lines": [
+            439,
+            444
+          ],
+          "name": "nsil_count_words",
+          "type": "function"
+        },
+        {
+          "docstring": "Flags a measured R/s+ against its lane's band. Sets NSIL_BAND to BELOW / IN / ABOVE. This is a FLAG, never a veto: section 5 is explicit that out-of-r",
+          "lines": [
+            523,
+            1462
+          ],
+          "name": "band_flag",
+          "type": "function"
+        },
+        {
+          "lines": [
+            575,
+            585
+          ],
+          "name": "token_emergency",
+          "type": "function"
+        },
+        {
+          "docstring": "Selects LAMBDAS/MUS for a lane. Unknown lane -> CONVERGENT, which section 3 already names as the default with no trigger, so the fallback is the spec'",
+          "lines": [
+            590,
+            611
+          ],
+          "name": "select_profile",
+          "type": "function"
+        },
+        {
+          "docstring": "merge, per rot-lean.md section 3 -- lambda=(l1+l2)/2+0.2, mu=max, H=max+0.05. Sets HYB_LAM/HYB_MU/HYB_H in hundredths. No subshell, no external proces",
+          "lines": [
+            666,
+            686
+          ],
+          "name": "nsil_hybrid",
+          "type": "function"
+        },
+        {
+          "lines": [
+            691,
+            1462
           ],
           "name": "gauge",
           "type": "function"
@@ -230,8 +283,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            494,
-            869
+            819,
+            1462
           ],
           "name": "hook_mode",
           "type": "function"
@@ -239,8 +292,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            838,
-            845
+            1423,
+            1430
           ],
           "name": "need_value",
           "type": "function"
@@ -257,6 +310,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-12T19:57:20.262891+00:00",
+  "generated_at": "2026-08-13T08:19:29.657103+00:00",
   "version": "1.0"
 }
