@@ -315,17 +315,32 @@ convener () {
 # duplicated across lanes, and a lane firing with a stem it does not own.
 # Specified in lean/Proofs/RotLog.lean.
 fired () {   # fired "<lowercased prompt>" "<stem list>" -> 0 if any stem starts a word
+  # THE LOOP VARIABLE IS `_fstem`, NOT `_stem`, AND THAT RENAME IS A BUG FIX.
+  #
+  # The main flow keeps the ROUTED stem in `_stem` (`_stem=${_routed##*|}`) and
+  # writes it to the debug record. This loop used the same name. That was
+  # survivable only by accident: `fired` was called exclusively from `route`,
+  # `route` was called as `$(route ...)`, and the subshell contained the damage.
+  #
+  # The moment TIER 2 called `fired` from the MAIN shell -- which it must, to
+  # count how many lanes match without paying a fork per lane -- the collision
+  # became live and EVERY record's stem field became `qed`, the last stem in the
+  # FORGE list. cross-diff caught it in one run: "sh 'qed' / ps1 'bug'".
+  #
+  # Renaming here fixes it at the source, so any future main-shell caller is
+  # safe. Saving and restoring `_stem` at the one call site would have worked
+  # today and re-armed the trap for the next person.
   _p="$1"; _s="$2"
   MATCHED_STEM=''
-  for _stem in $_s; do
-    case "$_stem" in
+  for _fstem in $_s; do
+    case "$_fstem" in
       [!a-z0-9]*)
         # punctuation-led stem: plain substring, as before
-        case "$_p" in *"$_stem"*) MATCHED_STEM="$_stem"; return 0 ;; esac ;;
+        case "$_p" in *"$_fstem"*) MATCHED_STEM="$_fstem"; return 0 ;; esac ;;
       *)
         case "$_p" in
-          "$_stem"*)            MATCHED_STEM="$_stem"; return 0 ;;   # at the very start of the prompt
-          *[!a-z0-9]"$_stem"*)  MATCHED_STEM="$_stem"; return 0 ;;   # preceded by a non-word character
+          "$_fstem"*)            MATCHED_STEM="$_fstem"; return 0 ;;   # at the very start of the prompt
+          *[!a-z0-9]"$_fstem"*)  MATCHED_STEM="$_fstem"; return 0 ;;   # preceded by a non-word character
         esac ;;
     esac
   done
@@ -352,6 +367,89 @@ route () {
   printf '%s|%s\n' "$_lane" "$MATCHED_STEM"
 }
 
+# --- TIER 2: NSIL -- FUSE and ELEVATE ----------------------------------------
+# These two were SPECIFIED in rot-lean.md section 3 and NOT IMPLEMENTED. The
+# README said so plainly and two theorems pinned it (`fusion_is_unreachable`),
+# which is the honest way to carry a gap -- but a gap carried long enough starts
+# reading as a design decision. It was not one. This is the implementation.
+#
+#   FUSE     intent spans two or more domains -> those leads co-activate.
+#            Trigger: stems from >= 2 DISTINCT lanes fire on one prompt.
+#   ELEVATE  no lane triggers, but the query is dense -> all nine at once,
+#            no single lead.
+#
+# WHY THIS IS SAFE FOR TIER 1. `route` is untouched and still returns exactly
+# one lane, so `--route` output, the cross-diff corpus and every lane theorem in
+# RotRoute.lean are unaffected. NSIL reads the SAME prompt and decides how many
+# lenses the gauge should see. A single-lane prompt produces the identical vector
+# it produced before, byte for byte -- verified by the corpus, not assumed.
+#
+# THE DENSITY FLOOR IS DERIVED, AND I WILL NOT PRETEND IT WAS MEASURED. ELEVATE
+# needs "dense", and a bare number in prose is the naked-Nat defect this project
+# refuses. The floor is the ROSTER SIZE: a query earns all nine lenses when it
+# carries at least one word per lens. That ties the constant to a declared list
+# (`NAMES`) instead of to a preference, so adding a tenth lens moves the floor
+# automatically. It is a MODELLING CHOICE, not a measurement, and saying which
+# it is costs nothing.
+#
+# Lenses are emitted in ROSTER ORDER, never in match order, so the activity
+# vector is canonical and the two arms cannot disagree about bit order.
+#
+# COST DISCIPLINE, MEASURED THE HARD WAY. The first version of this layer
+# returned its result through `$( )` and counted words with `wc -w | tr -d ' '`.
+# That is four extra FORKS per turn on a router whose budget is counted in
+# spawns (`checker/bench-router.sh:183`), and `bench-router` went red at
+# **527.3 ms against the 500 ms bound** the moment it landed. That was not the
+# host being slow -- it was this feature being expensive, and the two are only
+# distinguishable if you suspect your own change first.
+#
+# So: these helpers SET GLOBALS instead of printing into a command
+# substitution, and nothing here spawns a process. The only exec left is the one
+# `tr` for lowercasing, which the router already paid once in `route`.
+nsil_active_lenses () {   # <lowercased prompt> -> sets NSIL_ACT, NSIL_N
+  _np=$1
+  # `fired` sets MATCHED_STEM as a side effect and TIER 1 already consumed it.
+  # Save and restore, or the marker's stem field silently becomes the last lane
+  # probed here rather than the lane that actually routed. This matters MORE now
+  # that there is no subshell to contain the damage.
+  _nsil_saved=$MATCHED_STEM
+  _nsil_out=''
+  fired "$_np" "$STEMS_STRATEGIC"  && _nsil_out="$_nsil_out Nova"
+  fired "$_np" "$STEMS_EMPATHIC"   && _nsil_out="$_nsil_out Violet"
+  fired "$_np" "$STEMS_CLINICAL"   && _nsil_out="$_nsil_out AntiVenom"
+  fired "$_np" "$STEMS_EXECUTIVE"  && _nsil_out="$_nsil_out Venom"
+  fired "$_np" "$STEMS_CREATIVE"   && _nsil_out="$_nsil_out Carnage"
+  fired "$_np" "$STEMS_PREDICTIVE" && _nsil_out="$_nsil_out Chroma"
+  fired "$_np" "$STEMS_STEALTH"    && _nsil_out="$_nsil_out Soleil"
+  fired "$_np" "$STEMS_RECURSIVE"  && _nsil_out="$_nsil_out Eidolon"
+  fired "$_np" "$STEMS_FORGE"      && _nsil_out="$_nsil_out Claude"
+  MATCHED_STEM=$_nsil_saved
+  NSIL_ACT=${_nsil_out# }
+  NSIL_N=0
+  for _nsil_x in $NSIL_ACT; do NSIL_N=$((NSIL_N+1)); done
+}
+
+# Word count with ZERO spawns. `set --` inside a function replaces that
+# FUNCTION's positional parameters, not the caller's, so this is contained.
+#
+# `set -f` is not optional and not caution: `set -- $1` word-splits UNQUOTED, so
+# a prompt containing `*` would undergo pathname expansion and the "word count"
+# would silently become the number of files in the working directory. Globbing
+# is disabled across the split and restored immediately after.
+nsil_count_words () {
+  set -f
+  set -- $1
+  NSIL_WORDS=$#
+  set +f
+}
+
+# NSIL_FLOOR is derived from NAMES *after* NAMES exists -- see below the roster
+# definition. It CANNOT be computed here: this point in the file is above
+# `NAMES=`, so the loop would iterate an empty string and set the floor to 0,
+# which makes `words >= floor` true for every prompt and fires ELEVATE on a
+# four-word sentence. That is exactly what happened, and `log-replay` caught it
+# by disagreeing with the ps1 arm on "some entirely unremarkable sentence".
+
 # --- THE GAUGE ---------------------------------------------------------------
 # Ported line for line from rot-lean-inject.ps1:357-416 and proved against
 # lean/Proofs/RotGauge.lean. The lens order is fixed and load-bearing: the
@@ -362,6 +460,13 @@ route () {
 LAMBDAS='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.3'
 MUS='1.05 0.85 1.10 1.05 0.90 1.10 0.95 1.10 1.15'
 NAMES='Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude'
+
+# TIER 2's density floor: one word per lens, COUNTED from the roster above so a
+# tenth lens moves it automatically. It must be derived HERE, immediately after
+# NAMES -- an earlier draft computed it 25 lines above this point, read an empty
+# NAMES, and produced a floor of 0.
+NSIL_FLOOR=0
+for _rs_x in $NAMES; do NSIL_FLOOR=$((NSIL_FLOOR+1)); done
 
 gauge () {   # gauge "a1,..,a9" breadth M C T
   _acts="$1"; _breadth="$2"; _M="$3"; _C="$4"; _T="$5"
@@ -622,10 +727,70 @@ hook_mode () {
   # this automatically. A second hard-coded lane->index table would be a
   # snapshot waiting to drift out of step with the first one.
   _lens=${lane#* }
-  _vec=''; _br=0; _i=1
+
+  # TIER 2 (NSIL) decides how many lenses this turn activates. TIER 1's lane is
+  # already fixed and is not revisited here.
+  #
+  # BREADTH IS NOW COUNTED, NOT ASSIGNED, and that is the substantive change.
+  # The old line set `_br=1` next to the bit it had just written, so the field
+  # was an ASSERTION about the vector rather than a MEASUREMENT of it -- true
+  # only while exactly one bit could ever be set. `RotLensActivation.lean` proved
+  # that assignment honest, but only under a distinct-names hypothesis, and
+  # `a_duplicated_name_makes_the_assignment_undercount` showed it lying the
+  # moment the hypothesis failed. Counting the bits removes the hypothesis
+  # entirely: breadth is the number of ones because it is computed from them.
+  nsil_active_lenses "$(printf '%s' "$prompt" | tr 'A-Z' 'a-z')"
+  _nsil_act=$NSIL_ACT
+  _nsil_n=$NSIL_N
+  nsil_count_words "$prompt"
+  _nsil_words=$NSIL_WORDS
+  _nsil_floor=$NSIL_FLOOR
+  # NOVA ADJUDICATES EVERY TURN -- THE DEFAULT IS `CONFIRM`, NOT "no decision".
+  #
+  # rot-lean.md section 3: NSIL's verdict "beats TIER 1", and CONFIRM is the
+  # verdict meaning "the keyword match agrees with the real intent, so the TIER 1
+  # lead stands". A single-lane turn is therefore NOT a turn where NSIL was
+  # absent -- it is a turn Nova let through. The first draft of this block left
+  # the field EMPTY on those turns, which encoded the opposite: that the layer
+  # had never run. That is an architectural falsehood, and it is the kind that
+  # survives because the output looks identical either way.
+  #
+  # The visible marker still shows nothing for CONFIRM, deliberately: CONFIRM
+  # means the lane you can already see is the answer, so a tag would add bytes
+  # and no information. The VERDICT is recorded in the route record instead,
+  # where it is auditable -- see the `nsil` field below.
+  NSIL_DECISION='CONFIRM'
+  if [ "$_nsil_n" -ge 2 ]; then
+    NSIL_DECISION='FUSE'
+    # NSIL IS NOVA'S LAYER -- the name is not decoration. rot-lean.md section 3:
+    # "TIER 2 -- NSIL (Nova Sovereign Intent Layer). Nova reads true intent along
+    # six axes." A FUSE decision therefore is not something that happened NEAR
+    # Nova, it is something Nova DID. Leaving her bit at 0 on a turn she
+    # adjudicated would make the vector describe a fusion that nobody decided.
+    #
+    # So Nova joins the active set BY CONSTRUCTION, not by preference. This is
+    # also the answer to the routing question underneath: a fused turn must not
+    # be one lens leading the rest, it is several lenses contributing a point of
+    # view with Nova reading the intent across them. Nova is idempotent here --
+    # if STRATEGIC was one of the lanes that fired, the set is unchanged and
+    # breadth 2 is still reachable.
+    case " $_nsil_act " in *" Nova "*) : ;; *) _nsil_act="Nova $_nsil_act" ;; esac
+  elif [ "$_nsil_n" -eq 0 ] && [ "${_nsil_words:-0}" -ge "$_nsil_floor" ]; then
+    NSIL_DECISION='ELEVATE'
+    _nsil_act=$NAMES
+  else
+    # Exactly one lane fired, or none and the prompt is not dense. Either way the
+    # vector is what it has always been: the routed lens alone, or -- on
+    # CONVERGENT, whose "lens" is the convener MODEL name and matches no roster
+    # entry -- all zeros with breadth 0. Unchanged, deliberately.
+    _nsil_act=$_lens
+  fi
+
+  _vec=''; _br=0
   for _n in $NAMES; do
-    if [ "$_n" = "$_lens" ]; then _vec="$_vec,1"; _br=1; else _vec="$_vec,0"; fi
-    _i=$((_i+1))
+    _on=0
+    for _a in $_nsil_act; do [ "$_a" = "$_n" ] && _on=1; done
+    if [ "$_on" -eq 1 ]; then _vec="$_vec,1"; _br=$((_br+1)); else _vec="$_vec,0"; fi
   done
   _vec=${_vec#,}
 
@@ -723,8 +888,14 @@ hook_mode () {
 
     # Field order is byte-for-byte the ps1 arm's, so both logs parse as one
     # stream and cross-diff compares like with like.
-    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","arm":"sh","ms":%s}' \
-         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$_ms")
+    # `nsil` carries NOVA'S VERDICT ON EVERY TURN -- CONFIRM, FUSE or ELEVATE --
+    # so a reader can tell a lane that was adjudicated and upheld from one that
+    # was never examined. `breadth` rides with it because the two are only
+    # meaningful together: FUSE with breadth 2 and FUSE with breadth 4 are
+    # different turns, and the visible marker deliberately shows nothing at all
+    # for CONFIRM.
+    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","nsil":"%s","breadth":%s,"arm":"sh","ms":%s}' \
+         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$NSIL_DECISION" "$_br" "$_ms")
 
     # The partial-line guard is `_rot_terminate`, defined at TOP LEVEL near
     # `convener` -- it has to be reachable by the awk gauge writer too, which
@@ -819,7 +990,24 @@ hook_mode () {
   _mark=""
   [ "$_dbg_lost" -eq 1 ] && _mark="$_mark | debug-log UNWRITABLE (record lost)"
   [ "$_rot_local_lost" -eq 1 ] && _mark="$_mark | project-log UNWRITABLE (record lost)"
-  echo "RoT MoE :: TIER 1 -> $lane | R/s+ $_rs$_mark"
+  # A TIER 2 decision is shown INSIDE the lane field, which is the segment the
+  # contract defines as pipe-free (`live-session-smoke.sh:481` matches
+  # `-> (LANE) [^|]*\| R/s\+`). Appending here therefore keeps every existing
+  # assertion matching -- the prefix, the lane token and the ` | R/s+ ` boundary
+  # are all untouched -- while making the fusion VISIBLE rather than burying it
+  # in a debug record. A capability the user cannot see on the line is a
+  # capability they have to take on faith.
+  # NAME THE PARTICIPANTS, not just the count. "x3" says three lenses spoke
+  # without saying which, which is the same diminishment as printing only the
+  # lead lane: the reader cannot tell a fusion of Nova+Violet from Nova+Venom.
+  # The roster-ordered list is short, pipe-free, and it is the actual evidence.
+  _nsil_tag=""
+  if [ -n "$NSIL_DECISION" ] && [ "$NSIL_DECISION" != "CONFIRM" ]; then
+    _nsil_names=''
+    for _a in $_nsil_act; do _nsil_names="$_nsil_names+$_a"; done
+    _nsil_tag=" [NSIL $NSIL_DECISION ${_nsil_names#+}]"
+  fi
+  echo "RoT MoE :: TIER 1 -> $lane$_nsil_tag | R/s+ $_rs$_mark"
   exit 0
 }
 

@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1566
+lens activities off disk, computes an `R/s+` gauge from them, and **1575
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -239,7 +239,7 @@ happened to this codebase.
 | what | how many | recomputed by |
 |---|---|---|
 | Lean modules in `lean/Proofs/` | **82** | `ls lean/Proofs/*.lean \| wc -l` |
-| theorems and lemmas proved | **1566** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
+| theorems and lemmas proved | **1575** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
 | mutation suites | **75** | `ls lean/mutate/mutate_*.sh \| wc -l` |
 | checkers | **75** | `ls checker/*.sh \| wc -l` |
 | hook events wired by the plugin | **31** | keys of `hooks/hooks.json` |
@@ -583,7 +583,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1566 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1575 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -811,11 +811,46 @@ distinction is proved rather than asserted, in `lean/Proofs/RotLensActivation.le
 >   lens that did not fire and the number moves. Measured on a real FORGE turn,
 >   the eight silent lenses are **26.9%** of the gauge (`59784850` against
 >   `43679530` for the routed lens alone).
-> * **Activated, exactly one.** `the_router_can_never_report_more_than_one_active_lens`
->   and `fusion_is_unreachable`: `breadth` is **assigned** `1`, never counted up
->   (`hooks/rot-router.sh:627`, `hooks/rot-router.ps1:564`), so it cannot exceed 1
->   in either arm. Confirmed against 3707 live gauge records — `breadth ∈ {0,1}`,
->   never 2. The spec's `FUSE` and `ELEVATE` are **not implemented**.
+> * **Activated: one, several, or all nine — and `breadth` now COUNTS them.**
+>   This bullet used to say "exactly one", and cited two theorems for it. That was
+>   true of the code as it stood and is no longer true of anything, so it is
+>   corrected here rather than quietly dropped.
+>
+>   `breadth` was **assigned** `1` beside the bit it had just written, which made
+>   the field an *assertion about* the vector rather than a *measurement of* it.
+>   Both arms now count the set bits, and TIER 2 (NSIL) can set more than one:
+>
+>   | decision | fires when | breadth |
+>   |---|---|---|
+>   | single lane | exactly one lane's stems match | 1 |
+>   | **FUSE** | **≥ 2 distinct lanes match** | **2 … 9** |
+>   | **ELEVATE** | no lane matches and the prompt carries ≥ one word per lens | **9** |
+>   | CONVERGENT | no lane matches, prompt below the density floor | 0 |
+>
+>   **NSIL is the *Nova* Sovereign Intent Layer, and the name is load-bearing.** A
+>   fused turn activates the lenses that fired *and Nova*, because the fusion is
+>   something Nova did — leaving her bit at 0 would describe a decision nobody
+>   made. She is idempotent: when `STRATEGIC` is one of the lanes that fired, the
+>   set is unchanged and `breadth = 2` is still reachable.
+>
+>   Measured on the shipped hooks, both arms byte-identical:
+>   `FORGE Claude [NSIL FUSE Nova+Claude] | R/s+ 0.73` (breadth 2) and
+>   `CONVERGENT opus[1m] [NSIL ELEVATE Nova+…+Claude] | R/s+ 0.17` (breadth 9).
+>   Single-lane output is unchanged byte for byte.
+>
+>   **The two theorems that said this was impossible were dated, not wrong.**
+>   `fusion_is_unreachable` and
+>   `the_router_can_never_report_more_than_one_active_lens` froze a *contingent*
+>   fact — that the feature had not been built — in a shape that reads like an
+>   invariant. They are not deleted; they are restated as the property that made
+>   them safe, which survives fusion: **breadth equals the number of active lenses
+>   and never exceeds the roster.** A spec that forbids a correct future is a
+>   defect in the spec, not a safeguard.
+>
+>   One honest consequence, since it looks like a regression and is not: ELEVATE
+>   reads **low** (0.17), because when all nine are equally active every lens sits
+>   at `δ = 0` and the sigmoid damps consensus by design. Maximum breadth is
+>   minimum divergence. That is the gauge working as specified.
 
 They are not personalities taking turns at a
 microphone; each is a **named ability** with a job inside a router that is held
@@ -1397,7 +1432,7 @@ exactly such a module.
 * `lean/Proofs/RotInstall.lean` (23 theorems)
 * `lean/Proofs/RotLens.lean` (13 theorems)
 * `lean/Proofs/RotLensAbility.lean` (11 theorems)
-* `lean/Proofs/RotLensActivation.lean` (20 theorems)
+* `lean/Proofs/RotLensActivation.lean` (29 theorems)
 * `lean/Proofs/RotLiveRouting.lean` (11 theorems)
 * `lean/Proofs/RotLocalRelease.lean` (8 theorems)
 * `lean/Proofs/RotLog.lean` (23 theorems)
@@ -1632,7 +1667,41 @@ file it had just certified, because its own negative controls wrote into the
 shared pass/fail counters. An instrument that cannot tell *"the forgery failed,
 as intended"* from *"the real thing failed"* is not measuring what it claims.
 
-## 🚧 What this experiment does not claim
+## ✅ What RoT MoE claims — and the instrument behind each claim
+
+**RoT MoE is a mixture-of-experts router. It is not an experiment, and this
+section exists because an earlier version of this page introduced it as one.**
+That was a category error with a cost: the A/B *study* returned NOT ESTABLISHED,
+and framing the whole artifact as "the experiment" silently imported that verdict
+onto working, shipped, kernel-checked code. "Does routing measurably change a
+model's answers" is the question that came back not established. "Does this thing
+route" is not an open question — it is measured, on every turn, by instruments
+that can fail and have.
+
+Each line below names what decides it. Nothing here is aspirational.
+
+| claim | status | instrument |
+|---|---|---|
+| It routes. Ten lanes, exact match in both directions | **MEASURED** | `checker/dominance.sh`, live route records in the hundreds per arm |
+| Two independent arms agree byte for byte | **MEASURED** | `checker/cross-diff.sh` — `rot-router.sh` vs `rot-router.ps1`, same lane, same stem |
+| Nine lenses are *scored* every turn, not just the routed one | **PROVED** | `raising_an_inactive_lens_raises_the_gauge`; the eight silent lenses are **26.9%** of the gauge (`59784850` vs `43679530`) |
+| The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
+| No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
+| Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
+| The corpus is real | **MEASURED** | 82 modules, **1575 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
+| Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all 82 modules, exit 0; a module with no oleans exits 1 as the control |
+| Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
+
+**Say the strong thing plainly:** this is an auditable router whose arithmetic is
+proved, whose cost is bounded by a theorem, whose two implementations are diffed
+against each other, and whose entire proof corpus is re-verified by the Lean
+kernel on every push. That sentence is not a hope. Every clause in it has an exit
+code behind it.
+
+## 🚧 What the A/B study does not claim
+
+**This section is about the A/B study — the experiment run *about* the router —
+and not about the router itself.**
 
 **Lead with the number that matters most:** the choice of scoring rule moved a
 score by **6 of 12** in the pilot, while the two arms differed by at most **2**.

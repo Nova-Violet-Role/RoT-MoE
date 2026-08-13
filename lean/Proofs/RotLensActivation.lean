@@ -216,6 +216,127 @@ theorem both_observed_breadths_are_reachable :
     assignedBreadth shippedNames "Claude" = 1
       ∧ assignedBreadth shippedNames "Gandalf" = 0 := by decide
 
+/-! ## TIER 2 (NSIL): the builder that SHIPS NOW, in which breadth is COUNTED
+
+Everything above this line models a router that assigned `_br=1` beside the bit
+it had just written. That builder has been replaced, and the two theorems just
+above -- `the_router_can_never_report_more_than_one_active_lens` and
+`fusion_is_unreachable` -- are the reason this section exists rather than a
+deletion.
+
+**They were dated, not wrong.** Both are true of `assignedBreadth`, and
+`assignedBreadth` was an honest model of the shipped code on the day it was
+written. What they are not is invariants: they froze *"the feature has not been
+built yet"* into a shape that reads like *"the feature can never exist"*. This
+file's own header (line 60) already says a spec that forbids a correct future is
+a defect; the rule simply had not been turned on its own theorems.
+
+So they stay, scoped to the retired builder, and the durable property they were
+groping toward is stated below over the builder that ships: **breadth is the
+number of active lenses, and it never exceeds the roster.** That survives fusion,
+survives elevation, and survives a tenth lens. -/
+
+/-- The activation vector NSIL builds: one bit per roster name, set when that
+lens is in the active set. `hooks/rot-router.sh` builds exactly this with a
+membership test against `$_nsil_act`, and `hooks/rot-router.ps1` with
+`$nsilAct -contains $n`. -/
+def nsilVector (names : List String) (active : List String) : List Bool :=
+  names.map (fun n => mentions active n)
+
+/-- Breadth as the shipped router now computes it: **counted from the vector**,
+never assigned beside it. This is the whole substantive change -- the field
+became a measurement of the vector instead of an assertion about it. -/
+def countedBreadth (names : List String) (active : List String) : Nat :=
+  trueBreadth (nsilVector names active)
+
+/-- **Breadth counts set bits, by construction.** True definitionally, which is
+the point: there is no longer a gap between the number and the thing it counts,
+so no distinctness hypothesis is needed to keep them honest. -/
+theorem counted_breadth_is_the_number_of_set_bits
+    (names active : List String) :
+    countedBreadth names active = trueBreadth (nsilVector names active) := rfl
+
+/-- **The durable replacement for `the_router_can_never_report_more_than_one_active_lens`.**
+Breadth never exceeds the roster -- for ANY active set, including a malformed one
+naming lenses that do not exist. Quantified over the roster, so a tenth lens
+raises the ceiling automatically instead of falsifying the theorem. -/
+theorem breadth_never_exceeds_the_roster (names active : List String) :
+    countedBreadth names active ≤ names.length := by
+  unfold countedBreadth nsilVector
+  induction names with
+  | nil => simp [trueBreadth]
+  | cons n ns ih =>
+    simp only [List.map_cons, trueBreadth, List.length_cons]
+    split <;> omega
+
+/-- **FUSE is reachable, and this is the exact case that was proved impossible.**
+`fusion_is_unreachable` said breadth 2 could not happen. It can, and here is the
+witness the shipped router prints as
+`FORGE Claude [NSIL FUSE Nova+Claude] | R/s+ 0.73`. -/
+theorem fusion_is_reachable :
+    countedBreadth shippedNames ["Nova", "Claude"] = 2 := by decide
+
+/-- **ELEVATE is reachable: the whole roster at once.** Printed by the shipped
+router as `CONVERGENT opus[1m] [NSIL ELEVATE Nova+...+Claude]`. -/
+theorem elevation_activates_the_whole_roster :
+    countedBreadth shippedNames shippedNames = 9 := by decide
+
+/-- The set NSIL activates on a FUSE turn: the lenses that fired, plus Nova.
+`hooks/rot-router.sh` does this with a `case` guard, `.ps1` with `-notcontains`. -/
+def fuseSet (fired : List String) : List String :=
+  if mentions fired "Nova" then fired else "Nova" :: fired
+
+/-- **NSIL is the *Nova* Sovereign Intent Layer, and the code obeys the name.**
+A fused turn always carries Nova, whatever fired -- because the fusion is
+something Nova DID, and a vector that omitted her would describe a decision with
+no decider. Stated over every possible fired set, not the two that happen to be
+common. -/
+theorem nova_is_active_in_every_fusion (fired : List String) :
+    mentions (fuseSet fired) "Nova" = true := by
+  unfold fuseSet
+  split
+  · assumption
+  · simp [mentions]
+
+/-- **Nova is idempotent, so `breadth = 2` stays reachable.** When STRATEGIC is
+one of the lanes that fired, joining Nova changes nothing -- the guard is not a
+floor of 3 sneaked in under a different name. -/
+theorem joining_nova_is_idempotent (fired : List String)
+    (h : mentions fired "Nova" = true) : fuseSet fired = fired := by
+  simp [fuseSet, h]
+
+/-- `beq` on strings is symmetric. Needed only to line up the two vector
+orientations below; `mentions` tests `name == query` and `routerVector` tests
+`query == name`. -/
+theorem string_beq_comm (a b : String) : (a == b) = (b == a) := by
+  by_cases h : a = b
+  · subst h; rfl
+  · have h1 : (a == b) = false := beq_eq_false_iff_ne.mpr h
+    have h2 : (b == a) = false := beq_eq_false_iff_ne.mpr (Ne.symm h)
+    rw [h1, h2]
+
+/-- **The single-lane turn did not move.** For a one-element active set the new
+counted breadth equals the old assigned breadth, on any roster with distinct
+names -- which is the formal statement of the measured fact that
+`RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66` is byte-identical before and
+after. The new layer ADDS reachable states; it does not disturb the old one. -/
+theorem a_single_lane_turn_is_unchanged
+    (names : List String) (lens : String) (h : distinct names = true) :
+    countedBreadth names [lens] = assignedBreadth names lens := by
+  have hv : nsilVector names [lens] = routerVector names lens := by
+    unfold nsilVector routerVector
+    apply List.map_congr_left
+    intro n _
+    simp [mentions, string_beq_comm]
+  unfold countedBreadth
+  rw [hv]
+  exact (the_assignment_is_honest_when_the_names_are_distinct names lens h).symm
+
+/-- Today's roster, elevated, is nine -- and nine is the roster length, not a
+literal that would survive a tenth lens being added. -/
+theorem elevation_is_exactly_the_roster_size :
+    countedBreadth shippedNames shippedNames = shippedNames.length := by decide
+
 /-! ## The gauge: nine terms, one doubled -/
 
 /-- A lens as the gauge sees it: `λ` (×10), `σ(δ)` (×10000), `μ` (×100). -/

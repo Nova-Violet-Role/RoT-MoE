@@ -136,6 +136,34 @@ function Invoke-Route([string] $Prompt) {
   return "CONVERGENT $(Get-Convener)|"
 }
 
+# --- TIER 2: NSIL -- FUSE and ELEVATE ----------------------------------------
+# The POSIX arm's `nsil_active_lenses`, decision for decision. See the long note
+# in hooks/rot-router.sh: FUSE fires when >= 2 DISTINCT lanes match, ELEVATE
+# when none match and the prompt carries at least one word per lens. The density
+# floor is $Names.Count -- derived from the roster, not written down as 9 -- and
+# it is a MODELLING CHOICE rather than a measurement, said plainly in both arms.
+#
+# Lenses come back in ROSTER order, never match order, so the two arms cannot
+# disagree about bit order in the activity vector.
+function Get-NsilActiveLenses([string] $Prompt) {
+  $p = $Prompt.ToLowerInvariant()
+  $hit = @()
+  foreach ($lane in $Tier1) {
+    foreach ($stem in $lane.Stems) {
+      if (Test-StemFires $p $stem) { $hit += $lane.Lead; break }
+    }
+  }
+  $out = @()
+  foreach ($n in $Names) { if ($hit -contains $n) { $out += $n } }
+  # `return $out`, NOT `return ,$out`. The unary comma wraps the result in an
+  # OUTER array, so `@(Get-NsilActiveLenses ...)` at the call site came back with
+  # Count = 1 for every prompt -- including one that fired no lane at all. Every
+  # turn therefore fell to the single-lane branch and this whole layer was dead
+  # code that printed the old line. Caught by arm-vs-arm parity, which is exactly
+  # what that gate is for: the POSIX arm said FUSE and this one said nothing.
+  return $out
+}
+
 # Split the two fields on the LAST separator, so a model name containing `|`
 # cannot eat the stem. Used by both callers; a second inline split would be a
 # second source of truth for the same contract.
@@ -558,10 +586,36 @@ $__rparts = Split-Routed $__routed
 $lane  = $__rparts[0]
 $stem  = $__rparts[1]
 $lens  = ($lane -split ' ')[1]
+
+# TIER 2 (NSIL). BREADTH IS COUNTED, NOT ASSIGNED -- see the note in the POSIX
+# arm. The old line set `$br = 1` beside the bit it had just written, making the
+# field an assertion about the vector instead of a measurement of it.
+$nsilAct   = @(Get-NsilActiveLenses $prompt)
+$nsilWords = @($prompt -split '\s+' | Where-Object { $_ -ne '' }).Count
+# NOVA ADJUDICATES EVERY TURN: the default verdict is CONFIRM ("the TIER 1 lead
+# stands"), never an empty field. An empty field would say the layer never ran.
+$nsilDecision = 'CONFIRM'
+if ($nsilAct.Count -ge 2) {
+  $nsilDecision = 'FUSE'
+  # NSIL is the NOVA Sovereign Intent Layer: a fusion is something Nova DID, so
+  # her bit is 1 by construction. Idempotent -- if STRATEGIC fired, the set is
+  # unchanged and breadth 2 stays reachable.
+  if ($nsilAct -notcontains 'Nova') {
+    $withNova = @()
+    foreach ($n in $Names) { if ($n -eq 'Nova' -or $nsilAct -contains $n) { $withNova += $n } }
+    $nsilAct = $withNova
+  }
+} elseif ($nsilAct.Count -eq 0 -and $nsilWords -ge $Names.Count) {
+  $nsilDecision = 'ELEVATE'
+  $nsilAct = @($Names)
+} else {
+  $nsilAct = @($lens)
+}
+
 $acts  = @()
 $br    = 0
 foreach ($n in $Names) {
-  if ($n -eq $lens) { $acts += '1'; $br = 1 } else { $acts += '0' }
+  if ($nsilAct -contains $n) { $acts += '1'; $br = $br + 1 } else { $acts += '0' }
 }
 $g  = Invoke-Gauge ($acts -join ',') $br 1 1 1
 $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
@@ -586,8 +640,8 @@ if ($env:ROTMOE_DEBUG_LOG) {
     $cand = [string]$j.hook_event_name
     if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
   }
-  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","arm":"ps1","ms":{6}}}' -f `
-    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc)
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11},"arm":"ps1","ms":{6}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br)
 }
 
 # The marker rides the router's own stdout, not a sidecar file: if the log path
@@ -601,5 +655,10 @@ if ($env:ROTMOE_DEBUG_LOG) {
 $mark = ""
 if ($script:RotDebugLost) { $mark = $mark + " | debug-log UNWRITABLE (record lost)" }
 if ($script:RotLocalLost) { $mark = $mark + " | project-log UNWRITABLE (record lost)" }
-Write-Output ("RoT MoE :: TIER 1 -> " + $lane + " | R/s+ " + $rs + $mark)
+# The TIER 2 tag rides INSIDE the pipe-free lane field, so every existing
+# assertion on this line still matches (prefix, lane token and the ` | R/s+ `
+# boundary are untouched) while the fused lenses are NAMED rather than counted.
+$nsilTag = ''
+if ($nsilDecision -ne '' -and $nsilDecision -ne 'CONFIRM') { $nsilTag = ' [NSIL ' + $nsilDecision + ' ' + ($nsilAct -join '+') + ']' }
+Write-Output ("RoT MoE :: TIER 1 -> " + $lane + $nsilTag + " | R/s+ " + $rs + $mark)
 exit 0
