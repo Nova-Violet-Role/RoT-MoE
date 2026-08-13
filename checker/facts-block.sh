@@ -163,12 +163,17 @@ fi
 # have landed rather than inferred from a difference -- an empty `_c1` from a
 # sed that errored would also "differ", and would have read as a pass.
 _c1="$(printf '%s\n' "$fresh" | awk '!d && sub(/\*\*[0-9]+\*\*/, "**9999**") { d=1 } { print }')"
-if printf '%s' "$_c1" | grep -q '\*\*9999\*\*'; then
-  if [ "$_c1" != "$fresh" ]; then ok "CONTROL: a corrupted count differs from the truth (the comparison can fail)"
-  else bad "CONTROL: corrupting a count changed nothing -- the comparison is blind"; fi
-else
-  bad "CONTROL: the corruption did NOT LAND -- this control tested nothing, which is not the same as the comparison being sound"
-fi
+# `case`, not `printf | grep -q`. The repo's own lint caught the first draft:
+# piping into `grep -q` under `set -o pipefail` makes the exit status depend on
+# whether grep exits early and SIGPIPEs the writer (141), which differs between
+# platforms. A case-glob answers the same question with no pipe and no fork.
+case $_c1 in
+  *'**9999**'*)
+    if [ "$_c1" != "$fresh" ]; then ok "CONTROL: a corrupted count differs from the truth (the comparison can fail)"
+    else bad "CONTROL: corrupting a count changed nothing -- the comparison is blind"; fi ;;
+  *)
+    bad "CONTROL: the corruption did NOT LAND -- this control tested nothing, which is not the same as the comparison being sound" ;;
+esac
 
 # C2: a README with the markers stripped must be rejected.
 _c2="$(mktemp)"; grep -vF "$BEGIN" "$README" > "$_c2"
