@@ -1148,6 +1148,73 @@ theorem nova_violet_hybrid : merge nova violet = ⟨33/20, 1, 1/2⟩ := by
   unfold merge nova violet
   norm_num
 
+/-! ### The other seven lenses — because one worked example is not a roster
+
+For a long time this file instantiated exactly **two** lenses, so `merge` had
+exactly **one** worked example and every document downstream wrote about
+Nova × Violet as though it were representative. It is not: it lands *mid-table*
+of the 36 unordered pairs.
+
+The merge law was always general — `merge_comm` and
+`merge_gain_is_exactly_one_fifth` quantify over `a b : Lens` and needed no
+constants. What was missing was **witnesses**: evidence that the law says
+something recognisable about the actual roster. A general theorem with one
+instance is hard to sanity-check, and impossible to notice ties in.
+
+`hHi` is the **upper** bound of each §2 range, the convention `nova` (7/20 =
+0.35) and `violet` (9/20 = 0.45) already established. -/
+def antivenom : Lens := ⟨3/2, 1, 3/10⟩
+def venomL : Lens := ⟨17/10, 21/20, 7/25⟩
+def carnage : Lens := ⟨11/10, 6/5, 11/20⟩
+def chroma : Lens := ⟨6/5, 5/4, 19/50⟩
+def soleil : Lens := ⟨4/5, 9/10, 11/50⟩
+def eidolon : Lens := ⟨7/5, 11/10, 19/50⟩
+def claudeL : Lens := ⟨3/2, 21/20, 3/10⟩
+
+/-- **The strongest fusion in the roster: Law × Execution.** λ = 1.85, the
+maximum over all 36 pairs. That the extreme is Nova × Venom — decide, then
+strike — is a weak but real check that the law tracks meaning rather than
+arithmetic convenience. -/
+theorem strongest_fusion_is_law_times_execution :
+    merge nova venomL = ⟨37/20, 21/20, 2/5⟩ := by
+  unfold merge nova venomL; norm_num
+
+/-- **The weakest fusion: Chaos × Compression.** λ = 1.15, the minimum. Carnage
+adds and Soleil removes; the two lenses that most disagree about direction
+produce the least. -/
+theorem weakest_fusion_is_chaos_times_compression :
+    merge carnage soleil = ⟨23/20, 6/5, 3/5⟩ := by
+  unfold merge carnage soleil; norm_num
+
+/-- **λ ALONE DOES NOT IDENTIFY A HYBRID, AND THIS IS THE WARNING THAT MATTERS.**
+
+Nova × Violet and Eidolon × Claude both land on λ = 33/20, and they are *not*
+the same point of view — their μ and H differ. Any future code that keys a
+hybrid on its λ would silently conflate Law × Sensory with Meta × Praxis.
+
+Stated as a conjunction so it cannot rot into a triviality: the λ values are
+equal **and** the hybrids are distinct. Deleting either half leaves a theorem
+that proves nothing about the hazard. -/
+theorem lambda_alone_does_not_identify_a_hybrid :
+    (merge nova violet).lam = (merge eidolon claudeL).lam ∧
+      merge nova violet ≠ merge eidolon claudeL := by
+  constructor
+  · unfold merge nova violet eidolon claudeL; norm_num
+  · unfold merge nova violet eidolon claudeL
+    simp only [ne_eq, Lens.mk.injEq, not_and]
+    intro _ h
+    norm_num at h
+
+/-- Every hybrid of two DISTINCT roster lenses still gains exactly ⅕ over the
+parents' mean — so the ordering of the 36 pairs is the ordering of their parent
+means, and the gain never reorders anything. A corollary of
+`merge_gain_is_exactly_one_fifth`, kept because the *ordering* consequence is
+what makes the table above readable. -/
+theorem the_gain_never_reorders (a b c d : Lens)
+    (h : (a.lam + b.lam) / 2 < (c.lam + d.lam) / 2) :
+    (merge a b).lam < (merge c d).lam := by
+  unfold merge; simpa using h
+
 /-! ### Where the hybrid lands on the brainwave table
 
 Read as hertz, the two merged numbers are decidable questions about

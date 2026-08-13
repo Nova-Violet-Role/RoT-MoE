@@ -62,7 +62,7 @@ Every engine like this meets the same objection, and it is a fair one:
 decoration with a decimal point.
 
 So RoT MoE answers it with a kernel instead of prose. The router measures nine
-lens activities off disk, computes an `R/s+` gauge from them, and **1575
+lens activities off disk, computes an `R/s+` gauge from them, and **1579
 machine-checked theorems in Lean 4** state what that gauge must satisfy — that
 it is positive, that it is bounded below, that it is *not constant*, that it
 divides by the number of lenses it actually summed. Then the mutation suites
@@ -239,7 +239,7 @@ happened to this codebase.
 | what | how many | recomputed by |
 |---|---|---|
 | Lean modules in `lean/Proofs/` | **82** | `ls lean/Proofs/*.lean \| wc -l` |
-| theorems and lemmas proved | **1575** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
+| theorems and lemmas proved | **1579** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
 | mutation suites | **75** | `ls lean/mutate/mutate_*.sh \| wc -l` |
 | checkers | **75** | `ls checker/*.sh \| wc -l` |
 | hook events wired by the plugin | **31** | keys of `hooks/hooks.json` |
@@ -583,7 +583,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-1.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1575 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-1.0.1-lean.zip` | adds `lean/` — 82 modules, 1579 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-1.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1415,7 +1415,7 @@ exactly such a module.
 * `lean/Proofs/RotDorks.lean` (5 theorems)
 * `lean/Proofs/RotDuplicate.lean` (10 theorems)
 * `lean/Proofs/RotEffectiveLog.lean` (11 theorems)
-* `lean/Proofs/RotEigenform.lean` (115 theorems)
+* `lean/Proofs/RotEigenform.lean` (119 theorems)
 * `lean/Proofs/RotEndpoint.lean` (18 theorems)
 * `lean/Proofs/RotEnsemble.lean` (24 theorems)
 * `lean/Proofs/RotEvent.lean` (16 theorems)
@@ -1688,7 +1688,7 @@ Each line below names what decides it. Nothing here is aspirational.
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | 82 modules, **1575 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
+| The corpus is real | **MEASURED** | 82 modules, **1579 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all 82 modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
 
@@ -1762,7 +1762,7 @@ Every claim in this section is checkable — and `checker/module-claims.sh` now
 binds these two numbers to the source on every run, so the sentence cannot go
 stale in silence again (it had: it said 101 and 38).
 
-`RotEigenform.lean` — **115 theorems, 0 `sorry`, 0 warnings, `leanchecker` exit 0 with zero bytes, 41 of 41 mutants killed** — plus a checker that re-derives every number from **498 real files**.
+`RotEigenform.lean` — **119 theorems, 0 `sorry`, 0 warnings, `leanchecker` exit 0 with zero bytes, 41 of 41 mutants killed** — plus a checker that re-derives every number from **498 real files**.
 
 ### First, the part everyone misses: that quote is a *diff*
 
@@ -1946,7 +1946,7 @@ to this project contains **fourteen books that do**. So — who wins?
 <tr><th align="center">🌙 PHANTOM (fiction)</th><th align="center">📖 REAL (on disk)</th></tr>
 <tr><td align="center"><b>4</b> named books</td><td align="center"><b>14</b> books, each with a source URL</td></tr>
 <tr><td align="center">plot</td><td align="center">page counts, alphabets, sutra counts, sigil counts</td></tr>
-<tr><td align="center">unprovable by construction</td><td align="center"><b>115 theorems</b> in <code>RotEigenform.lean</code>, kernel-verified</td></tr>
+<tr><td align="center">unprovable by construction</td><td align="center"><b>119 theorems</b> in <code>RotEigenform.lean</code>, kernel-verified</td></tr>
 </table>
 
 **Head-to-head, and it is not a clean sweep for either side:**
