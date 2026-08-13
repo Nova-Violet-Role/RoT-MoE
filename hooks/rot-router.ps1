@@ -58,7 +58,7 @@ $Tier1 = @(
   @{ Mode = 'FORGE';      Lead = 'Claude';    Stems = @('run','build','install','deploy','reproduce','ship','lake','theorem','tactic','sorry','mathlib','.lean','prove','proof','lemma','lean','qed') },
   @{ Mode = 'CLINICAL';   Lead = 'AntiVenom'; Stems = @('debug','error','bug','fix','secur','audit','verif','test','cve','segfault','crash','panic','leak','regress','traceback') },
   @{ Mode = 'EXECUTIVE';  Lead = 'Venom';     Stems = @('decid','urgenc','strike','direct','declar','now','conclud') },
-  @{ Mode = 'EMPATHIC';   Lead = 'Violet';    Stems = @('emot','feel','grief','lonel','soul','story','human','tired','lost') },
+  @{ Mode = 'EMPATHIC';   Lead = 'Violet';    Stems = @('emot','feel','grief','lonel','soul','story','human','tired','lost','relation') },
   @{ Mode = 'STRATEGIC';  Lead = 'Nova';      Stems = @('strateg','plan','goal','roadmap','priorit','legal','recommend','analyz') },
   @{ Mode = 'CREATIVE';   Lead = 'Carnage';   Stems = @('creativ','chaos','surreal','disrupt','paradox','dream','invent') },
   @{ Mode = 'PREDICTIVE'; Lead = 'Chroma';    Stems = @('futur','scenar','predict','trend','forec','likel','horizon','next') },
@@ -204,6 +204,52 @@ $Profiles = @{
   STEALTH    = @{ L = @(0.7,0.6,1.5,0.8,0.5,0.7,2.5,1.0,1.5); M = @(0.90,0.85,1.10,0.90,0.80,0.90,1.20,1.00,1.05) }
   RECURSIVE  = @{ L = @(1.5,1.0,1.6,0.8,1.1,1.2,0.9,2.3,1.5); M = @(1.10,1.00,1.10,0.95,1.20,1.15,0.90,1.20,1.05) }
   FORGE      = @{ L = @(1.4,0.6,1.9,1.2,0.6,1.0,1.0,1.2,2.3); M = @(1.05,0.85,1.10,1.05,0.90,1.10,0.95,1.10,1.15) }
+}
+
+# NOVA'S BAND FLAG -- section 5's per-lens optimal R/s+ ranges, in hundredths,
+# mirroring the POSIX arm. The band is PER LANE: Soleil's STEALTH range is
+# 0.5-1.2 and Carnage's CREATIVE range is 1.5-3.5, so one global range would
+# flag a lane permanently through no fault of its own. CONVERGENT and STRATEGIC
+# share 1.0-2.0 because section 5 lists Nova once, for "Convergent/Strategic".
+$Bands = @{
+  CONVERGENT = @(100,200); STRATEGIC  = @(100,200); EMPATHIC = @(120,250)
+  CLINICAL   = @( 80,150); EXECUTIVE  = @( 70,180); CREATIVE = @(150,350)
+  PREDICTIVE = @(100,220); STEALTH    = @( 50,120); RECURSIVE = @( 80,150)
+  FORGE      = @( 90,180)
+}
+
+# A FLAG, never a veto -- section 5 is explicit that out-of-range is a correction
+# signal, not a refusal. Nothing branches on the result.
+function Get-BandFlag {
+  param([string]$Lane, [string]$Rs)
+  if ($Rs -eq 'n/a') { return 'IN' }
+  $b = if ($Bands.ContainsKey($Lane)) { $Bands[$Lane] } else { $Bands['FORGE'] }
+  $v = [int][math]::Round([double]::Parse($Rs, $inv) * 100)
+  if     ($v -lt $b[0]) { return 'BELOW' }
+  elseif ($v -gt $b[1]) { return 'ABOVE' }
+  else                  { return 'IN' }
+}
+
+# SOLEIL'S TOKEN_EMERGENCY_MONITOR, coupled to CHROMA'S TIMELINES. section 2:
+# Soleil is "budget < 20% -> STEALTH"; Chroma "spawns 12 timelines; 5 shown, 3
+# under TOKEN_EMERGENCY".
+#
+# THE BUDGET IS ACCEPTED, NEVER GUESSED. The UserPromptSubmit payload was
+# measured to carry no token budget, and inferring one from prompt length would
+# be inventing a reading and then acting on it. `ROTMOE_TOKEN_PCT` carries the
+# percentage REMAINING when a caller knows it; absent means unknown, and unknown
+# is NOT an emergency -- an alarm with no sensor attached must stay quiet.
+$ChromaSpawned        = 12
+$ChromaShownNormal    = 5
+$ChromaShownEmergency = 3
+$TokenFloorPct        = 20
+
+function Get-TokenEmergency {
+  $pct = $env:ROTMOE_TOKEN_PCT
+  if ([string]::IsNullOrEmpty($pct)) { return $false }
+  $n = 0
+  if (-not [int]::TryParse($pct, [ref]$n)) { return $false }
+  return ($n -lt $TokenFloorPct)
 }
 
 # Unknown lane -> CONVERGENT, which section 3 already names as the default with
@@ -685,6 +731,38 @@ if ($nsilAct.Count -ge 2) {
     foreach ($n in $Names) { if ($n -eq 'Nova' -or $nsilAct -contains $n) { $withNova += $n } }
     $nsilAct = $withNova
   }
+
+  # OVERRIDE -- "the words mislead", on section 3's own worked example:
+  # `fix our relationship` routes EMPATHIC, not CLINICAL.
+  #
+  # Implemented as a REFINEMENT OF FUSE, because that is where the evidence
+  # exists: such a prompt fires a technical stem AND a human one, so it is
+  # already a two-lane turn, and section 3 says the human reading WINS rather
+  # than blending. A CLINICAL x EMPATHIC hybrid would be a router splitting the
+  # difference on a prompt whose meaning is not divided. Deliberately narrow --
+  # only EMPATHIC fused with a technical lane; every other pair stays a FUSE.
+  if ($nsilAct -contains 'Violet' -and
+      (($nsilAct -contains 'AntiVenom') -or ($nsilAct -contains 'Venom') -or ($nsilAct -contains 'Claude'))) {
+    $nsilDecision = 'OVERRIDE'
+    $lane = 'EMPATHIC'
+    $lens = 'Violet'
+    # The lead CHANGES, so the weights follow it. An OVERRIDE that left the
+    # technical profile mounted would be the same defect fixed one layer up.
+    Select-Profile 'EMPATHIC'
+  }
+} elseif ($nsilAct.Count -eq 1 -and $nsilWords -ge $Names.Count) {
+  # BOOST -- "right mode, one lens underweighted; a single λ rises surgically".
+  # The mode is confirmed (exactly one lane fired) and the prompt is dense by
+  # the same derived floor ELEVATE uses.
+  #
+  # RECORDED HERE, APPLIED AFTER THE PROFILE IS MOUNTED -- never before it. The
+  # POSIX arm's first draft modified the weights at this point and Select-Profile
+  # later reloaded them, producing a route line that announced `[NSIL BOOST
+  # Soleil]` beside a record carrying Soleil's unboosted 2.5. The marker is
+  # evidence; a marker for an action that did not happen is worse than no BOOST.
+  $nsilDecision = 'BOOST'
+  $script:NsilBoost = $lens
+  $nsilAct = @($lens)
 } elseif ($nsilAct.Count -eq 0 -and $nsilWords -ge $Names.Count) {
   $nsilDecision = 'ELEVATE'
   $nsilAct = @($Names)
@@ -723,6 +801,28 @@ $nsilDepth = if ($br -ge 2) { 'DEEP' } elseif ($br -eq 1) { 'STANDARD' } else { 
 # section 4 profiles real, mirroring the POSIX arm exactly.
 Select-Profile (($lane -split ' ')[0])
 
+# BOOST IS APPLIED HERE, AFTER THE PROFILE IS MOUNTED. +0.3 is section 3's own
+# stated typical, quoted rather than tuned, and it rises from the ACTIVE
+# profile's value: a boosted STEALTH Soleil goes 2.5 -> 2.8.
+if ($script:NsilBoost) {
+  $i = [Array]::IndexOf($Names, $script:NsilBoost)
+  if ($i -ge 0) {
+    $bl = @($Lambdas)
+    # Integer hundredths, mirroring the POSIX arm exactly. PowerShell HAS
+    # decimals and must not use them here -- the arms have to agree on every
+    # emitted digit, so both do the same integer arithmetic.
+    #
+    # THE CASTS ARE LOAD-BEARING. `{1:d2}` is an INTEGER format specifier;
+    # [math]::Floor and % return [double], and handing a double to :d2 throws
+    # "Error formatting a string: Format specifier was invalid" at runtime --
+    # measured, and it took the whole ps1 arm down while the POSIX arm was fine.
+    # A parity check is what caught it, which is the argument for having one.
+    $h = [int][math]::Round($bl[$i] * 100) + 30
+    $bl[$i] = [double]("{0}.{1:d2}" -f [int][math]::Floor($h / 100), [int]($h % 100))
+    $script:Lambdas = $bl
+  }
+}
+
 $g  = Invoke-Gauge ($acts -join ',') $br 1 1 1
 $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
 
@@ -749,8 +849,15 @@ if ($env:ROTMOE_DEBUG_LOG) {
   # {12} is $nsilHyb, already a finished string with LITERAL braces -- `-f`
   # substitutes argument values verbatim and only parses braces in the FORMAT
   # string, so it must not be double-escaped a second time here.
-  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11},"depth":"{13}"{12},"arm":"ps1","ms":{6}}}' -f `
-    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br, $nsilHyb, $nsilDepth)
+  # `band` is Nova's self-correction flag against section 5's per-lane range;
+  # `timelines` is Chroma's 12 spawned with 5 shown, or 3 when Soleil's monitor
+  # has an actual budget reading below 20%. Both RECORDED, never acted on.
+  $bandFlag = Get-BandFlag (($lane -split ' ')[0]) $rs
+  $tokEmerg = Get-TokenEmergency
+  $shown    = if ($tokEmerg) { $ChromaShownEmergency } else { $ChromaShownNormal }
+  Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11},"depth":"{13}","band":"{14}","timelines":{{"spawned":{15},"shown":{16}}},"tokenEmergency":{17}{12},"arm":"ps1","ms":{6}}}' -f `
+    (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br, $nsilHyb, $nsilDepth, `
+    $bandFlag, $ChromaSpawned, $shown, $(if ($tokEmerg) { 'true' } else { 'false' }))
 }
 
 # The marker rides the router's own stdout, not a sidecar file: if the log path

@@ -12,13 +12,13 @@ repository-code: "https://github.com/Nova-Violet-Role/RoT-MoE"
 license:
   - AGPL-3.0-or-later
   - EUPL-1.2
-version: 2.0.2
+version: 3.0.2
 date-released: 2026-08-04
 abstract: >-
   A Mixture-of-Experts router for Claude Code: nine lenses, a measured R/s+
   divergence gauge, and TIER 1 keyword routing, shipped in two independent
   implementations (POSIX shell and PowerShell) that are cross-diffed
-  byte-for-byte. The specification is 1583 machine-checked Lean 4 theorems with
+  byte-for-byte. The specification is 1603 machine-checked Lean 4 theorems with
   zero sorry and zero native_decide, re-verified by the Lean kernel via
   leanchecker. An executable checker binds the proofs to the shipped hooks and
   is itself mutation-tested; the packet is additionally verified by a live

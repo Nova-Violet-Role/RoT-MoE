@@ -114,7 +114,7 @@ fi
 CORPUS="$(awk -F'\t' '$1 !~ /^#/ && NF >= 6 { print $1, $2, $3, $4, $5, $6 }' "$CORPUS_FILE")"
 
 shell_gauge () {   # shell_gauge <vec> <breadth> <M> <C> <T> -> "0.49"
-  sh hooks/rot-router.sh --vector "$1" --breadth "$2" --M "$3" --C "$4" --T "$5" 2>/dev/null \
+  sh hooks/rot-router.sh --profile FORGE --vector "$1" --breadth "$2" --M "$3" --C "$4" --T "$5" 2>/dev/null \
     | grep -oE 'R/s\+ = [0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+'
 }
 

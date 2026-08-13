@@ -15,6 +15,67 @@ not be buried.
 
 ---
 
+## [3.0.0] · [3.0.1] · [3.0.2] — 2026-08-13
+
+**Major, and the reason is observable output: the route record gains three fields
+and every NSIL decision in §3 is now reachable.**
+
+### NSIL is complete — all five §3 decisions are live
+
+`OVERRIDE` and `BOOST` join `CONFIRM`, `FUSE` and `ELEVATE`. Both arms, byte
+identical, verified by a nine-lane parity run.
+
+* **`OVERRIDE`** — implemented as a *refinement of FUSE*, because that is where
+  the evidence exists. A prompt like §3's own `fix our relationship` fires a
+  technical stem *and* a human one, so it is already a two-lane turn; §3 says the
+  human reading wins rather than blending. Deliberately narrow: EMPATHIC fused
+  with a technical lane only. The lead changes **and the profile follows it**.
+* **`BOOST`** — one lane, dense prompt, `+0.3` (§3's own stated typical) applied
+  to that lens's λ *in the active profile*. Measured: STEALTH Soleil `2.5 → 2.8`,
+  `R/s+ 0.69 → 0.75`, with a short-prompt control staying at `2.5`.
+* **`relation` added to the EMPATHIC stem table.** §3's worked example could not
+  previously fire, because the word it turns on was not a stem. The specification's
+  own sentence is now a live route.
+
+**A false marker was found and fixed before release.** The first `BOOST` draft
+raised λ *before* the profile was mounted; the profile then reloaded the vector
+and discarded the boost, producing a route line that announced `[NSIL BOOST
+Soleil]` beside a record carrying the unboosted `2.5`. `RotNsilBoost.lean` proves
+the operations do not commute, so the ordering cannot be reintroduced quietly.
+
+### Nova's band flag — §5's per-lens ranges are enforced as a signal
+
+Every route record carries `"band":"BELOW"|"IN"|"ABOVE"` against **its own lane's**
+§5 range. **STEALTH at 0.69 is the first lane ever to read `IN`.** The flag is
+never a veto — §5 is explicit that out-of-range is a correction signal — and
+`flag_is_not_a_veto` proves the lane is untouched.
+
+### Soleil's TOKEN_EMERGENCY_MONITOR, coupled to Chroma's timelines
+
+`"timelines":{"spawned":12,"shown":5}` normally, `"shown":3` with
+`"tokenEmergency":true` when a caller supplies `ROTMOE_TOKEN_PCT` below 20.
+**The budget is accepted, never guessed:** the payload was measured to carry no
+token budget, and an absent reading is *not* an emergency — an alarm with no
+sensor attached must stay quiet.
+
+### Fixed
+
+* **`checker/gauge-cross.sh:117`** invoked the router without `--profile FORGE`,
+  so after profile switching it compared a FORGE-pinned corpus against CONVERGENT
+  weights. This gate runs **only in CI**, which is why ten green local gates said
+  nothing about it. Caught by CI on `afe71e0`.
+* **`RELEASE.md` anchors** were left pointing at pre-migration headings.
+
+### Proofs
+
+`lean/Proofs/RotNsilBoost.lean` (9 theorems) and `lean/Proofs/RotBandMonitor.lean`
+(11 theorems). Total **1603**, zero `sorry`, `leanchecker` clean. Six mutations
+applied and verified present; all six killed. One further mutation was
+**discarded** — the patch did not land — and is reported as discarded, never as
+survived.
+
+---
+
 ## [2.0.0] · [2.0.1] · [2.0.2] — 2026-08-13
 
 **Major, and the reason is observable output: every routed `R/s+` value changes.**
@@ -92,7 +153,7 @@ lenses take distinct positions, then collapses as they converge on one solution.
 
 ### Proofs
 
-**1583 theorems, zero `sorry`**, kernel re-verified. New this release: four in
+**1603 theorems, zero `sorry`**, kernel re-verified. New this release: four in
 `RotLensActivation.lean` for TIER 3 and four in `RotEigenform.lean` for the
 36-hybrid space, including `lambda_alone_does_not_identify_a_hybrid` — a
 conjunction, so neither half can be quoted without the other. Mutation: the depth

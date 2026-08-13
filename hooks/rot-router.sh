@@ -145,7 +145,7 @@ _rot_local_file () {
 STEMS_FORGE='run build install deploy reproduce ship lake theorem tactic sorry mathlib .lean prove proof lemma lean qed'
 STEMS_CLINICAL='debug error bug fix secur audit verif test cve segfault crash panic leak regress traceback'
 STEMS_EXECUTIVE='decid urgenc strike direct declar now conclud'
-STEMS_EMPATHIC='emot feel grief lonel soul story human tired lost'
+STEMS_EMPATHIC='emot feel grief lonel soul story human tired lost relation'
 STEMS_STRATEGIC='strateg plan goal roadmap priorit legal recommend analyz'
 STEMS_CREATIVE='creativ chaos surreal disrupt paradox dream invent'
 STEMS_PREDICTIVE='futur scenar predict trend forec likel horizon next'
@@ -489,6 +489,100 @@ L_PREDICTIVE='1.4 1.0 1.2 1.2 0.9 2.4 0.8 1.3 1.5'; M_PREDICTIVE='1.10 1.00 1.00
 L_STEALTH='0.7 0.6 1.5 0.8 0.5 0.7 2.5 1.0 1.5';    M_STEALTH='0.90 0.85 1.10 0.90 0.80 0.90 1.20 1.00 1.05'
 L_RECURSIVE='1.5 1.0 1.6 0.8 1.1 1.2 0.9 2.3 1.5';  M_RECURSIVE='1.10 1.00 1.10 0.95 1.20 1.15 0.90 1.20 1.05'
 L_FORGE='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.3';      M_FORGE='1.05 0.85 1.10 1.05 0.90 1.10 0.95 1.10 1.15'
+
+# --------------------------------------------------------------------------
+# NOVA'S BAND FLAG -- section 5's per-lens optimal R/s+ ranges, in hundredths.
+#
+# section 2 gives Nova the interceptor "R/s+ below minimum -> flag for
+# self-correction", and section 5 supplies the ranges it is measured against.
+# Those ranges were documentation until now: the router computed R/s+ and never
+# compared it to the band the lane is supposed to sit in.
+#
+# THE BAND IS PER LANE, not one global range. Soleil's STEALTH band is 0.5-1.2
+# and Carnage's CREATIVE band is 1.5-3.5; scoring both against a single range
+# would flag one of them permanently through no fault of its own -- the same
+# category of error as scoring every lane with the FORGE weights.
+#
+# CONVERGENT and STRATEGIC share 1.0-2.0 because section 5 lists Nova once, for
+# "Convergent/Strategic". Transcribed, not interpolated.
+BAND_LO_CONVERGENT=100; BAND_HI_CONVERGENT=200
+BAND_LO_STRATEGIC=100;  BAND_HI_STRATEGIC=200
+BAND_LO_EMPATHIC=120;   BAND_HI_EMPATHIC=250
+BAND_LO_CLINICAL=80;    BAND_HI_CLINICAL=150
+BAND_LO_EXECUTIVE=70;   BAND_HI_EXECUTIVE=180
+BAND_LO_CREATIVE=150;   BAND_HI_CREATIVE=350
+BAND_LO_PREDICTIVE=100; BAND_HI_PREDICTIVE=220
+BAND_LO_STEALTH=50;     BAND_HI_STEALTH=120
+BAND_LO_RECURSIVE=80;   BAND_HI_RECURSIVE=150
+BAND_LO_FORGE=90;       BAND_HI_FORGE=180
+
+# Flags a measured R/s+ against its lane's band. Sets NSIL_BAND to BELOW / IN /
+# ABOVE. This is a FLAG, never a veto: section 5 is explicit that out-of-range is
+# a correction signal, not a refusal, so nothing here changes the routing -- it
+# records what Nova would self-correct toward.
+band_flag () {   # <LANE> <RS as decimal string>
+  _bl=0; _bh=0
+  case $1 in
+    CONVERGENT) _bl=$BAND_LO_CONVERGENT; _bh=$BAND_HI_CONVERGENT ;;
+    STRATEGIC)  _bl=$BAND_LO_STRATEGIC;  _bh=$BAND_HI_STRATEGIC  ;;
+    EMPATHIC)   _bl=$BAND_LO_EMPATHIC;   _bh=$BAND_HI_EMPATHIC   ;;
+    CLINICAL)   _bl=$BAND_LO_CLINICAL;   _bh=$BAND_HI_CLINICAL   ;;
+    EXECUTIVE)  _bl=$BAND_LO_EXECUTIVE;  _bh=$BAND_HI_EXECUTIVE  ;;
+    CREATIVE)   _bl=$BAND_LO_CREATIVE;   _bh=$BAND_HI_CREATIVE   ;;
+    PREDICTIVE) _bl=$BAND_LO_PREDICTIVE; _bh=$BAND_HI_PREDICTIVE ;;
+    STEALTH)    _bl=$BAND_LO_STEALTH;    _bh=$BAND_HI_STEALTH    ;;
+    RECURSIVE)  _bl=$BAND_LO_RECURSIVE;  _bh=$BAND_HI_RECURSIVE  ;;
+    *)          _bl=$BAND_LO_FORGE;      _bh=$BAND_HI_FORGE      ;;
+  esac
+  # Decimal string -> hundredths with parameter expansion only. No awk, no
+  # subshell: this runs on every routed turn and the cost gate budgets 23 spawns.
+  _bi=${2%%.*}
+  case $2 in *.*) _bf=${2#*.} ;; *) _bf='' ;; esac
+  _bf="${_bf}00"; _bf=${_bf%"${_bf#??}"}
+  case $_bf in 0?) _bf=${_bf#0} ;; esac
+  _bv=$(( _bi * 100 + _bf ))
+  if   [ "$_bv" -lt "$_bl" ]; then NSIL_BAND='BELOW'
+  elif [ "$_bv" -gt "$_bh" ]; then NSIL_BAND='ABOVE'
+  else                             NSIL_BAND='IN'
+  fi
+}
+
+# --------------------------------------------------------------------------
+# SOLEIL'S TOKEN_EMERGENCY_MONITOR, coupled to CHROMA'S TIMELINES.
+#
+# section 2: Soleil's interceptor is "budget < 20% -> STEALTH", and Chroma
+# "spawns 12 timelines; 5 shown, 3 under TOKEN_EMERGENCY".
+#
+# WHAT THE ROUTER CAN AND CANNOT SEE, stated plainly rather than papered over.
+# The UserPromptSubmit payload was MEASURED (2026-08-03) to carry session_id,
+# transcript_path, cwd, prompt_id, permission_mode, hook_event_name and prompt.
+# There is NO token budget in it. A router that inferred one from prompt length
+# would be inventing a measurement and then acting on it, which is worse than
+# not having the feature.
+#
+# So the budget is ACCEPTED, never guessed: `ROTMOE_TOKEN_PCT` carries the
+# percentage REMAINING when a caller knows it. Absent means unknown, and unknown
+# is NOT an emergency -- a monitor that fires when it has no reading is an alarm
+# with no sensor attached.
+#
+# The 20 threshold and the 12/5/3 timeline counts are section 2's own figures,
+# quoted rather than tuned.
+CHROMA_SPAWNED=12
+CHROMA_SHOWN_NORMAL=5
+CHROMA_SHOWN_EMERGENCY=3
+TOKEN_FLOOR_PCT=20
+
+token_emergency () {   # sets TOKEN_EMERG (0/1) and CHROMA_SHOWN
+  TOKEN_EMERG=0
+  CHROMA_SHOWN=$CHROMA_SHOWN_NORMAL
+  case ${ROTMOE_TOKEN_PCT:-} in
+    ''|*[!0-9]*) return 0 ;;    # absent or not a plain integer -> unknown
+  esac
+  if [ "$ROTMOE_TOKEN_PCT" -lt "$TOKEN_FLOOR_PCT" ]; then
+    TOKEN_EMERG=1
+    CHROMA_SHOWN=$CHROMA_SHOWN_EMERGENCY
+  fi
+}
 
 # Selects LAMBDAS/MUS for a lane. Unknown lane -> CONVERGENT, which section 3
 # already names as the default with no trigger, so the fallback is the spec's
@@ -894,6 +988,73 @@ hook_mode () {
     # if STRATEGIC was one of the lanes that fired, the set is unchanged and
     # breadth 2 is still reachable.
     case " $_nsil_act " in *" Nova "*) : ;; *) _nsil_act="Nova $_nsil_act" ;; esac
+
+    # OVERRIDE -- "the words mislead", section 3's own row, on section 3's own
+    # worked example: `fix our relationship` routes EMPATHIC, not CLINICAL.
+    #
+    # THE HARD PART WAS FINDING A SIGNAL THAT ALREADY EXISTS. OVERRIDE cannot be
+    # "a lane fired that was wrong", because a wrong lane looks exactly like a
+    # right one to a keyword scan -- that is what makes it wrong. Inventing an
+    # intent detector here would be inventing the very thing NSIL is supposed to
+    # have, and it would be nine constants nobody can source.
+    #
+    # So OVERRIDE is implemented where the evidence for it actually exists: as a
+    # REFINEMENT OF FUSE. `fix our relationship` fires a technical stem AND a
+    # human one, so it is already a two-lane turn. The question is what to do
+    # with that pair, and section 3 answers it outright -- the human reading
+    # WINS rather than blending. A CLINICAL x EMPATHIC hybrid would be a router
+    # splitting the difference on a prompt whose meaning is not divided.
+    #
+    # Deliberately narrow: it fires ONLY when EMPATHIC is fused with a technical
+    # lane. Every other pair stays a genuine FUSE, because for those the spec
+    # gives no reason to believe one side is a misreading of the other.
+    case " $_nsil_act " in
+      *" Violet "*)
+        case " $_nsil_act " in
+          *" AntiVenom "*|*" Venom "*|*" Claude "*)
+            NSIL_DECISION='OVERRIDE'
+            lane='EMPATHIC'
+            _lens='Violet'
+            # The lead CHANGES, so the weights must follow it -- an OVERRIDE
+            # that left the technical profile mounted would be the same defect
+            # this release just fixed one layer up.
+            select_profile 'EMPATHIC'
+            ;;
+        esac
+        ;;
+    esac
+  elif [ "$_nsil_n" -eq 1 ] && [ "${_nsil_words:-0}" -ge "$_nsil_floor" ]; then
+    # BOOST -- "right mode, one lens underweighted; a single λ rises surgically".
+    #
+    # The mode is CONFIRMED (exactly one lane fired, so nothing contests it) and
+    # the prompt is DENSE by the same floor ELEVATE already uses. A long, single-
+    # minded prompt is the case where the lead is right and carrying more than a
+    # short one, so the lead alone rises. Nothing else moves: section 3 says "a
+    # single λ", and raising the ensemble would change what the gauge measures
+    # rather than what the lead is worth.
+    #
+    # +0.3 is section 3's own stated typical, quoted rather than tuned. It is
+    # applied to the ACTIVE PROFILE's λ for that lens, so a boosted EMPATHIC
+    # Violet rises from her EMPATHIC 2.3, never from FORGE's 0.6.
+    #
+    # The density floor is DERIVED (see NSIL_FLOOR above), not a word count
+    # somebody picked, so this threshold moves with the roster instead of aging.
+    # THE BOOST IS ONLY RECORDED HERE, NOT APPLIED HERE -- and that ordering is
+    # the whole correctness of this branch.
+    #
+    # The first draft modified LAMBDAS right at this point. It looked right and
+    # it was a FALSE MARKER: `select_profile` runs later, at the gauge call, and
+    # reloads LAMBDAS from the profile table -- silently discarding the boost.
+    # The measured symptom was a route line reading `[NSIL BOOST Soleil]` beside
+    # a record carrying Soleil's unboosted 2.5. The router was announcing a
+    # decision it had not acted on, which is worse than not implementing BOOST
+    # at all: the marker is evidence, and it was lying.
+    #
+    # Naming the lens and applying the arithmetic AFTER the profile is mounted
+    # makes the two impossible to reorder into disagreement again.
+    NSIL_DECISION='BOOST'
+    NSIL_BOOST=$_lens
+    _nsil_act=$_lens
   elif [ "$_nsil_n" -eq 0 ] && [ "${_nsil_words:-0}" -ge "$_nsil_floor" ]; then
     NSIL_DECISION='ELEVATE'
     _nsil_act=$NAMES
@@ -994,8 +1155,55 @@ hook_mode () {
   # is the one line that makes the other nine section 4 profiles real.
   select_profile "${lane%% *}"
 
+  # BOOST IS APPLIED HERE, AFTER THE PROFILE IS MOUNTED -- never before it.
+  # section 3: "a single λ rises surgically (+0.3 typical)". +0.3 is the spec's
+  # own stated figure, quoted rather than tuned, and it rises from the ACTIVE
+  # profile's value, so a boosted STEALTH Soleil goes 2.5 -> 2.8 rather than
+  # from some other table's opinion of Soleil.
+  #
+  # Integer hundredths with no subshell and no awk: `awk -F.` in $( ) is a fork
+  # on a path the cost gate budgets at 23 spawns, and parameter expansion does
+  # the same job with zero processes.
+  if [ -n "${NSIL_BOOST:-}" ]; then
+    _i=0
+    for _n in $NAMES; do
+      _i=$((_i + 1))
+      [ "$_n" = "$NSIL_BOOST" ] || continue
+      _j=0; _newl=''
+      for _l in $LAMBDAS; do
+        _j=$((_j + 1))
+        if [ "$_j" -eq "$_i" ]; then
+          _lint=${_l%%.*}                       # "2.5" -> "2"
+          case $_l in *.*) _lfrac=${_l#*.} ;; *) _lfrac='' ;; esac
+          _lfrac="${_lfrac}00"                  # pad, then keep exactly two
+          _lfrac=${_lfrac%"${_lfrac#??}"}
+          case $_lfrac in 0?) _lfrac=${_lfrac#0} ;; esac   # never read as octal
+          _newl="$_newl $(hund $(( _lint * 100 + _lfrac + 30 )))"
+        else
+          _newl="$_newl $_l"
+        fi
+      done
+      LAMBDAS=${_newl# }
+      break
+    done
+  fi
+
   _rs=$(gauge "$_vec" "$_br" 1 1 1 | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
   [ -z "$_rs" ] && _rs='n/a'
+
+  # NOVA'S BAND FLAG and SOLEIL'S MONITOR, both computed once the score exists.
+  #
+  # The band is a FLAG, not a veto -- section 5: out-of-range is a correction
+  # signal ("diverge more" / "converge"), never a refusal. Nothing downstream
+  # branches on it; it is recorded so that a self-correction has something to
+  # aim at, and so a lane sitting permanently outside its own band becomes
+  # visible instead of invisible.
+  NSIL_BAND='IN'
+  [ "$_rs" != 'n/a' ] && band_flag "${lane%% *}" "$_rs"
+
+  # Soleil reads the budget only if a caller supplied one. Unknown is not an
+  # emergency; Chroma shows her normal 5 timelines of 12 until told otherwise.
+  token_emergency
   # One record per ROUTED TURN, matching the ps1 arm's shape so the two logs are
   # comparable. `chars` not the prompt: a debug log must be safe to paste into
   # an issue, and the decision is what is under test, not the user's text.
@@ -1070,8 +1278,14 @@ hook_mode () {
     # meaningful together: FUSE with breadth 2 and FUSE with breadth 4 are
     # different turns, and the visible marker deliberately shows nothing at all
     # for CONFIRM.
-    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","nsil":"%s","breadth":%s,"depth":"%s"%s,"arm":"sh","ms":%s}' \
-         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$NSIL_DECISION" "$_br" "$NSIL_DEPTH" "$NSIL_HYB" "$_ms")
+    # `band` is Nova's self-correction flag against section 5's per-lane range;
+    # `timelines` is Chroma's 12 spawned with 5 shown, or 3 when Soleil's monitor
+    # has an actual budget reading below 20%. Both are RECORDED, never acted on:
+    # section 5 says out-of-range is a correction signal and not a veto, and a
+    # router that silently re-routed on a flag would be doing something the spec
+    # explicitly forbids.
+    _rec=$(printf '{"kind":"route","ts":"%s","event":"%s","session":"%s","src":"%s","lane":"%s","lens":"%s","Rs":"%s","chars":%s,"stem":"%s","nsil":"%s","breadth":%s,"depth":"%s","band":"%s","timelines":{"spawned":%s,"shown":%s},"tokenEmergency":%s%s,"arm":"sh","ms":%s}' \
+         "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "${lane%% *}" "$_lens" "$_rs" "${#prompt}" "$_stem" "$NSIL_DECISION" "$_br" "$NSIL_DEPTH" "$NSIL_BAND" "$CHROMA_SPAWNED" "$CHROMA_SHOWN" "$([ "$TOKEN_EMERG" = 1 ] && printf 'true' || printf 'false')" "$NSIL_HYB" "$_ms")
 
     # The partial-line guard is `_rot_terminate`, defined at TOP LEVEL near
     # `convener` -- it has to be reachable by the awk gauge writer too, which
