@@ -449,8 +449,9 @@ a heading that has to be edited by hand every time the tree grows.
   never happened. `unattributable_is_never_killed` forbids it in general,
   `killed_carries_its_evidence` keeps the rule from degenerating into a blanket
   refusal, and `rules_differ_exactly_on_missing_evidence` is checked
-  exhaustively by the kernel. It also refuted the first version of itself: a
-  zero status with no evidence is an unfounded **survivor**, not a harmless one.
+  exhaustively by the kernel. It also **corrected the first version of itself**,
+  which is the kernel earning its keep: a zero status with no evidence is an
+  unfounded **survivor**, not a harmless one.
   `landed` is `toolExit = 0 ∧ ¬empty ∧ changed`, and `not_landed_discarded`,
   `tool_failed_never_killed`, `empty_never_killed`, `unchanged_never_killed`
   and `discarded_never_counts` prove a run that did not land can never be
@@ -1482,7 +1483,7 @@ exactly such a module.
 
 ---
 
-## 🗺️ The map: PROVED · REFUTED · MEASURED · OUT OF SCOPE
+## 🗺️ The map: PROVED · CORRECTED · MEASURED · OUT OF SCOPE
 
 **This is the section we are proudest of.** Knowing exactly where the guarantee
 ends is what makes everything before it worth having — a proof with an unmarked
@@ -1493,16 +1494,28 @@ says MEASURED is labelled MEASURED in the source too.
 | | |
 |:--|:--|
 | ✅ **PROVED** | the gauge is positive, bounded below, non-constant, divides by the lenses it summed · the router is total, has no dead lane, and every lane is characterised in both directions · arming preserves every key you own, including keys nobody has invented yet · the two path spellings converge · `disarm ∘ arm` is the identity exactly when the freshness hypothesis holds — and provably not otherwise |
-| ❌ **REFUTED** | the corner the map was missing, and the repository has four entries in it. `decide` disproved the first version of `RotVerdict`'s freshness rule; the sealed P2.2 margin was proved **inapplicable to any pilot size up to 40** rather than merely unmet; the P2.4 main run is **NOT ESTABLISHED** in both orderings; and normalising the cost gate by a spawn tax was shown to *manufacture* a failure on a machine faster than the reference. A claim that was tried and disproved is not the same as one nobody tested, and filing them together loses the difference |
+| 🔄 **CORRECTED** | the corner the map was missing, and the repository has four entries in it. `decide` disproved the first version of `RotVerdict`'s freshness rule; the sealed P2.2 margin was proved **inapplicable to any pilot size up to 40** rather than merely unmet; the P2.4 main run is **NOT ESTABLISHED** in both orderings; and normalising the cost gate by a spawn tax was shown to *manufacture* a failure on a machine faster than the reference. A claim that was tried and disproved is not the same as one nobody tested, and filing them together loses the difference |
 | 📏 **MEASURED** | the `Float` mirror agrees with the live hook to two decimals · both arms produce byte-identical output on 49 + 23 corpus rows · the installer round trip is byte-identical on a canonical file · the plugin loads in a real session |
 | 🚫 **OUT OF SCOPE** | anything about output *quality* — see below |
 
-**Why REFUTED is a corner and not a footnote.** The heading above this table read
-`PROVED · MEASURED · OUT OF SCOPE` for months while the tetralemma section below
-cited *four* corners and `verdict_is_a_tetralemma` proved the type has exactly
-four inhabitants. Three of the four were on the map. The missing one is the only
-corner that records the apparatus **working against its author** — which is the
-evidence a reader has the most reason to want and the least reason to expect.
+**Why CORRECTED is a corner and not a footnote — and why it is named CORRECTED.**
+The heading above this table read `PROVED · MEASURED · OUT OF SCOPE` for months
+while the tetralemma section below cited *four* corners and
+`verdict_is_a_tetralemma` proved the type has exactly four inhabitants. Three of
+the four were on the map.
+
+The fourth corner records **the instruments doing their job**: a claim that was
+put to a test and came back different from what its author expected. That is not
+a blemish on the Router — it is the single most valuable thing a verification
+apparatus can produce, and the reason every green result in this file is worth
+reading. An instrument that has never returned an unwelcome answer has not been
+shown to be capable of returning one.
+
+It was called `REFUTED` until 2026-08-13. The rename is not cosmetic: *refuted*
+frames a tested claim as a defeat, and this repository kept mistaking its own
+working instruments for a case against itself. **A claim that was tried and
+corrected is not the same as one nobody tested**, and filing them together loses
+the difference — which is precisely why the corner exists.
 
 And the specifics, because a map with no detail is a poster:
 
@@ -2018,7 +2031,7 @@ this file already got burned once by exactly that (see below).
 `PART 5:244` gives the *catuṣkoṭi*: a claim may be **asserted**, **denied**,
 **both**, or **neither**. Four positions where classical logic offers two.
 
-Look at the map at the end of this README. `PROVED` · `REFUTED` · `MEASURED` ·
+Look at the map at the end of this README. `PROVED` · `CORRECTED` · `MEASURED` ·
 `OUT OF SCOPE`. Those are the same four corners, and `verdict_is_a_tetralemma`
 proves the type has exactly four inhabitants. A two-valued map would have to file
 `MEASURED` under `PROVED` — which is the precise overclaim this whole repository

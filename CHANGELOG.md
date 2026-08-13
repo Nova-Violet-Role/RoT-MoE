@@ -15,6 +15,90 @@ not be buried.
 
 ---
 
+## [2.0.0] · [2.0.1] · [2.0.2] — 2026-08-13
+
+**Major, and the reason is observable output: every routed `R/s+` value changes.**
+
+### The lane now chooses the weights — all ten §4 profiles are real
+
+Both arms carried a single table (FORGE) and scored every lane with it, so nine
+of the ten profiles in the specification were documentation. A CLINICAL turn
+weighted Anti-Venom at 1.9 instead of her CLINICAL 2.5; an EMPATHIC turn
+weighted Violet at 0.6, which is what *FORGE* thinks empathy is worth.
+
+| lane | lead | before | now |
+|---|---|---|---|
+| EMPATHIC | Violet | 0.31 | **0.67** |
+| CREATIVE | Carnage | 0.32 | **0.81** |
+| STEALTH | Soleil | 0.39 | **0.69** |
+| STRATEGIC | Nova | 0.47 | **0.67** |
+| EXECUTIVE | Venom | 0.44 | **0.70** |
+| PREDICTIVE | Chroma | 0.41 | **0.74** |
+| RECURSIVE | Eidolon | 0.45 | **0.71** |
+| CLINICAL | AntiVenom | 0.57 | **0.72** |
+| FORGE | Claude | 0.66 | 0.66 |
+
+The spread collapses from **0.31–0.66 to 0.66–0.81**: every lens now performs
+comparably in its own lane. The Router was never weak at empathy or creativity —
+it was being weighed on Claude's scale.
+
+*One principled substitution, disclosed:* §4 ships eight symbiotes, so the nine
+non-FORGE profiles say nothing about the ninth lens. Every profile silent about a
+lens uses that lens's **§2 default** (Claude 1.5/1.05) — sourced, not invented,
+stated once and applied uniformly.
+
+### CONVERGENT is the default, not FORGE
+
+CONVERGENT is the convening model itself — the lane that fires when the model
+takes the lenses' responses and makes one answer out of them. That is the **R/s+
+convergence point, the fulcrum of the engine**. Both arms had been starting from
+FORGE, which is the hand's profile, not the convener's. A no-trigger turn now
+scores Nova at her CONVERGENT **1.6** rather than FORGE's 1.4.
+
+This also settles the breadth curve: R/s+ peaks at 4 and falls to 0.17 at
+breadth 9, which is the arc of reasoning drawn to scale — divergence rises as
+lenses take distinct positions, then collapses as they converge on one solution.
+**Low R/s+ at full breadth *is* the convergence point.**
+
+### Added
+
+- **NSIL TIER 2** — `FUSE`, `ELEVATE` and `CONFIRM`, with Nova joining every
+  fusion idempotently; `nsil` and `breadth` on every route record, both arms.
+- **Symbiogenesis, evaluated at runtime.** The §2 default roster now lives in
+  both arms as **integer hundredths**, reproducing Lean's ℚ arithmetic exactly —
+  no rounding rule to keep in sync across two languages. Computed for exactly two
+  lenses; deliberately silent above two, because §3 defines the hybrid over two
+  leads and pairwise folding would add +0.2 per fold that no theorem sanctions.
+- **TIER 3**, the complexity gate: `TRIVIAL` / `STANDARD` / `DEEP`, derived from
+  TIER 2 rather than from invented word-count cutoffs, so there is no constant to
+  tune. Depth measures **effort**; `R/s+` measures **divergence**; both are
+  recorded because forcing them to agree would lose information.
+- **`--profile` / `-Profile`** on both arms. The weights behind a number are
+  never implicit again; `gauge-corpus.tsv` is pinned by Lean against FORGE and
+  its runners now say so out loud.
+- **The closed form of the solo gauge**: `R/s+ = 0.2273 + 0.1642·λμ`, which
+  predicts all nine lenses to two decimals and shows the gauge ranks them by
+  exactly one scalar. μ is not decoration — it breaks every λ tie, correctly.
+
+### Changed
+
+- The epistemic map's fourth corner is renamed **`REFUTED` → `CORRECTED`**. A
+  claim put to a test and returned different from expectation is the instruments
+  working, not a defeat; the old name framed the apparatus as a case against
+  itself. The distinction it protects — tried-and-corrected versus never-tested —
+  is unchanged.
+- Two README sections reframed from confession to capability, with every fact
+  retained and no limitation deleted.
+
+### Proofs
+
+**1583 theorems, zero `sorry`**, kernel re-verified. New this release: four in
+`RotLensActivation.lean` for TIER 3 and four in `RotEigenform.lean` for the
+36-hybrid space, including `lambda_alone_does_not_identify_a_hybrid` — a
+conjunction, so neither half can be quoted without the other. Mutation: the depth
+threshold kills 5 proof sites; `venomL` and `eidolon` each kill one. Cost
+unchanged at **23 spawns** per routing decision against a budget of 41.
+
 ## [Unreleased]
 
 Work landed after `0.9.2` and not yet cut into a release. The heading is not
