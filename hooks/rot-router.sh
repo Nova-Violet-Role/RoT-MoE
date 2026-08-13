@@ -457,9 +457,75 @@ nsil_count_words () {
 #
 # LENS ORDER: Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude
 # FORGE weights, quoted from rot-lean.md section 4, never re-derived here.
-LAMBDAS='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.3'
-MUS='1.05 0.85 1.10 1.05 0.90 1.10 0.95 1.10 1.15'
 NAMES='Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude'
+
+# ---------------------------------------------------------------------------
+# THE TEN SECTION 4 PROFILES. The lane chooses the weights.
+#
+# Until 2026-08-13 this file carried ONE table -- the FORGE profile -- and used
+# it for every lane. Nine of the ten profiles in the specification were
+# documentation. A CLINICAL turn scored Anti-Venom at 1.9/1.10 instead of her
+# CLINICAL 2.5/1.20, and a CREATIVE turn scored Carnage at 0.6 instead of 2.5.
+# The lane was chosen correctly and then weighted as if it had not been.
+#
+# All values are transcribed from rot-lean.md section 4, in ROSTER ORDER
+# (Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude).
+#
+# ONE PRINCIPLED SUBSTITUTION, DISCLOSED. Section 4 comes from the OMEGA codex,
+# which ships EIGHT symbiotes; the ninth lens (Claude) and the FORGE profile come
+# from CLAUDE.md. So the nine non-FORGE profiles say nothing about Claude. Rather
+# than invent nine numbers, every profile that is silent about a lens uses that
+# lens's SECTION 2 DEFAULT -- Claude 1.5/1.05 -- which is sourced, not guessed.
+# That rule is stated once and applied uniformly, so a tenth lens added tomorrow
+# gets the same treatment without a decision.
+PROF_LANES='CONVERGENT CLINICAL EXECUTIVE EMPATHIC STRATEGIC CREATIVE PREDICTIVE STEALTH RECURSIVE FORGE'
+L_CONVERGENT='1.6 1.3 1.5 1.7 1.1 1.2 0.8 1.4 1.5'; M_CONVERGENT='1.00 0.95 1.00 1.05 1.20 1.25 0.90 1.10 1.05'
+L_CLINICAL='1.4 0.7 2.5 1.0 0.5 1.0 1.2 1.3 1.5';   M_CLINICAL='1.00 0.90 1.20 1.00 0.80 1.10 1.00 1.10 1.05'
+L_EXECUTIVE='1.5 0.8 1.3 2.4 0.7 1.1 1.0 1.0 1.5';  M_EXECUTIVE='1.05 0.90 1.00 1.20 1.00 1.10 0.90 1.00 1.05'
+L_EMPATHIC='0.8 2.3 0.9 0.8 1.8 1.4 0.7 1.0 1.5';   M_EMPATHIC='0.90 1.15 0.95 0.90 1.30 1.20 0.85 1.00 1.05'
+L_STRATEGIC='2.2 0.9 1.8 1.6 0.7 1.5 0.6 1.3 1.5';  M_STRATEGIC='1.15 0.95 1.00 1.10 1.20 1.25 0.90 1.10 1.05'
+L_CREATIVE='1.0 1.6 0.8 0.7 2.5 1.2 0.9 1.5 1.5';   M_CREATIVE='1.00 1.15 0.90 1.00 1.35 1.10 0.85 1.15 1.05'
+L_PREDICTIVE='1.4 1.0 1.2 1.2 0.9 2.4 0.8 1.3 1.5'; M_PREDICTIVE='1.10 1.00 1.00 1.05 1.00 1.25 0.90 1.10 1.05'
+L_STEALTH='0.7 0.6 1.5 0.8 0.5 0.7 2.5 1.0 1.5';    M_STEALTH='0.90 0.85 1.10 0.90 0.80 0.90 1.20 1.00 1.05'
+L_RECURSIVE='1.5 1.0 1.6 0.8 1.1 1.2 0.9 2.3 1.5';  M_RECURSIVE='1.10 1.00 1.10 0.95 1.20 1.15 0.90 1.20 1.05'
+L_FORGE='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.3';      M_FORGE='1.05 0.85 1.10 1.05 0.90 1.10 0.95 1.10 1.15'
+
+# Selects LAMBDAS/MUS for a lane. Unknown lane -> CONVERGENT, which section 3
+# already names as the default with no trigger, so the fallback is the spec's
+# own answer rather than a shrug. No subshell, no external process.
+select_profile () {   # <LANE>
+  case $1 in
+    CLINICAL)   LAMBDAS=$L_CLINICAL;   MUS=$M_CLINICAL   ;;
+    EXECUTIVE)  LAMBDAS=$L_EXECUTIVE;  MUS=$M_EXECUTIVE  ;;
+    EMPATHIC)   LAMBDAS=$L_EMPATHIC;   MUS=$M_EMPATHIC   ;;
+    STRATEGIC)  LAMBDAS=$L_STRATEGIC;  MUS=$M_STRATEGIC  ;;
+    CREATIVE)   LAMBDAS=$L_CREATIVE;   MUS=$M_CREATIVE   ;;
+    PREDICTIVE) LAMBDAS=$L_PREDICTIVE; MUS=$M_PREDICTIVE ;;
+    STEALTH)    LAMBDAS=$L_STEALTH;    MUS=$M_STEALTH    ;;
+    RECURSIVE)  LAMBDAS=$L_RECURSIVE;  MUS=$M_RECURSIVE  ;;
+    FORGE)      LAMBDAS=$L_FORGE;      MUS=$M_FORGE      ;;
+    *)          LAMBDAS=$L_CONVERGENT; MUS=$M_CONVERGENT ;;
+  esac
+  ROT_PROFILE=$1
+}
+
+# THE DEFAULT IS CONVERGENT, LED BY NOVA -- not FORGE. Corrected 2026-08-13 on
+# the Socio's reading, and it is a correction about what the lane MEANS, not a
+# preference.
+#
+# CONVERGENT is not "the lane for prompts that matched no keyword". It is the
+# convening model itself: the lane that fires when the model takes the various
+# lenses' responses and makes one answer out of them. When every lens holds a
+# point of view and a solution is formed from them, that is the R/s+ CONVERGENCE
+# POINT -- the fulcrum of the whole engine. Section 3 already said "default with
+# no trigger: CONVERGENT"; this file was starting from FORGE, which is the
+# hand's profile, not the convener's.
+#
+# So the gauge reached directly (--vector), with no lane in play, is scored by
+# the convener. Nova leads it, exactly as section 2 and section 4 both say.
+LAMBDAS=$L_CONVERGENT
+MUS=$M_CONVERGENT
+ROT_PROFILE='CONVERGENT'
 
 # TIER 2's density floor: one word per lens, COUNTED from the roster above so a
 # tenth lens moves it automatically. It must be derived HERE, immediately after
@@ -922,6 +988,12 @@ hook_mode () {
   else NSIL_DEPTH='TRIVIAL'
   fi
 
+  # THE LANE NOW CHOOSES THE WEIGHTS. Until today the router picked a lane
+  # correctly and then scored it with the FORGE table regardless -- so a
+  # CLINICAL turn weighted Anti-Venom at 1.9 rather than her CLINICAL 2.5. This
+  # is the one line that makes the other nine section 4 profiles real.
+  select_profile "${lane%% *}"
+
   _rs=$(gauge "$_vec" "$_br" 1 1 1 | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
   [ -z "$_rs" ] && _rs='n/a'
   # One record per ROUTED TURN, matching the ps1 arm's shape so the two logs are
@@ -1142,6 +1214,14 @@ while [ $# -gt 0 ]; do
     --M)       need_value "$1" $#; M="$2";                   shift 2 ;;
     --C)       need_value "$1" $#; C="$2";                   shift 2 ;;
     --T)       need_value "$1" $#; T="$2";                   shift 2 ;;
+    # THE PROFILE IS NOW SAYABLE OUT LOUD. Before today the direct gauge scored
+    # with whatever table happened to be assigned at startup, and nobody had to
+    # state which -- the FORGE weights were implicit. They are now explicit on
+    # both sides: the default is CONVERGENT (the convener), and anything that
+    # needs a specific profile ASKS for it. `checker/gauge-corpus.tsv` is pinned
+    # by Lean against FORGE, so its runner passes `--profile FORGE` and the file
+    # keeps meaning exactly what it always meant -- but visibly now.
+    --profile) need_value "$1" $#; select_profile "$2";      shift 2 ;;
     --route)   need_value "$1" $#; MODE=route; PROMPT="$2";  shift 2 ;;
     --version) echo "rot-router.sh 1.0.0"; exit 0 ;;
     *) echo "usage: rot-router.sh --vector a1,..,a9 --breadth N [--M x --C y --T z]" >&2

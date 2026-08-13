@@ -67,7 +67,7 @@ echo
 echo "== 1+3: POSIX arm vs the expected string (Lean corpus / live readings) =="
 while IFS='|' read -r vec br M C T want note; do
   case "$vec" in ''|\#*) continue ;; esac
-  got=$("$SH" --vector "$vec" --breadth "$br" --M "$M" --C "$C" --T "$T")
+  got=$("$SH" --profile FORGE --vector "$vec" --breadth "$br" --M "$M" --C "$C" --T "$T")
   if [ "$got" = "$want" ]; then ok "$note"
   else bad "$note"; echo "        want: $want"; echo "        got : $got"; fi
 done < <(grep -vE '^\s*(#|$)' "$CORPUS")
@@ -80,8 +80,8 @@ if [ -z "$PWSH" ]; then
 else
   while IFS='|' read -r vec br M C T want note; do
     case "$vec" in ''|\#*) continue ;; esac
-    a=$("$SH" --vector "$vec" --breadth "$br" --M "$M" --C "$C" --T "$T")
-    b=$("$PWSH" -NoProfile -File "$PS1" -Vector "$vec" -Breadth "$br" -M "$M" -C "$C" -T "$T")
+    a=$("$SH" --profile FORGE --vector "$vec" --breadth "$br" --M "$M" --C "$C" --T "$T")
+    b=$("$PWSH" -NoProfile -File "$PS1" -Profile FORGE -Vector "$vec" -Breadth "$br" -M "$M" -C "$C" -T "$T")
     b=$(printf '%s' "$b" | tr -d '\r')
     if [ "$a" = "$b" ]; then ok "arms agree: $note"
     else bad "ARMS DISAGREE: $note"; echo "        sh : $a"; echo "        ps1: $b"; fi

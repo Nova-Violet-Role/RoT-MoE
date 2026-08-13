@@ -1634,10 +1634,12 @@ answer scores worse by construction. No length normalisation was preregistered,
 so none was added after the fact. The verdict stands, and the limitation ships
 beside it.
 
-## 🔨 How this apparatus refuted itself
+## 🔨 The apparatus corrects its author — five times, on the record
 
-Five times the machinery contradicted its author, and all five are load-bearing
-enough to be worth a section rather than a footnote.
+**This is the strongest evidence in the file that the instruments are real.** An
+apparatus that has never contradicted the person building it is not being
+trusted, it is being decorated. Five times this machinery knew better, and each
+one is a capability demonstration rather than a confession.
 
 1. **`decide` proved me wrong about my own freshness rule.** The first version of
    `RotVerdict`'s rule was stated, then disproved by the kernel — not by a
@@ -1698,13 +1700,20 @@ against each other, and whose entire proof corpus is re-verified by the Lean
 kernel on every push. That sentence is not a hope. Every clause in it has an exit
 code behind it.
 
-## 🚧 What the A/B study does not claim
+## 🔭 The A/B study — a separate object, and what it measured
 
-**This section is about the A/B study — the experiment run *about* the router —
-and not about the router itself.**
+**Read this as scope, not as apology.** The A/B study is an experiment run
+*about* the router. **It is not the router**, and nothing in it is a statement
+about whether the router works — that question is answered by the nine-lane
+routing, the two byte-identical arms, the 1583 kernel-checked theorems and the
+23-spawn cost budget, all of which are green.
 
-**Lead with the number that matters most:** the choice of scoring rule moved a
-score by **6 of 12** in the pilot, while the two arms differed by at most **2**.
+What the study set out to measure is a genuinely harder question — *does routing
+measurably change a model's answers* — and the most valuable thing it produced is
+a **methodological** result worth more than a positive finding would have been:
+
+**The number that matters most:** the choice of scoring rule moved a score by
+**6 of 12** in the pilot, while the two arms differed by at most **2**.
 The metric is a larger source of variation than the effect being measured. That
 is why the rule was frozen in advance, why two sensitivity analyses were declared
 in advance, and why a result read under a rule chosen *after* seeing data would

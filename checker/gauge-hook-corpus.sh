@@ -57,7 +57,7 @@ fi
 
 # The hook arm. `sh`, not bash, because that is how the router is invoked.
 hook_gauge () {   # hook_gauge <vec> <breadth> <M> <C> <T> -> "0.49"
-  sh hooks/rot-router.sh --vector "$1" --breadth "$2" --M "$3" --C "$4" --T "$5" 2>/dev/null \
+  sh hooks/rot-router.sh --profile FORGE --vector "$1" --breadth "$2" --M "$3" --C "$4" --T "$5" 2>/dev/null \
     | grep -oE 'R/s\+ = [0-9]+[.,][0-9]+' | grep -oE '[0-9]+[.,][0-9]+'
 }
 

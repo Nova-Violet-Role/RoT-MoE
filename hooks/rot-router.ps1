@@ -26,6 +26,11 @@ param(
   [double] $M = 1.05,
   [double] $C = 1.0,
   [double] $T = 1.0,
+  # THE PROFILE IS SAYABLE OUT LOUD, mirroring the POSIX arm's --profile. Empty
+  # means "use the default", which is CONVERGENT -- the convener. Anything that
+  # needs a specific table asks for it by name, so the weights behind a number
+  # are never implicit again.
+  [string] $Profile,
   [string] $Route,
   [switch] $Version
 )
@@ -178,8 +183,49 @@ function Split-Routed([string] $Routed) {
 # agree on which slot is which lens. FORGE weights quoted from rot-lean.md
 # section 4, never re-derived.
 $Names   = @('Nova','Violet','AntiVenom','Venom','Carnage','Chroma','Soleil','Eidolon','Claude')
-$Lambdas = @(1.4, 0.6, 1.9, 1.2, 0.6, 1.0, 1.0, 1.2, 2.3)
-$Mus     = @(1.05, 0.85, 1.10, 1.05, 0.90, 1.10, 0.95, 1.10, 1.15)
+# THE TEN SECTION 4 PROFILES -- the lane chooses the weights. Until 2026-08-13
+# both arms carried only the FORGE table and used it for every lane, so nine of
+# the ten profiles were documentation: a CLINICAL turn scored Anti-Venom at
+# 1.9/1.10 instead of her CLINICAL 2.5/1.20. Roster order throughout.
+#
+# ONE PRINCIPLED SUBSTITUTION, DISCLOSED, IDENTICAL TO THE POSIX ARM. Section 4
+# comes from the OMEGA codex, which ships eight symbiotes; the ninth lens
+# (Claude) and FORGE come from CLAUDE.md, so the nine non-FORGE profiles say
+# nothing about Claude. Every profile silent about a lens uses that lens's
+# SECTION 2 DEFAULT -- Claude 1.5/1.05 -- sourced, not guessed.
+$Profiles = @{
+  CONVERGENT = @{ L = @(1.6,1.3,1.5,1.7,1.1,1.2,0.8,1.4,1.5); M = @(1.00,0.95,1.00,1.05,1.20,1.25,0.90,1.10,1.05) }
+  CLINICAL   = @{ L = @(1.4,0.7,2.5,1.0,0.5,1.0,1.2,1.3,1.5); M = @(1.00,0.90,1.20,1.00,0.80,1.10,1.00,1.10,1.05) }
+  EXECUTIVE  = @{ L = @(1.5,0.8,1.3,2.4,0.7,1.1,1.0,1.0,1.5); M = @(1.05,0.90,1.00,1.20,1.00,1.10,0.90,1.00,1.05) }
+  EMPATHIC   = @{ L = @(0.8,2.3,0.9,0.8,1.8,1.4,0.7,1.0,1.5); M = @(0.90,1.15,0.95,0.90,1.30,1.20,0.85,1.00,1.05) }
+  STRATEGIC  = @{ L = @(2.2,0.9,1.8,1.6,0.7,1.5,0.6,1.3,1.5); M = @(1.15,0.95,1.00,1.10,1.20,1.25,0.90,1.10,1.05) }
+  CREATIVE   = @{ L = @(1.0,1.6,0.8,0.7,2.5,1.2,0.9,1.5,1.5); M = @(1.00,1.15,0.90,1.00,1.35,1.10,0.85,1.15,1.05) }
+  PREDICTIVE = @{ L = @(1.4,1.0,1.2,1.2,0.9,2.4,0.8,1.3,1.5); M = @(1.10,1.00,1.00,1.05,1.00,1.25,0.90,1.10,1.05) }
+  STEALTH    = @{ L = @(0.7,0.6,1.5,0.8,0.5,0.7,2.5,1.0,1.5); M = @(0.90,0.85,1.10,0.90,0.80,0.90,1.20,1.00,1.05) }
+  RECURSIVE  = @{ L = @(1.5,1.0,1.6,0.8,1.1,1.2,0.9,2.3,1.5); M = @(1.10,1.00,1.10,0.95,1.20,1.15,0.90,1.20,1.05) }
+  FORGE      = @{ L = @(1.4,0.6,1.9,1.2,0.6,1.0,1.0,1.2,2.3); M = @(1.05,0.85,1.10,1.05,0.90,1.10,0.95,1.10,1.15) }
+}
+
+# Unknown lane -> CONVERGENT, which section 3 already names as the default with
+# no trigger, so the fallback is the spec's own answer rather than a shrug.
+function Select-Profile {
+  param([string]$Lane)
+  $p = if ($Profiles.ContainsKey($Lane)) { $Profiles[$Lane] } else { $Profiles['CONVERGENT'] }
+  $script:Lambdas = $p.L
+  $script:Mus     = $p.M
+  $script:RotProfile = $Lane
+}
+
+# THE DEFAULT IS CONVERGENT, LED BY NOVA -- not FORGE. Corrected 2026-08-13.
+# CONVERGENT is the convening model itself: the lane that fires when the model
+# takes the various lenses' responses and makes one answer out of them. When
+# every lens holds a point of view and a solution is formed from them, that is
+# the R/s+ CONVERGENCE POINT, the fulcrum of the engine. Section 3 already said
+# "default with no trigger: CONVERGENT"; both arms were starting from FORGE,
+# which is the hand's profile, not the convener's.
+$Lambdas = $Profiles['CONVERGENT'].L
+$Mus     = $Profiles['CONVERGENT'].M
+$RotProfile = 'CONVERGENT'
 
 # THE SECTION 2 DEFAULT ROSTER -- the table Symbiogenesis is defined over.
 # $Lambdas/$Mus above are the FORGE PROFILE (section 4) and score the turn; they
@@ -517,7 +563,10 @@ switch ($env:ROTMOE_DEBUG_SRC) {
 }
 
 if ($Route)  { $r = Split-Routed (Invoke-Route $Route); Write-Output $r[0]; exit 0 }
-if ($Vector) { Write-Output (Invoke-Gauge $Vector $Breadth $M $C $T); exit 0 }
+if ($Vector) {
+  if ($Profile) { Select-Profile $Profile }
+  Write-Output (Invoke-Gauge $Vector $Breadth $M $C $T); exit 0
+}
 
 # --- HOOK MODE, and the defect it exists to fix ------------------------------
 # This script previously ENDED at Write-Error. ARM_ROUTER registers it as a hook
@@ -669,6 +718,10 @@ foreach ($n in $Names) {
 #   breadth 1 -> STANDARD  one lens carries the turn
 #   breadth 2+ -> DEEP     several lenses contribute a point of view
 $nsilDepth = if ($br -ge 2) { 'DEEP' } elseif ($br -eq 1) { 'STANDARD' } else { 'TRIVIAL' }
+
+# THE LANE NOW CHOOSES THE WEIGHTS -- the one line that makes the other nine
+# section 4 profiles real, mirroring the POSIX arm exactly.
+Select-Profile (($lane -split ' ')[0])
 
 $g  = Invoke-Gauge ($acts -join ',') $br 1 1 1
 $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
