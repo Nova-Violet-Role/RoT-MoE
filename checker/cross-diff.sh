@@ -89,6 +89,50 @@ else
 fi
 
 echo
+echo "== 2b: EVERY PROFILE across both arms -- not just FORGE =="
+# THE 86 ROWS ABOVE ALL RUN UNDER `--profile FORGE`. That was correct when the
+# router had ONE weight table and FORGE was its name. After profile switching it
+# means the arms are compared in ONE of TEN profiles, and the other nine are
+# cross-checked nowhere -- measured directly: a digit changed in the shell's
+# CONVERGENT table left this checker at 86 passed, 0 failed.
+#
+# That is the same defect that had already been found in lean-binds-shell.sh
+# (one table verified out of ten), arriving in a second checker, and it gives
+# FORGE an authority over the other nine profiles that nothing in the spec
+# grants it. Section 4 defines ten profiles as peers; CONVERGENT, not FORGE, is
+# the documented default and the convener.
+#
+# The corpus stays pinned to FORGE -- Lean pins those exact strings, and
+# re-pinning 86 rows x 10 profiles would be a different, slower instrument. This
+# phase adds what was missing at proportionate cost: ONE probe per profile, both
+# arms, byte-for-byte. Ten comparisons, twenty spawns, and no profile is
+# privileged any more.
+if [ -z "$PWSH" ]; then
+  echo "  SKIP  no PowerShell on this machine (10 profile rows unverified)"
+  skip=$((skip+1))
+else
+  _pvec='1,0,1,0,1,0,1,0,1'
+  _pbr=4
+  for _prof in CONVERGENT CLINICAL EXECUTIVE EMPATHIC STRATEGIC CREATIVE PREDICTIVE STEALTH RECURSIVE FORGE; do
+    a=$("$SH" --profile "$_prof" --vector "$_pvec" --breadth "$_pbr" --M 1 --C 1 --T 1)
+    b=$("$PWSH" -NoProfile -File "$PS1" -Profile "$_prof" -Vector "$_pvec" -Breadth "$_pbr" -M 1 -C 1 -T 1)
+    b=$(printf '%s' "$b" | tr -d '\r')
+    if [ -z "$a" ]; then
+      bad "profile $_prof: the POSIX arm produced NO OUTPUT -- this row measured nothing"
+    elif [ "$a" = "$b" ]; then ok "arms agree under profile $_prof: $a"
+    else bad "ARMS DISAGREE under profile $_prof"; echo "        sh : $a"; echo "        ps1: $b"; fi
+  done
+
+  # The phase must be able to TELL PROFILES APART, or ten identical passes would
+  # prove only that both arms ignore the flag. Two profiles whose weights differ
+  # must produce different readings on the same input.
+  _c1=$("$SH" --profile CONVERGENT --vector "$_pvec" --breadth "$_pbr" --M 1 --C 1 --T 1)
+  _c2=$("$SH" --profile STEALTH    --vector "$_pvec" --breadth "$_pbr" --M 1 --C 1 --T 1)
+  if [ "$_c1" != "$_c2" ]; then ok "CONTROL: CONVERGENT and STEALTH read differently, so this phase can discriminate"
+  else bad "CONTROL: every profile reads the same -- the flag is ignored and all ten rows above are vacuous"; fi
+fi
+
+echo
 echo "== TIER 1: both arms, every lane =="
 # One probe per lane plus the default. This is the routing half of R7b: it
 # executes the SHIPPED router, not the model. RotRoute.lean proves the order is

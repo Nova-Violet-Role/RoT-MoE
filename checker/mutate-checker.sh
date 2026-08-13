@@ -253,15 +253,34 @@ run H00 "$SH" \
 # which would have been a claim about the checker being robust. Three mutations
 # reported as survived here would have read as three pieces of evidence the
 # checker is sound, when they were three pieces of no evidence at all.
+# TARGETED AT CONVERGENT, NOT FORGE, AND THE CHANGE IS THE POINT.
+#
+# These two mutations named FORGE because FORGE used to be the only weight table
+# there was. Keeping them there after profile switching would have quietly made
+# FORGE the one profile whose weights are mutation-tested -- an authority the
+# spec does not give it. Section 4 defines ten profiles as PEERS, and CONVERGENT
+# is the documented default and convener; FORGE is one lane among ten.
+#
+# Measured before the move: a digit changed in the shell's CONVERGENT table left
+# cross-diff at 86 passed, 0 failed. Every one of its rows ran `--profile FORGE`,
+# so nine tables were compared between the arms nowhere at all. cross-diff phase
+# 2b now sweeps all ten, and these mutations exercise it on the fulcrum.
 run H01 "$SH" \
+  "L_CONVERGENT='1.6 1.3 1.5 1.7 1.1 1.2 0.8 1.4 1.5'" \
+  "L_CONVERGENT='1.6 1.3 1.5 1.7 1.1 1.2 0.8 1.4 1.6'" \
+  RED 'one lambda changed in the POSIX arm (CONVERGENT Claude 1.5 -> 1.6)'
+
+run H02 "$PS1" \
+  'CONVERGENT = @{ L = @(1.6,1.3,1.5,1.7,1.1,1.2,0.8,1.4,1.5)' \
+  'CONVERGENT = @{ L = @(1.6,1.3,1.5,1.7,1.1,1.2,0.8,1.4,1.6)' \
+  RED 'one lambda changed in the WINDOWS arm only -- the arms must disagree'
+
+# FORGE keeps a mutation of its own -- moving the coverage off it entirely would
+# just swap which profile is privileged. Both are now tested; neither leads.
+run H01b "$SH" \
   "L_FORGE='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.3'" \
   "L_FORGE='1.4 0.6 1.9 1.2 0.6 1.0 1.0 1.2 2.4'" \
   RED 'one lambda changed in the POSIX arm (FORGE Claude 2.3 -> 2.4)'
-
-run H02 "$PS1" \
-  'FORGE      = @{ L = @(1.4,0.6,1.9,1.2,0.6,1.0,1.0,1.2,2.3)' \
-  'FORGE      = @{ L = @(1.4,0.6,1.9,1.2,0.6,1.0,1.0,1.2,2.4)' \
-  RED 'one lambda changed in the WINDOWS arm only -- the arms must disagree'
 
 run H03 "$SH" \
   'R = sum / K;' \
