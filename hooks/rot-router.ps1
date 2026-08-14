@@ -548,9 +548,24 @@ function Write-RotDebug([string] $Line) {
     $cap = 5000
     if ($capRaw -and ($capRaw -match '^\d+$')) { $cap = [int]$capRaw }
     if ($cap -gt 0) {
+      # TRIM TO A LOW-WATER MARK, NOT BACK TO THE CAP -- the POSIX arm's rule,
+      # for the same measured reason. Trimming to exactly $cap leaves the file
+      # AT the cap, so the next append exceeds it by one and rewrites the whole
+      # file again to drop that single line. Past the cap, that is every turn
+      # forever, and it is invisible because the bound is always respected.
+      #
+      # Measured on the POSIX arm (2026-08-14): the sink was found at EXACTLY
+      # 5000 lines holding 4 412 009 B -- the fingerprint of per-turn trimming --
+      # and rotating it by hand moved bench-router from 521.5 ms to 474.6 ms per
+      # turn. This arm reads the file into an ARRAY first, so it pays even more.
+      #
+      # Keeping 80 % turns a rewrite-every-turn into a rewrite once per ~20 % of
+      # the cap. The file stays bounded by $cap, which was the actual promise.
       $lines = @(Get-Content -LiteralPath $p -ErrorAction Stop)
       if ($lines.Count -gt $cap) {
-        $keep = $lines[($lines.Count - $cap)..($lines.Count - 1)]
+        $keepN = [int]([math]::Floor($cap * 8 / 10))
+        if ($keepN -le 0) { $keepN = $cap }
+        $keep = $lines[($lines.Count - $keepN)..($lines.Count - 1)]
         Set-Content -LiteralPath $p -Value $keep -Encoding utf8 -ErrorAction Stop
       }
     }

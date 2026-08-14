@@ -262,8 +262,35 @@ convener () {
   if [ -n "$ROTMOE_MODEL" ]; then printf '%s' "$ROTMOE_MODEL"; return 0; fi
   _cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
   if [ -r "$_cfg" ]; then
-    # One line, one field, no JSON parser: the value of a top-level "model".
-    _m=$(tr -d '\n' < "$_cfg" | sed -n 's/.*"model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    # One field, no JSON parser: the value of a "model" key -- the LAST one in
+    # the file, which is what the original `tr -d '\n' | sed` did, because its
+    # leading `.*` is greedy over the whole collapsed file.
+    #
+    # WHY THIS IS NOT THAT PIPELINE ANY MORE. It read the config end to end,
+    # through two processes, on EVERY turn. Measured against the real settings
+    # file on this machine -- 202 197 B -- that cost 48 ms per invocation,
+    # about a tenth of the entire 500 ms per-turn budget, to extract one string.
+    # The router had drifted over its own bound (five runs, 501-517 ms) and this
+    # was the single largest removable cost. One awk pass: 17 ms.
+    #
+    # The inner `while` is NOT decoration. awk's match() returns the FIRST hit
+    # on a line, while the old sed returned the LAST in the file -- so a line
+    # carrying two "model" keys silently changed answer. The equivalence suite
+    # caught exactly that before this shipped; the loop walks each line to its
+    # last match, and the last line with a match wins.
+    _m=$(awk '
+      { s = $0
+        while (match(s, /"model"[ \t]*:[ \t]*"[^"]*"/)) {
+          m = substr(s, RSTART, RLENGTH); s = substr(s, RSTART + RLENGTH) } }
+      END { if (m != "") { sub(/^"model"[ \t]*:[ \t]*"/, "", m); sub(/"$/, "", m); print m } }
+    ' "$_cfg" 2>/dev/null)
+    # A pair SPANNING lines is invisible to a line-wise pass, so the original
+    # whole-file pipeline stays as the fallback rather than being deleted. It is
+    # load-bearing: the suite's control confirms the fast path really does miss
+    # that shape, so this branch is reached and tested, not dead code.
+    if [ -z "$_m" ]; then
+      _m=$(tr -d '\n' < "$_cfg" | sed -n 's/.*"model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    fi
     if [ -n "$_m" ]; then printf '%s' "$_m"; return 0; fi
   fi
   printf 'model'
@@ -1362,9 +1389,34 @@ hook_mode () {
         # probe: do not encode the other side's formatting, tolerate it.
         _n=$(wc -l < "$ROTMOE_DEBUG_LOG" 2>/dev/null | tr -dc '0-9')
         [ -n "$_n" ] || _n=0
+        # TRIM TO A LOW-WATER MARK, NOT BACK TO THE CAP. Trimming to exactly
+        # `_cap` makes this the most expensive line in the router, and it does
+        # so INVISIBLY -- the bound is respected the whole time, so nothing
+        # looks wrong.
+        #
+        # The old code rewrote the file whenever it exceeded the cap and left it
+        # sitting AT the cap. The next turn appends one line, exceeds by one,
+        # and rewrites the WHOLE FILE AGAIN to drop that single line. Once a
+        # long session reaches the cap, every subsequent turn pays a full read
+        # plus a full write plus a rename, forever.
+        #
+        # Measured on this machine, 2026-08-14: the sink was found at EXACTLY
+        # 5000 lines -- the cap, which is the fingerprint of per-turn trimming --
+        # holding 4 412 009 B. Rotating it by hand took bench-router from
+        # 521.5 ms to 474.6 ms per turn, so this one behaviour was costing ~47 ms
+        # of a 500 ms budget. That is the open item I5 ("uncapped per-session
+        # sink"): the sink was in fact capped, but capped in a way that charged
+        # rent every turn.
+        #
+        # Keeping 80 % means a rewrite happens once per ~20 % of the cap -- one
+        # turn in a thousand at the default 5000 -- instead of every turn. The
+        # file is still bounded by `_cap`, which is the property that mattered;
+        # only the frequency of paying for it changes.
         if [ "$_n" -gt "$_cap" ]; then
+          _keep=$(( _cap * 8 / 10 ))
+          [ "$_keep" -gt 0 ] || _keep="$_cap"
           _tmp="$ROTMOE_DEBUG_LOG.rot.$$"
-          if tail -n "$_cap" "$ROTMOE_DEBUG_LOG" > "$_tmp" 2>/dev/null; then
+          if tail -n "$_keep" "$ROTMOE_DEBUG_LOG" > "$_tmp" 2>/dev/null; then
             mv -f "$_tmp" "$ROTMOE_DEBUG_LOG" 2>/dev/null || rm -f "$_tmp" 2>/dev/null || true
           else
             rm -f "$_tmp" 2>/dev/null || true

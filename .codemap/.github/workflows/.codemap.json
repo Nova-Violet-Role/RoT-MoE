@@ -2657,12 +2657,12 @@
       ]
     },
     "corpus-update.yml": {
-      "hash": "49c6b6ff90a3",
-      "indexed_at": "2026-08-14T02:31:02.679036+00:00",
+      "hash": "3ba263121537",
+      "indexed_at": "2026-08-14T06:26:49.719733+00:00",
       "language": "yaml",
-      "lines": 106,
-      "mtime_ns": 1786674660477673500,
-      "size": 4429,
+      "lines": 116,
+      "mtime_ns": 1786688807326917400,
+      "size": 5082,
       "symbols": [
         {
           "docstring": "corpus update",
@@ -2911,16 +2911,25 @@
                           "docstring": "error",
                           "lines": [
                             105,
-                            105
+                            114
                           ],
                           "name": "if-no-files-found",
                           "type": "key"
                         },
                         {
+                          "docstring": "true",
+                          "lines": [
+                            115,
+                            115
+                          ],
+                          "name": "include-hidden-files",
+                          "type": "key"
+                        },
+                        {
                           "docstring": "14",
                           "lines": [
-                            106,
-                            107
+                            116,
+                            117
                           ],
                           "name": "retention-days",
                           "type": "key"
@@ -2928,7 +2937,7 @@
                       ],
                       "lines": [
                         95,
-                        107
+                        117
                       ],
                       "name": "with",
                       "type": "section"
@@ -2936,7 +2945,7 @@
                   ],
                   "lines": [
                     62,
-                    107
+                    117
                   ],
                   "name": "steps",
                   "type": "list"
@@ -2944,7 +2953,7 @@
               ],
               "lines": [
                 59,
-                107
+                117
               ],
               "name": "corpus-travels",
               "type": "section"
@@ -2952,7 +2961,7 @@
           ],
           "lines": [
             58,
-            107
+            117
           ],
           "name": "jobs",
           "type": "section"
@@ -3621,6 +3630,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-14T02:31:02.679207+00:00",
+  "generated_at": "2026-08-14T06:26:49.719898+00:00",
   "version": "1.0"
 }

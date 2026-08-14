@@ -481,6 +481,22 @@ a heading that has to be edited by hand every time the tree grows.
   `gauge_divisor_eq_card`. The last one is the theorem that would have caught a
   real bug in the shipped hook, where one lens's activity was pinned at zero
   while still dividing the sum by K.
+* **`lean/Proofs/RotKernelVerdict.lean`** (9 theorems) — the kernel re-check is a
+  verdict, not a formality. A module that elaborates is not the same as a proof
+  term the kernel re-accepted, and these separate the two so a green `lake build`
+  can never stand in for `leanchecker`.
+* **`lean/Proofs/RotBandMonitor.lean`** (11 theorems) — the gauge's own band. An
+  out-of-range R/s+ is a *correction signal*, never a veto, and these pin that
+  distinction: below range demands more divergence, above range demands
+  convergence, and neither is permitted to refuse an answer.
+* **`lean/Proofs/RotNsilBoost.lean`** (9 theorems) — NSIL's BOOST decision. A
+  boost raises one lens surgically without letting it take the lead, which is the
+  property that keeps this a mixture rather than a single expert wearing eight
+  hats.
+* **`lean/Proofs/RotHostScaledBound.lean`** (6 theorems) — the latency bound
+  scaled to the measuring host. A wall-clock number is meaningless without the
+  machine's spawn tax; these prove the scaling is monotone and never flatters a
+  slow host into passing.
 * **`lean/Proofs/RotRoute.lean`** (18 theorems) — the router as a function.
   `route_fires`, `route_covers_every_mode` (no dead lane), `route_exact` (all
   ten lanes characterised in both directions), and the headline

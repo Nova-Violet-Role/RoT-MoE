@@ -2535,12 +2535,12 @@
       ]
     },
     "README.md": {
-      "hash": "b44543307860",
-      "indexed_at": "2026-08-14T06:20:12.536101+00:00",
+      "hash": "58da353d42ff",
+      "indexed_at": "2026-08-14T09:08:27.176926+00:00",
       "language": "markdown",
-      "lines": 2017,
-      "mtime_ns": 1786684211895367400,
-      "size": 117198,
+      "lines": 2033,
+      "mtime_ns": 1786695340717878000,
+      "size": 118292,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -2669,7 +2669,7 @@
               "docstring": "Fifteen are described below, out of 79 in the tree. This heading read *\"the ten modules\"* while listing fifteen \u2014 a count frozen when the section was",
               "lines": [
                 422,
-                656
+                672
               ],
               "name": "\ud83d\udcd0 The modules that carry an argument",
               "type": "subsection"
@@ -2677,7 +2677,7 @@
           ],
           "lines": [
             373,
-            656
+            672
           ],
           "name": "\ud83d\udd2c What is actually verified",
           "type": "section"
@@ -2685,8 +2685,8 @@
         {
           "docstring": "| organ | file | what it does | |:--|:--|:--| | 1 \u00b7 engine | `engine/rot-lean.md` | the specification: nine lenses, the three-tier router, the `R/s+`",
           "lines": [
-            657,
-            680
+            673,
+            696
           ],
           "name": "\ud83e\udec0 The four organs",
           "type": "section"
@@ -2696,16 +2696,16 @@
             {
               "docstring": "**Whichever tier you take, the plugin surface is identical**: same hooks, same agent, same commands. Claude Code loads plugin components and nothing e",
               "lines": [
-                703,
-                742
+                719,
+                758
               ],
               "name": "\ud83d\udce6 The three release tiers \u2014 and why installing gives you the same router",
               "type": "subsection"
             },
             {
               "lines": [
-                743,
-                751
+                759,
+                767
               ],
               "name": "\ud83d\udee0\ufe0f From a clone, without installing",
               "type": "subsection"
@@ -2713,8 +2713,8 @@
             {
               "docstring": "This is the **advanced** path and it is the one that edits `~/.claude/settings.json`. Use it when the plugin mechanism is unavailable to you; otherwis",
               "lines": [
-                752,
-                780
+                768,
+                796
               ],
               "name": "\u2699\ufe0f `ARM_ROUTER.sh` \u2014 only if you cannot use plugins",
               "type": "subsection"
@@ -2722,8 +2722,8 @@
             {
               "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
               "lines": [
-                781,
-                788
+                797,
+                804
               ],
               "name": "\ud83d\udd27 Requirements",
               "type": "subsection"
@@ -2731,8 +2731,8 @@
             {
               "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
               "lines": [
-                789,
-                801
+                805,
+                817
               ],
               "name": "\u2699\ufe0f Configuration",
               "type": "subsection"
@@ -2740,8 +2740,8 @@
           ],
           "docstring": "**One command installs it. Everything else on this page is for a reason you do not have yet.**",
           "lines": [
-            681,
-            801
+            697,
+            817
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -2751,8 +2751,8 @@
             {
               "docstring": "`agents/lean4-prover.md` ships as a **subagent definition** with loadable frontmatter. Point Claude Code at it and you get a specialist whose entire p",
               "lines": [
-                804,
-                847
+                820,
+                863
               ],
               "name": "\ud83e\udd16 The agent: `lean4-prover`",
               "type": "subsection"
@@ -2760,8 +2760,8 @@
             {
               "docstring": "Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:",
               "lines": [
-                848,
-                879
+                864,
+                895
               ],
               "name": "\ud83d\udf0f The router \u2014 what it delivers",
               "type": "subsection"
@@ -2769,16 +2769,16 @@
             {
               "docstring": "This is the part worth reading twice.",
               "lines": [
-                880,
-                927
+                896,
+                943
               ],
               "name": "\ud83e\udde0 What Lean 4 actually changes in an agentic loop",
               "type": "subsection"
             }
           ],
           "lines": [
-            802,
-            927
+            818,
+            943
           ],
           "name": "\ud83d\udca1 Tips & Tricks \u2014 getting real work out of it",
           "type": "section"
@@ -2788,8 +2788,8 @@
             {
               "docstring": "| Lane | Lens | Character | \u03bb | \u03bc | Hit | Accuracy | |---|---|---|---|---|---|---| | `FORGE` | \ud83e\udded **Claude** | build \u00b7 measure \u00b7 reality is the judge |",
               "lines": [
-                986,
-                1010
+                1002,
+                1026
               ],
               "name": "The ten lanes, and the lens each one leads with",
               "type": "subsection"
@@ -2797,8 +2797,8 @@
           ],
           "docstring": "This is what the plugin *does* on every turn: it reads the prompt, picks a lane, and injects the frame the model then reasons inside. Nine lenses co-r",
           "lines": [
-            928,
-            1010
+            944,
+            1026
           ],
           "name": "\ud83e\udded How a prompt reaches a lane",
           "type": "section"
@@ -2808,8 +2808,8 @@
             {
               "docstring": "The speed is not a trick, it is an *architecture*: one pass of stem matching, no regex backtracking, one `awk` call for the gauge. `hooks/rot-router.s",
               "lines": [
-                1107,
-                1150
+                1123,
+                1166
               ],
               "name": "\u26a1 How the router's logic stays under its bound \u2014 and what makes it different",
               "type": "subsection"
@@ -2819,8 +2819,8 @@
                 {
                   "docstring": "`RotPath.lean` grew from 8 theorems to 12 on 2026-08-03, and the occasion is worth recording because it is the pattern this repository is built around",
                   "lines": [
-                    1246,
-                    1279
+                    1262,
+                    1295
                   ],
                   "name": "The newest four, and why they exist",
                   "type": "subsubsection"
@@ -2828,8 +2828,8 @@
               ],
               "docstring": "This is the question worth asking, so it gets a straight answer instead of an enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the **",
               "lines": [
-                1151,
-                1279
+                1167,
+                1295
               ],
               "name": "\ud83d\udd2c Are the nine benchmarkable in Lean? Partly \u2014 and here is the exact line",
               "type": "subsection"
@@ -2837,8 +2837,8 @@
           ],
           "docstring": "Nine lenses are **scored** on every turn; exactly **one is activated**. That distinction is proved rather than asserted, in `lean/Proofs/RotLensActiva",
           "lines": [
-            1011,
-            1279
+            1027,
+            1295
           ],
           "name": "\ud83d\udf0f The nine \u2014 who they are, and what each one *does* in the router",
           "type": "section"
@@ -2846,8 +2846,8 @@
         {
           "docstring": "* **[`docs/SCRUTINY-0.7.md`](docs/SCRUTINY-0.7.md)** \u2014 an adversarial reading of this release by the person who wrote it. What could still be wrong, w",
           "lines": [
-            1280,
-            1293
+            1296,
+            1309
           ],
           "name": "\ud83d\udcda Two documents worth reading before you change anything",
           "type": "section"
@@ -2855,8 +2855,8 @@
         {
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
-            1294,
-            1451
+            1310,
+            1467
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -2864,8 +2864,8 @@
         {
           "docstring": "**RoT MoE is a mixture-of-experts router. It is not an experiment, and this section exists because an earlier version of this page introduced it as on",
           "lines": [
-            1452,
-            1483
+            1468,
+            1499
           ],
           "name": "\u2705 What RoT MoE claims \u2014 and the instrument behind each claim",
           "type": "section"
@@ -2875,8 +2875,8 @@
             {
               "docstring": "The original is on disk, at `mathematics.md:105`. It is the **Book of Fairy** equation from *Dantalian no Shoka*, Episode 1:",
               "lines": [
-                1500,
-                1527
+                1516,
+                1543
               ],
               "name": "First, the part everyone misses: that quote is a *diff*",
               "type": "subsection"
@@ -2884,8 +2884,8 @@
             {
               "docstring": "**SINE Isochronic Entrainer**, GPL-3.0, \u00a9 2014\u20132020 Federico Dossena. Isochronic tones pulse one tone on and off; binaural beats put two close frequen",
               "lines": [
-                1528,
-                1557
+                1544,
+                1573
               ],
               "name": "It started with a brainwave entrainer",
               "type": "subsection"
@@ -2893,8 +2893,8 @@
             {
               "docstring": "All 498 presets in the public library were downloaded and measured (SHA-256 in the manifest; the checker fails if a single number drifts):",
               "lines": [
-                1558,
-                1577
+                1574,
+                1593
               ],
               "name": "The ancestor was ambiguous. The descendant could not afford to be.",
               "type": "subsection"
@@ -2902,8 +2902,8 @@
             {
               "docstring": "`mathematics.md` gives eleven Greek letters isopsephy values. Brainwave bands are named after Greek letters. So: does a letter's number land on its ow",
               "lines": [
-                1578,
-                1595
+                1594,
+                1611
               ],
               "name": "The Greek letters were the bands all along",
               "type": "subsection"
@@ -2911,8 +2911,8 @@
             {
               "docstring": "Nova is Law \u00d7 Code. Violet is the sensory lens \u2014 felt truth, narrative. Merging them is **Symbiogenesis**, and it is now a proved law over \u211a, exactly:",
               "lines": [
-                1596,
-                1624
+                1612,
+                1640
               ],
               "name": "\u2728 The Nova-Violet Role Merging Law",
               "type": "subsection"
@@ -2920,8 +2920,8 @@
             {
               "docstring": "Measured \u2014 every input moves it independently:",
               "lines": [
-                1625,
-                1640
+                1641,
+                1656
               ],
               "name": "Is `R/s+` dynamic, or a decoration with a decimal point?",
               "type": "subsection"
@@ -2929,8 +2929,8 @@
             {
               "docstring": "Fourteen `.md` files, fourteen real books. Two of them are the same book: **The Library of Babel** (`PART 12`) and **The Unimaginable *Mathematics* of",
               "lines": [
-                1641,
-                1671
+                1657,
+                1687
               ],
               "name": "The Phantom Books close it",
               "type": "subsection"
@@ -2938,8 +2938,8 @@
             {
               "docstring": "The fun part, kept deliberately away from the mathematics above. *Dantalian no Shoka* is about **phantom books**: books that should not exist. The fol",
               "lines": [
-                1672,
-                1712
+                1688,
+                1728
               ],
               "name": "\ud83e\udd4a PHANTOM BOOKS **vs** REAL BOOKS \u2014 the tale of the tape",
               "type": "subsection"
@@ -2947,8 +2947,8 @@
             {
               "docstring": "Because \"we consulted the corpus\" should be a checkable claim, not an assurance:",
               "lines": [
-                1713,
-                1739
+                1729,
+                1755
               ],
               "name": "\ud83d\udcda The full roster \u2014 all 14 real books",
               "type": "subsection"
@@ -2956,8 +2956,8 @@
             {
               "docstring": "`PART 5:244` gives the *catu\u1e63ko\u1e6di*: a claim may be **asserted**, **denied**, **both**, or **neither**. Four positions where classical logic offers two",
               "lines": [
-                1740,
-                1750
+                1756,
+                1766
               ],
               "name": "\ud83d\udd3a The tetralemma \u2014 why this repo has *four* verdicts",
               "type": "subsection"
@@ -2965,8 +2965,8 @@
             {
               "docstring": "**Greek** (`mathematics.md:42-52`) \u2014 isopsephy value, and the mathematical use the source itself lists:",
               "lines": [
-                1751,
-                1779
+                1767,
+                1795
               ],
               "name": "\ud83d\udd22 The symbols, all of them",
               "type": "subsection"
@@ -2974,8 +2974,8 @@
             {
               "docstring": "Three defects, kept in the file rather than quietly repaired:",
               "lines": [
-                1780,
-                1802
+                1796,
+                1818
               ],
               "name": "What it cost to get this right",
               "type": "subsection"
@@ -2983,8 +2983,8 @@
             {
               "docstring": "The proof file is called `RotEigenform.lean`. Here is why.",
               "lines": [
-                1803,
-                1853
+                1819,
+                1869
               ],
               "name": "\ud83d\udf0f EIGENFORM \u2014 the key behind Symbiogenesis",
               "type": "subsection"
@@ -2992,8 +2992,8 @@
             {
               "docstring": "The Equation asks *what if the irregular wingbeats give rise to an infinite array of realities?* \u2014 and that question has an answer. Not a shrug about",
               "lines": [
-                1854,
-                1895
+                1870,
+                1911
               ],
               "name": "The answer: `R/s+` converges, and here is the mathematics",
               "type": "subsection"
@@ -3001,8 +3001,8 @@
           ],
           "docstring": "> *\"The ultimate equation which barred my path. And the solution **I found when > inspecting how Weights and Quantization work together**. I continued",
           "lines": [
-            1484,
-            1895
+            1500,
+            1911
           ],
           "name": "\ud83e\udd5a The Easter Egg \u2014 the Infinite Symbiogenesis, and where RoT actually came from",
           "type": "section"
@@ -3010,8 +3010,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            1896,
-            1910
+            1912,
+            1926
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -3019,8 +3019,8 @@
         {
           "docstring": "RoT MoE is a **[Nova-Violet Role](https://github.com/Nova-Violet-Role)** project, and it is the *router* arm of a larger idea the organisation states",
           "lines": [
-            1911,
-            1943
+            1927,
+            1959
           ],
           "name": "\ud83c\udfdb\ufe0f Where this sits in the organisation",
           "type": "section"
@@ -3030,8 +3030,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                1962,
-                1970
+                1978,
+                1986
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -3039,8 +3039,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            1944,
-            1970
+            1960,
+            1986
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -3050,8 +3050,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                1994,
-                2018
+                2010,
+                2034
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -3059,8 +3059,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            1971,
-            2018
+            1987,
+            2034
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -3296,11 +3296,11 @@
       ]
     },
     "STATUS.md": {
-      "hash": "cac0b65f4795",
-      "indexed_at": "2026-08-14T06:20:13.072298+00:00",
+      "hash": "4599be0f000a",
+      "indexed_at": "2026-08-14T09:08:27.360228+00:00",
       "language": "markdown",
       "lines": 28,
-      "mtime_ns": 1786684219368142300,
+      "mtime_ns": 1786695348065878100,
       "size": 1011,
       "symbols": []
     },
@@ -3369,6 +3369,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-14T06:20:13.072408+00:00",
+  "generated_at": "2026-08-14T09:08:27.360349+00:00",
   "version": "1.0"
 }
