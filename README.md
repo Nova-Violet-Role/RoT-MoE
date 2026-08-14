@@ -733,9 +733,9 @@ in the archive for you to read, run and re-verify.**
 
 | tier | archive | what it adds |
 |---|---|---|
-| **Router** | `rot-moe-4.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-4.0.1-lean.zip` | adds `lean/` — 87 modules, 1632 theorems, 77 mutation suites — plus `checker/` (76 checkers) and `SETUP_LEAN` |
-| **Router + Lean + Extra** | `rot-moe-4.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
+| **Router** | `rot-moe-5.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
+| **Router + Lean** | `rot-moe-5.0.1-lean.zip` | adds `lean/` — 87 modules, 1632 theorems, 77 mutation suites — plus `checker/` (76 checkers) and `SETUP_LEAN` |
+| **Router + Lean + Extra** | `rot-moe-5.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
 own machine. Take **Router + Lean + Extra** if you want the policy argument as
@@ -746,7 +746,7 @@ Every archive verifies against the `SHA256SUMS.txt` published beside it on
 **without unzipping**:
 
 ```sh
-claude --plugin-dir rot-moe-4.0.1-lean.zip
+claude --plugin-dir rot-moe-5.0.1-lean.zip
 ```
 
 Measured — each archive rebuilt from this tree, unzipped, and **its own**
