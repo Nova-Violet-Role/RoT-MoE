@@ -22,10 +22,10 @@
     },
     "prover-remind.sh": {
       "hash": "98c89ddb7a5d",
-      "indexed_at": "2026-08-14T10:01:28.030523+00:00",
+      "indexed_at": "2026-08-14T14:02:14.038496+00:00",
       "language": "shell",
       "lines": 674,
-      "mtime_ns": 1786700800085441500,
+      "mtime_ns": 1786715890002451200,
       "size": 35250,
       "symbols": [
         {
@@ -142,12 +142,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "f13d133818a8",
-      "indexed_at": "2026-08-14T10:01:28.053962+00:00",
+      "hash": "d32130b2749b",
+      "indexed_at": "2026-08-14T14:02:12.658433+00:00",
       "language": "shell",
-      "lines": 1513,
-      "mtime_ns": 1786700800023442400,
-      "size": 80454,
+      "lines": 1563,
+      "mtime_ns": 1786715889940451500,
+      "size": 83668,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -223,7 +223,7 @@
           "docstring": "--- TIER 2: NSIL -- FUSE and ELEVATE ---------------------------------------- These two were SPECIFIED in rot-lean.md section 3 and NOT IMPLEMENTED. T",
           "lines": [
             436,
-            1514
+            1564
           ],
           "name": "nsil_active_lenses",
           "type": "function"
@@ -240,16 +240,24 @@
         {
           "docstring": "Flags a measured R/s+ against its lane's band. Sets NSIL_BAND to BELOW / IN / ABOVE. This is a FLAG, never a veto: section 5 is explicit that out-of-r",
           "lines": [
-            550,
-            1514
+            557,
+            571
+          ],
+          "name": "band_bounds",
+          "type": "function"
+        },
+        {
+          "lines": [
+            573,
+            1564
           ],
           "name": "band_flag",
           "type": "function"
         },
         {
           "lines": [
-            602,
-            612
+            613,
+            623
           ],
           "name": "token_emergency",
           "type": "function"
@@ -257,8 +265,8 @@
         {
           "docstring": "Selects LAMBDAS/MUS for a lane. Unknown lane -> CONVERGENT, which section 3 already names as the default with no trigger, so the fallback is the spec'",
           "lines": [
-            617,
-            638
+            628,
+            649
           ],
           "name": "select_profile",
           "type": "function"
@@ -266,16 +274,16 @@
         {
           "docstring": "merge, per rot-lean.md section 3 -- lambda=(l1+l2)/2+0.2, mu=max, H=max+0.05. Sets HYB_LAM/HYB_MU/HYB_H in hundredths. No subshell, no external proces",
           "lines": [
-            693,
-            713
+            704,
+            724
           ],
           "name": "nsil_hybrid",
           "type": "function"
         },
         {
           "lines": [
-            718,
-            1514
+            729,
+            1564
           ],
           "name": "gauge",
           "type": "function"
@@ -283,8 +291,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            846,
-            1514
+            889,
+            1564
           ],
           "name": "hook_mode",
           "type": "function"
@@ -292,8 +300,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            1475,
-            1482
+            1518,
+            1525
           ],
           "name": "need_value",
           "type": "function"
@@ -310,6 +318,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-14T10:01:28.266361+00:00",
+  "generated_at": "2026-08-14T14:02:14.295376+00:00",
   "version": "1.0"
 }

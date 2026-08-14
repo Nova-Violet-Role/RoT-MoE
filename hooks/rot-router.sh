@@ -547,7 +547,14 @@ BAND_LO_FORGE=90;       BAND_HI_FORGE=180
 # ABOVE. This is a FLAG, never a veto: section 5 is explicit that out-of-range is
 # a correction signal, not a refusal, so nothing here changes the routing -- it
 # records what Nova would self-correct toward.
-band_flag () {   # <LANE> <RS as decimal string>
+# Lane -> band bounds, in HUNDREDTHS, as `_bl` and `_bh`. Split out of
+# band_flag so that the gauge and the flag cannot disagree: there is one table
+# (above) and one lookup (here), and both readers call this. The gauge used to
+# carry its own hardcoded 0.9-1.8 -- Claude's FORGE range -- and applied it to
+# all ten lanes, so a CREATIVE turn at 1.4 printed "IN RANGE" while Carnage's
+# band starts at 1.5 and the correct signal was ADD ENTROPY. The lane was
+# routed right and then judged by another lens's ruler.
+band_bounds () {   # <LANE>  -> sets _bl, _bh
   _bl=0; _bh=0
   case $1 in
     CONVERGENT) _bl=$BAND_LO_CONVERGENT; _bh=$BAND_HI_CONVERGENT ;;
@@ -561,6 +568,10 @@ band_flag () {   # <LANE> <RS as decimal string>
     RECURSIVE)  _bl=$BAND_LO_RECURSIVE;  _bh=$BAND_HI_RECURSIVE  ;;
     *)          _bl=$BAND_LO_FORGE;      _bh=$BAND_HI_FORGE      ;;
   esac
+}
+
+band_flag () {   # <LANE> <RS as decimal string>
+  band_bounds "$1"
   # Decimal string -> hundredths with parameter expansion only. No awk, no
   # subshell: this runs on every routed turn and the cost gate budgets 23 spawns.
   _bi=${2%%.*}
@@ -715,8 +726,15 @@ nsil_hybrid () {   # <name1> <name2>
 # hundredths -> decimal string, builtin printf only (no fork).
 hund () { printf '%d.%02d' $(( $1 / 100 )) $(( $1 % 100 )); }
 
-gauge () {   # gauge "a1,..,a9" breadth M C T
+gauge () {   # gauge "a1,..,a9" breadth M C T [LANE]
   _acts="$1"; _breadth="$2"; _M="$3"; _C="$4"; _T="$5"
+  # The lane decides which band the score is read against. It is OPTIONAL and
+  # defaults to FORGE, because gauge() is also reachable from `--vector` on the
+  # command line where no turn and therefore no lane exists. Defaulting is
+  # honest here in a way it was not before: previously EVERY call was scored
+  # against FORGE whether or not a lane was known, so the default was hiding a
+  # missing input rather than standing in for one.
+  band_bounds "${6:-FORGE}"
   # The second sink is resolved in the shell, not in awk: creating a directory
   # and its .gitignore is not awk's job, and a failure there must not reach the
   # user's transcript. gauge() runs inside a command substitution at the call
@@ -761,7 +779,7 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
   _rot_terminate "$_g_loc"
   printf '%s|%s|%s|%s|%s|%s|%s|%s\n' \
     "$_acts" "$_breadth" "$_M" "$_C" "$_T" "$LAMBDAS" "$MUS" "$NAMES" |
-  awk -F'|' -v dbg="$_g_dbg" -v loc="$_g_loc" -v sess="$_rot_sess" -v src="$_rot_src" -v ts="$(date -Is 2>/dev/null || date)" '
+  awk -F'|' -v dbg="$_g_dbg" -v loc="$_g_loc" -v sess="$_rot_sess" -v src="$_rot_src" -v blo="$_bl" -v bhi="$_bh" -v ts="$(date -Is 2>/dev/null || date)" '
     # Match PowerShell ToString("0.##"): round, then strip trailing zeros and a
     # bare trailing dot. 0.90 -> "0.9", 1.00 -> "1", 0.09 -> "0.09".
     # Formatting is part of the observable: the cross-diff compares these
@@ -797,7 +815,32 @@ gauge () {   # gauge "a1,..,a9" breadth M C T
         }
       }
       R = sum / K;
-      band = (R < 0.9 ? "BELOW RANGE" : (R > 1.8 ? "ABOVE RANGE" : "IN RANGE (0.9-1.8)"));
+      # THE BAND BELONGS TO THE LEAD LENS, NOT TO THIS FILE. This line used to
+      # read R < 0.9 / R > 1.8 on every turn -- the FORGE range -- applied to
+      # all ten lanes. The lane was selected correctly and then judged against
+      # another range, the SAME defect fixed on 2026-08-13 when nine of the ten
+      # weight profiles turned out to be documentation: route right, then score
+      # as if you had not.
+      #
+      # What it cost: a CREATIVE turn at R/s+ 1.4 printed IN RANGE, while that
+      # band starts at 1.5 and the correct signal was ADD ENTROPY. A STEALTH
+      # turn at 1.3 printed IN RANGE, while that band ends at 1.2 and the
+      # correct instruction was COMPRESS MORE. The gauge was never wrong about
+      # the NUMBER; it was wrong about what the number MEANT.
+      #
+      # NO SECOND BAND TABLE LIVES HERE. They are declared once in shell at
+      # BAND_LO_*/BAND_HI_*, and this awk is HANDED the two numbers for the
+      # active lane. Restating them here would be a second place for the same
+      # constants to drift -- the very hazard the record comment below names.
+      #
+      # NOTE, PAID FOR IN A SYNTAX ERROR: this program is inside a SINGLE-QUOTED
+      # shell string, so an apostrophe in a comment ENDS the awk program and the
+      # shell then tries to parse awk. The first draft of this block wrote
+      # "a neighbour" with an apostrophe and broke the whole hook. Keep the
+      # prose in here apostrophe-free.
+      lo = blo / 100.0; hi = bhi / 100.0;
+      band = (R < lo ? "BELOW RANGE" : (R > hi ? "ABOVE RANGE" : "IN RANGE")) \
+             " (" fmt(lo,2) "-" fmt(hi,2) ")";
       if (active == "") active = "none";
       # DEBUG LOG -- one JSON line carrying every factor of the sum, so the
       # reported R/s+ can be recomputed by hand from the record. A summary
@@ -1222,7 +1265,7 @@ hook_mode () {
     done
   fi
 
-  _rs=$(gauge "$_vec" "$_br" 1 1 1 | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
+  _rs=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}" | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
   [ -z "$_rs" ] && _rs='n/a'
 
   # NOVA'S BAND FLAG and SOLEIL'S MONITOR, both computed once the score exists.
@@ -1495,6 +1538,13 @@ while [ $# -gt 0 ]; do
     # by Lean against FORGE, so its runner passes `--profile FORGE` and the file
     # keeps meaning exactly what it always meant -- but visibly now.
     --profile) need_value "$1" $#; select_profile "$2";      shift 2 ;;
+    # THE BAND IS SAYABLE OUT LOUD TOO, for the same reason --profile is. The
+    # weights and the band are two different per-lane facts: --profile picks the
+    # lambda/mu table the score is BUILT from, --lane picks the range the score
+    # is READ against. They were both implicitly FORGE before, and conflating
+    # them is how a CREATIVE turn got Carnage weights and a FORGE verdict.
+    # Defaults to whatever --profile set, so the common case needs neither.
+    --lane)    need_value "$1" $#; LANE="$2";                shift 2 ;;
     --route)   need_value "$1" $#; MODE=route; PROMPT="$2";  shift 2 ;;
     --version) echo "rot-router.sh 1.0.0"; exit 0 ;;
     *) echo "usage: rot-router.sh --vector a1,..,a9 --breadth N [--M x --C y --T z]" >&2
@@ -1504,7 +1554,7 @@ while [ $# -gt 0 ]; do
 done
 
 case "$MODE" in
-  gauge) gauge "$VEC" "$BREADTH" "$M" "$C" "$T" ;;
+  gauge) gauge "$VEC" "$BREADTH" "$M" "$C" "$T" "${LANE:-FORGE}" ;;
   # `route` now returns "<LANE LENS>|<stem>"; --route prints the lane ALONE, so
   # its output is byte-identical to every earlier version and the cross-diff
   # against the ps1 arm compares the same string it always did.

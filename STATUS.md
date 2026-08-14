@@ -10,9 +10,9 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-BEGIN -->
 | field | value |
 |---|---|
-| theorems | 1620 |
-| modules | 86 |
-| mutation suites | 76 |
+| theorems | 1632 |
+| modules | 87 |
+| mutation suites | 77 |
 | checkers | 76 |
 | toolchain | `leanprover/lean4:v4.33.0-rc1` |
 | files containing `sorry` | 0 |
@@ -20,7 +20,7 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-END -->
 
 Regenerated locally by `bash checker/status-verdict.sh --write` on top
-of commit `e8c0b6f9a42fc628a89a1e3110994c8931a9fcdf`. That line is PROVENANCE and is excluded from the
+of commit `e5c6ab9a4a5c09712e8d564124852d604f8afe37`. That line is PROVENANCE and is excluded from the
 comparison that decides whether the verdict changed: it records WHERE the
 numbers were counted, and claims nothing about gates having passed.
 

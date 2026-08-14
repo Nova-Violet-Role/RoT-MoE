@@ -31,6 +31,7 @@ param(
   # needs a specific table asks for it by name, so the weights behind a number
   # are never implicit again.
   [string] $Profile,
+  [string] $Lane,
   [string] $Route,
   [switch] $Version
 )
@@ -575,7 +576,11 @@ function Write-RotDebug([string] $Line) {
   }
 }
 
-function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [double] $T) {
+# NO SECOND BAND TABLE. $Bands is declared once above, for Get-BandFlag, and
+# this function reads THAT -- the first draft of this change transcribed the ten
+# pairs again here, which is a second place for the same constants to drift and
+# exactly what the POSIX arm refuses to do in its gauge.
+function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [double] $T, [string] $Lane = 'FORGE') {
   $acts = @($Vec -split ',' | ForEach-Object { [double]$_ })
   $K = $acts.Count
   $mean = 0.0; foreach ($a in $acts) { $mean += $a }
@@ -605,7 +610,14 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
       (Format-Num $sum 5), (Format-Num ($sum / $K) 5), ($(if ($active.Count) { $active -join ',' } else { 'none' })), ($terms -join ','), $script:RotSession, $script:RotSrc)
   }
   $R = $sum / $K
-  $band = if ($R -lt 0.9) { 'BELOW RANGE' } elseif ($R -gt 1.8) { 'ABOVE RANGE' } else { 'IN RANGE (0.9-1.8)' }
+  # Was `-lt 0.9 / -gt 1.8` for EVERY lane -- the FORGE range used as if it were
+  # universal, so a CREATIVE turn at 1.4 read IN RANGE while its own band starts
+  # at 1.5 and the correct signal was ADD ENTROPY. An unknown lane falls back to
+  # FORGE, matching the POSIX arm exactly rather than guessing separately.
+  $bb = if ($Bands.ContainsKey($Lane)) { $Bands[$Lane] } else { $Bands['FORGE'] }
+  $lo = $bb[0] / 100.0; $hi = $bb[1] / 100.0
+  $bandTxt = '(' + $lo.ToString('0.##', [Globalization.CultureInfo]::InvariantCulture) + '-' + $hi.ToString('0.##', [Globalization.CultureInfo]::InvariantCulture) + ')'
+  $band = if ($R -lt $lo) { "BELOW RANGE $bandTxt" } elseif ($R -gt $hi) { "ABOVE RANGE $bandTxt" } else { "IN RANGE $bandTxt" }
   $lenses = if ($active.Count) { $active -join ',' } else { 'none' }
   return ('R/s+ = {0} [{1}] mean={2} breadth={3} K={4} lenses={5}' -f `
           (Format-Num $R 2), $band, (Format-Num $mean 3), $Br, $K, $lenses)
@@ -626,7 +638,8 @@ switch ($env:ROTMOE_DEBUG_SRC) {
 if ($Route)  { $r = Split-Routed (Invoke-Route $Route); Write-Output $r[0]; exit 0 }
 if ($Vector) {
   if ($Profile) { Select-Profile $Profile }
-  Write-Output (Invoke-Gauge $Vector $Breadth $M $C $T); exit 0
+  $laneArg = if ($Lane) { $Lane } else { 'FORGE' }
+  Write-Output (Invoke-Gauge $Vector $Breadth $M $C $T $laneArg); exit 0
 }
 
 # --- HOOK MODE, and the defect it exists to fix ------------------------------
@@ -838,7 +851,7 @@ if ($script:NsilBoost) {
   }
 }
 
-$g  = Invoke-Gauge ($acts -join ',') $br 1 1 1
+$g  = Invoke-Gauge ($acts -join ',') $br 1 1 1 ($lane -split ' ')[0]
 $rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
 
 # One record per ROUTED TURN, distinct from the per-lens gauge record above.
