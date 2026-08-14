@@ -91,7 +91,7 @@ jobs:
           fi
 
       - name: publishable archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rot-moe-archives
           # `.release` is what checker/release-package.sh:104 actually writes to
@@ -103,7 +103,7 @@ jobs:
           path: |
             .release/*.zip
           if-no-files-found: error
-          # `.release` BEGINS WITH A DOT, and actions/upload-artifact@v4 treats a
+          # `.release` BEGINS WITH A DOT, and actions/upload-artifact@v7 treats a
           # dotted path as hidden and skips it. Measured, not guessed: run
           # 31776174275 built all three archives, printed their full paths, and
           # then failed with "No files were found with the provided path:
