@@ -103,4 +103,14 @@ jobs:
           path: |
             .release/*.zip
           if-no-files-found: error
+          # `.release` BEGINS WITH A DOT, and actions/upload-artifact@v4 treats a
+          # dotted path as hidden and skips it. Measured, not guessed: run
+          # 31776174275 built all three archives, printed their full paths, and
+          # then failed with "No files were found with the provided path:
+          # .release/*.zip". Without this flag the step uploads nothing.
+          #
+          # That failure is also the argument for `if-no-files-found: error`
+          # above -- under the `warn` this file originally carried, the step
+          # would have gone GREEN while uploading zero artifacts.
+          include-hidden-files: true
           retention-days: 14

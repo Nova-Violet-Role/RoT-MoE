@@ -196,7 +196,23 @@ EOF
       # so a MATCH would read as a failure. workflow-lint caught exactly that in
       # the first version of this block. Capture, then match with `case`: no
       # pipe, no signal, and the newline guards make it a whole-line compare.
-      _remote_wf="$(git ls-tree --name-only origin/main -- "$WFDIR" 2>/dev/null)"
+      # `-r` IS LOAD-BEARING. Without it, `git ls-tree` handed a directory
+      # prints the TREE ENTRY -- one line, ".github/workflows" -- and not the
+      # files inside it. The needle below is a full path, so it then matches
+      # NOTHING, every workflow is classified NEW, and every staleness rule in
+      # this file is silently exempted. Measured 2026-08-14: the bare form
+      # returned exactly one line, while `-r` returned all five workflows.
+      #
+      # It looked healthy because an established workflow PASSES on its run
+      # history before ever reaching this branch -- only a workflow with no
+      # green run gets here, so the bug stayed masked behind a correct verdict.
+      # This is the SECOND lookup in this block to fail by answering a question
+      # nobody asked: the first was `git cat-file -e origin/main:<path>`, which
+      # MSYS2 mangled to `origin\main;...` and exit 128. Both times the failure
+      # read as "absent", which is the direction that exempts rather than the
+      # direction that complains -- an instrument that cannot tell "I could not
+      # look" from "it is not there" fails toward the false green.
+      _remote_wf="$(git ls-tree -r --name-only origin/main -- "$WFDIR" 2>/dev/null)"
       case "
 $_remote_wf
 " in
@@ -205,8 +221,42 @@ $WFDIR/$b
 "*) _on_remote=1 ;;
         *)  _on_remote=0 ;;
       esac
+      # THE LOOKUP MUST PROVE IT WORKED BEFORE ITS ANSWER IS TRUSTED. Both bugs
+      # above produced an EMPTY-or-useless listing that read as "absent", and
+      # both would have been caught in one line by asking: did this lookup see
+      # ANY workflow at all? If it did not, the instrument is broken and the
+      # honest verdict is a failure, not an exemption. An exemption granted on
+      # the strength of a lookup that returned nothing is not a measurement.
+      case "$_remote_wf" in
+        *"$WFDIR/"*) : ;;
+        *) bad "$b: the origin/main workflow listing came back with NO workflows at all -- the lookup is broken, refusing to grant a NEW-file exemption on it"
+           continue ;;
+      esac
       if [ "$_on_remote" -eq 0 ]; then
         skip "$b is NEW (absent from origin/main) -- it has had no chance to run; the rule applies once pushed"
+        continue
+      fi
+      # THE RUN HISTORY DESCRIBES THE FILE ON THE REMOTE, NOT THE ONE IN HAND.
+      # If the local copy differs from origin/main's, those failures were
+      # produced by DIFFERENT CODE, and holding them against the version being
+      # committed judges the wrong artifact. Without this, a workflow that is
+      # broken on the remote can never be repaired: the repair IS the workflow
+      # file, so it cannot be committed while the gate is red, and the gate
+      # cannot go green until the repair is pushed and runs. That is the same
+      # "spec forbids a correct future" defect as the NEW-file case above, one
+      # step later in the file's life.
+      #
+      # Deliberately narrow, because this is the direction that exempts:
+      #   * it is a SKIP, never a PASS -- nothing here claims the repair works;
+      #   * it lapses the moment the file is pushed, since local and remote
+      #     match again and the plain rule returns with no exemption left;
+      #   * it cannot hide a workflow that is merely stale, only one with NO
+      #     green run at all that is being actively rewritten in this commit.
+      # `git ls-tree`, not `rev:path` -- MSYS2 mangling, see the note above.
+      _loc_sha=$(git hash-object "$WFDIR/$b" 2>/dev/null)
+      _rem_sha=$(git ls-tree -r origin/main -- "$WFDIR/$b" 2>/dev/null | awk '{print $3}')
+      if [ -n "$_loc_sha" ] && [ -n "$_rem_sha" ] && [ "$_loc_sha" != "$_rem_sha" ]; then
+        skip "$b has never succeeded, but the local file DIFFERS from origin/main -- those runs tested the old copy; this is an untested repair, not a healthy workflow"
         continue
       fi
       bad "$b has NEVER succeeded (newest run ${newest}h old) -- running is not working"
