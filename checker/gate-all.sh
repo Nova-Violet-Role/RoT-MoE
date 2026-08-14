@@ -121,6 +121,7 @@ debug channel (marker + rotation, both arms, vs RotDebugLog.lean)|fast||bash che
 router duplication (plugin + ARM must not stack)|fast||bash checker/router-duplication.sh
 disarm safety (--dry-run writes nothing, --all reaches plugin entries)|fast||bash checker/disarm-safety.sh
 remind measure (both arms, one tree, nested proof)|fast||bash checker/remind-measure.sh
+kernel verdict class (a non-answer is not a rejection)|fast||bash checker/kernel-verdict-class.sh
 log replay (every gauge record recomputed from its own fields)|fast||bash checker/log-replay.sh
 benchmark|fast||bash checker/bench-router.sh
 gate split|fast||bash checker/gate-split.sh

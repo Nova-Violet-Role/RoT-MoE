@@ -648,6 +648,24 @@
         }
       ]
     },
+    "mutate_rotkernelverdict.sh": {
+      "hash": "5bdf9f3336cb",
+      "indexed_at": "2026-08-13T19:21:23.962322+00:00",
+      "language": "shell",
+      "lines": 226,
+      "mtime_ns": 1786648881262077700,
+      "size": 9265,
+      "symbols": [
+        {
+          "lines": [
+            94,
+            162
+          ],
+          "name": "run_mut",
+          "type": "function"
+        }
+      ]
+    },
     "mutate_rotlensability.sh": {
       "hash": "99a31baff569",
       "indexed_at": "2026-08-12T08:44:37.745185+00:00",
@@ -1437,6 +1455,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T09:03:50.868189+00:00",
+  "generated_at": "2026-08-13T19:21:24.081482+00:00",
   "version": "1.0"
 }

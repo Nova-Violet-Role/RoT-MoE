@@ -245,10 +245,10 @@
     },
     "ci-log-skips.sh": {
       "hash": "9c5e81ecc154",
-      "indexed_at": "2026-08-13T16:24:01.124925+00:00",
+      "indexed_at": "2026-08-13T18:58:27.897598+00:00",
       "language": "shell",
       "lines": 343,
-      "mtime_ns": 1786638238452101700,
+      "mtime_ns": 1786638287375100600,
       "size": 18226,
       "symbols": [
         {
@@ -587,18 +587,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "8d03992cf8b0",
-      "indexed_at": "2026-08-12T18:04:31.392971+00:00",
+      "hash": "4e822057d6c8",
+      "indexed_at": "2026-08-13T18:59:28.340508+00:00",
       "language": "shell",
-      "lines": 417,
-      "mtime_ns": 1786557868693750100,
-      "size": 23182,
+      "lines": 418,
+      "mtime_ns": 1786647565744407400,
+      "size": 23280,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            177,
-            192
+            178,
+            193
           ],
           "name": "fires",
           "type": "function"
@@ -784,6 +784,33 @@
             79
           ],
           "name": "make_fixture",
+          "type": "function"
+        }
+      ]
+    },
+    "kernel-verdict-class.sh": {
+      "hash": "c5724743aacf",
+      "indexed_at": "2026-08-13T21:04:53.895750+00:00",
+      "language": "shell",
+      "lines": 169,
+      "mtime_ns": 1786655090854141700,
+      "size": 7787,
+      "symbols": [
+        {
+          "docstring": "--------------------------------------------------------------------------- The fixture uses the PRODUCER'S REAL REASON SHAPES, verbatim. A fixture th",
+          "lines": [
+            68,
+            71
+          ],
+          "name": "mk_state",
+          "type": "function"
+        },
+        {
+          "lines": [
+            86,
+            111
+          ],
+          "name": "check_arm",
           "type": "function"
         }
       ]
@@ -1031,25 +1058,33 @@
       ]
     },
     "mutate-checker.sh": {
-      "hash": "730d7526d2e6",
-      "indexed_at": "2026-08-13T11:05:51.495141+00:00",
+      "hash": "d382f8a307cb",
+      "indexed_at": "2026-08-13T20:15:16.397750+00:00",
       "language": "shell",
-      "lines": 506,
-      "mtime_ns": 1786619149103572500,
-      "size": 26289,
+      "lines": 544,
+      "mtime_ns": 1786652113991705000,
+      "size": 28439,
       "symbols": [
         {
           "lines": [
-            167,
-            170
+            58,
+            63
+          ],
+          "name": "_pre_of",
+          "type": "function"
+        },
+        {
+          "lines": [
+            202,
+            205
           ],
           "name": "selected",
           "type": "function"
         },
         {
           "lines": [
-            172,
-            230
+            207,
+            265
           ],
           "name": "run",
           "type": "function"
@@ -1961,6 +1996,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-13T16:24:01.125078+00:00",
+  "generated_at": "2026-08-13T21:04:53.895899+00:00",
   "version": "1.0"
 }

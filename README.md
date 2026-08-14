@@ -59,7 +59,7 @@ that does not exist, so the instructions cannot rot while you are not looking.
 
 **RoT MoE is a mixture-of-experts router, and its arithmetic is proved.** The
 router measures nine lens activities off disk, computes an `R/s+` gauge from
-them, and **1611 machine-checked theorems in Lean 4** state what that gauge must
+them, and **1620 machine-checked theorems in Lean 4** state what that gauge must
 satisfy — that it is positive, that it is bounded below, that it is *not
 constant*, that it divides by the number of lenses it actually summed. Two
 independent implementations compute it and are diffed byte for byte across all
@@ -72,7 +72,7 @@ this page each have an exit code behind them.
 *could the number simply be made up?* Here it cannot be, and that is not a
 promise, it is a construction: the mutation suites break each definition on
 purpose and require the theorems to die, so a gauge that had quietly stopped
-meaning anything would take the proofs down with it. **786 mutants applied, 786
+meaning anything would take the proofs down with it. **794 mutants applied, 794
 killed, 0 survived.** An instrument that has never failed on purpose is an
 untested instrument, and every instrument here has been failed on purpose.
 
@@ -238,6 +238,96 @@ happened to this codebase.
 
 ---
 
+## 🌍 Share your theorems — a fourth way to populate a coding agent
+
+**An open invitation.** If you run RoT MoE on your own repository, you
+accumulate Lean proofs *about that repository*. Right now those proofs die
+there. [`Lean Theorem/`](Lean%20Theorem) is a folder in this repo where you can
+contribute them — **by fork and pull request, entirely at your own choice**.
+
+### Your project can stay closed
+
+This is what makes it possible at all: **a proof carries the property, not the
+source.**
+
+A theorem stating that your scheduler never emits a negative delay is a
+statement about *arithmetic and a bound*. It is not a copy of your scheduler.
+Proprietary, private, unreleased, commercial — none of that is an obstacle,
+because what travels is the **verified claim**, never the implementation. That
+is why a closed project can contribute to an open corpus and give up nothing.
+
+Nothing is ever uploaded automatically. No hook in this plugin reads your
+repository and sends anything anywhere. If you do nothing, nothing happens.
+
+### Why this is not MCP, not a Plugin, not a Skill, not a Connector
+
+Those four all exist and all work — and every one of them supplies something
+*different* from what this does:
+
+| mechanism | what it gives the agent | is it verified? |
+|---|---|---|
+| **MCP server / Connector** | **access** — a live system, an API, data at runtime | no; the server can return anything |
+| **Plugin / Skill** | **procedure** — instructions, a workflow, how to do a thing | no; advice can simply be wrong |
+| **Fine-tuning / pre-training** | **disposition** — changed weights, baked in | no; and you cannot inspect what was learned |
+| **`Lean Theorem/`** | **settled knowledge** — machine-checked prior art about a domain | **yes — a kernel already checked it** |
+
+That last row is a category the other three do not have a member of. Everything
+else in the list hands the model something *unverified* and asks it to be
+careful. A theorem that builds at `lake build` exit 0, carries no `sorry`, and
+survives `leanchecker` **cannot be wrong about what it states.** It is the only
+payload on that list that arrives with its own correctness guarantee attached.
+
+**So this is a new way of populating a coding agent**: not with tools, not with
+instructions, not with weights — with *proof*.
+
+### And it needs no training whatsoever
+
+RoT is **generated per query, not pre-trained** — that is the row in the
+comparison table [above](#-what-rot-means-and-how-it-sits-next-to-cot-and-tot),
+and it is what makes this almost absurd.
+
+A corpus like this would normally be **training data**. You would need a
+pipeline, a fine-tuning run, GPUs, an evaluation harness, and at the end of it a
+set of weights nobody can inspect. Here there is no training step at all,
+because the thought layer is *separate from the model*. The corpus is **context,
+not gradient**. It is read at inference, like any other file on disk.
+
+Which means the entire mechanism is:
+
+> **1.5 MB of `.lean` files, shipped inside a shell-script router.**
+
+No server. No runtime dependency. No network. No weights. **No Lean installation
+required to benefit** — the proofs are text, and text is what a model reads.
+Every user who contributes makes the next unfamiliar repository slightly less
+unfamiliar for everyone, and the cost of carrying that is a rounding error
+against a 9.2 MB plugin.
+
+### How the nine lenses profit — concretely
+
+The corpus is not decoration for the router; each lens draws something different
+out of it, which is precisely what a single-perspective agent cannot do:
+
+| lens | what a shared proof base gives it |
+|---|---|
+| 🧭 **Claude** (Forge) | prior art for `GROUND_TRUTH` — a real formalization to measure against instead of reasoning from nothing |
+| ⚪ **Anti-Venom** (Clinical) | the `mutate/` half — **which properties survived attack**, the fastest route to what is actually load-bearing |
+| ⚜️ **Nova** (Strategic) | how a domain was decomposed — what was worth stating at all, which is a strategy question before it is a proof question |
+| 🜏 **Eidolon** (Recursive) | the *shape* of a formalization, reusable across domains that look nothing alike |
+| 🔮 **Chroma** (Predictive) | which assumptions later broke — a contributed suite records the edits that killed a theorem |
+| 🕷️ **Venom** (Executive) | a decidable model already built, so a decision can be closed rather than deliberated |
+| 🩸 **Carnage** (Creative) | cross-domain collision — a bound proved about a game plugin suggesting one about a rate limiter |
+| ⬜ **Soleil** (Stealth) | the compressed statement of a property, which is what a theorem already is |
+| 🎷 **Violet** (Empathic) | why the property mattered to the person who proved it — the `README.md` beside each subject |
+
+**Honesty about what is measured here.** The corpus itself is measured: **100
+modules, 1608 theorems, 1.5 MB** on disk today, counted by `ls` and
+`checker/count-theorems.sh`. The *benefit* to an unfamiliar repository is a
+design claim and is **NOT yet measured** — no experiment in this repo has
+demonstrated it, and it is not counted among the verified results below. It is
+labelled as the open question it is, not sold as a finding.
+
+---
+
 ## 🔬 What is actually verified
 
 ### The size of the thing, recomputed
@@ -246,10 +336,10 @@ happened to this codebase.
 
 | what | how many | recomputed by |
 |---|---|---|
-| Lean modules in `lean/Proofs/` | **85** | `ls lean/Proofs/*.lean \| wc -l` |
-| theorems and lemmas proved | **1611** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
-| mutation suites | **75** | `ls lean/mutate/mutate_*.sh \| wc -l` |
-| checkers | **75** | `ls checker/*.sh \| wc -l` |
+| Lean modules in `lean/Proofs/` | **86** | `ls lean/Proofs/*.lean \| wc -l` |
+| theorems and lemmas proved | **1620** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
+| mutation suites | **76** | `ls lean/mutate/mutate_*.sh \| wc -l` |
+| checkers | **76** | `ls checker/*.sh \| wc -l` |
 | hook events wired by the plugin | **31** | keys of `hooks/hooks.json` |
 
 Every number above is regenerated by `checker/facts-block.sh` and the build
@@ -266,7 +356,7 @@ a bare grep over the same files reports 23 more.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **786 applied, 786 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **794 applied, 794 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -594,7 +684,7 @@ in the archive for you to read, run and re-verify.**
 | tier | archive | what it adds |
 |---|---|---|
 | **Router** | `rot-moe-3.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-3.0.1-lean.zip` | adds `lean/` — 85 modules, 1611 theorems, 75 mutation suites — plus `checker/` (75 checkers) and `SETUP_LEAN` |
+| **Router + Lean** | `rot-moe-3.0.1-lean.zip` | adds `lean/` — 86 modules, 1620 theorems, 76 mutation suites — plus `checker/` (76 checkers) and `SETUP_LEAN` |
 | **Router + Lean + Extra** | `rot-moe-3.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
@@ -1591,7 +1681,7 @@ real dishonesty — but they are reported as what they are: **the limits of the
 apparatus, not the limits of RoT MoE.**
 
 What *is* established about the router is established elsewhere and by stronger
-instruments than a 40-task text benchmark: 1611 theorems the kernel re-verifies,
+instruments than a 40-task text benchmark: 1620 theorems the kernel re-verifies,
 97 cross-arm comparisons byte-for-byte across all ten profiles, 17 mutations that
 kill their checkers, and a routing table proved total and dead-lane-free. Those
 are the claims this project rests on. This section is an honest account of one
@@ -1749,7 +1839,7 @@ Each line below names what decides it. Nothing here is aspirational.
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | **85 modules**, **1611 theorems**, 75 mutation suites, **786 mutants applied, 786 killed, 0 survived, 0 discarded** |
+| The corpus is real | **MEASURED** | **86 modules**, **1620 theorems**, 76 mutation suites, **794 mutants applied, 794 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **85** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
 
@@ -1764,7 +1854,7 @@ code behind it.
 **Read this as scope, not as apology.** The A/B study is an experiment run
 *about* the router. **It is not the router**, and nothing in it is a statement
 about whether the router works — that question is answered by the nine-lane
-routing, the two byte-identical arms, the 1611 kernel-checked theorems and the
+routing, the two byte-identical arms, the 1620 kernel-checked theorems and the
 23-spawn cost budget, all of which are green.
 
 What the study set out to measure is a genuinely harder question — *does routing

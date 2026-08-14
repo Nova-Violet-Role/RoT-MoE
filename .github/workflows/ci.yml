@@ -555,6 +555,16 @@ jobs:
         shell: bash
         run: bash checker/remind-measure.sh
 
+      # A TIMEOUT IS NOT A REJECTION, and until 2026-08-14 nothing checked that
+      # the code enforcing it actually did. The demotion compared a whole reason
+      # string to "TIMEOUT" while the producer writes "TIMEOUT after 90s", so it
+      # never fired -- and no existing checker could see it, because `--decide`
+      # is fed the already-classified list and cross-diff only proves the two
+      # arms AGREE (they agreed on being wrong).
+      - name: kernel verdict class -- a non-answer is not a rejection
+        shell: bash
+        run: bash checker/kernel-verdict-class.sh
+
       - name: log replay -- every gauge record recomputed from its own fields
         shell: bash
         run: bash checker/log-replay.sh

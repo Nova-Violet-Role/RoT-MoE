@@ -331,14 +331,49 @@ measure_kernel () {   # echoes "<red csv>|<sorry csv>" from the watchdog status 
         // that mean UNFINISHED get a `?` suffix so `decide` can word them
         // differently while the 7-argument contract stays intact.
         //
-        // FAIL LOUD ON THE UNKNOWN: only these two reasons are demoted. A reason
+        // FAIL LOUD ON THE UNKNOWN: only these reasons are demoted. A reason
         // this code has never seen keeps the full rejection alarm, because the
         // safe default for an unrecognised failure is to shout.
-        const UNFINISHED=["TIMEOUT","NOT_FOUND"];
+        //
+        // 2026-08-14 -- THE 2026-08-08 FIX ABOVE HAD NEVER ONCE FIRED.
+        // It tested `UNFINISHED.indexOf(r) >= 0`, which is EXACT ARRAY-ELEMENT
+        // EQUALITY on the whole reason string. The producer
+        // (~/.claude/reminders/lean4-prover-reminder.ps1) writes exactly three
+        // shapes, none of them a bare token:
+        //     reason = "TIMEOUT after ${perModuleTimeoutSec}s"
+        //     reason = "LAUNCH_FAILED: $($_.Exception.Message)"
+        //     reason = "exit=$code $first"          // $first = first output line
+        // Uppercased, "TIMEOUT after 90s" is "TIMEOUT AFTER 90S", which is not
+        // equal to "TIMEOUT". So every timeout kept the full rejection alarm --
+        // the precise failure the comment above says was repaired. A fix that is
+        // documented, believed, and never fires is worse than no fix, because it
+        // stops anyone looking.
+        //
+        // Measured on this machine the same day: leanchecker under memory
+        // pressure emits "std::bad_alloc" and "failed to read file
+        // '...olean.private'" -- a DIFFERENT mathlib file on each attempt, which
+        // is how you tell exhaustion from corruption. Both arrive as
+        // "exit=1 <text>" and both mean the check never completed. Reported as
+        // KERNEL REJECTED they send a session to repair proofs that are fine:
+        // Proofs.RotVacuity and Proofs.RotRoute were accused today and both
+        // re-verify at exit 0 with ZERO bytes.
+        //
+        // So: match on SHAPE, not equality, and only for non-answers whose text
+        // is known. A real rejection ("exit=1 leanchecker found a problem")
+        // matches none of these and still shouts.
+        const UNFINISHED=[
+          /^TIMEOUT\b/,            // the check ran out of time
+          /^NOT_FOUND\b/,          // there was nothing to check
+          /^LAUNCH_FAILED\b/,      // the checker never started
+          /BAD_ALLOC/,             // host RAM, not a bad proof
+          /OUT OF MEMORY/,
+          /INTERNAL PANIC/,
+          /FAILED TO READ FILE/    // transient I/O on a memory-mapped olean
+        ];
         const red=(v.red||[]).map(x=>{
           const m=x.module||x;
           const r=(x&&x.reason)?String(x.reason).toUpperCase():"";
-          return UNFINISHED.indexOf(r)>=0 ? m+"?" : m;
+          return UNFINISHED.some(function(p){return p.test(r);}) ? m+"?" : m;
         }).join(",");
         const s=(v.sorryFiles||[]).join(",");
         process.stdout.write(red+"|"+s);}catch(e){process.stdout.write("|");}' "$_vs" 2>/dev/null || echo "|"
@@ -601,6 +636,23 @@ case "$1" in
   # first two exactly and allows one minute of drift on the third.
   --measure)
     echo "$(measure_proof_count) $(measure_mins_since_proof)"
+    exit 0 ;;
+  # KERNEL-CLASS MODE -- the instrument measure_kernel never had, and the reason
+  # a real defect survived two checkers and a cross-arm diff.
+  #
+  # `--decide` receives KRED already marked, so every existing test exercised the
+  # WORDING of the verdict and none exercised the CLASSIFICATION that produces
+  # it. The `?` demotion was therefore untestable from outside, and it was broken
+  # from the day it was written: it compared the entire reason string for
+  # equality with "TIMEOUT" while the producer writes "TIMEOUT after 90s".
+  # cross-diff-remind.sh could not catch it either -- BOTH arms were wrong in the
+  # same way, and a parity check is structurally blind to a shared bug.
+  #
+  # This prints exactly what measure_kernel hands the decision, so a fixture can
+  # assert that a timeout is demoted and a genuine rejection is not.
+  --kernel)
+    measure_kernel
+    printf '\n'
     exit 0 ;;
   # WORKSPACE MODE -- prints the resolved workspace and how it was resolved.
   # Resolution is a four-step chain (env, recorded, discovered, bundled) whose

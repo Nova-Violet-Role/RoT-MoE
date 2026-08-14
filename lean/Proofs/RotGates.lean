@@ -334,6 +334,10 @@ def shipped : List Gate :=
   , f "router duplication (plugin + ARM must not stack)"
   , f "disarm safety (--dry-run writes nothing, --all reaches plugin entries)"
   , f "remind measure (both arms, one tree, nested proof)"
+  -- A timeout, an OOM and an unreadable olean are all "I could not check".
+  -- Only a kernel refusal is "the check failed". The gate that keeps those
+  -- two apart is fast because it runs on a fixture, never on a real build.
+  , f "kernel verdict class (a non-answer is not a rejection)"
   , f "log replay (every gauge record recomputed from its own fields)"
   , f "benchmark"
   , f "gate split"
@@ -475,7 +479,7 @@ def shipped : List Gate :=
 -- had started to read like a design. The gate asks the general question rather
 -- than naming those two modules, so it still works on modules written after it,
 -- and it found a second collision (`RotMoE.Run`) on its first run.
-#guard shipped.length = 64
+#guard shipped.length = 65
 
 -- FORTY run on every commit (38 until `README FACTS block` and `workflow exit
 -- reads` were added on 2026-08-12; 37 until `name collision`, added the same
@@ -483,7 +487,7 @@ def shipped : List Gate :=
 -- 2026-08-12). The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
 -- prose is what a reader believes. Both are recounted together from now on.
-#guard (fastSet shipped).length = 40
+#guard (fastSet shipped).length = 41
 
 -- TWENTY-THREE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
@@ -511,7 +515,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 45
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 46
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -521,17 +525,17 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 40
+#guard (stagedRun shipped []).length = 41
 
 -- Touching the router escalates the gates that cross-check it. 44 since the
 -- `P2.4 corpus` gate joined: it names `hooks/rot-router.sh` as a trigger because
 -- every task's declared lane is a claim about THAT file, and a stem list edited
 -- without re-checking the corpus would silently invalidate forty lane bindings.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 47
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 48
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 41
+#guard (stagedRun shipped ["README.md".toList]).length = 42
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

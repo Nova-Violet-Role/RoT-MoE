@@ -104,6 +104,8 @@
     ".claude\\commands",
     ".github",
     ".github\\workflows",
+    "Lean Theorem",
+    "Lean Theorem\\Skyrim\\mutate",
     "agents",
     "bench",
     "checker",
@@ -113,12 +115,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-13T05:57:12.037887+00:00",
+  "generated_at": "2026-08-13T20:14:39.876285+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-13T05:57:12.034599+00:00",
-    "total_files": 210,
-    "total_symbols": 1200
+    "last_full_index": "2026-08-13T20:14:39.872846+00:00",
+    "total_files": 217,
+    "total_symbols": 1221
   },
   "version": "1.0"
 }

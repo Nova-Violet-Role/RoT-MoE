@@ -32,6 +32,9 @@ param(
   # every gate stayed green.
   [switch] $Measure,
   [switch] $Workspace,
+  # -Kernel: prints the classified kernel verdict (the `<red>|<sorry>` pair the
+  # decision is fed). Exists so the DEMOTION can be tested from outside.
+  [switch] $Kernel,
   [switch] $Version,
   [Parameter(ValueFromRemainingArguments = $true)]
   [string[]] $Rest
@@ -223,9 +226,47 @@ function Get-ProofScan {
   return $r
 }
 
+# THE KNOWN NON-ANSWERS, defined once and shared by every consumer below.
+#
+# A reason matching this is a statement that the re-check NEVER COMPLETED, not
+# that the kernel refused a proof. Matching is by SHAPE because the producer
+# (~/.claude/reminders/lean4-prover-reminder.ps1) emits parameterised text:
+#   "TIMEOUT after ${perModuleTimeoutSec}s" · "LAUNCH_FAILED: <msg>" · "exit=$c $first"
+# The previous test compared the whole string to 'TIMEOUT' and so never fired.
+#
+# FAIL LOUD ON THE UNKNOWN still holds: a reason not listed here keeps the full
+# rejection alarm. "exit=1 leanchecker found a problem" matches nothing and
+# shouts, which is correct -- that one IS a rejection.
+$script:UnfinishedPat = '^TIMEOUT\b|^NOT_FOUND\b|^LAUNCH_FAILED\b|BAD_ALLOC|OUT OF MEMORY|INTERNAL PANIC|FAILED TO READ FILE'
+
 if ($Measure) {
   $s = Get-ProofScan
   Write-Output ('' + $s.Count + ' ' + $s.Mins + ' ' + $s.Last)
+  exit 0
+}
+# -Kernel: the instrument the classification never had, at parity with the POSIX
+# arm's --kernel. `-Decide` receives KRED already marked, so every test to date
+# exercised the WORDING of the verdict and none exercised the CLASSIFICATION
+# that produces it -- which is how a broken demotion survived 69 contract rows,
+# 31 cross-arm rows and a full gate. A parity checker cannot catch a bug both
+# arms share; only a fixture asserting the OUTPUT can.
+if ($Kernel) {
+  $kredK = @(); $ksorryK = @()
+  try {
+    $vsK = Join-Path $StateDir 'lean-verify-status.json'
+    if (Test-Path -LiteralPath $vsK) {
+      $vK = Get-Content -LiteralPath $vsK -Raw | ConvertFrom-Json
+      if ($vK.red) {
+        $kredK = @($vK.red | ForEach-Object {
+          $m = $_.module
+          $rs = if ($_.reason) { ([string]$_.reason).ToUpper() } else { '' }
+          if ($rs -match $script:UnfinishedPat) { "$m`?" } else { $m }
+        })
+      }
+      if ($vK.sorryFiles) { $ksorryK = @($vK.sorryFiles) }
+    }
+  } catch { }
+  Write-Output (($kredK -join ',') + '|' + ($ksorryK -join ','))
   exit 0
 }
 if ($Workspace) {
@@ -520,15 +561,27 @@ try {
     if (Test-Path -LiteralPath $vs) {
       $v = Get-Content -LiteralPath $vs -Raw | ConvertFrom-Json
       # Mark UNFINISHED re-checks with a trailing `?` so `Decide` can word them
-      # as "did not finish" instead of "rejected". Only these two reasons are
+      # as "did not finish" instead of "rejected". Only KNOWN non-answers are
       # demoted; an unrecognised reason keeps the full rejection alarm, because
       # the safe default for an unknown failure is to shout. Mirrors the POSIX
       # arm exactly -- cross-diff-remind.sh compares the two on every row.
+      #
+      # 2026-08-14 -- THIS TEST HAD NEVER ONCE FIRED, exactly like its POSIX
+      # twin. It compared the WHOLE reason string for equality with 'TIMEOUT',
+      # but the producer (~/.claude/reminders/lean4-prover-reminder.ps1) writes
+      # "TIMEOUT after ${perModuleTimeoutSec}s", "LAUNCH_FAILED: <msg>" and
+      # "exit=$code $first". None is a bare token, so every timeout was reported
+      # as KERNEL REJECTED -- the very failure the comment claimed was fixed.
+      # Measured today: Proofs.RotVacuity and Proofs.RotRoute were accused and
+      # both re-verify at exit 0 with ZERO bytes. Match on SHAPE, not equality.
+      # ONE definition of the pattern, at script scope, used by BOTH this inline
+      # path and -Kernel. Two copies would drift, and the drift would be exactly
+      # the kind nobody notices until an alarm lies again.
       if ($v.red) {
         $kred = @($v.red | ForEach-Object {
           $m = $_.module
           $rs = if ($_.reason) { ([string]$_.reason).ToUpper() } else { '' }
-          if ($rs -eq 'TIMEOUT' -or $rs -eq 'NOT_FOUND') { "$m`?" } else { $m }
+          if ($rs -match $script:UnfinishedPat) { "$m`?" } else { $m }
         })
       }
       if ($v.sorryFiles) { $ksorry = @($v.sorryFiles) }

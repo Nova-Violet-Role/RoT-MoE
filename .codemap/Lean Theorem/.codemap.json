@@ -1,0 +1,62 @@
+{
+  "directory": "Lean Theorem",
+  "files": {
+    "README.md": {
+      "hash": "d4061bf7aa34",
+      "indexed_at": "2026-08-13T21:01:17.314218+00:00",
+      "language": "markdown",
+      "lines": 107,
+      "mtime_ns": 1786654874649448800,
+      "size": 5146,
+      "symbols": [
+        {
+          "docstring": "A user runs the Router on their repository. Over weeks they accumulate real Lean proofs *about that codebase* \u2014 what its invariants are, which bounds",
+          "lines": [
+            18,
+            35
+          ],
+          "name": "Why it exists",
+          "type": "section"
+        },
+        {
+          "docstring": "**Only the `.lean` files.** This is the point that makes the whole thing possible: **a proof carries the property, not the source.**",
+          "lines": [
+            36,
+            51
+          ],
+          "name": "What a contributor actually shares",
+          "type": "section"
+        },
+        {
+          "docstring": "Each contribution is one **sub-work folder** named for the project:",
+          "lines": [
+            52,
+            77
+          ],
+          "name": "Structure",
+          "type": "section"
+        },
+        {
+          "docstring": "Honest, and low enough to be reachable:",
+          "lines": [
+            78,
+            89
+          ],
+          "name": "The bar for admission",
+          "type": "section"
+        },
+        {
+          "docstring": "| subject | modules | theorems | `mutate/` | domain | |---|---:|---:|:--:|---| | `Ctbrec/` | 92 | 1535 | **absent** | a Java desktop application \u2014 rec",
+          "lines": [
+            90,
+            108
+          ],
+          "name": "What is here now \u2014 measured, not estimated",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-08-13T21:01:17.317102+00:00",
+  "version": "1.0"
+}

@@ -34,6 +34,41 @@ RSH="$REPO/hooks/prover-remind.sh"
 RPS1="$REPO/hooks/prover-remind.ps1"
 LOG="${TMPDIR:-/tmp}/rotmoe-mutchk"; mkdir -p "$LOG"
 
+# --- WAS THE TREE ALREADY DIRTY? -------------------------------------------
+# The restore check at the end asks `git diff --quiet`, i.e. "does this file
+# differ from HEAD". That is the RIGHT question only when the working tree was
+# CLEAN before the suite ran. With a legitimate uncommitted edit in place it is
+# the WRONG question, and it answers with the most alarming possible verdict:
+#
+#     RESTORE FAILED: hooks/prover-remind.sh differs from git -- a mutant survived.
+#
+# MEASURED 2026-08-14: an uncommitted repair to both reminder arms produced
+# exactly that line, and because the check also aborts the run ("REFUSING to
+# report a result"), it took 5 of 65 gates red with it. Nothing had survived;
+# the harness had confused MY EDIT with ITS MUTANT.
+#
+# That is the same conflation this repo forbids everywhere else -- DISCARDED is
+# not SURVIVED, a timeout is not a rejection, "I could not tell" is not "no".
+# The fix is to compare each file against ITS OWN STATE AT SUITE START rather
+# than against HEAD, so the question becomes "did I put it back the way I found
+# it" -- which is what restore actually promises.
+_pre_hash () { [ -f "$1" ] && (cksum < "$1") 2>/dev/null || echo "ABSENT"; }
+PRE_SH=$(_pre_hash "$SH");   PRE_PS1=$(_pre_hash "$PS1")
+PRE_RSH=$(_pre_hash "$RSH"); PRE_RPS1=$(_pre_hash "$RPS1")
+_pre_of () {
+  case "$1" in
+    "$SH")   printf '%s' "$PRE_SH"   ;; "$PS1")  printf '%s' "$PRE_PS1"  ;;
+    "$RSH")  printf '%s' "$PRE_RSH"  ;; "$RPS1") printf '%s' "$PRE_RPS1" ;;
+  esac
+}
+# Say so out loud when the tree started dirty. A precondition that silently
+# changes what a check MEANS is how an instrument stops being trustworthy.
+if ! git -C "$REPO" diff --quiet -- hooks/ 2>/dev/null; then
+  echo "NOTE: hooks/ has uncommitted changes. Restore is verified against the"
+  echo "      tree AS FOUND, not against HEAD -- otherwise your own edit would"
+  echo "      be reported as a surviving mutant."
+fi
+
 # RECOVER BEFORE BACKING UP, and this ordering is the whole point.
 #
 # MEASURED 2026-08-05, and it came within one command of being committed: a run
@@ -471,8 +506,11 @@ for _f in "$SH" "$PS1" "$RSH" "$RPS1"; do
   if [ ! -s "$_f" ]; then
     echo "RESTORE FAILED: $_rel is EMPTY after restore -- a live mutant is on disk."
     _rbad=1
-  elif ! git -C "$REPO" diff --quiet -- "$_rel" 2>/dev/null; then
-    echo "RESTORE FAILED: $_rel differs from git after restore -- a mutant survived."
+  elif [ "$(_pre_hash "$_f")" != "$(_pre_of "$_f")" ]; then
+    # AS FOUND, not as committed. See the snapshot block near the top: comparing
+    # to HEAD reports an uncommitted edit as a surviving mutant, which is a false
+    # accusation AND it aborts the whole suite.
+    echo "RESTORE FAILED: $_rel differs from ITS STATE AT SUITE START -- a mutant survived."
     _rbad=1
   fi
 done

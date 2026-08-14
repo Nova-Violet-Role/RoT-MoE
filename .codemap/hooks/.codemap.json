@@ -21,12 +21,12 @@
       ]
     },
     "prover-remind.sh": {
-      "hash": "9e6fac25f830",
-      "indexed_at": "2026-08-12T19:57:20.047963+00:00",
+      "hash": "364af62f02fb",
+      "indexed_at": "2026-08-13T18:54:38.719789+00:00",
       "language": "shell",
-      "lines": 622,
-      "mtime_ns": 1786562812175481800,
-      "size": 32209,
+      "lines": 674,
+      "mtime_ns": 1786647275689407400,
+      "size": 35243,
       "symbols": [
         {
           "docstring": "WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live.  This defaulted straight to the plugin's bundled corpus, and that was wrong in a way",
@@ -74,7 +74,7 @@
         {
           "lines": [
             179,
-            623
+            675
           ],
           "name": "decide",
           "type": "function"
@@ -116,7 +116,7 @@
         {
           "lines": [
             315,
-            348
+            383
           ],
           "name": "measure_kernel",
           "type": "function"
@@ -124,8 +124,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- ========================================================================",
           "lines": [
-            389,
-            623
+            424,
+            675
           ],
           "name": "verify_lean_edit",
           "type": "function"
@@ -133,8 +133,8 @@
         {
           "docstring": "No arguments means \"you were called as a hook\". That default is not a nicety: R20 measured the router shipping with only its flag modes while ARM_ROUT",
           "lines": [
-            500,
-            623
+            535,
+            675
           ],
           "name": "hook_mode",
           "type": "function"
@@ -143,10 +143,10 @@
     },
     "rot-router.sh": {
       "hash": "fbb9bcfb591e",
-      "indexed_at": "2026-08-13T08:19:29.656906+00:00",
+      "indexed_at": "2026-08-13T18:58:28.071063+00:00",
       "language": "shell",
       "lines": 1461,
-      "mtime_ns": 1786609167106925900,
+      "mtime_ns": 1786639999626033900,
       "size": 77308,
       "symbols": [
         {
@@ -310,6 +310,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-13T08:19:29.657103+00:00",
+  "generated_at": "2026-08-13T18:58:28.279433+00:00",
   "version": "1.0"
 }
