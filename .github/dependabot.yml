@@ -9,6 +9,20 @@
 # Dependabot has no Lean/Lake ecosystem, so mathlib's pin is NOT managed here.
 # It is bumped by verify.yml's scheduled run, which rebuilds against the pinned
 # toolchain and reports honestly when a newer one breaks a proof.
+#
+# NOR does Dependabot update the shared `Lean Theorem/` corpus, and it was asked
+# to. It cannot: Dependabot updates DECLARED DEPENDENCIES in ecosystems it knows,
+# it cannot watch a folder of proofs, and it cannot reinstall a Claude Code
+# plugin. There is also no `--force-update` flag to give it -- measured against
+# Claude Code 2.1.227 on 2026-08-14, `claude plugin update` accepts only
+# `-h` and `-s/--scope`.
+#
+# The corpus is therefore handled where it CAN be handled, and deliberately
+# decoupled from the release cadence so that a contributed theorem never requires
+# a new plugin version:
+#
+#   SETUP_CORPUS.sh / .ps1              fetch or refresh on demand (`/corpus`)
+#   .github/workflows/corpus-update.yml re-prove it travels, on every corpus push
 
 # CADENCE, measured against what Dependabot actually accepts:
 # `schedule.interval` takes ONLY daily | weekly | monthly. There is no cron and

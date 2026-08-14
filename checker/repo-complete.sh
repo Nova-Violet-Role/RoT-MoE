@@ -116,6 +116,53 @@ MODS=$(ls lean/Proofs/*.lean 2>/dev/null | wc -l | tr -d ' ')
 SUITES=$(ls lean/mutate/mutate_*.sh 2>/dev/null | wc -l | tr -d ' ')
 echo "  measured: $TH theorems, $MODS modules, $SUITES mutation suites"
 
+# --- THE SHARED CORPUS MUST BE PRESENT AND NON-EMPTY -------------------------
+# `Lean Theorem/` is the contributed proof base. It is not decoration: the LEAN
+# and UNSEALED archives ship it, so a tree that has lost it produces a release
+# whose corpus silently shrinks to nothing. Refuse here, before packaging.
+#
+# COUNTED FROM DISK, never against a frozen number. The corpus is meant to GROW
+# by fork-and-PR; an assertion pinned to today's 8 modules would go red on the
+# first accepted contribution and the obvious "fix" would be to delete it.
+#
+# USE `bad`, NEVER A HAND-ROLLED FLAG. The first draft of this block set `RC=1`
+# on failure -- a variable this script does not read. The result was a gate that
+# printed FAIL and exited 0: it announced the defect and passed anyway. Caught by
+# running the negative control and reading the EXIT CODE, not the message.
+# `bad` increments `fail`, and `fail` is what the final `exit` consults.
+CORP_DIR="Lean Theorem"
+if [ ! -d "$CORP_DIR" ]; then
+  bad "the shared corpus '$CORP_DIR/' is missing -- the LEAN archive would ship an empty promise"
+else
+  CORP_MODS=$(find "$CORP_DIR" -name '*.lean' 2>/dev/null | grep -c . || true)
+  CORP_SUBJ=$(find "$CORP_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | grep -c . || true)
+  CORP_KB=$(du -sk "$CORP_DIR" 2>/dev/null | cut -f1)
+  if [ "$CORP_MODS" -eq 0 ]; then
+    bad "'$CORP_DIR/' exists but holds no .lean file -- an empty corpus is worse than none, it looks shipped"
+  elif [ ! -f "$CORP_DIR/README.md" ]; then
+    bad "'$CORP_DIR/' has no README.md -- a stranger cannot tell what the folder is or how to contribute"
+  else
+    # NUL-delimited, one invocation per file, summed. The first draft of this
+    # line was `$(find ... | tr '\n' ' ')` unquoted -- which word-split on the
+    # space in "Lean Theorem", passed no readable file, and reported 0 theorems
+    # while `|| echo 0` swallowed the error that would have said so. Caught by
+    # reading the number, not by the exit code: it was green and wrong.
+    CORP_TH=0
+    while IFS= read -r -d '' _f; do
+      _n=$(bash "$REPO/checker/count-theorems.sh" "$_f")
+      case "$_n" in (''|*[!0-9]*)
+        bad "the theorem counter returned '$_n' for $_f -- refusing to report a corpus total built on a non-number"; _n=0 ;;
+      esac
+      CORP_TH=$((CORP_TH + _n))
+    done < <(find "$CORP_DIR" -name '*.lean' -print0)
+    if [ "$CORP_TH" -eq 0 ]; then
+      bad "shared corpus counts 0 theorems across $CORP_MODS modules -- the counter is not reading these files"
+    else
+      ok "shared corpus: $CORP_SUBJ subject(s), $CORP_MODS modules, $CORP_TH theorems, ${CORP_KB} KB -- present, non-empty, documented"
+    fi
+  fi
+fi
+
 # Every "<n> theorems" / "<n> machine-checked" claim must equal TH -- ANYWHERE
 # IN THE TREE, not in three files chosen by hand.
 #

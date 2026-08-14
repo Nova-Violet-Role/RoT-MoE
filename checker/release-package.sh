@@ -134,12 +134,31 @@ CONTRIBUTING.md
 CODE_OF_CONDUCT.md
 CITATION.cff
 CLAUDE.md
+commands
 "
 # LEAN adds what makes re-verification -- and your own proving -- possible.
+#
+# `Lean Theorem` is the SHARED CORPUS -- contributed proofs about other people's
+# code. It rides with LEAN and never with CORE, by the same rule that keeps
+# `lean/` out of CORE: someone downloading "core" to get a router has not asked
+# for a proof corpus. Measured cost: 112 KB across 8 modules, which is why it
+# is affordable to ship at all.
+#
+# THE SPACE IN THE NAME IS LOAD-BEARING AND DANGEROUS. This list is consumed by
+# `for p in $(paths_for ...)`, and unquoted command substitution splits on IFS --
+# so "Lean Theorem" would arrive as two paths, `Lean` and `Theorem`, neither of
+# which exists. That is not hypothetical: on 2026-08-14 an unquoted
+# `$(find "Lean Theorem" ...)` split exactly this way, every write in the loop
+# failed, and the counter still printed "200 added" because it counted attempts.
+# The loops below therefore set IFS to newline. Add nothing to these lists that
+# contains a newline.
 LEAN_EXTRA="
 SETUP_LEAN.sh
 SETUP_LEAN.ps1
+SETUP_CORPUS.sh
+SETUP_CORPUS.ps1
 lean
+Lean Theorem
 checker
 "
 # UNSEALED adds the document that names the trade. The classifier itself lives
@@ -150,19 +169,42 @@ UNSEALED_EXTRA="
 UNSEALED.md
 "
 
+# Joined with NEWLINE, never with a space -- a space here would re-introduce the
+# very splitting the newline IFS exists to prevent, and it would do so silently.
 paths_for () {
   case "$1" in
     core)     printf '%s' "$CORE_PATHS" ;;
-    lean)     printf '%s %s' "$CORE_PATHS" "$LEAN_EXTRA" ;;
-    unsealed) printf '%s %s %s' "$CORE_PATHS" "$LEAN_EXTRA" "$UNSEALED_EXTRA" ;;
+    lean)     printf '%s\n%s' "$CORE_PATHS" "$LEAN_EXTRA" ;;
+    unsealed) printf '%s\n%s\n%s' "$CORE_PATHS" "$LEAN_EXTRA" "$UNSEALED_EXTRA" ;;
   esac
 }
 
 missing=0
+_OLDIFS=$IFS; IFS='
+'
 for p in $CORE_PATHS $LEAN_EXTRA $UNSEALED_EXTRA; do
+  [ -n "$p" ] || continue
   [ -e "$p" ] || { bad "declared for packaging but not on disk: $p"; missing=$((missing+1)); }
 done
+IFS=$_OLDIFS
 [ "$missing" -eq 0 ] && ok "every declared path exists on disk"
+
+# A path containing a space must survive the split. This asserts the MECHANISM,
+# not today's file list: if someone reverts the IFS handling, `Lean Theorem`
+# arrives as `Lean` and this fails loudly instead of shipping a corpus-less zip.
+_split_probe=0
+_OLDIFS=$IFS; IFS='
+'
+for p in $(paths_for lean); do
+  [ -n "$p" ] || continue
+  case "$p" in ("Lean Theorem") _split_probe=1 ;; esac
+done
+IFS=$_OLDIFS
+if [ "$_split_probe" -eq 1 ]; then
+  ok "a path with a space survives word-splitting intact (Lean Theorem)"
+else
+  bad "WORD-SPLIT REGRESSION: 'Lean Theorem' did not survive paths_for -- the corpus would ship EMPTY"
+fi
 
 # --- build --------------------------------------------------------------------
 # MATERIALISE listings; never pipe into `grep -q`. pipefail is on and grep -q
@@ -187,7 +229,13 @@ for vp in $VARIANTS; do
   # else watching: a concurrent leanchecker sweep fired a spurious "kernel
   # rejected" alarm during exactly that window. Never materialise a state you
   # intend to destroy.
+  # IFS is newline for the WHOLE loop: every expansion in the body is quoted, so
+  # nothing here needs the default. Restoring it per-iteration was the first
+  # draft and it was three chances to get it wrong for no benefit.
+  _OLDIFS=$IFS; IFS='
+'
   for p in $(paths_for "$v"); do
+    [ -n "$p" ] || continue
     [ -e "$p" ] || continue
     d="$STAGE/$(dirname "$p")"; mkdir -p "$d"
     if [ -d "$p" ]; then
@@ -199,6 +247,7 @@ for vp in $VARIANTS; do
       cp "$p" "$d/" 2>/dev/null
     fi
   done
+  IFS=$_OLDIFS
 
   sed "s/\"version\"[[:space:]]*:[[:space:]]*\"$TREEVER\"/\"version\": \"$ver\"/" \
       "$MANIFEST" > "$STAGE/.claude-plugin/plugin.json.new" \
@@ -226,6 +275,7 @@ if [ -s "$L_CORE" ]; then
     has "$L_CORE" "^$forbidden$" && { bad "CORE contains $forbidden -- its 'no network' / 'no extras' promise is FALSE"; leak=$((leak+1)); }
   done
   has "$L_CORE" '^lean/' && { bad "CORE contains the lean/ corpus -- it is not the core artifact"; leak=$((leak+1)); }
+  has "$L_CORE" '^Lean Theorem/' && { bad "CORE contains the shared Lean Theorem corpus -- it is not the core artifact"; leak=$((leak+1)); }
   [ "$leak" -eq 0 ] && ok "CORE (0.5.0) carries no fetcher, no corpus, no unsealed page -- it cannot download anything"
 fi
 
@@ -238,9 +288,20 @@ if [ -s "$L_LEAN" ]; then
   nmod=$(grep -c '^lean/Proofs/.*\.lean$' "$L_LEAN" || true)
   ondisk=$(find lean/Proofs -name '*.lean' | grep -c . || true)
   [ "$nmod" -ne "$ondisk" ] && { bad "LEAN carries $nmod proof module(s) but $ondisk are on disk"; short=$((short+1)); }
+
+  # THE SHARED CORPUS MUST TRAVEL. Counted, not merely present: a zip containing
+  # `Lean Theorem/README.md` and nothing else would satisfy an existence check
+  # and ship an empty promise. The count is compared to disk, so the assertion
+  # follows the corpus as it grows instead of freezing today's number.
+  ncorp=$(grep -c '^Lean Theorem/.*\.lean$' "$L_LEAN" || true)
+  corpdisk=$(find "Lean Theorem" -name '*.lean' | grep -c . || true)
+  if [ "$corpdisk" -gt 0 ]; then
+    [ "$ncorp" -ne "$corpdisk" ] && { bad "LEAN carries $ncorp shared-corpus module(s) but $corpdisk are on disk -- the corpus did not travel"; short=$((short+1)); }
+    has "$L_LEAN" '^Lean Theorem/README.md$' || { bad "LEAN carries the corpus without its README -- a stranger cannot tell what it is"; short=$((short+1)); }
+  fi
   # It must NOT carry the tier above it, or the tiers are not distinct.
   has "$L_LEAN" '^UNSEALED.md$' && { bad "LEAN contains UNSEALED.md -- 0.5.1 and 0.5.2 would be the same artifact"; short=$((short+1)); }
-  [ "$short" -eq 0 ] && ok "LEAN (0.5.1) carries both fetchers, the pinned toolchain, all $nmod proof module(s), and NOT the unsealed page"
+  [ "$short" -eq 0 ] && ok "LEAN (0.5.1) carries both fetchers, the pinned toolchain, all $nmod proof module(s), all $ncorp shared-corpus module(s), and NOT the unsealed page"
 fi
 
 # --- 3. UNSEALED MUST ACTUALLY DIFFER FROM LEAN ------------------------------

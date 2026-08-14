@@ -256,7 +256,7 @@ decide () {   # decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS
 measure_mins_since_proof () {
   [ -d "$PROOFS_DIR" ] || { echo "-1 -"; return; }
   # RECURSIVE. The glob `"$PROOFS_DIR"/*.lean` matched ONE level, so the moment
-  # proofs are filed by subject -- Proofs/Ctbrec/, Proofs/Sanctum/ -- the newest
+  # proofs are filed by subject -- Proofs/<SubjectA>/, Proofs/<SubjectB>/ -- the newest
   # file it could see was whatever last landed in the root. Measured on a real
   # tree at one instant:
   #     one level  -> SanctumPulse   2947 min ago

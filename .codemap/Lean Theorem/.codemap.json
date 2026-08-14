@@ -2,12 +2,12 @@
   "directory": "Lean Theorem",
   "files": {
     "README.md": {
-      "hash": "d4061bf7aa34",
-      "indexed_at": "2026-08-13T21:01:17.314218+00:00",
+      "hash": "99117cb4f061",
+      "indexed_at": "2026-08-14T04:57:58.450864+00:00",
       "language": "markdown",
-      "lines": 107,
-      "mtime_ns": 1786654874649448800,
-      "size": 5146,
+      "lines": 137,
+      "mtime_ns": 1786683474939066800,
+      "size": 6564,
       "symbols": [
         {
           "docstring": "A user runs the Router on their repository. Over weeks they accumulate real Lean proofs *about that codebase* \u2014 what its invariants are, which bounds",
@@ -46,10 +46,21 @@
           "type": "section"
         },
         {
-          "docstring": "| subject | modules | theorems | `mutate/` | domain | |---|---:|---:|:--:|---| | `Ctbrec/` | 92 | 1535 | **absent** | a Java desktop application \u2014 rec",
+          "children": [
+            {
+              "docstring": "This folder travels inside the **LEAN** and **UNSEALED** release archives. It is deliberately absent from **CORE**, by the same rule that keeps `lean/",
+              "lines": [
+                104,
+                138
+              ],
+              "name": "What it costs to ship \u2014 measured before shipping, not discovered afterwards",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "| subject | modules | theorems | `mutate/` | domain | |---|---:|---:|:--:|---| | `Skyrim/` | 6 | 48 | **4 suites** | a game plugin \u2014 movement, unstuck",
           "lines": [
             90,
-            108
+            138
           ],
           "name": "What is here now \u2014 measured, not estimated",
           "type": "section"
@@ -57,6 +68,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-13T21:01:17.317102+00:00",
+  "generated_at": "2026-08-14T04:57:58.451024+00:00",
   "version": "1.0"
 }

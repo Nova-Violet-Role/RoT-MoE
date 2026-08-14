@@ -519,7 +519,7 @@ try {
   # 1. minutes since the most recent proof, and its name
   # ONE scan function, shared with -Measure, so the thing the checker drives is
   # the thing the hook runs. -Recurse lives inside it: one level deep meant that
-  # as soon as proofs were filed by subject (Proofs\Ctbrec\, ...) the newest
+  # as soon as proofs were filed by subject (Proofs\<SubjectA>\, ...) the newest
   # visible file was whatever last landed in the root -- measured on one tree at
   # one instant, one level -> 2947 min stale, recursive -> 54 min.
   $scan = Get-ProofScan

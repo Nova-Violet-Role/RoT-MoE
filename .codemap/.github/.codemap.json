@@ -2,18 +2,18 @@
   "directory": ".github",
   "files": {
     "dependabot.yml": {
-      "hash": "f240fccd0c22",
-      "indexed_at": "2026-08-12T08:44:37.362691+00:00",
+      "hash": "9d6b4df80b51",
+      "indexed_at": "2026-08-14T03:24:41.633159+00:00",
       "language": "yaml",
-      "lines": 34,
-      "mtime_ns": 1785493987389068300,
-      "size": 1416,
+      "lines": 48,
+      "mtime_ns": 1786677878944509800,
+      "size": 2182,
       "symbols": [
         {
           "docstring": "2",
           "lines": [
-            24,
-            24
+            38,
+            38
           ],
           "name": "version",
           "type": "key"
@@ -23,8 +23,8 @@
             {
               "docstring": "\"github-actions\"",
               "lines": [
-                26,
-                26
+                40,
+                40
               ],
               "name": "package-ecosystem",
               "type": "item"
@@ -32,8 +32,8 @@
             {
               "docstring": "\"/\"",
               "lines": [
-                27,
-                27
+                41,
+                41
               ],
               "name": "directory",
               "type": "key"
@@ -43,16 +43,16 @@
                 {
                   "docstring": "\"daily\"",
                   "lines": [
-                    29,
-                    29
+                    43,
+                    43
                   ],
                   "name": "interval",
                   "type": "key"
                 }
               ],
               "lines": [
-                28,
-                29
+                42,
+                43
               ],
               "name": "schedule",
               "type": "section"
@@ -60,8 +60,8 @@
             {
               "docstring": "5",
               "lines": [
-                30,
-                30
+                44,
+                44
               ],
               "name": "open-pull-requests-limit",
               "type": "key"
@@ -71,32 +71,32 @@
                 {
                   "docstring": "\"ci\"",
                   "lines": [
-                    32,
-                    32
+                    46,
+                    46
                   ],
                   "name": "prefix",
                   "type": "key"
                 }
               ],
               "lines": [
-                31,
-                32
+                45,
+                46
               ],
               "name": "commit-message",
               "type": "section"
             },
             {
               "lines": [
-                33,
-                35
+                47,
+                49
               ],
               "name": "labels",
               "type": "list"
             }
           ],
           "lines": [
-            25,
-            35
+            39,
+            49
           ],
           "name": "updates",
           "type": "list"
@@ -168,6 +168,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T08:44:37.852226+00:00",
+  "generated_at": "2026-08-14T03:24:41.633305+00:00",
   "version": "1.0"
 }

@@ -49,7 +49,13 @@ echo "== 1. every shipped .sh is executable IN THE INDEX =="
 # fiction; what a Linux user gets is whatever git recorded, so that is what
 # must be asserted.
 total=$(git ls-files -- '*.sh' | grep -c .)
-nonexec=$(git ls-files -s -- '*.sh' | awk '$1!="100755"{print $4}')
+# SPLIT ON THE TAB, not on whitespace. `git ls-files -s` emits
+# "<mode> <sha> <stage>\t<path>", so a path containing a SPACE -- this repo has
+# `Lean Theorem/` -- is truncated by `{print $4}` to its first word. Measured:
+# the checker correctly counted 6 offenders and then printed "Lean" four times,
+# naming none of them. A failure report that cannot name the file it failed on
+# sends the reader hunting; that is a defect in the instrument, not cosmetics.
+nonexec=$(git ls-files -s -- '*.sh' | awk -F'\t' '{split($1,m," "); if (m[1]!="100755") print $2}')
 n_bad=$(printf '%s' "$nonexec" | grep -c . || true)
 if [ "$total" -eq 0 ]; then
   bad "no .sh files tracked at all -- this checker would pass vacuously"

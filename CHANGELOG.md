@@ -15,6 +15,84 @@ not be buried.
 
 ---
 
+## [4.0.0] · [4.0.1] · [4.0.2] — 2026-08-14
+
+**Major, and the reason is what now travels: the shared proof corpus ships inside
+the release.** `Lean Theorem/` — 3 subjects, 8 modules, **71** kernel-checked
+theorems — is carried by the LEAN and UNSEALED archives and is verified present,
+non-empty and documented before packaging can succeed.
+
+### `/corpus` — the corpus is FETCHED, not tied to the release cadence
+
+`SETUP_CORPUS.sh` / `SETUP_CORPUS.ps1`, and a `/corpus` slash command, refresh
+`Lean Theorem/` from `main` on demand. **The reason is the release cadence:** the
+corpus grows by fork and pull request, so shipping it only inside archives would
+mean cutting a release every time somebody contributes a theorem — the plugin
+version would be tracking other people's proofs. The archives now carry a seed;
+the fetcher keeps it current.
+
+It follows `SETUP_LEAN`'s contract — detect, report, ask — with both arms sharing
+one exit-code contract: `0` current or declined, `3` update available, `4` absent,
+`2` refusal, `1` fetch failed with the existing corpus untouched. All four
+non-trivial codes were measured on the POSIX arm against the live repository.
+
+It will not silently overwrite local work: files modified since the last fetch are
+listed first, the old corpus is moved aside as `.pre-fetch-<timestamp>.bak` rather
+than deleted, and a download containing **zero** `.lean` files is refused — that is
+an erasure, not an update.
+
+**This is not Dependabot, and it could not be.** Dependabot updates declared
+dependencies in ecosystems it knows; it has no Lean ecosystem and cannot reinstall
+a plugin. `.github/workflows/corpus-update.yml` re-proves that the corpus still
+travels on every push touching `Lean Theorem/` and on every published release.
+
+### The corpus travels, and the packaging can no longer lose it
+
+* `checker/release-package.sh` counts every corpus module in the LEAN archive
+  against what is on disk, and asserts the corpus is **absent** from CORE. A zip
+  containing only a README would have satisfied a presence check; it does not
+  satisfy a count.
+* `checker/repo-complete.sh` **refuses** a tree whose corpus is missing, empty,
+  undocumented, or counts zero theorems. Negative control: hiding the folder
+  makes it exit 1.
+* Cost, measured with and without the folder rather than estimated:
+  CORE **+0 bytes**, LEAN **+476 669 B** (+466 KB, +20.9 %), UNSEALED the same.
+
+### A path with a space was silently destroying work
+
+`paths_for` was consumed by unquoted `$(...)`, so `Lean Theorem` split into
+`Lean` and `Theorem` and the corpus would have shipped **empty and green**. The
+packaging loops now set `IFS` to newline, and a probe asserts the mechanism —
+neutralising the guards makes the build fail with `Theorem` as a missing path,
+verified.
+
+The same word-split was found in **`checker/portability.sh`**, where
+`git ls-files -s | awk '{print $4}'` truncated every offending path to `Lean`:
+the checker counted 6 files correctly and could name none of them. It now splits
+on the tab git actually emits.
+
+### Corrections — stated, not quietly patched
+
+* **The theorem count was wrong.** The corpus was published as **1608**, counted
+  by grepping the word `theorem`, which also counts it inside doc comments. The
+  canonical `checker/count-theorems.sh` said **1587** before the withdrawal
+  above, and **71** after it. Corrected everywhere it appeared.
+* **Six shipped `.sh` files had no exec bit in the index** — four corpus mutation
+  suites and two files added in 3.0.2 — and would have failed on Linux.
+* **A CI step depended on a third-party package registry.** `choco install zip`
+  failed on `windows-latest` and took 37 checker steps down with it. Windows now
+  falls back to a 7-Zip shim that is *proved to build an archive* before the step
+  reports green, and refuses any flag it was not written for.
+
+### README
+
+Trimmed from **2446 to 1912 lines** by removing five sections that described
+measurement apparatus and process rather than capability: the benchmark, the
+PROVED/CORRECTED/MEASURED map, the preregistered experiment, the author-correction
+log and the A/B study. Nothing describing what RoT MoE *does* was removed.
+
+---
+
 ## [3.0.0] · [3.0.1] · [3.0.2] — 2026-08-13
 
 **Major, and the reason is observable output: the route record gains three fields

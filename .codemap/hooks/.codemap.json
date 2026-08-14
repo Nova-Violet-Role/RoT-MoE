@@ -21,12 +21,12 @@
       ]
     },
     "prover-remind.sh": {
-      "hash": "364af62f02fb",
-      "indexed_at": "2026-08-13T18:54:38.719789+00:00",
+      "hash": "98c89ddb7a5d",
+      "indexed_at": "2026-08-14T06:20:11.322985+00:00",
       "language": "shell",
       "lines": 674,
-      "mtime_ns": 1786647275689407400,
-      "size": 35243,
+      "mtime_ns": 1786688156875605000,
+      "size": 35250,
       "symbols": [
         {
           "docstring": "WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live.  This defaulted straight to the plugin's bundled corpus, and that was wrong in a way",
@@ -143,10 +143,10 @@
     },
     "rot-router.sh": {
       "hash": "fbb9bcfb591e",
-      "indexed_at": "2026-08-13T18:58:28.071063+00:00",
+      "indexed_at": "2026-08-14T06:20:13.798291+00:00",
       "language": "shell",
       "lines": 1461,
-      "mtime_ns": 1786639999626033900,
+      "mtime_ns": 1786688156812605500,
       "size": 77308,
       "symbols": [
         {
@@ -310,6 +310,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-13T18:58:28.279433+00:00",
+  "generated_at": "2026-08-14T06:20:14.012465+00:00",
   "version": "1.0"
 }

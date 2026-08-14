@@ -14,7 +14,7 @@ right about what it looked at, and looked at the wrong thing.
 
 **Defect 1 — the scan was one level deep.** `"$PROOFS_DIR"/*.lean` in the POSIX
 arm and `Get-ChildItem -Filter '*.lean'` with no `-Recurse` in the PowerShell arm.
-The moment proofs are filed by subject — `Proofs/Ctbrec/`, `Proofs/Sanctum/` —
+The moment proofs are filed by subject — `Proofs/<SubjectA>/`, `Proofs/<SubjectB>/` —
 the newest file either arm could see was whatever last landed in the root.
 Measured on a real tree at one instant: **2947 minutes stale one level deep, 54
 minutes recursive**. A 55x error, and the hook spent an entire working session

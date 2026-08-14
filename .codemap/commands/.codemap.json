@@ -1,0 +1,53 @@
+{
+  "directory": "commands",
+  "files": {
+    "corpus.md": {
+      "hash": "7c93e71de5e8",
+      "indexed_at": "2026-08-14T03:20:53.214760+00:00",
+      "language": "markdown",
+      "lines": 59,
+      "mtime_ns": 1786677650143762700,
+      "size": 2119,
+      "symbols": [
+        {
+          "docstring": "Run the fetcher that ships with the plugin. Pick the arm for the platform:",
+          "lines": [
+            14,
+            29
+          ],
+          "name": "What to do",
+          "type": "section"
+        },
+        {
+          "docstring": "| code | meaning | |---:|---| | `0` | the corpus is current, or the user declined \u2014 **nothing was written** | | `2` | refusal: bad argument, no downlo",
+          "lines": [
+            30,
+            39
+          ],
+          "name": "Exit codes \u2014 identical on both arms",
+          "type": "section"
+        },
+        {
+          "docstring": "It will **never silently overwrite a modified corpus.** If any `.lean` file changed after the last fetch, those paths are listed before anything happe",
+          "lines": [
+            40,
+            48
+          ],
+          "name": "What it will not do",
+          "type": "section"
+        },
+        {
+          "docstring": "After running it, state plainly:",
+          "lines": [
+            49,
+            60
+          ],
+          "name": "Reporting back",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-08-14T03:20:53.470583+00:00",
+  "version": "1.0"
+}

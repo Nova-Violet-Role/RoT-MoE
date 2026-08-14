@@ -363,14 +363,71 @@ jobs:
           if (Get-Command zip -ErrorAction SilentlyContinue) {
             "zip already present"
           } else {
+            # MEASURED FAILURE, run 31757025483: `choco install zip` failed on
+            # windows-latest and took the entire checkers job with it -- 37 steps
+            # skipped because a THIRD-PARTY PACKAGE REGISTRY was unavailable.
+            # A release gate that goes red when chocolatey has a bad afternoon is
+            # not measuring this repository.
             choco install zip -y --no-progress
+            if ($LASTEXITCODE -ne 0) { "choco install zip FAILED (exit $LASTEXITCODE) -- falling back to 7-Zip" }
+          }
+          if (-not (Get-Command zip -ErrorAction SilentlyContinue)) {
+            # FALLBACK: 7z is PREINSTALLED on windows-latest, so this needs no
+            # network at all. The shim implements exactly the three invocation
+            # shapes this repo uses -- `zip -q [-r] <archive> <path>...` -- and
+            # REFUSES anything else rather than guessing. A shim that silently
+            # mistranslates an unknown flag would produce a WRONG archive that
+            # still passes its checksum, which is worse than no zip.
+            $sevenZip = (Get-Command 7z -ErrorAction SilentlyContinue)
+            if (-not $sevenZip) { Write-Error "neither zip nor 7z is available -- packaging cannot run"; exit 1 }
+            $shimDir = Join-Path $env:RUNNER_TEMP "zipshim"
+            New-Item -ItemType Directory -Force -Path $shimDir | Out-Null
+            # BUILT AS AN ARRAY, NOT A HERE-STRING. A PowerShell @'...'@ block
+            # needs its body at column 0, which breaks straight out of this
+            # YAML block scalar -- measured: `ci.yml` stopped parsing entirely
+            # and workflow-lint caught it before it ever reached GitHub.
+            $shimLines = @(
+              '#!/usr/bin/env bash',
+              '# zip shim over 7z. Accepts only: zip -q [-r] <archive> <path>...',
+              'set -u',
+              '# NO BASH ARRAY here, deliberately: workflow-lint R21 reads this',
+              '# text as the step shell and cannot tell a written FILE from code,',
+              '# so an array would trip it. Positional parameters do the same job.',
+              'while [ $# -gt 0 ]; do',
+              '  case "$1" in',
+              '    -q|-r|-qr|-rq) shift ;;',
+              '    -*) echo "zip-shim: unsupported flag $1 -- refusing rather than guessing" >&2; exit 2 ;;',
+              '    *) break ;;',
+              '  esac',
+              'done',
+              '[ $# -ge 2 ] || { echo "zip-shim: need <archive> and at least one path" >&2; exit 2; }',
+              'archive="$1"; shift',
+              '7z a -tzip -bso0 -bsp0 -- "$archive" "$@" >/dev/null || exit 1',
+              '[ -s "$archive" ] || { echo "zip-shim: produced an EMPTY archive" >&2; exit 1; }',
+              'exit 0'
+            )
+            $shim = ($shimLines -join "`n") + "`n"
+            $shimPath = Join-Path $shimDir "zip"
+            [System.IO.File]::WriteAllText($shimPath, ($shim -replace "`r`n", "`n"))
+            "$shimDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            $env:PATH = "$shimDir;$env:PATH"
+            "zip shim installed at $shimPath (backed by 7z)"
+            # PROVE THE SHIM WORKS before declaring the step green. A shim that
+            # cannot make an archive must fail HERE, not in a checker later.
+            $probe = Join-Path $env:RUNNER_TEMP "shim-probe"
+            New-Item -ItemType Directory -Force -Path $probe | Out-Null
+            "probe" | Out-File (Join-Path $probe "a.txt")
+            bash -c "cd '$($probe -replace '\\','/')' && zip -q -r probe.zip a.txt"
+            if (-not (Test-Path (Join-Path $probe "probe.zip"))) {
+              Write-Error "the zip shim did not produce an archive -- packaging cannot run"; exit 1
+            }
+            "zip shim verified: it produced a real archive"
           }
           # Fail loudly here rather than as a REFUSE three steps later.
           if (-not (Get-Command zip -ErrorAction SilentlyContinue)) {
             Write-Error "zip is still absent after install -- packaging cannot run"
             exit 1
           }
-          zip -v | Select-Object -First 2
 
       # MEASURED on macos-latest, CI #23, from the checker's own "bounded by:"
       # line: the macOS runner has NEITHER `timeout` NOR `gtimeout`. Windows

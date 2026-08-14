@@ -1157,18 +1157,18 @@
       ]
     },
     "portability.sh": {
-      "hash": "792de9311c06",
-      "indexed_at": "2026-08-12T08:44:37.540195+00:00",
+      "hash": "fdafe51020fd",
+      "indexed_at": "2026-08-14T01:39:45.125549+00:00",
       "language": "shell",
-      "lines": 674,
-      "mtime_ns": 1786215257278596400,
-      "size": 35560,
+      "lines": 680,
+      "mtime_ns": 1786671582464367300,
+      "size": 36052,
       "symbols": [
         {
           "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
           "lines": [
-            572,
-            576
+            578,
+            582
           ],
           "name": "s6_scan",
           "type": "function"
@@ -1367,17 +1367,18 @@
       ]
     },
     "release-package.sh": {
-      "hash": "0869d8d595c8",
-      "indexed_at": "2026-08-12T08:44:37.563094+00:00",
+      "hash": "75fcd01c4e76",
+      "indexed_at": "2026-08-14T04:32:54.252359+00:00",
       "language": "shell",
-      "lines": 474,
-      "mtime_ns": 1785926444077850600,
-      "size": 21668,
+      "lines": 535,
+      "mtime_ns": 1786681971111606000,
+      "size": 24772,
       "symbols": [
         {
+          "docstring": "Joined with NEWLINE, never with a space -- a space here would re-introduce the very splitting the newline IFS exists to prevent, and it would do so si",
           "lines": [
-            153,
-            159
+            174,
+            180
           ],
           "name": "paths_for",
           "type": "function"
@@ -1385,8 +1386,8 @@
         {
           "docstring": "--- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ---------------------- The property that makes the numbering mean something. Checked by set dif",
           "lines": [
-            260,
-            268
+            321,
+            329
           ],
           "name": "superset",
           "type": "function"
@@ -1456,12 +1457,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "83649ba06ff2",
-      "indexed_at": "2026-08-12T21:05:22.308322+00:00",
+      "hash": "0538800dbd24",
+      "indexed_at": "2026-08-14T04:32:54.254780+00:00",
       "language": "shell",
-      "lines": 761,
-      "mtime_ns": 1786568719756929900,
-      "size": 39405,
+      "lines": 808,
+      "mtime_ns": 1786681971111606000,
+      "size": 42093,
       "symbols": [
         {
           "lines": [
@@ -1474,40 +1475,40 @@
         {
           "docstring": "Every \"<n> theorems\" / \"<n> machine-checked\" claim must equal TH -- ANYWHERE IN THE TREE, not in three files chosen by hand.  MEASURED DEFECT, 2026-07",
           "lines": [
-            137,
-            175
+            184,
+            222
           ],
           "name": "claim_exempt",
           "type": "function"
         },
         {
           "lines": [
-            177,
-            220
+            224,
+            267
           ],
           "name": "scan_file_claims",
           "type": "function"
         },
         {
           "lines": [
-            472,
-            479
+            519,
+            526
           ],
           "name": "detects",
           "type": "function"
         },
         {
           "lines": [
-            530,
-            539
+            577,
+            586
           ],
           "name": "strip_lean_comments",
           "type": "function"
         },
         {
           "lines": [
-            683,
-            753
+            730,
+            800
           ],
           "name": "inv_check",
           "type": "function"
@@ -1987,15 +1988,15 @@
       ]
     },
     "workflow-roles.sh": {
-      "hash": "ba5171de24ad",
-      "indexed_at": "2026-08-12T08:44:37.612440+00:00",
+      "hash": "7e48482939d5",
+      "indexed_at": "2026-08-14T05:45:20.060598+00:00",
       "language": "shell",
-      "lines": 215,
-      "mtime_ns": 1786426481226921800,
-      "size": 10069,
+      "lines": 262,
+      "mtime_ns": 1786686317515672200,
+      "size": 12771,
       "symbols": []
     }
   },
-  "generated_at": "2026-08-13T21:04:53.895899+00:00",
+  "generated_at": "2026-08-14T05:45:20.060738+00:00",
   "version": "1.0"
 }

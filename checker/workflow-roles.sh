@@ -55,7 +55,13 @@ WFDIR=.github/workflows
 # from a filename. An inferred role silently reclassifies a workflow the day
 # someone renames it, which is the same stale-snapshot defect this repo keeps
 # finding in its own counters.
-CODE_GATES="ci.yml verify.yml"
+#
+# `corpus-update.yml` is a CODE GATE, not a docs manager, and the distinction is
+# load-bearing: it runs `repo-complete.sh` and `release-package.sh`, so it can
+# FAIL a corpus commit that would have shipped an empty `Lean Theorem/`. A gate
+# that can go red on real content belongs with the gates. It holds only
+# `contents: read`, which is what the code-gate rule below requires.
+CODE_GATES="ci.yml verify.yml corpus-update.yml"
 DOCS_MANAGERS="ads-manager.yml tag-manager.yml"
 
 # Every workflow on disk must be classified. A file nobody assigned a role to is
@@ -162,6 +168,47 @@ EOF
       continue
     fi
     if [ "$green" = "NONE" ]; then
+      # A workflow that has never succeeded is usually broken -- but NOT when it
+      # has never had the CHANCE. A workflow added in the very commit being
+      # checked has no runs by construction, and the old rule made that state
+      # unreachable: it could not be pushed until green, and could not be green
+      # until pushed. That is a spec forbidding a correct future, not a defect
+      # in the change, and the repair is to distinguish the two cases rather
+      # than to weaken the rule.
+      #
+      # NOT-ON-THE-REMOTE is the discriminator, and it is measured, not assumed:
+      # if origin/main does not carry this file, GitHub has never seen it, so
+      # "no green run" is the only possible state and says nothing about health.
+      # The moment it is pushed the normal rule applies with no exemption left
+      # behind -- this cannot silently excuse a workflow that later starts
+      # failing, because by then the file IS on the remote.
+      #
+      # `git ls-tree`, NOT `git cat-file -e origin/main:<path>`. On Git Bash the
+      # `rev:path` syntax is destroyed by MSYS2 path conversion -- measured, the
+      # argument arrived as `origin\main;.github\workflows\ci.yml` and every
+      # lookup returned 128. Read as "absent", that would have exempted ALL FIVE
+      # workflows, including ones long present on the remote: a false green born
+      # from a lookup that could not distinguish "not there" from "I could not
+      # ask". `ls-tree` takes the ref and the path as separate arguments.
+      #
+      # AND NOT `| grep -qx` EITHER. Under `set -o pipefail`, grep -q exits the
+      # moment it matches, SIGPIPEs the writer, and the pipeline reports 141 --
+      # so a MATCH would read as a failure. workflow-lint caught exactly that in
+      # the first version of this block. Capture, then match with `case`: no
+      # pipe, no signal, and the newline guards make it a whole-line compare.
+      _remote_wf="$(git ls-tree --name-only origin/main -- "$WFDIR" 2>/dev/null)"
+      case "
+$_remote_wf
+" in
+        *"
+$WFDIR/$b
+"*) _on_remote=1 ;;
+        *)  _on_remote=0 ;;
+      esac
+      if [ "$_on_remote" -eq 0 ]; then
+        skip "$b is NEW (absent from origin/main) -- it has had no chance to run; the rule applies once pushed"
+        continue
+      fi
       bad "$b has NEVER succeeded (newest run ${newest}h old) -- running is not working"
       continue
     fi

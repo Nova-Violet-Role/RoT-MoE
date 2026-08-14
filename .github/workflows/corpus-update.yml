@@ -1,0 +1,106 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# CORPUS UPDATE -- keep "latest" true whenever `Lean Theorem/` moves.
+#
+# WHAT THIS IS NOT, stated first so nobody looks for it: this is NOT Dependabot,
+# and it could not be. Dependabot updates DECLARED DEPENDENCIES in ecosystems it
+# knows (github-actions, npm, cargo...). It has no Lean ecosystem, it cannot
+# reinstall a Claude Code plugin, and it cannot be pointed at a folder of proofs.
+# `.github/dependabot.yml` says the same thing at its line 9 and remains correct
+# for what it does cover.
+#
+# NOR is there a `--force-update` flag to invoke. MEASURED against the CLI on
+# 2026-08-14, Claude Code 2.1.227:
+#
+#   claude plugin update <plugin>   -> options: -h, -s/--scope   (no --force)
+#   claude plugin install <plugin>  -> options: --config, -h, -s (no --force)
+#
+# So a workflow calling `--force-update` would fail on its first run. The real
+# refresh is two commands, both of which DO exist, and they are documented for
+# users in README's install section:
+#
+#   claude plugin marketplace update rot-moe      # re-read the marketplace
+#   claude plugin update rot-moe@rot-moe          # then take the new version
+#
+# WHAT THIS WORKFLOW DOES: whenever the shared corpus changes on `main`, or a
+# release is published, it re-proves that the corpus still TRAVELS -- present,
+# counted, absent from CORE -- and rebuilds the archives so that whatever a user
+# downloads as "latest" contains the corpus that is actually in the tree.
+#
+# It is allowed to FAIL. That is the point: a corpus commit that breaks
+# packaging must go red here rather than silently ship an archive whose
+# `Lean Theorem/` is empty.
+# =============================================================================
+
+name: corpus update
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Lean Theorem/**'
+      - 'checker/release-package.sh'
+      - 'checker/repo-complete.sh'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: corpus-update-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  corpus-travels:
+    name: the corpus still travels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The corpus must exist and be non-trivial BEFORE anything is packaged.
+      # repo-complete refuses a missing, empty or undocumented corpus and counts
+      # its theorems with the canonical counter.
+      # NO `echo "...=$?"` HERE, deliberately. GitHub runs `run:` under `bash -e`,
+      # so a non-zero checker aborts the step before any such line executes --
+      # the exit read would be unreachable decoration that LOOKS like rigour.
+      # The step's own status is the instrument.
+      - name: corpus present, non-empty, documented, counted
+        run: bash checker/repo-complete.sh
+
+      # Packaging asserts the two directions that matter: every corpus module
+      # reaches LEAN, and none of it reaches CORE.
+      - name: archives carry the corpus (and CORE does not)
+        run: bash checker/release-package.sh
+
+      # State the size rather than discovering it after a user complains.
+      - name: report what the corpus costs
+        run: |
+          set -u
+          mods=$(find "Lean Theorem" -name '*.lean' | grep -c .)
+          kb=$(du -sk "Lean Theorem" | cut -f1)
+          echo "shared corpus: ${mods} modules, ${kb} KB on disk"
+          # A corpus that has silently become empty must not report success.
+          if [ "$mods" -eq 0 ]; then
+            echo "::error title=corpus::the shared corpus holds no .lean file"
+            exit 1
+          fi
+
+      - name: publishable archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: rot-moe-archives
+          # `.release` is what checker/release-package.sh:104 actually writes to
+          # (ROTMOE_RELEASE_DIR, defaulting to $REPO/.release). The first draft
+          # of this line guessed `.release-out` -- which, paired with
+          # `if-no-files-found: warn`, would have uploaded NOTHING and stayed
+          # green. `error` is the only honest setting: this step exists to
+          # produce archives, so producing none is a failure.
+          path: |
+            .release/*.zip
+          if-no-files-found: error
+          retention-days: 14

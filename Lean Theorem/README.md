@@ -85,19 +85,49 @@ Honest, and low enough to be reachable:
 | **zero `sorry`** | a `sorry` is an admission, never a result |
 | **no `native_decide`** | it trusts the compiler binary instead of the kernel |
 | a `README.md` naming **what the mutations killed** | the finding, not the file list |
-| `mutate/` present, or its **absence stated plainly** | see the table below — three of the four seed subjects fail this, and say so |
+| `mutate/` present, or its **absence stated plainly** | see the table below — two of the three seed subjects fail this, and say so |
 
 ## What is here now — measured, not estimated
 
 | subject | modules | theorems | `mutate/` | domain |
 |---|---:|---:|:--:|---|
-| `Ctbrec/` | 92 | 1535 | **absent** | a Java desktop application — recording, sessions, file ownership, licence detection |
-| `Skyrim/` | 6 | 50 | **4 suites** | a game plugin — movement, unstuck logic, build detection, path resolution |
+| `Skyrim/` | 6 | 48 | **4 suites** | a game plugin — movement, unstuck logic, build detection, path resolution |
 | `RalphLoop/` | 1 | 10 | **absent** | an autonomous agent loop |
 | `Hooks/` | 1 | 13 | **absent** | shell hook behaviour |
-| **total** | **100** | **1608** | 4 suites | **1.5 MB** on disk |
+| **total** | **8** | **71** | 4 suites | **112 KB** on disk |
 
-**Three of the four seed subjects ship without mutation suites, and that is
+> **These numbers come from `checker/count-theorems.sh`.** Do not count by hand:
+> an earlier draft of this table said 1608, counted by grepping the word
+> `theorem`, which also counts it inside doc comments. `repo-complete.sh` will
+> refuse a total it cannot reproduce.
+
+### What it costs to ship — measured before shipping, not discovered afterwards
+
+This folder travels inside the **LEAN** and **UNSEALED** release archives. It is
+deliberately absent from **CORE**, by the same rule that keeps `lean/` out: a
+person downloading "core" to get a router did not ask for a proof corpus.
+
+| archive | 4.0.x size | note |
+|---|---:|---|
+| `core` | 424 603 B | the corpus is **excluded** — asserted, not assumed |
+| `lean` | 2 309 564 B | carries all 8 corpus modules |
+| `unsealed` | 2 312 244 B | inherits LEAN |
+
+`checker/release-package.sh` asserts the CORE exclusion and counts every corpus
+module in LEAN against what is on disk, so a future edit cannot quietly ship an
+empty directory.
+
+**These sizes are smaller than earlier releases measured, and that is a
+withdrawal rather than a compression win.** A subject was removed from the corpus
+by its author's decision; the archive shrank because the content left, not
+because anything was optimised. Recorded here so no later reader mistakes one for
+the other.
+
+The corpus is now small enough that its size is not the interesting number. What
+matters is that it **travels and is fetchable**: `SETUP_CORPUS.sh` refreshes it
+from `main` on demand, so the 8 modules here are a seed, not a ceiling.
+
+**Two of the three seed subjects ship without mutation suites, and that is
 recorded rather than quietly tolerated.** By this folder's own standard they are
 *incomplete* — they teach how the domain was formalized and say nothing about
 which parts held up. They are included because a real, honest, partial base is

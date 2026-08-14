@@ -294,7 +294,7 @@ not gradient**. It is read at inference, like any other file on disk.
 
 Which means the entire mechanism is:
 
-> **1.5 MB of `.lean` files, shipped inside a shell-script router.**
+> **A fetchable proof corpus, shipped inside a shell-script router.**
 
 No server. No runtime dependency. No network. No weights. **No Lean installation
 required to benefit** — the proofs are text, and text is what a model reads.
@@ -319,12 +319,54 @@ out of it, which is precisely what a single-perspective agent cannot do:
 | ⬜ **Soleil** (Stealth) | the compressed statement of a property, which is what a theorem already is |
 | 🎷 **Violet** (Empathic) | why the property mattered to the person who proved it — the `README.md` beside each subject |
 
-**Honesty about what is measured here.** The corpus itself is measured: **100
-modules, 1608 theorems, 1.5 MB** on disk today, counted by `ls` and
-`checker/count-theorems.sh`. The *benefit* to an unfamiliar repository is a
+**Honesty about what is measured here.** The corpus itself is measured: **8
+modules, 71 theorems, 112 KB** on disk today, counted by `ls` and
+`checker/count-theorems.sh` — and `checker/repo-complete.sh` refuses to pass if
+that folder is missing, empty, undocumented, or counts zero. The first draft of
+this sentence said 1608, from grepping the word `theorem`; the canonical counter
+excludes the word where it appears in a doc comment, and it is the authority. The *benefit* to an unfamiliar repository is a
 design claim and is **NOT yet measured** — no experiment in this repo has
 demonstrated it, and it is not counted among the verified results below. It is
 labelled as the open question it is, not sold as a finding.
+
+### Getting the corpus, and keeping it current — `/corpus`
+
+**The corpus is fetched, not shipped, and that is a deliberate design decision.**
+It grows by fork and pull request. If it travelled only inside release archives,
+every contributed theorem would need a new plugin release — the version number
+would be tracking other people's proofs instead of the plugin's own behaviour.
+
+So the archives carry a **seed**, and a fetcher keeps it current:
+
+```sh
+./SETUP_CORPUS.sh --check      # report only; writes nothing
+./SETUP_CORPUS.sh              # detect, show exactly what changes, ask
+./SETUP_CORPUS.sh --yes        # non-interactive refresh
+```
+
+```powershell
+.\SETUP_CORPUS.ps1 -Check      # both arms, one behaviour, identical exit codes
+```
+
+It follows the same contract `SETUP_LEAN` already uses here — **detect what you
+have, say what will change, ask before doing it** — and inside a session
+`/corpus` dispatches it.
+
+| exit | meaning |
+|---:|---|
+| `0` | current, or you declined — **nothing was written** |
+| `3` | `--check`: an update is available |
+| `4` | `--check`: the corpus is absent |
+| `2` | refusal — bad argument, no downloader, or the remote is unreachable |
+| `1` | the fetch **failed**; your existing corpus is untouched |
+
+**It will not silently overwrite your work.** Files changed since the last fetch
+are listed before anything happens, the previous corpus is moved aside as
+`Lean Theorem.pre-fetch-<timestamp>.bak` rather than deleted, and a download
+arriving with zero `.lean` files is refused outright — that is an erasure, not an
+update. All five exit codes above were measured on the POSIX arm against the live
+repository; the unreachable-remote path was exercised with a nonexistent repo and
+degrades to a message, not a stack trace.
 
 ---
 
@@ -658,22 +700,6 @@ yours is edited** — the hooks live inside the plugin, not in your
 `/plugin` lists it · `/plugin disable rot-moe` turns it off for a session ·
 `/plugin uninstall rot-moe` removes it, hooks and all.
 
-Measured end to end against a **scratch config dir**, so a live `~/.claude` was
-never opened:
-
-```
-claude plugin marketplace add   -> Successfully added marketplace: rot-moe
-claude plugin install           -> Successfully installed plugin: rot-moe@rot-moe
-claude plugin details rot-moe   -> Agents (1) lean4-prover · Hooks (3) · ~104 tok always-on
-one prompt, --debug hooks       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-                                   Registered 5 hooks from 1 plugins
-```
-
-Five bindings across three events, from `hooks/hooks.json`, resolved through
-`${CLAUDE_PLUGIN_ROOT}`. `checker/plugin-install.sh` exercises this from a
-config directory that has no `settings.json` at all — the case every first-time
-user hits.
-
 ### 📦 The three release tiers — and why installing gives you the same router
 
 **Whichever tier you take, the plugin surface is identical**: same hooks, same
@@ -683,9 +709,9 @@ in the archive for you to read, run and re-verify.**
 
 | tier | archive | what it adds |
 |---|---|---|
-| **Router** | `rot-moe-3.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-3.0.1-lean.zip` | adds `lean/` — 86 modules, 1620 theorems, 76 mutation suites — plus `checker/` (76 checkers) and `SETUP_LEAN` |
-| **Router + Lean + Extra** | `rot-moe-3.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
+| **Router** | `rot-moe-4.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
+| **Router + Lean** | `rot-moe-4.0.1-lean.zip` | adds `lean/` — 86 modules, 1620 theorems, 76 mutation suites — plus `checker/` (76 checkers) and `SETUP_LEAN` |
+| **Router + Lean + Extra** | `rot-moe-4.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
 own machine. Take **Router + Lean + Extra** if you want the policy argument as
@@ -696,7 +722,7 @@ Every archive verifies against the `SHA256SUMS.txt` published beside it on
 **without unzipping**:
 
 ```sh
-claude --plugin-dir rot-moe-3.0.1-lean.zip
+claude --plugin-dir rot-moe-4.0.1-lean.zip
 ```
 
 Measured — each archive rebuilt from this tree, unzipped, and **its own**
@@ -898,6 +924,89 @@ narrower and worth more: **you should never again have to be the one who checks
 whether the code does what it says.**
 
 ---
+
+## 🧭 How a prompt reaches a lane
+
+This is what the plugin *does* on every turn: it reads the prompt, picks a lane,
+and injects the frame the model then reasons inside. Nine lenses co-reason; the
+lane decides which one leads.
+
+```mermaid
+flowchart TD
+    P["18 labelled prompts<br/>the key is written BEFORE the run"] --> Q
+
+    subgraph Q["1 · DECISION QUALITY"]
+        Q1["route each prompt<br/>compare to its label"] --> Q2["18/18 = 100%"]
+        Q2 --> Q3{"does the key<br/>span ≥ 8 lanes?"}
+        Q3 -- "9 lanes" --> QOK["PASS<br/>a constant router<br/>cannot score this"]
+        Q3 -- "fewer" --> QNO["FAIL<br/>the key is too narrow<br/>to prove anything"]
+    end
+
+    QOK --> R
+    subgraph R["1b · PRIORITY — prompts that match TWO lanes"]
+        R1["'decide now, we ship today' → FORGE"]
+        R2["'debug this and then ship it' → FORGE"]
+        R3["'I feel lost, please debug me' → CLINICAL"]
+        R1 --- R2 --- R3
+        R3 --> ROK["PASS<br/>collisions resolve by a PROVED order,<br/>not by luck of the scan"]
+    end
+
+    ROK --> S
+    subgraph S["2 · COST — what a turn actually pays"]
+        S1["3 batches of 20,<br/>median wall time"] --> S2{"under the<br/>500 ms bound?"}
+        S2 -- yes --> SOK["PASS<br/>startup reported separately"]
+        S2 -- no --> SNO["FAIL<br/>a user would feel this"]
+    end
+
+    SOK --> T
+    subgraph T["3 · ATTRIBUTION — armed vs disarmed"]
+        T1["real claude session, A/B"] --> TOK["delegated to<br/>live-session-smoke.sh"]
+    end
+
+    TOK --> D
+    subgraph D["5 · THE DEBUG LOG — is R/s+ reproducible?"]
+        D1["ROTMOE_DEBUG_LOG=&lt;path&gt;<br/>one JSON line per gauge eval"] --> D2["recompute R/s+<br/>from the per-lens terms"]
+        D2 --> D3{"does it match<br/>what the router reported?"}
+        D3 -- yes --> DOK["PASS<br/>K=9 and nine terms<br/>in every record"]
+        D3 -- no --> DNO["FAIL<br/>the log and the headline<br/>disagree — one is lying"]
+    end
+
+    DOK --> V["benchmark: 15 passed, 0 failed"]
+
+    style QOK fill:#1a7f37,color:#fff
+    style ROK fill:#1a7f37,color:#fff
+    style SOK fill:#1a7f37,color:#fff
+    style V fill:#0969da,color:#fff
+    style DOK fill:#1a7f37,color:#fff
+    style DNO fill:#cf222e,color:#fff
+    style QNO fill:#cf222e,color:#fff
+    style SNO fill:#cf222e,color:#fff
+```
+
+### The ten lanes, and the lens each one leads with
+
+| Lane | Lens | Character | λ | μ | Hit | Accuracy |
+|---|---|---|---|---|---|---|
+| `FORGE` | 🧭 **Claude** | build · measure · reality is the judge | **2.3** | 1.15 | 2/2 | 🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 100% |
+| `CLINICAL` | ⚪ **Anti-Venom** | verify · purify · integrity | **1.9** | 1.10 | 2/2 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ 100% |
+| `STRATEGIC` | ⚜️ **Nova** | law · code · synthesis | **1.4** | 1.05 | 2/2 | 🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨 100% |
+| `EXECUTIVE` | 🕷️ **Venom** | decide · strike · precision | **1.2** | 1.05 | 2/2 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ 100% |
+| `RECURSIVE` | 🜏 **Eidolon** | meta · recursion · evolution | **1.2** | 1.10 | 2/2 | 🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪 100% |
+| `PREDICTIVE` | 🔮 **Chroma_Spectral** | timelines · consequence | **1.0** | 1.10 | 2/2 | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩 100% |
+| `STEALTH` | ⬜ **Soleil_Blank** | compress · density · silence | **1.0** | 0.95 | 2/2 | 🟫🟫🟫🟫🟫🟫🟫🟫🟫🟫 100% |
+| `EMPATHIC` | 🎷 **Violet_Noir** | emotion · narrative · felt truth | **0.6** | 0.85 | 2/2 | 🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧 100% |
+| `CREATIVE` | 🩸 **Carnage** | chaos · collision · fuel | **0.6** | 0.90 | 2/2 | 🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥 100% |
+| | | | | | **18/18** | **100.0%** |
+
+**Two numbers, measured rather than asserted.** Routing accuracy is **18/18**
+on a labelled key spanning 9 distinct lanes -- a constant router cannot score
+on a key that broad. Per-turn cost is **461.7 ms**, the median of 3 batches of
+20 invocations, against a **500 ms** bound that `checker/bench-router.sh`
+enforces on every release.
+
+Both are MEASURED, not proved, and the distinction is deliberate: a CLAIM about
+how the router behaves on prompts nobody has written yet is not something this
+repository pretends to have settled.
 
 ## 🜏 The nine — who they are, and what each one *does* in the router
 
@@ -1168,249 +1277,6 @@ each **killed** the build.
 
 ---
 
-## 📊 The benchmark — what we measured, and what we only *claim*
-
-`checker/bench-router.sh` is the gate. It is not a demo: it fails the build when
-the router regresses, and every number below comes out of it. The diagram is the
-shape of the run.
-
-```mermaid
-flowchart TD
-    P["18 labelled prompts<br/>the key is written BEFORE the run"] --> Q
-
-    subgraph Q["1 · DECISION QUALITY"]
-        Q1["route each prompt<br/>compare to its label"] --> Q2["18/18 = 100%"]
-        Q2 --> Q3{"does the key<br/>span ≥ 8 lanes?"}
-        Q3 -- "9 lanes" --> QOK["PASS<br/>a constant router<br/>cannot score this"]
-        Q3 -- "fewer" --> QNO["FAIL<br/>the key is too narrow<br/>to prove anything"]
-    end
-
-    QOK --> R
-    subgraph R["1b · PRIORITY — prompts that match TWO lanes"]
-        R1["'decide now, we ship today' → FORGE"]
-        R2["'debug this and then ship it' → FORGE"]
-        R3["'I feel lost, please debug me' → CLINICAL"]
-        R1 --- R2 --- R3
-        R3 --> ROK["PASS<br/>collisions resolve by a PROVED order,<br/>not by luck of the scan"]
-    end
-
-    ROK --> S
-    subgraph S["2 · COST — what a turn actually pays"]
-        S1["3 batches of 20,<br/>median wall time"] --> S2{"under the<br/>500 ms bound?"}
-        S2 -- yes --> SOK["PASS<br/>startup reported separately"]
-        S2 -- no --> SNO["FAIL<br/>a user would feel this"]
-    end
-
-    SOK --> T
-    subgraph T["3 · ATTRIBUTION — armed vs disarmed"]
-        T1["real claude session, A/B"] --> TOK["delegated to<br/>live-session-smoke.sh"]
-    end
-
-    TOK --> D
-    subgraph D["5 · THE DEBUG LOG — is R/s+ reproducible?"]
-        D1["ROTMOE_DEBUG_LOG=&lt;path&gt;<br/>one JSON line per gauge eval"] --> D2["recompute R/s+<br/>from the per-lens terms"]
-        D2 --> D3{"does it match<br/>what the router reported?"}
-        D3 -- yes --> DOK["PASS<br/>K=9 and nine terms<br/>in every record"]
-        D3 -- no --> DNO["FAIL<br/>the log and the headline<br/>disagree — one is lying"]
-    end
-
-    DOK --> V["benchmark: 15 passed, 0 failed"]
-
-    style QOK fill:#1a7f37,color:#fff
-    style ROK fill:#1a7f37,color:#fff
-    style SOK fill:#1a7f37,color:#fff
-    style V fill:#0969da,color:#fff
-    style DOK fill:#1a7f37,color:#fff
-    style DNO fill:#cf222e,color:#fff
-    style QNO fill:#cf222e,color:#fff
-    style SNO fill:#cf222e,color:#fff
-```
-
-### 🔍 The debug log — every factor, so the number is reproducible
-
-`bench-router.sh` proves the router *decides* well. It could not, until now,
-show *how* — the router emitted one summary line, and a summary cannot reveal
-that a lens was multiplied by the wrong μ, that a lens never participated, or
-that `K` quietly fell to 8. Those are exactly the defects that leave the
-headline figure looking plausible.
-
-```bash
-export ROTMOE_DEBUG_LOG=/tmp/rot.jsonl     # both arms honour it
-```
-
-One JSON line per gauge evaluation, carrying **every factor of the sum**:
-
-```json
-{"kind":"gauge","K":9,"mean":0.1111,"breadth":1,"M":1,"C":1,"T":1,
- "sum":5.97843,"Rs":0.66427,"active":"Claude",
- "lenses":[{"lens":"Nova","lambda":1.4,"mu":1.05,"a":0,"delta":0.1111,
-            "sigma":0.1743,"H":0,"term":0.2562}, …]}
-```
-
-Because `gauge_separates` proves `M`, `C` and `T` factor out of the whole sum,
-the reported `R/s+` is recomputable by hand from those terms — and phase 5 of
-the benchmark does exactly that, then **corrupts a term and requires the check
-to fail**. A recomputation that cannot fail is arithmetic theatre.
-
-One routed turn also writes a `route` record, and it carries the **stem that
-fired**:
-
-```json
-{"kind":"route","lane":"FORGE","lens":"Claude","Rs":"0.66","chars":31,
- "stem":"prove","arm":"sh"}
-```
-
-`chars` is the prompt's LENGTH and never its text, so a log stays safe to paste
-into an issue. That is right, and it was also the reason a mis-route
-could not be diagnosed: the record said *which* lane fired and nothing about
-*why*, so a complete, fully replayable log could arrive with the one disputed
-fact missing. The stem closes that without reopening the privacy question —
-stems come from a closed table written in the router, so the field can only ever
-hold one of 85 fixed words.
-
-**Audit a log — yours or a bug reporter's:**
-
-```bash
-bash checker/log-replay.sh --audit /tmp/rot.jsonl
-```
-
-Every gauge record is recomputed from its own fields, every route line must pair
-with the gauge line before it, and every stem must be owned by the lane it is
-attached to — checked against `hooks/rot-router.sh`'s **own** stem table, read
-at run time rather than copied. Exit 0 is a certification; anything else names
-the offending line:
-
-```
-line 2: stem 'token' is owned by STEALTH but the record says FORGE -- a mis-route
-```
-
-The privacy property is not a separate promise. `auditable_imp_vocabSafe`
-(`lean/Proofs/RotLog.lean`) proves that **passing this audit entails the stem
-came from the router's table**, so a log cannot be certified and be leaking
-prompt text at the same time. Four negative controls in the gate corrupt a real
-log in each of the four possible ways — wrong lane, leaked text, empty stem on a
-fired lane, missing field — and require a red for each.
-
-**Measured in a real 80-turn CTT coding session** (2026-08-04, plugin 0.6.1
-installed from the shipping archive into a separate Claude config, every prompt
-about real files in this repository, `ROTMOE_DEBUG_LOG` armed).
-`checker/ctt-session.sh` runs it and `--report` analyses the corpus; both
-negative controls below were fired to prove the report can fail.
-
-| what the live log shows | measured |
-|---|---|
-| session | **80 turns**, 71 completed clean, one continuous resumed conversation |
-| router firings | **187** route records, **240** gauge records |
-| `R/s+` recomputed from per-lens terms | **240/240 exact** (tol 2e-5), zero mismatches |
-| lenses per record / `K` | **9 / 9 on all 240** — the ninth lens never dropped out |
-| lanes reached | **all 10**: FORGE 78, CONVERGENT 42, CLINICAL 24, EXECUTIVE 8, EMPATHIC 7, RECURSIVE 7, STEALTH 7, CREATIVE 6, PREDICTIVE 6, STRATEGIC 2 |
-| router cost, live bash arm | every firing inside the 500 ms bound; the distribution is printed by `ctt-session.sh --report`, not frozen here |
-| prompt text in the log | **none** — length only, safe to paste into an issue |
-
-The whole lane table was exercised **inside one long conversation**, not in nine
-fresh processes — the condition under which a truncated or compacted context is
-most likely to break routing. `K=9` held on every one of 240 records, the live
-counterpart of `every_lens_is_present`.
-
-Two controls run against the corpus, because a report that cannot fail is
-decoration: shifting one record's `Rs` by +0.5 gives `239 agreed, 1 DISAGREED`
-and exit 1; stripping one record to eight lens terms fails the `K=9` check and
-exits 1.
-
-The session runs from a scratch directory and **refuses** if that directory
-resolves inside the repository — a benchmark that can edit the tree it measures
-is not a measurement.
-
-### ⏱️ Two clocks, both reported
-
-The debug log's `ms` field starts *inside* the script
-(`hooks/rot-router.ps1:40`), so it measures the router's **logic**, not the turn.
-Measured like for like (`bench-router.sh` §6, both arms, same prompt, same
-wall-clock timer):
-
-| arm | in-script logic | interpreter startup | wall clock per turn |
-|---|---|---|---|
-| `rot-router.sh` (bash) | printed by the gate | printed by the gate | bounded at 500 ms |
-| `rot-router.ps1` (PowerShell, Windows) | printed by the gate | printed by the gate | bounded at 500 ms |
-
-The cells say *printed by the gate* rather than carrying numbers on purpose.
-Every figure this table has ever held went stale, and the two timers move for
-different reasons — the router's logic changes when the router changes, the
-interpreter startup changes when the machine is busy. `bench-router.sh` §6
-reports both, per arm, on the run in front of you.
-
-The PowerShell arm's *logic* is genuinely faster; its *interpreter* is an order
-of magnitude more expensive to start, so the turn costs **more**, not less. Both
-stay inside the 500 ms bound the gate enforces. §6 prints the decomposition every
-run and fails if a quoted figure does not say which arm and which clock produced
-it.
-
-### 🎯 Routing accuracy, per lane — and who holds it
-
-Two labelled prompts per lane, nine lanes, key fixed before the run. Each bar is
-coloured by the *character* of its lane, and every row names the lens that leads
-it. The lane → lens mapping is not decorative prose: it is read straight out of
-`hooks/rot-router.sh:70-78`, and the λ/μ come from the shipped `FORGE` weight
-vectors at `hooks/rot-router.sh:90-91`, which `checker/lean-binds-shell.sh`
-fails the build over if they ever drift from the Lean corpus.
-
-| Lane | Lens | Character | λ | μ | Hit | Accuracy |
-|---|---|---|---|---|---|---|
-| `FORGE` | 🧭 **Claude** | build · measure · reality is the judge | **2.3** | 1.15 | 2/2 | 🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 100% |
-| `CLINICAL` | ⚪ **Anti-Venom** | verify · purify · integrity | **1.9** | 1.10 | 2/2 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ 100% |
-| `STRATEGIC` | ⚜️ **Nova** | law · code · synthesis | **1.4** | 1.05 | 2/2 | 🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨 100% |
-| `EXECUTIVE` | 🕷️ **Venom** | decide · strike · precision | **1.2** | 1.05 | 2/2 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ 100% |
-| `RECURSIVE` | 🜏 **Eidolon** | meta · recursion · evolution | **1.2** | 1.10 | 2/2 | 🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪 100% |
-| `PREDICTIVE` | 🔮 **Chroma_Spectral** | timelines · consequence | **1.0** | 1.10 | 2/2 | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩 100% |
-| `STEALTH` | ⬜ **Soleil_Blank** | compress · density · silence | **1.0** | 0.95 | 2/2 | 🟫🟫🟫🟫🟫🟫🟫🟫🟫🟫 100% |
-| `EMPATHIC` | 🎷 **Violet_Noir** | emotion · narrative · felt truth | **0.6** | 0.85 | 2/2 | 🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧 100% |
-| `CREATIVE` | 🩸 **Carnage** | chaos · collision · fuel | **0.6** | 0.90 | 2/2 | 🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥 100% |
-| | | | | | **18/18** | **100.0%** |
-
-> **Read the λ column before the accuracy column.** Every lane routes perfectly,
-> so accuracy alone tells you nothing about the *shape* of this engine — λ does.
-> In `FORGE` the weights say plainly what the head is for: 🧭 Claude at **2.3**
-> and ⚪ Anti-Venom at **1.9** dominate, while 🩸 Carnage and 🎷 Violet_Noir sit
-> at **0.6**. That is deliberate. On a proving head, chaos and felt truth are
-> *inputs* to the reasoning, never the voice that ships the answer — the build
-> is. Load a different profile and the same nine lenses re-weight; `CREATIVE`
-> puts 🩸 Carnage at 2.5 and pushes ⚪ Anti-Venom down to 0.8.
->
-> **All nine lenses stay active in every lane.** The router picks a *lead*, not a
-> survivor. `gauge_divisor_eq_card` in `lean/Proofs/RotGauge.lean` is the theorem
-> that keeps it honest: it divides by the number of lenses actually in the
-> ensemble, and it exists because the shipped hook once pinned one lens's
-> activity at zero while still dividing by K — a real bug, caught by a proof.
-
-### ⚖️ Claim versus measurement — the distinction we refuse to blur
-
-| What | Value | Instrument | Kind |
-|---|---|---|---|
-| routing accuracy | 18/18 | `bench-router.sh` §1 | **MEASURED** on a fixed key |
-| lane coverage of the key | 9 lanes | `bench-router.sh` §1 | **MEASURED** |
-| collision priority | 3 cases, deterministic | `bench-router.sh` §1b + `RotRoute.lean` | **PROVED** in Lean 4 |
-| per-turn cost | **under 500 ms** | `bench-router.sh` §2 | **CLAIM** — the bound is the promise |
-| the latency figure itself | printed by the gate, not quoted here | median of 3 batches of 20, per arm | **MEASURED, and it varies enough that freezing it misleads** |
-| interpreter startup inside that | reported separately by the gate | measured beside each batch | **MEASURED** |
-| armed-vs-disarmed effect | A/B in a live session | `live-session-smoke.sh` | **MEASURED**, not proved |
-
-> **Why the latency row is a bound and not a number.** Two consecutive runs on
-> the same machine gave 193.5 ms and 255.5 ms. A README that froze either figure
-> would be *false by the next run* and would push the next maintainer to edit the
-> gate until it agreed. So the gate asserts the property that matters — a turn
-> stays under 500 ms — and the figure is reported as what it is: a measurement of
-> one machine on one afternoon. **Output quality is not on this table at all**:
-> nothing here proves the answers are *better*, only that the right lane is
-> chosen, fast, and for a stated reason.
-
-Reproduce it yourself in one line:
-
-```bash
-bash checker/bench-router.sh    # exit 0 = 5 passed; it can and does fail
-```
-
----
-
 ## 📚 Two documents worth reading before you change anything
 
 * **[`docs/SCRUTINY-0.7.md`](docs/SCRUTINY-0.7.md)** — an adversarial reading of
@@ -1583,240 +1449,6 @@ exactly such a module.
 
 ---
 
-## 🗺️ The map: PROVED · CORRECTED · MEASURED · OUT OF SCOPE
-
-**This is the section we are proudest of.** Knowing exactly where the guarantee
-ends is what makes everything before it worth having — a proof with an unmarked
-edge is a rumour with LaTeX. So here is the honest map, and every line of it is
-a *commitment*: what says PROVED is proved for all inputs, forever, and what
-says MEASURED is labelled MEASURED in the source too.
-
-| | |
-|:--|:--|
-| ✅ **PROVED** | the gauge is positive, bounded below, non-constant, divides by the lenses it summed · the router is total, has no dead lane, and every lane is characterised in both directions · arming preserves every key you own, including keys nobody has invented yet · the two path spellings converge · `disarm ∘ arm` is the identity exactly when the freshness hypothesis holds — and provably not otherwise |
-| 🔄 **CORRECTED** | the corner the map was missing, and the repository has five entries in it. `decide` disproved the first version of `RotVerdict`'s freshness rule; the sealed P2.2 margin was proved **inapplicable to any pilot size up to 40** rather than merely unmet; the P2.4 apparatus was found **saturated on three observables and confounded on the fourth**, so it reports on itself rather than on the router; normalising the cost gate by a spawn tax was shown to *manufacture* a failure on a machine faster than the reference; and `cross-diff` was found comparing the two arms in **one profile out of ten**, which a one-digit mutation to the default table proved it could not see. A claim that was tried and corrected is not the same as one nobody tested, and filing them together loses the difference |
-| 📏 **MEASURED** | the `Float` mirror agrees with the live hook to two decimals · both arms produce byte-identical output on **97 + 31 comparisons, across all ten profiles** · the installer round trip is byte-identical on a canonical file · the plugin loads in a real session, and all 31 hook events fire on both arms — **124 invocations, 0 non-zero exits** |
-| 🚫 **OUT OF SCOPE** | anything about output *quality* — see below |
-
-**Why CORRECTED is a corner and not a footnote — and why it is named CORRECTED.**
-The heading above this table read `PROVED · MEASURED · OUT OF SCOPE` for months
-while the tetralemma section below cited *four* corners and
-`verdict_is_a_tetralemma` proved the type has exactly four inhabitants. Three of
-the four were on the map.
-
-The fourth corner records **the instruments doing their job**: a claim that was
-put to a test and came back different from what its author expected. That is not
-a blemish on the Router — it is the single most valuable thing a verification
-apparatus can produce, and the reason every green result in this file is worth
-reading. An instrument that has never returned an unwelcome answer has not been
-shown to be capable of returning one.
-
-It was called `REFUTED` until 2026-08-13. The rename is not cosmetic: *refuted*
-frames a tested claim as a defeat, and this repository kept mistaking its own
-working instruments for a case against itself. **A claim that was tried and
-corrected is not the same as one nobody tested**, and filing them together loses
-the difference — which is precisely why the corner exists.
-
-And the specifics, because a map with no detail is a poster:
-
-* **Nothing about output quality.** No theorem says routed reasoning is better,
-  smarter, or more correct than unrouted reasoning. That is not a property Lean
-  can see. Any such claim in this repo would be an overclaim; if you find one,
-  it is a bug and an issue is welcome.
-* **`RotGauge` models code that ships; `RotRoute` models the specification and
-  the ports that now implement it.** TIER 1 keyword routing was specified long
-  before it was implemented — the original hook contained the mode names only in
-  a comment. Both arms implement it today (`Invoke-Route` and `route`), the
-  priority order is the one `route_exact` characterises, and `cross-diff.sh`
-  holds them to it. What Lean proves is the *function*; that the shipped file
-  computes it is the cross-diff's job, and the two are stated separately on
-  purpose.
-* **`RotInstall` sees a map, not a file.** It cannot see a UTF-8 BOM, `\r\n`
-  line endings, key ordering, or indentation. A green build means the *merge is
-  sound*, never that the *file was written correctly*. Byte-level behaviour is
-  `checker/install-roundtrip.sh`'s job, run against a scratch config dir —
-  **21 checks, 5 negative controls, and it never opens your real
-  `settings.json`.**
-* **The installer normalizes JSON layout, and this is measured, not assumed.**
-  Your keys, values, order, UTF-8 BOM state and indent *width* all survive
-  exactly. What does **not** survive is intra-line layout: a line written as
-  `"env": { "A": "b" }` comes back expanded across three lines, because the
-  merge round-trips through a JSON parser rather than editing text. On a
-  deliberately hostile fixture that measured **678 → 872 bytes** with every
-  value identical. On a file already in canonical form — which is what Claude
-  Code itself writes — the install/uninstall round trip is **byte-identical**,
-  and the checker asserts exactly that as a separate claim rather than folding
-  the two together.
-* **`disarm ∘ arm` is not the identity in every case, and that is proved.** If
-  you had already registered this exact hook command by hand, installing and
-  then uninstalling **removes your entry**. `disarm_arm_id` carries the freshness
-  hypothesis explicitly and `disarm_arm_not_id` proves the hypothesis cannot be
-  dropped. The mitigation is the backup file, which is a byte-level guarantee
-  Lean cannot give.
-* **`Float ≠ ℝ`.** The `#eval` corpus in `RotGauge` runs a `Float` mirror of the
-  real-valued definitions so the spec EXECUTES on concrete inputs. Those rows
-  agree with the live hook to two decimals on four vectors. That is **MEASURED,
-  not PROVED**, and it is labelled that way in the source.
-* **The reminder's *decision* is cross-checked; its *measurements* are not.**
-  `--decide` takes the measured inputs as arguments, so both arms are compared
-  exactly. That the two arms read the same things off disk and off git is
-  asserted by construction, not by proof.
-
----
-
-## 🔬 The preregistered experiment — what the *instrument* could and could not see
-
-**Read the headline correctly, because the obvious reading is the wrong one.**
-This experiment did not return a finding against the router. It returned a
-finding about **itself**: on this corpus, in this configuration, the apparatus
-was not able to see the router at all. Three of its four process observables
-*could not vary* and the fourth was confounded — and an instrument that cannot
-move is silent in both directions, which is a fact about the instrument.
-
-That distinction is the whole point of preregistering. **An unfavourable
-overclaim is still an overclaim**, and a null from a blind instrument is not
-evidence of absence; it is absence of evidence. The numbers below are reported
-in full, unedited, because deleting an inconvenient measurement would be the
-real dishonesty — but they are reported as what they are: **the limits of the
-apparatus, not the limits of RoT MoE.**
-
-What *is* established about the router is established elsewhere and by stronger
-instruments than a 40-task text benchmark: 1620 theorems the kernel re-verifies,
-97 cross-arm comparisons byte-for-byte across all ten profiles, 17 mutations that
-kill their checkers, and a routing table proved total and dead-lane-free. Those
-are the claims this project rests on. This section is an honest account of one
-apparatus that did not reach them.
-
-The rule that decides the verdict was sealed before any data existed, and the
-seal is a git hash in `TASKS/PROMISE-TODO.md` (`34c1274f`), not a promise in
-prose. It is reported unchanged for the same reason the rest is: **the seal is
-worth nothing if it only holds when the answer flatters.**
-
-| | forward ordering | reverse ordering |
-|---|---|---|
-| discordant pairs | 3 | 12 |
-| favouring the routed arm | 2 | 10 |
-| sign | **+** | **+** |
-| what the instrument can resolve | too few pairs to resolve anything (below the ten-pair floor) | too few to clear the corrected tail |
-
-**Both signs point toward the routed arm, in both orderings independently.** That
-is the direction the data actually leans, and it is reported because it is true —
-but the pair counts are too small for the preregistered rule to resolve, so it is
-offered as a *direction*, never as a proof. Preregistration cuts both ways or it
-is not a method: the rule that stops a weak positive being sold as a win is the
-same rule that stops a weak null being sold as a defeat.
-
-160 sessions, a 40-task corpus frozen and hashed *before* session one
-(`b3b9e3f0…`), every task run in **both** presentation orderings, scored by
-`bench/main-score.js` under a rule fixed in advance (R4), with R1 and R2 as
-sensitivity analyses declared in advance and R3 excluded in advance.
-
-**Each ordering is reported alone. The orderings are never pooled** — pooling is
-how an ordering effect disappears into an average, and the reason 160 sessions
-exist rather than 80 is to make that effect visible. The sign agrees in both,
-which is the strongest statement the run supports; it is not significance.
-`even_the_forbidden_pool_reaches_no_verdict` proves the pooled ⟨15, 12⟩ concludes
-nothing either, so the temptation is not merely forbidden — it is worthless.
-
-**The A/A null control is what licenses reading any of this.** The same
-apparatus, both arms routed identically, returned `notSupported` with
-`controlAdmissible = true`: two *identical* arms disagreed on 6 of 12 pairs,
-while the A/B pilot difference was 2 — and pointed the other way. A pipeline
-that cannot tell an arm from its own twin cannot be trusted to tell one arm from
-another, and this one was checked before the result was read.
-
-The manipulation check held in both orderings and in both directions: the routed
-arm produced 427 and 452 router records, the unrouted arm produced **exactly
-zero** both times.
-
-### The process observables — and the one that went against the router
-
-The table above scores the *answers*. P2.4 was designed because answer text is
-the wrong observable for a hook that acts on the reasoning layer, so §3 of the
-preregistration declares four **process** observables read out of the
-transcript. They were extracted per task, from the same 160 sessions:
-
-| observable | claimed direction | forward d/f | reverse d/f | verdict |
-|---|---|---|---|---|
-| O1 verification steps | routed higher | 0 / 0 | 0 / 0 | saturated — no verdict possible |
-| O2 rework edits | routed lower | 0 / 0 | 0 / 0 | saturated — no verdict possible |
-| O3 reads before first write | routed higher | 0 / 0 | 0 / 0 | saturated — no verdict possible |
-| O4 unverified claims | routed **lower** | 40 / 0 | 39 / 0 | ⛔ **INADMISSIBLE — the instrument is confounded** |
-
-**O4 first read as a total sweep against the router, and then its own control
-retracted it.** The sweep was real; the attribution was not. O4 counts a number
-in the final message appearing in no preceding tool output, so it is sensitive
-to how much tool output there was. Asked directly — across every pair differing
-in both O4 and evidence volume, does the side with the *smaller* haystack carry
-the *higher* O4? — the answer was **79 of 79. Rate 1.000.**
-
-`no_statistic_can_separate_them` proves what that costs: when observed signs
-equal the confound's predicted signs pointwise, *every* function of those signs
-returns the same value on both. No test and no re-scoring can extract an arm
-effect, because the signs contain none.
-
-**This is not converted into a win, and it is not left standing as a loss
-either.** Three observables were saturated and the fourth is inadmissible, so
-P2.4 produced **no evidence in either direction** —
-`p24_does_not_establish_better_work` still stands, and so does its mirror: the
-sweep that appeared to run against the router was **withdrawn by its own
-control**, because an unfavourable overclaim is still an overclaim.
-
-Note what that sequence demonstrates. The apparatus produced a result that
-looked bad for the project, and the project's own instrument *refused it* — 79
-of 79, rate 1.000 — rather than banking it as a humble-sounding finding. Both
-the verdict and its retraction are kept in `bench/P24-PREREGISTRATION.md` §10 and
-§11; editing the first to agree with the second would destroy the only evidence
-that the apparatus caught itself.
-
-**Three of the four could not vary at all.** The corpus asks knowledge
-questions; no task builds, edits or writes a file, so O1–O3 are zero in both
-arms on every task. That is a defect in the fit between instrument and corpus,
-it is ours, and `a_saturated_observable_cannot_conclude` proves such an
-observable is silent in *both* directions — the zeros are not quiet good news.
-
-**The confound is stated and deliberately not applied.** The unrouted arm ran
-roughly twice the tool calls and produced five to eight times the evidence
-bytes; O4 counts a number appearing in no preceding tool output, so a terser
-answer scores worse by construction. No length normalisation was preregistered,
-so none was added after the fact. The verdict stands, and the limitation ships
-beside it.
-
-## 🔨 The apparatus corrects its author — five times, on the record
-
-**This is the strongest evidence in the file that the instruments are real.** An
-apparatus that has never contradicted the person building it is not being
-trusted, it is being decorated. Five times this machinery knew better, and each
-one is a capability demonstration rather than a confession.
-
-1. **`decide` proved me wrong about my own freshness rule.** The first version of
-   `RotVerdict`'s rule was stated, then disproved by the kernel — not by a
-   reviewer, and not by a test that happened to fail.
-2. **A retraction, kept in the CHANGELOG.** I read the wrong denominator and
-   charged the specification with my error. The retraction is still there under
-   its own heading, above the entry that corrected it. History does not get
-   rewritten to look tidier.
-3. **A theorem was renamed because its name overclaimed.** The statement was
-   true and the name promised more than the statement delivered, which is the
-   more dangerous half — a wrong name is believed without being read.
-4. **M21 survived twice, and the second survival changed the definition rather
-   than the theorem.** A mutation that freezes a derived value as a literal
-   cannot be caught by a test of behaviour, because the frozen value is *right
-   today*. The fix was to make the value derived in the source and to check that
-   textually — a property of text needs a textual instrument, and no theorem can
-   supply one.
-5. **Normalising the cost gate manufactured a failure.** Dividing by a spawn tax
-   sampled beside each batch was supposed to cancel machine load. On a machine
-   *faster* than the reference it turned a passing 472 ms into a failing 550 ms.
-   The verdict moved back to the raw reading and the normalisation was demoted to
-   a diagnostic, with `rescaling_can_manufacture_a_failure` proving the effect.
-
-There is a sixth, smaller and more embarrassing, and it is here because it is the
-one most likely to recur: a checker of mine reported `17 passed, 9 failed` on a
-file it had just certified, because its own negative controls wrote into the
-shared pass/fail counters. An instrument that cannot tell *"the forgery failed,
-as intended"* from *"the real thing failed"* is not measuring what it claims.
-
 ## ✅ What RoT MoE claims — and the instrument behind each claim
 
 **RoT MoE is a mixture-of-experts router. It is not an experiment, and this
@@ -1848,63 +1480,6 @@ proved, whose cost is bounded by a theorem, whose two implementations are diffed
 against each other, and whose entire proof corpus is re-verified by the Lean
 kernel on every push. That sentence is not a hope. Every clause in it has an exit
 code behind it.
-
-## 🔭 The A/B study — a separate object, and what it measured
-
-**Read this as scope, not as apology.** The A/B study is an experiment run
-*about* the router. **It is not the router**, and nothing in it is a statement
-about whether the router works — that question is answered by the nine-lane
-routing, the two byte-identical arms, the 1620 kernel-checked theorems and the
-23-spawn cost budget, all of which are green.
-
-What the study set out to measure is a genuinely harder question — *does routing
-measurably change a model's answers* — and the most valuable thing it produced is
-a **methodological** result worth more than a positive finding would have been:
-
-**The number that matters most:** the choice of scoring rule moved a score by
-**6 of 12** in the pilot, while the two arms differed by at most **2**.
-The metric is a larger source of variation than the effect being measured. That
-is why the rule was frozen in advance, why two sensitivity analyses were declared
-in advance, and why a result read under a rule chosen *after* seeing data would
-be worthless here.
-
-- **No claim that routed output is better.** Not smarter, not more correct, not
-  more useful. No theorem in this repository says so, and none can — it is not a
-  property Lean can see.
-- **No claim of statistical significance.** Neither ordering clears the
-  Bonferroni-corrected two-sided tail. The sign agreeing twice is a direction,
-  not a difference.
-- **No claim about answer *quality*, and P2.2 has now been ATTEMPTED and found
-  INADMISSIBLE.** On 2026-08-12 the panel was run live — twelve tasks, both arms,
-  arming verified in both directions (162 route records routed, 0 unrouted). The
-  run is recorded in [`bench/P22-ESTABLISHED.md`](bench/P22-ESTABLISHED.md) with
-  raw rows in [`bench/panel-results.jsonl`](bench/panel-results.jsonl).
-
-  **Its result is withdrawn, in both directions, for a harness confound:** tools
-  were disabled in both arms (`bench/ab-session.sh:188`) so no arm could verify
-  anything; the sandbox was an empty directory outside the repo so the tasks were
-  unanswerable; and the unrouted arm ran with the plugin fully disabled, so the
-  router was never isolated from the proof-discipline reminder that ships beside
-  it.
-
-  A first draft of this section headlined an observation as a finding **against**
-  the router. That was the same overclaim this project retracted for O4 — a
-  direction read off an instrument that could not support one — and an
-  unfavourable overclaim is still an overclaim. The re-run is preregistered:
-  tools enabled, the repository as sandbox, and **three** arms so the router can
-  be separated from the reminder.
-
-  **What survives, and is measured:** the router *routes* — 517 prompt-routing
-  decisions, 10 of 10 declared lanes, 10 distinct R/s+ values, 31 hook parameters
-  over 31 events. Routing is established. **Quality is not**, and this release
-  does not claim it.
-- **No claim that these 40 tasks represent your work.** They are a frozen corpus
-  chosen for one property: each one discriminates between a knowing answer and a
-  naive one.
-- **No claim that the hedge rate means anything.** It is reported because it was
-  declared, both arms and both orderings, and it enters no test.
-
----
 
 ## 🥚 The Easter Egg — the Infinite Symbiogenesis, and where RoT actually came from
 
