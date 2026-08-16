@@ -14,10 +14,10 @@
 
 [![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/saimonokuma)
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
-[![Listed on ClaudePluginHub](https://www.claudepluginhub.com/badge/nova-violet-role-rot-moe)](https://www.claudepluginhub.com/plugins/nova-violet-role-rot-moe?ref=badge)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
 [![Proved in Lean 4](https://img.shields.io/badge/Proved%20in-Lean%204-2C3E50?style=flat-square)](lean/)
+[![Listed on ClaudePluginHub](https://www.claudepluginhub.com/badge/nova-violet-role-rot-moe)](https://www.claudepluginhub.com/plugins/nova-violet-role-rot-moe?ref=badge)
 [![Kernel re-verified](https://img.shields.io/badge/leanchecker-exit%200-27ae60?style=flat-square)](#-what-is-actually-verified)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#-what-is-actually-verified)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757?style=flat-square)](https://claude.com/claude-code)
