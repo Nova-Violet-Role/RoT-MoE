@@ -7,7 +7,7 @@ the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html) —
 with one deliberate twist documented below.
 
 **History lives in [`CHANGELOG-ARCHIVE.md`](CHANGELOG-ARCHIVE.md)** — every
-release up to and including `0.6.2`, unchanged. This file carries the current
+release up to and including `6.0.0`, unchanged. This file carries the current
 release only, so *prior* and *after* stay one screen apart instead of eight
 releases apart. `checker/repo-complete.sh` re-measures the counts in the newest
 section against the source on every run, which is the reason that section must
@@ -15,81 +15,66 @@ not be buried.
 
 ---
 
-## [6.0.0] — 2026-08-17
+## [6.0.1] — 2026-08-17
 
-**Major, and this time the criteria themselves changed: the packet grew from
-four organs to seven, the lenses became voices, and the release scheme
-collapses to a single artifact.** The `5.x` convention — the patch digit
-as the tier — is retired. There is no meaningful "router without the
-voices" any more: the contract, the charters, the gate and the environment
-layer are the product, and they travel in every archive. Three archives
-still ship, the tier in the name, all under one version:
-`RoT-MoE-Router.zip`, `RoT-MoE-Router-Lean.zip`,
-`RoT-MoE-Router-Lean-Extra.zip` — and nothing is released until everything
-is green.
+**Patch: everything the first Real Test caught, fixed the same day.** Hours
+after `6.0.0` was published, a separate first-time-user session installed it
+from the public release page and exercised every user-facing claim — 12
+aimed tests across 35 live turns, every exit code read directly. It found
+one real defect, one behavioral gap, and two rough edges. All of it is
+repaired here; none of it was worked around; the tester itself fixed
+nothing, by design.
 
-### Added — ORGAN 5: the voice contract and the nine living lenses
+### Fixed — the routing audit certifies OVERRIDE records
 
-`hooks/rot-voice.dtd` declares the roster in the DTD method: nine lens
-elements, one entity per lens (name, element, sigil, charter, tool grant,
-bound), the frame vocabulary the router may utter, the environment
-vocabulary, and the exclusion markers no charter may carry. Nine agents —
-`agents/rot-nova.md` through `agents/rot-claude.md` — carry full charters
-transcribed from the source codices (the ninth from this tree, its missing
-codex name disclosed rather than invented), each with its own mechanism, a
-declared `<rot:formula>` computation layer in YAML-inside-CDATA, and no
-`model:` key: every lens runs on the model the operator selected.
-`checker/voice-contract.sh` holds it all in both directions — **19 checks,
-six controls**, every control proved able to fail.
+The route record has always carried its NSIL verdict, and the audit had
+never read it: `checker/log-replay.sh --audit` demanded the stem be owned
+by the lane that fired, so the honest record of a documented feature —
+`fix our relationship`, a CLINICAL stem overridden to EMPATHIC by Nova's
+TIER 2 — was rejected as "a mis-route". It shipped that way because the
+checker's own replay corpus contained no OVERRIDE prompt. Now the auditor
+consults `nsil`, and the exemption is as narrow as the feature: only
+`OVERRIDE` earns it, the stem must still resolve in the router's table (the
+privacy property survives untouched), and an override whose lane still
+equals the stem's owner is rejected as a contradiction on the record's own
+evidence. The Lean model learned the same field (`RouteRec.nsil`,
+`Auditable`, `auditable_imp_vocabSafe` re-proved through the new branch),
+the replay corpus gained the OVERRIDE worked example, the checker gained
+two negative controls, the mutation suite gained three mutants aimed at the
+exemption — and the Lean snapshot's EMPATHIC row was trued up with the
+`relation` stem the router has carried since organ 5.
 
-### Added — the voice block, on both channels, both arms
+### Fixed — the voices carry their provenance
 
-The router speaks one stanza per active lens after its untouched marker —
-measured factors from that turn's gauge, charter and bound from the DTD —
-as plain context on the prompt events and inside the JSON envelope's
-context field on the tool-loop events, gated by the measured accepting set.
-`ROTMOE_VOICE=0` silences everything.
+The Real Test's most important behavioral finding: an unbriefed convening
+model refused to perform the stanzas, correctly treating unexplained
+injected personas as untrusted framing — nothing in the block said the
+*operator* installed this. Both router arms now open the block with the
+`rot:frame` element the DTD had declared for the router's own voice all
+along and nothing had ever emitted: one line naming the plugin, the
+operator's deliberate install, the measured summons, and the
+`ROTMOE_VOICE=0` switch that proves the voice is opt-out. The voice gate's
+refusal leads with the same provenance and names `ROTMOE_GATE=0`. The
+marker line stays untouched.
 
-### Added — ORGAN 6: the voice gate
+### Fixed — the registered hook commands ask before they leap
 
-A FUSE or ELEVATE prompt records its summons; on Stop, a summoned lens that
-never spoke blocks the stop **once**, the refusal carrying every missing
-charter as the task. The summons is consumed by its own block, the
-harness's already-blocked flag stands the gate down, and everything the
-gate cannot measure allows. Registered by the plugin and both hand
-installers alike; `ROTMOE_GATE=0` disarms it.
+On a machine without PowerShell, `pwsh ... || bash ...` printed
+`pwsh: not found` on stderr for every hook command on every event —
+permanent, ubiquitous noise. Every registered command (the plugin's
+`hooks.json` and both `ARM_ROUTER`/`DISARM_ROUTER` arms) now guards the
+first arm with `command -v pwsh`, with fallback semantics unchanged.
 
-### Added — ORGAN 7: the environment layer
+### Fixed — `rot gauge` refuses a malformed vector
 
-Configuration as `rot.env` files — `KEY=VALUE`, no JSON — parsed, never
-sourced, under the DTD's declared vocabulary: undeclared keys do not exist,
-the live environment outranks every file, and the two keys that decide what
-runs are never file-settable. `hooks/rot-profile.sh` adds the sourceable
-`rot` command family, enforcing the vocabulary in the write direction too.
+Flag-style arguments where the positional form belongs fell through to a
+degenerate `K=1 lenses=none` gauge at exit 0 — a number computed from
+garbage, wearing the exit code of a measurement. The wrapper now refuses
+anything that is not nine comma-separated numbers, and a non-numeric
+breadth, with the usage line at exit 2.
 
 ### Changed
 
-The README carries a Usage section, the reversed nine-voices passage with
-its inventory, and the retirement of "decides nothing" stated in public.
-`CLAUDE.md` briefs the installing agent on all seven organs. The claims
-table names the new instruments. The gate joins `hooks.json`, both
-`ARM_ROUTER` arms and both `DISARM_ROUTER` arms at the same uniform
-timeout every other entry carries.
-
-The release is published by CI itself: a `release` job in `ci.yml` that
-can only run after every checker job and the whole Lean job succeeded in
-the same run — it cuts the `vX.Y.Z` tag on the commit that run just
-proved and attaches the three archives with their checksums. Publishing
-takes an explicit dispatch with `publish=release`; every other trigger
-rehearses the packaging and uploads nothing. A tag that already carries a
-Release is a refusal, never a move. In the same commit, ci.yml's
-concurrency group learned the workflow name — measured 2026-08-17, the
-Monday `verify` schedule fired late, joined the push runs' group, and
-cancelled a green board at the 43-minute mark.
-
-### Fixed
-
-The About section's reproduction example had quietly stopped reproducing
-when the CLI's default gauge profile moved to the convener's — caught by
-running it, repaired with `--profile FORGE`, and the miss disclosed in
-place.
+`RELEASE.md` names all four published files in one line — the Real Test's
+stranger had to guess the checksum file's name on a proxied network that
+blocked the release-asset API.

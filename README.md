@@ -73,7 +73,7 @@ this page each have an exit code behind them.
 *could the number simply be made up?* Here it cannot be, and that is not a
 promise, it is a construction: the mutation suites break each definition on
 purpose and require the theorems to die, so a gauge that had quietly stopped
-meaning anything would take the proofs down with it. **794 mutants applied, 794
+meaning anything would take the proofs down with it. **797 mutants applied, 797
 killed, 0 survived.** An instrument that has never failed on purpose is an
 untested instrument, and every instrument here has been failed on purpose.
 
@@ -413,7 +413,7 @@ a bare grep over the same files reports 23 more.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **794 applied, 794 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **797 applied, 797 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
@@ -1743,7 +1743,7 @@ Each line below names what decides it. Nothing here is aspirational.
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | **87 modules**, **1632 theorems**, 77 mutation suites, **794 mutants applied, 794 killed, 0 survived, 0 discarded** |
+| The corpus is real | **MEASURED** | **87 modules**, **1632 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **85** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
 | The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — 19 checks, both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, and six controls prove each direction can fail |

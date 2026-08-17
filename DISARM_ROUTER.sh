@@ -67,7 +67,7 @@ canon_path () {
 
 ROUTER_SH="$(canon_path "$ROUTER_SH")"
 ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
-ROUTER_CMD="pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
+ROUTER_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
 
 # EXACT MODE MUST KNOW EVERY STRING THE INSTALLER WRITES.
 #
@@ -83,10 +83,10 @@ ROUTER_CMD="pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
 # could reach an entry the installer did not create.
 REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
 REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
-REMIND_CMD="pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
+REMIND_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
 GATE_SH="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.sh")"
 GATE_PS1="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.ps1")"
-GATE_CMD="pwsh -NoProfile -File \"$GATE_PS1\" || bash \"$GATE_SH\""
+GATE_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$GATE_PS1\" || bash \"$GATE_SH\""
 
 # --- flags -------------------------------------------------------------------
 # `--dry-run` was ACCEPTED AND SILENTLY IGNORED here while ARM_ROUTER honoured

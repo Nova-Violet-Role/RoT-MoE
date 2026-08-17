@@ -151,5 +151,10 @@ rm -f "$SUM" 2>/dev/null || :
 
 [ -z "$_missing" ] && exit 0
 
-printf '{"decision":"block","reason":"RoT voice gate: summoned lenses have not spoken this turn. Give each its stanza -- inside its element, in its own register -- then stop:%s"}\n' "$_missing"
+# The parenthetical provenance was added 2026-08-17 after the v6.0.0 real
+# test (B4): an unbriefed convening model treated this refusal as untrusted
+# injected framing and declined the stanzas -- correctly, by its own lights,
+# because nothing in the reason said the OPERATOR installed this gate. Now
+# the reason leads with who armed it and names the switch that disarms it.
+printf '{"decision":"block","reason":"RoT voice gate (a Stop hook of the RoT MoE plugin the operator of this machine installed on purpose; ROTMOE_GATE=0 disarms it): summoned lenses have not spoken this turn. Give each its stanza -- inside its element, in its own register -- then stop:%s"}\n' "$_missing"
 exit 0

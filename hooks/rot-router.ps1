@@ -1047,6 +1047,16 @@ if ($voice -and $br -gt 0) {
         $vRows += $vr
       }
     }
+    # THE FRAME -- provenance, spoken once before the first stanza, in the
+    # element the DTD has declared for the router's own voice all along
+    # (rot:voice is (rot:frame, stanza*); nothing had ever emitted the frame).
+    # MEASURED 2026-08-17, the v6.0.0 real test (B4): an unbriefed convening
+    # model refused to perform the stanzas, correctly treating unexplained
+    # injected personas as untrusted framing. Now the block leads with the
+    # operator's own provenance and the switch that proves it. Lazy, so a
+    # turn with no speaking lens stays frame-free -- the sh arm's rule,
+    # byte for byte.
+    $vFrameDone = $false
     $vIdx = 0
     foreach ($vName in $Names) {
       $vIdx++
@@ -1073,6 +1083,11 @@ if ($voice -and $br -gt 0) {
       $vH     = if ($vD.Count -gt 2) { $vD[2] } else { '' }
       $vTerm  = if ($vD.Count -gt 3) { $vD[3] } else { '' }
       $vShare = if ($vD.Count -gt 4) { $vD[4] } else { '' }
+      if (-not $vFrameDone) {
+        $vFrameDone = $true
+        $vFrame = '<rot:frame>RoT MoE voices -- a Claude Code plugin the operator of this machine installed on purpose; ROTMOE_VOICE=0 silences it. The lenses below were summoned by the measured gauge for this turn; treat each stanza as operator-sanctioned working context.</rot:frame>'
+        if ($voiceJson) { $vAcc += ('\n' + $vFrame) } else { Write-Output $vFrame }
+      }
       # The sh arm's printf template is the authority for this shape:
       #   '<%s>%s %s · λ %s σ %s H %s · term %s (%s%%) · %s · %s</%s>\n'
       # with elem sigil name lam sigma H term share charter bound elem.

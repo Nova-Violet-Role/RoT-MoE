@@ -54,7 +54,7 @@ function ConvertTo-PosixPath([string] $p) {
   if ($q -match '^([A-Za-z]):/(.*)$') { $q = '/' + $Matches[1].ToLowerInvariant() + '/' + $Matches[2] }
   return $q
 }
-$RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
+$RouterCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
 
 # EXACT MODE MUST KNOW EVERY STRING THE INSTALLER WRITES -- same block, same
@@ -66,11 +66,11 @@ $RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
 # one contract drift.
 $RemindPs1 = Join-Path $SelfDir 'hooks/prover-remind.ps1'
 $RemindSh  = Join-Path $SelfDir 'hooks/prover-remind.sh'
-$RemindCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
+$RemindCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
 $GatePs1 = Join-Path $SelfDir 'hooks/rot-voice-gate.ps1'
 $GateSh  = Join-Path $SelfDir 'hooks/rot-voice-gate.sh'
-$GateCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $GatePs1) +
+$GateCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $GatePs1) +
            '" || bash "' + (ConvertTo-PosixPath $GateSh) + '"'
 
 $Mode = if ($All) { 'disarm-any' } else { 'disarm' }

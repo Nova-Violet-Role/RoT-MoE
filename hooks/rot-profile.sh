@@ -58,6 +58,25 @@ rot () {
     gauge)
       shift; _rp_v="${1:-}"; _rp_b="${2:-1}"
       [ -n "$_rp_v" ] || { echo "rot gauge a1,..,a9 [breadth] [extra flags]" >&2; return 2; }
+      # A vector is nine comma-separated numbers, and anything else is refused
+      # WITH the usage line. MEASURED 2026-08-17 (v6.0.0 real test, anomaly 3):
+      # `rot gauge --vector 1,0,...` -- flag syntax where the positional form
+      # belongs -- fell through and computed a degenerate K=1 lenses=none
+      # gauge at exit 0: a number derived from garbage, wearing the exit code
+      # of a measurement. A wrapper that validates nothing adds nothing.
+      case "$_rp_v" in
+        *[!0-9.,]*|*,,*|,*|*,)
+          echo "rot gauge: '$_rp_v' is not a vector -- expected a1,..,a9, nine comma-separated numbers" >&2
+          echo "rot gauge a1,..,a9 [breadth] [extra flags]" >&2; return 2 ;;
+      esac
+      _rp_n=$(printf '%s' "$_rp_v" | awk -F',' '{print NF}')
+      [ "$_rp_n" -eq 9 ] || {
+        echo "rot gauge: the vector has $_rp_n entries, expected 9 (one per lens)" >&2; return 2; }
+      case "$_rp_b" in
+        *[!0-9]*)
+          echo "rot gauge: breadth '$_rp_b' is not a count -- give the breadth before any extra flags" >&2
+          return 2 ;;
+      esac
       shift 2 2>/dev/null || shift $#
       sh "$_rp_home/hooks/rot-router.sh" --vector "$_rp_v" --breadth "$_rp_b" "$@" ;;
     voice)

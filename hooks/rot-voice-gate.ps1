@@ -106,5 +106,9 @@ Remove-Item -LiteralPath $sum -Force
 
 if ([string]::IsNullOrEmpty($missing)) { exit 0 }
 
-[Console]::Out.WriteLine('{"decision":"block","reason":"RoT voice gate: summoned lenses have not spoken this turn. Give each its stanza -- inside its element, in its own register -- then stop:' + $missing + '"}')
+# The parenthetical provenance mirrors the sh arm, added 2026-08-17 after the
+# v6.0.0 real test (B4): an unbriefed convening model treated the bare refusal
+# as untrusted injected framing. The reason now leads with who armed the gate
+# and names the switch that disarms it.
+[Console]::Out.WriteLine('{"decision":"block","reason":"RoT voice gate (a Stop hook of the RoT MoE plugin the operator of this machine installed on purpose; ROTMOE_GATE=0 disarms it): summoned lenses have not spoken this turn. Give each its stanza -- inside its element, in its own register -- then stop:' + $missing + '"}')
 exit 0

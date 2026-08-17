@@ -269,6 +269,27 @@ lines.forEach((l, idx) => {
       if (owner === undefined)
         errs.push(where + ": stem '" + r.stem + "' is not in the router's table -- " +
                   "this log carries text the router could not have produced");
+      // NSIL OVERRIDE is the ONE verdict whose whole meaning is that the lane
+      // deliberately departed from the stem's owner -- rot-lean.md section 3's
+      // own worked example, `fix our relationship`: TIER 1 fires a CLINICAL
+      // stem, Nova's TIER 2 overrides the lane to EMPATHIC, and the record
+      // honestly carries both facts. MEASURED 2026-08-17, the v6.0.0 real
+      // test (bench/real-test-6.0.0.md B8): this clause did not consult the
+      // `nsil` field, so the honest record of a documented feature was
+      // rejected as "a mis-route" -- and it shipped green because the corpus
+      // below contained no OVERRIDE prompt. The exemption is NARROW and
+      // load-bearing in BOTH directions: only `"nsil":"OVERRIDE"` earns it
+      // (an absent or different verdict keeps the strict rule, so old logs
+      // and mis-routes are judged exactly as before), and an OVERRIDE whose
+      // lane still equals the stem's owner is rejected too -- an override
+      // that overrode nothing is a contradiction in the record itself.
+      // Vocabulary safety is UNTOUCHED: the stem must resolve in the
+      // router's table before this branch is ever reached.
+      else if (r.nsil === "OVERRIDE") {
+        if (owner === r.lane)
+          errs.push(where + ": nsil OVERRIDE but lane " + r.lane + " already owns stem '" +
+                    r.stem + "' -- an override that overrode nothing");
+      }
       else if (owner !== r.lane)
         errs.push(where + ": stem '" + r.stem + "' is owned by " + owner +
                   " but the record says " + r.lane + " -- a mis-route");
@@ -320,12 +341,18 @@ if [ "${1:-}" = "--audit" ]; then
 fi
 
 # --- 1. produce a real log from both arms ------------------------------------
+# The last prompt is the specification's own OVERRIDE worked example, added
+# 2026-08-17 after the v6.0.0 real test proved this corpus never met the one
+# record class the audit could not certify (bench/real-test-6.0.0.md B8). A
+# corpus without an OVERRIDE prompt lets the stem clause ship untested against
+# the router's flagship behaviour -- which is exactly what it did.
 CORPUS='lake build the meter theorem
 debug this segfault in the parser
 compress this byte stream
 what should we do about the roadmap
 tell me a story about the sea
-some entirely unremarkable sentence'
+some entirely unremarkable sentence
+fix our relationship'
 
 LOG_SH="$TMP/sh.log"
 while IFS= read -r p; do
@@ -457,6 +484,19 @@ ctl "a fired lane with an empty stem"                     's/"stem":"build"/"ste
 #    verified" about records in which the routing evidence does not exist. The
 #    honest outcome is a red that tells the reporter to re-capture.
 ctl "a route record with no stem field at all"            's/,"stem":"build"//'
+
+# --- controls for the OVERRIDE exemption --------------------------------------
+# Added with the exemption itself (2026-08-17): an exemption without controls
+# is how the ORIGINAL defect shipped -- an untested clause meeting an untested
+# record class. The corpus's `fix our relationship` record carries
+# stem "fix" (owned by CLINICAL), lane EMPATHIC, nsil OVERRIDE.
+#
+# 5. THE EXEMPTION MUST NOT LEAK to other verdicts: the same record relabelled
+#    CONFIRM is an ordinary mis-route again and must be rejected.
+ctl "an OVERRIDE relabelled CONFIRM (the exemption must stay narrow)" 's/"nsil":"OVERRIDE"/"nsil":"CONFIRM"/'
+# 6. AN OVERRIDE THAT OVERRODE NOTHING: lane rewritten to the stem's own
+#    owner while still claiming OVERRIDE -- a contradiction in the record.
+ctl "an OVERRIDE whose lane already owns the stem" '/"nsil":"OVERRIDE"/s/"lane":"EMPATHIC"/"lane":"CLINICAL"/'
 
 # Structural corruptions: an orphan route line, and a broken JSON line.
 f="$TMP/orphan.log"; grep '"kind":"route"' "$LOG_SH" | head -1 > "$f"
