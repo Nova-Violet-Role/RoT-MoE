@@ -161,16 +161,20 @@ where the checker can only read it as a false present claim.
 
 ## 4. Committing, tagging, releasing
 
-### 4.1 The release triple
+### 4.1 The release — one tag, three named archives (6.0.0 and later)
 
-Three tags on **one commit**: `vX.Y.0`, `vX.Y.1`, `vX.Y.2`. The patch digit *is*
-the tier — `0` Pure Router, `1` Router + Lean 4, `2` Router + Lean + Extra — and
-this convention holds for every release in the archive.
+**One tag on one green commit**: `vX.Y.Z`. The triple-tag convention — patch
+digit as the tier — is retired at `6.0.0` and survives only in the archive of
+prior releases. The tiers live in the archive **names** now:
+`RoT-MoE-Router.zip`, `RoT-MoE-Router-Lean.zip`,
+`RoT-MoE-Router-Lean-Extra.zip`, all carrying the one version
+`.claude-plugin/plugin.json` declares, all carved from that one commit by
+`checker/release-package.sh`. A marketplace or directory install reads the
+tree, and the tree is the full packet — every archive now ships all seven
+organs, so there is no version skew between install paths.
 
-`.claude-plugin/plugin.json` carries the `.2`. That is why a **directory- or
-git-sourced** marketplace install reports the `.2` version: it installs the tree,
-and the tree is the unsealed superset. The `.0` and `.1` tiers are what
-`checker/release-package.sh` carves out of that one commit.
+Nothing is tagged until CI is green on the exact commit, and nothing is
+published until the tag is cut — in that order, always.
 
 ```sh
 bash checker/release-package.sh                  # builds all three zips
