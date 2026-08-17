@@ -107,9 +107,15 @@ like it wants to take the wheel. It does not.
   which is the only reason it is allowed to appear:
 
   ```sh
-  rot-router.sh --vector 0,0,0,0,0,0,0,0,1 --breadth 1 --M 1 --C 1 --T 1
+  rot-router.sh --vector 0,0,0,0,0,0,0,0,1 --breadth 1 --M 1 --C 1 --T 1 --profile FORGE
   # R/s+ = 0.66 [BELOW RANGE] mean=0.111 breadth=1 K=9 lenses=Claude
   ```
+
+  `--profile FORGE` joined this command when the CLI's default weights moved
+  to the convener's (`CONVERGENT`): the hook scored this FORGE turn with the
+  FORGE table, so a reproduction must mount the same table. Without the flag
+  the same vector now reads 0.51 — measured, which is how this example was
+  caught having quietly stopped reproducing.
 
   `M`, `C` and `T` are the neutral element `1.0` because one stateless hook call
   cannot measure memory residue, confidence or recency. That is stated rather
@@ -821,6 +827,148 @@ declined exactly as designed.
 | `ROTMOE_PROOF_STALE_MIN` | minutes before "no proof written recently" is worth saying. Default `45`. |
 | `ROTMOE_DEBT_EXT` | which source extensions count as proof-shaped. Default spans Rust, C, C++, Go, TS, Python, Java, Kotlin, Swift. |
 | `ELAN_HOME` | elan's own variable, honoured rather than reinvented. |
+
+---
+
+## 🕹️ Usage — the line you read, the commands you can run
+
+Nothing in this section is required. The router runs by itself from the moment
+the plugin is installed, and the healthy state of the reminder is silence.
+This is the map of the whole user-facing surface for when you want to read it,
+drive it, or test it on your own machine — every output below is measured, and
+every command reads nothing from the network.
+
+### The hook line, decoded
+
+One line per routed turn:
+
+```
+RoT MoE :: TIER 1 -> <LANE> <Lead>[ [NSIL <verdict> <Lens+Lens+…>]] | R/s+ <score>[ | <marker>]
+```
+
+| segment | what it is |
+|:--|:--|
+| `<LANE>` | the routing outcome — one of the ten lanes; the frame this turn reasons inside |
+| `<Lead>` | the lane's lead lens — or, on `CONVERGENT`, the **model you chose**, because that lane has no lead lens and the convener is the model itself |
+| `[NSIL …]` | Nova's TIER 2 verdict, shown only when it changed something: `FUSE` names the co-activated lenses, `OVERRIDE` the corrected lead, `ELEVATE` all nine, `BOOST` the raised lens. `CONFIRM` shows nothing **by design** — the lane you can already see is the answer |
+| `R/s+ <n>` | the divergence gauge over this turn's activity vector, scored with the fired lane's own weight profile |
+| `<marker>` | present only when a record was lost: `debug-log UNWRITABLE (record lost)` · `project-log UNWRITABLE (record lost)` |
+
+Measured in a live hook session (your `CONVERGENT` line will name your model):
+
+```
+RoT MoE :: TIER 1 -> EMPATHIC [NSIL OVERRIDE Nova+Violet+AntiVenom] | R/s+ 0.71
+RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
+RoT MoE :: TIER 1 -> FORGE Claude [NSIL FUSE Nova+AntiVenom+Chroma+Claude] | R/s+ 0.79
+RoT MoE :: TIER 1 -> CONVERGENT model | R/s+ 0.17
+```
+
+The first line is the specification's own worked example — `fix our
+relationship` fires a technical stem and a human one, and the human reading
+wins. The last is the convener fallback chain bottoming out on a machine with
+no settings file: `ROTMOE_MODEL` → `settings.json` → the literal `model`,
+degrading to a word and never to an empty string.
+
+The **other** hook, the reminder, has no line to decode: with no measured
+proof debt it prints nothing, and that silence is the healthy state. When it
+speaks, it names files, a module, or a number of minutes — never a constant
+paragraph.
+
+### The router from the command line
+
+Both arms take the same flags; the outputs below are the `.sh` arm's, and the
+cross-diff suite compares the two arms byte for byte over a shared corpus.
+
+```sh
+bash hooks/rot-router.sh --route "prove this lemma"
+# FORGE Claude
+bash hooks/rot-router.sh --route "compress this log into a concise digest"
+# STEALTH Soleil
+```
+
+`--route` runs TIER 1 alone — one lane, no NSIL — which is what keeps its
+output byte-identical across releases and comparable across arms. The NSIL
+layer runs in hook mode, where the full marker line is produced.
+
+The gauge is reachable directly:
+
+```sh
+bash hooks/rot-router.sh --vector 1,0,0,0,0,0,0,0,1 --breadth 2
+# R/s+ = 0.7 [BELOW RANGE (0.9-1.8)] mean=0.222 breadth=2 K=9 lenses=Nova,Claude
+
+bash hooks/rot-router.sh --vector 0,0,0,0,1,0,0,0,0 --breadth 1 --M 1 --C 1 --T 1 --profile CREATIVE --lane CREATIVE
+# R/s+ = 0.81 [BELOW RANGE (1.5-3.5)] mean=0.111 breadth=1 K=9 lenses=Carnage
+```
+
+| flag | meaning |
+|:--|:--|
+| `--vector a1,…,a9` | nine lens activities, in roster order: Nova Violet AntiVenom Venom Carnage Chroma Soleil Eidolon Claude |
+| `--breadth N` | how many lenses carried the turn |
+| `--M` `--C` `--T` | memory, confidence and recency modifiers; CLI defaults `1.05` `1.0` `1.0` |
+| `--profile LANE` | which λ/μ table the score is **built** from. Default: `CONVERGENT`, the convener |
+| `--lane LANE` | which per-lane band the score is **read** against. Default: `FORGE` |
+| `--version` | prints `rot-router.sh 1.0.0` |
+
+`--profile` and `--lane` are two different per-lane facts and they default
+differently — the weights to the convener, the band to FORGE — so a
+reproduction of a hook line must state both, as the corrected example in the
+About section does.
+
+With **no arguments** the router is in hook mode and expects a JSON payload on
+stdin; run interactively it refuses with a usage message rather than hanging.
+
+### The reminder from the command line
+
+```sh
+bash hooks/prover-remind.sh --measure
+# 87 30 RotScan                        <- proof files · minutes since the newest · its name
+bash hooks/prover-remind.sh --workspace
+# discovered /home/user/RoT-MoE/lean   <- how the workspace was resolved, and to where
+bash hooks/prover-remind.sh --decide PostToolUse 90 RotGauge - - - 0
+# RESULT IS IN -- attribute it. […] A test SAMPLES; a theorem SETTLES.
+```
+
+| mode | what it does |
+|:--|:--|
+| `--decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS` | the decision as a pure function of seven inputs — no disk, no clock; `-` means empty. Exactly seven, or exit 2 |
+| `--measure` | measures the workspace off disk: proof count, staleness, newest module |
+| `--kernel` | prints exactly what the kernel-verdict reader hands the decision |
+| `--workspace` | which resolution step won — `env` / `recorded` / `discovered` / `bundled` — and the resolved path |
+| `--version` | prints `prover-remind.sh 1.0.0` |
+
+### Every switch the hooks read
+
+The Configuration table above lists the ones you are most likely to want. The
+full set, measured from the shipped hooks rather than remembered, with
+defaults:
+
+| Variable | Hook | Effect |
+|:--|:--|:--|
+| `ROTMOE_MODEL` | router | names the convener on `CONVERGENT` instead of reading your settings file |
+| `ROTMOE_DEBUG_LOG` | router | central JSONL sink for route and gauge records; unset = no logging |
+| `ROTMOE_DEBUG_LOG_MAX` | router | line cap on that sink, default `5000`; trimmed to 80 % when exceeded, newest kept |
+| `ROTMOE_DEBUG_LOCAL` | router | `1` forces / `0` forbids the per-project sink `.rot-moe/` (self-gitignoring) |
+| `ROTMOE_DEBUG_SRC` | router | declares record provenance — `test` / `cli` / `hook`; a declaration outranks inference, and a typo demotes to inference |
+| `ROTMOE_TOKEN_PCT` | router | percentage of token budget **remaining**, when a caller knows it. Below 20, Soleil's emergency arms and Chroma shows 3 timelines instead of 5. Absent means unknown, and unknown is not an emergency |
+| `ROTMOE_LEAN_VERIFY` | reminder | `0` disables the on-edit `lake build` of a touched `.lean` module |
+| `ROTMOE_LEAN_VERIFY_SECS` | reminder | timeout for that build, default `300` |
+| `ROTMOE_THROTTLE_PROMPT` | reminder | minutes between reminders on `UserPromptSubmit`, default `0` |
+| `ROTMOE_THROTTLE_PRE` | reminder | … on `PreToolUse`, default `7` |
+| `ROTMOE_THROTTLE_POST` | reminder | … on everything else, default `5`. A Lean build verdict is never throttled |
+| `ROTMOE_GOAL_FILE` | reminder | a goal file whose open alarm rows the reminder counts |
+| `ROTMOE_DEBT_PATTERN` | reminder | overrides the proof-shaped-code regex (casts, clamps, shifts, saturating arithmetic) |
+| `ROTMOE_CWD` | reminder | overrides the directory the workspace discovery walks up from |
+
+### The rest of the surface
+
+* **`/corpus`** — the one slash command: checks or refreshes the shared Lean
+  Theorem corpus. Documented in its own section above.
+* **`lean4-prover`** — the subagent: spawn it by asking for it in plain
+  language. Invocation examples live under Tips & Tricks, next.
+* **The scripts** — `ARM_ROUTER` / `DISARM_ROUTER`, `SETUP_LEAN`,
+  `SETUP_CORPUS` and `checker/gate-all.sh` are covered in the Install and
+  Verify sections; every one of them has a dry-run or check mode that writes
+  nothing.
 
 ---
 
