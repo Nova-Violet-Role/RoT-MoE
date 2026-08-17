@@ -726,7 +726,13 @@ nsil_hybrid () {   # <name1> <name2>
 # hundredths -> decimal string, builtin printf only (no fork).
 hund () { printf '%d.%02d' $(( $1 / 100 )) $(( $1 % 100 )); }
 
-gauge () {   # gauge "a1,..,a9" breadth M C T [LANE]
+gauge () {   # gauge "a1,..,a9" breadth M C T [LANE] [voice]
+  # The 7th argument turns on the per-lens LENSDATA lines the voice block
+  # consumes (hooks/rot-voice.dtd is where those numbers get their names).
+  # It is passed ONLY by hook mode's voice path: the CLI and every corpus
+  # runner call gauge without it, so `--vector` output stays byte-identical
+  # to every earlier release and the cross-diff corpus keeps comparing the
+  # same string it always did.
   _acts="$1"; _breadth="$2"; _M="$3"; _C="$4"; _T="$5"
   # The lane decides which band the score is read against. It is OPTIONAL and
   # defaults to FORGE, because gauge() is also reachable from `--vector` on the
@@ -779,7 +785,7 @@ gauge () {   # gauge "a1,..,a9" breadth M C T [LANE]
   _rot_terminate "$_g_loc"
   printf '%s|%s|%s|%s|%s|%s|%s|%s\n' \
     "$_acts" "$_breadth" "$_M" "$_C" "$_T" "$LAMBDAS" "$MUS" "$NAMES" |
-  awk -F'|' -v dbg="$_g_dbg" -v loc="$_g_loc" -v sess="$_rot_sess" -v src="$_rot_src" -v blo="$_bl" -v bhi="$_bh" -v ts="$(date -Is 2>/dev/null || date)" '
+  awk -F'|' -v dbg="$_g_dbg" -v loc="$_g_loc" -v sess="$_rot_sess" -v src="$_rot_src" -v blo="$_bl" -v bhi="$_bh" -v lensout="${7:-}" -v ts="$(date -Is 2>/dev/null || date)" '
     # Match PowerShell ToString("0.##"): round, then strip trailing zeros and a
     # bare trailing dot. 0.90 -> "0.9", 1.00 -> "1", 0.09 -> "0.09".
     # Formatting is part of the observable: the cross-diff compares these
@@ -808,6 +814,7 @@ gauge () {   # gauge "a1,..,a9" breadth M C T [LANE]
         if (H > 1.0) H = 1.0;
         term = lam[i] * s * (1.0 + H) * mu[i] * M * C * T;
         sum += term;
+        if (lensout != "") { sarr[i] = s; Harr[i] = H; tarr[i] = term }
         if (dbg != "") {
           terms = terms (terms == "" ? "" : ",") \
             sprintf("{\"lens\":\"%s\",\"lambda\":%s,\"mu\":%s,\"a\":%s,\"delta\":%s,\"sigma\":%s,\"H\":%s,\"term\":%s}",
@@ -858,6 +865,17 @@ gauge () {   # gauge "a1,..,a9" breadth M C T [LANE]
       }
       printf "R/s+ = %s [%s] mean=%s breadth=%d K=%d lenses=%s\n",
              fmt(R, 2), band, fmt(mean, 3), breadth, K, active;
+      # The voice path only: one machine-readable line per lens, AFTER the
+      # human line so every existing consumer keeps matching what it always
+      # matched. Fields are the same factors the debug record carries -- the
+      # stanza is BLOCK 10 contributions redirected to the context, and it
+      # must be recomputable from these lines by hand.
+      if (lensout != "") {
+        for (i = 1; i <= n; i++)
+          printf "LENSDATA|%s|%s|%s|%s|%s|%s\n",
+                 nm[i], fmt(lam[i], 2), fmt(sarr[i], 4), fmt(Harr[i], 4),
+                 fmt(tarr[i], 5), fmt(sum > 0 ? 100 * tarr[i] / sum : 0, 0);
+      }
     }'
   # Release in the reverse of the acquire order. A lock left behind would make
   # every later writer wait out its bound and then refuse -- logging would go
@@ -1265,7 +1283,36 @@ hook_mode () {
     done
   fi
 
-  _rs=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}" | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
+  # WHICH EVENT FIRED -- hoisted above the gauge call (it used to live inside
+  # the debug-log block, which meant it was only known when logging was on).
+  # The voice block needs it unconditionally: stanzas are legal only on the
+  # events whose stdout the harness feeds to the model, and emitting them
+  # anywhere else would be bytes the model never sees. Same extraction, same
+  # charset guard; the debug record below reads this value.
+  _ev='-'
+  case "$payload" in
+    *'"hook_event_name"'*)
+      _ev=${payload#*\"hook_event_name\"}
+      _ev=${_ev#*\"}
+      _ev=${_ev%%\"*}
+      ;;
+  esac
+  case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
+
+  # THE VOICE DECISION. By Socio directive the lenses speak by default
+  # (ROTMOE_VOICE=0 silences them); the gate on the EVENT is not a
+  # preference, it is the harness contract: plain stdout reaches the model
+  # on exactly these three events and is a debug-log entry everywhere else.
+  _voice=''
+  if [ "${ROTMOE_VOICE:-1}" != 0 ]; then
+    case "$_ev" in UserPromptSubmit|UserPromptExpansion|SessionStart) _voice=1 ;; esac
+  fi
+  if [ -n "$_voice" ]; then
+    _gout=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}" voice)
+  else
+    _gout=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}")
+  fi
+  _rs=$(printf '%s\n' "$_gout" | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
   [ -z "$_rs" ] && _rs='n/a'
 
   # NOVA'S BAND FLAG and SOLEIL'S MONITOR, both computed once the score exists.
@@ -1327,15 +1374,9 @@ hook_mode () {
     # reader downstream, including checker/log-replay.sh. Anything that is not
     # plain letters is refused and recorded as "-", which is honest: it says a
     # record was written and the event was not identifiable.
-    _ev='-'
-    case "$payload" in
-      *'"hook_event_name"'*)
-        _ev=${payload#*\"hook_event_name\"}
-        _ev=${_ev#*\"}
-        _ev=${_ev%%\"*}
-        ;;
-    esac
-    case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
+    # `_ev` is extracted ABOVE the gauge call now (the voice block needs the
+    # event on every path, logging on or off); the guard and the semantics
+    # are unchanged and the comment above still describes them.
     # LATENCY. The ps1 arm has always emitted `ms` and this one never did, so
     # the POSIX arm could not be compared against it. -1 is not a duration: it
     # means this platform has no sub-second clock (BSD date has no %N), and it
@@ -1500,6 +1541,71 @@ hook_mode () {
     _nsil_tag=" [NSIL $NSIL_DECISION ${_nsil_names#+}]"
   fi
   echo "RoT MoE :: TIER 1 -> $lane$_nsil_tag | R/s+ $_rs$_mark"
+
+  # --- THE VOICE BLOCK -------------------------------------------------------
+  # One stanza per ACTIVE lens, in roster order, each inside the element
+  # hooks/rot-voice.dtd declares for it. The measured fields come from the
+  # gauge's LENSDATA lines (the same factors the debug record carries); the
+  # charter and the bound come from the DTD, so no lens fact exists twice.
+  # The marker line above is UNTOUCHED -- every checker that matches it keeps
+  # matching -- and the stanzas are ADDITIVE lines after it, on the three
+  # context-bearing events only (see the voice decision above).
+  #
+  # A CONVERGENT turn activates no roster lens (its "lead" is the convener
+  # model), so the loop naturally emits nothing there: the nine stand down
+  # and the marker already names who convenes. A missing or unreadable DTD
+  # degrades to silence rather than failing the turn -- the marker is the
+  # contract, the voices are the capability.
+  #
+  # Cost discipline: the DTD is parsed with builtin `read` and parameter
+  # expansion -- zero forks -- and only for lenses that actually speak.
+  if [ -n "$_voice" ] && [ "$_br" -gt 0 ]; then
+    _vdtd="${CLAUDE_PLUGIN_ROOT:-}"
+    if [ -n "$_vdtd" ]; then _vdtd="$_vdtd/hooks/rot-voice.dtd"; else _vdtd="${0%/*}/rot-voice.dtd"; fi
+    [ -r "$_vdtd" ] || _vdtd="${0%/*}/rot-voice.dtd"
+    if [ -r "$_vdtd" ]; then
+      _vi=0
+      for _vn in $NAMES; do
+        _vi=$((_vi+1))
+        _von=0
+        for _va in $_nsil_act; do [ "$_va" = "$_vn" ] && _von=1; done
+        [ "$_von" -eq 1 ] || continue
+        # Roster row _vi of the DTD: LENS.n entities are declared in roster
+        # order, which checker/voice-contract.sh is positioned to keep true.
+        _vrow=''; _vk=0
+        while IFS= read -r _vl; do
+          case "$_vl" in
+            *'<!ENTITY LENS.'*)
+              _vk=$((_vk+1))
+              if [ "$_vk" -eq "$_vi" ]; then
+                _vrow=${_vl#*\"}; _vrow=${_vrow%\"*}
+                break
+              fi ;;
+          esac
+        done < "$_vdtd"
+        [ -n "$_vrow" ] || continue
+        _oifs=$IFS; IFS='|'
+        set -f; set -- $_vrow; set +f
+        IFS=$_oifs
+        _velem=${2:-}; _vsig=${3:-}; _vchart=${4:-}; _vbound=${6:-}
+        [ -n "$_velem" ] || continue
+        # This lens's measured line from the gauge output.
+        _vdata=''
+        while IFS= read -r _vl; do
+          case "$_vl" in "LENSDATA|$_vn|"*) _vdata=${_vl#LENSDATA|"$_vn"|}; break ;; esac
+        done <<VEOF
+$_gout
+VEOF
+        _vlam=${_vdata%%|*}; _vrest=${_vdata#*|}
+        _vsigm=${_vrest%%|*}; _vrest=${_vrest#*|}
+        _vh=${_vrest%%|*}; _vrest=${_vrest#*|}
+        _vterm=${_vrest%%|*}; _vshare=${_vrest##*|}
+        printf '<%s>%s %s · λ %s σ %s H %s · term %s (%s%%) · %s · %s</%s>\n' \
+          "$_velem" "$_vsig" "$_vn" "$_vlam" "$_vsigm" "$_vh" "$_vterm" "$_vshare" \
+          "$_vchart" "$_vbound" "$_velem"
+      done
+    fi
+  fi
   exit 0
 }
 

@@ -130,6 +130,35 @@ else
   bad "voice-contract: the tree disagrees with hooks/rot-voice.dtd -- findings above"
 fi
 
+# --- D9: the voices actually fire --------------------------------------------
+# The roster holding on paper says nothing about the session. Feed the POSIX
+# arm a real UserPromptSubmit payload and require: a stanza in the routed
+# lens's element AFTER the untouched marker line; silence under
+# ROTMOE_VOICE=0; and silence on an event whose stdout the model never sees.
+# The ps1 arm is exercised by CI where pwsh exists; here the reference arm is
+# the measurement.
+_pay='{"session_id":"vctl","cwd":"/tmp","hook_event_name":"UserPromptSubmit","prompt":"prove this lemma"}'
+_out=$(printf '%s' "$_pay" | ROTMOE_VOICE=1 sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+if printf '%s\n' "$_out" | head -n 1 | grep -q '^RoT MoE :: TIER 1 -> FORGE' \
+   && printf '%s\n' "$_out" | grep -q '^<rot:claude>' ; then
+  ok "D9: a FORGE prompt speaks in <rot:claude> after an untouched marker"
+else
+  bad "D9: the voice block did not fire (or the marker moved) on a FORGE prompt"
+fi
+_out=$(printf '%s' "$_pay" | ROTMOE_VOICE=0 sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+if printf '%s\n' "$_out" | grep -q '^<rot:'; then
+  bad "D9: ROTMOE_VOICE=0 still emitted a stanza -- the off switch is dead"
+else
+  ok "D9: ROTMOE_VOICE=0 silences the voices; the marker stands alone"
+fi
+_out=$(printf '%s' '{"session_id":"vctl","cwd":"/tmp","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"lake build X"}}' \
+       | ROTMOE_VOICE=1 sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+if printf '%s\n' "$_out" | grep -q '^<rot:'; then
+  bad "D9: a stanza was emitted on PreToolUse -- plain stdout there never reaches the model, so those bytes are a fabricated capability"
+else
+  ok "D9: no stanza on a non-context event -- the harness contract is respected"
+fi
+
 # --- controls: the checker must be able to fail ------------------------------
 # Each control plants one defect in a minimal copy and requires the SAME
 # verify() to catch it. A green from a checker whose reds are unreachable is
