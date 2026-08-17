@@ -309,6 +309,33 @@ word of invention.** Each is a transcription problem — charter, register,
 interceptors, bounds, tensions — plus the one disclosed gap (🧭 Claude has no
 codex, and its charter comes from `engine/rot-lean.md` §2/§8 instead).
 
+**And the roster is heterogeneous — nine machines, not nine flavors of one.**
+The Socio's emphasis, confirmed by the extraction: each lens carries
+*mechanisms* the others do not have, beyond the shared λ/μ/H scalars. Carnage
+alone has an entropy factor and the cross-symbiote resonance conduit; Chroma
+alone has timelines (12/5/3), a coalescence fold and a compassion weight;
+Soleil alone has a **second gauge** (Token Optimization, `T/O`) beside R/s+,
+sub-byte encodings and the M2M bridge; Violet alone has the jazz-track system,
+vinyl memory and the unplayed note; Anti-Venom has the five-step clinical
+protocol with AST/SMT-depth vision; Venom a hard `C_i ≥ 0.95` expression gate;
+Eidolon recursion levels and the EEL (proposals only, Socio-gated); Nova NSIL
+itself. Even the failure directions oppose: Soleil self-corrects when R/s+ is
+too *high*, Carnage when too *low*. Three consequences:
+
+- the agent files are **bespoke, never templated** — each carries a mechanism
+  section, not just a register paragraph, and the contract's structural check
+  must require the *lens-specific* fields, not one uniform schema;
+- the voice-block stanzas (§6.3) are asymmetric too: Chroma's stanza reports
+  timelines shown, Soleil's reports compression state, Carnage's reports
+  entropy — and the router *already implements the seeds of this*:
+  `CHROMA_SPAWNED/CHROMA_SHOWN` and Soleil's `TOKEN_EMERGENCY_MONITOR` are
+  live code today (`hooks/rot-router.sh:588-623`), currently recorded only in
+  the route record;
+- the divergence bench (§6.2) gets its assertions for free: a roster whose
+  members carry different machinery produces measurably different output
+  shapes, so homogeneity in the bench is direct evidence a charter was
+  flattened in transcription.
+
 ### 4.2 The visibility history — three directives, and this study is the third
 
 The two codices *disagree* on visibility, and the shipped engine reversed the
