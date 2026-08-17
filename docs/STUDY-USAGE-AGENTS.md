@@ -662,6 +662,21 @@ guarantees no summoned voice is **dropped** before the turn is allowed to end.
 One is the microphone array; the other is the door that will not shut on a
 lens mid-sentence.
 
+**Timeouts serve the lenses, they do not police them** (Socio directive,
+2026-08-17). The 62 registrations keep their generous ceiling — the tree
+already measured what a strict budget does here: the old 1200 budget killed
+log writers mid-record before it was raised to 18000
+(`hooks/rot-router.sh:176-178`), and every fire carries the router's own *oT
+work. The voice block adds shell-speed cost to events that already fire and
+is never trimmed to fit a clock — an emission that cannot complete reports
+that fact, it does not ship half a stanza. The voice gate takes the DTD GOAL
+shape: a generous outer timeout with a declared *internal* budget beneath it
+(their Stop runs 600 with 540 of budget), so exhaustion is a **visible
+verdict carrying the next step** (their LAW.18), never a silent mid-work
+kill. The lenses fire to help the main model on every event, simultaneously;
+a ceiling that could truncate that help would be the router policing its own
+purpose.
+
 ### 6.6 The README — the Usage section, and the sentence reversed
 
 - **Placement, measured against the structure:** a new `## 🧭 Usage` H2

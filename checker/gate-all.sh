@@ -113,6 +113,7 @@ A/B instruction compliance -- exit 3 SKIP without the raw corpus|deep|bench/,CHA
 Lean witness vs shipped weights|fast||bash checker/lean-binds-shell.sh
 release package|fast||bash checker/release-package.sh
 hook contract|fast||bash checker/hook-contract.sh
+voice contract (the lens roster, held both ways)|fast||bash checker/voice-contract.sh
 workflow lint + drift|fast||bash checker/workflow-lint.sh
 CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential|deep|.github/workflows/,checker/ci-honesty.sh|bash checker/ci-honesty.sh
 README download links vs the packager|fast||bash checker/readme-variants.sh

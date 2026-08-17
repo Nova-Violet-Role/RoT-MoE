@@ -1125,6 +1125,9 @@ jobs:
 
       - name: hook contract -- run the command strings hooks.json registers
         run: bash checker/hook-contract.sh
+
+      - name: voice contract -- the lens roster, held both ways
+        run: bash checker/voice-contract.sh
       # THE ONE REMAINING SKIP IN THIS WORKFLOW, and it is a boundary rather than
       # an omission. Stated plainly so nobody has to rediscover it:
       #

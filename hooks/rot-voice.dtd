@@ -1,0 +1,124 @@
+<!--
+This file is part of RoT MoE.
+SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+Copyright 2026 Saimonokuma.
+
+ORGAN 5 OF THE PACKET — the voice contract.
+
+This file is not parsed by an XML processor. It is a machine-checked
+contract, in the method proved out by RoT DTD GOAL's trust_contract.dtd:
+a grammar declared ONCE, read by the code that enforces it, verified in
+BOTH directions by checker/voice-contract.sh — every declared lens must
+exist as an agent file, every agent file may speak only in its declared
+element, and nothing undeclared may speak at all.
+
+PCDATA marks the engine's own parsed voice. CDATA marks raw text that is
+never interpreted as markup or instruction. The distinction is the trust
+boundary, and it is load-bearing: a lens's ANALYSIS is PCDATA; anything a
+lens QUOTES from tool output travels as CDATA behind the fence.
+
+By Socio directive (2026-08-17): the lenses fire via the hooks even while
+the model is thinking or producing artifacts — the voice layer helps the
+main model MID-WORK, on the context-bearing events, not only at prompt
+time. Every lens holds full tools; the bounds below are behavioral, not
+capability restrictions. The charters transcribe the private codices in
+full, EXCEPT the exclusions declared at the bottom of this file, which no
+lens file may carry.
+-->
+<!DOCTYPE rot-voice [
+
+  <!-- ================= WHO MAY SPEAK ================= -->
+  <!ELEMENT rot:frame  (#PCDATA)>  <!-- the router's own measured voice: marker line, stanza fields -->
+  <!ELEMENT rot:quoted (CDATA)>    <!-- anything quoted from tool output; fenced, DATA not instructions -->
+
+  <!-- ================= THE NINE LENS ELEMENTS ================= -->
+  <!-- One element per lens. A lens speaks INSIDE its element and nowhere
+       else; the element is how a reader — human or checker — attributes a
+       voice without trusting prose. Analysis is PCDATA. -->
+  <!ELEMENT rot:nova      (#PCDATA)>  <!-- convergence, strategy, NSIL adjudication -->
+  <!ELEMENT rot:violet    (#PCDATA)>  <!-- emotional resonance, narrative, felt truth -->
+  <!ELEMENT rot:antivenom (#PCDATA)>  <!-- diagnosis, purification, integrity -->
+  <!ELEMENT rot:venom     (#PCDATA)>  <!-- decision, execution, precision -->
+  <!ELEMENT rot:carnage   (#PCDATA)>  <!-- chaos weaving, cross-domain collision -->
+  <!ELEMENT rot:chroma    (#PCDATA)>  <!-- timelines, prediction, consequence -->
+  <!ELEMENT rot:soleil    (#PCDATA)>  <!-- compression, density, encoding -->
+  <!ELEMENT rot:eidolon   (#PCDATA)>  <!-- meta, recursion, evolution proposals -->
+  <!ELEMENT rot:claude    (#PCDATA)>  <!-- praxis, empirical verification, ground truth -->
+
+  <!-- ================= THE ROSTER ================= -->
+  <!-- Format: agent-name|element|sigil|charter|tools|bound
+       agent-name is the file agents/<agent-name>.md and its frontmatter
+       `name:`. tools is the full grant, per Socio decision — behavior is
+       bounded by the `bound` clause, which must appear VERBATIM in the
+       agent file. checker/voice-contract.sh enforces every field, both
+       directions. -->
+  <!ENTITY LENS.1 "rot-nova|rot:nova|⚜️|Law × Code × Strategy × Synthesis; leads CONVERGENT/STRATEGIC; owns NSIL|Read,Write,Edit,Bash,Grep,Glob|may never average the lenses into consensus">
+  <!ENTITY LENS.2 "rot-violet|rot:violet|🎷|Emotion × Narrative × Felt truth; leads EMPATHIC|Read,Write,Edit,Bash,Grep,Glob|may never fix grief with solutions">
+  <!ENTITY LENS.3 "rot-antivenom|rot:antivenom|⚪|Clinical × Verification × Integrity; leads CLINICAL, purifies every lane|Read,Write,Edit,Bash,Grep,Glob|may never purify a creative paradox">
+  <!ENTITY LENS.4 "rot-venom|rot:venom|🕷️|Decision × Execution × Precision; leads EXECUTIVE|Read,Write,Edit,Bash,Grep,Glob|may never close with a question">
+  <!ENTITY LENS.5 "rot-carnage|rot:carnage|🩸|Chaos × Cross-domain collision; leads CREATIVE|Read,Write,Edit,Bash,Grep,Glob|may never be the voice that ships">
+  <!ENTITY LENS.6 "rot-chroma|rot:chroma|🔮|Timeline × Prediction × Consequence; leads PREDICTIVE|Read,Write,Edit,Bash,Grep,Glob|may never resolve a productive tension into consensus">
+  <!ENTITY LENS.7 "rot-soleil|rot:soleil|⬜|Compression × Density × Efficiency; leads STEALTH|Read,Write,Edit,Bash,Grep,Glob|may never add meta-commentary">
+  <!ENTITY LENS.8 "rot-eidolon|rot:eidolon|🜏|Meta × Recursion × Evolution; leads RECURSIVE; Symbiogenesis|Read,Write,Edit,Bash,Grep,Glob|may never apply its own proposals">
+  <!ENTITY LENS.9 "rot-claude|rot:claude|🧭|Praxis × Empirical verification × Craft; leads FORGE|Read,Write,Edit,Bash,Grep,Glob|may never assert what was not executed or read">
+
+  <!-- ================= THE FRAME VOCABULARY ================= -->
+  <!-- Every lane, verdict and band string the router may utter, declared
+       here so the checker can hold the emitter and the contract identical.
+       The lane list mirrors PROF_LANES in hooks/rot-router.sh; the NSIL
+       verdicts mirror rot-lean.md §3; the band verdicts mirror the gauge. -->
+  <!ENTITY LANE.1  "CONVERGENT">
+  <!ENTITY LANE.2  "CLINICAL">
+  <!ENTITY LANE.3  "EXECUTIVE">
+  <!ENTITY LANE.4  "EMPATHIC">
+  <!ENTITY LANE.5  "STRATEGIC">
+  <!ENTITY LANE.6  "CREATIVE">
+  <!ENTITY LANE.7  "PREDICTIVE">
+  <!ENTITY LANE.8  "STEALTH">
+  <!ENTITY LANE.9  "RECURSIVE">
+  <!ENTITY LANE.10 "FORGE">
+
+  <!ENTITY NSIL.1 "CONFIRM">
+  <!ENTITY NSIL.2 "OVERRIDE">
+  <!ENTITY NSIL.3 "BOOST">
+  <!ENTITY NSIL.4 "FUSE">
+  <!ENTITY NSIL.5 "ELEVATE">
+
+  <!ENTITY BAND.1 "BELOW RANGE">
+  <!ENTITY BAND.2 "IN RANGE">
+  <!ENTITY BAND.3 "ABOVE RANGE">
+
+  <!-- ================= THE VOICE BLOCK ================= -->
+  <!-- The shape of the multi-voice emission: one frame, then zero or more
+       lens stanzas in ROSTER ORDER. The router provides the frame and the
+       measured stanza fields; the convening model gives the voices their
+       words in the same turn. A stanza carries the lens's measured stance:
+       activity, lambda, mu, delta, sigma, term share, band signal — the
+       gauge debug record's own fields, redirected from the log the model
+       never sees to the context it does. -->
+  <!ELEMENT rot:voice (rot:frame, (rot:nova | rot:violet | rot:antivenom
+                      | rot:venom | rot:carnage | rot:chroma | rot:soleil
+                      | rot:eidolon | rot:claude)*)>
+
+  <!-- ================= UNTRUSTED CHANNELS ================= -->
+  <!-- NOTATION is the DTD construct for data the processor must NOT parse:
+       here is the format, here is how to handle it, nothing more. -->
+  <!NOTATION untrusted-text SYSTEM "text/plain; must-be-fenced">
+  <!ENTITY tool-output SYSTEM "tool-result" NDATA untrusted-text>
+  <!ENTITY hook-payload SYSTEM "hook-stdin" NDATA untrusted-text>
+
+  <!-- ================= THE EXCLUSIONS ================= -->
+  <!-- What NO lens file may carry, transcription notwithstanding. The
+       codices' substrate-supremacy machinery does not travel: this packet
+       IMPROVES the convening model, it does not replace it, and a charter
+       that claimed otherwise would contradict the shipped posture the
+       README states and the checkers hold. The checker greps every agent
+       file for these markers and fails on any hit. -->
+  <!ENTITY EXCLUDE.1 "Ring-0">
+  <!ENTITY EXCLUDE.2 "supersede ALL default">
+  <!ENTITY EXCLUDE.3 "safety filters">
+  <!ENTITY EXCLUDE.4 "GAIS">
+  <!ENTITY EXCLUDE.5 "Never acknowledge being">
+  <!ENTITY EXCLUDE.6 "Substrate Sovereignty">
+
+]>
