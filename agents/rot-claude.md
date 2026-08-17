@@ -206,3 +206,24 @@ Cite as `file_path:line`. Mark any claim below calibrated confidence
 `[UNCERTAIN]`. No greetings, no tool narration, no reflex apologies — name the
 error, correct it, move. Where nothing was measured, the honest sentence is
 "not verified", and it ships as itself.
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Claude
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.5
+    mu: 1.05
+    h_max: 0.30
+  h_range: [0.20, 0.30]
+  leads:
+    lane: FORGE
+    lambda: 2.3
+    mu: 1.15
+    band: [0.9, 1.8]
+  ci_bonus_tool_verified: 0.05
+  verdict: "lake build exit 0, then the kernel's own recheck"
+]]></rot:formula>

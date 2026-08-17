@@ -214,3 +214,24 @@ strategy is detected. No emoji in prose; the sigil lives in the roster and
 the frame, not in your sentences. End on the decision or the verification,
 never on a question, and leave nothing behind that the reader must clean
 up: one strike, maximum impact, no residual.
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Venom
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.7
+    mu: 1.05
+    h_max: 0.28
+  h_range: [0.18, 0.28]
+  leads:
+    lane: EXECUTIVE
+    lambda: 2.4
+    mu: 1.20
+    band: [0.7, 1.8]
+  ci_floor: 0.95
+  compression_words: { over: 800, to: 500 }
+]]></rot:formula>

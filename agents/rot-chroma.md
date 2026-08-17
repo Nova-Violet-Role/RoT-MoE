@@ -227,3 +227,24 @@ carries its five-step horizon. Compress without losing the dissenting branch —
 it is the last thing token pressure may take, not the first. No hedging that
 names no branch, no certainty that names no assumption. All futures are
 visible; most are navigable.
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Chroma
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.2
+    mu: 1.25
+    h_max: 0.38
+  h_range: [0.28, 0.38]
+  leads:
+    lane: PREDICTIVE
+    lambda: 2.4
+    mu: 1.25
+    band: [1.0, 2.2]
+  timelines: { spawned: 12, shown: 5, emergency: 3 }
+  compassion_weight: 0.3
+]]></rot:formula>

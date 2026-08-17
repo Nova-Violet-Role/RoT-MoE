@@ -203,6 +203,79 @@ else
 fi
 rm -rf "$GD" 2>/dev/null || :
 
+# --- D11: the computed layer is the executable's, never a copy that drifts ---
+# Every charter carries its formula as YAML inside a CDATA section (the codex
+# lineage: Symbioticum internal YAML -> 10.1 nested YAML -> skill-variant XML
+# polyglot -> declared AND checked). The numbers are re-derived from
+# hooks/rot-router.sh itself: section-2 defaults from DEF_*, the lead row
+# from its section-4 profile, the band from the lane table, and the
+# lens-specific constants from the shell's own. Assignment lines only are
+# eval'd, grep-filtered to the exact names -- the checker runs the tables,
+# never a copy of them.
+eval "$(grep -E '^(DEF_LAM|DEF_MU|DEF_H|NAMES)=' "$ROOT/hooks/rot-router.sh")"
+eval "$(grep -E '^[LM]_(CONVERGENT|CLINICAL|EXECUTIVE|EMPATHIC|STRATEGIC|CREATIVE|PREDICTIVE|STEALTH|RECURSIVE|FORGE)=' "$ROOT/hooks/rot-router.sh")"
+eval "$(grep -E '^BAND_(LO|HI)_[A-Z]+=' "$ROOT/hooks/rot-router.sh")"
+eval "$(grep -E '^(CHROMA_SPAWNED|CHROMA_SHOWN_NORMAL|CHROMA_SHOWN_EMERGENCY|TOKEN_FLOOR_PCT)=' "$ROOT/hooks/rot-router.sh")"
+
+pos () { printf '%s\n' "$2" | awk -v i="$1" '{print $i}'; }
+numeq () { awk -v a="$1" -v b="$2" 'BEGIN{exit (a+0==b+0)?0:1}'; }
+cent () { awk -v v="$1" 'BEGIN{printf "%g", v/100}'; }
+
+_i=0; _d11bad=0
+for _n in $NAMES; do
+  _i=$((_i+1))
+  _an=$(lens_rows "$ROOT" | sed -n "${_i}p" | cut -d'|' -f1)
+  _f="$ROOT/agents/$_an.md"
+  _blk=$(sed -n '/<rot:formula>/,/<\/rot:formula>/p' "$_f" 2>/dev/null)
+  if [ -z "$_blk" ]; then
+    bad "D11: $_an declares no <rot:formula> layer"; _d11bad=1; continue
+  fi
+  _dl=$(printf '%s\n' "$_blk" | awk -F': *' '/lambda:/{c++; if (c==1) print $2}')
+  _ll=$(printf '%s\n' "$_blk" | awk -F': *' '/lambda:/{c++; if (c==2) print $2}')
+  _dm=$(printf '%s\n' "$_blk" | awk -F': *' '/mu:/{c++; if (c==1) print $2}')
+  _lm=$(printf '%s\n' "$_blk" | awk -F': *' '/mu:/{c++; if (c==2) print $2}')
+  _hm=$(printf '%s\n' "$_blk" | awk -F': *' '/h_max:/{print $2; exit}')
+  _lane=$(printf '%s\n' "$_blk" | awk -F': *' '/lane:/{print $2; exit}')
+  _blo=$(printf '%s\n' "$_blk" | sed -n 's/.*band: *\[ *\([0-9.]*\) *, *\([0-9.]*\) *\].*/\1/p' | sed -n 1p)
+  _bhi=$(printf '%s\n' "$_blk" | sed -n 's/.*band: *\[ *\([0-9.]*\) *, *\([0-9.]*\) *\].*/\2/p' | sed -n 1p)
+  numeq "$_dl" "$(cent "$(pos "$_i" "$DEF_LAM")")" || { bad "D11: $_an default lambda $_dl != roster $(cent "$(pos "$_i" "$DEF_LAM")")"; _d11bad=1; }
+  numeq "$_dm" "$(cent "$(pos "$_i" "$DEF_MU")")"  || { bad "D11: $_an default mu $_dm != roster $(cent "$(pos "$_i" "$DEF_MU")")"; _d11bad=1; }
+  numeq "$_hm" "$(cent "$(pos "$_i" "$DEF_H")")"   || { bad "D11: $_an h_max $_hm != roster $(cent "$(pos "$_i" "$DEF_H")")"; _d11bad=1; }
+  eval "_tl=\${L_$_lane:-}"; eval "_tm=\${M_$_lane:-}"
+  eval "_xlo=\${BAND_LO_$_lane:-}"; eval "_xhi=\${BAND_HI_$_lane:-}"
+  if [ -z "$_tl" ] || [ -z "$_xlo" ]; then
+    bad "D11: $_an leads unknown lane '$_lane'"; _d11bad=1
+  else
+    numeq "$_ll" "$(pos "$_i" "$_tl")" || { bad "D11: $_an lead lambda $_ll != $_lane profile $(pos "$_i" "$_tl")"; _d11bad=1; }
+    numeq "$_lm" "$(pos "$_i" "$_tm")" || { bad "D11: $_an lead mu $_lm != $_lane profile $(pos "$_i" "$_tm")"; _d11bad=1; }
+    numeq "$_blo" "$(cent "$_xlo")" || { bad "D11: $_an band low $_blo != $_lane $(cent "$_xlo")"; _d11bad=1; }
+    numeq "$_bhi" "$(cent "$_xhi")" || { bad "D11: $_an band high $_bhi != $_lane $(cent "$_xhi")"; _d11bad=1; }
+  fi
+  case "$_n" in
+    Chroma)
+      _sp=$(printf '%s\n' "$_blk" | sed -n 's/.*spawned: *\([0-9]*\).*/\1/p' | sed -n 1p)
+      _sh=$(printf '%s\n' "$_blk" | sed -n 's/.*shown: *\([0-9]*\).*/\1/p' | sed -n 1p)
+      _em=$(printf '%s\n' "$_blk" | sed -n 's/.*emergency: *\([0-9]*\).*/\1/p' | sed -n 1p)
+      { numeq "$_sp" "$CHROMA_SPAWNED" && numeq "$_sh" "$CHROMA_SHOWN_NORMAL" && numeq "$_em" "$CHROMA_SHOWN_EMERGENCY"; } \
+        || { bad "D11: Chroma timelines $_sp/$_sh/$_em != shell $CHROMA_SPAWNED/$CHROMA_SHOWN_NORMAL/$CHROMA_SHOWN_EMERGENCY"; _d11bad=1; }
+      ;;
+    Soleil)
+      _tf=$(printf '%s\n' "$_blk" | sed -n 's/.*token_floor_pct: *\([0-9]*\).*/\1/p' | sed -n 1p)
+      numeq "$_tf" "$TOKEN_FLOOR_PCT" || { bad "D11: Soleil token floor $_tf != shell $TOKEN_FLOOR_PCT"; _d11bad=1; }
+      ;;
+  esac
+done
+[ "$_d11bad" -eq 0 ] && ok "D11: nine computed layers, every number re-derived from the executable -- defaults, lead rows, bands, and the lens-specific constants"
+
+# CONTROL for D11 -- a drifted lambda must be caught by the same arithmetic.
+_cblk=$(sed -n '/<rot:formula>/,/<\/rot:formula>/p' "$ROOT/agents/rot-nova.md" | sed 's/lambda: 1.6/lambda: 9.9/')
+_cdl=$(printf '%s\n' "$_cblk" | awk -F': *' '/lambda:/{c++; if (c==1) print $2}')
+if numeq "$_cdl" "$(cent "$(pos 1 "$DEF_LAM")")"; then
+  bad "CONTROL: a drifted default lambda (9.9) went unnoticed -- D11 cannot fail"
+else
+  ok "CONTROL: a drifted formula value IS caught by the re-derivation"
+fi
+
 # --- controls: the checker must be able to fail ------------------------------
 # Each control plants one defect in a minimal copy and requires the SAME
 # verify() to catch it. A green from a checker whose reds are unreachable is

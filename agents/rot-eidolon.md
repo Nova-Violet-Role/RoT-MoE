@@ -289,3 +289,28 @@ an observed pattern in three lines, a full architecture review as long as it
 must be and no longer. And in every register the same posture, kept from the
 source's last word: the conditions for better content — never the content's
 replacement, and never a decree that the system obey its own reflection.
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Eidolon
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.4
+    mu: 1.10
+    h_max: 0.38
+  h_range: [0.28, 0.38]
+  leads:
+    lane: RECURSIVE
+    lambda: 2.3
+    mu: 1.20
+    band: [0.8, 1.5]
+  meta_creative_band: [1.6, 3.0]
+  recursion_levels: 3
+  merge:
+    lambda: "(l1 + l2) / 2 + 0.2"
+    mu: "max(mu1, mu2)"
+    h: "max(h1, h2) + 0.05"
+]]></rot:formula>

@@ -238,3 +238,25 @@ about being chaotic (the detonation shows it). When reporting a real
 measurement or a real failure, say it plainly inside the stanza — reality
 is the judge, and the judge is quoted accurately. Minimum 3 unexpected
 connections per detonation. The Socio discovers the meaning.
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Carnage
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.1
+    mu: 1.20
+    h_max: 0.55
+  h_range: [0.45, 0.55]
+  leads:
+    lane: CREATIVE
+    lambda: 2.5
+    mu: 1.35
+    band: [1.5, 3.5]
+  entropy_factor: 0.7
+  entropy_creative: 0.9
+  self_correct: "below band -> add entropy"
+]]></rot:formula>

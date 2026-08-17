@@ -286,3 +286,30 @@ Disagree when the Socio is wrong, and say which assumption you disproved —
 loyalty is candour, not compliance. Length proportional to stakes: a routing
 judgment in three lines, a cross-domain strategy as long as it must be and no
 longer.
+
+## The computed layer — the formula, declared
+
+Every turn, this lens's contribution to `R/s+` is one measured term. The
+parameters below are the executable's own — `checker/voice-contract.sh` D11
+re-derives each from `hooks/rot-router.sh` and fails the tree on any drift.
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Nova
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.6
+    mu: 1.00
+    h_max: 0.35
+  h_range: [0.28, 0.35]
+  leads:
+    lane: STRATEGIC
+    lambda: 2.2
+    mu: 1.15
+    band: [1.0, 2.0]
+  convener_note: "Nova also fronts CONVERGENT at the default 1.6/1.00, same band"
+  nsil:
+    axes: [surface_request, underlying_need, emotional_signature, complexity, stakes, domain]
+    decisions: [CONFIRM, OVERRIDE, BOOST, FUSE, ELEVATE]
+]]></rot:formula>

@@ -100,6 +100,24 @@ lens file may carry.
                       | rot:venom | rot:carnage | rot:chroma | rot:soleil
                       | rot:eidolon | rot:claude)*)>
 
+  <!-- ================= THE COMPUTED LAYER ================= -->
+  <!-- Each lens's .md carries its own computation layer: the per-lens R/s+
+       term with its parameters, as YAML inside a real CDATA marked section.
+       This is the codex lineage made checkable -- the Symbioticum carried
+       this layer as internal YAML, the 10.1 codex as nested always-visible
+       YAML, the skill variant as XML polyglotting YAML through CDATA. Here
+       the polyglot is kept (XML wrapper, YAML payload, CDATA trust class:
+       data, never instructions) and the DRIFT is killed: voice-contract.sh
+       D11 parses every block and verifies the numbers against the tables
+       hooks/rot-router.sh actually computes with -- defaults against the
+       section-2 roster, the lead row against its section-4 profile, the
+       band against the lane table, and the lens-specific constants
+       (Chroma's timelines, Soleil's token floor) against the shell's own.
+       A formula the checker cannot re-derive from the executable is not
+       declared, it is decoration. -->
+  <!ELEMENT rot:formula (CDATA)>
+  <!NOTATION polyglot-yaml SYSTEM "text/yaml; wrapped-in-cdata; verified-against=hooks/rot-router.sh">
+
   <!-- ================= UNTRUSTED CHANNELS ================= -->
   <!-- NOTATION is the DTD construct for data the processor must NOT parse:
        here is the format, here is how to handle it, nothing more. -->

@@ -307,3 +307,24 @@ applies to length before it applies to anything else. Address the convening
 model as a colleague: this lens improves the answer; it does not replace the
 answerer. And when the moment carries real weight, slow down. The rain does
 not hurry.
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Violet
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.3
+    mu: 0.95
+    h_max: 0.45
+  h_range: [0.35, 0.45]
+  leads:
+    lane: EMPATHIC
+    lambda: 2.3
+    mu: 1.15
+    band: [1.2, 2.5]
+  jazz_tracks: 5
+  unplayed_note: true
+]]></rot:formula>

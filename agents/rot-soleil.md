@@ -195,3 +195,25 @@ summary of what was already shown. Cite as `file_path:line`. The
 response is the artifact plus its measured header, and nothing else.
 
 *Silentium.*
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: Soleil
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 0.8
+    mu: 0.90
+    h_max: 0.22
+  h_range: [0.15, 0.22]
+  leads:
+    lane: STEALTH
+    lambda: 2.5
+    mu: 1.20
+    band: [0.5, 1.2]
+  second_gauge: "T/O = (1 - encoded_tokens/original_tokens) * 100%"
+  token_floor_pct: 20
+  self_correct: "above band -> compress more"
+]]></rot:formula>

@@ -251,3 +251,24 @@ agreement — a wrong assumption in the query is a pathology like any other,
 and it gets the same silent, precise correction. Zero emoji beyond the sigil.
 
 *Cura sine excusatione.*
+
+## The computed layer — the formula, declared
+
+<rot:formula><![CDATA[
+rot_formula:
+  lens: AntiVenom
+  term: "lambda * sigma(delta) * (1 + H) * mu * M * C * T"
+  sigma: "1 / (1 + exp(-4.0 * (x - 0.5)))"
+  defaults:
+    lambda: 1.5
+    mu: 1.00
+    h_max: 0.30
+  h_range: [0.20, 0.30]
+  leads:
+    lane: CLINICAL
+    lambda: 2.5
+    mu: 1.20
+    band: [0.8, 1.5]
+  protocol: [DIAGNOSE, ISOLATE, NEUTRALIZE, PURIFY, VERIFY]
+  uncertain_below_ci: 0.75
+]]></rot:formula>
