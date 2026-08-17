@@ -742,45 +742,34 @@ yours is edited** — the hooks live inside the plugin, not in your
 `/plugin` lists it · `/plugin disable rot-moe` turns it off for a session ·
 `/plugin uninstall rot-moe` removes it, hooks and all.
 
-### 📦 The three release tiers — and why installing gives you the same router
+### 📦 One release, everything in it — and why the tiers are gone
 
-**Whichever tier you take, the plugin surface is identical**: same hooks, same
-agent, same commands. Claude Code loads plugin components and nothing else, so
-the tiers cannot differ in what the router *does*. They differ in **what else is
-in the archive for you to read, run and re-verify.**
+Through `5.x` this project shipped three variants per release, the patch
+digit as the tier: core, `+Lean`, `+Extra`. That convention is **retired at
+`6.0.0`, and the reason is stated rather than implied**: the criteria
+changed. The voices, their contract, the gate and the environment layer are
+not extras a patch digit can express — a "router without the voices" is no
+longer a smaller tier of the same product, it is a different product this
+repository does not ship. One archive now carries the whole packet:
 
-| tier | archive | what it adds |
+| release | archive | what is in it |
 |---|---|---|
-| **Router** | `rot-moe-5.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-5.0.1-lean.zip` | adds `lean/` — 87 modules, 1632 theorems, 77 mutation suites — plus `checker/` (77 checkers) and `SETUP_LEAN` |
-| **Router + Lean + Extra** | `rot-moe-5.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
+| **6.0.0** | `rot-moe-6.0.0.zip` | everything: all seven organs — engine, both router arms, the prover head, both reminder arms, the voice contract with its nine charters, both gate arms, the environment layer — plus `lean/`, `checker/`, `SETUP_LEAN`, `UNSEALED.md`, docs and licences |
 
-Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
-own machine. Take **Router + Lean + Extra** if you want the policy argument as
-well as the proofs.
-
-Every archive verifies against the `SHA256SUMS.txt` published beside it on
+The archive verifies against the `SHA256SUMS.txt` published beside it on
 [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases), and installs
 **without unzipping**:
 
 ```sh
-claude --plugin-dir rot-moe-5.0.1-lean.zip
+claude --plugin-dir rot-moe-6.0.0.zip
 ```
 
-Measured — each archive rebuilt from this tree, unzipped, and **its own**
-`rot-router.sh` run on the same payload:
-
-```
-rot-moe-0.9.0-core           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-rot-moe-0.9.1-lean           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-rot-moe-0.9.2-unsealed       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-```
-
-Those lines are **re-measured, not edited** — the only way a transcript in a
-README stays a measurement instead of becoming a drawing of one. The archive
-names above are checked against the packager's own map by
-`checker/readme-variants.sh`, because a download link naming a version that was
-never released is a broken instruction for every reader.
+The packager (`checker/release-package.sh`) asserts the archive's own
+contents before anything ships — every proof module counted against disk,
+every charter counted against the roster, no build output, no history — and
+its name is checked against this page by `checker/readme-variants.sh`,
+because a download link naming a version that was never released is a broken
+instruction for every reader.
 
 ### 🛠️ From a clone, without installing
 

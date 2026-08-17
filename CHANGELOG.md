@@ -15,108 +15,67 @@ not be buried.
 
 ---
 
-## [5.0.0] · [5.0.1] · [5.0.2] — 2026-08-14
+## [6.0.0] — 2026-08-17
 
-**Major, and the reason is narrow and precise: the gauge's verdict changed
-meaning.** Anything parsing the band string gets a different answer than it did
-in `4.0.x`. Nothing else in the observable surface moved — the `R/s+` values
-themselves are byte-identical.
+**Major, and this time the criteria themselves changed: the packet grew from
+four organs to seven, the lenses became voices, and the release scheme
+collapses to a single artifact.** The `5.x` convention — three variants
+sharing one `MAJOR.MINOR`, the patch digit as the tier — is retired. There is
+no meaningful "router without the voices" any more: the contract, the
+charters, the gate and the environment layer are the product, not extras a
+patch digit can express. One release ships everything: `rot-moe-6.0.0.zip`.
 
-### Fixed — one band was applied to ten lanes
+### Added — ORGAN 5: the voice contract and the nine living lenses
 
-The gauge computed `R/s+` correctly and then read it against a hardcoded
-`0.9–1.8` on every turn. Those are **one lane's numbers**, and the specification
-gives each lens its own optimal range — stated twice, in two independent tables
-that were extracted and compared before anything was edited. They agree on all
-ten lanes.
+`hooks/rot-voice.dtd` declares the roster in the DTD method: nine lens
+elements, one entity per lens (name, element, sigil, charter, tool grant,
+bound), the frame vocabulary the router may utter, the environment
+vocabulary, and the exclusion markers no charter may carry. Nine agents —
+`agents/rot-nova.md` through `agents/rot-claude.md` — carry full charters
+transcribed from the source codices (the ninth from this tree, its missing
+codex name disclosed rather than invented), each with its own mechanism, a
+declared `<rot:formula>` computation layer in YAML-inside-CDATA, and no
+`model:` key: every lens runs on the model the operator selected.
+`checker/voice-contract.sh` holds it all in both directions — **19 checks,
+six controls**, every control proved able to fail.
 
-The number was never wrong. The **meaning** was:
+### Added — the voice block, on both channels, both arms
 
-| lane | its own band | at `R/s+ 1.40` | what `4.0.x` printed |
-|---|---|---|---|
-| CREATIVE | 1.5 – 3.5 | **BELOW** → *add entropy* | `IN RANGE` → do nothing |
-| STEALTH | 0.5 – 1.2 | **ABOVE** → *compress more* | `IN RANGE` → do nothing |
-| FORGE | 0.9 – 1.8 | `IN RANGE` | `IN RANGE` ✓ |
+The router speaks one stanza per active lens after its untouched marker —
+measured factors from that turn's gauge, charter and bound from the DTD —
+as plain context on the prompt events and inside the JSON envelope's
+context field on the tool-loop events, gated by the measured accepting set.
+`ROTMOE_VOICE=0` silences everything.
 
-The self-correction signal is the entire purpose of the score, so a verdict
-reading `IN RANGE` when the lead lens says otherwise does not merely mislabel —
-it **silences the one instruction the gauge exists to produce**.
+### Added — ORGAN 6: the voice gate
 
-This is the same defect fixed on 2026-08-13 in the weight tables, where nine of
-the ten profiles were documentation and every lane was scored with one profile's
-weights. Route correctly, then judge as if you had not.
+A FUSE or ELEVATE prompt records its summons; on Stop, a summoned lens that
+never spoke blocks the stop **once**, the refusal carrying every missing
+charter as the task. The summons is consumed by its own block, the
+harness's already-blocked flag stands the gate down, and everything the
+gate cannot measure allows. Registered by the plugin and both hand
+installers alike; `ROTMOE_GATE=0` disarms it.
 
-**Why it survived review, proved rather than asserted:** the old band agrees
-with the correct verdict on *exactly one* lane. This is a prover repo where that
-lane is the common one, so every test written on an ordinary turn passed.
+### Added — ORGAN 7: the environment layer
 
-* `lean/Proofs/RotBandPerLane.lean` — **12 theorems**, 10/10 mutants killed.
-  * `no_single_band_suffices` — exhibits a score two lanes classify differently,
-    so **no single range can reproduce the per-lane law**. This is the theorem
-    that makes the change load-bearing rather than cosmetic.
-  * `global_band_wrong_for_nine_of_ten_lanes` — the count was **guessed as eight
-    and `decide` said nine**. The docstring records the miss, because that gap is
-    the argument for pinning a constant with a proof instead of a comment.
-  * `the_only_agreeing_lane_is_forge` — names the one lane that masked it.
-* **No second table.** Both arms already had a correct per-lane band table, used
-  by the flag and not by the gauge. The first draft transcribed the ten pairs a
-  third and fourth time; both were reverted. There is now one table and one
-  lookup per arm.
+Configuration as `rot.env` files — `KEY=VALUE`, no JSON — parsed, never
+sourced, under the DTD's declared vocabulary: undeclared keys do not exist,
+the live environment outranks every file, and the two keys that decide what
+runs are never file-settable. `hooks/rot-profile.sh` adds the sourceable
+`rot` command family, enforcing the vocabulary in the write direction too.
 
-### Changed — the verdict names its bounds
+### Changed
 
-`BELOW RANGE (1.5-3.5)` rather than a bare `BELOW RANGE`. With ten bands live,
-the old string could not say **which** band judged the score. All 12 pinned rows
-in `checker/corpus-gauge.txt` moved in the same commit as the code, never after
-it. Cross-arm diff: **97 passed, 0 failed**, both arms agreeing on all ten lanes.
+The README carries a Usage section, the reversed nine-voices passage with
+its inventory, and the retirement of "decides nothing" stated in public.
+`CLAUDE.md` briefs the installing agent on all seven organs. The claims
+table names the new instruments. The gate joins `hooks.json`, both
+`ARM_ROUTER` arms and both `DISARM_ROUTER` arms at the same uniform
+timeout every other entry carries.
 
-### Fixed — the router spent a tenth of its per-turn budget re-reading one file
+### Fixed
 
-| what | before | after |
-|---|---|---|
-| convener config read (202 197 B `settings.json`) | 48 ms | **17 ms** |
-| debug-log rotation, per 300 turns | 200 full rewrites | **10** |
-
-The rotation bug is the instructive one. The log *was* capped, at exactly 5000
-lines — and trimming **to** the cap means every subsequent turn appends line
-5001, trips the check, and rewrites the whole 4.4 MB file to drop a single line,
-forever. Hysteresis (trim to 80 %) ends it. Measured per-turn cost fell
-**521.5 ms → 474.6 ms** against a **deliberately unchanged** 500 ms bound.
-
-### Fixed — a staleness exemption that would have excused every workflow
-
-`git ls-tree` without `-r` returns the *directory entry*, not the files beneath
-it. The lookup matched nothing, every workflow was classified NEW, and NEW files
-are exempt from every staleness rule. It stayed masked because established
-workflows pass on run history before reaching that branch.
-
-The **sixteenth** time in this repo that an instrument unable to distinguish
-*"I could not check"* from *"the check passed"* has failed **toward the
-exempting direction**. The lookup now asserts it found something before an
-exemption may be granted, and that assertion was verified by breaking it on
-purpose.
-
-Also fixed: `actions/upload-artifact@v4` silently skips dotted paths, so
-`.release/*.zip` uploaded nothing. Visible only because `if-no-files-found` was
-set to `error` rather than `warn`.
-
-### Corrected
-
-* The releases page claimed **154 theorems**. The tree has **1632**. Stale, not
-  approximately right, and fixed here rather than left to age.
-* Counts moved with the tree everywhere they are claimed: **87 modules, 1632
-  theorems, 77 mutation suites** in `README.md`, `plugin.json`,
-  `marketplace.json` and `CITATION.cff`.
-
-### Verification
-
-| instrument | result |
-|---|---|
-| `lake build` | exit 0, **zero `sorry`**, exit code read directly |
-| `#print axioms` | no `sorryAx` |
-| `lake env leanchecker` | exit 0, zero bytes — absent-module control exits 1 |
-| mutation, new module | **10 killed, 0 survived, 0 discarded** |
-| cross-arm diff | **97 passed, 0 failed** |
-| gates | **65 / 65 green** |
-| per-turn cost | **475 ms** against the 500 ms bound |
-
+The About section's reproduction example had quietly stopped reproducing
+when the CLI's default gauge profile moved to the convener's — caught by
+running it, repaired with `--profile FORGE`, and the miss disclosed in
+place.
