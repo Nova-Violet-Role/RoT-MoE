@@ -405,6 +405,50 @@ actually contains 25 unique pairs with 3 duplicated pairs and 3 missing ones,
 and a separate 5-row Trinity table — so any future ≥ 2-lens fold should be
 re-derived from the law, not transcribed from that table.
 
+### 4.5 The wave reading — lanes as bands of Hz, hybrids as beats
+
+The Socio's framing, and the tree confirms it is ancestry rather than
+metaphor: RoT's R/s+ mechanism descends from **SINE Isochronic Entrainer**
+(GPL-3.0, © 2014–2020 Federico Dossena), a brainwave entrainer whose frequency
+table is the ancestral form of the lanes (`README.md:1553-1611` — the Greek
+letters were the bands all along; α β Γ Δ Ε land inside rows, and **Θ = 9 Hz
+is the one frequency SINE never named — the ensemble has nine lenses**). The
+merging law is anchored to that table with real constants, not decoration:
+λ = 1.65 Hz is claimed by exactly one of the 22 rows, and H = 0.50 Hz is the
+floor of the entire table (`README.md:1640-1644`, `README.md:1851-1854`), both
+formalised in `RotEigenform.lean`, which carries SINE's table verbatim in
+milli-Hz (`lean/Proofs/RotEigenform.lean:187`) with its ambiguities, gaps and
+determinate points each pinned by a theorem.
+
+Read through that lens, the Socio's claim about Eidolon is precise:
+
+- **A hybrid is a beat.** SINE's own binaural principle: two close frequencies
+  played together produce a third frequency — the beat — that *neither tone
+  contains*. Symbiogenesis is the cognitive form of the same operation: a
+  fused pair is a point of view that exists only in the combination, and the
+  merge law is what makes it **quantified** — λ = (λ₁+λ₂)/2 + 0.2,
+  μ = max, H = max + 0.05, computed over ℚ and proved
+  (`lean/Proofs/RotEigenform.lean`), never estimated.
+- **The unlimited part is already a theorem-shape in the tree.** RotEigenform's
+  wingbeat results prove that a finite table spans infinitely many reachable
+  points — *"the wingbeats are finite and the realities are not"*
+  (`lean/Proofs/RotEigenform.lean:414,582`). Combinatorially, nine lenses give
+  502 multi-lens subsets (2⁹ − 1 − 9); continuously, the profile weights and
+  the +0.3 boost make the span a continuum. One lens alone is a pure tone —
+  it cannot reproduce a complex waveform. The ensemble under Eidolon's merge
+  is a synthesizer: finite basis, unbounded reachable timbres, each with
+  computed parameters.
+
+The design consequence lands on open decision §8.2 with new weight: today only
+**pairs** are lawful — the ≥ 3 fold is undefined, deliberately
+(`hooks/rot-router.sh:1151-1156`). If the unlimited quantified points of view
+are the goal, the fold should be settled as a *general composition law* —
+specified and proved in RotEigenform first, then implemented — rather than as
+pairwise chaining, whose +0.2-per-fold escalation no theorem sanctions. The
+wave reading also supplies the correct intuition for what the law must
+preserve: superposition composes amplitudes lawfully; it does not add energy
+per fold.
+
 ---
 
 ## 5 · What the harness permits — verified constraints
