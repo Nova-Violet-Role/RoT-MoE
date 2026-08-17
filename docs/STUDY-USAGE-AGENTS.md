@@ -283,7 +283,7 @@ directions** (`trust_contract.dtd:10-12`, `goal.sh contract --verify`,
 `Nova_Role_Codex_Symbioticum.md` (v7.0, 3746 lines, 6 facets + Nova; no
 Eidolon), shared by the Socio for this study. These are the codices
 `engine/rot-lean.md` §2/§4 quotes its constants from. **They are private**
-(see §8.6): this section stays at summary level, citing structure rather than
+(see §8.7): this section stays at summary level, citing structure rather than
 transcribing content — the full extraction lives with the Socio and in this
 session, and feeds the agent files at whatever exposure level the Socio
 decides.)*
@@ -412,13 +412,13 @@ hard way:
 
 ---
 
-## 6 · The design that fits — five pieces
+## 6 · The design that fits — six pieces
 
 What follows is the study's synthesis: the smallest set of additions that makes
 the Socio's statement true — *nine lenses that really coexist with the main
 model, expose simultaneous points of view through the hooks, computed via
-R/s+, without recalling subagents for the in-turn voices* — while breaking
-none of the repository's own gates.
+R/s+, able to read and write, and never waiting behind a command only the user
+can evoke* — while breaking none of the repository's own gates.
 
 ### 6.1 ORGAN 5 — the lens roster contract (`hooks/rot-voice.dtd`)
 
@@ -508,7 +508,52 @@ Transplants of `goal-agent.md` / `goal-swarm.md`, adapted:
   was missing: it makes the ensemble's separate points of view observable and
   comparable on demand.
 
-### 6.5 The README — the Usage section, and the sentence reversed
+### 6.5 The voice gate — turns inside the hook, with no command to wait for
+
+The Socio's refinement, added to the study after the first draft: the lenses
+must not sit behind a command-closed gate that only the user can evoke, and
+they must be able to Read and Write. Three verified mechanisms compose into
+exactly that, and the DTD method is what makes the third one safe:
+
+1. **Auto-delegation is already open.** An agent file's `description` field is
+   what the *main model* uses to summon it on its own initiative, mid-work —
+   slash commands are an optional entry point, not the gate. A lens agent
+   whose description states when it must be convened gets convened without
+   anyone typing anything. The commands of §6.4 are conveniences on top of
+   this, never the door.
+2. **Lens agents may hold tools.** DTD GOAL's roster is advisory and
+   deliberately read-only (`disallowedTools: Write, Edit` on all seven). The
+   lens roster is different by design: a lens is a *worker* with a point of
+   view, so its file may grant Read/Write/Edit/Bash — and the voice contract
+   is what makes that safe. `rot-voice.dtd` declares, per lens, the tool
+   grant beside the "may never" line (the shape the codices already fix:
+   Anti-Venom corrects, 🧭 Claude builds and measures, Carnage detonates but
+   is *never the voice that ships* — so it reads and proposes, it does not
+   write), and `checker/voice-contract.sh` holds the declaration and the
+   frontmatter identical in both directions.
+3. **The Stop-gate pattern gives the hook real convening power.** A hook
+   cannot think — but it can **refuse to close**. DTD GOAL's gate blocks the
+   model's stop with the next task until the criteria pass (LAW.17: *a
+   refusal always carries a task*, `stop_gate.sh:242-291`). The RoT
+   equivalent — the **voice gate** — applies the same law to the roster: on a
+   turn where NSIL summoned lenses (FUSE, ELEVATE, or an explicit convene),
+   a Stop hook checks that every summoned lens has spoken in its declared
+   element (or that its work item is done) and, if one is missing, blocks
+   with that lens's charter as the instruction for the next iteration. Inside
+   that loop each iteration is the main model at full power — reading,
+   writing, building — wearing one summoned lens; the hook convenes, counts,
+   verifies, and closes only when the roster is served. This is genuine
+   turn-taking *inside the hook itself*, with no user evocation anywhere in
+   the loop.
+
+Simultaneity (§6.3) and turn-taking (§6.5) compose rather than conflict, and
+the composition is the full answer to the reversed sentence: the voice block
+gives all nine stances **at once** at the top of the turn; the voice gate
+guarantees no summoned voice is **dropped** before the turn is allowed to end.
+One is the microphone array; the other is the door that will not shut on a
+lens mid-sentence.
+
+### 6.6 The README — the Usage section, and the sentence reversed
 
 - **Placement, measured against the structure:** a new `## 🧭 Usage` H2
   between `### ⚙️ Configuration` (ends `README.md:823`) and
@@ -578,7 +623,11 @@ Transplants of `goal-agent.md` / `goal-swarm.md`, adapted:
 5. **Scope of the first implementation step** — README Usage section alone is
    shippable immediately from this study; the contract + agents + voice block
    are a coherent second step; the commands a third.
-6. **Codex exposure.** The two source codices are private — the Socio has
+6. **Per-lens tool grants.** Which lenses may Write and which only read and
+   propose — the codices imply a shape (§6.5) but the grant table is a
+   sovereignty decision, and it must be settled *in the contract* before the
+   first agent file is written, so the checker is born with teeth.
+7. **Codex exposure.** The two source codices are private — the Socio has
    shared them for this study only. The engine spec already cites them by
    `file:line` in small, disclosed quotations; the future lens agent files
    will need charters *derived* from them. The Socio decides, before the
@@ -606,5 +655,5 @@ Transplants of `goal-agent.md` / `goal-swarm.md`, adapted:
   parallel subagents.
 - `Nova_Codex_OMEGA.md` (v10.1) and `Nova_Role_Codex_Symbioticum.md` (v7.0) —
   shared privately by the Socio; read in full for this study, reported here at
-  summary level only (§4, §8.6). The full per-symbiote extraction stays out of
+  summary level only (§4, §8.7). The full per-symbiote extraction stays out of
   the tree pending the Socio's exposure decision.
