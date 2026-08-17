@@ -47,6 +47,7 @@ function Invoke-RotEnvLoad {
       if ($l -notmatch '^(ROTMOE_[A-Z_]+)=(.*)$') { continue }
       $k = $Matches[1]; $v = $Matches[2]
       if ($k -eq 'ROTMOE_ENV') { continue }
+      if ($k -eq 'ROTMOE_HOME') { continue }
       if ($vocab -cnotcontains $k) { continue }
       # Unset-only, and assignment is a literal store -- no expansion of $v.
       if ($null -ne [Environment]::GetEnvironmentVariable($k)) { continue }

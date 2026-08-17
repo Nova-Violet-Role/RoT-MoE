@@ -75,8 +75,10 @@ rot_env_load () {   # <project-dir>
       case "$_re_k" in
         ROTMOE_*[!A-Z_]*) continue ;;
       esac
-      # Law 2: the locator cannot relocate itself; undeclared keys do not exist.
+      # Law 2: the locator cannot relocate itself, and the HOME that decides
+      # which code runs is never a file's to set; undeclared keys do not exist.
       [ "$_re_k" = 'ROTMOE_ENV' ] && continue
+      [ "$_re_k" = 'ROTMOE_HOME' ] && continue
       case " $_re_vocab " in
         *" $_re_k "*) : ;;
         *) continue ;;

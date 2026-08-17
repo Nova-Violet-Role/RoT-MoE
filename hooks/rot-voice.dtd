@@ -164,6 +164,7 @@ lens file may carry.
   <!ENTITY ENV.20 "ROTMOE_THROTTLE_POST|minutes|reminder throttle elsewhere; default 5">
   <!ENTITY ENV.21 "ROTMOE_GOAL_FILE|path|a goal file whose open alarm rows the reminder counts">
   <!ENTITY ENV.22 "ROTMOE_CWD|path|overrides the directory workspace discovery walks up from">
+  <!ENTITY ENV.23 "ROTMOE_HOME|path|where the RoT-MoE tree lives, for the rot profile; never settable from a file -- it decides which code runs">
 
   <!-- ================= THE EXCLUSIONS ================= -->
   <!-- What NO lens file may carry, transcription notwithstanding. The

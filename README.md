@@ -954,6 +954,21 @@ overrides your export). Load order: `$ROTMOE_ENV`, then
 `<project>/.rot-moe/rot.env`, then `$XDG_CONFIG_HOME/rot-moe/rot.env` —
 first writer wins.
 
+And the `.bashrc` role of the trio — shipped functions, sourced once:
+
+```sh
+# one line in ~/.bashrc (or ~/.zshrc):
+. /path/to/RoT-MoE/hooks/rot-profile.sh
+```
+
+gives every terminal the `rot` command family: `rot route "text"`,
+`rot gauge`, `rot voice on|off`, `rot gate on|off`, `rot env
+list|get|set` (the **write** direction of declared-only — a key the DTD
+does not declare is refused with the vocabulary printed), `rot summons`,
+`rot check`. Functions edit data under the schema; the two keys that decide
+*what runs* (`ROTMOE_ENV`, `ROTMOE_HOME`) are never file-settable, in
+either direction.
+
 ### Every switch the hooks read
 
 The Configuration table above lists the ones you are most likely to want. The
