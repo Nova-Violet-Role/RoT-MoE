@@ -449,6 +449,25 @@ wave reading also supplies the correct intuition for what the law must
 preserve: superposition composes amplitudes lawfully; it does not add energy
 per fold.
 
+**The combination arithmetic** (Socio, 2026-08-17): each subset of the roster
+produces its own frequency — Violet × Nova produce **9 Hz, the very hole in
+the table** (the frequency SINE never named, `README.md:1609-1611`); Venom ×
+Carnage another; four symbiotes together another still — and stacked
+combinations reach **beyond the table's own resonance ceiling**. The tree
+already carries the receipt for that reach: `clear_quartz_is_unclaimed`
+proves 32768 Hz — 2¹⁵, the quartz-watch oscillator, the largest frequency
+ever uploaded — is claimed by no row (`lean/Proofs/RotEigenform.lean:650`),
+so the table's limit was never the space's limit, and the wingbeat theorems
+already prove the reachable points dense. The design consequence sharpens
+§8.2 into a provable specification: the general fold must be **injective
+over lens-subsets** — no two combinations may collapse onto the same
+quantified signature, a pair never onto another pair, a quad never onto a
+pair — which is a theorem shape for RotEigenform, stated before the fold is
+implemented. (Kept distinct, honestly: the pair law's λ for Nova × Violet is
+1.65 — proved as 33/20, and 1.65 Hz is itself a determinate row — while the
+9 Hz reading lives on the Socio's frequency plane; the fold specification is
+where the two axes get their formal binding.)
+
 **One boundary of the wave reading, stated so it is never over-read** (Socio
 clarification, 2026-08-17): it covers **eight of the nine**. The Θ = 9 Hz
 correspondence is about the *ensemble count*, not about the ninth lens's
