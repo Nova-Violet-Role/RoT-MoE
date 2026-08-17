@@ -458,6 +458,44 @@ the main model (never by a hook; the DTD-GOAL consumers table is right about
 why), individually via `/rot-agent <lens> …` or all at once via `/rot-swarm`
 (§6.4).
 
+**Distinctness is load-bearing, and the engine already measures its absence.**
+The Socio's requirement, recorded as a hard one: a lens must not be the
+substrate's default voice wearing a sigil. On `model: inherit` all nine run on
+the *same weights*, so every degree of divergence must come from the charter —
+which is the Role of Thoughts' own founding claim (weight-level MoE decides
+which parameters fire; RoT decides how the reasoning is framed,
+`README.md:163-167`). If the charters fail to separate the voices, the failure
+is visible in the engine's own units: identical perspectives mean δᵢ → 0 for
+every lens, σ damps every term toward 0.12, R/s+ falls below the lane's band,
+and Phase 1's gate — *similar viewpoints are a gate failure*, productive
+tension mandatory — is red. Collision is not a style problem; it is a
+below-band reading. Three enforcement layers, cheapest first:
+
+1. **Structural.** `checker/voice-contract.sh` requires each agent file to
+   carry its charter fields — register, interceptors, "may never", declared
+   element — the same both-directions pattern DTD GOAL's
+   `test_the_contract_binds_the_engine` uses for `model:`/`disallowedTools`/
+   "may never" lines.
+2. **Behavioral.** The codex interceptors are word-level and therefore
+   *testable properties of an output*, not vibes: Venom never closes with a
+   question; Anti-Venom never announces the corrections in prose; Carnage's
+   surreal-vocabulary floor; Soleil's token ceiling; Violet's care triggers.
+   A bench can assert each on real output.
+3. **Empirical.** A divergence bench: run the swarm on a fixed subject
+   corpus and measure crude-but-real separation between the nine outputs —
+   pairwise vocabulary overlap, structure, length, each declared element
+   present, and the tensions surviving into the synthesis (DTD GOAL's bench
+   once recorded exactly this failure: *"attack absent from synthesis"*).
+   Stated honestly: a script measures text statistics, it does not pretend to
+   measure meaning — but a lens whose output is lexically indistinguishable
+   from another's has already failed the cheaper test.
+
+The swarm also unlocks the gauge's next honest upgrade: for the first time
+there exist nine *real* per-lens outputs from which δᵢ could be **estimated by
+measurement** instead of derived from routing bits — the road from the one-hot
+activity vector toward the measured ensemble the formula always described,
+with M, C and T staying neutral until something real measures them too.
+
 ### 6.3 The router speaks in frames — simultaneous voices in the hook itself
 
 The in-turn, no-subagent form, and the piece that reverses the sentence. The
