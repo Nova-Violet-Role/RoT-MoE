@@ -51,6 +51,24 @@ esac
 _sess=$(printf '%s' "$_sess" | tr -cd 'A-Za-z0-9-' | cut -c1-64)
 [ -n "$_sess" ] || _sess=unknown
 
+# ORGAN 7 -- the environment layer, same three laws as the router: parsed
+# never sourced, declared-only, unset-only. The gate honours a project's
+# rot.env (ROTMOE_GATE=0, ROTMOE_STATE_DIR) exactly as the router that wrote
+# the summons did, or the two would resolve different state directories.
+_cwd=''
+case "$payload" in
+  *'"cwd"'*)
+    _cwd=${payload#*\"cwd\"}
+    _cwd=${_cwd#*\"}
+    _cwd=${_cwd%%\"*}
+    ;;
+esac
+_cwd=$(printf '%s' "$_cwd" | tr '\\' '/')
+if [ -r "${0%/*}/rot-env.sh" ]; then
+  . "${0%/*}/rot-env.sh" 2>/dev/null && rot_env_load "$_cwd" || :
+fi
+[ "${ROTMOE_GATE:-1}" = 0 ] && exit 0
+
 # --- the summons -------------------------------------------------------------
 STATE_DIR="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
 SUM="$STATE_DIR/voice-summons.$_sess"

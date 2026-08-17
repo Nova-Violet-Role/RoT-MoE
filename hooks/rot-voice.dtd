@@ -125,6 +125,46 @@ lens file may carry.
   <!ENTITY tool-output SYSTEM "tool-result" NDATA untrusted-text>
   <!ENTITY hook-payload SYSTEM "hook-stdin" NDATA untrusted-text>
 
+  <!-- ================= THE ENVIRONMENT VOCABULARY ================= -->
+  <!-- ORGAN 7. Configuration travels as a plain rot.env file -- KEY=VALUE
+       lines, the .env / .bashrc shape -- with NO json anywhere: the DTD is
+       the schema. The file is PARSED, never sourced: a config file sitting
+       in a project directory must be DATA, not code this plugin executes --
+       the CDATA principle applied to configuration. hooks/rot-env.sh reads
+       it under three laws: only names declared here are accepted (an
+       undeclared key is ignored, not an error); the LIVE environment
+       outranks every file (a file supplies defaults, never overrides); and
+       ROTMOE_ENV itself is never file-settable (the locator cannot relocate
+       itself). Load order: $ROTMOE_ENV, then <project>/.rot-moe/rot.env,
+       then $XDG_CONFIG_HOME/rot-moe/rot.env -- first writer wins because
+       assignment is unset-only. checker/voice-contract.sh D12 holds this
+       vocabulary and the hooks identical in both directions: every declared
+       name is read by a shipped hook, every ROTMOE_ name a shipped hook
+       reads is declared here.
+       Format: name|values|effect -->
+  <!ENTITY ENV.1  "ROTMOE_ENV|path|an extra env file read first; never settable from a file">
+  <!ENTITY ENV.2  "ROTMOE_VOICE|0 or 1|0 silences the voice block; default on">
+  <!ENTITY ENV.3  "ROTMOE_GATE|0 or 1|0 disarms the voice gate; default on">
+  <!ENTITY ENV.4  "ROTMOE_MODEL|model name|names the convener on CONVERGENT instead of reading settings">
+  <!ENTITY ENV.5  "ROTMOE_DEBUG_LOG|path|central JSONL sink for route and gauge records">
+  <!ENTITY ENV.6  "ROTMOE_DEBUG_LOG_MAX|integer|line cap on that sink; default 5000">
+  <!ENTITY ENV.7  "ROTMOE_DEBUG_LOCAL|0 or 1|forces or forbids the per-project .rot-moe sink">
+  <!ENTITY ENV.8  "ROTMOE_DEBUG_SRC|test cli hook|declares record provenance; a declaration outranks inference">
+  <!ENTITY ENV.9  "ROTMOE_TOKEN_PCT|integer 0-100|token budget remaining; below 20 arms Soleil and narrows Chroma">
+  <!ENTITY ENV.10 "ROTMOE_LEAN_WORKSPACE|path|which Lean workspace to build and remind about">
+  <!ENTITY ENV.11 "ROTMOE_WATCH_REPO|path|which repository the reminder scans for proof-shaped changes">
+  <!ENTITY ENV.12 "ROTMOE_STATE_DIR|path|where throttle stamps and the voice summons live">
+  <!ENTITY ENV.13 "ROTMOE_PROOF_STALE_MIN|minutes|staleness threshold before the reminder speaks; default 45">
+  <!ENTITY ENV.14 "ROTMOE_DEBT_EXT|extension list|which source extensions count as proof-shaped">
+  <!ENTITY ENV.15 "ROTMOE_DEBT_PATTERN|regex|overrides the proof-shaped-code pattern">
+  <!ENTITY ENV.16 "ROTMOE_LEAN_VERIFY|0 or 1|0 disables the on-edit lake build of a touched module">
+  <!ENTITY ENV.17 "ROTMOE_LEAN_VERIFY_SECS|seconds|timeout for that build; default 300">
+  <!ENTITY ENV.18 "ROTMOE_THROTTLE_PROMPT|minutes|reminder throttle on UserPromptSubmit; default 0">
+  <!ENTITY ENV.19 "ROTMOE_THROTTLE_PRE|minutes|reminder throttle on PreToolUse; default 7">
+  <!ENTITY ENV.20 "ROTMOE_THROTTLE_POST|minutes|reminder throttle elsewhere; default 5">
+  <!ENTITY ENV.21 "ROTMOE_GOAL_FILE|path|a goal file whose open alarm rows the reminder counts">
+  <!ENTITY ENV.22 "ROTMOE_CWD|path|overrides the directory workspace discovery walks up from">
+
   <!-- ================= THE EXCLUSIONS ================= -->
   <!-- What NO lens file may carry, transcription notwithstanding. The
        codices' substrate-supremacy machinery does not travel: this packet

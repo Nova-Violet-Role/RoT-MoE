@@ -30,6 +30,19 @@ $sess = ($sess -replace '[^A-Za-z0-9-]', '')
 if ($sess.Length -gt 64) { $sess = $sess.Substring(0, 64) }
 if ([string]::IsNullOrEmpty($sess)) { $sess = 'unknown' }
 
+# ORGAN 7 -- the environment layer, same three laws as the router; the gate
+# must resolve the same state dir as the router that wrote the summons.
+$cwd = ''
+if ($payload -match '"cwd"\s*:\s*"([^"]*)"') { $cwd = $Matches[1] -replace '\\\\', '/' }
+try {
+  $rotEnvLib = Join-Path $PSScriptRoot 'rot-env.ps1'
+  if (Test-Path -LiteralPath $rotEnvLib) {
+    . $rotEnvLib
+    Invoke-RotEnvLoad $cwd
+  }
+} catch { }
+if ($env:ROTMOE_GATE -eq '0') { exit 0 }
+
 # --- the summons -------------------------------------------------------------
 $stateDir = $env:ROTMOE_STATE_DIR
 if ([string]::IsNullOrEmpty($stateDir)) {

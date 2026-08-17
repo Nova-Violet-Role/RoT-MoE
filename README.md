@@ -938,6 +938,22 @@ bash hooks/prover-remind.sh --decide PostToolUse 90 RotGauge - - - 0
 | `--workspace` | which resolution step won — `env` / `recorded` / `discovered` / `bundled` — and the resolved path |
 | `--version` | prints `prover-remind.sh 1.0.0` |
 
+### The environment layer — `rot.env`, no JSON anywhere
+
+Every switch below can live in a plain `rot.env` file — `KEY=VALUE` lines,
+the `.env` shape — instead of your shell profile. The DTD is the schema:
+`hooks/rot-voice.dtd` declares the entire vocabulary as `ENV.n` entities,
+and the loader (`hooks/rot-env.sh` / `.ps1`) obeys three laws, each proven
+by `checker/voice-contract.sh` D12 with a control per law: the file is
+**parsed, never sourced** (a project's config is data, not code the hook
+executes — a value of `$(anything)` is stored as those literal characters);
+**declared-only** (a key the DTD does not declare is ignored — `PATH`,
+`LD_PRELOAD`, or a misspelling cannot reach the hooks); and **unset-only**
+(the live environment outranks every file — a file supplies defaults, never
+overrides your export). Load order: `$ROTMOE_ENV`, then
+`<project>/.rot-moe/rot.env`, then `$XDG_CONFIG_HOME/rot-moe/rot.env` —
+first writer wins.
+
 ### Every switch the hooks read
 
 The Configuration table above lists the ones you are most likely to want. The

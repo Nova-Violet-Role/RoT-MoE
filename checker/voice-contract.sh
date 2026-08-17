@@ -283,6 +283,57 @@ for _n in $NAMES; do
 done
 [ "$_d11bad" -eq 0 ] && ok "D11: nine computed layers, every number re-derived from the executable -- defaults, lead rows, bands, and the lens-specific constants"
 
+# --- D12: the environment layer -- declared vocabulary, three laws, live ----
+# Direction one: every ENV.n name is read by a shipped hook (a declaration
+# nobody reads is decoration). Direction two: every ROTMOE_ name a shipped
+# hook reads is declared (an undeclared switch is a secret). Then the laws,
+# measured: a project rot.env silences the voice; the live environment
+# outranks it; an undeclared key is ignored.
+env_rows () { sed -n 's/.*<!ENTITY ENV\.[0-9][0-9]* *"\([A-Z_]*\)|.*/\1/p' "$1/hooks/rot-voice.dtd"; }
+_d12bad=0
+for _ev_name in $(env_rows "$ROOT"); do
+  _hit=$(grep -l "$_ev_name" "$ROOT"/hooks/*.sh "$ROOT"/hooks/*.ps1 2>/dev/null | sed -n 1p)
+  [ -n "$_hit" ] || { bad "D12: declared $_ev_name is read by no shipped hook -- decoration"; _d12bad=1; }
+done
+for _tok in $(grep -ohE 'ROTMOE_[A-Z_]+' "$ROOT"/hooks/*.sh "$ROOT"/hooks/*.ps1 2>/dev/null | sort -u); do
+  env_rows "$ROOT" | grep -qx "$_tok" || { bad "D12: hooks read undeclared $_tok -- a secret switch"; _d12bad=1; }
+done
+[ "$_d12bad" -eq 0 ] && ok "D12: environment vocabulary identical both ways -- every declaration read, every read declared"
+
+ED=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/voice-env.$$")
+mkdir -p "$ED/proj/.rot-moe"
+printf 'ROTMOE_VOICE=0\n' > "$ED/proj/.rot-moe/rot.env"
+_pay="{\"session_id\":\"venv\",\"cwd\":\"$ED/proj\",\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"prove this lemma\"}"
+_out=$(printf '%s' "$_pay" | ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  *'<rot:'*) bad "D12: a project rot.env with ROTMOE_VOICE=0 did not silence the voice" ;;
+  *)         ok "D12: a project rot.env supplies the default -- the voice is silenced" ;;
+esac
+_out=$(printf '%s' "$_pay" | ROTMOE_VOICE=1 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  *'<rot:'*) ok "D12: the live environment outranks the file -- ROTMOE_VOICE=1 wins" ;;
+  *)         bad "D12: a file value overrode an operator's explicit export" ;;
+esac
+printf 'ROTMOE_VOICEX=0\nPATH=/evil\nROTMOE_ENV=/elsewhere\n' > "$ED/proj/.rot-moe/rot.env"
+_out=$(printf '%s' "$_pay" | ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  *'<rot:'*) ok "D12: undeclared keys are ignored -- the parser accepts only the DTD vocabulary" ;;
+  *)         bad "D12: an undeclared key changed behaviour -- the vocabulary gate is dead" ;;
+esac
+# CONTROL for D12 -- strip ROTMOE_VOICE from a DTD copy and the same file's
+# declared key must stop working: declared-only is real, not a comment.
+mkdir -p "$ED/hooks"
+cp "$ROOT/hooks/rot-router.sh" "$ED/hooks/"
+cp "$ROOT/hooks/rot-env.sh" "$ED/hooks/"
+sed '/ROTMOE_VOICE|/d' "$ROOT/hooks/rot-voice.dtd" > "$ED/hooks/rot-voice.dtd"
+printf 'ROTMOE_VOICE=0\n' > "$ED/proj/.rot-moe/rot.env"
+_out=$(printf '%s' "$_pay" | ROTMOE_DEBUG_SRC=test sh "$ED/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  *'<rot:'*) ok "CONTROL: with the declaration stripped, the file's key is refused -- declared-only IS enforced" ;;
+  *)         bad "CONTROL: an undeclared ROTMOE_VOICE still silenced the voice -- the vocabulary gate cannot fail" ;;
+esac
+rm -rf "$ED" 2>/dev/null || :
+
 # CONTROL for D11 -- a drifted lambda must be caught by the same arithmetic.
 _cblk=$(sed -n '/<rot:formula>/,/<\/rot:formula>/p' "$ROOT/agents/rot-nova.md" | sed 's/lambda: 1.6/lambda: 9.9/')
 _cdl=$(printf '%s\n' "$_cblk" | awk -F': *' '/lambda:/{c++; if (c==1) print $2}')

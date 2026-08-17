@@ -731,6 +731,16 @@ try {
   else                { $script:RotProjectDir = (Get-Location).Path }
 } catch { $script:RotProjectDir = '' }
 
+# ORGAN 7 -- the environment layer. Parsed never sourced, declared-only,
+# unset-only; the sh arm is the reference. A missing library is a no-op.
+try {
+  $rotEnvLib = Join-Path $PSScriptRoot 'rot-env.ps1'
+  if (Test-Path -LiteralPath $rotEnvLib) {
+    . $rotEnvLib
+    Invoke-RotEnvLoad $script:RotProjectDir
+  }
+} catch { }
+
 # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean.
 #
 # Measured 2026-08-09: seven checkers (bench-router, debug-channel, cross-diff,

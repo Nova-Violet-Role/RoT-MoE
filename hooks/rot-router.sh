@@ -946,6 +946,14 @@ hook_mode () {
   _rot_proj=$(printf '%s' "$_rot_proj" | tr '\\' '/')
   [ -n "$_rot_proj" ] || _rot_proj=$PWD
 
+  # ORGAN 7 -- the environment layer. Declared config from rot.env files,
+  # PARSED never sourced, declared-only, unset-only (the live environment
+  # outranks every file). The library ships beside this script; a missing
+  # or unreadable library degrades to no-op, never to a failed turn.
+  if [ -r "${0%/*}/rot-env.sh" ]; then
+    . "${0%/*}/rot-env.sh" 2>/dev/null && rot_env_load "$_rot_proj" || :
+  fi
+
   # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean. Inference first,
   # then an explicit declaration overrides it, and ONLY for the three known
   # values: unknown_declaration_falls_back proves a typo demotes to inference
