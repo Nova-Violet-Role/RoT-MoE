@@ -68,6 +68,10 @@ $RemindPs1 = Join-Path $SelfDir 'hooks/prover-remind.ps1'
 $RemindSh  = Join-Path $SelfDir 'hooks/prover-remind.sh'
 $RemindCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
+$GatePs1 = Join-Path $SelfDir 'hooks/rot-voice-gate.ps1'
+$GateSh  = Join-Path $SelfDir 'hooks/rot-voice-gate.sh'
+$GateCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $GatePs1) +
+           '" || bash "' + (ConvertTo-PosixPath $GateSh) + '"'
 
 $Mode = if ($All) { 'disarm-any' } else { 'disarm' }
 
@@ -99,6 +103,10 @@ if ($DryRun) {
   & node $Merge $Mode $Tmp $RemindCmd | Out-Null
   $rc2 = $LASTEXITCODE
   if ($rc -eq 10 -and $rc2 -ne 10) { $rc = $rc2 }
+  # Third pass for the voice gate, same absence rule as the reminder.
+  & node $Merge $Mode $Tmp $GateCmd | Out-Null
+  $rc3 = $LASTEXITCODE
+  if ($rc -eq 10 -and $rc3 -ne 10) { $rc = $rc3 }
   if ($rc -eq 10) {
     Write-Output '  would remove: 0 router hook entries'
   } elseif ($rc -ne 0) {
@@ -125,6 +133,10 @@ $rc2 = $LASTEXITCODE
 # A run that removed only the reminder still CHANGED the file; reporting
 # `nothing to remove` there would be a false all-clear.
 if ($rc -eq 10 -and $rc2 -ne 10) { $rc = $rc2 }
+# Third pass for the voice gate, same absence rule as the reminder.
+& node $Merge $Mode $Settings $GateCmd
+$rc3 = $LASTEXITCODE
+if ($rc -eq 10 -and $rc3 -ne 10) { $rc = $rc3 }
 
 switch ($rc) {
   4 { Copy-Item -LiteralPath $Backup -Destination $Settings -Force
