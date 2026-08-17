@@ -82,9 +82,17 @@ untested instrument, and every instrument here has been failed on purpose.
 This is worth saying plainly, because a plugin that names nine lenses can sound
 like it wants to take the wheel. It does not.
 
-* **Your agent stays your agent.** The router adds *one line* before a turn —
-  a named lane and a gauge reading. It changes no tool, intercepts no command,
-  and decides nothing. Claude Code does the work exactly as it always did.
+* **Your agent stays your agent.** The router adds the marker line — a named
+  lane and a gauge reading — and, with the voices on (the default), one
+  stanza per active lens after it: each lens's measured stance, charter and
+  bound, so the model holds nine named frames in the turn it is already
+  taking. It changes no tool and intercepts no command. This page used to
+  say *"and decides nothing"*, and that claim is retired honestly rather
+  than quietly kept: the voice **gate** makes exactly one kind of decision —
+  on a turn that summoned several lenses, a Stop with a summoned lens
+  unspoken is refused **once**, with the missing charters as the task, never
+  twice, and `ROTMOE_GATE=0` removes even that. Everything else is exactly
+  as it always was: Claude Code does the work.
 
   ```
   RoT MoE :: TIER 1 -> FORGE Claude       | R/s+ 0.66
@@ -1302,10 +1310,20 @@ distinction is proved rather than asserted, in `lean/Proofs/RotLensActivation.le
 >   at `δ = 0` and the sigmoid damps consensus by design. Maximum breadth is
 >   minimum divergence. That is the gauge working as specified.
 
-They are not personalities taking turns at a
-microphone; each is a **named ability** with a job inside a router that is held
-**under a proved and gated per-turn bound** — not a fixed number that decays.
-The names and abilities below are quoted from the project's own codices, with
+They are not personalities taking turns at a microphone — they are nine named
+abilities **speaking at once**: each a declared voice with a measured weight,
+a charter, and a bound it may never cross, co-reasoning in the same turn as
+the model that convenes them. That sentence used to end differently — "each
+is a named ability with a job inside a router" — and the change is not a
+mood, it is inventory. Every clause now names a shipped artifact: *declared
+voice* — the element `hooks/rot-voice.dtd` binds each lens to; *measured
+weight* — the per-lens factors the gauge emits and the stanza carries;
+*charter and bound* — `agents/rot-*.md`, transcribed from the codices and
+held verbatim by `checker/voice-contract.sh`; *speaking at once* — the voice
+block, all active stanzas in one emission; *the model that convenes them* —
+the `CONVERGENT` lane's own definition. The router is still held **under a
+proved and gated per-turn bound** — not a fixed number that decays. The
+names and abilities below are quoted from the project's own codices, with
 the line they came from — none of them is invented here.
 
 > **On the cost figure, and why this page no longer quotes one.** It used to say
