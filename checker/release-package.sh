@@ -6,27 +6,38 @@
 # =============================================================================
 # BUILD THE THREE RELEASE VARIANTS -- AND REFUSE TO SHIP A DISHONEST ONE.
 #
-# The version number IS the variant. This is not a roadmap where 0.5.2 succeeds
-# 0.5.1; all three are built from one tree, in one run, and shipped together:
+# THE TIER LIVES IN THE NAME NOW, NOT IN THE VERSION. Through 5.x the patch
+# digit WAS the tier -- X.Y.0 core, X.Y.1 lean, X.Y.2 unsealed -- three version
+# numbers for one tree, and every consumer had to be taught that 0.5.2 does not
+# succeed 0.5.1. That convention is RETIRED AT 6.0.0. One tree, ONE version --
+# the one plugin.json declares -- and three archives whose NAMES say what they
+# carry:
 #
-#   0.5.0  core       the router. No Lean, no fetcher, NO NETWORK AT ALL.
-#   0.5.1  lean       core + the Lean 4 toolchain fetcher + the proof corpus.
-#   0.5.2  unsealed   lean + the axiom classifier + the policy that permits
-#                     native_decide in YOUR proofs, with the instrument that
-#                     keeps that honest.
+#   RoT-MoE-Router.zip             the router AND the organs that are now the
+#                                  product: the voice contract, the nine
+#                                  charters, both voice-gate arms, the
+#                                  environment layer, the commands. No Lean,
+#                                  no fetcher, NO NETWORK AT ALL.
+#   RoT-MoE-Router-Lean.zip        Router + the Lean 4 toolchain fetcher + the
+#                                  proof corpus.
+#   RoT-MoE-Router-Lean-Extra.zip  Router-Lean + the policy page that permits
+#                                  native_decide in YOUR proofs, with the
+#                                  instrument that keeps that honest.
+#
+# THE CRITERIA CHANGED AT 6.0.0 AND THE ASSERTIONS FOLLOWED. The voices, their
+# contract, the gate and the environment layer are not extras a larger tier
+# earns -- they ARE the product -- so they ride in the SMALLEST archive and are
+# asserted there (assertion 1b), with the roster COUNTED against the DTD's own
+# declaration, never against a number somebody remembered.
 #
 # Each variant is a strict superset of the one before it. That is asserted, not
-# assumed: `variant_is_superset` below fails if a file ever leaves a larger tier.
+# assumed: the superset check below fails if a file ever leaves a larger tier.
 #
-# WHY THIS IS A CHECKER AND NOT A BUILD SCRIPT. Each artifact carries promises in
-# its own release page -- "no network, ever" for core; "the classifier is in
-# here" for unsealed -- and a promise no machine checks survives exactly until
-# someone adds a file. So every claim is asserted against the ZIP THAT WILL BE
-# UPLOADED, and this exits non-zero rather than emit one that lies.
-#
-# THE MANIFEST INSIDE EACH ZIP IS REWRITTEN TO ITS VARIANT'S VERSION. A user who
-# downloads 0.5.0 and finds a manifest saying 0.5.2 has been handed a file that
-# contradicts its own name, and no gate in the tree would ever notice.
+# WHY THIS IS A CHECKER AND NOT A BUILD SCRIPT. Each artifact carries promises
+# in its own release page -- "no network, ever" for Router; "the instrument is
+# in here" for Router-Lean-Extra -- and a promise no machine checks survives
+# exactly until someone adds a file. So every claim is asserted against the ZIP
+# THAT WILL BE UPLOADED, and this exits non-zero rather than emit one that lies.
 #
 # Exit: 0 all three built and every assertion held · 1 an assertion FAILED
 #       (nothing is uploaded) · 2 refuse (a tool is missing) · 3 SKIP.
@@ -53,63 +64,45 @@ case "$TREEVER" in
 esac
 
 # --- THE VARIANT MAP ----------------------------------------------------------
-# One place, read by everything below. Adding a variant means adding a line here
-# and a paths block; nothing else in this file hard-codes a variant name.
+# One place, read by everything below. Adding a variant means adding an entry
+# here and a paths block; nothing else in this file hard-codes an archive name.
 #
-# DERIVED FROM THE TREE, NEVER WRITTEN DOWN. This line used to read
-# `VARIANTS="core:0.6.0 lean:0.6.1 unsealed:0.6.2"`, and that is a snapshot of
-# one release frozen where a rule belongs: it was correct on the day it was
-# written and went red the moment `plugin.json` moved to 0.7.2, on a tree where
-# nothing was wrong. The failure even reads like a real defect -- "the tree
-# declares 0.7.2 but the highest variant is 0.6.2" -- and the quickest repair is
-# to retype the numbers, which teaches nobody anything and expires again next
-# release.
-#
-# The CONVENTION is the durable thing: three variants share one MAJOR.MINOR and
-# differ only in the patch digit, which IS the tier (0 core, 1 lean, 2 unsealed).
-# So it is computed from the manifest the tree already carries. A release bump
-# now needs one edit -- `plugin.json` -- and this file follows it by
-# construction.
-_MM="${TREEVER%.*}"
-case "$_MM" in
-  [0-9]*.[0-9]*) : ;;
-  *) echo "REFUSE: could not read MAJOR.MINOR from '$TREEVER'"; exit 2 ;;
-esac
-VARIANTS="core:$_MM.0 lean:$_MM.1 unsealed:$_MM.2"
+# THE NAMES ARE DELIBERATELY CONSTANT. The old map embedded a version in every
+# name -- first a hand-typed `core:0.6.0 ...` that went red the day plugin.json
+# moved, then a computed `core:$_MM.0 ...` that made every release bump ripple
+# through nine filenames and every consumer that spelled one. A constant name
+# cannot go stale that way: nothing in `RoT-MoE-Router.zip` moves when the tree
+# does. The VERSION is still read from the manifest above, still refused unless
+# it is semver, and it now lives in exactly three places -- plugin.json, the
+# stamped header of SHA256SUMS.txt, and the git tag -- instead of the filenames.
+VARIANTS="core:RoT-MoE-Router.zip lean:RoT-MoE-Router-Lean.zip unsealed:RoT-MoE-Router-Lean-Extra.zip"
 
-# `--print-variants` EXISTS BECAUSE THE MAP IS NOW COMPUTED, NOT WRITTEN.
-# checker/release-install.sh consumes this map, and it used to read it by
-# grepping this file for `^VARIANTS="..."` -- which worked only while the line
-# was a literal. The moment it became an expression that grep returned the
-# characters `core:$_MM.0`, and the gate refused looking for an archive named
-# `rot-moe-$_MM.0-core.zip`.
+# `--print-variants` IS THE MAP'S ONLY PUBLIC FORM. checker/release-install.sh,
+# checker/readme-variants.sh and the session gates consume it; they used to
+# read it by grepping this file for `^VARIANTS="..."`, which broke silently the
+# moment the line stopped being a literal. Parsing another script's source is
+# the fragile half of "single source of truth". ASKING it is the robust half:
+# the value is produced by the same code that uses it, so the two cannot
+# disagree even in principle.
 #
-# Parsing another script's source is the fragile half of "single source of
-# truth". ASKING it is the robust half: the value is produced by the same code
-# that uses it, so the two cannot disagree even in principle.
-if [ "${1:-}" = "--print-variants" ]; then printf '%s\n' "$VARIANTS"; exit 0; fi
-
-# The tree's own version must be one of the variants, and by convention the
-# HIGHEST -- that is the version the newest tag will carry, and
-# checker/release-consistency.sh binds the tree to the newest tag. If they drift,
-# the tag says one thing and the manifest another.
-TOPVER=""
-for vp in $VARIANTS; do TOPVER="${vp#*:}"; done
-if [ "$TREEVER" = "$TOPVER" ]; then
-  ok "the tree declares $TREEVER, the highest variant -- it matches the newest tag it will carry"
-else
-  bad "the tree declares $TREEVER but the highest variant is $TOPVER -- the tag and the manifest will disagree"
+# FORMAT, one line per variant: `<archive-basename>:<version>`, e.g.
+#   RoT-MoE-Router.zip:6.0.0
+# The version is the SAME on every line by construction -- one tree, one
+# version. A consumer that needs the tier reads it out of the name.
+if [ "${1:-}" = "--print-variants" ]; then
+  for vp in $VARIANTS; do printf '%s:%s\n' "${vp#*:}" "$TREEVER"; done
+  exit 0
 fi
 
 OUT="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
-echo "== release package :: 3 variants from tree $TREEVER =="
+echo "== release package :: 3 variants, one version $TREEVER =="
 note "output directory: $OUT"
 
 # --- what belongs in each variant ---------------------------------------------
 # CORE is what a user installs to get the router. Deliberately a SUBSET: someone
-# downloading "core" and finding a proof corpus and a multi-gigabyte fetcher
+# downloading "Router" and finding a proof corpus and a multi-gigabyte fetcher
 # would be right to feel misled.
 CORE_PATHS="
 .claude-plugin
@@ -140,9 +133,9 @@ commands
 #
 # `Lean Theorem` is the SHARED CORPUS -- contributed proofs about other people's
 # code. It rides with LEAN and never with CORE, by the same rule that keeps
-# `lean/` out of CORE: someone downloading "core" to get a router has not asked
-# for a proof corpus. Measured cost: 112 KB across 8 modules, which is why it
-# is affordable to ship at all.
+# `lean/` out of CORE: someone downloading "Router" to get a router has not
+# asked for a proof corpus. Measured cost: 112 KB across 8 modules, which is
+# why it is affordable to ship at all.
 #
 # THE SPACE IN THE NAME IS LOAD-BEARING AND DANGEROUS. This list is consumed by
 # `for p in $(paths_for ...)`, and unquoted command substitution splits on IFS --
@@ -162,9 +155,9 @@ Lean Theorem
 checker
 "
 # UNSEALED adds the document that names the trade. The classifier itself lives
-# in checker/ and therefore already ships with LEAN; what 0.5.2 adds is the
-# POLICY and the page that states it, which is why UNSEALED.md is the marker
-# file every assertion below keys on.
+# in checker/ and therefore already ships with LEAN; what Router-Lean-Extra
+# adds is the POLICY and the page that states it, which is why UNSEALED.md is
+# the marker file every assertion below keys on.
 UNSEALED_EXTRA="
 UNSEALED.md
 "
@@ -216,11 +209,10 @@ has ()     { grep -q "$2" "$1"; }
 
 STAGE="$OUT/.stage"
 for vp in $VARIANTS; do
-  v="${vp%%:*}"; ver="${vp#*:}"
-  z="$OUT/rot-moe-$ver-$v.zip"
+  v="${vp%%:*}"; zn="${vp#*:}"
+  z="$OUT/$zn"
 
-  # Stage, then rewrite the manifest to THIS variant's version. Editing the
-  # tree's own plugin.json would be a destructive side effect of a checker.
+  # Stage into a scratch tree; never zip the repository in place.
   rm -rf "$STAGE"; mkdir -p "$STAGE"
   # EXCLUDE build output DURING the copy, never after it. Copying lean/ wholesale
   # drags in .lake -- measured at 7.2 GB on the machine this was written on --
@@ -249,14 +241,20 @@ for vp in $VARIANTS; do
   done
   IFS=$_OLDIFS
 
-  sed "s/\"version\"[[:space:]]*:[[:space:]]*\"$TREEVER\"/\"version\": \"$ver\"/" \
-      "$MANIFEST" > "$STAGE/.claude-plugin/plugin.json.new" \
-    && mv "$STAGE/.claude-plugin/plugin.json.new" "$STAGE/.claude-plugin/plugin.json"
+  # THE MANIFEST IS NOT REWRITTEN ANY MORE. Through 5.x this loop sed-ed each
+  # staged plugin.json to its variant's version, because the patch digit WAS
+  # the tier and an archive named 0.5.0 carrying a manifest saying 0.5.2 would
+  # contradict its own name. That convention is retired at 6.0.0: all three
+  # archives ship the tree's own manifest, byte for byte, declaring the ONE
+  # version $TREEVER. The rewrite is gone rather than kept as a no-op -- a sed
+  # that "should" change nothing is a defect waiting for the day it does --
+  # and assertion 6 below reads the version back OUT OF EACH ZIP rather than
+  # trusting this comment.
 
   ( cd "$STAGE" && zip -q -r "$z" . ) >/dev/null 2>&1
   zrc=$?
   if [ "$zrc" -eq 0 ] && [ -s "$z" ]; then
-    note "$(basename "$z"): $(wc -c < "$z" | tr -d ' ') bytes"
+    note "$zn: $(wc -c < "$z" | tr -d ' ') bytes"
     list_to "$z" "$OUT/.list-$v"
   else
     bad "$v zip did not build (zip exit $zrc)"
@@ -266,28 +264,56 @@ rm -rf "$STAGE"
 
 L_CORE="$OUT/.list-core"; L_LEAN="$OUT/.list-lean"; L_UNS="$OUT/.list-unsealed"
 
-# --- 1. CORE MUST NOT BE ABLE TO REACH THE NETWORK ---------------------------
+# --- 1. ROUTER MUST NOT BE ABLE TO REACH THE NETWORK -------------------------
 # The assertion that earns the promise on the release page. Stated as a property
 # of the ZIP, not of the tree, because the zip is what a stranger runs.
 if [ -s "$L_CORE" ]; then
   leak=0
   for forbidden in SETUP_LEAN.sh SETUP_LEAN.ps1 UNSEALED.md; do
-    has "$L_CORE" "^$forbidden$" && { bad "CORE contains $forbidden -- its 'no network' / 'no extras' promise is FALSE"; leak=$((leak+1)); }
+    has "$L_CORE" "^$forbidden$" && { bad "Router contains $forbidden -- its 'no network' / 'no extras' promise is FALSE"; leak=$((leak+1)); }
   done
-  has "$L_CORE" '^lean/' && { bad "CORE contains the lean/ corpus -- it is not the core artifact"; leak=$((leak+1)); }
-  has "$L_CORE" '^Lean Theorem/' && { bad "CORE contains the shared Lean Theorem corpus -- it is not the core artifact"; leak=$((leak+1)); }
-  [ "$leak" -eq 0 ] && ok "CORE (0.5.0) carries no fetcher, no corpus, no unsealed page -- it cannot download anything"
+  has "$L_CORE" '^lean/' && { bad "Router contains the lean/ corpus -- it is not the core artifact"; leak=$((leak+1)); }
+  has "$L_CORE" '^Lean Theorem/' && { bad "Router contains the shared Lean Theorem corpus -- it is not the core artifact"; leak=$((leak+1)); }
+  [ "$leak" -eq 0 ] && ok "Router carries no fetcher, no corpus, no unsealed page -- it cannot download anything"
+fi
+
+# --- 1b. THE SMALLEST TIER MUST CARRY THE PRODUCT ----------------------------
+# New at 6.0.0, and it is the reason the tiers were re-cut: the voice contract,
+# the nine charters, both voice-gate arms, the environment layer and the
+# commands are not extras -- they ARE the plugin. A Router archive without them
+# would install a router that summons voices it does not ship. Presence is
+# asserted per organ file, and the roster is COUNTED against the DTD's own
+# declaration -- parsed with the same pattern checker/voice-contract.sh uses --
+# because a "9" written here would be a snapshot, false the day a lens lands,
+# while the DTD is the contract the voice gate already answers to.
+NLENS=$(sed -n 's/.*<!ENTITY LENS\.[0-9][0-9]* *"\(.*\)">.*/\1/p' hooks/rot-voice.dtd 2>/dev/null | grep -c . || true)
+if [ -s "$L_CORE" ]; then
+  organ=0
+  for needed in hooks/rot-voice.dtd \
+                hooks/rot-voice-gate.sh hooks/rot-voice-gate.ps1 \
+                hooks/rot-env.sh hooks/rot-env.ps1 hooks/rot-profile.sh \
+                commands/rot-agent.md commands/rot-swarm.md; do
+    has "$L_CORE" "^$needed$" || { bad "Router is missing $needed -- an organ of the product did not travel"; organ=$((organ+1)); }
+  done
+  nag=$(grep -c '^agents/rot-[^/]*\.md$' "$L_CORE" || true)
+  if [ "$NLENS" -eq 0 ]; then
+    bad "hooks/rot-voice.dtd declares NO lenses -- the roster count has no contract to stand on"
+  elif [ "$nag" -ne "$NLENS" ]; then
+    bad "Router carries $nag rot-* charter(s) but the DTD declares $NLENS -- the roster did not travel whole"
+  elif [ "$organ" -eq 0 ]; then
+    ok "Router carries the contract, both gate arms, the environment layer, both commands, and all $NLENS declared charters"
+  fi
 fi
 
 # --- 2. LEAN MUST CARRY WHAT ITS NAME SELLS, AND NOT THE TIER ABOVE ----------
 if [ -s "$L_LEAN" ]; then
   short=0
   for needed in SETUP_LEAN.sh SETUP_LEAN.ps1 lean/lakefile.toml lean/lean-toolchain checker/axiom-class.sh; do
-    has "$L_LEAN" "^$needed$" || { bad "LEAN is missing $needed"; short=$((short+1)); }
+    has "$L_LEAN" "^$needed$" || { bad "Router-Lean is missing $needed"; short=$((short+1)); }
   done
   nmod=$(grep -c '^lean/Proofs/.*\.lean$' "$L_LEAN" || true)
   ondisk=$(find lean/Proofs -name '*.lean' | grep -c . || true)
-  [ "$nmod" -ne "$ondisk" ] && { bad "LEAN carries $nmod proof module(s) but $ondisk are on disk"; short=$((short+1)); }
+  [ "$nmod" -ne "$ondisk" ] && { bad "Router-Lean carries $nmod proof module(s) but $ondisk are on disk"; short=$((short+1)); }
 
   # THE SHARED CORPUS MUST TRAVEL. Counted, not merely present: a zip containing
   # `Lean Theorem/README.md` and nothing else would satisfy an existence check
@@ -296,26 +322,26 @@ if [ -s "$L_LEAN" ]; then
   ncorp=$(grep -c '^Lean Theorem/.*\.lean$' "$L_LEAN" || true)
   corpdisk=$(find "Lean Theorem" -name '*.lean' | grep -c . || true)
   if [ "$corpdisk" -gt 0 ]; then
-    [ "$ncorp" -ne "$corpdisk" ] && { bad "LEAN carries $ncorp shared-corpus module(s) but $corpdisk are on disk -- the corpus did not travel"; short=$((short+1)); }
-    has "$L_LEAN" '^Lean Theorem/README.md$' || { bad "LEAN carries the corpus without its README -- a stranger cannot tell what it is"; short=$((short+1)); }
+    [ "$ncorp" -ne "$corpdisk" ] && { bad "Router-Lean carries $ncorp shared-corpus module(s) but $corpdisk are on disk -- the corpus did not travel"; short=$((short+1)); }
+    has "$L_LEAN" '^Lean Theorem/README.md$' || { bad "Router-Lean carries the corpus without its README -- a stranger cannot tell what it is"; short=$((short+1)); }
   fi
   # It must NOT carry the tier above it, or the tiers are not distinct.
-  has "$L_LEAN" '^UNSEALED.md$' && { bad "LEAN contains UNSEALED.md -- 0.5.1 and 0.5.2 would be the same artifact"; short=$((short+1)); }
-  [ "$short" -eq 0 ] && ok "LEAN (0.5.1) carries both fetchers, the pinned toolchain, all $nmod proof module(s), all $ncorp shared-corpus module(s), and NOT the unsealed page"
+  has "$L_LEAN" '^UNSEALED.md$' && { bad "Router-Lean contains UNSEALED.md -- it and Router-Lean-Extra would be the same artifact"; short=$((short+1)); }
+  [ "$short" -eq 0 ] && ok "Router-Lean carries both fetchers, the pinned toolchain, all $nmod proof module(s), all $ncorp shared-corpus module(s), and NOT the unsealed page"
 fi
 
-# --- 3. UNSEALED MUST ACTUALLY DIFFER FROM LEAN ------------------------------
+# --- 3. EXTRA MUST ACTUALLY DIFFER FROM LEAN ---------------------------------
 # A tier whose extra content cannot be pointed at is marketing.
 if [ -s "$L_UNS" ]; then
   u=0
   for needed in UNSEALED.md checker/axiom-class.sh SETUP_LEAN.sh lean/lean-toolchain; do
-    has "$L_UNS" "^$needed$" || { bad "UNSEALED is missing $needed"; u=$((u+1)); }
+    has "$L_UNS" "^$needed$" || { bad "Router-Lean-Extra is missing $needed"; u=$((u+1)); }
   done
-  [ "$u" -eq 0 ] && ok "UNSEALED (0.5.2) carries the unsealed page AND the axiom classifier"
+  [ "$u" -eq 0 ] && ok "Router-Lean-Extra carries the unsealed page AND the axiom classifier"
 fi
 
 # --- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ----------------------
-# The property that makes the numbering mean something. Checked by set
+# The property that makes the naming mean something. Checked by set
 # difference, so a file silently DROPPED from a larger tier is caught -- the
 # failure a size comparison would miss entirely.
 superset () {  # $1 = smaller list, $2 = larger list, $3 = label
@@ -339,35 +365,50 @@ for vp in $VARIANTS; do
   else ok "$v carries no .lake, no .olean, no .git"; fi
 done
 
-# --- 6. THE VERSION INSIDE IS THE VERSION ON THE BOX -------------------------
+# --- 6. THE VERSION INSIDE IS THE TREE'S ONE VERSION -------------------------
+# The name no longer carries a version, so the manifest can no longer contradict
+# its own filename -- but it can still contradict the TREE. A stale staged copy,
+# or a revival of the per-variant rewrite this file used to do, would ship an
+# archive whose plugin.json names a version the tag never will. Read it back
+# out of each zip; trust nothing about how it got there.
 for vp in $VARIANTS; do
-  v="${vp%%:*}"; ver="${vp#*:}"; z="$OUT/rot-moe-$ver-$v.zip"
+  zn="${vp#*:}"; z="$OUT/$zn"
   [ -s "$z" ] || continue
   inner=$(unzip -p "$z" ".claude-plugin/plugin.json" 2>/dev/null \
           | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
-  if [ "$inner" = "$ver" ]; then
-    ok "$(basename "$z") declares version $inner inside, matching its name"
+  if [ "$inner" = "$TREEVER" ]; then
+    ok "$zn declares version $inner inside -- the tree's own"
   else
-    bad "$(basename "$z") is named for $ver but its manifest says '$inner'"
+    bad "$zn ships a manifest saying '$inner' but the tree declares $TREEVER"
   fi
 done
 
 # --- 7. RELEASE.md MUST DESCRIBE THE ARTIFACTS ACTUALLY BUILT ----------------
 # Deliberately NOT asserted: byte sizes and gate counts. Both are true today and
-# false after the next commit; the page states size as a BOUND, and that bound is
-# asserted, because a bound survives a change that a snapshot does not.
+# false after the next commit. (Through 5.x the core page stated a 1 MB bound
+# and this file asserted it -- against a filename hardcoded to 0.5.0, so the
+# check had been silently dead since the 0.6 bump. The 6.0.0 page states no
+# bound; a bound returns here the day the page claims one, keyed to the map.)
 RMD="RELEASE.md"
 if [ ! -f "$RMD" ]; then
   bad "$RMD is missing -- the release has no page to point a downloader at"
 else
   rmd=0
   for vp in $VARIANTS; do
-    v="${vp%%:*}"; ver="${vp#*:}"; n="rot-moe-$ver-$v.zip"
-    grep -qF -- "$n" "$RMD" || { rmd=1; note "$RMD does not name the asset $n"; }
-    grep -qF -- "$ver" "$RMD" || { rmd=1; note "$RMD does not mention version $ver"; }
+    zn="${vp#*:}"
+    grep -qF -- "$zn" "$RMD" || { rmd=1; note "$RMD does not name the asset $zn"; }
   done
-  grep -qiF -- "no network" "$RMD" || { rmd=1; note "$RMD does not carry the no-network claim assertion 1 enforces"; }
-  if [ "$rmd" -eq 0 ]; then ok "$RMD names all 3 assets and all 3 variant versions"
+  grep -qF -- "$TREEVER" "$RMD" || { rmd=1; note "$RMD does not mention version $TREEVER"; }
+  # THE NO-NETWORK CLAIM MOVED AT 6.0.0. Through 5.x RELEASE.md itself said
+  # "no network" and this grep held that page to assertion 1. The 6.0.0 release
+  # page defers the claims to the README's claims table ("No network, ever."),
+  # and the README ships inside every archive. The binding follows the claim:
+  # it must be STATED on a page a downloader reads -- RELEASE.md or README.md --
+  # and assertion 1 still enforces it against the zip either way.
+  if ! grep -qiF -- "no network" "$RMD" && ! grep -qiF -- "no network" README.md; then
+    rmd=1; note "neither $RMD nor README.md states the no-network claim assertion 1 enforces"
+  fi
+  if [ "$rmd" -eq 0 ]; then ok "$RMD names all 3 assets and the release version $TREEVER"
   else bad "$RMD has drifted from the artifacts -- move them in the same edit"; fi
 
   # --- 7b. EVERY ARCHIVE CARRIES ITS OWN CHANGELOG ---------------------------
@@ -377,50 +418,46 @@ else
   # top-level document that changes no artifact was never packaged.
   #
   # The assertion is not "the file exists". It is that the SHIPPED copy names
-  # ALL THREE versions, so an archive can never carry a changelog that predates
-  # a variant it was built alongside.
+  # THE RELEASE VERSION, so an archive can never carry a changelog that
+  # predates the release it was built for.
   cl=0
   for vp in $VARIANTS; do
-    v="${vp%%:*}"; ver="${vp#*:}"; z="$OUT/rot-moe-$ver-$v.zip"
+    v="${vp%%:*}"; zn="${vp#*:}"; z="$OUT/$zn"
     [ -s "$z" ] || continue
     unzip -p "$z" CHANGELOG.md > "$OUT/.cl.$v" 2>/dev/null
     if [ ! -s "$OUT/.cl.$v" ]; then
-      cl=1; note "rot-moe-$ver-$v.zip ships NO CHANGELOG.md"
+      cl=1; note "$zn ships NO CHANGELOG.md"
     else
-      for vp2 in $VARIANTS; do
-        grep -qF -- "${vp2#*:}" "$OUT/.cl.$v" \
-          || { cl=1; note "the CHANGELOG inside $v does not mention ${vp2#*:}"; }
-      done
+      grep -qF -- "$TREEVER" "$OUT/.cl.$v" \
+        || { cl=1; note "the CHANGELOG inside $zn does not mention $TREEVER"; }
     fi
     rm -f "$OUT/.cl.$v"
   done
-  [ "$cl" -eq 0 ] && ok "every archive ships a CHANGELOG naming all 3 variant versions" \
+  [ "$cl" -eq 0 ] && ok "every archive ships a CHANGELOG naming the release version $TREEVER" \
                   || bad "a shipped CHANGELOG is missing or stale"
-
-  cz="$OUT/rot-moe-0.5.0-core.zip"
-  if [ -s "$cz" ]; then
-    cb=$(wc -c < "$cz" | tr -d ' ')
-    if [ "$cb" -lt 1048576 ]; then ok "CORE is $cb bytes -- under the 1 MB the page claims"
-    else bad "CORE is $cb bytes, over 1 MB -- the page's bound is now FALSE"; fi
-  fi
 fi
 
 # --- negative controls --------------------------------------------------------
 echo
 echo "-- negative controls --"
 
-CZ="$OUT/rot-moe-0.5.0-core.zip"
+# CONSTANT NAMES REVIVED THESE CONTROLS. This block used to open with
+# `CZ="$OUT/rot-moe-0.5.0-core.zip"` -- a name frozen at 0.5.0, so from the 0.6
+# bump onward `-s` was false, the whole block silently skipped, and assertion
+# 1's control had been dead for four minor versions without a line of output
+# saying so. A version-less name cannot expire that way.
+CZ="$OUT/RoT-MoE-Router.zip"
 if [ -s "$CZ" ]; then
   probe="$OUT/probe-core.zip"; cp "$CZ" "$probe"
   ( cd "$REPO" && zip -q "$probe" SETUP_LEAN.sh ) >/dev/null 2>&1
   prc=$?; plist="$OUT/.list-probe"; list_to "$probe" "$plist"
   if [ "$prc" -ne 0 ]; then bad "CONTROL DID NOT APPLY: could not plant SETUP_LEAN.sh (zip exit $prc) -- discarded, NOT survived"
   elif ! has "$plist" '^SETUP_LEAN.sh$'; then bad "CONTROL DID NOT APPLY: planted file absent from probe -- discarded, NOT survived"
-  else ok "CONTROL: a core zip with SETUP_LEAN.sh planted IS detectable -- assertion 1 can fire"; fi
+  else ok "CONTROL: a Router zip with SETUP_LEAN.sh planted IS detectable -- assertion 1 can fire"; fi
   rm -f "$probe" "$plist"
 
-  if has "$L_CORE" '^SETUP_LEAN.sh$'; then bad "CONTROL: the real core zip trips the predicate -- it is always-fail"
-  else ok "CONTROL: the real core zip does NOT trip it -- the check discriminates"; fi
+  if has "$L_CORE" '^SETUP_LEAN.sh$'; then bad "CONTROL: the real Router zip trips the predicate -- it is always-fail"
+  else ok "CONTROL: the real Router zip does NOT trip it -- the check discriminates"; fi
 fi
 
 # The superset check must be able to FAIL, or assertion 4 is decoration.
@@ -433,6 +470,26 @@ if [ -s "$L_LEAN" ] && [ -s "$L_UNS" ]; then
     lost=$(comm -23 <(sort "$L_LEAN") <(sort "$fake") | grep -c . || true)
     if [ "$lost" -gt 0 ]; then ok "CONTROL: a file dropped from the larger tier IS detected ($lost missing)"
     else bad "CONTROL: dropping a file from the larger tier went unnoticed -- assertion 4 is blind"; fi
+  fi
+  rm -f "$fake"
+fi
+
+# The roster count must be able to FAIL, or assertion 1b is decoration. Strip
+# one charter from a COPY of the Router listing and require the same count to
+# come up short. The copy is the instrument under test; the archive itself is
+# never touched.
+if [ -s "$L_CORE" ] && [ "$NLENS" -gt 0 ]; then
+  fake="$OUT/.list-noroster"
+  grep -v '^agents/rot-nova\.md$' "$L_CORE" > "$fake"
+  if cmp -s "$fake" "$L_CORE"; then
+    bad "CONTROL DID NOT APPLY: removing rot-nova changed nothing -- discarded, NOT survived"
+  else
+    nfake=$(grep -c '^agents/rot-[^/]*\.md$' "$fake" || true)
+    if [ "$nfake" -ne "$NLENS" ]; then
+      ok "CONTROL: a charter dropped from the archive IS detected ($nfake counted, $NLENS declared)"
+    else
+      bad "CONTROL: dropping rot-nova went unnoticed -- the roster count is blind"
+    fi
   fi
   rm -f "$fake"
 fi
@@ -461,6 +518,11 @@ fi
 # Written LAST, after every assertion above has passed, so a checksum file can
 # never exist for an artifact this script refused to bless. If FAIL is non-zero
 # the script has already exited and no sums are written.
+#
+# THE HEADER LINE CARRIES THE VERSION. The filenames no longer do, so this file
+# and the release tag are where a downloader reads which release the sums bless.
+# `#` comment lines are ignored by both GNU sha256sum -c and perl shasum -c
+# (verified before this line was written), so `-c` still passes untouched.
 SUMS="$OUT/SHA256SUMS.txt"
 rm -f "$SUMS"
 _sha_tool=""
@@ -475,10 +537,10 @@ if [ -z "$_sha_tool" ]; then
   echo "   The README promises this file. Refusing to leave the promise unbacked."
   exit 1
 fi
+printf '# RoT MoE %s\n' "$TREEVER" > "$SUMS"
 ( cd "$OUT" && for vp in $VARIANTS; do
-    v="${vp%%:*}"; ver="${vp#*:}"
-    $_sha_tool "rot-moe-$ver-$v.zip"
-  done ) > "$SUMS"
+    $_sha_tool "${vp#*:}"
+  done ) >> "$SUMS"
 
 # The file must contain one line per variant and each hash must be 64 hex chars.
 # A truncated or empty sums file would verify nothing while looking official.
@@ -489,7 +551,7 @@ _want=$(printf '%s\n' $VARIANTS | grep -c .)
 # perfectly good. The check was wrong, not the output -- so the pattern moved,
 # and the sums file was left exactly as the tool writes it, because `-c` has to
 # read it back and the tool's own format is the one it understands.
-_got=$(grep -cE '^[0-9a-f]{64}[[:space:]]+[*]?rot-moe-[0-9]+\.[0-9]+\.[0-9]+-[a-z]+\.zip$' "$SUMS")
+_got=$(grep -cE '^[0-9a-f]{64}[[:space:]]+[*]?RoT-MoE-Router(-Lean(-Extra)?)?\.zip$' "$SUMS")
 if [ "$_got" -ne "$_want" ]; then
   echo "   FAIL: SHA256SUMS.txt has $_got well-formed line(s), expected $_want"
   cat "$SUMS"
@@ -505,12 +567,13 @@ else
   exit 1
 fi
 # THE NAME IS STRIPPED OF ITS BINARY-MODE STAR ONCE, into one variable. Written
-# inline as `awk '{print $2}'` it yields `*rot-moe-0.7.0-core.zip`, and every
+# inline as `awk '{print $2}'` it yields `*RoT-MoE-Router.zip`, and every
 # `cp`/`mv` below would then address a file that does not exist -- the tamper
 # control would appear to pass while touching nothing at all. That is the
 # "mutation never landed" failure, in the one place whose whole job is to prove
-# a mutation lands.
-_ctlname=$(head -1 "$SUMS" | awk '{print $2}'); _ctlname="${_ctlname#\*}"
+# a mutation lands. The version header is skipped the same way: `head -1` would
+# now hand awk the comment line and the control would hunt a file named "MoE".
+_ctlname=$(grep -v '^#' "$SUMS" | head -1 | awk '{print $2}'); _ctlname="${_ctlname#\*}"
 _ctlzip="$OUT/.sumctl.orig"
 [ -f "$OUT/$_ctlname" ] || { echo "   FAIL: control target $_ctlname not found"; exit 1; }
 cp "$OUT/$_ctlname" "$_ctlzip"
@@ -528,8 +591,7 @@ mv "$_ctlzip" "$OUT/$_ctlname"
 
 echo "   artifacts ready:"
 for vp in $VARIANTS; do
-  v="${vp%%:*}"; ver="${vp#*:}"
-  echo "     $OUT/rot-moe-$ver-$v.zip"
+  echo "     $OUT/${vp#*:}"
 done
 echo "     $SUMS"
 exit 0

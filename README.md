@@ -755,7 +755,7 @@ three carry the same version. Nothing is released until everything is green.
 | archive | what is in it |
 |---|---|
 | `RoT-MoE-Router.zip` | the whole running product: all seven organs — engine, both router arms, the prover head, both reminder arms, the voice contract with its nine charters, both gate arms, the environment layer — plus installers, commands, docs and licences |
-| `RoT-MoE-Router-Lean.zip` | adds `lean/` — the proof corpus and its mutation suites — plus `checker/` and `SETUP_LEAN`, for re-proving every claim on your own machine |
+| `RoT-MoE-Router-Lean.zip` | adds `lean/` — the proof corpus and its mutation suites — plus `checker/` (77 checkers) and `SETUP_LEAN`, for re-proving every claim on your own machine |
 | `RoT-MoE-Router-Lean-Extra.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Every archive verifies against the `SHA256SUMS.txt` published beside it on

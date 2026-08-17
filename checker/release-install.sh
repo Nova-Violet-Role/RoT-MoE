@@ -61,42 +61,42 @@ command -v unzip >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 3; }
 
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 
-# THE VERSION IS THE VARIANT, so an asset's name cannot be derived from the
-# tree's own version -- that produced `rot-moe-0.5.2-core.zip`, a file that has
-# never existed.
+# THE MAP IS ASKED FOR, NEVER COPIED. This block used to hold a SECOND COPY of
+# the packager's map, with a comment claiming "the two must stay in step, which
+# the assertion below enforces rather than trusting". No assertion did.
+# Measured 2026-08-03: the packager moved to 0.6.x, this copy stayed at 0.5.x,
+# and the gate REFUSED looking for `rot-moe-0.5.0-core.zip` -- an archive the
+# tree no longer built. Then the copy became a sed over the packager's SOURCE
+# TEXT, which broke the day the map stopped being a literal. `--print-variants`
+# is the surviving form: the packager is EXECUTED and prints the map it will
+# actually use.
 #
-# THIS MAP USED TO BE A SECOND COPY of the one in checker/release-package.sh,
-# with a comment claiming "the two must stay in step, which the assertion below
-# enforces rather than trusting". No assertion did. Measured 2026-08-03: the
-# packager moved to 0.6.x, this copy stayed at 0.5.x, and the gate REFUSED
-# looking for `rot-moe-0.5.0-core.zip` -- an archive the tree no longer builds.
-# The failure was loud, but it was a false alarm about the wrong thing, and the
-# tempting repair is to hand-edit the copy again.
-#
-# A duplicated constant with a promise attached is still a duplicated constant.
-# This repo has already shipped that exact defect once (a duplicate weight table
-# the binding checker was validating instead of the real one). So the map is now
-# PARSED from the packager, which is the only place it is defined.
-# ASKED FOR, not grepped out. The line above was
-#   sed -n 's/^VARIANTS="\(.*\)"$/\1/p' checker/release-package.sh
-# which reads the packager's SOURCE TEXT. That survives only while the map is a
-# literal string, and it stopped being one when the packager began DERIVING the
-# three versions from plugin.json (a hardcoded triple went red on a correct
-# release bump). The sed then returned `core:$_MM.0 ...` verbatim and this gate
-# refused, hunting an archive named `rot-moe-$_MM.0-core.zip`.
-#
-# The single-source principle is unchanged and the implementation is now sound:
-# the packager is EXECUTED and prints the map it will actually use, so a future
-# change to how versions are derived reaches this file automatically.
-VARIANTS=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null | head -1)
+# SINCE 6.0.0 the map is one line per variant, `<archive-basename>:<version>`,
+# and the names are version-less constants -- the tier lives in the name, the
+# version lives in plugin.json. The three names ARE spelled below, but spelled
+# AND verified: archive_of returns a name only if the packager's map declares
+# it, so a rename in the packager becomes a loud REFUSE here instead of a hunt
+# for a ghost archive.
+VARIANTS=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null)
 case "$VARIANTS" in
-  *core:*|*lean:*|*unsealed:*) : ;;
-  *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANTS')."
+  *RoT-MoE-*.zip:*) : ;;
+  *) echo "REFUSE: could not parse the variant map from checker/release-package.sh (got '$VARIANTS')."
      echo "        Refusing to fall back to a hardcoded map -- that is the drift this"
      echo "        block was rewritten to make impossible."
      exit 2 ;;
 esac
-version_of () { for vp in $VARIANTS; do [ "${vp%%:*}" = "$1" ] && { printf '%s' "${vp#*:}"; return; }; done; }
+archive_of () {   # $1 = tier -> the basename the packager declares for it
+  case "$1" in
+    core)     _b="RoT-MoE-Router.zip" ;;
+    lean)     _b="RoT-MoE-Router-Lean.zip" ;;
+    unsealed) _b="RoT-MoE-Router-Lean-Extra.zip" ;;
+    *)        return 1 ;;
+  esac
+  for vp in $VARIANTS; do
+    [ "${vp%%:*}" = "$_b" ] && { printf '%s' "$_b"; return 0; }
+  done
+  return 1
+}
 
 # --- a bound that does not assume GNU coreutils ------------------------------
 # MEASURED on macos-latest, CI #21: this file died at its own SAFETY INTERLOCK
@@ -127,9 +127,17 @@ run_bounded () {   # run_bounded <seconds> <cmd...>; reads stdin like the comman
 }
 
 VER=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json | head -1)
-CORE="$REL/rot-moe-$(version_of core)-core.zip"
-LEAN="$REL/rot-moe-$(version_of lean)-lean.zip"
-UNSEALED="$REL/rot-moe-$(version_of unsealed)-unsealed.zip"
+CORE_N=$(archive_of core); LEAN_N=$(archive_of lean); UNS_N=$(archive_of unsealed)
+if [ -z "$CORE_N" ] || [ -z "$LEAN_N" ] || [ -z "$UNS_N" ]; then
+  echo "REFUSE: the packager's map does not declare the three expected archives"
+  echo "        (got: $(printf '%s' "$VARIANTS" | tr '\n' ' ')). The names spelled in"
+  echo "        archive_of have drifted from checker/release-package.sh -- fix the drift,"
+  echo "        never this refusal."
+  exit 2
+fi
+CORE="$REL/$CORE_N"
+LEAN="$REL/$LEAN_N"
+UNSEALED="$REL/$UNS_N"
 
 if [ ! -s "$CORE" ]; then
   echo "REFUSE: $CORE not built. Run checker/release-package.sh first."
@@ -402,7 +410,8 @@ else
 fi
 
 # --- the UNSEALED variant, installed the same way a stranger meets it --------
-# 0.5.2's whole claim is that it ships an instrument the tier below does not.
+# Router-Lean-Extra's whole claim is that it ships an instrument the tier below
+# does not.
 # That is checked HERE, from the unpacked archive, because a file present in the
 # repository proves nothing about a file present in the download.
 if [ -s "$UNSEALED" ]; then

@@ -16,7 +16,7 @@
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
-[![Release](https://img.shields.io/badge/v6.0.0-The%20Whole%20Packet-0969da?style=flat-square)](#-v600--the-whole-packet)
+[![Release](https://img.shields.io/badge/v6.0.0-The%20Whole%20Packet-0969da?style=flat-square)](#-v600--the-whole-packet-three-ways)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
 
 </div>
