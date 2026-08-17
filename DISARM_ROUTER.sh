@@ -84,6 +84,9 @@ ROUTER_CMD="pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
 REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
 REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
 REMIND_CMD="pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
+GATE_SH="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.sh")"
+GATE_PS1="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.ps1")"
+GATE_CMD="pwsh -NoProfile -File \"$GATE_PS1\" || bash \"$GATE_SH\""
 
 # --- flags -------------------------------------------------------------------
 # `--dry-run` was ACCEPTED AND SILENTLY IGNORED here while ARM_ROUTER honoured
@@ -147,6 +150,10 @@ if [ "$DRY" -eq 1 ]; then
   RC2=0
   node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$REMIND_CMD" || RC2=$?
   { [ "$RC" -eq 10 ] && [ "$RC2" -ne 10 ]; } && RC=$RC2
+  # Third pass for the voice gate, same absence rule.
+  RC3=0
+  node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$GATE_CMD" || RC3=$?
+  { [ "$RC" -eq 10 ] && [ "$RC3" -ne 10 ]; } && RC=$RC3
   if [ "$RC" -eq 10 ]; then
     echo "  would remove: 0 router hook entries"
   elif [ "$RC" -ne 0 ]; then
@@ -183,6 +190,10 @@ node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$REMIND_CMD" || RC
 # If the router half was absent but the reminder half was removed, the run DID
 # change the file; reporting `nothing to remove` would be a false all-clear.
 { [ "$RC" -eq 10 ] && [ "$RC2" -ne 10 ]; } && RC=$RC2
+# Third pass for the voice gate, same absence rule as the reminder.
+RC3=0
+node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$GATE_CMD" || RC3=$?
+{ [ "$RC" -eq 10 ] && [ "$RC3" -ne 10 ]; } && RC=$RC3
 
 if [ "$RC" -eq 4 ]; then
   cp "$BACKUP" "$SETTINGS"; echo "  AUTO-RESTORED from backup."; exit 4

@@ -685,14 +685,16 @@ a heading that has to be edited by hand every time the tree grows.
 
 ---
 
-## 🫀 The four organs
+## 🫀 The six organs
 
 | organ | file | what it does |
 |:--|:--|:--|
 | 1 · engine | `engine/rot-lean.md` | the specification: nine lenses, the three-tier router, the `R/s+` formula |
-| 2 · router | `hooks/rot-router.sh` · `.ps1` | measures, routes, gauges — on every prompt and every tool call |
-| 3 · prover | `agents/lean4-prover.md` | a Lean 4 subagent whose prime rule is *no claim without a green build* |
+| 2 · router | `hooks/rot-router.sh` · `.ps1` | measures, routes, gauges — on every prompt and every tool call — and **speaks the voice block** on the events the model can hear |
+| 3 · prover | `agents/lean4-prover.md` | a Lean 4 subagent whose prime rule is *no claim without a green build* — a specialist **instrument**, not a lens |
 | 4 · reminder | `hooks/prover-remind.sh` · `.ps1` | names your actual proof debt, and stays **silent** when there is none |
+| 5 · voices | `hooks/rot-voice.dtd` + `agents/rot-*.md` | the voice contract and the nine living lenses: each declared as an element with a charter, a tool grant and a bound, held both ways by `checker/voice-contract.sh` |
+| 6 · gate | `hooks/rot-voice-gate.sh` · `.ps1` | on Stop, holds the door **once** for lenses a FUSE/ELEVATE turn summoned and left unspoken — the refusal carries each missing charter, and the gate degrades open everywhere it cannot measure |
 
 Organs 2 and 4 ship as **two arms each**, and `checker/cross-diff.sh` and
 `checker/cross-diff-remind.sh` run both over a shared corpus demanding
@@ -958,11 +960,37 @@ defaults:
 | `ROTMOE_GOAL_FILE` | reminder | a goal file whose open alarm rows the reminder counts |
 | `ROTMOE_DEBT_PATTERN` | reminder | overrides the proof-shaped-code regex (casts, clamps, shifts, saturating arithmetic) |
 | `ROTMOE_CWD` | reminder | overrides the directory the workspace discovery walks up from |
+| `ROTMOE_VOICE` | router | `0` silences the voice block. On by default: the active lenses speak one stanza each, after the marker, on the context-bearing events |
+| `ROTMOE_GATE` | router + gate | `0` disarms the voice gate. On by default: a FUSE/ELEVATE prompt records its summons, and Stop is blocked **once** if a summoned lens never spoke |
+
+### The voices, when they speak
+
+With the voice on (the default), the marker line is followed by one stanza
+per **active** lens — its measured factors from this turn's gauge, its
+charter, and its bound, inside the element `hooks/rot-voice.dtd` declares
+for it. Measured live:
+
+```
+RoT MoE :: TIER 1 -> FORGE Claude [NSIL FUSE Nova+AntiVenom+Chroma+Claude] | R/s+ 0.79
+<rot:nova>⚜️ Nova · λ 1.4 σ 0.5553 H 0.25 · term 1.02042 (14%) · Law × Code × Strategy × Synthesis; leads CONVERGENT/STRATEGIC; owns NSIL · may never average the lenses into consensus</rot:nova>
+<rot:antivenom>⚪ AntiVenom · λ 1.9 σ 0.5553 H 0.25 · term 1.45079 (20%) · Clinical × Verification × Integrity; leads CLINICAL, purifies every lane · may never purify a creative paradox</rot:antivenom>
+<rot:chroma>🔮 Chroma · λ 1 σ 0.5553 H 0.25 · term 0.76358 (11%) · Timeline × Prediction × Consequence; leads PREDICTIVE · may never resolve a productive tension into consensus</rot:chroma>
+<rot:claude>🧭 Claude · λ 2.3 σ 0.5553 H 0.25 · term 1.83605 (26%) · Praxis × Empirical verification × Craft; leads FORGE · may never assert what was not executed or read</rot:claude>
+```
+
+A single-lane turn speaks one stanza; a `CONVERGENT` turn speaks none — the
+nine stand down and the marker already names the convener. The numbers are
+the same factors the debug record carries, so a stanza can be recomputed by
+hand, which is the only reason it is allowed to appear.
 
 ### The rest of the surface
 
-* **`/corpus`** — the one slash command: checks or refreshes the shared Lean
-  Theorem corpus. Documented in its own section above.
+* **`/corpus`** — checks or refreshes the shared Lean Theorem corpus.
+  Documented in its own section above.
+* **`/rot-agent <lens> <subject>`** — dispatch one lens of the roster as a
+  living agent on the Socio's selected model; it reports inside its declared
+  element. **`/rot-swarm <subject>`** — all nine at once, in parallel, one
+  agent per lens, synthesis that keeps the disagreements.
 * **`lean4-prover`** — the subagent: spawn it by asking for it in plain
   language. Invocation examples live under Tips & Tricks, next.
 * **The scripts** — `ARM_ROUTER` / `DISARM_ROUTER`, `SETUP_LEAN`,

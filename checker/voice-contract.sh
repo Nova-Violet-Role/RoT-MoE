@@ -137,27 +137,71 @@ fi
 # ROTMOE_VOICE=0; and silence on an event whose stdout the model never sees.
 # The ps1 arm is exercised by CI where pwsh exists; here the reference arm is
 # the measurement.
+# No pipes into grep -q here: SIGPIPE under pipefail is platform-dependent
+# (checker/portability.sh refuses the construct). Captured output, `case`
+# matching -- zero pipes, zero forks.
 _pay='{"session_id":"vctl","cwd":"/tmp","hook_event_name":"UserPromptSubmit","prompt":"prove this lemma"}'
-_out=$(printf '%s' "$_pay" | ROTMOE_VOICE=1 sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
-if printf '%s\n' "$_out" | head -n 1 | grep -q '^RoT MoE :: TIER 1 -> FORGE' \
-   && printf '%s\n' "$_out" | grep -q '^<rot:claude>' ; then
-  ok "D9: a FORGE prompt speaks in <rot:claude> after an untouched marker"
-else
-  bad "D9: the voice block did not fire (or the marker moved) on a FORGE prompt"
-fi
-_out=$(printf '%s' "$_pay" | ROTMOE_VOICE=0 sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
-if printf '%s\n' "$_out" | grep -q '^<rot:'; then
-  bad "D9: ROTMOE_VOICE=0 still emitted a stanza -- the off switch is dead"
-else
-  ok "D9: ROTMOE_VOICE=0 silences the voices; the marker stands alone"
-fi
+_out=$(printf '%s' "$_pay" | ROTMOE_VOICE=1 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  'RoT MoE :: TIER 1 -> FORGE'*'<rot:claude>'*)
+    ok "D9: a FORGE prompt speaks in <rot:claude> after an untouched marker" ;;
+  *)
+    bad "D9: the voice block did not fire (or the marker moved) on a FORGE prompt" ;;
+esac
+_out=$(printf '%s' "$_pay" | ROTMOE_VOICE=0 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  *'<rot:'*) bad "D9: ROTMOE_VOICE=0 still emitted a stanza -- the off switch is dead" ;;
+  *)         ok "D9: ROTMOE_VOICE=0 silences the voices; the marker stands alone" ;;
+esac
 _out=$(printf '%s' '{"session_id":"vctl","cwd":"/tmp","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"lake build X"}}' \
-       | ROTMOE_VOICE=1 sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
-if printf '%s\n' "$_out" | grep -q '^<rot:'; then
-  bad "D9: a stanza was emitted on PreToolUse -- plain stdout there never reaches the model, so those bytes are a fabricated capability"
+       | ROTMOE_VOICE=1 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  *'<rot:'*) bad "D9: a stanza was emitted on PreToolUse -- plain stdout there never reaches the model, so those bytes are a fabricated capability" ;;
+  *)         ok "D9: no stanza on a non-context event -- the harness contract is respected" ;;
+esac
+
+# --- D10: the gate holds the door, once, and degrades open -------------------
+# The voice gate (ORGAN 6) is exercised end to end in a scratch state dir: a
+# FUSE prompt writes the summons, a transcript where nobody spoke must BLOCK
+# with every missing charter, the summons must be CONSUMED by that block, a
+# transcript where everyone spoke must allow, and stop_hook_active must stand
+# the gate down. All against the POSIX arm; CI exercises the ps1 twin.
+GD=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/voice-gate.$$")
+_fuse='{"session_id":"vgate","cwd":"/tmp","hook_event_name":"UserPromptSubmit","prompt":"plan a strategy to debug the build and predict the next failure"}'
+printf '%s' "$_fuse" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+if [ -s "$GD/voice-summons.vgate" ]; then
+  ok "D10: a FUSE prompt writes the summons"
 else
-  ok "D9: no stanza on a non-context event -- the harness contract is respected"
+  bad "D10: no summons written on a FUSE prompt -- the gate has nothing to hold"
 fi
+printf '%s\n' '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"no stanzas here"}]}}' > "$GD/tr-silent.jsonl"
+_g=$(printf '%s' "{\"session_id\":\"vgate\",\"transcript_path\":\"$GD/tr-silent.jsonl\"}" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-voice-gate.sh" 2>/dev/null)
+case "$_g" in
+  '{"decision":"block"'*'rot:nova'*'rot:claude'*)
+    ok "D10: unspoken summons BLOCKS, the reason carrying the missing charters" ;;
+  *) bad "D10: the gate did not block an unspoken summons (got: ${_g:-nothing})" ;;
+esac
+if [ -e "$GD/voice-summons.vgate" ]; then
+  bad "D10: the summons survived its own block -- the gate could cage a turn"
+else
+  ok "D10: the summons is consumed by the block -- one refusal per turn"
+fi
+printf '%s' "$_fuse" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+printf '%s\n' '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"<rot:nova>a</rot:nova><rot:antivenom>b</rot:antivenom><rot:chroma>c</rot:chroma><rot:claude>d</rot:claude>"}]}}' > "$GD/tr-spoken.jsonl"
+_g=$(printf '%s' "{\"session_id\":\"vgate\",\"transcript_path\":\"$GD/tr-spoken.jsonl\"}" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-voice-gate.sh" 2>/dev/null)
+if [ -z "$_g" ]; then
+  ok "D10: a spoken summons allows silently"
+else
+  bad "D10: the gate spoke on a satisfied summons: $_g"
+fi
+printf '%s' "$_fuse" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+_g=$(printf '%s' "{\"session_id\":\"vgate\",\"stop_hook_active\":true,\"transcript_path\":\"$GD/tr-silent.jsonl\"}" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-voice-gate.sh" 2>/dev/null)
+if [ -z "$_g" ] && [ ! -e "$GD/voice-summons.vgate" ]; then
+  ok "D10: stop_hook_active stands the gate down and clears the summons"
+else
+  bad "D10: the gate argued with a stop that already survived one block"
+fi
+rm -rf "$GD" 2>/dev/null || :
 
 # --- controls: the checker must be able to fail ------------------------------
 # Each control plants one defect in a minimal copy and requires the SAME

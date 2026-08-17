@@ -143,7 +143,7 @@ done
 # already shipped once.
 CLAUDE_DIR="$WORK/home/.claude" bash "$REPO/DISARM_ROUTER.sh" > "$WORK/disarm.log" 2>&1
 DIS_RC=$?
-LEFT=$(grep -cE 'rot-router|prover-remind' "$WORK/home/.claude/settings.json" 2>/dev/null || true)
+LEFT=$(grep -cE 'rot-router|prover-remind|rot-voice-gate' "$WORK/home/.claude/settings.json" 2>/dev/null || true)
 if [ "$DIS_RC" -eq 0 ] && [ "${LEFT:-0}" -eq 0 ]; then
   ok "DEFAULT (exact) uninstall removed every entry ARM_ROUTER wrote"
 else

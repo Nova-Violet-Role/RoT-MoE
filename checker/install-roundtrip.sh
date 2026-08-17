@@ -184,7 +184,7 @@ _post_ok=$(node -e '
   // every group we added invokes only RoT MoE hooks
   const extras=post.filter(g=>!preKeys.includes(key(g)));
   const oursOnly=extras.every(g=>(g.hooks||[]).every(h=>
-    /(rot-router|prover-remind)\.(ps1|sh)/.test(h.command||"")));
+    /(rot-router|prover-remind|rot-voice-gate)\.(ps1|sh)/.test(h.command||"")));
   process.stdout.write(survived&&oursOnly?"yes":"no");' \
   "$WORK/pre-install.json" "$S")
 [ "$_post_ok" = "yes" ] \

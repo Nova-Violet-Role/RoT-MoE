@@ -1559,6 +1559,18 @@ hook_mode () {
   #
   # Cost discipline: the DTD is parsed with builtin `read` and parameter
   # expansion -- zero forks -- and only for lenses that actually speak.
+  # THE SUMMONS. A UserPromptSubmit that fused or elevated is a turn where
+  # several lenses were summoned -- record who, so the voice gate (ORGAN 6,
+  # hooks/rot-voice-gate.sh) can hold the door on Stop until each has spoken.
+  # Single-writer, single-consumer, one turn's lifetime: written here, read
+  # and CONSUMED by the gate, and a new prompt overwrites or clears it, so a
+  # stale summons cannot outlive its turn. ROTMOE_GATE=0 opts out.
+  _gaterows=''
+  _gatefile=''
+  if [ "$_ev" = 'UserPromptSubmit' ] && [ "${ROTMOE_GATE:-1}" != 0 ]; then
+    _gatedir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
+    _gatefile="$_gatedir/voice-summons.$_rot_sess"
+  fi
   if [ -n "$_voice" ] && [ "$_br" -gt 0 ]; then
     _vdtd="${CLAUDE_PLUGIN_ROOT:-}"
     if [ -n "$_vdtd" ]; then _vdtd="$_vdtd/hooks/rot-voice.dtd"; else _vdtd="${0%/*}/rot-voice.dtd"; fi
@@ -1603,7 +1615,24 @@ VEOF
         printf '<%s>%s %s · λ %s σ %s H %s · term %s (%s%%) · %s · %s</%s>\n' \
           "$_velem" "$_vsig" "$_vn" "$_vlam" "$_vsigm" "$_vh" "$_vterm" "$_vshare" \
           "$_vchart" "$_vbound" "$_velem"
+        _gaterows="$_gaterows$_vn|$_velem|$_vchart|$_vbound
+"
       done
+    fi
+  fi
+  # Write the summons only for a genuine multi-lens turn (FUSE/ELEVATE with
+  # at least two roster voices); anything else CLEARS this session's summons
+  # so the gate never holds a door for a turn that ended long ago. The write
+  # degrades silently -- a summons that cannot be recorded costs the gate one
+  # turn of vigilance, never the user their prompt.
+  if [ -n "$_gatefile" ]; then
+    _gn=0
+    [ -n "$_gaterows" ] && _gn=$(printf '%s' "$_gaterows" | grep -c '|' 2>/dev/null || printf 0)
+    if [ "$_gn" -ge 2 ]; then
+      mkdir -p "${_gatefile%/*}" 2>/dev/null || :
+      printf '%s' "$_gaterows" 2>/dev/null > "$_gatefile" || :
+    else
+      rm -f "$_gatefile" 2>/dev/null || :
     fi
   fi
   exit 0

@@ -186,6 +186,15 @@ REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
 REMIND_CMD="pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
 REMIND_EVENTS_CSV="$EVENTS_CSV"
 
+# The voice gate (ORGAN 6) binds on Stop ONLY: it holds the door for summoned
+# lenses and has no business firing anywhere else. Same parity rule as the
+# reminder -- the plugin registers it, so the hand install must too, or the
+# two documented installs deliver different products.
+GATE_PS1="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.ps1")"
+GATE_SH="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.sh")"
+GATE_CMD="pwsh -NoProfile -File \"$GATE_PS1\" || bash \"$GATE_SH\""
+GATE_EVENTS_CSV='Stop'
+
 echo "RoT MoE :: ARM_ROUTER"
 echo "  config dir : $CLAUDE_DIR"
 echo "  settings   : $SETTINGS"
@@ -292,6 +301,19 @@ if [ "$MERGE_RC" -eq 0 ] || [ "$MERGE_RC" -eq 10 ]; then
     exit "$REMIND_RC"
   fi
   [ "$REMIND_RC" -eq 0 ] && MERGE_RC=0
+
+  # Third pass, the voice gate -- same restore-and-refuse discipline. A
+  # settings file carrying the router and reminder but not the gate would be
+  # the reminder defect all over again: two install paths, two products.
+  GATE_RC=0
+  node "$SELF_DIR/hooks/settings-merge.js" arm "$SETTINGS" "$GATE_CMD" \
+       "$GATE_EVENTS_CSV" || GATE_RC=$?
+  if [ "$GATE_RC" -eq 4 ] || [ "$GATE_RC" -eq 3 ]; then
+    cp "$BACKUP" "$SETTINGS"
+    echo "  AUTO-RESTORED from backup: the voice gate could not be armed (exit $GATE_RC)."
+    exit "$GATE_RC"
+  fi
+  [ "$GATE_RC" -eq 0 ] && MERGE_RC=0
 fi
 
 # rule 4: auto-restore on any validation failure.

@@ -580,7 +580,13 @@ function Write-RotDebug([string] $Line) {
 # this function reads THAT -- the first draft of this change transcribed the ten
 # pairs again here, which is a second place for the same constants to drift and
 # exactly what the POSIX arm refuses to do in its gauge.
-function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [double] $T, [string] $Lane = 'FORGE') {
+# -Voice is the sh arm's optional 7th gauge argument: it turns on the per-lens
+# LENSDATA lines the voice block consumes (hooks/rot-voice.dtd is where those
+# numbers get their names). It is passed ONLY by hook mode's voice path: the
+# CLI and every corpus runner call this without it, so -Vector output stays
+# byte-identical to every earlier release and the cross-diff corpus keeps
+# comparing the same string it always did.
+function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [double] $T, [string] $Lane = 'FORGE', [switch] $Voice) {
   $acts = @($Vec -split ',' | ForEach-Object { [double]$_ })
   $K = $acts.Count
   $mean = 0.0; foreach ($a in $acts) { $mean += $a }
@@ -589,6 +595,11 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
   $sum = 0.0
   $active = New-Object System.Collections.Generic.List[string]
   $terms  = New-Object System.Collections.Generic.List[string]
+  # Per-lens factors for the voice path's LENSDATA lines. Never populated
+  # without -Voice, so the CLI path pays nothing and emits nothing new.
+  $sArr = New-Object System.Collections.Generic.List[double]
+  $hArr = New-Object System.Collections.Generic.List[double]
+  $tArr = New-Object System.Collections.Generic.List[double]
   for ($i = 0; $i -lt $K; $i++) {
     $a = $acts[$i]
     if ($a -gt 0) { $active.Add($Names[$i]) }
@@ -598,6 +609,7 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
     if ($H -gt 1.0) { $H = 1.0 }
     $term = $Lambdas[$i] * $s * (1.0 + $H) * $Mus[$i] * $M * $C * $T
     $sum += $term
+    if ($Voice) { $sArr.Add($s); $hArr.Add($H); $tArr.Add($term) }
     if ($env:ROTMOE_DEBUG_LOG) {
       $terms.Add(('{{"lens":"{0}","lambda":{1},"mu":{2},"a":{3},"delta":{4},"sigma":{5},"H":{6},"term":{7}}}' -f `
         $Names[$i], (Format-Num $Lambdas[$i] 3), (Format-Num $Mus[$i] 3), (Format-Num $a 3), `
@@ -619,8 +631,23 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
   $bandTxt = '(' + $lo.ToString('0.##', [Globalization.CultureInfo]::InvariantCulture) + '-' + $hi.ToString('0.##', [Globalization.CultureInfo]::InvariantCulture) + ')'
   $band = if ($R -lt $lo) { "BELOW RANGE $bandTxt" } elseif ($R -gt $hi) { "ABOVE RANGE $bandTxt" } else { "IN RANGE $bandTxt" }
   $lenses = if ($active.Count) { $active -join ',' } else { 'none' }
-  return ('R/s+ = {0} [{1}] mean={2} breadth={3} K={4} lenses={5}' -f `
+  $human = ('R/s+ = {0} [{1}] mean={2} breadth={3} K={4} lenses={5}' -f `
           (Format-Num $R 2), $band, (Format-Num $mean 3), $Br, $K, $lenses)
+  if (-not $Voice) { return $human }
+  # The voice path only: one machine-readable line per lens, AFTER the human
+  # line so every existing consumer keeps matching what it always matched.
+  # Fields are the same factors the debug record carries -- the stanza is
+  # BLOCK 10 contributions redirected to the context, and it must be
+  # recomputable from these lines by hand. Precisions match the sh awk:
+  # lambda 2, sigma 4, H 4, term 5, share 0 (share = 100*term/sum).
+  $out = @($human)
+  for ($i = 0; $i -lt $K; $i++) {
+    $shr = if ($sum -gt 0) { 100.0 * $tArr[$i] / $sum } else { 0.0 }
+    $out += ('LENSDATA|{0}|{1}|{2}|{3}|{4}|{5}' -f `
+      $Names[$i], (Format-Num $Lambdas[$i] 2), (Format-Num $sArr[$i] 4), `
+      (Format-Num $hArr[$i] 4), (Format-Num $tArr[$i] 5), (Format-Num $shr 0))
+  }
+  return $out
 }
 
 # THE DECLARATION IS READ ON EVERY PATH, not only in hook mode -- the exact
@@ -851,8 +878,36 @@ if ($script:NsilBoost) {
   }
 }
 
-$g  = Invoke-Gauge ($acts -join ',') $br 1 1 1 ($lane -split ' ')[0]
-$rs = if ($g -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
+# WHICH EVENT FIRED -- hoisted above the gauge call (it used to live inside
+# the debug-log block, which meant it was only known when logging was on).
+# The voice block needs it unconditionally: stanzas are legal only on the
+# events whose stdout the harness feeds to the model, and emitting them
+# anywhere else would be bytes the model never sees. Same extraction, same
+# charset guard; the debug record below reads this value.
+$evName = '-'
+if ($j -and $j.hook_event_name) {
+  $cand = [string]$j.hook_event_name
+  if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
+}
+
+# THE VOICE DECISION. By Socio directive the lenses speak by default
+# (ROTMOE_VOICE=0 silences them); the gate on the EVENT is not a
+# preference, it is the harness contract: plain stdout reaches the model
+# on exactly these three events and is a debug-log entry everywhere else.
+$voice = $false
+if ($env:ROTMOE_VOICE -ne '0') {
+  if (@('UserPromptSubmit','UserPromptExpansion','SessionStart') -ccontains $evName) { $voice = $true }
+}
+
+# The voice path passes -Voice, so the gauge also returns one LENSDATA line
+# per lens AFTER the human R/s+ line; every other path calls it exactly as
+# before. Full output is captured either way, and R/s+ is still parsed from
+# the human line, which stays first.
+if ($voice) { $g = Invoke-Gauge ($acts -join ',') $br 1 1 1 ($lane -split ' ')[0] -Voice }
+else        { $g = Invoke-Gauge ($acts -join ',') $br 1 1 1 ($lane -split ' ')[0] }
+$gLines = @($g)
+$gHead  = [string]$gLines[0]
+$rs = if ($gHead -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
 
 # One record per ROUTED TURN, distinct from the per-lens gauge record above.
 # `chars` rather than the prompt itself: the log must be safe to paste into an
@@ -869,11 +924,9 @@ if ($env:ROTMOE_DEBUG_LOG) {
   # would emit a malformed line that breaks every downstream reader. Anything
   # not plain letters is recorded as "-", which honestly says "a record was
   # written and the event was not identifiable".
-  $evName = '-'
-  if ($j -and $j.hook_event_name) {
-    $cand = [string]$j.hook_event_name
-    if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
-  }
+  # `$evName` is extracted ABOVE the gauge call now (the voice block needs
+  # the event on every path, logging on or off); the guard and the semantics
+  # are unchanged and the comment above still describes them.
   # {12} is $nsilHyb, already a finished string with LITERAL braces -- `-f`
   # substitutes argument values verbatim and only parses braces in the FORMAT
   # string, so it must not be double-escaped a second time here.
@@ -905,4 +958,115 @@ if ($script:RotLocalLost) { $mark = $mark + " | project-log UNWRITABLE (record l
 $nsilTag = ''
 if ($nsilDecision -ne '' -and $nsilDecision -ne 'CONFIRM') { $nsilTag = ' [NSIL ' + $nsilDecision + ' ' + ($nsilAct -join '+') + ']' }
 Write-Output ("RoT MoE :: TIER 1 -> " + $lane + $nsilTag + " | R/s+ " + $rs + $mark)
+
+# --- THE VOICE BLOCK ---------------------------------------------------------
+# One stanza per ACTIVE lens, in roster order, each inside the element
+# hooks/rot-voice.dtd declares for it. The measured fields come from the
+# gauge's LENSDATA lines (the same factors the debug record carries); the
+# charter and the bound come from the DTD, so no lens fact exists twice.
+# The marker line above is UNTOUCHED -- every checker that matches it keeps
+# matching -- and the stanzas are ADDITIVE lines after it, on the three
+# context-bearing events only (see the voice decision above).
+#
+# A CONVERGENT turn activates no roster lens (its "lead" is the convener
+# model), so the loop naturally emits nothing there: the nine stand down
+# and the marker already names who convenes. A missing or unreadable DTD
+# degrades to silence rather than failing the turn -- the marker is the
+# contract, the voices are the capability.
+# THE SUMMONS. A UserPromptSubmit that fused or elevated is a turn where
+# several lenses were summoned -- record who, so the voice gate (ORGAN 6,
+# hooks/rot-voice-gate.ps1 / .sh) can hold the door on Stop until each has
+# spoken. Same single-writer, single-consumer, one-turn lifetime as the sh
+# arm; ROTMOE_GATE=0 opts out; the write degrades silently.
+$gateRows = @()
+$gateFile = ''
+if ($evName -eq 'UserPromptSubmit' -and $env:ROTMOE_GATE -ne '0') {
+  $gateDir = $env:ROTMOE_STATE_DIR
+  if ([string]::IsNullOrEmpty($gateDir)) {
+    $xdg = $env:XDG_STATE_HOME
+    if ([string]::IsNullOrEmpty($xdg)) { $xdg = Join-Path $HOME '.local/state' }
+    $gateDir = Join-Path $xdg 'rot-moe'
+  }
+  $gateFile = Join-Path $gateDir ("voice-summons." + $script:RotSession)
+}
+if ($voice -and $br -gt 0) {
+  # Resolve the contract: the installed plugin root first, then this script's
+  # own directory -- the sh arm's `$CLAUDE_PLUGIN_ROOT/hooks` then `${0%/*}`
+  # order. The READ is the probe (sh tests `-r`, not existence), so a file
+  # that exists but cannot be read demotes to the fallback the same way a
+  # missing one does; a second failure is the silence promised above.
+  $vDtd = Join-Path $PSScriptRoot 'rot-voice.dtd'
+  if ($env:CLAUDE_PLUGIN_ROOT) { $vDtd = Join-Path (Join-Path $env:CLAUDE_PLUGIN_ROOT 'hooks') 'rot-voice.dtd' }
+  $vLines = $null
+  try { $vLines = @(Get-Content -LiteralPath $vDtd -Encoding utf8 -ErrorAction Stop) } catch { $vLines = $null }
+  if ($null -eq $vLines) {
+    $vDtd = Join-Path $PSScriptRoot 'rot-voice.dtd'
+    try { $vLines = @(Get-Content -LiteralPath $vDtd -Encoding utf8 -ErrorAction Stop) } catch { $vLines = $null }
+  }
+  if ($null -ne $vLines) {
+    # LENS.n entities are declared in roster order, which
+    # checker/voice-contract.sh is positioned to keep true. The value is the
+    # text between the FIRST and LAST double quote of the line -- the sh
+    # arm's `${_vl#*\"}` then `${_vrow%\"*}`, each a no-op with no quote --
+    # and the fields split on `|` as name|element|sigil|charter|tools|bound.
+    $vRows = @()
+    foreach ($vl in $vLines) {
+      if ($vl -like '*<!ENTITY LENS.*') {
+        $vr = [string]$vl
+        $q = $vr.IndexOf('"')
+        if ($q -ge 0) { $vr = $vr.Substring($q + 1) }
+        $q = $vr.LastIndexOf('"')
+        if ($q -ge 0) { $vr = $vr.Substring(0, $q) }
+        $vRows += $vr
+      }
+    }
+    $vIdx = 0
+    foreach ($vName in $Names) {
+      $vIdx++
+      if ($nsilAct -notcontains $vName) { continue }
+      if ($vIdx -gt $vRows.Count) { continue }
+      $vRow = $vRows[$vIdx - 1]
+      if (-not $vRow) { continue }
+      $vF = $vRow.Split('|')
+      $vElem  = if ($vF.Count -gt 1) { $vF[1] } else { '' }
+      $vSigil = if ($vF.Count -gt 2) { $vF[2] } else { '' }
+      $vChart = if ($vF.Count -gt 3) { $vF[3] } else { '' }
+      $vBound = if ($vF.Count -gt 5) { $vF[5] } else { '' }
+      if (-not $vElem) { continue }
+      # This lens's measured line from the gauge output.
+      $vPre  = 'LENSDATA|' + $vName + '|'
+      $vData = ''
+      foreach ($gl in $gLines) {
+        $gs = [string]$gl
+        if ($gs.StartsWith($vPre, [System.StringComparison]::Ordinal)) { $vData = $gs.Substring($vPre.Length); break }
+      }
+      $vD = $vData.Split('|')
+      $vLam   = if ($vD.Count -gt 0) { $vD[0] } else { '' }
+      $vSigm  = if ($vD.Count -gt 1) { $vD[1] } else { '' }
+      $vH     = if ($vD.Count -gt 2) { $vD[2] } else { '' }
+      $vTerm  = if ($vD.Count -gt 3) { $vD[3] } else { '' }
+      $vShare = if ($vD.Count -gt 4) { $vD[4] } else { '' }
+      # The sh arm's printf template is the authority for this shape:
+      #   '<%s>%s %s · λ %s σ %s H %s · term %s (%s%%) · %s · %s</%s>\n'
+      # with elem sigil name lam sigma H term share charter bound elem.
+      Write-Output ('<{0}>{1} {2} · λ {3} σ {4} H {5} · term {6} ({7}%) · {8} · {9}</{0}>' -f `
+        $vElem, $vSigil, $vName, $vLam, $vSigm, $vH, $vTerm, $vShare, $vChart, $vBound)
+      $gateRows += ($vName + '|' + $vElem + '|' + $vChart + '|' + $vBound)
+    }
+  }
+}
+# Write the summons only for a genuine multi-lens turn (FUSE/ELEVATE with at
+# least two roster voices); anything else CLEARS this session's summons so
+# the gate never holds a door for a turn that ended long ago -- the sh arm's
+# rule, decision for decision.
+if ($gateFile) {
+  if ($gateRows.Count -ge 2) {
+    try {
+      $null = New-Item -ItemType Directory -Force -Path (Split-Path -Parent $gateFile)
+      [System.IO.File]::WriteAllText($gateFile, (($gateRows -join "`n") + "`n"))
+    } catch { }
+  } else {
+    try { Remove-Item -LiteralPath $gateFile -Force -ErrorAction SilentlyContinue } catch { }
+  }
+}
 exit 0

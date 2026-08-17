@@ -209,7 +209,7 @@ if (mode === "arm") {
     }
   }
   const isOurs = (c) => mode === "disarm-any"
-    ? (typeof c === "string" && /(rot-router|prover-remind)\.(ps1|sh)/.test(c))
+    ? (typeof c === "string" && /(rot-router|prover-remind|rot-voice-gate)\.(ps1|sh)/.test(c))
     : (c === cmd);
   let removed = 0;
   for (const ev of Object.keys(s.hooks || {})) {
