@@ -449,6 +449,17 @@ wave reading also supplies the correct intuition for what the law must
 preserve: superposition composes amplitudes lawfully; it does not add energy
 per fold.
 
+**One boundary of the wave reading, stated so it is never over-read** (Socio
+clarification, 2026-08-17): it covers **eight of the nine**. The Θ = 9 Hz
+correspondence is about the *ensemble count*, not about the ninth lens's
+parameters — 🧭 Claude's λ, μ and band were never derived from a SINE
+variable; they are quoted from this repository's own head document, and the
+engine spec discloses the derivation honestly (`engine/rot-lean.md:248-252`).
+The ninth lens is a **reserved seat, not a crown**: an equal member of the
+roster whose provenance is the tree itself rather than the frequency table,
+with no standing above the original symbiotes — its FORGE λ 2.3 is ordinary
+lane-lead weighting, the same shape every lead gets in its own lane.
+
 ---
 
 ## 5 · What the harness permits — verified constraints
