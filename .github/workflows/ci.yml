@@ -1488,7 +1488,18 @@ jobs:
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "FAIL: release $TAG already exists -- a published release never moves"; exit 1
           fi
-          have=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null || true)
+          # Existence judged by gh's EXIT CODE, never by output emptiness --
+          # MEASURED 2026-08-17, run 32040024147 attempt 2: on a missing ref,
+          # `gh api` prints the 404 error body to STDOUT, so the captured
+          # value read {"message":"Not Found",...}, compared unequal to the
+          # SHA, and the exists-elsewhere refusal fired on a tag that did not
+          # exist. The refusal failed closed -- nothing was published -- but
+          # it was aimed at a ghost. This repository's own first rule, applied
+          # to the one step that forgot it.
+          have=""
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.sha' > "$RUNNER_TEMP/tag-sha" 2>/dev/null; then
+            have=$(cat "$RUNNER_TEMP/tag-sha")
+          fi
           if [ -n "$have" ] && [ "$have" != "$GITHUB_SHA" ]; then
             echo "FAIL: tag $TAG already points at $have, not at $GITHUB_SHA -- refusing to publish another commit under it"; exit 1
           fi
