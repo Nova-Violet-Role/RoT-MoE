@@ -891,12 +891,20 @@ if ($j -and $j.hook_event_name) {
 }
 
 # THE VOICE DECISION. By Socio directive the lenses speak by default
-# (ROTMOE_VOICE=0 silences them); the gate on the EVENT is not a
-# preference, it is the harness contract: plain stdout reaches the model
-# on exactly these three events and is a debug-log entry everywhere else.
+# (ROTMOE_VOICE=0 silences them), and they speak MID-WORK too: plain stdout
+# reaches the model on exactly three events, and on the tool-loop events the
+# legal channel is the JSON envelope's additionalContext -- the shape
+# prover-remind has always used there, event echoed back or the payload is
+# discarded. The sh arm is the reference, decision for decision.
+# Schema gate for the JSON channel: only the measured accepting set
+# (lean/Proofs/RotInject.lean) may carry additionalContext. The sh arm's
+# CTX_EVENTS is the reference; PostToolUseFailure is deliberately absent.
+$ctxEvents = @('PreToolUse','PostToolUse')
 $voice = $false
+$voiceJson = $false
 if ($env:ROTMOE_VOICE -ne '0') {
   if (@('UserPromptSubmit','UserPromptExpansion','SessionStart') -ccontains $evName) { $voice = $true }
+  elseif ($ctxEvents -ccontains $evName) { $voice = $true; $voiceJson = $true }
 }
 
 # The voice path passes -Voice, so the gauge also returns one LENSDATA line
@@ -957,7 +965,16 @@ if ($script:RotLocalLost) { $mark = $mark + " | project-log UNWRITABLE (record l
 # boundary are untouched) while the fused lenses are NAMED rather than counted.
 $nsilTag = ''
 if ($nsilDecision -ne '' -and $nsilDecision -ne 'CONFIRM') { $nsilTag = ' [NSIL ' + $nsilDecision + ' ' + ($nsilAct -join '+') + ']' }
-Write-Output ("RoT MoE :: TIER 1 -> " + $lane + $nsilTag + " | R/s+ " + $rs + $mark)
+# TWO CHANNELS, ONE CONTENT -- the sh arm's rule, decision for decision. On
+# the JSON path each piece is scrubbed of quote and backslash BEFORE the
+# literal \n separators join them, so the scrub can never eat a separator.
+$mLine = "RoT MoE :: TIER 1 -> " + $lane + $nsilTag + " | R/s+ " + $rs + $mark
+$vAcc = ''
+if ($voiceJson) {
+  $vAcc = ($mLine -replace '["\\]', '')
+} else {
+  Write-Output $mLine
+}
 
 # --- THE VOICE BLOCK ---------------------------------------------------------
 # One stanza per ACTIVE lens, in roster order, each inside the element
@@ -1049,12 +1066,24 @@ if ($voice -and $br -gt 0) {
       # The sh arm's printf template is the authority for this shape:
       #   '<%s>%s %s · λ %s σ %s H %s · term %s (%s%%) · %s · %s</%s>\n'
       # with elem sigil name lam sigma H term share charter bound elem.
-      Write-Output ('<{0}>{1} {2} · λ {3} σ {4} H {5} · term {6} ({7}%) · {8} · {9}</{0}>' -f `
+      $vLine = ('<{0}>{1} {2} · λ {3} σ {4} H {5} · term {6} ({7}%) · {8} · {9}</{0}>' -f `
         $vElem, $vSigil, $vName, $vLam, $vSigm, $vH, $vTerm, $vShare, $vChart, $vBound)
+      if ($voiceJson) {
+        $vAcc += ('\n' + ($vLine -replace '["\\]', ''))
+      } else {
+        Write-Output $vLine
+      }
       $gateRows += ($vName + '|' + $vElem + '|' + $vChart + '|' + $vBound)
     }
   }
 }
+# The JSON envelope, emitted whole: the event echoed back is load-bearing --
+# a payload without it is discarded silently. ROTMOE_VOICE=0 keeps the old
+# plain marker on these events.
+if ($voiceJson) {
+  [Console]::Out.WriteLine('{"hookSpecificOutput":{"hookEventName":"' + $evName + '","additionalContext":"' + $vAcc + '"}}')
+}
+
 # Write the summons only for a genuine multi-lens turn (FUSE/ELEVATE with at
 # least two roster voices); anything else CLEARS this session's summons so
 # the gate never holds a door for a turn that ended long ago -- the sh arm's

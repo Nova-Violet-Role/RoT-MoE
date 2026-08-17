@@ -983,6 +983,14 @@ nine stand down and the marker already names the convener. The numbers are
 the same factors the debug record carries, so a stanza can be recomputed by
 hand, which is the only reason it is allowed to appear.
 
+**And the lenses speak mid-work.** On `PreToolUse` and `PostToolUse` — while the model is thinking, running tools, producing
+artifacts — the same marker and stanzas travel inside the JSON envelope's
+`additionalContext`, the channel the harness actually feeds to the model on
+those events (the reminder has always used it there). Measured live: the
+envelope validates strictly, the event is echoed back, the marker is the
+first line of the context. `ROTMOE_VOICE=0` restores the old plain marker
+everywhere.
+
 ### The rest of the surface
 
 * **`/corpus`** — checks or refreshes the shared Lean Theorem corpus.

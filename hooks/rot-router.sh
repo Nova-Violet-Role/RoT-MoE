@@ -1300,12 +1300,30 @@ hook_mode () {
   case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
 
   # THE VOICE DECISION. By Socio directive the lenses speak by default
-  # (ROTMOE_VOICE=0 silences them); the gate on the EVENT is not a
-  # preference, it is the harness contract: plain stdout reaches the model
-  # on exactly these three events and is a debug-log entry everywhere else.
+  # (ROTMOE_VOICE=0 silences them), and they speak MID-WORK too: the harness
+  # contract offers two channels, and the router uses both. Plain stdout
+  # reaches the model on exactly three events; on the tool-loop events the
+  # legal channel is the JSON envelope's additionalContext -- the same shape
+  # prover-remind has always used there, event echoed back or the payload is
+  # discarded. Everywhere else the marker stays a debug-log entry.
+  # SCHEMA GATE for the JSON channel: only events in the MEASURED accepting
+  # set (lean/Proofs/RotInject.lean; checker/context-gate.sh compares) may
+  # carry additionalContext -- the CLI rejects the payload elsewhere, which
+  # the reminder measured live on SessionEnd. PostToolUseFailure is
+  # deliberately ABSENT: the docs say the field exists there, the accepting
+  # set says the CLI refuses it, and this repository ships what it measured,
+  # never what it read.
+  CTX_EVENTS="PreToolUse PostToolUse"
   _voice=''
+  _voicejson=''
   if [ "${ROTMOE_VOICE:-1}" != 0 ]; then
-    case "$_ev" in UserPromptSubmit|UserPromptExpansion|SessionStart) _voice=1 ;; esac
+    case "$_ev" in
+      UserPromptSubmit|UserPromptExpansion|SessionStart) _voice=1 ;;
+      *)
+        for _ce in $CTX_EVENTS; do
+          [ "$_ce" = "$_ev" ] && { _voice=1; _voicejson=1; break; }
+        done ;;
+    esac
   fi
   if [ -n "$_voice" ]; then
     _gout=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}" voice)
@@ -1540,7 +1558,20 @@ hook_mode () {
     for _a in $_nsil_act; do _nsil_names="$_nsil_names+$_a"; done
     _nsil_tag=" [NSIL $NSIL_DECISION ${_nsil_names#+}]"
   fi
-  echo "RoT MoE :: TIER 1 -> $lane$_nsil_tag | R/s+ $_rs$_mark"
+  # TWO CHANNELS, ONE CONTENT. On the plain-stdout events the marker and the
+  # stanzas print as lines, exactly as they always did. On the tool-loop
+  # events the same content travels inside the JSON envelope's
+  # additionalContext -- the channel the harness actually feeds to the model
+  # there, proved out by prover-remind -- with the invoking event echoed back
+  # or the payload is discarded. Each accumulated piece is scrubbed of quote
+  # and backslash BEFORE the literal \n separators join them, so the scrub
+  # can never eat the separators themselves.
+  _mline="RoT MoE :: TIER 1 -> $lane$_nsil_tag | R/s+ $_rs$_mark"
+  if [ -n "$_voicejson" ]; then
+    _vacc=$(printf '%s' "$_mline" | tr -d '"\\')
+  else
+    echo "$_mline"
+  fi
 
   # --- THE VOICE BLOCK -------------------------------------------------------
   # One stanza per ACTIVE lens, in roster order, each inside the element
@@ -1548,8 +1579,9 @@ hook_mode () {
   # gauge's LENSDATA lines (the same factors the debug record carries); the
   # charter and the bound come from the DTD, so no lens fact exists twice.
   # The marker line above is UNTOUCHED -- every checker that matches it keeps
-  # matching -- and the stanzas are ADDITIVE lines after it, on the three
-  # context-bearing events only (see the voice decision above).
+  # matching -- and the stanzas are ADDITIVE lines after it, on the
+  # context-bearing events, by whichever channel the event permits (see the
+  # voice decision above).
   #
   # A CONVERGENT turn activates no roster lens (its "lead" is the convener
   # model), so the loop naturally emits nothing there: the nine stand down
@@ -1612,14 +1644,27 @@ VEOF
         _vsigm=${_vrest%%|*}; _vrest=${_vrest#*|}
         _vh=${_vrest%%|*}; _vrest=${_vrest#*|}
         _vterm=${_vrest%%|*}; _vshare=${_vrest##*|}
-        printf '<%s>%s %s · λ %s σ %s H %s · term %s (%s%%) · %s · %s</%s>\n' \
-          "$_velem" "$_vsig" "$_vn" "$_vlam" "$_vsigm" "$_vh" "$_vterm" "$_vshare" \
-          "$_vchart" "$_vbound" "$_velem"
+        # Built by expansion, not printf-into-substitution: byte-identical to
+        # the former printf template and zero forks on the plain path.
+        _vline="<$_velem>$_vsig $_vn · λ $_vlam σ $_vsigm H $_vh · term $_vterm (${_vshare}%) · $_vchart · $_vbound</$_velem>"
+        if [ -n "$_voicejson" ]; then
+          _vacc="$_vacc\n$(printf '%s' "$_vline" | tr -d '"\\')"
+        else
+          printf '%s\n' "$_vline"
+        fi
         _gaterows="$_gaterows$_vn|$_velem|$_vchart|$_vbound
 "
       done
     fi
   fi
+  # The JSON envelope, emitted whole: the event echoed back is load-bearing
+  # (a payload without it is discarded silently -- prover-remind measured
+  # that the hard way). ROTMOE_VOICE=0 keeps the old plain marker on these
+  # events, which the harness treats as a debug-log entry exactly as before.
+  if [ -n "$_voicejson" ]; then
+    printf '{"hookSpecificOutput":{"hookEventName":"%s","additionalContext":"%s"}}\n' "$_ev" "$_vacc"
+  fi
+
   # Write the summons only for a genuine multi-lens turn (FUSE/ELEVATE with
   # at least two roster voices); anything else CLEARS this session's summons
   # so the gate never holds a door for a turn that ended long ago. The write

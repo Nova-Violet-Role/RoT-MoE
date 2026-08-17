@@ -153,11 +153,27 @@ case "$_out" in
   *'<rot:'*) bad "D9: ROTMOE_VOICE=0 still emitted a stanza -- the off switch is dead" ;;
   *)         ok "D9: ROTMOE_VOICE=0 silences the voices; the marker stands alone" ;;
 esac
+# On the tool-loop events the voice travels as the JSON envelope's
+# additionalContext -- plain stanza LINES there would be bytes the model
+# never sees. Voice on: one strictly valid JSON object, event echoed back,
+# stanzas inside the string. Voice off: the plain marker, exactly as before.
 _out=$(printf '%s' '{"session_id":"vctl","cwd":"/tmp","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"lake build X"}}' \
        | ROTMOE_VOICE=1 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
 case "$_out" in
-  *'<rot:'*) bad "D9: a stanza was emitted on PreToolUse -- plain stdout there never reaches the model, so those bytes are a fabricated capability" ;;
-  *)         ok "D9: no stanza on a non-context event -- the harness contract is respected" ;;
+  '{'*'"hookEventName":"PreToolUse"'*'additionalContext'*'<rot:'*)
+    if printf '%s' "$_out" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);const h=j.hookSpecificOutput;process.exit(h&&h.hookEventName==="PreToolUse"&&typeof h.additionalContext==="string"&&h.additionalContext.indexOf("RoT MoE :: TIER 1")===0?0:1)}catch(e){process.exit(1)}})' 2>/dev/null; then
+      ok "D9: mid-work voice on PreToolUse is one strictly valid JSON envelope, event echoed, marker first, stanzas inside"
+    else
+      bad "D9: the PreToolUse voice envelope failed strict JSON validation"
+    fi ;;
+  *) bad "D9: PreToolUse with voice on did not produce the JSON envelope" ;;
+esac
+_out=$(printf '%s' '{"session_id":"vctl","cwd":"/tmp","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"lake build X"}}' \
+       | ROTMOE_VOICE=0 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_out" in
+  'RoT MoE :: TIER 1 ->'*'<rot:'*) bad "D9: ROTMOE_VOICE=0 leaked a stanza on a tool event" ;;
+  'RoT MoE :: TIER 1 ->'*)         ok "D9: ROTMOE_VOICE=0 keeps the plain marker on tool events, stanza-free" ;;
+  *)                               bad "D9: ROTMOE_VOICE=0 lost the marker on a tool event" ;;
 esac
 
 # --- D10: the gate holds the door, once, and degrades open -------------------
