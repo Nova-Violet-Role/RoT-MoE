@@ -10,7 +10,7 @@
 
 **Nine voices, one mind — and a kernel that checks the arithmetic**
 
-*One artifact. The whole packet. The tiers are retired.*
+*Three archives, one version. The tier lives in the name now.*
 
 [![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/saimonokuma)
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
@@ -25,19 +25,23 @@
 
 ## 🎯 Which one do I want?
 
-There is one. That is the release note.
+Three archives, one version — `6.0.0` — and the tier lives in the **name**,
+not the patch digit. The `5.x` convention (patch digit as tier) is retired:
+the voice contract, the nine charters, the voice gate and the environment
+layer are **the product**, so every archive carries all seven organs. The
+tiers differ only in how much of the verification surface rides along:
 
-Through `5.x` every release shipped three variants — core, `+Lean`,
-`+Extra` — with the patch digit as the tier. `6.0.0` retires that
-convention, and the reason is the release itself: the voice contract, the
-nine charters, the voice gate and the environment layer are **the product**,
-not reading material beside it. A "router without the voices" is not a
-smaller tier of RoT MoE any more; it is a different thing, and this
-repository does not ship it.
+| archive | take it when |
+|---|---|
+| `RoT-MoE-Router.zip` | you want to run it — the whole product, smallest download |
+| `RoT-MoE-Router-Lean.zip` | you want to re-prove the claims on your own machine |
+| `RoT-MoE-Router-Lean-Extra.zip` | you want the policy argument as well as the proofs |
 
-## 📦 v6.0.0 — The Whole Packet
+Nothing is released until everything is green.
 
-`rot-moe-6.0.0.zip` — everything, one download:
+## 📦 v6.0.0 — The Whole Packet, three ways
+
+`RoT-MoE-Router.zip` — the product, in every archive:
 
 | organ | what travels |
 |---|---|
@@ -49,16 +53,17 @@ repository does not ship it.
 | 6 · gate | `hooks/rot-voice-gate.sh` · `.ps1` — one refusal per unspoken summons |
 | 7 · environment | `hooks/rot-env.sh` · `.ps1` + `hooks/rot-profile.sh` — `rot.env` under the declared vocabulary, and the `rot` command family |
 
-Plus the whole verification surface: `lean/` (the proof corpus and its
-mutation suites), `checker/` (every gate this page's claims answer to),
-`SETUP_LEAN` for re-proving on your own machine, `UNSEALED.md` (the policy
-page that names the `native_decide` trade in full), the docs and both
-licences.
+`RoT-MoE-Router-Lean.zip` adds the verification surface: `lean/` (the
+proof corpus and its mutation suites), `checker/` (every gate this page's
+claims answer to) and `SETUP_LEAN` for re-proving on your own machine.
+`RoT-MoE-Router-Lean-Extra.zip` adds `UNSEALED.md`, the policy page that
+names the `native_decide` trade in full. Each tier is asserted a strict
+superset of the one below before anything ships.
 
 Install without unzipping:
 
 ```sh
-claude --plugin-dir rot-moe-6.0.0.zip
+claude --plugin-dir RoT-MoE-Router.zip
 ```
 
 Or from the marketplace, no download at all:

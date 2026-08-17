@@ -19,11 +19,14 @@ not be buried.
 
 **Major, and this time the criteria themselves changed: the packet grew from
 four organs to seven, the lenses became voices, and the release scheme
-collapses to a single artifact.** The `5.x` convention — three variants
-sharing one `MAJOR.MINOR`, the patch digit as the tier — is retired. There is
-no meaningful "router without the voices" any more: the contract, the
-charters, the gate and the environment layer are the product, not extras a
-patch digit can express. One release ships everything: `rot-moe-6.0.0.zip`.
+collapses to a single artifact.** The `5.x` convention — the patch digit
+as the tier — is retired. There is no meaningful "router without the
+voices" any more: the contract, the charters, the gate and the environment
+layer are the product, and they travel in every archive. Three archives
+still ship, the tier in the name, all under one version:
+`RoT-MoE-Router.zip`, `RoT-MoE-Router-Lean.zip`,
+`RoT-MoE-Router-Lean-Extra.zip` — and nothing is released until everything
+is green.
 
 ### Added — ORGAN 5: the voice contract and the nine living lenses
 

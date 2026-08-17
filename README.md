@@ -742,34 +742,37 @@ yours is edited** — the hooks live inside the plugin, not in your
 `/plugin` lists it · `/plugin disable rot-moe` turns it off for a session ·
 `/plugin uninstall rot-moe` removes it, hooks and all.
 
-### 📦 One release, everything in it — and why the tiers are gone
+### 📦 Three archives, one version — and why the patch digit retired
 
-Through `5.x` this project shipped three variants per release, the patch
-digit as the tier: core, `+Lean`, `+Extra`. That convention is **retired at
-`6.0.0`, and the reason is stated rather than implied**: the criteria
-changed. The voices, their contract, the gate and the environment layer are
-not extras a patch digit can express — a "router without the voices" is no
-longer a smaller tier of the same product, it is a different product this
-repository does not ship. One archive now carries the whole packet:
+Through `5.x` the patch digit WAS the tier: `x.y.0` core, `x.y.1` +Lean,
+`x.y.2` +Extra. That convention is retired at `6.0.0`, and the reason is
+stated rather than implied: the criteria changed. The voices, their
+contract, the gate and the environment layer are the product, so they travel
+in **every** archive — the tiers now differ only in how much of the
+verification surface rides along, the tier lives in the **name**, and all
+three carry the same version. Nothing is released until everything is green.
 
-| release | archive | what is in it |
-|---|---|---|
-| **6.0.0** | `rot-moe-6.0.0.zip` | everything: all seven organs — engine, both router arms, the prover head, both reminder arms, the voice contract with its nine charters, both gate arms, the environment layer — plus `lean/`, `checker/`, `SETUP_LEAN`, `UNSEALED.md`, docs and licences |
+| archive | what is in it |
+|---|---|
+| `RoT-MoE-Router.zip` | the whole running product: all seven organs — engine, both router arms, the prover head, both reminder arms, the voice contract with its nine charters, both gate arms, the environment layer — plus installers, commands, docs and licences |
+| `RoT-MoE-Router-Lean.zip` | adds `lean/` — the proof corpus and its mutation suites — plus `checker/` and `SETUP_LEAN`, for re-proving every claim on your own machine |
+| `RoT-MoE-Router-Lean-Extra.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
-The archive verifies against the `SHA256SUMS.txt` published beside it on
+Every archive verifies against the `SHA256SUMS.txt` published beside it on
 [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases), and installs
 **without unzipping**:
 
 ```sh
-claude --plugin-dir rot-moe-6.0.0.zip
+claude --plugin-dir RoT-MoE-Router.zip
 ```
 
-The packager (`checker/release-package.sh`) asserts the archive's own
-contents before anything ships — every proof module counted against disk,
-every charter counted against the roster, no build output, no history — and
-its name is checked against this page by `checker/readme-variants.sh`,
-because a download link naming a version that was never released is a broken
-instruction for every reader.
+The packager (`checker/release-package.sh`) asserts each archive's contents
+before anything ships — the seven organs in the smallest tier, proof modules
+counted against disk, charters counted against the declared roster, each
+tier a strict superset of the one below, no build output, no history — and
+the names on this page are held to the packager's own map by
+`checker/readme-variants.sh`, because a download link naming an archive that
+was never built is a broken instruction for every reader.
 
 ### 🛠️ From a clone, without installing
 
