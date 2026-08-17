@@ -76,6 +76,17 @@ table names the new instruments. The gate joins `hooks.json`, both
 `ARM_ROUTER` arms and both `DISARM_ROUTER` arms at the same uniform
 timeout every other entry carries.
 
+The release is published by CI itself: a `release` job in `ci.yml` that
+can only run after every checker job and the whole Lean job succeeded in
+the same run — it cuts the `vX.Y.Z` tag on the commit that run just
+proved and attaches the three archives with their checksums. Publishing
+takes an explicit dispatch with `publish=release`; every other trigger
+rehearses the packaging and uploads nothing. A tag that already carries a
+Release is a refusal, never a move. In the same commit, ci.yml's
+concurrency group learned the workflow name — measured 2026-08-17, the
+Monday `verify` schedule fired late, joined the push runs' group, and
+cancelled a green board at the 43-minute mark.
+
 ### Fixed
 
 The About section's reproduction example had quietly stopped reproducing

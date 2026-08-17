@@ -174,7 +174,11 @@ tree, and the tree is the full packet — every archive now ships all seven
 organs, so there is no version skew between install paths.
 
 Nothing is tagged until CI is green on the exact commit, and nothing is
-published until the tag is cut — in that order, always.
+published until the tag is cut — in that order, always. Since 6.0.0 the
+order is enforced by structure, not by discipline: the `release` job in
+`ci.yml` is the only thing that tags and publishes, and it `needs:` every
+other job of its own run — the proof and the publication share a SHA by
+construction.
 
 ```sh
 bash checker/release-package.sh                  # builds all three zips
@@ -224,52 +228,41 @@ Re-tagging onto a later commit before publishing is how a triple ends up on a
 commit whose CI is actually green. Re-tagging after publishing is how a
 `SHA256SUMS.txt` someone saved stops matching the file they can download.
 
-### 4.4 Dispatching a pre-release — the measured procedure
+### 4.4 Publishing a release — one dispatch, and CI does the rest
 
-**There is no release-publishing workflow.** The four workflows are
-`ads-manager`, `ci`, `tag-manager` and `verify`; `tag-manager` only refreshes
-the tag block inside notes of releases that are **already published**. Nothing
-creates a Release, uploads an asset, or fires on a tag push. `gh` is not
-installed on the author's machine either, so this step is done by hand, with a
-token or in the GitHub UI.
-
-Order matters, and every step has an exit code you read directly:
+**The release-publishing workflow is `ci.yml` itself** (since 6.0.0 — before
+that, everything below was done by hand and the `5.x`-era procedure survives in
+the git history of this very section). The `release` job runs on every trigger
+and publishes on exactly one: a `workflow_dispatch` whose `publish` input reads
+`release`. Everything else it does on ordinary runs is a rehearsal — the
+packager builds and asserts, nothing is uploaded.
 
 ```sh
-# 1. CI green on the exact commit you are about to tag -- all four jobs
-#    (checkers on ubuntu/macos/windows, and lean). Not "the last run", THIS commit.
+# 1. dispatch CI on main with the release lever pulled -- UI: Actions -> CI ->
+#    Run workflow -> publish: release. Or by API:
+gh workflow run ci.yml -f publish=release
 
-# 2. the payloads, rebuilt from that commit
-bash checker/release-package.sh          # 3 zips + SHA256SUMS.txt, or exit 1
-bash checker/release-install.sh          # installs each one as a stranger would
+# 2. the run proves the whole board FIRST. The release job `needs:` every
+#    checker job and the lean job of ITS OWN run; a red anywhere and the
+#    publish half is unreachable. On green it cuts vX.Y.Z (the version
+#    plugin.json declares) on the run's own SHA, builds the three archives
+#    with checker/release-package.sh, and attaches them plus SHA256SUMS.txt
+#    to a new Release whose notes are the CHANGELOG section for that version.
 
-# 3. the tags, onto the green commit
-git tag -f -a v0.7.0 -m "Router"                <green-sha>
-git tag -f -a v0.7.1 -m "Router + Lean"         <green-sha>
-git tag -f -a v0.7.2 -m "Router + Lean + Extra" <green-sha>
-git push -f origin v0.7.0 v0.7.1 v0.7.2   # allowed ONLY while no Release exists
-
-# 4. three Pre-Releases, one per tag, each carrying its OWN archive and the
-#    shared SHA256SUMS.txt. Mark them pre-release; every 0.7.x is pre-release.
-
-# 5. verify from OUTSIDE: download each published asset from its URL, check it
+# 3. verify from OUTSIDE: download each published asset from its URL, check it
 #    against the published sums, unzip it, and run ITS OWN hooks/rot-router.sh.
 #    A release nobody downloaded is a release nobody tested.
 ```
 
-Step 5 is not ceremony. The archives are verified locally by the packager
+Step 3 is not ceremony. The archives are verified in-job by the packager
 (`checker/release-package.sh` refuses to emit sums for an artifact it did not
 bless, and a tampered byte fails `-c`), but that proves the *build* was sound,
 not that the *upload* was. Only fetching the published bytes tests the upload.
 
-**The tier names go in the tag annotation and the release title**, because the
-patch digit alone does not tell a reader which one to take:
-
-| tag | title |
-|---|---|
-| `v0.7.0` | Router |
-| `v0.7.1` | Router + Lean |
-| `v0.7.2` | Router + Lean + Extra |
+The job refuses every ambiguous prior state instead of repairing it: a Release
+already on the tag, or the tag already on another commit, ends the run red with
+the reason printed. §4.3's boundary is the reason — re-running a release is a
+new version, never a moved tag.
 
 **Until a Release exists, every download link in the docs is a 404** — however
 correct its filename. `checker/readme-variants.sh` proves the names match what

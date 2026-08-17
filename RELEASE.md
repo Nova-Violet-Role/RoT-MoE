@@ -37,7 +37,10 @@ tiers differ only in how much of the verification surface rides along:
 | `RoT-MoE-Router-Lean.zip` | you want to re-prove the claims on your own machine |
 | `RoT-MoE-Router-Lean-Extra.zip` | you want the policy argument as well as the proofs |
 
-Nothing is released until everything is green.
+Nothing is released until everything is green — structurally, not by
+promise: the `release` job in `ci.yml` is the only publisher, and it can
+only run after every checker job and the whole Lean job succeeded in the
+same run, on the same commit the tag lands on.
 
 ## 📦 v6.0.0 — The Whole Packet, three ways
 
