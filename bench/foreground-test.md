@@ -479,3 +479,28 @@ arming fact predicted.
   (W2 confirmed at source, both this and last turn).
 - **Gate events:** Nova stanza delivered proactively in element.
 - **Anomalies:** none new; organ-4 at "217 min".
+
+### turn 16 — "today" view (overwhelm ask)
+
+- **Ask:** "Honestly, I'm drowning this week — everything feels behind and
+  I can't tell what actually matters anymore. Can wick just give me a
+  'today' view? What I should touch today, nothing else."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EMPATHIC Violet [NSIL BOOST Violet] | R/s+ 0.73`
+  — solo Violet (75%) on the emotionally loaded ask. Paired with turn 5
+  (where "I want" alone pulled Violet), the empathic trigger now looks
+  correctly tuned for genuine affect, not just first-person phrasing.
+- **Work done:** `wick today [project] [--limit N]` — ranks open tasks by
+  bucket: (0) milestone overdue, (1) milestone slipping per measured
+  velocity, (2) milestone due soonest, (3) unmilestoned by priority;
+  within buckets by due date then priority/points. Default cap 3, every
+  pick carries a one-line reason, header counts what's held back
+  ("today -- 3 things (of 12 open)"), closes "nothing else today.", empty
+  state "nothing open today." Tests 34/34 OK exit 0 (buckets in order
+  with exact reasons, cap honesty, empty calm). Smoke on live data
+  exit 0: fix fonts first (polish overdue 17d). Client commit `9f0d569`.
+- **Router note:** PreToolUse stanza blocks now render as their own
+  labeled context lines in the transcript (PreToolUse:Edit /
+  PreToolUse:Bash) — pre/post byte-identity of W2 is now directly
+  observable on every call, and the organ-4 "BEFORE YOU ACT" text is
+  confirmed as the PreToolUse-only variant.
+- **Gate events:** Violet stanza delivered proactively in element.
