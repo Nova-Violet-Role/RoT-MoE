@@ -909,7 +909,11 @@ if ($j -and $j.hook_event_name) {
 # Schema gate for the JSON channel: only the measured accepting set
 # (lean/Proofs/RotInject.lean) may carry additionalContext. The sh arm's
 # CTX_EVENTS is the reference; PostToolUseFailure is deliberately absent.
-$ctxEvents = @('PreToolUse','PostToolUse')
+# PreToolUse ONLY -- Pre and Post build the same routing text from the same
+# tool_input fields, so the pair was byte-identical on every call (W2,
+# measured over 30 live turns). The voice speaks before the act; the debug
+# records still write on every event. See the sh arm's comment in full.
+$ctxEvents = @('PreToolUse')
 $voice = $false
 $voiceJson = $false
 if ($env:ROTMOE_VOICE -ne '0') {

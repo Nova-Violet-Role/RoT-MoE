@@ -1321,7 +1321,20 @@ hook_mode () {
   # deliberately ABSENT: the docs say the field exists there, the accepting
   # set says the CLI refuses it, and this repository ships what it measured,
   # never what it read.
-  CTX_EVENTS="PreToolUse PostToolUse"
+  # PreToolUse ONLY, and the halving is measured, not stylistic. Pre and Post
+  # build their routing text from the SAME tool_input fields (command,
+  # file_path, path, pattern, description -- the payload's tool_response is
+  # never read), so the two injections were byte-identical on every call:
+  # 30 turns of live-session evidence, every pair compared equal (W2,
+  # bench/foreground-findings.md). Emitting the same stanzas twice per tool
+  # call doubles the token cost and adds zero information; the moment that
+  # can CHANGE the action is BEFORE it runs -- the same reasoning organ 4
+  # applies to its PreToolUse variant. The route/gauge DEBUG RECORDS still
+  # write on every event; only the injected voice is deduplicated.
+  # RotInject.lean's accepting set is a MAY-carry set (context-gate.sh phase
+  # A checks the gate exists; only the legacy sanctum hooks must match the
+  # set exactly), so a subset here is sanctioned, not drift.
+  CTX_EVENTS="PreToolUse"
   _voice=''
   _voicejson=''
   if [ "${ROTMOE_VOICE:-1}" != 0 ]; then
