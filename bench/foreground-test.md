@@ -739,3 +739,24 @@ arming fact predicted.
   "BEFORE YOU ACT" fired before the backup command, apt again (the
   action DID need a decide-now guard: backup before mutation).
 - **Gate events:** Nova stanza delivered proactively in element.
+
+### turn 27 — exports (md + csv)
+
+- **Ask:** "I need to get status out of the terminal. Export the roadmap
+  as markdown for the wiki, and the task list as CSV for the spreadsheet
+  folks."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> STRATEGIC Nova [NSIL BOOST Nova] | R/s+ 0.73`
+- **Work done:** `export md` — wiki-ready page: generated-date line,
+  `##` per project, `###` per milestone with done counts and the SAME
+  OVERDUE/SLIPPING/STALLED flags as the terminal (flag logic extracted
+  to `_milestone_flag`, roadmap refactored onto it — one rule, two
+  renderers), `- [ ]`/`- [x]` checkbox tasks, `(no milestone)` section.
+  `export csv` — 10-column table via the csv module (proper quoting
+  proven by a `tricky, "quoted" title` round-trip test), blocked_by
+  semicolon-joined. Both to stdout for piping. Turn-26's "1 days spare"
+  plural fixed via `_days()` with a dedicated exactly-one-day-spare
+  test. Tests 49/49 OK exit 0 (3 new). Smoke exit 0: both exports of the
+  live data printed in-chat, csv showing the doing/blocked/done_at
+  fields correctly. Client commit `f2f3d57`.
+- **Gate events:** Nova stanza delivered proactively in element.
+- **Anomalies:** none new; organ-4 at "336 min", W2/W5 steady.
