@@ -806,3 +806,26 @@ arming fact predicted.
   with the 2-pick limit visible. Client commit `113685e`.
 - **Gate events:** all nine stanzas delivered proactively in elements.
 - **Anomalies:** none new; organ-4 at "358 min", W2/W5 steady.
+
+### turn 30 — task notes ("last one for today")
+
+- **Ask:** "Last one for today — I want to jot notes on a task:
+  decisions we made, links, why something's stuck. Let me add notes and
+  see them in show."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Work done:** `note PROJECT ID "text"` — appends `{at, text}` with a
+  UTC stamp (injectable for tests), journal semantics: append-only,
+  never edited, shown chronologically. `show` gains a dated notes
+  section (`2026-08-18  decided on magic links...`), dash when empty.
+  Empty/whitespace notes and ghost tasks refused. Tests 54/54 OK exit 0
+  (order, dating, URL round-trip, empty-dash, both error paths). Smoke
+  exit 0 on live data: a real blocked-reason note on task 1, visible in
+  show beside its `waits on: #3 (open)` line. Client commit `bb219e4`.
+- **Session milestone:** 30 campaign turns complete. Wick stands at 54
+  tests, 21 commands, ~1500 lines; every turn verified by execution;
+  suite green throughout. Router totals so far: every lane observed
+  (CONVERGENT/STRATEGIC/CLINICAL/EXECUTIVE/EMPATHIC/PREDICTIVE/FORGE)
+  except CREATIVE and STEALTH and RECURSIVE never leading a prompt;
+  W1–W6 standing; gate honored proactively since turn 2 with zero
+  further blocks.
+- **Gate events:** all nine stanzas delivered proactively in elements.
