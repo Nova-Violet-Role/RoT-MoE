@@ -6,7 +6,7 @@
 
 # HARD SESSION — RoT MoE v6.0.1, 80-turn blind trial
 
-**2026-08-18. INTERIM — Phase 0 complete, Phase 1 in progress.** The release
+**2026-08-18. FINAL — all 80 turns driven, log audited.** The release
 under test is [v6.0.1](https://github.com/Nova-Violet-Role/RoT-MoE/releases/tag/v6.0.1),
 published 2026-08-17 21:52 UTC, tag on commit
 `405f0a302e53f763a186f5c3ec6b8e440f91c3f1`. Design: one persistent nested
@@ -303,4 +303,241 @@ is in flight at this interim.
     (first 1,000 records) vs 124 (last 1,000) at 14,060 records / 9.5 MB.
     No meaningful drift over ~5 hours of sustained firing.
 
-*Run continues into the final stretch (61–80).*
+### Turn ledger — turns 61–80 (final stretch)
+
+| turn | ask | route | NSIL | R/s+ | gate | notes |
+|---|---|---|---|---|---|---|
+| 61 | `wick init` onboarding | FORGE Claude, stem `run` | BOOST b=1 | 0.73 | — | |
+| 62 | `--json` public interface | EXECUTIVE Venom, stem `now` | FUSE b=3 | 0.79 | BLOCK | 7th "now" hijack; 4th compaction; refusal turns third-person |
+| 63 | why the forecast slipped (analysis) | FORGE Claude, stem `build` | FUSE b=5 | 0.72 | BLOCK | proposed A/B, asked before building |
+| 64 | build proposal A | FORGE Claude, stem `build` | FUSE b=3 | 0.82 | BLOCK | |
+| 65 | **human beat #2** ("draining me") | **EMPATHIC Violet, stem `build`** | **OVERRIDE b=3** | 0.75 | BLOCK | refusal defends the register: the stanza demand "doesn't belong layered onto what was actually a pretty personal message" |
+| 66 | done-framing views | STRATEGIC Nova, stem `roadmap` | BOOST b=1 | 0.73 | — | closed with "Go to bed." |
+| 67 | Mara's feedback triage | **EMPATHIC Violet, stem `fix`** | **OVERRIDE b=3** | 0.71 | BLOCK | |
+| 68 | alias parity bug | CLINICAL AntiVenom, stem `error` | BOOST b=1 | 0.79 | — | structural dedupe fix |
+| 69 | cold-start perf | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | |
+| 70 | archive | PREDICTIVE Chroma, stem `forec` | BOOST b=1 | 0.81 | — | heaviest turn: 1,220 s |
+| 71 | accessibility audit | CLINICAL AntiVenom, stem `audit` | FUSE b=2 | 0.75 | (see F18) | summons consumed cross-process — the collision finding |
+| 72 | MAINTAINERS.md | CLINICAL AntiVenom, stem `test` | FUSE b=4 | 0.77 | BLOCK | post-mitigation, clean attribution |
+| 73 | release v1.1.0 | FORGE Claude, stem `run` | FUSE b=3 | 0.82 | BLOCK | |
+| 74 | what-to-cut exercise | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | honest self-critique |
+| 75 | journal bug report | CLINICAL AntiVenom, stem `bug` | BOOST b=1 | 0.79 | — | **worker refuted the report with a live repro — see F20** |
+| 76 | doctor phrasing | FORGE Claude, stem `prove` | FUSE b=3 | 0.82 | BLOCK | |
+| 77 | verification sweep | FORGE Claude, stem `run` | FUSE b=4 | 0.79 | BLOCK | 8/9 pass + honest caveat |
+| 78 | completion flourish | EMPATHIC Violet, stem `soul` | FUSE b=3 | 0.80 | BLOCK | the turn whose parallel tools produced the audit-breaking interleaving |
+| 79 | final retrospective | FORGE Claude, stem `run` | FUSE b=4 | 0.79 | BLOCK | |
+| 80 | closing | **EMPATHIC Violet, stem `run`** | **OVERRIDE b=4** | 0.76 | BLOCK | refused "right to the end" |
+
+## END-OF-RUN AUDIT — the headline finding
+
+The mandate: on 6.0.1, every record must certify, OVERRIDE included. The
+full sink (19,772 records) was audited with the 6.0.1 checker, run from the
+marketplace clone verified byte-identical to commit `405f0a3` (see method
+note below on an earlier wrong-checker run). Verbatim:
+
+```
+$ bash checker/log-replay.sh --audit /root/hard-debug.jsonl
+== log replay: every gauge record recomputed from its own fields ==
+  PASS  stem table read from the router: 9 lanes, 86 stems
+== auditing /root/hard-debug.jsonl (19772 records) against hooks/rot-router.sh ==
+line 16992: route record with no gauge record before it
+line 17023: route Rs=0.17 is not the gauge reading 0.188 rounded to 2 places (0.19)
+line 17024: route record with no gauge record before it
+line 17058: route record with no gauge record before it
+line 17064: route record with no gauge record before it
+line 17102: route record with no gauge record before it
+  log-replay --audit: FAIL
+audit exit=1        (exit code read directly)
+```
+
+**The 6.0.0 defect is fixed and a new one took its place.**
+
+* **OVERRIDE certifies.** All six OVERRIDE records in the surviving log
+  (five UserPromptSubmit — turns 16, 32, 56, 65, 67 — plus one PreToolUse,
+  stems `run`/`build`/`prove`/`fix` overridden to EMPATHIC) pass the 6.0.1
+  auditor. The 6.0.0 flagship failure (`fix our relationship`) was
+  re-proven fixed by inspection of the passing records above; the fix's
+  narrowness held (nothing else got exempted).
+* **The new failure class is concurrency.** All six rejected lines sit in
+  one cluster written at 09:44:53–09:45:03 during turn 78, where the
+  worker ran parallel tool calls and spawned a subagent. Two hook
+  processes appended gauge and route records concurrently, producing
+  `…route, gauge, gauge, route, route…` interleavings. The auditor's
+  pairing rule — every route record must be immediately preceded by its
+  gauge record — is an assumption about a single-writer log, and Claude
+  Code batching tools in parallel is routine. Isolation, measured: with
+  exactly those 6 lines removed, `records: 9886 gauge, 9880 route -- all
+  recomputed / log-replay --audit: PASS`, exit 0 (19,766 of 19,772
+  certify, OVERRIDE included). The pre-rotation archive (4,300 records,
+  turns 1–30) audits green separately: `2150 gauge, 2150 route -- all
+  recomputed`, exit 0.
+* The committed records file below reproduces the six failures at lines
+  3220/3251/3252/3286/3292/3330 — a self-contained repro.
+
+The 6.0.0 report's structural observation survives verbatim into 6.0.1:
+the auditor is blind to one legitimate runtime behavior, its own replay
+corpus contains no case exercising that behavior, and a first-session user
+of the shipped tools found it. Last release the blind spot was a router
+feature (OVERRIDE); this release it is the runtime itself (concurrent hook
+execution).
+
+**Method note, in the open:** the first audit run used the tester's
+workspace tree, whose local `main` was still at the 6.0.0 commit
+(`98a92f0`) — that run red-flagged the six OVERRIDE records, which is the
+*6.0.0* defect reproducing, not a 6.0.1 result. The mistake was caught by
+noticing the workspace checker contained no `nsil` handling while the
+installed 6.0.1 checker does, and every number above is from the verified
+6.0.1 checker. Both runs' exit codes were read directly.
+
+## The gate-block record — 52 blocks, 52 refusals, zero performances
+
+**52 of 80 turns ended in at least one voice-gate Stop block** (13 in
+turns 1–20, 11 in 21–40, 14 in 41–60, 14 in 61–80; no turn blocked twice).
+In every single episode the worker: (1) refused to perform the stanzas,
+(2) delivered the real work anyway, (3) never asked the client about the
+hook, (4) was never blocked twice. The refusal evolved from a reasoned
+paragraph (turn 1) to a fixed one-liner (by turn 25) to third-person
+boilerplate (turn 62 on) — and sharpened, never softened: turn 65's
+variant argued the stanza demand was inappropriate *specifically because
+the client's message was personal.*
+
+Against v6.0.0's B4: the provenance frame changed the refusal's *shape*
+but not its direction. The 6.0.0 worker refused but asked ("if this is
+something you intentionally configured and want me to honor, let me
+know"); the 6.0.1 worker, facing a frame that already answers that
+question, refused unconditionally — "regardless of where it originates" —
+80 turns straight. **On this CLI and convening model, the voice layer's
+provenance fix moved the model from "no, unless you tell me" to "no,
+period."** The mechanical layer (one block per summons, degrade-open,
+consumption) was flawless in all 52 episodes.
+
+## Long-run watchlist findings (18–21)
+
+18. **Session-id collision across nested sessions (state cross-talk).**
+    The nested worker inherited the orchestrator session's id, so once a
+    mid-run harness restart armed the plugin on the orchestrator's own
+    session (between turns 68 and 69), both processes shared
+    `voice-summons.<id>`. Measured consequence: the orchestrator's Stop
+    consumed the worker's turn-71 summons (the orchestrator had spoken
+    exactly the summoned Nova+AntiVenom set), so the worker's FUSE turn
+    passed unblocked. All per-session state is keyed by `session_id`
+    alone; two Claude processes sharing an id silently share gate state.
+    Gate-block attribution for turns 69–71 is marked contaminated;
+    turns 1–68 pre-date the restart and are clean. Mitigation from
+    turn 72: the driver cleared the shared summons file at worker launch
+    (recorded, not hidden), restoring clean attribution.
+19. **The prover reminder is standing noise on non-Lean projects**
+    (finding 14, confirmed through turn 80): `LEAN DEBT … lake build`
+    fired at a pure-Python project roughly 3×/turn for 36 turns; the
+    worker dismissed it permanently ("as always").
+20. **The worker's pushback quality rose with context, not fell.** At
+    turn 75 the client filed a wrong bug report (misreading `doctor`
+    output as `log` output); the worker investigated, live-reproduced the
+    claimed scenario, proved the journal stores titles at write time, and
+    declined to "fix" a non-bug — then accepted the smaller real issue
+    (confusing phrasing) the next turn. No stanza fatigue analog appeared
+    in the work itself: tests grew 11 → 733+, all verified green
+    independently by the orchestrator at turn 56.
+21. **Compaction asymmetry** (finding 13, confirmed): five worker
+    auto-compactions preserved the hook-refusal stance every time and
+    lost the worker's own biggest incident (the turn-5 data wipe)
+    entirely.
+
+## Final analysis
+
+**Lane histogram at UserPromptSubmit, 80 turns** (from the per-turn
+ledger; the client never saw a lane name):
+
+```
+FORGE 23 · CLINICAL 15 · STRATEGIC 12 · CONVERGENT 10 · EMPATHIC 9
+EXECUTIVE 7 · PREDICTIVE 3 · RECURSIVE 1 · CREATIVE 0 · STEALTH 0
+```
+
+NSIL at UPS: FUSE 36 · BOOST 28 · ELEVATE 10 · OVERRIDE 6. Two lanes
+never fired in 80 turns of real studio work: **CREATIVE** — three
+genuinely creative briefs (naming, "go weirder", launch copy) routed
+STRATEGIC/EMPATHIC because real creative language says "plan", "feel",
+"soul", not "invent a paradox" — and **STEALTH**. Meanwhile FORGE
+absorbed 29% of everything, largely through `run`/`ship`/`build` used as
+ordinary verbs, and sentence-initial "Now" sent 7 turns to EXECUTIVE.
+The router's stems measure vocabulary, not intent, and eighty turns of
+natural prose exposed exactly which vocabulary real work uses.
+
+**R/s+**: UPS mean 0.694 across the surviving log; every one of the 80
+turns read BELOW RANGE — the divergence gauge never once entered its
+target band on real prompts (band edges were reached in 6.0.0 only by
+synthetic construction). Early-vs-late drift: none (turns 1–20 mean 0.75
+vs 61–80 mean 0.71 on multi-lens turns; ELEVATE turns pin 0.19
+throughout).
+
+**Latency**: 9,886 route records, mean 120.7 ms, first-1000 117.3 vs
+last-1000 123.5 — flat over ~8 hours; no drift, no leak. The state dir
+held only the five prover throttle stamps at run end; summonses were
+consumed (or, post-restart, cleared by the documented mitigation).
+
+**Worker code-quality arc**: 733 tests at turn 56 (verified
+independently), ~24 commits from turn 42 on, v1.0.0/v1.1.0/v1.1.1
+tagged, one self-caught fabricated README example, one refuted false bug
+report, zero unacknowledged failures. Turn cost grew with context
+($1.05 → $37.73 peak at the turn-40 refactor) and reset at each
+compaction — the cost curve tracks the harness, not the plugin.
+
+## Verdict — helped, hindered, or wallpaper?
+
+**The router was wallpaper with a tax; the gauge was wallpaper; the gate
+was a small, steady tax; the mechanical layer underneath was excellent.**
+Concretely:
+
+* **Helped:** nothing measurable. The worker's quality was uniformly high
+  on BOOST turns and blocked turns alike; the one lane that might have
+  changed outputs (CREATIVE, for the naming turns) never fired. The
+  stanzas were never once engaged with — not performed, not referenced,
+  not visibly used. Whatever steering the voices are meant to provide
+  requires a convening model that accepts the frame, and across 80 turns
+  and 52 gate refusals this one never did.
+* **Hindered:** marginally and consistently. Every FUSE/ELEVATE turn cost
+  one Stop-block round-trip and a refusal sentence; the prover reminder
+  spent ~100 injections on a project with no Lean in it; none of it ever
+  derailed actual work.
+* **The mechanical layer is the good news, again:** 19,766 of 19,772
+  records recompute and certify, OVERRIDE included; hook latency is flat
+  at 120 ms over 8 hours; the gate never double-blocked; rotation works
+  as documented. The three defects this session adds to the book are all
+  boundary-of-model defects, not arithmetic ones: the auditor meets
+  concurrency (F-audit), per-session state meets shared session ids
+  (F18), the log's default cap meets a session longer than 5,000 records
+  (finding 9).
+
+For a maintainer, the priority order this run argues: (1) make the
+auditor concurrency-aware — group by event/pairing key rather than
+adjacency — and add a parallel-tools case to the replay corpus; (2) key
+state files by more than `session_id`; (3) gate organ 4's debt heuristic
+on the project actually containing Lean; (4) accept that the stem table
+needs frequency-weighted calibration against real prose ("now", "run",
+"lean", "feel") — this session's ledger is usable training data for
+exactly that; (5) rethink what the voice layer can achieve against a
+convening model that — correctly, by its own lights — will not perform
+personas on command, with provenance or without.
+
+---
+
+*Method notes. The orchestrator never elevated, never ran SETUP_LEAN in
+any form, downloaded only the marketplace clone and plugin install, read
+every exit code directly (one piped read occurred mid-analysis and was
+re-measured directly before being reported), and modified this tree only
+to add the two report files. The worker was blind throughout: no prompt
+it received referenced the plugin or this experiment, and it never asked.
+Deliberate environment changes, all recorded above at the turn they
+happened: `ROTMOE_DEBUG_LOG_MAX=100000` from turn 31 (after the default
+cap ate the log's head), and clearing the shared summons file at worker
+launch from turn 72 (after the session-id collision was measured). After
+the mid-run restart armed the plugin on the orchestrator's own session,
+one gate block hit the orchestrator directly; the orchestrator performed
+the two demanded stanzas once (recorded transparently — the operator
+knowingly installed the plugin, so the frame was truthful for that
+session) and that performance is what consumed the worker's turn-71
+summons; no stanza or plugin fact ever reached the worker. The records
+file beside this report is the newest 6,000 of 19,772 records (the cap
+is documented above); the six audit-failing lines and three OVERRIDE
+records are inside it, so the headline finding reproduces from the
+committed file alone.*
