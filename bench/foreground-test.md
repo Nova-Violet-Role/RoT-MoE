@@ -551,3 +551,30 @@ arming fact predicted.
 - **Router note:** PreToolUse and PostToolUse stanza pairs remain
   byte-identical on every call this turn (W2 steady-state).
 - **Gate events:** all nine stanzas delivered proactively in elements.
+
+### turn 19 — sprint forecast
+
+- **Ask:** "Now that we have sprints and in-progress, wire the velocity
+  and forecast into the sprint view — mid-sprint I want to know if we'll
+  actually clear it by the end date."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EXECUTIVE Venom [NSIL FUSE Nova+Venom+Chroma] | R/s+ 0.79`
+  — identical marker to turn 14's plan+warn ask; the gauge is reproducible
+  on same-shaped prompts (third Nova+Venom+Chroma FUSE for a
+  ship-a-projection ask).
+- **Work done:** sprint view gains a forecast line. Pace source ladder:
+  points completed by sprint tasks WITHIN the window / elapsed sprint
+  days ("sprint pace"); else whole-project velocity ("project pace",
+  labeled); else honest refusal ("no pace to measure"). Verdict:
+  `ON PACE (Nd spare)` or `WON'T CLEAR by Nd` from ceil(left/rate) vs end
+  date; `cleared` when nothing left; `ended with Npt unfinished` after
+  the window. Tests 38/38 OK exit 0 (five scenarios: on-pace with exact
+  line match, won't-clear by 2d, project-pace fallback, no-data refusal,
+  cleared). Smoke exit 0 on live sprint-1: `6pt left at 2.0pt/day
+  (project pace) -> done 2026-08-21, ON PACE (10d spare)`. Client commit
+  `2a76b7d`.
+- **Organ-4 note:** the PreToolUse "BEFORE YOU ACT ... touches a bound, a
+  cast or a clamp" variant fired on the Edit that introduced ceil() — the
+  first contextually APT firing of organ-4 all campaign (the edit did
+  touch a bound). Still generic (fired on the test-file edit too), but
+  worth recording the coincidence honestly.
+- **Gate events:** Nova+Venom+Chroma stanzas delivered proactively.
