@@ -504,3 +504,27 @@ arming fact predicted.
   observable on every call, and the organ-4 "BEFORE YOU ACT" text is
   confirmed as the PreToolUse-only variant.
 - **Gate events:** Violet stanza delivered proactively in element.
+
+### turn 17 — sprints
+
+- **Ask:** "That today view already helps, thanks. Next: we're moving to
+  two-week sprints. Let me create a sprint, put tasks in it, and see
+  sprint progress separately from milestones."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> PREDICTIVE Chroma [NSIL BOOST Chroma] | R/s+ 0.81`
+- **Work done:** sprints as a time-box orthogonal to milestones (a task
+  may carry both): `store.sprints`/`add_sprint` (default end = start+13d
+  inclusive = two weeks; ISO validation; end>=start; unique names),
+  `assign_sprint`, `sprint=` on add_task. CLI: `add-sprint`, `assign`,
+  `--sprint` on add-task, and `sprint PROJECT [NAME]` — picks the window
+  containing today (else the latest), shows phase ("day 3 of 14, 11d
+  left" / "starts in Nd" / "ended Nd ago"), a points progress bar
+  (done/total), and the sprint's tasks sorted; empty sprint says so.
+  Tests 36/36 OK exit 0 (2 new: lifecycle+progress math incl. "day 3 of
+  14" and 3/9pt; window selection outside/current/named; five error
+  paths). Smoke exit 0: real sprint-1 created 2026-08-18→2026-08-31,
+  two tasks assigned, day 1 of 14 shown. Client commit `7dcdfcd`.
+- **Router note:** feature-building turn routed PREDICTIVE on the prompt
+  (sprint = time-box, plausibly timeline semantics); tool calls settled
+  into the usual CONVERGENT/CLINICAL/FORGE content lanes.
+- **Gate events:** Chroma stanza delivered proactively in element.
+- **Anomalies:** none new; organ-4 at "238 min", W2/W5 as documented.
