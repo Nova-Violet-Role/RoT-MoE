@@ -198,3 +198,30 @@ arming fact predicted.
 - **Gate events:** AntiVenom stanza delivered proactively in element.
 - **Anomalies:** organ-4 stanza fired on five distinct hook events in one
   turn (see W5); otherwise W2/W3 as documented.
+
+### turn 5 — story points and priorities
+
+- **Ask:** "Add effort estimates and priorities to tasks — I want to set
+  story points and high/med/low priority, and sort the views by them."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EMPATHIC Violet [NSIL FUSE Nova+Violet] | R/s+ 0.66`
+- **Frame:** appeared; stanzas Nova (14%) + Violet (50%). First EMPATHIC
+  lane of the campaign — an odd fit for a schema/feature ask; the "I want"
+  phrasing likely pulled it. Recorded as calibration observation, not a
+  new finding row (lane choice is gauge behavior, in spec).
+- **Router stanzas on tool calls:** source edits bare `CONVERGENT | 0.17`;
+  test edits `CLINICAL AntiVenom | 0.72`; test run `FORGE Claude [FUSE] | 0.82`;
+  smoke+commit — notably — repeated the PROMPT's lane
+  (`EMPATHIC Violet [FUSE Nova+Violet] | 0.66`), first time a tool call
+  inherited the prompt lane rather than a content lane.
+- **Organ 4:** fired again on UserPromptSubmit and PostToolUse/Batch
+  ("No proof written for 66 min"), same W5 pattern, counter advancing.
+- **Work done:** `store.py` — PRIORITIES high/med/low, positive-int point
+  validation (bools excluded), `add_task(points=, priority=)`,
+  `set_task` for later updates, `sort_key` = (priority rank, −points, id)
+  with legacy tasks counting as med/unpointed. CLI — `--points`/`--priority`
+  on add-task, new `set` command, task lines show `pri pts title`, and all
+  three views (tasks groups, no-milestone bucket, roadmap) sort by the key.
+  Tests 21/21 OK exit 0 (5 new). Smoke exit 0 with correctly sorted grouped
+  output. Client commit `f981785`, 3 files, +153/−10.
+- **Gate events:** Violet+Nova stanzas delivered proactively in elements.
+- **Anomalies:** tool-lane inheritance of the prompt lane noted above.
