@@ -578,3 +578,26 @@ arming fact predicted.
   touch a bound). Still generic (fired on the test-file edit too), but
   worth recording the coincidence honestly.
 - **Gate events:** Nova+Venom+Chroma stanzas delivered proactively.
+
+### turn 20 — user guide
+
+- **Ask:** "Write me a proper user guide in the README — a new teammate
+  should go from zero to running their first sprint without asking me a
+  single question."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> FORGE Claude [NSIL BOOST Claude] | R/s+ 0.73`
+- **Work done:** README rewritten as a full guide: requirements, a
+  six-step zero-to-first-sprint walkthrough (copy-pasteable), a concepts
+  table (milestone = deliverable vs sprint = time-box), complete command
+  reference in three tables, "How the numbers work" (velocity semantics,
+  pace-source ladder, 1pt default, no credit for in-progress, pre-stamp
+  honesty), data-file/env/atomic-write notes, and a troubleshooting table
+  with honest exit-code semantics. VERIFIED BY EXECUTION: the walkthrough
+  was run verbatim against a fresh data file — 14 commands, all exit 0,
+  final `walkthrough exit=0` read directly. Execution caught a real doc
+  gap (future-dated sprint shows `starts in Nd` and no forecast line
+  until the window opens) which became two sentences in the guide.
+  Tests still 38/38 OK exit 0. Client commit `d1e7c7c` (+184/−25).
+- **Router note:** the walkthrough-verification Bash drew
+  `STRATEGIC Nova [BOOST Nova] | 0.73` — a documentation-check command
+  routed to the strategy lane, a new lane/content pairing for the record.
+- **Gate events:** Claude stanza delivered proactively in element.
