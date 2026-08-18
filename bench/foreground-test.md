@@ -675,3 +675,25 @@ arming fact predicted.
   fired on the store Edit that introduced the DFS — cycle detection IS a
   boundedness argument, second contextually-apt firing (still generic).
 - **Gate events:** all nine stanzas delivered proactively in elements.
+
+### turn 24 — standup
+
+- **Ask:** "Every morning I paste an update into the team chat. Give me a
+  standup command — what got done yesterday, what's in progress, what's
+  blocked — short enough to paste as-is."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Work done:** `standup [project] [--since N]` — three sections, plain
+  hyphen bullets, no wick syntax: "done yesterday:" (done_at within the
+  last N days, default 1, honestly relabeled "done (last N days):" when
+  widened), "in progress:" (doing, unblocked), "blocked:" (open blockers
+  named: `stuck thing -- waits on #3`). `[project]` prefixes only in the
+  multi-project view; points appended when present; plain untouched
+  backlog is not news and never appears; empty report says "nothing to
+  report." Tests 45/45 OK exit 0 (section membership incl. a 5-day-old
+  completion excluded then included via --since 7, prefix behavior,
+  empty case). Smoke exit 0 on live data — output above pasted verbatim
+  into the campaign record. Client commit `5589636`.
+- **Router note:** PreToolUse context lines are now rendered explicitly
+  in this environment (`PreToolUse:Edit`/`PreToolUse:Bash` labels) —
+  every pre/post pair remains byte-identical (W2, continuous).
+- **Gate events:** all nine stanzas delivered proactively in elements.
