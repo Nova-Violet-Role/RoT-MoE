@@ -384,3 +384,23 @@ arming fact predicted.
   markdown Edit of the findings table ("130 min") — confirms the trigger
   is not keyed to code content at all; it fires on any Edit. W5 pattern.
 - **Gate events:** all nine stanzas delivered proactively in elements.
+
+### turn 12 — wild naming round (creative, no code change)
+
+- **Ask:** "Cairn is safe. Push weirder — brainstorm some wild names
+  nobody would dare put on a landing page, then pull your favorite back
+  to something we could actually ship."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> FORGE Claude [NSIL BOOST Claude] | R/s+ 0.73`
+- **W6 second data point:** the most explicitly creative ask of the
+  campaign ("push weirder", "brainstorm") again did NOT draw the CREATIVE
+  lane — solo Claude/FORGE at 75%. Two-for-two: ideation prompts route to
+  work lanes; Carnage has yet to lead a prompt. Referenced to W6, no new
+  findings row (duplicate-observation rule).
+- **Work done:** no code change. Delivered a ten-name feral list, one
+  favorite (Feral Gantt), and its domestication (Gantlet — "Throw down
+  the plan."), with the trademark caveat carried forward. Cassandra noted
+  and struck for the Apache collision.
+- **Gate events:** Claude stanza delivered proactively in element.
+- **Anomalies:** container recycled again pre-turn (organ-4 SessionStart
+  at "183 min", prompt at "187 min" — the counter advanced BETWEEN hook
+  events of the same turn, so it reads a live clock, not a turn snapshot).
