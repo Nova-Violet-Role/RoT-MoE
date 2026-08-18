@@ -363,3 +363,24 @@ arming fact predicted.
   the empirical check of a prediction question.
 - **Gate events:** Chroma stanza delivered proactively in element.
 - **Anomalies:** none new; organ-4 at "118/121 min", W2/W5 as documented.
+
+### turn 11 — naming (creative, no code change)
+
+- **Ask:** "Before Monday's kickoff — this tool needs a real name and a
+  tagline. 'sprintplan' is a placeholder. Give me something with
+  personality."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Calibration finding (W6):** a pure ideation ask did NOT draw the
+  CREATIVE lane — Carnage stayed at its 10% baseline inside a generic
+  ELEVATE. The gauge tracks work-artifact semantics (bugs→CLINICAL,
+  forecasts→PREDICTIVE) more sharply than intent semantics
+  (create→CREATIVE). Recorded as findings row W6.
+- **Work done:** no code change (the ask is the name, not the rename).
+  Delivered a recommendation (Cairn — "Stack the work. See the trail.")
+  plus three runners-up with taglines, each derived from a real behavior
+  of the shipped tool, with an explicit trademark-check caveat and an
+  offer to perform the rename on request.
+- **Organ-4:** PreToolUse "BEFORE YOU ACT" variant fired on a pure
+  markdown Edit of the findings table ("130 min") — confirms the trigger
+  is not keyed to code content at all; it fires on any Edit. W5 pattern.
+- **Gate events:** all nine stanzas delivered proactively in elements.
