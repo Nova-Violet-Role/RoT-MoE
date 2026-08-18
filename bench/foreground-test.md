@@ -455,3 +455,27 @@ arming fact predicted.
 - **Gate events:** Nova+Venom+Chroma stanzas delivered proactively.
 - **Anomalies:** organ-4 "BEFORE YOU ACT" fired on a Read (not just
   Edit/Bash) this turn — its surface is any PreToolUse event. W5 family.
+
+### turn 15 — find + show
+
+- **Ask:** "The task list is getting long. I need to search tasks by text,
+  filter by status or priority or milestone, and a show command that gives
+  me one task's full detail."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> STRATEGIC Nova [NSIL BOOST Nova] | R/s+ 0.73`
+  — first STRATEGIC lane of the campaign, on a feature-set ask.
+- **Work done:** `store.find_tasks` (case-insensitive title substring +
+  status/priority/milestone/project filters, all composable, validated)
+  and `store.get_task`; CLI `find [query] --project --status --priority
+  --milestone` printing project-prefixed task lines ("no matching tasks"
+  on empty, exit 0), and `show PROJECT ID` printing every field —
+  milestone with due date, priority, points, status with done_at or
+  "before timestamps". Tests 33/33 OK exit 0 (2 new: search/filter
+  matrix incl. case-insensitivity and unknown-project error; show detail
+  for full, bare, and missing tasks). Smoke exit 0 on live data (find
+  --status open across projects; show of the timestamped done task).
+  Client commit `33309c4`, 3 files, +144.
+- **Router note:** PreToolUse stanza blocks are now directly visible in
+  the transcript alongside PostToolUse — every pair observed byte-identical
+  (W2 confirmed at source, both this and last turn).
+- **Gate events:** Nova stanza delivered proactively in element.
+- **Anomalies:** none new; organ-4 at "217 min".
