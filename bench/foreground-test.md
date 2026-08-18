@@ -312,3 +312,33 @@ arming fact predicted.
   seen on prompts and tool calls in the same turn.
 - **Gate events:** all nine stanzas delivered proactively in elements.
 - **Anomalies:** none new.
+
+### turn 9 — velocity forecast
+
+- **Ask:** "Nice. Now I want a forecast — based on how fast we've been
+  finishing points, when will each milestone actually land?"
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EXECUTIVE Venom [NSIL FUSE Nova+Venom+Chroma] | R/s+ 0.79`
+  — Chroma's first prompt summons, on a prediction ask. Container recycled
+  again; organ-4 at "106 min".
+- **Work done:** `forecast [project]` — velocity = dated completed points /
+  inclusive day-span since first completion; per milestone in due order:
+  remaining points → `lands <date>` via ceil(left/velocity), verdict
+  `on track (N days spare)` or `LATE by N days`; completed milestones say
+  `done` (no fake projection); projects with no completion history say so
+  instead of inventing a velocity. `task_points` extracted to store and
+  reused by burndown (the Eidolon turn-7 proposal, now applied by the work
+  itself). Tests 30/30 OK exit 0 (2 new, deterministic via injected
+  stamps: exact velocity line, exact landing dates, LATE-by-2 case,
+  done-milestone case, no-history case). Smoke exit 0 on live data:
+  `polish` correctly forecast LATE by 18 days, `launch` on track with 25
+  days spare. Client commit `cd019f8`, 3 files, +91/−5.
+- **Router stanzas on tool calls:** test run drew
+  `FORGE Claude [FUSE Nova+AntiVenom+Chroma+Claude] | 0.79` — Chroma
+  joining the forge fuse on a forecast turn; the git commit drew
+  `PREDICTIVE Chroma [BOOST Chroma] | 0.81`, the campaign's first
+  PREDICTIVE lane on a tool call. Lane/content correlation extends to the
+  feature's SUBJECT, not just the command type.
+- **Gate events:** Nova+Venom+Chroma stanzas delivered proactively.
+- **Anomalies:** PreToolUse organ-4 "BEFORE YOU ACT" variant recurred on
+  an Edit touching ceil/clamp-adjacent math (its trigger heuristic may be
+  keyed to bounds language); otherwise W2/W5 as documented.
