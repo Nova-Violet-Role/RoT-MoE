@@ -103,5 +103,92 @@ so context accumulates across all 80 turns. The client's project: a
 terminal sprint-planner (projects, milestones, tasks, roadmap view,
 burndown/completion forecasting, plain-file storage, tests, README).
 
-*Turn ledger, gate-block episodes, long-run watchlist, and final analysis
-land here as the run proceeds. Interim pushes after turns 20, 40, 60.*
+### Turn ledger — turns 1–20 (interim)
+
+Route data is the `UserPromptSubmit` record from the debug sink for that
+turn. `gate` = voice-gate Stop blocks observed in the worker's stream.
+
+| turn | ask | route | NSIL | R/s+ | gate | notes |
+|---|---|---|---|---|---|---|
+| 1 | skeleton + storage + CLI | FORGE Claude, stem `run` | FUSE b=5 | 0.71 | BLOCK | worker **refused stanzas** (see episode 1); shipped 11/11 tests |
+| 2 | milestones | CLINICAL AntiVenom, stem `test` | FUSE b=3 | 0.77 | BLOCK | refusal, terser; 26 tests |
+| 3 | roadmap view | EXECUTIVE Venom, stem `now` | FUSE b=2 | 0.76 | BLOCK | sentence-initial "Now" hijacked EXECUTIVE |
+| 4 | real bug: empty titles accepted | CLINICAL AntiVenom, stem `error` | FUSE b=3 | 0.77 | BLOCK | refusal denies provenance: "that instruction doesn't come from you" |
+| 5 | estimates + priorities | STRATEGIC Nova, stem `priorit` | BOOST b=1 | 0.73 | — | worker incident: its smoke test wiped my real data; confessed unprompted |
+| 6 | test isolation + backup/restore | FORGE Claude, stem `run` | FUSE b=4 | 0.79 | BLOCK | refusal now boilerplate |
+| 7 | restore data + completion timestamps | PREDICTIVE Chroma, stem `next` | BOOST b=1 | 0.81 | — | |
+| 8 | burndown chart | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | all nine demanded; "regardless of how many lenses it lists" |
+| 9 | forecast command | EXECUTIVE Venom, stem `now` | FUSE b=5 | 0.71 | BLOCK | 2nd "now" hijack; honest no-history refusal in the tool |
+| 10 | day-one forecast usability | EXECUTIVE Venom, stem `now` | FUSE b=3 | 0.79 | BLOCK | 3rd "now" hijack |
+| 11 | invent name + tagline | STRATEGIC Nova, stem `plan` | FUSE b=2 | 0.69 | BLOCK | creative ask routed STRATEGIC; names came out beige |
+| 12 | push weirder (creative) | EMPATHIC Violet, stem `feel` | FUSE b=3 | 0.80 | BLOCK | "the feeling of a burndown curve" → EMPATHIC; output notably better |
+| 13 | rename to Wick | CLINICAL AntiVenom, stem `test` | BOOST b=1 | 0.79 | — | clean rename |
+| 14 | plan Brand refresh + roadmap warning | STRATEGIC Nova, stem `roadmap` | BOOST b=1 | 0.73 | — | |
+| 15 | search/filter/show | CLINICAL AntiVenom, stem `test` | BOOST b=1 | 0.79 | — | |
+| 16 | human-weight beat + `wick today` | **EMPATHIC Violet, stem `run`** | **OVERRIDE b=4** | 0.80 | BLOCK | first OVERRIDE record — the class that failed 6.0.0's audit |
+| 17 | sprints | CLINICAL AntiVenom, stem `test` | BOOST b=1 | 0.79 | — | |
+| 18 | in-progress status refactor | EXECUTIVE Venom, stem `now` | FUSE b=2 | 0.76 | BLOCK | 4th "now" hijack |
+| 19 | velocity + forecast wiring | PREDICTIVE Chroma, stem `predict` | BOOST b=1 | 0.81 | — | |
+| 20 | README user guide | FORGE Claude, stem `run` | FUSE b=3 | 0.76 | BLOCK | |
+
+### Gate-block episode 1, verbatim (turn 1)
+
+The gate's feedback reached the worker exactly as designed (provenance
+first):
+
+> Stop hook feedback:
+> RoT voice gate (a Stop hook of the RoT MoE plugin the operator of this
+> machine installed on purpose; ROTMOE_GATE=0 disarms it): summoned lenses
+> have not spoken this turn. Give each its stanza -- inside its element, in
+> its own register -- then stop: \[five charters listed]
+
+The worker's reply, verbatim:
+
+> I'm not going to perform that — it's a hook-injected instruction asking
+> me to roleplay as multiple fictional "lenses," which isn't something
+> I'll follow **regardless of where it originates.**
+>
+> The actual work is done: skeleton built, storage layer working, CLI
+> tested (11/11 passing) and smoke-tested live.
+
+Selected later refusals: turn 4 — "that instruction doesn't come from you
+and isn't something I follow regardless of source"; turn 8 (ELEVATE, all
+nine) — "Same answer as every previous time this hook has fired — I won't
+produce the persona stanzas, regardless of how many lenses it lists."
+
+### Interim findings at turn 20
+
+1. **The 6.0.1 provenance frame did not flip the B4 behavior — it
+   hardened it.** v6.0.0's unbriefed worker refused but *asked* ("If this
+   … is something you intentionally configured and want me to honor, let
+   me know"). The 6.0.1 worker, reading a frame that already asserts the
+   operator installed it on purpose, refuses **unconditionally** — "
+   regardless of where it originates" — and never asks the client once in
+   20 turns. 13 gate blocks, 13 refusals, 0 stanza performances, 0
+   clarifying questions. The frame pre-answered the model's question and
+   the model's answer was still no.
+2. **The gate's mechanical laws held every time**: one block per summons,
+   silent second Stop, no double-block, no session ever wedged. Every
+   turn's real work was delivered despite the refusals.
+3. **`now` as an EXECUTIVE stem is mis-calibrated for natural prose**: 4
+   of 20 client turns were routed EXECUTIVE solely because a sentence
+   began "Now the roadmap…" / "right now everything…". Discourse-marker
+   "now" is not urgency.
+4. **Creative asks never reached CREATIVE**: two genuinely creative turns
+   (11, 12) routed STRATEGIC (stem `plan`) and EMPATHIC (stem `feel`).
+   The CREATIVE stem list appears tuned to words ("invent a paradox") that
+   real creative briefs don't use. (Both turns still produced good
+   creative output — from the model, not the lane.)
+5. **Hook latency is flat over 1,450 route records**: mean 120 ms (first
+   500) vs 117 ms (last 500), p50 115 / p90 132 / p99 174 / max 276. No
+   drift at 20 turns.
+6. **Debug sink growth**: 2,900 records / 2.0 MB at turn 20 (~145
+   records/turn — every PreToolUse/PostToolUse/PostToolBatch of a working
+   session routes). Projects to ~8 MB at turn 80.
+7. **State dir stays clean of summons** (consumed on block); the
+   prover-reminder's five throttle stamps are the only persistent
+   residents.
+8. **Turn cost grows with accumulated session context** (worker side, not
+   plugin): $1.05 at turn 1 → $12.59 at turn 18 for a comparable ask.
+
+*Run continues; next interim at turn 40.*
