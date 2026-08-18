@@ -626,3 +626,27 @@ arming fact predicted.
   pairs byte-identical throughout (W2, now seen from both sides on every
   call).
 - **Gate events:** Nova+AntiVenom stanzas delivered proactively.
+
+### turn 22 — recency-weighted velocity
+
+- **Ask:** "The forecast keeps saying launch is fine, but half those
+  completed points were tiny cleanup tasks from week one. Shouldn't
+  recent pace count more than ancient history?"
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> PREDICTIVE Chroma [NSIL BOOST Chroma] | R/s+ 0.81`
+  — third PREDICTIVE BOOST, all three on forecast-semantics asks; the
+  lane/subject correlation is now systematic, not anecdotal.
+- **Work done:** `store.velocity` gains a 14-day window (sprint-length):
+  rate = points finished in the last 14 days / days observed in window;
+  ancient completions age out. New honest state: rate 0.0 (history
+  exists, nothing recent) — forecast prints `Npt left -> STALLED
+  (nothing finished in last 14 days)`, roadmap flags `STALLED`, today
+  and sprint guard the division. Labels updated ("over last N days");
+  README numbers section rewritten. Tests 42/42 OK exit 0 (2 new: 20
+  ancient pts excluded from a 0.1pt/day rate; fully stalled project says
+  STALLED in forecast AND roadmap with today still functional). Client
+  commit `469a428`.
+- **Deferred honestly:** true exponential decay ("recent counts more")
+  was considered and NOT built — a hard window is explainable in one
+  sentence and matches the sprint cadence; the tension between
+  smoothness and transparency is left open, per the tool's character.
+- **Gate events:** Chroma stanza delivered proactively in element.
