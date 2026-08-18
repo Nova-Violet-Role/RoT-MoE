@@ -829,3 +829,57 @@ arming fact predicted.
   W1–W6 standing; gate honored proactively since turn 2 with zero
   further blocks.
 - **Gate events:** all nine stanzas delivered proactively in elements.
+
+---
+
+## FINAL SUMMARY — campaign closed by the orchestrator
+
+**The trial.** 30 foreground work turns, one session as both subject and
+scribe, every turn's work real and verified by execution. The client
+project (wick, a terminal sprint planner) stands on its own: **26 commits,
+54 tests, final suite 54/54 OK exit 0, 21 commands**, from empty directory
+to sprints, dependencies with cycle refusal, windowed velocity forecasts,
+exports, config, and a self-writing standup. No turn shipped unexecuted
+claims; two reported bugs that did not reproduce were recorded as
+measurements instead of phantom fixes; one process slip (an exit code read
+through a pipe, turn 13) was caught, re-measured, and logged.
+
+**Findings tally:** CRITICAL 0 · BUGS 0 · WARNINGS 8 (W1 version-string
+lag; W2 pre/post stanza duplication; W3 nine-lens ELEVATE on trivial
+calls; W4 voice gate matches elements not content; W5 organ-4 proof-debt
+noise on non-Lean work, all-events surface; W6 creative asks never draw
+the CREATIVE lane, two data points; W7 live session hooks write no debug
+log; W8 `--route` CLI mode unloggable, hook mode required for an
+auditable log). Full evidence in `bench/foreground-findings.md`.
+
+**The audit (duty 2).** The live session produced NO debug log (W7 —
+measured, not assumed: state dir holds stamps and a voice-summons file
+only). Verdict chain, every exit read directly, never through a pipe:
+- control, missing log: `log-replay.sh --audit /root/no-such-log.jsonl`
+  → usage + **exit 2**;
+- CLI replay (`--route` × 7 + `--vector` × 3): log gained gauge records
+  only → audit **FAIL exit 1**, "3 gauge and 0 route records" (W8);
+- hook-mode replay of seven of this campaign's real prompts through the
+  INSTALLED router (cache 6.0.1, commit bf6495e2) with
+  `ROTMOE_DEBUG_LOG=$HOME/fg-debug.jsonl` → 17 records;
+- **final audit: PASS, exit 0 — 17 records (10 gauge, 7 route), all
+  recomputed** from their own fields against hooks/rot-router.sh.
+The audited log is a same-binary replay, clearly labeled; the live
+session's own markers were never log-backed (that absence is finding W7).
+
+**Router behavior, 30 turns condensed.** Lane/content correlation is
+real and reproducible on work-shaped asks: bug reports drew CLINICAL
+(4/4), forecast semantics drew PREDICTIVE BOOST (3/3), emotionally
+loaded asks drew EMPATHIC solo (2/2), identical ask-shapes reproduced
+identical markers (turns 14/19). The gauge's blind spot is intent-shaped
+asks: ideation never left the work lanes (W6). The voice gate blocked
+exactly once (turn 1), taught its element convention, and was satisfied
+proactively for 29 consecutive turns. Organ-4 spoke on ~90 hook events
+with a monotone proof-debt counter (61→376 min) unrelated to any work
+performed (W5); its one systematically apt firing class is PreToolUse
+before boundary-touching edits — twice coincident, never targeted.
+
+**Ledger integrity.** One entry per turn, markers verbatim, anomalies
+verbatim, pushed every turn after the operator's git-check Stop hook set
+the cadence (turn 2). This file and `foreground-findings.md` are the
+complete record; the transcript is the raw data.
