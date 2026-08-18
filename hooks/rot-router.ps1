@@ -662,7 +662,24 @@ switch ($env:ROTMOE_DEBUG_SRC) {
   'hook'  { $script:RotSrc = 'hook' }
 }
 
-if ($Route)  { $r = Split-Routed (Invoke-Route $Route); Write-Output $r[0]; exit 0 }
+# W8: -Route no longer exits here. When ROTMOE_DEBUG_LOG points at a file it
+# FALLS THROUGH into the hook body so the same straight-line NSIL + record
+# code runs (one body, two callers -- the sh arm factored the same way) and
+# the CLI writes the same gauge+route pair a hook turn writes. Three
+# contracts, mirrored from the sh arm: stdout stays the PRE-NSIL lane,
+# byte-identical; logging stays OPT-IN here ('' or '0' writes nothing, and
+# takes the old direct-exit path below); CLI text IS a human-typed query, so
+# the density verdicts apply. The cli-mode guards downstream skip the
+# payload read, the rot.env load, the W7 default, and every marker/voice
+# emission -- the record is the only new observable.
+$CliRoute = $null
+if ($Route) {
+  if ($env:ROTMOE_DEBUG_LOG -and $env:ROTMOE_DEBUG_LOG -ne '0') {
+    $CliRoute = $Route
+  } else {
+    $r = Split-Routed (Invoke-Route $Route); Write-Output $r[0]; exit 0
+  }
+}
 if ($Vector) {
   if ($Profile) { Select-Profile $Profile }
   $laneArg = if ($Lane) { $Lane } else { 'FORGE' }
@@ -684,11 +701,11 @@ if ($Vector) {
 # that keeps a manual run from blocking forever on a terminal; reading stdin
 # unconditionally would hang.
 $payload = ''
-if ([Console]::IsInputRedirected) {
+if (-not $CliRoute -and [Console]::IsInputRedirected) {
   try { $payload = [Console]::In.ReadToEnd() } catch { $payload = '' }
 }
 
-if ([string]::IsNullOrWhiteSpace($payload)) {
+if (-not $CliRoute -and [string]::IsNullOrWhiteSpace($payload)) {
   Write-Error 'rot-router.ps1: hook mode expects a JSON payload on stdin. Try -Route "some text".'
   exit 2
 }
@@ -733,13 +750,15 @@ try {
 
 # ORGAN 7 -- the environment layer. Parsed never sourced, declared-only,
 # unset-only; the sh arm is the reference. A missing library is a no-op.
-try {
-  $rotEnvLib = Join-Path $PSScriptRoot 'rot-env.ps1'
-  if (Test-Path -LiteralPath $rotEnvLib) {
-    . $rotEnvLib
-    Invoke-RotEnvLoad $script:RotProjectDir
-  }
-} catch { }
+if (-not $CliRoute) {
+  try {
+    $rotEnvLib = Join-Path $PSScriptRoot 'rot-env.ps1'
+    if (Test-Path -LiteralPath $rotEnvLib) {
+      . $rotEnvLib
+      Invoke-RotEnvLoad $script:RotProjectDir
+    }
+  } catch { }
+}
 
 # THE DEBUG CHANNEL DEFAULTS ON IN HOOK MODE -- W7; the sh arm carries the
 # full reasoning. PowerShell cannot express a set-but-empty environment
@@ -748,7 +767,7 @@ try {
 # existing ROTMOE_DEBUG_LOG_MAX trim, the file count by a once-per-session
 # janitor (only when this session's file does not exist yet). An unwritable
 # state dir degrades to OFF, never to a failed turn. CLI stays opt-in.
-if (-not $env:ROTMOE_DEBUG_LOG) {
+if (-not $CliRoute -and -not $env:ROTMOE_DEBUG_LOG) {
   $dlDir = if ($env:ROTMOE_STATE_DIR) { $env:ROTMOE_STATE_DIR }
            elseif ($env:XDG_STATE_HOME) { Join-Path $env:XDG_STATE_HOME 'rot-moe' }
            else { Join-Path $HOME '.local/state/rot-moe' }
@@ -802,7 +821,7 @@ if ($j -and $j.hook_event_name) {
 # read it as a dense query. The density verdicts (BOOST, ELEVATE) fire only
 # on the events where a human typed the words; every stem-based verdict
 # (CONFIRM, FUSE, OVERRIDE) is untouched on tool events.
-$nsilQuery = @('UserPromptSubmit','UserPromptExpansion') -ccontains $evName
+$nsilQuery = (($null -ne $CliRoute) -or (@('UserPromptSubmit','UserPromptExpansion') -ccontains $evName))
 
 # README.md:77 promises this line carries a named lane AND A GAUGE READING. See
 # the long note at the same point in rot-router.sh: the vector is the ROUTING
@@ -812,11 +831,14 @@ $nsilQuery = @('UserPromptSubmit','UserPromptExpansion') -ccontains $evName
 # M, C and T are the neutral element 1.0 because one stateless hook call cannot
 # measure memory residue, confidence or recency; that is stated, not hidden.
 # The index comes from $Names so a roster change moves both arms together.
+if ($CliRoute) { $prompt = [string]$CliRoute }
 $__routed = Invoke-Route $prompt
 $__rparts = Split-Routed $__routed
 $lane  = $__rparts[0]
 $stem  = $__rparts[1]
 $lens  = ($lane -split ' ')[1]
+# W8: the CLI prints the PRE-NSIL lane -- saved before OVERRIDE can move it.
+$cliOut = $lane
 
 # TIER 2 (NSIL). BREADTH IS COUNTED, NOT ASSIGNED -- see the note in the POSIX
 # arm. The old line set `$br = 1` beside the bit it had just written, making the
@@ -1010,6 +1032,11 @@ if ($script:RotLocalLost) { $mark = $mark + " | project-log UNWRITABLE (record l
 # The TIER 2 tag rides INSIDE the pipe-free lane field, so every existing
 # assertion on this line still matches (prefix, lane token and the ` | R/s+ `
 # boundary are untouched) while the fused lenses are NAMED rather than counted.
+# W8: cli mode ends here -- the record is written, the marker and the voice
+# belong to hook turns alone. Output is the saved pre-NSIL lane, byte-identical
+# to the old direct-exit path.
+if ($CliRoute) { Write-Output $cliOut; exit 0 }
+
 $nsilTag = ''
 if ($nsilDecision -ne '' -and $nsilDecision -ne 'CONFIRM') { $nsilTag = ' [NSIL ' + $nsilDecision + ' ' + ($nsilAct -join '+') + ']' }
 # TWO CHANNELS, ONE CONTENT -- the sh arm's rule, decision for decision. On

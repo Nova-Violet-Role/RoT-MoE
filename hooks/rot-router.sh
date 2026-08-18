@@ -904,214 +904,16 @@ gauge () {   # gauge "a1,..,a9" breadth M C T [LANE] [voice]
 # PowerShell at rot-lean-inject.ps1:119-128, which reads it via
 # [Console]::In.ReadToEnd() guarded by IsInputRedirected). Hook mode is
 # therefore the DEFAULT: no arguments means "you were called as a hook".
-hook_mode () {
-  # Never block. A terminal on stdin means a human ran this by hand, and reading
-  # unconditionally would hang forever -- the same trap leanchecker --help falls
-  # into. The guard is not optional.
-  if [ -t 0 ]; then
-    echo "rot-router.sh: hook mode expects a JSON payload on stdin." >&2
-    echo "  try: rot-router.sh --route \"some text\"" >&2
-    exit 2
-  fi
-  payload=$(cat)
-  [ -z "$payload" ] && exit 0     # nothing to route; silence is correct
-
-  # WHICH SESSION, WHICH PROJECT, AND WHERE THE RECORD CAME FROM.
-  #
-  # Parameter expansion rather than a second node spawn: the hook already costs
-  # ~125 ms and is registered on 31 events, so a second interpreter per event
-  # would be paid 31 times a turn.
-  case "$payload" in
-    *'"session_id"'*)
-      _rot_sess=${payload#*\"session_id\"}
-      _rot_sess=${_rot_sess#*\"}
-      _rot_sess=${_rot_sess%%\"*}
-      ;;
-  esac
-  _rot_sess=$(_rot_scrub "$_rot_sess")
-
-  case "$payload" in
-    *'"cwd"'*)
-      _rot_proj=${payload#*\"cwd\"}
-      _rot_proj=${_rot_proj#*\"}
-      _rot_proj=${_rot_proj%%\"*}
-      ;;
-  esac
-  # JSON escapes a Windows separator, so "C:\Users\x" arrives doubled. Left as
-  # forward slashes, which every shell and PowerShell on this platform accept.
-  # tr, NOT sed. With | as the sed delimiter the escaped-backslash pattern is
-  # ambiguous across implementations, and checker/portability.sh refuses it:
-  # a strip that fails OPEN on BSD would leave separators in a value that
-  # reaches a directory path. tr has no delimiter to collide with.
-  _rot_proj=$(printf '%s' "$_rot_proj" | tr '\\' '/')
-  [ -n "$_rot_proj" ] || _rot_proj=$PWD
-
-  # ORGAN 7 -- the environment layer. Declared config from rot.env files,
-  # PARSED never sourced, declared-only, unset-only (the live environment
-  # outranks every file). The library ships beside this script; a missing
-  # or unreadable library degrades to no-op, never to a failed turn.
-  if [ -r "${0%/*}/rot-env.sh" ]; then
-    . "${0%/*}/rot-env.sh" 2>/dev/null && rot_env_load "$_rot_proj" || :
-  fi
-
-  # THE DEBUG CHANNEL IS ON BY DEFAULT IN HOOK MODE -- W7, and the finding
-  # that forced it: a 30-turn live campaign ended with NO log to audit,
-  # because `claude plugin install` wires the hooks and nothing anywhere
-  # sets ROTMOE_DEBUG_LOG. The auditor (checker/log-replay.sh) existed, the
-  # records were safe by design (`chars`, never the prompt), and the whole
-  # channel was dead on every default install (W7,
-  # bench/foreground-findings.md). A capability that is never on is a
-  # capability that does not ship.
-  #
-  # THE RULES, in the order they bind:
-  #   * SET wins, whatever set it -- an env export, or a rot.env parsed
-  #     above (unset-only, so the operator's export outranks the file).
-  #     An explicit path is used; an explicit '' or '0' is OFF.
-  #   * UNSET defaults to a per-session file in the state directory --
-  #     the same directory the summons and stamps already live in.
-  #   * BOUNDED twice: each file by the existing ROTMOE_DEBUG_LOG_MAX trim
-  #     (5000 lines, 80% low-water), and the FILE COUNT by a janitor that
-  #     runs once per session (only when this session's file does not
-  #     exist yet): session logs older than seven days age out. A default
-  #     that accumulates forever would be the 1.4 GB ~/.claude log this
-  #     file's own bounding comment names.
-  #   * HOOK MODE ONLY. The CLI paths (--vector, --route) stay opt-in:
-  #     a command a human runs by hand writes nothing they did not ask for.
-  #   * An unwritable state dir degrades to OFF, never to a failed turn.
-  if [ -z "${ROTMOE_DEBUG_LOG+x}" ]; then
-    _dl_dir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
-    ROTMOE_DEBUG_LOG="$_dl_dir/rot-debug.$_rot_sess.jsonl"
-    if [ ! -f "$ROTMOE_DEBUG_LOG" ]; then
-      if mkdir -p "$_dl_dir" 2>/dev/null; then
-        find "$_dl_dir" -maxdepth 1 -name 'rot-debug.*.jsonl' -mtime +7 -exec rm -f {} + 2>/dev/null || :
-      else
-        ROTMOE_DEBUG_LOG=''
-      fi
-    fi
-  fi
-  case "${ROTMOE_DEBUG_LOG:-}" in 0) ROTMOE_DEBUG_LOG='' ;; esac
-
-  # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean. Inference first,
-  # then an explicit declaration overrides it, and ONLY for the three known
-  # values: unknown_declaration_falls_back proves a typo demotes to inference
-  # rather than inventing a fourth class.
-  case "$payload" in *'"hook_event_name"'*) _rot_src=hook ;; esac
-  case "${ROTMOE_DEBUG_SRC:-}" in
-    test) _rot_src=test ;;
-    cli)  _rot_src=cli ;;
-    hook) _rot_src=hook ;;
-  esac
-
-  # Extract the prompt. node gives an exact parse and is GUARANTEED here --
-  # Claude Code is itself a Node application, so anything that can invoke this
-  # hook can run node. The sed path is a degraded fallback and is labelled as
-  # one rather than presented as equivalent: it cannot handle escaped quotes,
-  # and it scans the whole payload, so a stem appearing in some other field
-  # (a cwd containing "lake", say) would route on it. Benign, but not the same.
-  if command -v node >/dev/null 2>&1; then
-    prompt=$(printf '%s' "$payload" | node -e '
-      let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
-        // MEASURED DEFECT, 2026-08-03: this read `j.prompt || j.tool_name` only.
-        // On UserPromptSubmit that is right. On PreToolUse the payload carries no
-        // prompt, so the router saw the bare tool NAME -- "Bash", "Edit", "Read",
-        // "Grep" -- and not one of those matches any stem. Every autonomous
-        // firing therefore returned CONVERGENT, measured on all four. The half of
-        // the router that watches what the MODEL decided to do carried no signal
-        // at all, while looking perfectly healthy in the log.
-        // The fix reads what the tool is actually DOING. A Bash invoking the
-        // Lean build tool is FORGE work; a Bash searching a log for the word
-        // error is CLINICAL work; the tool name alone cannot tell them apart.
-        // Command, file path and pattern are the fields that carry the intent.
-        //
-        // NOTE ON WORDING, and it is not fussiness: this comment deliberately
-        // NAMES no toolchain binary next to a backtick. checker/hook-footprint.sh
-        // forbids a Lean invocation in a shipped hook and matches COMMAND
-        // POSITION -- and in shell, a backtick followed by that name IS command
-        // substitution. The checker cannot know this block is JavaScript. It
-        // caught an earlier draft of this very comment, which is the rule
-        // working, so the prose moved rather than the rule.
-        try { const j=JSON.parse(s);
-          const ti = j.tool_input || {};
-          const act = [ti.command, ti.file_path, ti.path, ti.pattern, ti.description]
-                        .filter(x => typeof x === "string").join(" ");
-          process.stdout.write(String(j.prompt || (act ? (j.tool_name||"") + " " + act : j.tool_name) || "")); }
-        catch(e) { process.stdout.write(""); }
-      });' 2>/dev/null)
-  else
-    prompt=$(printf '%s' "$payload" | sed -n 's/.*"prompt"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-    [ -z "$prompt" ] && prompt="$payload"
-  fi
-
-  _routed=$(route "$prompt")
-  lane=${_routed%|*}
-  _stem=${_routed##*|}
-
-  # README.md:77 promises this line carries "a named lane AND A GAUGE READING".
-  # For a long time it carried the lane only, and the comment that used to sit
-  # here defended that: a single hook invocation has not measured nine lens
-  # activities, and emitting a fabricated vector would be worse than emitting
-  # none. The first half of that is still true. The conclusion was wrong.
-  #
-  # The router HAS measured something by this point: WHICH LANE FIRED. Expressed
-  # as an activity vector that is one-hot -- the lead lens of the fired lane at
-  # 1, every other lens at 0, breadth 1. That is not an invented profile, it is
-  # this turn's routing decision written in the gauge's own units, and it is
-  # reproducible by hand -- WITH THE SAME M, C AND T, which is the whole point
-  # of writing them out:
-  #   rot-router.sh --vector 0,0,0,0,0,0,0,0,1 --breadth 1 --M 1 --C 1 --T 1
-  #     -> R/s+ = 0.66,  which is exactly what the hook line prints for FORGE.
-  # An earlier draft of this comment cited 0.7, the figure the CLI prints when
-  # it falls back to its OWN defaults (T = 0.8, not 1.0). Same vector, different
-  # scalars, different number -- and a reproduction command that does not
-  # reproduce is worse than none, because the reader concludes the gauge is
-  # unstable rather than that the instructions were incomplete. Measured both
-  # ways before this line was written.
-  # A CONVERGENT turn fires no lens, so its vector is all zeros with breadth 0
-  # and the gauge is defined there too (0.16 under these scalars). Every lane
-  # therefore has a reading, and none of them is guessed.
-  #
-  # M, C and T are the neutral element 1.0 -- NOT measurements dressed up as
-  # defaults. Memory residue, confidence calibration and temporal recency are
-  # genuinely unavailable to one stateless hook call, so they are set to the
-  # value that leaves the product unchanged, and this comment is where that is
-  # admitted rather than buried.
-  #
-  # The lens index comes from NAMES itself, so adding or renaming a lens moves
-  # this automatically. A second hard-coded lane->index table would be a
-  # snapshot waiting to drift out of step with the first one.
-  _lens=${lane#* }
-
-  # WHICH EVENT FIRED -- extracted HERE, before TIER 2, because NSIL's density
-  # verdicts read it (see _nsil_query below). This extraction used to sit just
-  # above the gauge call; the voice block and the debug record still read the
-  # same `_ev`, now from earlier in the turn. Same parse, same charset guard.
-  _ev='-'
-  case "$payload" in
-    *'"hook_event_name"'*)
-      _ev=${payload#*\"hook_event_name\"}
-      _ev=${_ev#*\"}
-      _ev=${_ev%%\"*}
-      ;;
-  esac
-  case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
-
-  # DENSITY IS A PROPERTY OF A QUERY, NOT OF A COMMAND LINE. Section 3 defines
-  # ELEVATE as "no lane triggers, but the QUERY is dense" and BOOST's density
-  # test rides the same floor. On tool events the routed text is the tool name
-  # plus command/path/pattern/description -- routinely nine-plus words with no
-  # stem in sight -- and the floor read it as a dense query. MEASURED across
-  # two 30-turn live campaigns (W3, bench/foreground-findings.md): bare
-  # git/sed/read tool calls drew the full nine-lens ELEVATE, nine stanzas
-  # injected per call, on text no human asked. So the density verdicts fire
-  # only where a human actually typed the words: the query events. Tool
-  # events keep every verdict that rests on STEMS -- CONFIRM, FUSE, OVERRIDE
-  # -- because a genuine multi-domain command is real signal; only the
-  # words-per-lens heuristic is scoped to words a person wrote. An event this
-  # parse cannot identify ('-') is treated as not-a-query, which is the
-  # conservative side.
-  _nsil_query=0
-  case "$_ev" in UserPromptSubmit|UserPromptExpansion) _nsil_query=1 ;; esac
-
+# --- THE SHARED TURN PIPELINE ------------------------------------------------
+# Factored out of hook_mode so the --route CLI can produce the SAME records a
+# hook turn produces (W8): before this, a CLI-exercised log carried gauge
+# records only and could never satisfy the auditor's pairing rule. One body,
+# two callers -- an inline copy of the OVERRIDE/BOOST subtleties would be the
+# drift this repository exists to prevent. Ambient-variable contract (POSIX sh
+# functions share the caller's scope): the caller sets prompt, lane, _lens,
+# _stem, _ev, _nsil_query, and the observability state; these functions set
+# NSIL_*, _vec, _br, _rs, _dbg_lost, _rot_local_lost and mount the profile.
+rot_nsil_decide () {
   # TIER 2 (NSIL) decides how many lenses this turn activates. TIER 1's lane is
   # already fixed and is not revisited here.
   #
@@ -1363,47 +1165,11 @@ hook_mode () {
   # TIER 2, because the density verdicts read it (_nsil_query). The voice
   # decision below and the debug record further down read the same value; the
   # extraction moved, its parse and charset guard did not.
+}
 
-  # THE VOICE DECISION. By Socio directive the lenses speak by default
-  # (ROTMOE_VOICE=0 silences them), and they speak MID-WORK too: the harness
-  # contract offers two channels, and the router uses both. Plain stdout
-  # reaches the model on exactly three events; on the tool-loop events the
-  # legal channel is the JSON envelope's additionalContext -- the same shape
-  # prover-remind has always used there, event echoed back or the payload is
-  # discarded. Everywhere else the marker stays a debug-log entry.
-  # SCHEMA GATE for the JSON channel: only events in the MEASURED accepting
-  # set (lean/Proofs/RotInject.lean; checker/context-gate.sh compares) may
-  # carry additionalContext -- the CLI rejects the payload elsewhere, which
-  # the reminder measured live on SessionEnd. PostToolUseFailure is
-  # deliberately ABSENT: the docs say the field exists there, the accepting
-  # set says the CLI refuses it, and this repository ships what it measured,
-  # never what it read.
-  # PreToolUse ONLY, and the halving is measured, not stylistic. Pre and Post
-  # build their routing text from the SAME tool_input fields (command,
-  # file_path, path, pattern, description -- the payload's tool_response is
-  # never read), so the two injections were byte-identical on every call:
-  # 30 turns of live-session evidence, every pair compared equal (W2,
-  # bench/foreground-findings.md). Emitting the same stanzas twice per tool
-  # call doubles the token cost and adds zero information; the moment that
-  # can CHANGE the action is BEFORE it runs -- the same reasoning organ 4
-  # applies to its PreToolUse variant. The route/gauge DEBUG RECORDS still
-  # write on every event; only the injected voice is deduplicated.
-  # RotInject.lean's accepting set is a MAY-carry set (context-gate.sh phase
-  # A checks the gate exists; only the legacy sanctum hooks must match the
-  # set exactly), so a subset here is sanctioned, not drift.
-  CTX_EVENTS="PreToolUse"
-  _voice=''
-  _voicejson=''
-  if [ "${ROTMOE_VOICE:-1}" != 0 ]; then
-    case "$_ev" in
-      UserPromptSubmit|UserPromptExpansion|SessionStart) _voice=1 ;;
-      *)
-        for _ce in $CTX_EVENTS; do
-          [ "$_ce" = "$_ev" ] && { _voice=1; _voicejson=1; break; }
-        done ;;
-    esac
-  fi
-  if [ -n "$_voice" ]; then
+# Part two: gauge + both records. $1 non-empty = the voice path (LENSDATA on).
+rot_gauge_record () {
+  if [ -n "${1:-}" ]; then
     _gout=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}" voice)
   else
     _gout=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}")
@@ -1607,6 +1373,258 @@ hook_mode () {
       _dbg_lost=1
     fi
   fi
+}
+
+hook_mode () {
+  # Never block. A terminal on stdin means a human ran this by hand, and reading
+  # unconditionally would hang forever -- the same trap leanchecker --help falls
+  # into. The guard is not optional.
+  if [ -t 0 ]; then
+    echo "rot-router.sh: hook mode expects a JSON payload on stdin." >&2
+    echo "  try: rot-router.sh --route \"some text\"" >&2
+    exit 2
+  fi
+  payload=$(cat)
+  [ -z "$payload" ] && exit 0     # nothing to route; silence is correct
+
+  # WHICH SESSION, WHICH PROJECT, AND WHERE THE RECORD CAME FROM.
+  #
+  # Parameter expansion rather than a second node spawn: the hook already costs
+  # ~125 ms and is registered on 31 events, so a second interpreter per event
+  # would be paid 31 times a turn.
+  case "$payload" in
+    *'"session_id"'*)
+      _rot_sess=${payload#*\"session_id\"}
+      _rot_sess=${_rot_sess#*\"}
+      _rot_sess=${_rot_sess%%\"*}
+      ;;
+  esac
+  _rot_sess=$(_rot_scrub "$_rot_sess")
+
+  case "$payload" in
+    *'"cwd"'*)
+      _rot_proj=${payload#*\"cwd\"}
+      _rot_proj=${_rot_proj#*\"}
+      _rot_proj=${_rot_proj%%\"*}
+      ;;
+  esac
+  # JSON escapes a Windows separator, so "C:\Users\x" arrives doubled. Left as
+  # forward slashes, which every shell and PowerShell on this platform accept.
+  # tr, NOT sed. With | as the sed delimiter the escaped-backslash pattern is
+  # ambiguous across implementations, and checker/portability.sh refuses it:
+  # a strip that fails OPEN on BSD would leave separators in a value that
+  # reaches a directory path. tr has no delimiter to collide with.
+  _rot_proj=$(printf '%s' "$_rot_proj" | tr '\\' '/')
+  [ -n "$_rot_proj" ] || _rot_proj=$PWD
+
+  # ORGAN 7 -- the environment layer. Declared config from rot.env files,
+  # PARSED never sourced, declared-only, unset-only (the live environment
+  # outranks every file). The library ships beside this script; a missing
+  # or unreadable library degrades to no-op, never to a failed turn.
+  if [ -r "${0%/*}/rot-env.sh" ]; then
+    . "${0%/*}/rot-env.sh" 2>/dev/null && rot_env_load "$_rot_proj" || :
+  fi
+
+  # THE DEBUG CHANNEL IS ON BY DEFAULT IN HOOK MODE -- W7, and the finding
+  # that forced it: a 30-turn live campaign ended with NO log to audit,
+  # because `claude plugin install` wires the hooks and nothing anywhere
+  # sets ROTMOE_DEBUG_LOG. The auditor (checker/log-replay.sh) existed, the
+  # records were safe by design (`chars`, never the prompt), and the whole
+  # channel was dead on every default install (W7,
+  # bench/foreground-findings.md). A capability that is never on is a
+  # capability that does not ship.
+  #
+  # THE RULES, in the order they bind:
+  #   * SET wins, whatever set it -- an env export, or a rot.env parsed
+  #     above (unset-only, so the operator's export outranks the file).
+  #     An explicit path is used; an explicit '' or '0' is OFF.
+  #   * UNSET defaults to a per-session file in the state directory --
+  #     the same directory the summons and stamps already live in.
+  #   * BOUNDED twice: each file by the existing ROTMOE_DEBUG_LOG_MAX trim
+  #     (5000 lines, 80% low-water), and the FILE COUNT by a janitor that
+  #     runs once per session (only when this session's file does not
+  #     exist yet): session logs older than seven days age out. A default
+  #     that accumulates forever would be the 1.4 GB ~/.claude log this
+  #     file's own bounding comment names.
+  #   * HOOK MODE ONLY. The CLI paths (--vector, --route) stay opt-in:
+  #     a command a human runs by hand writes nothing they did not ask for.
+  #   * An unwritable state dir degrades to OFF, never to a failed turn.
+  if [ -z "${ROTMOE_DEBUG_LOG+x}" ]; then
+    _dl_dir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
+    ROTMOE_DEBUG_LOG="$_dl_dir/rot-debug.$_rot_sess.jsonl"
+    if [ ! -f "$ROTMOE_DEBUG_LOG" ]; then
+      if mkdir -p "$_dl_dir" 2>/dev/null; then
+        find "$_dl_dir" -maxdepth 1 -name 'rot-debug.*.jsonl' -mtime +7 -exec rm -f {} + 2>/dev/null || :
+      else
+        ROTMOE_DEBUG_LOG=''
+      fi
+    fi
+  fi
+  case "${ROTMOE_DEBUG_LOG:-}" in 0) ROTMOE_DEBUG_LOG='' ;; esac
+
+  # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean. Inference first,
+  # then an explicit declaration overrides it, and ONLY for the three known
+  # values: unknown_declaration_falls_back proves a typo demotes to inference
+  # rather than inventing a fourth class.
+  case "$payload" in *'"hook_event_name"'*) _rot_src=hook ;; esac
+  case "${ROTMOE_DEBUG_SRC:-}" in
+    test) _rot_src=test ;;
+    cli)  _rot_src=cli ;;
+    hook) _rot_src=hook ;;
+  esac
+
+  # Extract the prompt. node gives an exact parse and is GUARANTEED here --
+  # Claude Code is itself a Node application, so anything that can invoke this
+  # hook can run node. The sed path is a degraded fallback and is labelled as
+  # one rather than presented as equivalent: it cannot handle escaped quotes,
+  # and it scans the whole payload, so a stem appearing in some other field
+  # (a cwd containing "lake", say) would route on it. Benign, but not the same.
+  if command -v node >/dev/null 2>&1; then
+    prompt=$(printf '%s' "$payload" | node -e '
+      let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+        // MEASURED DEFECT, 2026-08-03: this read `j.prompt || j.tool_name` only.
+        // On UserPromptSubmit that is right. On PreToolUse the payload carries no
+        // prompt, so the router saw the bare tool NAME -- "Bash", "Edit", "Read",
+        // "Grep" -- and not one of those matches any stem. Every autonomous
+        // firing therefore returned CONVERGENT, measured on all four. The half of
+        // the router that watches what the MODEL decided to do carried no signal
+        // at all, while looking perfectly healthy in the log.
+        // The fix reads what the tool is actually DOING. A Bash invoking the
+        // Lean build tool is FORGE work; a Bash searching a log for the word
+        // error is CLINICAL work; the tool name alone cannot tell them apart.
+        // Command, file path and pattern are the fields that carry the intent.
+        //
+        // NOTE ON WORDING, and it is not fussiness: this comment deliberately
+        // NAMES no toolchain binary next to a backtick. checker/hook-footprint.sh
+        // forbids a Lean invocation in a shipped hook and matches COMMAND
+        // POSITION -- and in shell, a backtick followed by that name IS command
+        // substitution. The checker cannot know this block is JavaScript. It
+        // caught an earlier draft of this very comment, which is the rule
+        // working, so the prose moved rather than the rule.
+        try { const j=JSON.parse(s);
+          const ti = j.tool_input || {};
+          const act = [ti.command, ti.file_path, ti.path, ti.pattern, ti.description]
+                        .filter(x => typeof x === "string").join(" ");
+          process.stdout.write(String(j.prompt || (act ? (j.tool_name||"") + " " + act : j.tool_name) || "")); }
+        catch(e) { process.stdout.write(""); }
+      });' 2>/dev/null)
+  else
+    prompt=$(printf '%s' "$payload" | sed -n 's/.*"prompt"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    [ -z "$prompt" ] && prompt="$payload"
+  fi
+
+  _routed=$(route "$prompt")
+  lane=${_routed%|*}
+  _stem=${_routed##*|}
+
+  # README.md:77 promises this line carries "a named lane AND A GAUGE READING".
+  # For a long time it carried the lane only, and the comment that used to sit
+  # here defended that: a single hook invocation has not measured nine lens
+  # activities, and emitting a fabricated vector would be worse than emitting
+  # none. The first half of that is still true. The conclusion was wrong.
+  #
+  # The router HAS measured something by this point: WHICH LANE FIRED. Expressed
+  # as an activity vector that is one-hot -- the lead lens of the fired lane at
+  # 1, every other lens at 0, breadth 1. That is not an invented profile, it is
+  # this turn's routing decision written in the gauge's own units, and it is
+  # reproducible by hand -- WITH THE SAME M, C AND T, which is the whole point
+  # of writing them out:
+  #   rot-router.sh --vector 0,0,0,0,0,0,0,0,1 --breadth 1 --M 1 --C 1 --T 1
+  #     -> R/s+ = 0.66,  which is exactly what the hook line prints for FORGE.
+  # An earlier draft of this comment cited 0.7, the figure the CLI prints when
+  # it falls back to its OWN defaults (T = 0.8, not 1.0). Same vector, different
+  # scalars, different number -- and a reproduction command that does not
+  # reproduce is worse than none, because the reader concludes the gauge is
+  # unstable rather than that the instructions were incomplete. Measured both
+  # ways before this line was written.
+  # A CONVERGENT turn fires no lens, so its vector is all zeros with breadth 0
+  # and the gauge is defined there too (0.16 under these scalars). Every lane
+  # therefore has a reading, and none of them is guessed.
+  #
+  # M, C and T are the neutral element 1.0 -- NOT measurements dressed up as
+  # defaults. Memory residue, confidence calibration and temporal recency are
+  # genuinely unavailable to one stateless hook call, so they are set to the
+  # value that leaves the product unchanged, and this comment is where that is
+  # admitted rather than buried.
+  #
+  # The lens index comes from NAMES itself, so adding or renaming a lens moves
+  # this automatically. A second hard-coded lane->index table would be a
+  # snapshot waiting to drift out of step with the first one.
+  _lens=${lane#* }
+
+  # WHICH EVENT FIRED -- extracted HERE, before TIER 2, because NSIL's density
+  # verdicts read it (see _nsil_query below). This extraction used to sit just
+  # above the gauge call; the voice block and the debug record still read the
+  # same `_ev`, now from earlier in the turn. Same parse, same charset guard.
+  _ev='-'
+  case "$payload" in
+    *'"hook_event_name"'*)
+      _ev=${payload#*\"hook_event_name\"}
+      _ev=${_ev#*\"}
+      _ev=${_ev%%\"*}
+      ;;
+  esac
+  case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
+
+  # DENSITY IS A PROPERTY OF A QUERY, NOT OF A COMMAND LINE. Section 3 defines
+  # ELEVATE as "no lane triggers, but the QUERY is dense" and BOOST's density
+  # test rides the same floor. On tool events the routed text is the tool name
+  # plus command/path/pattern/description -- routinely nine-plus words with no
+  # stem in sight -- and the floor read it as a dense query. MEASURED across
+  # two 30-turn live campaigns (W3, bench/foreground-findings.md): bare
+  # git/sed/read tool calls drew the full nine-lens ELEVATE, nine stanzas
+  # injected per call, on text no human asked. So the density verdicts fire
+  # only where a human actually typed the words: the query events. Tool
+  # events keep every verdict that rests on STEMS -- CONFIRM, FUSE, OVERRIDE
+  # -- because a genuine multi-domain command is real signal; only the
+  # words-per-lens heuristic is scoped to words a person wrote. An event this
+  # parse cannot identify ('-') is treated as not-a-query, which is the
+  # conservative side.
+  _nsil_query=0
+  case "$_ev" in UserPromptSubmit|UserPromptExpansion) _nsil_query=1 ;; esac
+
+  rot_nsil_decide
+
+  # THE VOICE DECISION. By Socio directive the lenses speak by default
+  # (ROTMOE_VOICE=0 silences them), and they speak MID-WORK too: the harness
+  # contract offers two channels, and the router uses both. Plain stdout
+  # reaches the model on exactly three events; on the tool-loop events the
+  # legal channel is the JSON envelope's additionalContext -- the same shape
+  # prover-remind has always used there, event echoed back or the payload is
+  # discarded. Everywhere else the marker stays a debug-log entry.
+  # SCHEMA GATE for the JSON channel: only events in the MEASURED accepting
+  # set (lean/Proofs/RotInject.lean; checker/context-gate.sh compares) may
+  # carry additionalContext -- the CLI rejects the payload elsewhere, which
+  # the reminder measured live on SessionEnd. PostToolUseFailure is
+  # deliberately ABSENT: the docs say the field exists there, the accepting
+  # set says the CLI refuses it, and this repository ships what it measured,
+  # never what it read.
+  # PreToolUse ONLY, and the halving is measured, not stylistic. Pre and Post
+  # build their routing text from the SAME tool_input fields (command,
+  # file_path, path, pattern, description -- the payload's tool_response is
+  # never read), so the two injections were byte-identical on every call:
+  # 30 turns of live-session evidence, every pair compared equal (W2,
+  # bench/foreground-findings.md). Emitting the same stanzas twice per tool
+  # call doubles the token cost and adds zero information; the moment that
+  # can CHANGE the action is BEFORE it runs -- the same reasoning organ 4
+  # applies to its PreToolUse variant. The route/gauge DEBUG RECORDS still
+  # write on every event; only the injected voice is deduplicated.
+  # RotInject.lean's accepting set is a MAY-carry set (context-gate.sh phase
+  # A checks the gate exists; only the legacy sanctum hooks must match the
+  # set exactly), so a subset here is sanctioned, not drift.
+  CTX_EVENTS="PreToolUse"
+  _voice=''
+  _voicejson=''
+  if [ "${ROTMOE_VOICE:-1}" != 0 ]; then
+    case "$_ev" in
+      UserPromptSubmit|UserPromptExpansion|SessionStart) _voice=1 ;;
+      *)
+        for _ce in $CTX_EVENTS; do
+          [ "$_ce" = "$_ev" ] && { _voice=1; _voicejson=1; break; }
+        done ;;
+    esac
+  fi
+  rot_gauge_record "$_voice"
   # BOTH SINKS REPORT. `_rot_local_lost` was set in three places and read in
   # none -- an alarm that cannot fire, which is worse than no alarm because it
   # reads like coverage. The project sink can fail for reasons the central one
@@ -1837,6 +1855,37 @@ case "$MODE" in
   # `route` now returns "<LANE LENS>|<stem>"; --route prints the lane ALONE, so
   # its output is byte-identical to every earlier version and the cross-diff
   # against the ps1 arm compares the same string it always did.
-  route) _routed=$(route "$PROMPT"); echo "${_routed%|*}" ;;
+  #
+  # W8: WHEN THE OPERATOR POINTS THE LOG AT A FILE, --route RECORDS LIKE A
+  # TURN. Before this, the CLI wrote nothing at all -- measured 2026-08-18
+  # (W8, bench/foreground-findings.md): seven --route calls with the log
+  # exported grew it by ZERO lines, so a CLI-exercised log could never
+  # satisfy the auditor's gauge/route pairing rule; only hook mode could
+  # produce an auditable log. The CLI now runs the SAME factored pipeline a
+  # hook turn runs (rot_nsil_decide + rot_gauge_record -- one body, two
+  # callers, no drift) and writes the same gauge+route pair. Three contracts
+  # hold: stdout stays the PRE-NSIL lane, byte-identical (an OVERRIDE
+  # changes the record, never this output -- saved before the pipeline
+  # runs); logging stays OPT-IN here ('' or '0' writes nothing -- a command
+  # a human runs by hand records only what they asked for); and CLI text IS
+  # a human-typed query, so the density verdicts legitimately apply.
+  route)
+    _routed=$(route "$PROMPT")
+    _cli_out=${_routed%|*}
+    case "${ROTMOE_DEBUG_LOG:-}" in
+      ''|0) : ;;
+      *)
+        prompt=$PROMPT
+        lane=$_cli_out
+        _stem=${_routed##*|}
+        _lens=${lane#* }
+        _ev='-'
+        _nsil_query=1
+        rot_nsil_decide
+        rot_gauge_record ''
+        ;;
+    esac
+    echo "$_cli_out"
+    ;;
   *)     echo "rot-router.sh: no mode given (--vector or --route)" >&2; exit 2 ;;
 esac
