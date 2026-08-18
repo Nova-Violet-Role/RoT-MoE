@@ -203,6 +203,15 @@ else
 fi
 if [ "$rc" -eq 0 ]; then
   ok "both reminder arms agree with the ENTIRE corpus in CRLF (the windows-latest failure)"
+elif [ "$rc" -eq 3 ]; then
+  # A SKIP FROM THE INSTRUMENT IS NOT AGREEMENT. cross-diff-remind exits 3 when
+  # no PowerShell is present: the POSIX arm ran the CRLF corpus clean, but the
+  # arms were never compared. This line used to receive a fake exit 0 for that
+  # case and claim "both arms agree" -- measured 2026-08-18 on a pwsh-less
+  # container. Say what actually happened; claim neither pass nor failure.
+  echo "  SKIP  the POSIX arm handled the CRLF corpus (no row failed), but the arms"
+  echo "        were NOT compared (no PowerShell). A skip is never a pass; a runner"
+  echo "        with pwsh is where this comparison happens."
 else
   bad "the arms disagree under a CRLF corpus -- exit $rc"
   grep -E "DISAGREES" "$ctl_dir/crlf.log" | head -3 | sed 's/^/        /'

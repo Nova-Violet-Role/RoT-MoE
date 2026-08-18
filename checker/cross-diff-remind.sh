@@ -93,10 +93,23 @@ echo "-- non-vacuity of the corpus --"
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed, $skip skipped"
-if [ "$fail" -eq 0 ] && [ "$skip" -eq 0 ]; then
-  echo "  cross-diff-remind: PASS"; exit 0
-elif [ "$fail" -eq 0 ]; then
-  echo "  cross-diff-remind: PASS (POSIX arm only; the comparison did not run)"; exit 0
-else
+# ORDER IS THE CONTRACT: a real failure outranks a skip (a POSIX-arm corpus
+# failure under a missing pwsh is still a failure), and a skip outranks a pass.
+#
+# THE SKIP BRANCH USED TO EXIT 0, and that was a fake green this file printed
+# its own warning about: line 52 above says "This is a SKIP, never a PASS" and
+# the exit code then said PASS. MEASURED 2026-08-18 on a pwsh-less container:
+# checker/mutate-checker.sh judges its H21-H24 mutants by this exit code, the
+# fake 0 read as "checker stayed GREEN", and four per-arm mutations were
+# reported as SURVIVED -- claiming holes in a checker that was never able to
+# run. Exit 3 is the repo's convention for "did not run", gate-all displays it
+# as "SKIP (3) -- never a pass", and no caller counts it green.
+if [ "$fail" -gt 0 ]; then
   echo "  cross-diff-remind: FAIL"; exit 1
+elif [ "$skip" -gt 0 ]; then
+  echo "  cross-diff-remind: SKIP (exit 3) -- the POSIX arm ran the corpus clean,"
+  echo "  but the arms were NOT compared. A skip is never a pass."
+  exit 3
+else
+  echo "  cross-diff-remind: PASS"; exit 0
 fi

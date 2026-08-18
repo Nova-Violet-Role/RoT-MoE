@@ -423,8 +423,21 @@ fi
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed, $skip skipped"
-if [ "$skip" -gt 0 ]; then
-  echo "  NOTE: a SKIP is not a PASS. The cross-diff is the point of this file,"
-  echo "        and on a machine without PowerShell it did not run."
+# THE SKIP USED TO BE ANNOUNCED AND THEN IGNORED: the NOTE below printed "a
+# SKIP is not a PASS" and the verdict line exited 0 anyway. MEASURED
+# 2026-08-18 on a pwsh-less container: mutate-checker judges its per-arm
+# router mutants (H01, H02) by this exit code, the fake 0 read as "checker
+# stayed GREEN", and both were reported as SURVIVED -- claiming holes in a
+# comparison that never ran. A real failure still outranks a skip; a skip
+# outranks a pass; exit 3 is the repo's "did not run", which gate-all shows
+# as "SKIP (3) -- never a pass" and no caller counts green.
+if [ "$fail" -gt 0 ]; then
+  echo "  R3/R13: FAIL"; exit 1
+elif [ "$skip" -gt 0 ]; then
+  echo "  R3/R13: SKIP (exit 3) -- the single-arm phases ran clean, but the"
+  echo "  cross-diff is the point of this file, and on a machine without"
+  echo "  PowerShell it did not run. A skip is never a pass."
+  exit 3
+else
+  echo "  R3/R13: PASS"; exit 0
 fi
-[ "$fail" -eq 0 ] && { echo "  R3/R13: PASS"; exit 0; } || { echo "  R3/R13: FAIL"; exit 1; }

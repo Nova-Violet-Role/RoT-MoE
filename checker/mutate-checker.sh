@@ -140,6 +140,13 @@ trap 'for _tf in "$SH" "$PS1" "$RSH" "$RPS1"; do
       done' EXIT INT TERM
 
 killed=0; survived=0; discarded=0
+# INEXPRESSIBLE is H10's verdict, promoted to a counter. A mutant whose judging
+# checker SKIPS (exit 3 -- e.g. cross-diff-remind without PowerShell) was not
+# tested: reporting it KILLED would claim a guarantee never exercised, and
+# SURVIVED would claim a hole in a checker that never got to run. Measured
+# 2026-08-18: the skip used to arrive as a fake exit 0 and four per-arm
+# reminder mutations were reported as SURVIVED on a pwsh-less container.
+inexpressible=0
 
 # THE LOOP VARIABLE IS `_rf`, AND THAT IS LOAD-BEARING. It was `f`, and `run()`
 # declares `local f` for the file it is about to mutate -- bash has DYNAMIC
@@ -249,6 +256,17 @@ run () {
 
   bash "$REPO/$checker" > "$LOG/$id.log" 2>&1
   local rc=$?
+  # A SKIPPING JUDGE JUDGES NOTHING. Exit 3 is the repo's "did not run", and it
+  # must be intercepted BEFORE the expect branches: under `expect=RED` a 3 would
+  # read as KILLED (a guarantee never tested), and under `expect=GREEN` as a
+  # failed meta-control (an accusation against a checker that never ran).
+  if [ "$rc" -eq 3 ]; then
+    echo "$id  INEXPRESSIBLE  the judging checker SKIPPED (exit 3) -- this"
+    echo "     environment cannot run the comparison ($checker is missing its"
+    echo "     second arm). Not KILLED and not SURVIVED; a runner with both"
+    echo "     arms (CI has PowerShell) is where this mutant gets its verdict."
+    inexpressible=$((inexpressible+1)); restore; return
+  fi
   if [ "$expect" = "GREEN" ]; then
     if [ "$rc" -eq 0 ]; then echo "$id  OK (meta-control) checker stayed GREEN on a no-op -- $note"; killed=$((killed+1))
     else echo "$id  META-CONTROL FAILED: the checker goes red on a NO-OP edit."
@@ -528,7 +546,7 @@ baseR=$?
 rm -f "$SH.mutbak" "$PS1.mutbak" "$RSH.mutbak" "$RPS1.mutbak"
 
 echo "---"
-echo "killed=$killed survived=$survived discarded=$discarded notrun=$notrun"
+echo "killed=$killed survived=$survived discarded=$discarded notrun=$notrun inexpressible=$inexpressible"
 echo "baseline restored -> cross-diff exit=$base, cross-diff-remind exit=$baseR"
 
 # A PARTIAL RUN IS NOT A PASS. If MUT_ONLY held anything back, say so loudly and
@@ -541,4 +559,23 @@ if [ "$notrun" -gt 0 ]; then
   echo "         full set before treating this checker as green."
   exit 3
 fi
-[ "$survived" -eq 0 ] && [ "$discarded" -eq 0 ] && [ "$base" -eq 0 ] && [ "$baseR" -eq 0 ] && exit 0 || exit 1
+# THE VERDICT, three-way. Real damage first: a survivor, a discard, a red
+# router baseline, or a reminder baseline that is neither green nor an honest
+# skip -- all exit 1. Then the partial cases: any INEXPRESSIBLE mutant, or a
+# reminder baseline that SKIPPED (exit 3, no PowerShell), means this sweep did
+# not test everything it names -- and a partial sweep is never a pass (the same
+# law the MUT_ONLY block above enforces), so exit 3. Only a full sweep with
+# every mutant given a real verdict exits 0.
+if [ "$survived" -ne 0 ] || [ "$discarded" -ne 0 ]; then
+  exit 1
+fi
+case "$base"  in 0|3) : ;; *) exit 1 ;; esac
+case "$baseR" in 0|3) : ;; *) exit 1 ;; esac
+if [ "$inexpressible" -gt 0 ] || [ "$base" -eq 3 ] || [ "$baseR" -eq 3 ]; then
+  echo "PARTIAL: $inexpressible mutant(s) INEXPRESSIBLE on this machine (judging"
+  echo "         checker skipped -- no second arm). Nothing survived, but an"
+  echo "         untested mutant is not a kill. Exit 3; a runner with both arms"
+  echo "         is where this suite goes fully green."
+  exit 3
+fi
+exit 0
