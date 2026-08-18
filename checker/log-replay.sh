@@ -33,8 +33,11 @@
 # THE DELTA THIS GATE ADDS, each item verified by a control below:
 #   1. every factor is RECOMPUTED from lambda, mu, a, breadth -- mean, delta,
 #      sigma, H and the term itself -- not merely summed;
-#   2. PAIRING: a route record must follow a gauge record carrying the same
-#      reading, so a truncated log cannot present an unverifiable number;
+#   2. PAIRING: a route record must be preceded, within a bounded concurrency
+#      window, by an UNCONSUMED gauge record carrying the same reading -- so a
+#      truncated log cannot present an unverifiable number, and (since 6.0.2,
+#      measured in the 80-turn hard session) two hook processes appending in
+#      parallel cannot get their honest interleaving called corruption;
 #   3. the route line's displayed value must be a faithful ROUNDING of the gauge
 #      line's, which is what binds the marker the operator reads to the
 #      arithmetic behind it;
@@ -174,7 +177,26 @@ const LANE_OF_STEM = {};
   }
 }
 
-let prevGauge = null;      // the last gauge record seen, for pairing
+// THE PAIRING BUFFER -- concurrency-aware since 6.0.2. The original rule
+// held one slot: a route record had to be IMMEDIATELY preceded by its gauge
+// record. That is an assumption about a single-writer log, and MEASURED in
+// the 80-turn hard session (bench/hard-session-6.0.1.md, turn 78) it is
+// false in ordinary use: Claude Code batches tool calls in parallel, two
+// router processes append their gauge/route pairs concurrently, and the
+// sink reads ...gauge, gauge, route, route... -- 6 of 19,772 honest records
+// were rejected as corrupt. Same defect shape as 6.0.0's OVERRIDE blindness:
+// the auditor modelled less than the runtime does.
+//
+// The repair: a bounded window of UNCONSUMED gauge records. A route record
+// consumes the NEWEST unconsumed gauge whose full reading rounds to the
+// route's displayed reading -- the same half-ulp rule as before, so a
+// tampered route value still matches nothing and is still rejected, and a
+// route with no gauge before it is still an orphan. The window is small
+// (8: more concurrent hook processes than that is not a workload this
+// plugin produces) so a stale gauge from long ago can never launder a
+// mismatched route.
+let gaugeBuf = [];
+const GAUGE_WINDOW = 8;
 let nGauge = 0, nRoute = 0;
 
 lines.forEach((l, idx) => {
@@ -216,34 +238,35 @@ lines.forEach((l, idx) => {
     // RotLog.route_Rs_ne_zero: with positive weights the gauge cannot be zero,
     // so a zero here means the number was never computed.
     if (r.Rs === 0) errs.push(where + ": Rs is exactly 0 -- a placeholder, not a measurement");
-    prevGauge = r;
+    gaugeBuf.push(r);
+    if (gaugeBuf.length > GAUGE_WINDOW) gaugeBuf.shift();
   } else if (r.kind === "route") {
     nRoute++;
-    // RotLog.WellPaired: a route line must be preceded by a gauge line carrying
-    // the same reading. An orphan route line is a truncated log presenting an
-    // unverifiable number as if it had been derived.
-    if (!prevGauge) { errs.push(where + ": route record with no gauge record before it"); }
+    // A route line must be preceded, within the concurrency window, by an
+    // UNCONSUMED gauge line carrying the same reading. An orphan route line is
+    // a truncated log presenting an unverifiable number as if it derived.
+    if (gaugeBuf.length === 0) { errs.push(where + ": route record with no gauge record before it"); }
     else {
       // THE ROUTE LINE CARRIES THE *DISPLAYED* READING, not the full one:
       // "Rs":0.66427 on the gauge line, "Rs":"0.66" on the route line, matching
-      // the marker the operator sees. Measured on the first run of this gate --
-      // twelve records per arm recomputed field for field with zero error, and
-      // this rounding was the only disagreement, because the rule asserted plain
-      // equality.
-      //
-      // The rule now asserts what is actually true and is STRICTER than a loose
-      // tolerance would be: the route value must equal the gauge value rounded
-      // to the precision the route value is written at. Half an ulp, no more. A
-      // stale or hand-edited number cannot survive that; an honest rounding
-      // cannot fail it. The corresponding statement is RotLog.WellPaired, whose
-      // tolerance parameter exists for this same reason.
+      // the marker the operator sees. The route value must equal a buffered
+      // gauge value rounded to the precision the route value is written at --
+      // half an ulp, no more. A stale or hand-edited number matches nothing in
+      // the window and cannot survive; an honest rounding cannot fail; an
+      // honest INTERLEAVING (two writers, measured in the hard session) finds
+      // its own gauge a slot or two back and consumes exactly it.
       const txt = String(r.Rs);
       const dot = txt.indexOf(".");
       const dec = dot < 0 ? 0 : txt.length - dot - 1;
-      const rounded = Number(prevGauge.Rs.toFixed(dec));
-      if (parseFloat(txt) !== rounded)
-        errs.push(where + ": route Rs=" + txt + " is not the gauge reading " +
-                  prevGauge.Rs + " rounded to " + dec + " places (" + rounded + ")");
+      const want = parseFloat(txt);
+      let hit = -1;
+      for (let k = gaugeBuf.length - 1; k >= 0; k--) {
+        if (Number(gaugeBuf[k].Rs.toFixed(dec)) === want) { hit = k; break; }
+      }
+      if (hit < 0)
+        errs.push(where + ": route Rs=" + txt + " matches no unconsumed gauge reading " +
+                  "in the concurrency window (newest gauge: " + gaugeBuf[gaugeBuf.length - 1].Rs + ")");
+      else gaugeBuf.splice(hit, 1);
     }
     if (!r.lane || !r.lens) errs.push(where + ": route record missing lane or lens");
 
@@ -294,7 +317,6 @@ lines.forEach((l, idx) => {
         errs.push(where + ": stem '" + r.stem + "' is owned by " + owner +
                   " but the record says " + r.lane + " -- a mis-route");
     }
-    prevGauge = null;
   } else {
     errs.push(where + ": unknown record kind '" + r.kind + "'");
   }
@@ -497,6 +519,25 @@ ctl "an OVERRIDE relabelled CONFIRM (the exemption must stay narrow)" 's/"nsil":
 # 6. AN OVERRIDE THAT OVERRODE NOTHING: lane rewritten to the stem's own
 #    owner while still claiming OVERRIDE -- a contradiction in the record.
 ctl "an OVERRIDE whose lane already owns the stem" '/"nsil":"OVERRIDE"/s/"lane":"EMPATHIC"/"lane":"CLINICAL"/'
+
+# --- controls for the CONCURRENCY window (added with it, 2026-08-18) ---------
+# MEASURED in the 80-turn hard session: parallel tool calls fire two router
+# processes whose gauge/route pairs interleave in the shared sink -- six of
+# 19,772 honest records were rejected by the old adjacency rule. The window
+# pairing must ACCEPT a real interleaving and still REJECT a route that
+# arrives before any gauge exists. Tampering rejection is already held by
+# the "tampered route Rs" control above: a forged value matches nothing.
+f="$TMP/interleave.log"
+awk 'NR<=4{l[NR]=$0} END{print l[1]; print l[3]; print l[2]; print l[4]}' "$LOG_SH" > "$f"
+node "$TMP/replay.js" "$f" "$STEMS" >/dev/null 2>&1
+[ $? -eq 0 ] && ok "CONTROL: a concurrent interleaving (gauge,gauge,route,route) is ACCEPTED" \
+             || bad "CONTROL: an honest two-writer interleaving was REJECTED -- the hard-session defect is back"
+
+f="$TMP/routefirst.log"
+awk 'NR<=2{l[NR]=$0} END{print l[2]; print l[1]}' "$LOG_SH" > "$f"
+node "$TMP/replay.js" "$f" "$STEMS" >/dev/null 2>&1
+[ $? -ne 0 ] && ok "CONTROL: a route record arriving before any gauge is still REJECTED" \
+             || bad "CONTROL: a gauge-less route was ACCEPTED -- the window has no floor"
 
 # Structural corruptions: an orphan route line, and a broken JSON line.
 f="$TMP/orphan.log"; grep '"kind":"route"' "$LOG_SH" | head -1 > "$f"
