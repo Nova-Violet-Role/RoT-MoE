@@ -269,15 +269,21 @@ if ($Kernel) {
   Write-Output (($kredK -join ',') + '|' + ($ksorryK -join ','))
   exit 0
 }
+# WHICH STEP OF THE CHAIN ANSWERED -- one derivation, two readers (-Workspace
+# prints it, hook mode's bundled-fallback gate decides on it). Mirrors the
+# POSIX arm's _ws_source exactly; a second copy of the chain would be a second
+# place for the two to disagree about what 'bundled' means.
+function Get-WsSource {
+  if ($env:ROTMOE_LEAN_WORKSPACE)   { return 'env' }
+  if (Get-RecordedWorkspace)        { return 'recorded' }
+  if (Get-DiscoveredWorkspace)      { return 'discovered' }
+  return 'bundled'
+}
 if ($Workspace) {
-  # WHICH STEP OF THE CHAIN ANSWERED. Four steps, and the middle one was empty
-  # for every marketplace install until discovery was added; being able to ask
-  # turns that diagnosis into one command.
-  $src = 'bundled'
-  if ($env:ROTMOE_LEAN_WORKSPACE)   { $src = 'env' }
-  elseif (Get-RecordedWorkspace)    { $src = 'recorded' }
-  elseif (Get-DiscoveredWorkspace)  { $src = 'discovered' }
-  Write-Output ($src + ' ' + $Ws)
+  # Four steps, and the middle one was empty for every marketplace install
+  # until discovery was added; being able to ask turns that diagnosis into
+  # one command.
+  Write-Output ((Get-WsSource) + ' ' + $Ws)
   exit 0
 }
 
@@ -588,6 +594,30 @@ try {
     }
   } catch { }
 
+  # THE BUNDLED CORPUS CANNOT ACCUSE -- mirrors the POSIX arm (W5). When the
+  # workspace chain bottoms out at the plugin's own read-only lean/, the
+  # staleness figure measures OUR shipped proofs, a tree the user never
+  # worked in. Staleness is suppressed on that fallback; debt, kernel, sorry
+  # and alarms keep their voice -- they measure the USER's repository.
+  if ((Get-WsSource) -eq 'bundled') { $mins = 0; $last = '-' }
+
+  # STALENESS ALONE IS ADVICE, NOT A VERDICT -- one shared stamp throttles
+  # the staleness-only case to $StaleMin (the constant that defines staleness
+  # itself); every other channel, and every build verdict, is untouched. The
+  # stamp is only WRITTEN at the emission point below, so a suppressed or
+  # schema-gated turn never burns it. Mirrors the POSIX arm exactly.
+  $staleOnly = ($debtFiles.Count -eq 0 -and $kred.Count -eq 0 -and
+                $ksorry.Count -eq 0 -and $alarms -eq 0 -and $mins -ge $StaleMin)
+  if ($staleOnly -and -not $leanVerdict) {
+    $staleStamp = Join-Path $StateDir 'prover-remind.stale.stamp'
+    if (Test-Path -LiteralPath $staleStamp) {
+      try {
+        $sAge = ((Get-Date).ToUniversalTime() - (Get-Item -LiteralPath $staleStamp).LastWriteTimeUtc).TotalMinutes
+        if ($sAge -lt $StaleMin) { exit 0 }
+      } catch { }
+    }
+  }
+
   $ctx = Invoke-Decide -Event $ev -Mins $mins -Last $last `
            -Debt (($debtFiles -join ',')) -KRed (($kred -join ',')) `
            -KSorry (($ksorry -join ',')) -Alarms $alarms
@@ -613,6 +643,12 @@ try {
   if ($ev -notin $ctxEvents) { exit 0 }
 
   Set-Content -LiteralPath $stamp -Value (Get-Date -Format 'o') -Encoding ascii -ErrorAction SilentlyContinue
+  # The staleness-only stamp is written HERE, at the emission point: a stamp
+  # burned on a turn that then spoke nothing would silence the one reminder
+  # that was due.
+  if ($staleOnly) {
+    Set-Content -LiteralPath (Join-Path $StateDir 'prover-remind.stale.stamp') -Value (Get-Date -Format 'o') -Encoding ascii -ErrorAction SilentlyContinue
+  }
 
   # The invoking event MUST be echoed back or Claude Code discards the payload.
   $payload = [ordered]@{

@@ -129,6 +129,16 @@ _ws_discover () {
   done
   return 1
 }
+# WHICH STEP OF THE CHAIN ANSWERED -- one derivation, two readers. The
+# --workspace mode has always printed this; hook mode now reads it too (the
+# bundled-fallback gate below), and a second copy of the chain logic would be
+# a second place for the two to disagree about what "bundled" means.
+_ws_source () {
+  if [ -n "${ROTMOE_LEAN_WORKSPACE:-}" ]; then echo env
+  elif [ -n "$(_ws_from_state 2>/dev/null)" ]; then echo recorded
+  elif [ -n "$(_ws_discover 2>/dev/null)" ]; then echo discovered
+  else echo bundled; fi
+}
 WS=${ROTMOE_LEAN_WORKSPACE:-$(_ws_from_state 2>/dev/null)}
 [ -n "$WS" ] || WS=$(_ws_discover 2>/dev/null)
 [ -n "$WS" ] || WS="$HERE/../lean"
@@ -583,6 +593,48 @@ hook_mode () {
   ksorry=${kern#*|}; [ -z "$ksorry" ] && ksorry=-
   alarms=$(measure_alarms)
 
+  # THE BUNDLED CORPUS CANNOT ACCUSE. When the workspace chain bottoms out at
+  # the plugin's own read-only lean/ (no env override, no recorded install, no
+  # discovered workspace), the staleness figure measures OUR shipped proofs --
+  # a tree the user has never worked in and cannot commit to. The comment at
+  # the top of this file already names that failure: "it reads as an
+  # accusation instead of a mis-config". MEASURED across two 30-turn live
+  # campaigns (W5, bench/foreground-findings.md): sessions with no Lean
+  # anywhere heard "No proof written for N min" on ~90 hook events with a
+  # monotone counter (61 -> 376 min) that tracked wall-clock, not work. The
+  # staleness channel is therefore SUPPRESSED on the bundled fallback -- mins
+  # is passed as fresh -- while debt, kernel, sorry and alarms keep their
+  # voice: those measure the USER's repository and state, not ours.
+  if [ "$(_ws_source)" = "bundled" ]; then
+    mins=0; lastp=-
+  fi
+
+  # STALENESS ALONE IS ADVICE, NOT A VERDICT -- and advice repeats on a longer
+  # clock. When every other channel is empty (no debt, no kernel report, no
+  # sorry, no alarms) the only thing decide() can say is the staleness row plus
+  # the closing doctrine, and re-saying that every 5-7 minutes is the wallpaper
+  # this organ was rewritten to stop being. One shared stamp -- not per event,
+  # because the sentence is the same on every lane -- throttles the
+  # staleness-only case to STALE_MIN, the same constant that defines staleness
+  # itself. A build verdict (_lean) is never subject to this: it is checked
+  # before the stamp is consulted, and the stamp is only WRITTEN at the
+  # emission point below, so a suppressed or schema-gated turn never burns it.
+  _stale_only=0
+  if [ "$debt" = "-" ] && [ "$kred" = "-" ] && [ "$ksorry" = "-" ] \
+     && [ "${alarms:-0}" -eq 0 ] 2>/dev/null \
+     && [ "$mins" -ge "$STALE_MIN" ] 2>/dev/null; then
+    _stale_only=1
+  fi
+  if [ "$_stale_only" -eq 1 ] && [ -z "$_lean" ]; then
+    _ssf="$STATE_DIR/prover-remind.stale.stamp"
+    if [ -f "$_ssf" ]; then
+      _sst=$( { stat -c %Y "$_ssf" 2>/dev/null || stat -f %m "$_ssf" 2>/dev/null; } )
+      if [ -n "$_sst" ] && [ $(( ($(date +%s) - _sst) / 60 )) -lt "$STALE_MIN" ]; then
+        exit 0
+      fi
+    fi
+  fi
+
   ctx=$(decide "$ev" "$mins" "$lastp" "$debt" "$kred" "$ksorry" "$alarms") || ctx=""
 
   # THE VERDICT OUTRANKS THE ADVICE, and the `|| exit 0` this replaced is why
@@ -612,6 +664,10 @@ hook_mode () {
   esac
 
   date +%s > "$stampf" 2>/dev/null
+  # The staleness-only stamp is written HERE, at the emission point, for the
+  # same reason the per-event stamp is: a stamp burned on a turn that then
+  # spoke nothing would silence the one reminder that was due.
+  [ "$_stale_only" -eq 1 ] && date +%s > "$STATE_DIR/prover-remind.stale.stamp" 2>/dev/null
   # The invoking event MUST be echoed back or Claude Code discards the payload
   # silently -- a hook that appears wired, runs, and delivers nothing.
   esc=$(printf '%s' "$ctx" | sed 's/\\/\\\\/g; s/"/\\"/g')
@@ -659,11 +715,10 @@ case "$1" in
   # middle step nothing used to write; being able to ASK which step answered is
   # the difference between diagnosing that in one command and in an afternoon.
   --workspace)
-    if [ -n "${ROTMOE_LEAN_WORKSPACE:-}" ]; then _src=env
-    elif [ -n "$(_ws_from_state 2>/dev/null)" ]; then _src=recorded
-    elif [ -n "$(_ws_discover 2>/dev/null)" ]; then _src=discovered
-    else _src=bundled; fi
-    echo "$_src $WS"
+    # One chain, one derivation: _ws_source is the same function hook mode's
+    # bundled-fallback gate consults, so what this mode PRINTS is what the
+    # hook DECIDES on -- the two cannot drift.
+    echo "$(_ws_source) $WS"
     exit 0 ;;
   --version) echo "prover-remind.sh 1.0.0"; exit 0 ;;
   *) echo "usage: prover-remind.sh                (hook mode, JSON on stdin)" >&2
