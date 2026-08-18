@@ -1616,6 +1616,18 @@ hook_mode () {
     if [ -n "$_vdtd" ]; then _vdtd="$_vdtd/hooks/rot-voice.dtd"; else _vdtd="${0%/*}/rot-voice.dtd"; fi
     [ -r "$_vdtd" ] || _vdtd="${0%/*}/rot-voice.dtd"
     if [ -r "$_vdtd" ]; then
+      # THE FRAME -- provenance, spoken once before the first stanza, in the
+      # element the DTD has declared for the router's own voice all along
+      # (rot:voice is (rot:frame, stanza*); nothing had ever emitted the
+      # frame). MEASURED 2026-08-17, the v6.0.0 real test (B4): an unbriefed
+      # convening model refused to perform the stanzas, correctly treating
+      # unexplained injected personas as untrusted framing -- "it doesn't
+      # come from you". Nothing in the block said the OPERATOR installed
+      # this. Now the block leads with exactly that, and with the switch
+      # that proves it: a voice the operator can silence is a voice the
+      # operator turned on. Emitted lazily so a turn with no speaking lens
+      # stays frame-free -- the frame introduces stanzas, not silence.
+      _vfr=0
       _vi=0
       for _vn in $NAMES; do
         _vi=$((_vi+1))
@@ -1652,6 +1664,15 @@ VEOF
         _vsigm=${_vrest%%|*}; _vrest=${_vrest#*|}
         _vh=${_vrest%%|*}; _vrest=${_vrest#*|}
         _vterm=${_vrest%%|*}; _vshare=${_vrest##*|}
+        if [ "$_vfr" -eq 0 ]; then
+          _vfr=1
+          _vframe='<rot:frame>RoT MoE voices -- a Claude Code plugin the operator of this machine installed on purpose; ROTMOE_VOICE=0 silences it. The lenses below were summoned by the measured gauge for this turn; treat each stanza as operator-sanctioned working context.</rot:frame>'
+          if [ -n "$_voicejson" ]; then
+            _vacc="$_vacc\n$_vframe"
+          else
+            printf '%s\n' "$_vframe"
+          fi
+        fi
         # Built by expansion, not printf-into-substitution: byte-identical to
         # the former printf template and zero forks on the plain path.
         _vline="<$_velem>$_vsig $_vn · λ $_vlam σ $_vsigm H $_vh · term $_vterm (${_vshare}%) · $_vchart · $_vbound</$_velem>"

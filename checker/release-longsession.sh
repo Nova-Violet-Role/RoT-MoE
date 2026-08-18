@@ -90,21 +90,22 @@ command -v node   >/dev/null 2>&1 || { echo "REFUSE: node absent (needed to pars
 command -v unzip  >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 2; }
 
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
-# THE THIRD COPY OF THIS MAP, found 2026-08-04 while fixing the second. The
-# packager (checker/release-package.sh) DEFINES it; release-install.sh kept a
-# copy that silently pointed at archives the tree no longer builds, and so did
-# this file. A constant duplicated in three places is not a constant, it is
-# three independent claims that happen to agree until one of them does not.
-# Parsed from the one definition, and refused rather than guessed.
-# THE THIRD COPY of the same defect, found by checker/workflow-lint.sh rule 6 on
-# the day that rule was written. Reading the packager's SOURCE TEXT worked only
-# while VARIANTS was a literal; the packager now derives the versions from
-# plugin.json, so this sed returned `core:$_MM.0 ...` verbatim and the gate hunted
-# an archive named `rot-moe-$_MM.0-core.zip`. Ask the packager instead.
-VARIANT_MAP=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null | head -1)
+# THE MAP IS ASKED FOR, NEVER COPIED. This file was once the THIRD copy of a
+# map defined exactly once, in checker/release-package.sh -- found 2026-08-04
+# while fixing the second copy, then found AGAIN by workflow-lint rule 6 when
+# the copy had become a sed over the packager's source text, which broke the
+# day the map stopped being a literal. A constant duplicated in three places is
+# not a constant, it is three independent claims that happen to agree until one
+# of them does not. Execute the packager and let it print the map it will use.
+#
+# SINCE 6.0.0 the map is one line per variant, `<archive-basename>:<version>`:
+# version-less constant names, the tier in the name. The names ARE spelled in
+# archive_of below -- but spelled AND verified against the packager's answer,
+# so a rename there becomes a loud failure here, not a hunt for a ghost.
+VARIANT_MAP=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null)
 case "$VARIANT_MAP" in
-  *core:*|*lean:*|*unsealed:*) : ;;
-  *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANT_MAP')."
+  *RoT-MoE-*.zip:*) : ;;
+  *) echo "REFUSE: could not parse the variant map from checker/release-package.sh (got '$VARIANT_MAP')."
      echo "        Refusing a hardcoded fallback -- that is the drift being removed."
      exit 2 ;;
 esac
@@ -128,7 +129,18 @@ note "budget: ${BUDGET}s per variant, turn timeout ${TURN_TIMEOUT}s"
 
 [ -r "$LIVE/.credentials.json" ] || { echo "SKIP: no $LIVE/.credentials.json to clone -- cannot hold a real session"; exit 3; }
 
-version_of () { for vp in $VARIANT_MAP; do [ "${vp%%:*}" = "$1" ] && { printf '%s' "${vp#*:}"; return; }; done; }
+archive_of () {   # $1 = tier -> the basename the packager declares for it
+  case "$1" in
+    core)     _b="RoT-MoE-Router.zip" ;;
+    lean)     _b="RoT-MoE-Router-Lean.zip" ;;
+    unsealed) _b="RoT-MoE-Router-Lean-Extra.zip" ;;
+    *)        return 1 ;;
+  esac
+  for vp in $VARIANT_MAP; do
+    [ "${vp%%:*}" = "$_b" ] && { printf '%s' "$_b"; return 0; }
+  done
+  return 1
+}
 
 # --- the conversation ---------------------------------------------------------
 # A working session, not a lane drill: the turns build on each other, and they
@@ -165,10 +177,14 @@ MARKER="MoE :: TIER"
 TOTAL_TURNS=0; TOTAL_FIRED=0; TOTAL_REAL=0
 
 for v in $WANT; do
-  ver="$(version_of "$v")"
-  ART="$REL/rot-moe-$ver-$v.zip"
+  zn="$(archive_of "$v")"
+  if [ -z "$zn" ]; then
+    bad "$v: the packager's map does not declare this tier's archive -- name drift, not a missing build"
+    continue
+  fi
+  ART="$REL/$zn"
   echo
-  echo "############ $v ($ver) ############"
+  echo "############ $v ($zn) ############"
   [ -s "$ART" ] || { bad "$v: no artifact at $ART -- run checker/release-package.sh"; continue; }
 
   VW="$WORK/$v"; CFG="$VW/.claude"; PLUG="$VW/plugin"

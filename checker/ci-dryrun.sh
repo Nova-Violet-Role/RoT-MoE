@@ -115,7 +115,15 @@ extract_steps () {   # extract_steps <workflow> -> "NAME\x1fWORKDIR\x1fCMD" per 
 runner_only () {   # runner_only <cmd> -> 0 if it must be deferred
   case "$1" in
     *sudo*|*apt-get*|*locale-gen*)            return 0 ;;  # needs root on a disposable box
-    *elan*|*"lake exe cache"*|*"lake build"*|*"lake env"*)  return 0 ;;  # would DOWNLOAD
+    # `lake --version` belongs here with the rest: on a machine without the
+    # toolchain it is not a cheap read, it is `bash: lake: command not found`
+    # exit 127 -- MEASURED 2026-08-17 on the "toolchain (read, never assumed)"
+    # step, reported as "CI step would FAIL on a clean clone" when the clone
+    # was fine and only this machine lacks Lean. The step exists to READ the
+    # runner's toolchain; without a toolchain there is nothing to read, and
+    # installing one to answer a dry run is exactly the download this list
+    # exists to refuse.
+    *elan*|*"lake exe cache"*|*"lake build"*|*"lake env"*|*"lake --version"*)  return 0 ;;  # would DOWNLOAD
     # The Lean mutation suites shell out to `lake build` from INSIDE a loop,
     # so the step command never contains the string above and this function
     # let it run. Measured 2026-08-01: exit 124 -- it hit the 600s bound
@@ -363,8 +371,34 @@ fi
 # that starts deferring for an entirely different reason under the same name.
 #
 # Measured 2026-08-10 (pwsh IS present on this host, so neither is a shell defer).
+#
+# RE-MEASURED 2026-08-17, and the table below is the repair of a defect this
+# very ratchet caught: the extractor reads EVERY job in ci.yml, the lean job's
+# steps defer by pattern (downloads, runner variables, a real pty), and none of
+# them had ever been declared -- thirteen undeclared deferrals on a bare run,
+# on any machine. The ratchet fired exactly as designed; the table had simply
+# never been taught the lean job. Every entry below is a deferral that
+# genuinely cannot run in a local clone, each with the reason the classifier
+# itself assigns. Entries that DO run on a better-equipped host ("provide zip"
+# runs wherever pwsh exists) are fine to declare: a declared deferral that did
+# not happen is reported, never failed.
 DECLARED_DEFERRALS="install comma-decimal locales :: needs root on a disposable machine
-provide a bound (gtimeout/timeout must exist on every runner) :: uses runner-provided variables"
+provide a bound (gtimeout/timeout must exist on every runner) :: uses runner-provided variables
+plugin root consistency (declared roots exist and agree) :: uses runner-provided variables
+provide zip (Git Bash on Windows ships unzip only) :: pwsh absent
+tty guard -- pty refusal where a pty exists, non-blocking everywhere :: needs a real pty
+install elan (toolchain pinned by lean/lean-toolchain) :: would DOWNLOAD a toolchain or mathlib
+toolchain (read, never assumed) :: would DOWNLOAD a toolchain or mathlib
+mathlib cache -- NEVER build it from source :: would DOWNLOAD a toolchain or mathlib
+lake build (exit code read DIRECTLY, never through a pipe) :: would DOWNLOAD a toolchain or mathlib
+gauge cross-check -- Lean mirror vs the running hook (MUST run here) :: would DOWNLOAD a toolchain or mathlib
+axiom audit -- #print axioms on every theorem, zero sorryAx :: uses runner-provided variables
+non-vacuity audit -- every guarded theorem has a witness :: would DOWNLOAD a toolchain or mathlib
+non-vacuity NEGATIVE CONTROL -- the audit must be able to fail :: would DOWNLOAD a toolchain or mathlib
+decorative-vs-load-bearing isolation :: would DOWNLOAD a toolchain or mathlib
+leanchecker -- kernel re-verification, with its negative control :: would DOWNLOAD a toolchain or mathlib
+mutation suites -- theorems must DIE when the model breaks :: needs the runner
+publish the release -- only a dispatch asks, only this run's proof answers :: uses runner-provided variables"
 
 UNDECL="${TMPDIR:-/tmp}/cidry-undeclared.$$"
 : > "$UNDECL"

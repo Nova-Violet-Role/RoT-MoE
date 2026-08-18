@@ -33,6 +33,16 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    # THE RELEASE LEVER. A bare dispatch is what it always was -- a full board
+    # run that publishes nothing. Typing `release` here is the one act that
+    # lets the release job at the bottom publish what this run proves; the law
+    # "nothing is released until everything is green" is then enforced by
+    # `needs:`, not by promise.
+    inputs:
+      publish:
+        description: "type 'release' to cut the tag and publish this run's archives"
+        required: false
+        default: ""
   # Reusable: verify.yml calls this instead of duplicating every gate. Two
   # workflows running the same checks is two places for them to drift, and the
   # one that drifts is always the one nobody reads.
@@ -48,7 +58,16 @@ permissions:
   actions: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # `${{ github.workflow }}` IS LOAD-BEARING. Without it, verify.yml's
+  # scheduled call shared this group with push runs: MEASURED 2026-08-17, the
+  # Monday 06:00 UTC cron fired late at 07:01:52Z, its ci.yml call joined
+  # `ci-refs/heads/main`, and cancel-in-progress KILLED the push run for
+  # 925dd99 at the 43-minute mark -- a cancellation with no visible hand. The
+  # re-run then cancelled the verify call right back, so BOTH verdicts were
+  # lost to one shared group. With the workflow name in the group a push run
+  # and a scheduled verify run coexist; a newer run still supersedes an older
+  # run of its own kind, which is all the dedup that was ever wanted.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -1410,3 +1429,108 @@ jobs:
             echo "== $s =="
             bash "$s"
           done
+
+  # ---------------------------------------------------------------------------
+  # RELEASE -- published by the run that proved the tree, or not at all.
+  #
+  # RELEASE.md states the law: "Nothing is released until everything is green."
+  # Until 6.0.0 a human enforced it by hand -- wait for the board, cut the tag,
+  # build the archives on one machine, upload them from another -- and every
+  # step of that chain is a place for the law to be broken politely.
+  #
+  # This job closes the gap STRUCTURALLY. `needs:` makes publication
+  # unreachable unless every checker job and the whole Lean job succeeded in
+  # THIS run on THIS commit: the proof and the publication share a SHA by
+  # construction, not by promise. The archives are rebuilt here by the same
+  # asserting packager the checkers job just exercised, so what lands on the
+  # Releases page is what checker/release-package.sh swore to, with its
+  # checksums beside it.
+  #
+  # It runs on every trigger and BRANCHES INSIDE (`no_step_may_skip`,
+  # lean/Proofs/RotGates.lean): an ordinary run rehearses the packaging and
+  # publishes nothing; only an explicit workflow_dispatch that typed
+  # `publish=release` reaches the publishing half. A tag that already exists on
+  # another commit, or a Release that already exists at all, is a REFUSAL --
+  # docs/GIT-WORKFLOW.md 4.3: a tag with a Release attached never moves.
+  release:
+    name: release -- publish only what this run proved
+    runs-on: ubuntu-latest
+    needs: [checkers, lean]
+    permissions:
+      # Job-scoped, and the reason is stated because workflow-roles.sh demands
+      # it: write exists only to commit the release -- the v* tag ref and the
+      # archive assets on the Releases page. No step of this job pushes to any
+      # branch, and workflow-lint.sh phase 1c holds the whole file to that.
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: release archives rebuilt in the publishing job's own workspace
+        shell: bash
+        run: bash checker/release-package.sh
+
+      - name: publish the release -- only a dispatch asks, only this run's proof answers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ASK: ${{ github.event.inputs.publish }}
+        run: |
+          set -e
+          VER=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json | head -1)
+          TAG="v$VER"
+          if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ] || [ "${RELEASE_ASK:-}" != "release" ]; then
+            echo "rehearsal only: the $VER packet built and asserted above; publishing"
+            echo "waits for an explicit dispatch with publish=release. Nothing uploaded."
+            exit 0
+          fi
+          # A tag with a Release attached NEVER moves, so every ambiguous prior
+          # state below is a refusal, never a repair.
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "FAIL: release $TAG already exists -- a published release never moves"; exit 1
+          fi
+          # Existence judged by gh's EXIT CODE, never by output emptiness --
+          # MEASURED 2026-08-17, run 32040024147 attempt 2: on a missing ref,
+          # `gh api` prints the 404 error body to STDOUT, so the captured
+          # value read {"message":"Not Found",...}, compared unequal to the
+          # SHA, and the exists-elsewhere refusal fired on a tag that did not
+          # exist. The refusal failed closed -- nothing was published -- but
+          # it was aimed at a ghost. This repository's own first rule, applied
+          # to the one step that forgot it.
+          have=""
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.sha' > "$RUNNER_TEMP/tag-sha" 2>/dev/null; then
+            have=$(cat "$RUNNER_TEMP/tag-sha")
+          fi
+          if [ -n "$have" ] && [ "$have" != "$GITHUB_SHA" ]; then
+            echo "FAIL: tag $TAG already points at $have, not at $GITHUB_SHA -- refusing to publish another commit under it"; exit 1
+          fi
+          if [ -z "$have" ]; then
+            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" >/dev/null
+            echo "tag $TAG cut at $GITHUB_SHA -- the commit this very run just proved"
+          else
+            echo "tag $TAG already at $GITHUB_SHA -- adopting it"
+          fi
+          # The release note is the CHANGELOG section for THIS version --
+          # authored once, derived here, never retyped. An empty section is a
+          # refusal: a release with nothing to say should not exist.
+          awk -v v="$VER" '$0 ~ ("^## \\[" v "\\]") {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
+            echo "FAIL: CHANGELOG.md carries no [$VER] section -- refusing an empty release note"; exit 1
+          fi
+          printf '\n---\n\nVerify any download against its published checksum: sha256sum -c SHA256SUMS.txt\n' >> "$RUNNER_TEMP/notes.md"
+          gh release create "$TAG" \
+            .release/RoT-MoE-Router.zip \
+            .release/RoT-MoE-Router-Lean.zip \
+            .release/RoT-MoE-Router-Lean-Extra.zip \
+            .release/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "RoT MoE $VER -- The Whole Packet, three ways" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            --verify-tag
+          # Count what actually landed. A publish that half-worked is a red
+          # run, not a smaller success.
+          n=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets | length')
+          echo "assets on $TAG: $n"
+          if [ "$n" -ne 4 ]; then
+            echo "FAIL: expected 4 assets on $TAG, found $n"; exit 1
+          fi
+          echo "published: $TAG, three archives + SHA256SUMS.txt, from the run that proved $GITHUB_SHA"

@@ -18,9 +18,10 @@
 # checker/live-session-smoke.sh closes that gap for the REPOSITORY packet, with
 # one prompt. This file closes it for all three SHIPPED ARCHIVES, across the
 # whole lane table -- because a router that answered FORGE to everything would
-# pass a single-prompt test perfectly, and because 0.5.0, 0.5.1 and 0.5.2 are
-# three different archives with three different manifests. A superset assertion
-# says the files are present in each; only an executed session says they FIRE.
+# pass a single-prompt test perfectly, and because Router, Router-Lean and
+# Router-Lean-Extra are three different archives (one version, the tier in the
+# name since 6.0.0). A superset assertion says the files are present in each;
+# only an executed session says they FIRE.
 #
 # Method, per variant: unpack the artifact, arm it against a SCRATCH config dir,
 # hold a real `claude -p` session per lane, and require the router's OWN output
@@ -93,35 +94,23 @@ command -v claude >/dev/null 2>&1 || { echo "SKIP: the claude CLI is not on PATH
 command -v unzip  >/dev/null 2>&1 || { echo "REFUSE: unzip absent"; exit 2; }
 
 REL="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
-# The version IS the variant; an asset name is never derived from the tree's own
-# version. Same map as checker/release-package.sh.
-# FOURTH AND LAST COPY of a map that has exactly one definition, in
-# checker/release-package.sh. All four had drifted to 0.5.x while the packager
-# built 0.6.x. Parsed, and refused rather than guessed -- see the note in
-# release-install.sh for the full account.
-# ASKED FOR, NOT GREPPED OUT -- and this file was the one that never got the fix.
+# THE MAP IS ASKED FOR, NEVER COPIED OR GREPPED OUT OF SOURCE TEXT. This file
+# was once the FOURTH copy of a map defined exactly once, in
+# checker/release-package.sh, and the copy had drifted to archives the tree no
+# longer built; then it was a sed over the packager's source, which broke the
+# day the map stopped being a literal (MEASURED 2026-08-05: a gate that CANNOT
+# PASS, counted in the total, because the repair landed in one sibling and not
+# the other). Execute the packager and let it print the map it will use.
 #
-# The line here used to be
-#   sed -n 's/^VARIANTS="\(.*\)"$/\1/p' checker/release-package.sh
-# which reads the packager's SOURCE TEXT. That worked only while the map was a
-# literal string. The packager now DERIVES the three versions from plugin.json,
-# so its source line reads `VARIANTS="core:$_MM.0 ..."` and the sed returned that
-# verbatim, unexpanded. This gate then hunted an archive literally named
-#   rot-moe-$_MM.0-core.zip
-# and failed with "no artifact ... run checker/release-package.sh first" while
-# the three real archives sat in .release/ the whole time.
-#
-# MEASURED 2026-08-05: identical wording to the defect already fixed in
-# checker/release-install.sh -- the repair was applied to one sibling and not the
-# other, and nothing noticed because CI deliberately does not run this gate and
-# the deep tier is rarely run by hand. A gate that CANNOT PASS is worse than a
-# missing one: it is counted in the total.
-#
-# Execute the packager and let it print the map it will actually use.
-VARIANT_MAP=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null | head -1)
+# SINCE 6.0.0 the map is one line per variant, `<archive-basename>:<version>`:
+# the names are version-less constants (the tier lives in the name), so the
+# names ARE spelled in archive_of below -- but spelled AND verified against the
+# packager's answer, so a rename there becomes a loud failure here instead of
+# a hunt for a ghost archive.
+VARIANT_MAP=$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null)
 case "$VARIANT_MAP" in
-  *core:*|*lean:*|*unsealed:*) : ;;
-  *) echo "REFUSE: could not parse VARIANTS from checker/release-package.sh (got '$VARIANT_MAP')."
+  *RoT-MoE-*.zip:*) : ;;
+  *) echo "REFUSE: could not parse the variant map from checker/release-package.sh (got '$VARIANT_MAP')."
      echo "        Refusing a hardcoded fallback -- that is the drift being removed."
      exit 2 ;;
 esac
@@ -138,7 +127,18 @@ note "claude $(claude --version 2>&1 | head -1)"
 note "scratch: $WORK   (live ~/.claude is never opened)"
 note "lanes: $LANES"
 
-version_of () { for vp in $VARIANT_MAP; do [ "${vp%%:*}" = "$1" ] && { printf '%s' "${vp#*:}"; return; }; done; }
+archive_of () {   # $1 = tier -> the basename the packager declares for it
+  case "$1" in
+    core)     _b="RoT-MoE-Router.zip" ;;
+    lean)     _b="RoT-MoE-Router-Lean.zip" ;;
+    unsealed) _b="RoT-MoE-Router-Lean-Extra.zip" ;;
+    *)        return 1 ;;
+  esac
+  for vp in $VARIANT_MAP; do
+    [ "${vp%%:*}" = "$_b" ] && { printf '%s' "$_b"; return 0; }
+  done
+  return 1
+}
 
 prompt_for () {
   case "$1" in
@@ -195,10 +195,14 @@ note "SCOPE: real multi-turn conversation is proved by checker/release-longsessi
 TOTAL_LANES=0; TOTAL_OK=0
 
 for v in $WANT; do
-  ver="$(version_of "$v")"
-  ART="$REL/rot-moe-$ver-$v.zip"
+  zn="$(archive_of "$v")"
+  if [ -z "$zn" ]; then
+    bad "$v: the packager's map does not declare this tier's archive -- name drift, not a missing build"
+    continue
+  fi
+  ART="$REL/$zn"
   echo
-  echo "############ $v ($ver) ############"
+  echo "############ $v ($zn) ############"
   if [ ! -s "$ART" ]; then
     bad "$v: no artifact at $ART -- run checker/release-package.sh first"
     continue
@@ -218,8 +222,16 @@ for v in $WANT; do
   # a snapshot that silently starts reading the wrong thing the first time a
   # comment is added above it -- and it would fail OPEN, returning empty and
   # blaming the router for a defect in this checker.
+  #
+  # `then _lane="..."`, NOT `then echo "..."`. The router's table moved from
+  # echoing the lane to assigning it, and this sed kept matching the OLD shape
+  # -- so it failed open exactly as the note above predicts: every lane
+  # reported "could not read the expected lens" against three archives whose
+  # routers were correct, and zero sessions ran. Measured 2026-08-17, while
+  # the archive names were being re-cut for 6.0.0; the drift predates that
+  # change and had gone unseen because CI deliberately does not run this gate.
   lens_for () {
-    sed -n "s/^[[:space:]]*\(el\)\?if .*then echo \"$1 \([A-Za-z]*\)\".*/\2/p" \
+    sed -n "s/^[[:space:]]*\(el\)\?if .*then _lane=\"$1 \([A-Za-z]*\)\".*/\2/p" \
       "$PLUG/hooks/rot-router.sh" | head -1
   }
 

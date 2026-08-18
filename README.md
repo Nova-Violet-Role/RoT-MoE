@@ -73,7 +73,7 @@ this page each have an exit code behind them.
 *could the number simply be made up?* Here it cannot be, and that is not a
 promise, it is a construction: the mutation suites break each definition on
 purpose and require the theorems to die, so a gauge that had quietly stopped
-meaning anything would take the proofs down with it. **794 mutants applied, 794
+meaning anything would take the proofs down with it. **797 mutants applied, 797
 killed, 0 survived.** An instrument that has never failed on purpose is an
 untested instrument, and every instrument here has been failed on purpose.
 
@@ -82,9 +82,17 @@ untested instrument, and every instrument here has been failed on purpose.
 This is worth saying plainly, because a plugin that names nine lenses can sound
 like it wants to take the wheel. It does not.
 
-* **Your agent stays your agent.** The router adds *one line* before a turn —
-  a named lane and a gauge reading. It changes no tool, intercepts no command,
-  and decides nothing. Claude Code does the work exactly as it always did.
+* **Your agent stays your agent.** The router adds the marker line — a named
+  lane and a gauge reading — and, with the voices on (the default), one
+  stanza per active lens after it: each lens's measured stance, charter and
+  bound, so the model holds nine named frames in the turn it is already
+  taking. It changes no tool and intercepts no command. This page used to
+  say *"and decides nothing"*, and that claim is retired honestly rather
+  than quietly kept: the voice **gate** makes exactly one kind of decision —
+  on a turn that summoned several lenses, a Stop with a summoned lens
+  unspoken is refused **once**, with the missing charters as the task, never
+  twice, and `ROTMOE_GATE=0` removes even that. Everything else is exactly
+  as it always was: Claude Code does the work.
 
   ```
   RoT MoE :: TIER 1 -> FORGE Claude       | R/s+ 0.66
@@ -405,10 +413,11 @@ a bare grep over the same files reports 23 more.
 | `lake build Proofs.*` | the modules elaborate | exit **0** |
 | `#print axioms` on every theorem | nothing rests on `sorryAx` | **0** `sorryAx` |
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
-| Lean mutation suites | the theorems are load-bearing | **794 applied, 794 killed, 0 survived, 0 discarded** |
+| Lean mutation suites | the theorems are load-bearing | **797 applied, 797 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
+| `checker/voice-contract.sh` | the nine-voice roster, the per-lens formulas, the gate's one-refusal law, and the `rot.env` vocabulary — each held identical to the executable in **both directions** | **19 checks, 0 failed**; six controls — a ghost agent, a deleted bound, a drifted λ, a stripped declaration among them — each proved able to fail |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -733,45 +742,37 @@ yours is edited** — the hooks live inside the plugin, not in your
 `/plugin` lists it · `/plugin disable rot-moe` turns it off for a session ·
 `/plugin uninstall rot-moe` removes it, hooks and all.
 
-### 📦 The three release tiers — and why installing gives you the same router
+### 📦 Three archives, one version — and why the patch digit retired
 
-**Whichever tier you take, the plugin surface is identical**: same hooks, same
-agent, same commands. Claude Code loads plugin components and nothing else, so
-the tiers cannot differ in what the router *does*. They differ in **what else is
-in the archive for you to read, run and re-verify.**
+Through `5.x` the patch digit WAS the tier: `x.y.0` core, `x.y.1` +Lean,
+`x.y.2` +Extra. That convention is retired at `6.0.0`, and the reason is
+stated rather than implied: the criteria changed. The voices, their
+contract, the gate and the environment layer are the product, so they travel
+in **every** archive — the tiers now differ only in how much of the
+verification surface rides along, the tier lives in the **name**, and all
+three carry the same version. Nothing is released until everything is green.
 
-| tier | archive | what it adds |
-|---|---|---|
-| **Router** | `rot-moe-5.0.0-core.zip` | the plugin itself: hooks, `lean4-prover` agent, engine, `ARM_ROUTER`/`DISARM_ROUTER`, docs, licences |
-| **Router + Lean** | `rot-moe-5.0.1-lean.zip` | adds `lean/` — 87 modules, 1632 theorems, 77 mutation suites — plus `checker/` (77 checkers) and `SETUP_LEAN` |
-| **Router + Lean + Extra** | `rot-moe-5.0.2-unsealed.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
-
-Take **Router** to run it. Take **Router + Lean** to re-prove the claims on your
-own machine. Take **Router + Lean + Extra** if you want the policy argument as
-well as the proofs.
+| archive | what is in it |
+|---|---|
+| `RoT-MoE-Router.zip` | the whole running product: all seven organs — engine, both router arms, the prover head, both reminder arms, the voice contract with its nine charters, both gate arms, the environment layer — plus installers, commands, docs and licences |
+| `RoT-MoE-Router-Lean.zip` | adds `lean/` — the proof corpus and its mutation suites — plus `checker/` (77 checkers) and `SETUP_LEAN`, for re-proving every claim on your own machine |
+| `RoT-MoE-Router-Lean-Extra.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
 Every archive verifies against the `SHA256SUMS.txt` published beside it on
 [Releases](https://github.com/Nova-Violet-Role/RoT-MoE/releases), and installs
 **without unzipping**:
 
 ```sh
-claude --plugin-dir rot-moe-5.0.1-lean.zip
+claude --plugin-dir RoT-MoE-Router.zip
 ```
 
-Measured — each archive rebuilt from this tree, unzipped, and **its own**
-`rot-router.sh` run on the same payload:
-
-```
-rot-moe-0.9.0-core           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-rot-moe-0.9.1-lean           -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-rot-moe-0.9.2-unsealed       -> RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66
-```
-
-Those lines are **re-measured, not edited** — the only way a transcript in a
-README stays a measurement instead of becoming a drawing of one. The archive
-names above are checked against the packager's own map by
-`checker/readme-variants.sh`, because a download link naming a version that was
-never released is a broken instruction for every reader.
+The packager (`checker/release-package.sh`) asserts each archive's contents
+before anything ships — the seven organs in the smallest tier, proof modules
+counted against disk, charters counted against the declared roster, each
+tier a strict superset of the one below, no build output, no history — and
+the names on this page are held to the packager's own map by
+`checker/readme-variants.sh`, because a download link naming an archive that
+was never built is a broken instruction for every reader.
 
 ### 🛠️ From a clone, without installing
 
@@ -1085,6 +1086,27 @@ one module is the rule that keeps kills attributable.
 * If it says `MEASURED` rather than `PROVED`, that distinction is deliberate —
   `Float ≠ ℝ`, and it will not pretend otherwise.
 
+### 🎭 The nine as agents — `/rot-agent` and `/rot-swarm`
+
+The lenses are not only stanzas: each is a full agent
+(`agents/rot-nova.md` … `agents/rot-claude.md`), transcribed from the
+codices, running on **the model you selected** (no lens pins one), with full
+tools and a bound the contract holds verbatim. Dispatch one, or all nine at
+once:
+
+```
+/rot-agent venom decide: ship the migration now or split it in two
+/rot-swarm the error-handling strategy in src/net — every lens, one subject
+```
+
+The swarm fans out in a single message — nine agents in parallel, each
+prompted in its own register (Carnage is asked to detonate, Anti-Venom to
+diagnose, Chroma to map the futures) — and the synthesis **keeps the
+disagreements**: a tension between lenses is a finding, not noise. Two rules
+travel with every dispatch: the roster is read from the contract, never from
+memory, and an unknown lens name refuses the whole call with the roster
+printed — a swarm that silently drops a voice looks complete and is not.
+
 ### 🜏 The router — what it delivers
 
 Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:
@@ -1302,10 +1324,20 @@ distinction is proved rather than asserted, in `lean/Proofs/RotLensActivation.le
 >   at `δ = 0` and the sigmoid damps consensus by design. Maximum breadth is
 >   minimum divergence. That is the gauge working as specified.
 
-They are not personalities taking turns at a
-microphone; each is a **named ability** with a job inside a router that is held
-**under a proved and gated per-turn bound** — not a fixed number that decays.
-The names and abilities below are quoted from the project's own codices, with
+They are not personalities taking turns at a microphone — they are nine named
+abilities **speaking at once**: each a declared voice with a measured weight,
+a charter, and a bound it may never cross, co-reasoning in the same turn as
+the model that convenes them. That sentence used to end differently — "each
+is a named ability with a job inside a router" — and the change is not a
+mood, it is inventory. Every clause now names a shipped artifact: *declared
+voice* — the element `hooks/rot-voice.dtd` binds each lens to; *measured
+weight* — the per-lens factors the gauge emits and the stanza carries;
+*charter and bound* — `agents/rot-*.md`, transcribed from the codices and
+held verbatim by `checker/voice-contract.sh`; *speaking at once* — the voice
+block, all active stanzas in one emission; *the model that convenes them* —
+the `CONVERGENT` lane's own definition. The router is still held **under a
+proved and gated per-turn bound** — not a fixed number that decays. The
+names and abilities below are quoted from the project's own codices, with
 the line they came from — none of them is invented here.
 
 > **On the cost figure, and why this page no longer quotes one.** It used to say
@@ -1711,15 +1743,22 @@ Each line below names what decides it. Nothing here is aspirational.
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | **87 modules**, **1632 theorems**, 77 mutation suites, **794 mutants applied, 794 killed, 0 survived, 0 discarded** |
+| The corpus is real | **MEASURED** | **87 modules**, **1632 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **85** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
+| The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — 19 checks, both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, and six controls prove each direction can fail |
+| The voices actually fire, on the events the model can hear, and nowhere else | **MEASURED** | D9: a stanza after an untouched marker on the plain-stdout events; a strictly valid JSON envelope on the tool-loop events; silence under `ROTMOE_VOICE=0`; not a byte on a non-accepting event |
+| Each charter's formula cannot drift from the executable | **MEASURED** | D11 re-derives every declared number — defaults, lead rows, bands, Chroma's timelines, Soleil's token floor — from `hooks/rot-router.sh` itself, with a drifted-λ control |
+| The gate refuses at most once, and degrades open | **MEASURED** | D10: an unspoken summons blocks with the missing charters as the task; the summons is consumed by its own block; the harness's already-blocked flag stands the gate down; everything unmeasurable allows |
+| Configuration is a declared vocabulary, not an open door | **MEASURED** | D12: every `ENV.n` name is read by a shipped hook and every `ROTMOE_` name a hook reads is declared; a project `rot.env` supplies defaults, the live environment outranks it, undeclared keys do not exist, and a stripped declaration kills its own key |
 
 **Say the strong thing plainly:** this is an auditable router whose arithmetic is
 proved, whose cost is bounded by a theorem, whose two implementations are diffed
-against each other, and whose entire proof corpus is re-verified by the Lean
-kernel on every push. That sentence is not a hope. Every clause in it has an exit
-code behind it.
+against each other, whose entire proof corpus is re-verified by the Lean
+kernel on every push — and whose nine voices, their formulas, and their
+configuration are contracts a checker holds in both directions, with controls
+that prove every direction can fail. That sentence is not a hope. Every clause
+in it has an exit code behind it.
 
 ## 🥚 The Easter Egg — the Infinite Symbiogenesis, and where RoT actually came from
 

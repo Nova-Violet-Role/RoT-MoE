@@ -196,9 +196,12 @@ echo "=== RotLog mutation suite (the debug log, and the routing audit in it) ===
 #   L09  the pairing tolerance is widened past the rounding rule
 #   L10  `consistent_Rs_eq_gauge`'s conclusion is weakened to an inequality
 
+# L01's needle moved 2026-08-17: `Auditable` became a three-branch definition
+# when the OVERRIDE exemption was added (the v6.0.0 real test's B8 defect), so
+# the needle is now the empty-stem line alone. The mutation is the same one.
 run_mut L01 RotLog \
-  'if r.stem = "" then r.lane = "CONVERGENT" else laneOfStem t r.stem = some r.lane' \
-  'if r.stem = "" then True else laneOfStem t r.stem = some r.lane' \
+  'if r.stem = "" then r.lane = "CONVERGENT"' \
+  'if r.stem = "" then True' \
   'empty_stem_iff_convergent, and the example rejecting FORGE with no stem'
 
 run_mut L02 RotLog \
@@ -314,6 +317,36 @@ run_mut L14 RotLog \
   'then sub else c' \
   'then c else c' \
   'guessProbe_misses_when_the_guess_is_wrong'
+
+# --- L15-L17: the OVERRIDE exemption (added 2026-08-17) ----------------------
+# The v6.0.0 real test proved what an exemption without mutants becomes: the
+# original audit clause shipped green while rejecting the router's own worked
+# example, because nothing had ever tried to break it against an OVERRIDE
+# record. Each mutant below is a way the exemption could rot while the file
+# still compiled.
+
+# The must-move clause deleted: an OVERRIDE whose lane still equals the stem's
+# owner would be certified -- an override that overrode nothing, accepted.
+run_mut L15 RotLog \
+  '(laneOfStem t r.stem).isSome = true ∧ laneOfStem t r.stem ≠ some r.lane' \
+  '(laneOfStem t r.stem).isSome = true' \
+  'the override-that-overrode-nothing example on the CLINICAL/fix record'
+
+# The exemption inverted: OVERRIDE records get the strict rule and every OTHER
+# verdict gets the exemption -- both directions of the narrowness claim die at
+# once, and auditable_imp_vocabSafe loses the branch its proof follows.
+run_mut L16 RotLog \
+  'else if r.nsil = "OVERRIDE" then' \
+  'else if r.nsil ≠ "OVERRIDE" then' \
+  'the measured OVERRIDE example, the FUSE non-exemption example, auditable_imp_vocabSafe'
+
+# The vocabulary guard dropped from the exemption: an OVERRIDE record whose
+# stem is not in the router's table would pass -- the leak, back again through
+# the one door the strict rule no longer covers.
+run_mut L17 RotLog \
+  '(laneOfStem t r.stem).isSome = true ∧ ' \
+  '' \
+  'the OVERRIDE leak example, and auditable_imp_vocabSafe (its obtain splits an ∧ that no longer exists)'
 
 for m in $MODULES; do
   cp "Proofs/$m.lean.mutbak" "Proofs/$m.lean" 2>/dev/null

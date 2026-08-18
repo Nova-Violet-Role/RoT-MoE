@@ -37,15 +37,19 @@ divergence gauge (`R/s+`), specified in Lean 4 and bound to the shipped hooks by
 executable checkers. The router and the reminder are plain shell and PowerShell.
 **Lean is not required to use it** — only to re-verify the proofs yourself.
 
-Four organs ship, and all four are checked to exist by
-`checker/repo-complete.sh`:
+Seven organs ship. Organs 1–4 are checked to exist by
+`checker/repo-complete.sh`; organs 5–7 are held, in both directions, by
+`checker/voice-contract.sh`:
 
 | organ | file | what it does |
 |---|---|---|
 | 1 | `engine/rot-lean.md` | the engine specification the router implements |
-| 2 | `hooks/rot-router.sh` / `.ps1` | the router: TIER 1 routing + the R/s+ gauge |
-| 3 | `agents/lean4-prover.md` | the Lean 4 prover head (a subagent) |
+| 2 | `hooks/rot-router.sh` / `.ps1` | the router: TIER 1 routing, the R/s+ gauge, and the voice block |
+| 3 | `agents/lean4-prover.md` | the Lean 4 prover head (a subagent — an instrument, not a lens) |
 | 4 | `hooks/prover-remind.sh` / `.ps1` | the proof-debt reminder |
+| 5 | `hooks/rot-voice.dtd` + nine lens agents, `agents/rot-nova.md` through `agents/rot-claude.md` | the voice contract and the roster it declares |
+| 6 | `hooks/rot-voice-gate.sh` / `.ps1` | the voice gate: one refusal per unspoken summons on Stop, degrades open |
+| 7 | `hooks/rot-env.sh` / `.ps1` + `hooks/rot-profile.sh` | the environment layer: rot.env parsed under the DTD's declared vocabulary, and the sourceable `rot` command family |
 
 ---
 

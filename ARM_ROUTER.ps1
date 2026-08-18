@@ -93,7 +93,7 @@ function ConvertTo-PosixPath([string] $p) {
 # must match ARM_ROUTER.sh character for character, or the arms install entries
 # the other cannot uninstall. The roundtrip checker compares the written bytes,
 # which is what makes that a tested claim rather than an intention.
-$RouterCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
+$RouterCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
 # EVERY LIFECYCLE EVENT, NOT TWO -- 2026-08-08. The reasoning is written out in
 # full at the same point in ARM_ROUTER.sh and is not repeated here; the short
@@ -113,9 +113,18 @@ $EventsCsv = 'PreToolUse,PostToolUse,PostToolUseFailure,PostToolBatch,Notificati
 # character-identical here or each installs an entry the other cannot remove.
 $RemindPs1 = Join-Path $SelfDir 'hooks/prover-remind.ps1'
 $RemindSh  = Join-Path $SelfDir 'hooks/prover-remind.sh'
-$RemindCmd = 'pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
+$RemindCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
              '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
 $RemindEventsCsv = $EventsCsv
+
+# The voice gate (ORGAN 6) binds on Stop only -- same parity rule as the
+# reminder: the plugin registers it, so the hand install must too, or the two
+# documented installs deliver different products. The sh arm is the reference.
+$GatePs1 = Join-Path $SelfDir 'hooks/rot-voice-gate.ps1'
+$GateSh  = Join-Path $SelfDir 'hooks/rot-voice-gate.sh'
+$GateCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $GatePs1) +
+           '" || bash "' + (ConvertTo-PosixPath $GateSh) + '"'
+$GateEventsCsv = 'Stop'
 
 Write-Output 'RoT MoE :: ARM_ROUTER (PowerShell arm)'
 Write-Output ('  config dir : ' + $ClaudeDir)
@@ -196,6 +205,17 @@ if ($rc -eq 0 -or $rc -eq 10) {
     exit $rrc
   }
   if ($rrc -eq 0) { $rc = 0 }
+
+  # Third pass, the voice gate -- same restore-and-refuse discipline, the sh
+  # arm's rule decision for decision.
+  & node $Merge arm $Settings $GateCmd $GateEventsCsv
+  $grc = $LASTEXITCODE
+  if ($grc -eq 4 -or $grc -eq 3) {
+    Copy-Item -LiteralPath $Backup -Destination $Settings -Force
+    Write-Output ('  AUTO-RESTORED from backup: the voice gate could not be armed (exit ' + $grc + ').')
+    exit $grc
+  }
+  if ($grc -eq 0) { $rc = 0 }
 }
 
 switch ($rc) {

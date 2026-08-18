@@ -4,15 +4,18 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# R23: THE LOCAL-ONLY 1.0.x RELEASE -- BUILT FROM HEAD, STAMPED, UNPUBLISHABLE
+# R23: THE LOCAL-ONLY RELEASE -- BUILT FROM HEAD, STAMPED, UNPUBLISHABLE
 #
-# The Socio asked for releases 1.0.0 / 1.0.1 / 1.0.2 built and kept current in a
-# .gitignore'd `.release-local-only/`, installed into CTT, and NOT published
-# until the completion promise is earned. That request has a trap inside it, and
-# this file exists to disarm the trap rather than to zip three files.
+# The Socio asked for releases built and kept current in a .gitignore'd
+# `.release-local-only/`, installed into CTT, and NOT published until the
+# completion promise is earned. (When this file was written that meant a local
+# 1.0.x family, distinct in its version digits; since 6.0.0 the archive names
+# carry NO version at all, so what marks a build local is the STAMP and the
+# .gitignore -- not a number.) That request has a trap inside it, and this file
+# exists to disarm the trap rather than to zip three files.
 #
 # THE TRAP. An artifact sitting in a directory is evidence of nothing. Nobody can
-# tell, a week later, whether `rot-moe-1.0.2-unsealed.zip` was built from the
+# tell, a week later, whether `RoT-MoE-Router-Lean-Extra.zip` was built from the
 # current tree, from a tree with a since-reverted experiment in it, or by hand.
 # A stale local artifact is WORSE than no artifact: it gets installed into CTT,
 # it passes, and the pass is attributed to code that is not what shipped. So the
@@ -72,25 +75,36 @@ command -v tar   >/dev/null 2>&1 || { echo "REFUSE: tar absent";   exit 2; }
 LOCALDIR="$REPO/.release-local-only"
 MANIFEST=".claude-plugin/plugin.json"
 
-# MAJOR.MINOR, DERIVED FROM THE MANIFEST -- never frozen. The packager derives
-# .0/.1/.2 from this.
+# THE VERSION, DERIVED FROM THE MANIFEST -- never frozen.
 #
 # This line read `LOCALVER="1.0"` until 2026-08-13, and it is the SAME defect
 # phase 5 below already documents having fixed once: a contingent fact written
-# down as if it were an invariant. When the family was legitimately bumped to
-# 2.0.x this gate went RED on a CORRECT tree and reported
-# `rot-moe-1.0.0-core.zip is MISSING` -- an alarm that names the wrong culprit,
-# because nothing was missing; the checker was looking for last version's name.
+# down as if it were an invariant. When the family was legitimately bumped the
+# gate went RED on a CORRECT tree, hunting last version's archive name -- an
+# alarm that names the wrong culprit, because nothing was missing. The durable
+# statement is that this script tracks WHATEVER version the manifest declares,
+# so the next bump needs no edit here at all. Derived, so it cannot drift.
 #
-# The tempting repair is to edit "1.0" to "2.0", which buys exactly one release
-# before the same red returns. The durable statement is that this script tracks
-# WHATEVER family the manifest declares, so the next bump needs no edit here at
-# all. Derived, so it cannot drift.
-LOCALVER="$(sed -n 's/.*"version": "\([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*/\1.\2/p' "$REPO/$MANIFEST" | head -1)"
-case "$LOCALVER" in
-  [0-9]*.[0-9]*) : ;;
-  *) echo "REFUSE: could not derive MAJOR.MINOR from $MANIFEST (got '$LOCALVER')"; exit 2 ;;
+# MAJOR.MINOR used to be enough, because the packager derived the patch digit
+# per tier. Since 6.0.0 there is ONE version and the archive names carry none,
+# so the full semver is read -- and used only for the banner and the STAMP.
+TREEVER="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$REPO/$MANIFEST" | head -1)"
+case "$TREEVER" in
+  [0-9]*.[0-9]*.[0-9]*) : ;;
+  *) echo "REFUSE: could not read a semver version from $MANIFEST (got '$TREEVER')"; exit 2 ;;
 esac
+
+# THE ARCHIVE NAMES ARE ASKED FOR, never reassembled. The old
+# `rot-moe-$LOCALVER.N-tier.zip` spelling is gone with the convention that
+# needed it; the packager prints `<archive-basename>:<version>` per variant,
+# and the basenames are what every phase below addresses.
+ZIPNAMES="$(bash "$REPO/checker/release-package.sh" --print-variants 2>/dev/null | cut -d: -f1)"
+n_zip=$(printf '%s\n' "$ZIPNAMES" | grep -c . || true)
+if [ "${n_zip:-0}" -lt 3 ]; then
+  echo "REFUSE: could not read the archive names from checker/release-package.sh"
+  echo "        (got '$ZIPNAMES') -- refusing a hardcoded fallback."
+  exit 2
+fi
 
 # --- phase 5 baseline, captured BEFORE any packaging runs -------------------
 # Phase 5 asks whether THIS SCRIPT modified the tracked manifest. It used to ask
@@ -103,7 +117,7 @@ esac
 _MANIFEST_BEFORE="$(cksum < "$REPO/$MANIFEST" 2>/dev/null || echo unreadable)"
 _MANIFEST_VER_BEFORE="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$REPO/$MANIFEST" | head -1)"
 
-echo "== release local-only :: ${LOCALVER}.x from HEAD, never published =="
+echo "== release local-only :: $TREEVER from HEAD, never published =="
 
 # --- phase 1: it must be IMPOSSIBLE to publish this by accident ---------------
 # Checked BEFORE anything is built. A local-only directory that git can see is
@@ -178,35 +192,15 @@ build_into () {
   if ! git archive "$SRCREF" | ( cd "$ex" && tar -xf - ) 2>/dev/null; then
     rm -rf "$ex"; return 1
   fi
-  # Rewrite the version ONLY in the export. sed on a JSON line is enough here
-  # because the field is machine-written and single-line; the assertion below
-  # fails loudly if it did not take, which is the part that matters.
-  #
-  # CHANGELOG.md IS DELIBERATELY ABSENT FROM THIS LIST. release-package.sh
-  # requires the shipped changelog to name all three variant versions, and the
-  # one-line way to satisfy it is to include CHANGELOG.md in this sed -- which
-  # would relabel the genuine 0.9.x history as 1.0.x and forge the very record
-  # the check exists to verify. The real changelog carries a truthful 1.0.x
-  # section instead. The files below are mechanical name-and-number surfaces
-  # where a version rewrite states nothing false.
-  local f
-  for f in "$ex/.claude-plugin/plugin.json" "$ex/.claude-plugin/marketplace.json" \
-           "$ex/CITATION.cff" "$ex/RELEASE.md"; do
-    [ -f "$f" ] || continue
-    # NOT `sed -i`: it is not portable and this line failed every macOS run from
-    # 2026-08-08 onward. GNU sed treats the argument after -i as OPTIONAL, BSD
-    # sed (macOS) REQUIRES one and takes the next word as the backup suffix --
-    # so `sed -i "s/a/b/" f` on macOS tries to use the script as a suffix and
-    # dies. `sed -i ''` fixes macOS and breaks GNU. There is no spelling of
-    # `-i` that works on both, so write to a temp file and move it into place,
-    # which works everywhere and needs no branch on the platform.
-    sed "s/0\.9\.2/$LOCALVER.2/g; s/0\.9\.1/$LOCALVER.1/g; s/0\.9\.0/$LOCALVER.0/g" "$f" > "$f.tmp" \
-      && mv "$f.tmp" "$f"
-  done
-  if ! grep -q "\"version\": \"$LOCALVER\.2\"" "$ex/$MANIFEST"; then
-    inf "the version rewrite did not take in the export -- refusing to build"
-    rm -rf "$ex"; return 1
-  fi
+  # NOTHING IS REWRITTEN IN THE EXPORT ANY MORE. Through 5.x this function
+  # sed-ed a local version family into the export's version surfaces, so a
+  # local build could never be mistaken for a published one by its digits.
+  # Since 6.0.0 the archive names carry no version -- the packager builds the
+  # same constant names from any tree -- so a rewritten family would change
+  # NOTHING a stranger can see, while forging the very manifest the packager
+  # now asserts against the tree (its assertion 6 reads the version back out
+  # of every zip and requires the tree's own). What keeps a local build local
+  # is the STAMP below and phase 1's .gitignore, not a number.
   rm -rf "$dest"; mkdir -p "$dest"
   # The log CANNOT live in $dest while the packager is running: release-package.sh
   # opens with `rm -rf "$OUT"` on the directory it is handed, which unlinks the
@@ -223,17 +217,16 @@ build_into () {
 }
 
 if build_into "$LOCALDIR"; then
-  ok "phase 2: three 1.0.x variants packaged from a pristine export of $SRCWHAT"
+  ok "phase 2: $n_zip variants at $TREEVER packaged from a pristine export of $SRCWHAT"
 else
   bad "phase 2: the local package build FAILED (see $LOCALDIR/build.log)"
 fi
 
-for v in core lean unsealed; do
-  case "$v" in core) n="$LOCALVER.0" ;; lean) n="$LOCALVER.1" ;; unsealed) n="$LOCALVER.2" ;; esac
-  if [ -f "$LOCALDIR/rot-moe-$n-$v.zip" ]; then
-    ok "phase 2: rot-moe-$n-$v.zip exists"
+for zn in $ZIPNAMES; do
+  if [ -f "$LOCALDIR/$zn" ]; then
+    ok "phase 2: $zn exists"
   else
-    bad "phase 2: rot-moe-$n-$v.zip is MISSING"
+    bad "phase 2: $zn is MISSING"
   fi
 done
 
@@ -244,14 +237,14 @@ N=1
 [ -f "$LOCALDIR/../.release-local-only.count" ] && N=$(( $(cat "$REPO/.release-local-only.count" 2>/dev/null || echo 0) + 1 ))
 printf '%s\n' "$N" > "$REPO/.release-local-only.count"
 {
-  printf 'stamp: %s-local.%s\n' "$LOCALVER.0" "$N"
+  printf 'stamp: %s-local.%s\n' "$TREEVER" "$N"
   printf 'source: %s\n' "$SRCREF"
   printf 'source_is: %s\n' "$SRCWHAT"
   printf 'built_utc: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   printf 'publishable: NO -- local only until the completion promise is earned\n'
 } > "$LOCALDIR/STAMP"
 if grep -q "^source: $SRCREF$" "$LOCALDIR/STAMP"; then
-  ok "phase 3: STAMP records $SRCWHAT as build $LOCALVER.0-local.$N"
+  ok "phase 3: STAMP records $SRCWHAT as build $TREEVER-local.$N"
 else
   bad "phase 3: STAMP does not carry the source tree-ish -- freshness cannot be checked later"
 fi
@@ -299,31 +292,30 @@ if build_into "$VERIFY/rel"; then
   # into exactly one of same / differs / UNMEASURED, and an unmeasured artifact
   # fails the phase on its own account with its own message.
   same=0; diffn=0; unmeasured=0
-  for v in core lean unsealed; do
-    case "$v" in core) n="$LOCALVER.0" ;; lean) n="$LOCALVER.1" ;; unsealed) n="$LOCALVER.2" ;; esac
-    a="$LOCALDIR/rot-moe-$n-$v.zip"; b="$VERIFY/rel/rot-moe-$n-$v.zip"
+  for zn in $ZIPNAMES; do
+    a="$LOCALDIR/$zn"; b="$VERIFY/rel/$zn"
     if [ ! -f "$a" ] || [ ! -f "$b" ]; then
-      unmeasured=$((unmeasured+1)); inf "$v: UNMEASURED -- an artifact is missing, nothing was compared"
+      unmeasured=$((unmeasured+1)); inf "$zn: UNMEASURED -- an artifact is missing, nothing was compared"
       continue
     fi
-    if ! digest_of "$a" "$VERIFY/a.$v" || ! digest_of "$b" "$VERIFY/b.$v"; then
-      unmeasured=$((unmeasured+1)); inf "$v: UNMEASURED -- the digest tool failed, this is NOT a mismatch"
+    if ! digest_of "$a" "$VERIFY/a.$zn" || ! digest_of "$b" "$VERIFY/b.$zn"; then
+      unmeasured=$((unmeasured+1)); inf "$zn: UNMEASURED -- the digest tool failed, this is NOT a mismatch"
       continue
     fi
-    if cmp -s "$VERIFY/a.$v" "$VERIFY/b.$v"; then
+    if cmp -s "$VERIFY/a.$zn" "$VERIFY/b.$zn"; then
       same=$((same+1))
     else
-      diffn=$((diffn+1)); inf "$v: regenerating from HEAD produced DIFFERENT contents"
+      diffn=$((diffn+1)); inf "$zn: regenerating from HEAD produced DIFFERENT contents"
     fi
   done
   if [ "$unmeasured" -gt 0 ]; then
-    bad "phase 4: $unmeasured of 3 artifacts UNMEASURED -- reproducibility is unknown, not confirmed"
+    bad "phase 4: $unmeasured of $n_zip artifacts UNMEASURED -- reproducibility is unknown, not confirmed"
   fi
   if [ "$diffn" -gt 0 ]; then
-    bad "phase 4: $diffn of 3 artifacts do not regenerate from HEAD -- the local release is stale or non-reproducible"
+    bad "phase 4: $diffn of $n_zip artifacts do not regenerate from HEAD -- the local release is stale or non-reproducible"
   fi
-  if [ "$same" -eq 3 ]; then
-    ok "phase 4: all three artifacts REGENERATE identically from the source tree -- they are evidence, not residue"
+  if [ "$same" -eq "$n_zip" ]; then
+    ok "phase 4: all $n_zip artifacts REGENERATE identically from the source tree -- they are evidence, not residue"
   fi
 else
   bad "phase 4: the verification rebuild failed -- reproducibility is unproven"
@@ -358,11 +350,13 @@ rm -f "$VERIFY_STATUS"
 # Without this, "all three regenerate" could equally mean "the comparison never
 # runs". Mutilate a copy and require the digest comparison to notice.
 CTL="$(mktemp -d "${TMPDIR:-/tmp}/relctl.XXXXXX")"
-cp "$LOCALDIR/rot-moe-$LOCALVER.0-core.zip" "$CTL/mut.zip" 2>/dev/null
+# The smallest tier is the map's first line -- asked for above, never retyped.
+FIRSTZIP="$(printf '%s\n' "$ZIPNAMES" | head -1)"
+cp "$LOCALDIR/$FIRSTZIP" "$CTL/mut.zip" 2>/dev/null
 if [ -f "$CTL/mut.zip" ]; then
   mkdir -p "$CTL/extra" && printf 'not in HEAD\n' > "$CTL/extra/PLANTED.txt"
   ( cd "$CTL" && zip -q "mut.zip" "extra/PLANTED.txt" ) >/dev/null 2>&1
-  if digest_of "$CTL/mut.zip" "$CTL/mut.dig" && digest_of "$LOCALDIR/rot-moe-$LOCALVER.0-core.zip" "$CTL/good.dig"; then
+  if digest_of "$CTL/mut.zip" "$CTL/mut.dig" && digest_of "$LOCALDIR/$FIRSTZIP" "$CTL/good.dig"; then
     if cmp -s "$CTL/mut.dig" "$CTL/good.dig"; then
       bad "phase 6: a MUTILATED artifact compared EQUAL to the good one -- phase 4 proves nothing"
     else

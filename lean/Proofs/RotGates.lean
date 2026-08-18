@@ -257,7 +257,7 @@ def shipped : List Gate :=
     -- makes a local artifact worth installing into CTT. Triggered by the
     -- version-bearing surfaces and by the packager itself: those are the commits
     -- after which a local zip silently stops matching the tree it claims.
-  , d "local-only 1.0.x release regenerates from HEAD and cannot be published" [".claude-plugin/", "CITATION.cff", "RELEASE.md", "checker/release"]
+  , d "local-only release regenerates from HEAD and cannot be published" [".claude-plugin/", "CITATION.cff", "RELEASE.md", "checker/release"]
     -- DEEP, and the trigger list is the point: this can only be wrong after a
     -- commit that changes what CI runs or what the hooks do. It answers "does
     -- the run I am reading contain the fix I am claiming", which is the check

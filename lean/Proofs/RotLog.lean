@@ -292,10 +292,19 @@ abbrev Table := List (String × List String)
 
 /-- One routed turn as the log now records it. `chars` and `ts` are omitted:
 they are real fields, and neither participates in this property. Modelling them
-here would be decoration. -/
+here would be decoration.
+
+`nsil` joined 2026-08-17. The router had ALWAYS written it — every route
+record carries the NSIL verdict — and this model had never read it, which is
+precisely how an honest OVERRIDE record came to be rejected by its own auditor
+(measured: bench/real-test-6.0.0.md §B8, the v6.0.0 real test, a first-time
+user with the shipped tools). It defaults to `""` so every record and every
+example written before the field existed keeps its old meaning: no verdict
+claimed, strict rule applied. -/
 structure RouteRec where
   lane : String
   stem : String
+  nsil : String := ""
   deriving DecidableEq, Repr
 
 /-- The router's decision, replayed from the table. `find?` returns the FIRST
@@ -308,10 +317,24 @@ def laneOfStem (t : Table) (s : String) : Option String :=
 def vocab (t : Table) : List String := t.flatMap Prod.snd
 
 /-- A record is **auditable** when its stem explains its lane: an empty stem
-means no table fired, which is CONVERGENT and nothing else; a non-empty stem must
-be owned by the lane that was recorded. -/
+means no table fired, which is CONVERGENT and nothing else; a non-empty stem
+must be owned by the lane that was recorded — **unless the record itself
+declares `nsil = "OVERRIDE"`**, the one verdict whose entire meaning is that
+Nova's TIER 2 moved the lane away from the stem's owner (rot-lean.md §3's own
+worked example, `fix our relationship`: a CLINICAL stem, an EMPATHIC lane, and
+both facts honestly in the record).
+
+The exemption is as narrow as the feature. The stem must still resolve in the
+table, so vocabulary safety survives — see `auditable_imp_vocabSafe` — and the
+lane must actually DIFFER from the owner, because an override that overrode
+nothing is a contradiction on the record's own evidence. Every other verdict,
+and every record from before the field existed, is judged by the strict rule
+unchanged. -/
 def Auditable (t : Table) (r : RouteRec) : Prop :=
-  if r.stem = "" then r.lane = "CONVERGENT" else laneOfStem t r.stem = some r.lane
+  if r.stem = "" then r.lane = "CONVERGENT"
+  else if r.nsil = "OVERRIDE" then
+    (laneOfStem t r.stem).isSome = true ∧ laneOfStem t r.stem ≠ some r.lane
+  else laneOfStem t r.stem = some r.lane
 
 /-- The privacy property, stated as a predicate so it can be compared with the
 correctness one rather than asserted beside it. -/
@@ -350,8 +373,20 @@ theorem auditable_imp_vocabSafe (t : Table) (r : RouteRec) (h : Auditable t r) :
   by_cases hs : r.stem = ""
   · exact Or.inl hs
   · rw [if_neg hs] at h
-    obtain ⟨ss, hss, hin⟩ := laneOfStem_sound h
-    exact Or.inr (List.mem_flatMap.mpr ⟨(r.lane, ss), hss, hin⟩)
+    by_cases ho : r.nsil = "OVERRIDE"
+    · -- The OVERRIDE branch still demands the stem resolve in the table, which
+      -- is exactly what keeps the privacy property implied rather than lost:
+      -- the exemption moves the LANE requirement, never the VOCABULARY one.
+      rw [if_pos ho] at h
+      obtain ⟨hsome, -⟩ := h
+      cases hl : laneOfStem t r.stem with
+      | none => rw [hl] at hsome; simp at hsome
+      | some l =>
+        obtain ⟨ss, hss, hin⟩ := laneOfStem_sound hl
+        exact Or.inr (List.mem_flatMap.mpr ⟨(l, ss), hss, hin⟩)
+    · rw [if_neg ho] at h
+      obtain ⟨ss, hss, hin⟩ := laneOfStem_sound h
+      exact Or.inr (List.mem_flatMap.mpr ⟨(r.lane, ss), hss, hin⟩)
 
 /-- The converse fails, which is why the audit is the stronger check: a stem can
 be perfectly in-vocabulary and still be attached to the wrong lane. This is the
@@ -405,7 +440,11 @@ def shipped : Table :=
    ("CLINICAL", ["debug","error","bug","fix","secur","audit","verif","test","cve",
                  "segfault","crash","panic","leak","regress","traceback"]),
    ("EXECUTIVE", ["decid","urgenc","strike","direct","declar","now","conclud"]),
-   ("EMPATHIC", ["emot","feel","grief","lonel","soul","story","human","tired","lost"]),
+   -- `relation` joined the router's EMPATHIC row with organ 5 and this
+   -- snapshot never learned it -- trued up 2026-08-17, when the real test's
+   -- OVERRIDE work (`fix our relationship` summons Violet through it) put the
+   -- drift in plain sight. The section's own premise is "as it stands today".
+   ("EMPATHIC", ["emot","feel","grief","lonel","soul","story","human","tired","lost","relation"]),
    ("STRATEGIC", ["strateg","plan","goal","roadmap","priorit","legal","recommend","analyz"]),
    ("CREATIVE", ["creativ","chaos","surreal","disrupt","paradox","dream","invent"]),
    ("PREDICTIVE", ["futur","scenar","predict","trend","forec","likel","horizon","next"]),
@@ -431,6 +470,22 @@ example : ¬ Auditable shipped { lane := "FORGE", stem := "" } := by decide
 -- Leaked prompt text cannot pass, which is `auditable_imp_vocabSafe` made concrete.
 example : ¬ Auditable shipped { lane := "FORGE", stem := "my secret project name" } := by decide
 example : ¬ VocabSafe shipped { lane := "FORGE", stem := "my secret project name" } := by decide
+
+-- NSIL OVERRIDE, measured live in the v6.0.0 real test (bench/real-test-6.0.0.md
+-- §B8): `fix our relationship` fires the CLINICAL stem `fix`, Nova's TIER 2
+-- overrides the lane to EMPATHIC, and the record honestly carries both facts.
+-- The audit must certify it -- on 6.0.0 it did not, and that was the defect.
+example : Auditable shipped { lane := "EMPATHIC", stem := "fix", nsil := "OVERRIDE" } := by decide
+-- The SAME record without the verdict is the mis-route it always was: the
+-- exemption is earned by the record's own declaration, never assumed...
+example : ¬ Auditable shipped { lane := "EMPATHIC", stem := "fix" } := by decide
+-- ...and no OTHER verdict earns it.
+example : ¬ Auditable shipped { lane := "EMPATHIC", stem := "fix", nsil := "FUSE" } := by decide
+-- An override that overrode nothing: the lane still the stem's own owner while
+-- the verdict claims a move -- a contradiction on the record's own evidence.
+example : ¬ Auditable shipped { lane := "CLINICAL", stem := "fix", nsil := "OVERRIDE" } := by decide
+-- Vocabulary safety survives the exemption: an OVERRIDE certifies no leak either.
+example : ¬ Auditable shipped { lane := "EMPATHIC", stem := "acme merger q3", nsil := "OVERRIDE" } := by decide
 
 /-- No stem is owned by two lanes today. A duplicate would not be a soundness
 bug — `first_owner_wins` says the second copy is simply dead — but a dead table
