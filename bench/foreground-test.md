@@ -715,3 +715,27 @@ arming fact predicted.
   runs THROUGH polish's last task); launch explicitly stays. Reasoning
   and the exact command evidence in-chat.
 - **Gate events:** Nova+Violet stanzas delivered proactively.
+
+### turn 26 — the date moves
+
+- **Ask:** "Do it. Move polish to the 20th like you said, and make the
+  roadmap read honest again. Show me before and after."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> STRATEGIC Nova [NSIL BOOST Nova] | R/s+ 0.73`
+- **Work done:** backup of the live data taken FIRST (`.20260818-193930.bak`);
+  before-state captured (polish OVERDUE at 2026-08-01). No milestone-date
+  command existed, so `set-due PROJECT MILESTONE DATE` was built properly:
+  store function returning the old date, CLI echo `polish: due 2026-08-01
+  -> 2026-08-20`, past-date warning shared with add-milestone. Tests
+  46/46 OK exit 0 (move + ghost milestone + bad date + past-date warning
+  paths). Applied to live data: after-state captured — polish now
+  2026-08-20, OVERDUE flag GONE from roadmap, forecast reads `on track
+  (1 days spare)` for polish and launch untouched at 25 days spare.
+  Client commit `bc6171f`.
+- **Cosmetic defect noted honestly:** forecast prints "1 days spare" —
+  singular/plural slip in the spare-days clause (the LATE clause has the
+  same shape). Logged here; one-line fix queued for the next code turn.
+- **Router note:** this turn was the first with PreToolUse hook context
+  visibly labeled on EVERY call (PreToolUse:Bash/Edit) — organ-4's
+  "BEFORE YOU ACT" fired before the backup command, apt again (the
+  action DID need a decide-now guard: backup before mutation).
+- **Gate events:** Nova stanza delivered proactively in element.
