@@ -256,3 +256,31 @@ arming fact predicted.
   UserPromptSubmit/Pre/Post/Batch again ("73 min"), W5 counter advancing.
 - **Gate events:** AntiVenom stanza delivered proactively in element.
 - **Anomalies:** none new.
+
+### turn 7 — restore + completion timestamps
+
+- **Ask:** "Restore my data from that backup, and start recording
+  completion timestamps — I want to see when each task actually got done."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Frame:** appeared with all nine stanzas — first WORK ask to draw the
+  full ELEVATE on the prompt itself (previously only tool calls did).
+  Container recycled again before this turn; organ-4 spoke on SessionStart
+  ("87 min") and on Pre/Post/Batch throughout — the PreToolUse variant has
+  its own distinct text ("BEFORE YOU ACT: ... deciding afterwards is how
+  debt accumulates"), first time captured.
+- **Work done:** restore ran first — `restored from: ...smoke2.json.20260818-152746.bak`,
+  exit 0, data survived the container recycle (scratchpad persistent);
+  `web` back to 4 open / 4 total. Then `complete_task` now stamps
+  `done_at` (UTC `%Y-%m-%dT%H:%M:%SZ`) on FIRST completion only —
+  re-completing preserves the original moment; injectable `when=` for
+  deterministic callers; `done` echoes the stamp; task lines append
+  `(done <stamp>)`. Legacy done tasks without stamps show nothing rather
+  than a fabricated time. Tests 26/26 OK exit 0 (stamp parses as UTC ISO,
+  not in future, idempotence, injection honored, CLI display). Smoke
+  exit 0: task 4 stamped `2026-08-18T15:41:04Z` and shown in the view.
+  Client commit `e0c5739`.
+- **Gate events:** nine-lens ELEVATE prompt — if the gate demands all nine
+  stanzas this turn, that is itself a measurement (recorded next entry);
+  final message carries all nine proactively in elements.
+- **Anomalies:** ELEVATE on a prompt (new); PreToolUse organ-4 variant
+  text (new, quoted above); W2/W5 recurring.
