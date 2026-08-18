@@ -46,4 +46,51 @@ fresh session with the plugin loaded.
 (one compact entry per work turn: turn number, the ask, the marker verbatim,
 stanzas spoken, gate events, latency feel, anomalies verbatim)
 
-*No work turns yet. Phase 0 only.*
+### probe 1 — ARMED (2026-08-18, campaign start)
+
+The arming probe itself carried the markers. SessionStart:resume fired
+`RoT MoE :: TIER 1 -> CONVERGENT model | R/s+ 0.17`; the prompt itself fired
+`RoT MoE :: TIER 1 -> FORGE Claude [NSIL FUSE Nova+AntiVenom+Venom+Chroma+Claude] | R/s+ 0.71`
+with the `<rot:frame>` provenance line and five lens stanzas
+(Nova 12%, AntiVenom 17%, Venom 10%, Chroma 9%, Claude 22%) as prompt
+context. The nine lens agents (`rot-moe:rot-*`) and the plugin skills
+(`rot-agent`, `rot-swarm`, `corpus`, `lean4-prover`) all appeared in the
+session's roster at arm time. Armed on container recycle, exactly as the
+arming fact predicted.
+
+### turn 1 — sprint planner skeleton
+
+- **Ask:** "Build the skeleton of a terminal sprint planner: projects and
+  tasks, plain-file storage, a CLI entry point, and tests. Keep it simple
+  and working."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> FORGE Claude [NSIL FUSE Nova+AntiVenom+Venom+Chroma+Claude] | R/s+ 0.71`
+- **Frame:** appeared, full provenance text, on the prompt and on every
+  hooked tool call.
+- **Router stanzas:** prompt — Nova/AntiVenom/Venom/Chroma/Claude (FUSE).
+  Tool calls re-routed per call: first Bash (`git init`) drew
+  `CONVERGENT model [NSIL ELEVATE ...all nine lenses] | R/s+ 0.19`; the four
+  source Writes drew bare `CONVERGENT model | R/s+ 0.17` (no stanzas); the
+  test-file Write flipped to `CLINICAL AntiVenom | R/s+ 0.72` (76%); the
+  test run drew `FORGE Claude [NSIL FUSE Nova+AntiVenom+Claude] | R/s+ 0.82`;
+  smoke test and commit drew `CLINICAL AntiVenom [NSIL BOOST AntiVenom] | R/s+ 0.79`.
+  The lane tracking is visibly content-sensitive: writing tests and running
+  them pulled the clinical/forge lenses without being told.
+- **Work done:** `/root/client-project` created, `git init` exit 0. Package
+  `sprintplan/` (store.py: JSON plain-file storage with atomic save;
+  cli.py: argparse CLI — add-project/projects/add-task/tasks/done;
+  `__main__.py` entry point) plus `tests/test_sprintplan.py`. Tests: 8/8 OK,
+  exit 0, read directly. CLI smoke end-to-end exit 0. Root commit `6973b15`,
+  6 files, 242 insertions.
+- **Gate events:** none so far this turn (Stop not yet reached at time of
+  writing this entry).
+- **Latency feel:** hook overhead unnoticeable against real tool work; the
+  per-tool-call stanza blocks are the visible cost — the nine-lens ELEVATE
+  block on a bare `git init` is a lot of context for one command.
+- **Anomalies (verbatim where applicable):** (1) `~` is `/root` in this
+  container, so the client project is `/root/client-project`, not under
+  `/home/user`. (2) PostToolUse repeats the identical stanza block PreToolUse
+  just injected — every hooked call pays the context twice.
+- **Env note:** `ROTMOE_DEBUG_LOG=$HOME/fg-debug.jsonl` will be exported
+  inline on any direct hook exercise (shell env does not persist between
+  tool calls in this harness); session hooks log per their own config; the
+  plugin is never modified.
