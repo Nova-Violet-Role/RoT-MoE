@@ -284,3 +284,31 @@ arming fact predicted.
   final message carries all nine proactively in elements.
 - **Anomalies:** ELEVATE on a prompt (new); PreToolUse organ-4 variant
   text (new, quoted above); W2/W5 recurring.
+- **Gate note (recorded next turn):** the nine-lens ELEVATE prompt did NOT
+  trigger a voice-gate block — the final message had proactively spoken
+  all nine in elements, so whether ELEVATE summons all nine at the gate
+  remains unmeasured (no negative control run; deliberate — work turns are
+  not the place to provoke blocks).
+
+### turn 8 — burndown chart
+
+- **Ask:** "Give me a burndown chart for the current milestone — ASCII is
+  fine, I just want remaining points over time at a glance."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+  — second consecutive nine-lens ELEVATE prompt. Organ-4 at "94/95 min".
+- **Work done:** `burndown PROJECT [MILESTONE]` — default picks the
+  "current" milestone (earliest due with open tasks); day-by-day remaining
+  points from first completion to today, 40-char `#` bars, unpointed tasks
+  count 1pt (stated in help), undated legacy completions reported as
+  "Npt done before timestamps" instead of being invented into the curve,
+  ranges over 30 days elide with a count line. Tests 28/28 OK exit 0
+  (2 new: remaining math against injected yesterday/today stamps with
+  shrinking bars, error paths, undated-done separation). Smokes exit 0:
+  default selection picked `web/polish` (earliest due, open), and
+  `web/launch` showed 7pt→5pt after today's completion. Client commit
+  `10472bf`, 2 files, +119.
+- **Router stanzas on tool calls:** same content-lane pattern; the final
+  smoke+commit call drew the full nine-lens ELEVATE (0.19) — ELEVATE now
+  seen on prompts and tool calls in the same turn.
+- **Gate events:** all nine stanzas delivered proactively in elements.
+- **Anomalies:** none new.
