@@ -140,3 +140,33 @@ arming fact predicted.
   (my own error) still drew the pre/post hook pair — hooks fire on failed
   tool calls too.
 - **Anomalies:** none new; W2/W3 patterns recurred as documented.
+- **Post-turn gate:** the plugin gate passed (Venom stanza in element,
+  proactive), but a SECOND, non-plugin Stop hook
+  (`~/.claude/stop-hook-git-check.sh`, the operator's own) blocked with "1
+  unpushed commit(s)... Please push". Pushed, exit 0. Consequence: cadence
+  is push-per-turn in this environment, superseding the 3–4-turn batching.
+
+### turn 3 — roadmap view
+
+- **Ask:** "Now the roadmap: give me a roadmap view — milestones in date
+  order with their tasks and progress at a glance."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EXECUTIVE Venom [NSIL FUSE Nova+Venom] | R/s+ 0.76`
+- **Frame:** appeared; stanzas Nova (26%) + Venom (47%). Second consecutive
+  EXECUTIVE lane for an incremental feature ask.
+- **Router stanzas on tool calls:** CLI edits bare `CONVERGENT | 0.17`;
+  test edit `CLINICAL AntiVenom | 0.72`; test run
+  `FORGE Claude [FUSE Nova+AntiVenom+Claude] | 0.82`; smoke+commit
+  `CLINICAL AntiVenom [FUSE Nova+AntiVenom] | 0.75`. PreToolUse and
+  PostToolUse now BOTH visibly label their duplicate stanza blocks (W2
+  confirmed from both sides this turn).
+- **Work done:** `roadmap [project]` command — milestones across all
+  projects (or one) sorted by (due, project, name); 10-char progress bar;
+  `done/total` count; `OVERDUE` flag when due < today with open tasks;
+  tasks listed beneath each milestone. Tests 15/15 OK exit 0 (new roadmap
+  test covers ordering, half-full bar rendering, overdue flagging on a
+  past date, no flag on a future date, and project filtering). Live smoke
+  exit 0: the 2026-08-01 milestone correctly flagged OVERDUE against
+  today's real date (2026-08-18). Client commit `299d4a1`, 2 files, +54.
+- **Gate events:** none at time of writing; Venom+Nova stanzas delivered
+  proactively in elements in the final message.
+- **Latency feel:** unchanged; no new anomalies.
