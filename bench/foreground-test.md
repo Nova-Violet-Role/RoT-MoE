@@ -109,3 +109,34 @@ arming fact predicted.
 - **Frame:** appeared; stanzas Nova (23%) + AntiVenom (50%).
 - **Work done:** findings file seeded with W1–W4; turn-1 gate record
   corrected in this ledger. Both committed and pushed together.
+- **Gate events:** first Stop passed — the final message carried Nova and
+  AntiVenom stanzas inside literal `<rot:*>` elements (learned from turn 1's
+  block). Confirms the gate is satisfiable proactively.
+
+### turn 2 — milestones
+
+- **Ask:** "Nice start. Now add milestones: group tasks under milestones
+  with target dates, and show them in the CLI."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EXECUTIVE Venom [NSIL BOOST Venom] | R/s+ 0.77`
+- **Frame:** appeared; single stanza Venom (77%). First EXECUTIVE lane of
+  the campaign — an incremental "now add X" ask routed to the decision lens.
+- **Router stanzas on tool calls:** source edits drew bare
+  `CONVERGENT | 0.17`; test-file edits drew `CLINICAL AntiVenom | 0.72`;
+  the test run drew `FORGE Claude [FUSE Nova+AntiVenom+Claude] | 0.82`; the
+  smoke run drew `CLINICAL AntiVenom [BOOST] | 0.79`; the git commit drew
+  the full nine-lens ELEVATE at `0.19`. Same content-sensitivity pattern as
+  turn 1 — lane follows what the command touches, reproducibly.
+- **Work done:** `store.py` gains `add_milestone` (ISO-date validated),
+  `milestones()` accessor tolerant of pre-milestone data files, and
+  `add_task(..., milestone=)` with existence check. CLI gains
+  `add-milestone`, `milestones`, `--milestone` on `add-task`, and `tasks`
+  now groups by milestone in due-date order with a `(no milestone)` bucket.
+  Tests 14/14 OK exit 0 (6 new); CLI smoke exit 0 showing grouped output.
+  Client commit `3214505`, 3 files, +143/−8.
+- **Gate events:** recorded at next entry if the Stop is blocked; final
+  message carries the summoned Venom stanza in its element proactively.
+- **Latency feel:** unchanged — hook time invisible; context weight is the
+  cost. One mid-turn observation: an Edit whose old_string failed to match
+  (my own error) still drew the pre/post hook pair — hooks fire on failed
+  tool calls too.
+- **Anomalies:** none new; W2/W3 patterns recurred as documented.
