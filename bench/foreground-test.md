@@ -760,3 +760,27 @@ arming fact predicted.
   fields correctly. Client commit `f2f3d57`.
 - **Gate events:** Nova stanza delivered proactively in element.
 - **Anomalies:** none new; organ-4 at "336 min", W2/W5 steady.
+
+### turn 28 — color + alignment (pipe-safe)
+
+- **Ask:** "Make the terminal output nicer — some color where it earns
+  its place (overdue in red, that kind of thing) and aligned columns.
+  But it still has to pipe cleanly into files and scripts."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Work done:** `_c(text, code)` gated on `sys.stdout.isatty()` AND
+  `NO_COLOR` unset. Earned color only: OVERDUE/LATE/WON'T CLEAR/ended
+  red; SLIPPING/STALLED yellow; on-track/ON PACE/cleared and `[x]` green;
+  `[>]` cyan; today's overdue/slipping reasons tinted. Aligned:
+  `project/milestone` labels in roadmap, milestone names in forecast.
+  Exports untouched (always plain). The 49 pre-existing tests capture
+  stdout as non-TTY and assert exact plain strings — they double as the
+  pipe-cleanliness regression suite; new test adds the color-ON path
+  (mocked tty → `\033[31mOVERDUE`), the NO_COLOR override, and
+  export-stays-plain-on-tty. One forecast test rewritten line-based for
+  the new padding. Tests 50/50 OK exit 0. Real-terminal verification via
+  `script -qec`: green verdicts and cyan/green marks visible; the same
+  command through a pipe counted ZERO escape bytes (`od -c | grep -c
+  033` → 0). Client commit `edc19c3`.
+- **Router note:** PreToolUse hook context now visibly labeled on every
+  call in this environment; pairs remain byte-identical (W2).
+- **Gate events:** all nine stanzas delivered proactively in elements.
