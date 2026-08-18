@@ -1044,6 +1044,37 @@ hook_mode () {
   # snapshot waiting to drift out of step with the first one.
   _lens=${lane#* }
 
+  # WHICH EVENT FIRED -- extracted HERE, before TIER 2, because NSIL's density
+  # verdicts read it (see _nsil_query below). This extraction used to sit just
+  # above the gauge call; the voice block and the debug record still read the
+  # same `_ev`, now from earlier in the turn. Same parse, same charset guard.
+  _ev='-'
+  case "$payload" in
+    *'"hook_event_name"'*)
+      _ev=${payload#*\"hook_event_name\"}
+      _ev=${_ev#*\"}
+      _ev=${_ev%%\"*}
+      ;;
+  esac
+  case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
+
+  # DENSITY IS A PROPERTY OF A QUERY, NOT OF A COMMAND LINE. Section 3 defines
+  # ELEVATE as "no lane triggers, but the QUERY is dense" and BOOST's density
+  # test rides the same floor. On tool events the routed text is the tool name
+  # plus command/path/pattern/description -- routinely nine-plus words with no
+  # stem in sight -- and the floor read it as a dense query. MEASURED across
+  # two 30-turn live campaigns (W3, bench/foreground-findings.md): bare
+  # git/sed/read tool calls drew the full nine-lens ELEVATE, nine stanzas
+  # injected per call, on text no human asked. So the density verdicts fire
+  # only where a human actually typed the words: the query events. Tool
+  # events keep every verdict that rests on STEMS -- CONFIRM, FUSE, OVERRIDE
+  # -- because a genuine multi-domain command is real signal; only the
+  # words-per-lens heuristic is scoped to words a person wrote. An event this
+  # parse cannot identify ('-') is treated as not-a-query, which is the
+  # conservative side.
+  _nsil_query=0
+  case "$_ev" in UserPromptSubmit|UserPromptExpansion) _nsil_query=1 ;; esac
+
   # TIER 2 (NSIL) decides how many lenses this turn activates. TIER 1's lane is
   # already fixed and is not revisited here.
   #
@@ -1126,7 +1157,7 @@ hook_mode () {
         esac
         ;;
     esac
-  elif [ "$_nsil_n" -eq 1 ] && [ "${_nsil_words:-0}" -ge "$_nsil_floor" ]; then
+  elif [ "$_nsil_n" -eq 1 ] && [ "$_nsil_query" -eq 1 ] && [ "${_nsil_words:-0}" -ge "$_nsil_floor" ]; then
     # BOOST -- "right mode, one lens underweighted; a single λ rises surgically".
     #
     # The mode is CONFIRMED (exactly one lane fired, so nothing contests it) and
@@ -1158,7 +1189,7 @@ hook_mode () {
     NSIL_DECISION='BOOST'
     NSIL_BOOST=$_lens
     _nsil_act=$_lens
-  elif [ "$_nsil_n" -eq 0 ] && [ "${_nsil_words:-0}" -ge "$_nsil_floor" ]; then
+  elif [ "$_nsil_n" -eq 0 ] && [ "$_nsil_query" -eq 1 ] && [ "${_nsil_words:-0}" -ge "$_nsil_floor" ]; then
     NSIL_DECISION='ELEVATE'
     _nsil_act=$NAMES
   else
@@ -1291,21 +1322,10 @@ hook_mode () {
     done
   fi
 
-  # WHICH EVENT FIRED -- hoisted above the gauge call (it used to live inside
-  # the debug-log block, which meant it was only known when logging was on).
-  # The voice block needs it unconditionally: stanzas are legal only on the
-  # events whose stdout the harness feeds to the model, and emitting them
-  # anywhere else would be bytes the model never sees. Same extraction, same
-  # charset guard; the debug record below reads this value.
-  _ev='-'
-  case "$payload" in
-    *'"hook_event_name"'*)
-      _ev=${payload#*\"hook_event_name\"}
-      _ev=${_ev#*\"}
-      _ev=${_ev%%\"*}
-      ;;
-  esac
-  case "$_ev" in (*[!A-Za-z]*|'') _ev='-' ;; esac
+  # WHICH EVENT FIRED -- `_ev` is extracted at the TOP of the turn now, before
+  # TIER 2, because the density verdicts read it (_nsil_query). The voice
+  # decision below and the debug record further down read the same value; the
+  # extraction moved, its parse and charset guard did not.
 
   # THE VOICE DECISION. By Socio directive the lenses speak by default
   # (ROTMOE_VOICE=0 silences them), and they speak MID-WORK too: the harness

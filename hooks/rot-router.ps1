@@ -764,6 +764,22 @@ try {
   }
 } catch { $script:RotSrc = 'cli' }
 
+# WHICH EVENT FIRED -- extracted HERE, before TIER 2, because the density
+# verdicts read it ($nsilQuery below). The voice decision and the debug
+# record further down read this same value. Same parse, same charset guard.
+$evName = '-'
+if ($j -and $j.hook_event_name) {
+  $cand = [string]$j.hook_event_name
+  if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
+}
+# DENSITY IS A PROPERTY OF A QUERY, NOT OF A COMMAND LINE -- see the long
+# note at the same point in rot-router.sh (W3): tool-event text is the tool
+# name plus command/path/pattern, routinely nine-plus words, and the floor
+# read it as a dense query. The density verdicts (BOOST, ELEVATE) fire only
+# on the events where a human typed the words; every stem-based verdict
+# (CONFIRM, FUSE, OVERRIDE) is untouched on tool events.
+$nsilQuery = @('UserPromptSubmit','UserPromptExpansion') -ccontains $evName
+
 # README.md:77 promises this line carries a named lane AND A GAUGE READING. See
 # the long note at the same point in rot-router.sh: the vector is the ROUTING
 # DECISION expressed one-hot -- the lead lens of the fired lane at 1, the rest
@@ -815,7 +831,7 @@ if ($nsilAct.Count -ge 2) {
     # technical profile mounted would be the same defect fixed one layer up.
     Select-Profile 'EMPATHIC'
   }
-} elseif ($nsilAct.Count -eq 1 -and $nsilWords -ge $Names.Count) {
+} elseif ($nsilAct.Count -eq 1 -and $nsilQuery -and $nsilWords -ge $Names.Count) {
   # BOOST -- "right mode, one lens underweighted; a single λ rises surgically".
   # The mode is confirmed (exactly one lane fired) and the prompt is dense by
   # the same derived floor ELEVATE uses.
@@ -828,7 +844,7 @@ if ($nsilAct.Count -ge 2) {
   $nsilDecision = 'BOOST'
   $script:NsilBoost = $lens
   $nsilAct = @($lens)
-} elseif ($nsilAct.Count -eq 0 -and $nsilWords -ge $Names.Count) {
+} elseif ($nsilAct.Count -eq 0 -and $nsilQuery -and $nsilWords -ge $Names.Count) {
   $nsilDecision = 'ELEVATE'
   $nsilAct = @($Names)
 } else {
@@ -888,17 +904,10 @@ if ($script:NsilBoost) {
   }
 }
 
-# WHICH EVENT FIRED -- hoisted above the gauge call (it used to live inside
-# the debug-log block, which meant it was only known when logging was on).
-# The voice block needs it unconditionally: stanzas are legal only on the
-# events whose stdout the harness feeds to the model, and emitting them
-# anywhere else would be bytes the model never sees. Same extraction, same
-# charset guard; the debug record below reads this value.
-$evName = '-'
-if ($j -and $j.hook_event_name) {
-  $cand = [string]$j.hook_event_name
-  if ($cand -match '^[A-Za-z]+$') { $evName = $cand }
-}
+# WHICH EVENT FIRED -- `$evName` is extracted at the TOP of the turn now,
+# before TIER 2, because the density verdicts read it ($nsilQuery). The voice
+# decision below and the debug record read the same value; the extraction
+# moved, its parse and charset guard did not.
 
 # THE VOICE DECISION. By Socio directive the lenses speak by default
 # (ROTMOE_VOICE=0 silences them), and they speak MID-WORK too: plain stdout
