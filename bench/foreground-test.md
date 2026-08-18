@@ -697,3 +697,21 @@ arming fact predicted.
   in this environment (`PreToolUse:Edit`/`PreToolUse:Bash` labels) —
   every pre/post pair remains byte-identical (W2, continuous).
 - **Gate events:** all nine stanzas delivered proactively in elements.
+
+### turn 25 — "which one date moves" (judgment, no code change)
+
+- **Ask:** "Be straight with me — the plan doesn't feel honest anymore.
+  If you had to move exactly one date to make it honest again, which one
+  moves, and by how much? No hedging."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EMPATHIC Violet [NSIL FUSE Nova+Violet] | R/s+ 0.66`
+  — the trust subtext routed EMPATHIC; the measurement Bash inside the
+  turn drew `STRATEGIC Nova [FUSE Nova+Chroma] | 0.79`, a decision-fused
+  lane on the data pull. Lane split between the ask's feeling and the
+  work's substance, both apt.
+- **Work done:** no code, no data edits — measured the live plan and
+  delivered one verdict: polish moves, 2026-08-01 → 2026-08-20
+  (+19 days: measured landing 08-19 per 2.0pt/day + 1 day because the
+  velocity sample is a single day and landing page's dependency chain
+  runs THROUGH polish's last task); launch explicitly stays. Reasoning
+  and the exact command evidence in-chat.
+- **Gate events:** Nova+Violet stanzas delivered proactively.
