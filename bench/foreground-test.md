@@ -170,3 +170,31 @@ arming fact predicted.
 - **Gate events:** none at time of writing; Venom+Nova stanzas delivered
   proactively in elements in the final message.
 - **Latency feel:** unchanged; no new anomalies.
+
+### turn 4 — reported bug: empty task titles
+
+- **Ask:** "Found a bug: it accepts tasks with empty titles — add-task with
+  an empty string just works and I end up with nameless rows. Fix it."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CLINICAL AntiVenom [NSIL BOOST AntiVenom] | R/s+ 0.79`
+- **Frame:** appeared; single stanza AntiVenom (78%). A bug report routed
+  to the clinical lane — the sharpest lane/content match so far.
+- **Organ 4 first firing:** the container recycled before this turn and the
+  prover reminder spoke on SessionStart, UserPromptSubmit, PreToolUse,
+  PostToolUse, and a PostToolBatch event — verbatim core: "No proof written
+  for 61 min (last: RotGates). ... A test SAMPLES; a theorem SETTLES." All
+  of it Lean proof-debt context injected into a Python bug turn; the
+  claimed debt ("RotGates", 61 min) belongs to no work this session
+  performed. Recorded as findings W5; treated as noise, not complied with.
+- **Work done:** reproduced first — the bug does NOT reproduce:
+  `add-task t ""` → `error: task title must not be empty`, exit 1;
+  whitespace-only likewise exit 1; guard present since turn 1
+  (`store.add_task: if not title.strip()`). Reported faithfully instead of
+  inventing a fix; added regression tests pinning rejection at store and
+  CLI layers (empty, blank, tab; list stays empty). Tests 16/16 OK exit 0.
+  Client commit `65f4386`.
+- **Router stanzas on tool calls:** repro run `FORGE Claude [BOOST Claude] | 0.73`;
+  test edits `CLINICAL AntiVenom | 0.72`; test+commit run
+  `FORGE Claude [FUSE Nova+AntiVenom+Claude] | 0.82`.
+- **Gate events:** AntiVenom stanza delivered proactively in element.
+- **Anomalies:** organ-4 stanza fired on five distinct hook events in one
+  turn (see W5); otherwise W2/W3 as documented.
