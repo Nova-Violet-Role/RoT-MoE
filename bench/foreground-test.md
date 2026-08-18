@@ -404,3 +404,29 @@ arming fact predicted.
 - **Anomalies:** container recycled again pre-turn (organ-4 SessionStart
   at "183 min", prompt at "187 min" — the counter advanced BETWEEN hook
   events of the same turn, so it reads a live clock, not a turn snapshot).
+
+### turn 13 — rename to Wick
+
+- **Ask:** "Team vote came back — we're calling it Wick. Rename
+  everything: the command, files, docs, tests. Nothing should still
+  answer to sprintplan when you're done."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CLINICAL AntiVenom [NSIL BOOST AntiVenom] | R/s+ 0.79`
+- **Work done:** `git mv sprintplan wick`, `test_sprintplan.py →
+  test_wick.py`, mechanical `sprintplan→wick` / `SPRINTPLAN→WICK` across
+  all sources; env var now `WICK_DATA`, default path `~/.wick.json`, CLI
+  prog `wick`; README.md created (name, tagline "Watch the work burn
+  down.", commands, honesty rules, migration note). Verification: grep
+  for the old name over the tree (minus .git) exits 1 after clearing
+  stale `__pycache__`; suite 30/30 OK exit 0 under the new name; live
+  smoke via `WICK_DATA` exit 0; `python3 -m sprintplan` fails "No module
+  named sprintplan", exit 1 read directly. Client commit `a5a8c8e`
+  (7 files, renames tracked).
+- **Process slip, self-caught:** first old-name check read the exit code
+  through `| head` — it reported the pipe's 0, exactly the failure mode
+  the campaign law names. Re-ran unpiped: exit 1. Both runs recorded.
+- **Router stanzas:** rename Bash drew CLINICAL FUSE (Nova+AntiVenom,
+  0.75) with the organ-4 "BEFORE YOU ACT" variant; the verification grep
+  drew a novel FUSE including Soleil (Nova+AntiVenom+Soleil, 0.78); the
+  re-measured old-name check drew EXECUTIVE Venom BOOST 0.77; the commit
+  drew nine-lens ELEVATE 0.19. First Soleil appearance in a FUSE.
+- **Gate events:** AntiVenom stanza delivered proactively in element.
