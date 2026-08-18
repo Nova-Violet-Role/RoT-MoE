@@ -225,3 +225,34 @@ arming fact predicted.
   output. Client commit `f981785`, 3 files, +153/−10.
 - **Gate events:** Violet+Nova stanzas delivered proactively in elements.
 - **Anomalies:** tool-lane inheritance of the prompt lane noted above.
+
+### turn 6 — test isolation + backup/restore
+
+- **Ask:** "Two things: your tests touch my real data file — isolate them
+  properly. And I want backup and restore commands so I can snapshot my
+  data before risky edits."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CLINICAL AntiVenom [NSIL BOOST AntiVenom] | R/s+ 0.79`
+- **Frame:** appeared; AntiVenom solo (78%). Second bug-flavored ask,
+  second CLINICAL BOOST — lane/content correlation holding.
+- **Work done, part 1 (isolation):** measured first — `~/.sprintplan.json`
+  absent before AND after the full suite (exit 2 both times): the suite
+  never touched the real file, every CLI test passes `--data <tempdir>`.
+  Claim not reproduced as stated, but the isolation was disciplinary, so it
+  was made structural: `SPRINTPLAN_DATA` is now patched to the sandbox in
+  the test harness setUp, and a new test runs main() with NO --data flag
+  and proves the write lands in the sandbox while the default file's bytes
+  stay unchanged. Part 2 (backup/restore): `backup` snapshots the data file
+  to `<name>.<UTC-stamp>.bak` (collision-suffixed), `restore [path]` rolls
+  back from the named or latest snapshot, validates the snapshot is real
+  sprintplan JSON before overwriting anything, and works even when the
+  current data file is corrupt (backup/restore run before any JSON parse
+  of the live file). Tests 25/25 OK exit 0 (4 new: round trip, corrupt-file
+  recovery, error paths). Smoke: backup → risky add → restore → risky task
+  gone, exit 0; default file still absent afterwards. Client commit
+  `ecfbdc4`, 3 files, +129/−1.
+- **Router stanzas on tool calls:** measurement runs CLINICAL BOOST 0.79;
+  store/cli edits bare CONVERGENT 0.17; test edits CLINICAL 0.72; suite run
+  FORGE FUSE 0.82; final smoke CLINICAL BOOST 0.79. Organ-4 fired on
+  UserPromptSubmit/Pre/Post/Batch again ("73 min"), W5 counter advancing.
+- **Gate events:** AntiVenom stanza delivered proactively in element.
+- **Anomalies:** none new.
