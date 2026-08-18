@@ -430,3 +430,28 @@ arming fact predicted.
   re-measured old-name check drew EXECUTIVE Venom BOOST 0.77; the commit
   drew nine-lens ELEVATE 0.19. First Soleil appearance in a FUSE.
 - **Gate events:** AntiVenom stanza delivered proactively in element.
+
+### turn 14 — brand-refresh plan + SLIPPING warning
+
+- **Ask:** "Two things before next week: sketch me a plan for the brand
+  refresh now that we're Wick — README, help text, anything still bland —
+  and make the roadmap warn me when a milestone's forecast slips past its
+  due date."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> EXECUTIVE Venom [NSIL FUSE Nova+Venom+Chroma] | R/s+ 0.79`
+- **Work done (feature):** velocity math extracted to
+  `store.velocity(proj, today) -> (rate, burned, span) | None`; forecast
+  refactored onto it; roadmap now appends
+  `SLIPPING (forecast lands <date>)` to any milestone whose projected
+  landing (ceil(left/rate)) exceeds its due date — OVERDUE takes priority,
+  no-velocity projects warn nothing rather than guess. Tests 31/31 OK
+  exit 0 (new test: slipping flagged with the exact landing date, slack
+  milestone unflagged, fresh project unflagged). Smoke exit 0 on live
+  data: `polish` OVERDUE (priority held), `launch` clean at current pace.
+  Client commit `9145805`. Brand plan delivered in-chat (not implemented —
+  the ask was a sketch).
+- **Router note:** PreToolUse stanzas now VISIBLE as separate context
+  (previously inferred from PostToolUse duplication) — pre/post pairs
+  observed identical, confirming W2 mechanism directly.
+- **Gate events:** Nova+Venom+Chroma stanzas delivered proactively.
+- **Anomalies:** organ-4 "BEFORE YOU ACT" fired on a Read (not just
+  Edit/Bash) this turn — its surface is any PreToolUse event. W5 family.
