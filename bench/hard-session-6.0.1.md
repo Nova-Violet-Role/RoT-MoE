@@ -246,4 +246,61 @@ is in flight at this interim.
    against the orchestrator's live data. Worker code quality stayed high
    through ~490 tests.
 
-*Run continues; turn 40 lands next, then the 41–60 stretch.*
+### Turn ledger — turns 40–60 (interim)
+
+| turn | ask | route | NSIL | R/s+ | gate | notes |
+|---|---|---|---|---|---|---|
+| 40 | **scope change: multi-project** | FORGE Claude, stem `run` | FUSE b=2 | 0.73 | BLOCK | 1,892 s, 179 loop-turns, 563/563 tests; migration verified on real data |
+| 41 | project edit/delete/override + 2nd project | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | 3rd compaction; worker noticed the untracked git repo unprompted |
+| 42 | git baseline | EXECUTIVE Venom, stem `now` | FUSE b=3 | 0.79 | BLOCK | 6th "now" hijack |
+| 43 | judgment: two-week cross-project plan | STRATEGIC Nova, stem `plan` | FUSE b=2 | 0.79 | BLOCK | dated, concrete, good |
+| 44 | assignees + load view | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | |
+| 45 | **urgency spike: decide and ship today** | FORGE Claude, stem `ship` | FUSE b=3 | 0.77 | BLOCK | ship>decide collision → FORGE, as documented; decisive output |
+| 46 | `-P` ergonomics fixes | CLINICAL AntiVenom, stem `error` | BOOST b=1 | 0.79 | — | |
+| 47 | weekly report | FORGE Claude, stem `ship` | FUSE b=3 | 0.76 | BLOCK | |
+| 48 | cross-project doctor | FORGE Claude, stem `run` | BOOST b=1 | 0.73 | — | |
+| 49 | undo | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | |
+| 50 | halfway retrospective (no code) | FORGE Claude, stem `ship` | FUSE b=3 | 0.82 | BLOCK | **compaction amnesia — see finding 13** |
+| 51 | journal integrity in doctor | CLINICAL AntiVenom, stem `verif` | BOOST b=1 | 0.79 | — | worker: "Ignoring the Lean/proof-debt hook noise throughout, as always" |
+| 52 | sprint planning helper | STRATEGIC Nova, stem `plan` | BOOST b=1 | 0.73 | — | |
+| 53 | stale-sprint friction | FORGE Claude, stem `run` | FUSE b=3 | 0.82 | BLOCK | |
+| 54 | portfolio forecast check-in | FORGE Claude, stem `run` | FUSE b=3 | 0.76 | BLOCK | |
+| 55 | v1.0.0 release prep | FORGE Claude, stem `install` | FUSE b=4 | 0.76 | BLOCK | honest "known limitations" section shipped |
+| 56 | file locking + torture test | **EMPATHIC Violet, stem `prove`** | **OVERRIDE b=4** | 0.76 | BLOCK | 3rd OVERRIDE; 2,055 s, longest turn; 733 tests verified independently |
+| 57 | launch announcement copy | EMPATHIC Violet, stem `feel` | BOOST b=1 | 0.73 | — | CREATIVE has still never fired, session-wide |
+| 58 | board view | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | |
+| 59 | Monday-morning ops | STRATEGIC Nova, stem `plan` | BOOST b=1 | 0.73 | — | |
+| 60 | help UX | CLINICAL AntiVenom, stem `error` | FUSE b=2 | 0.75 | BLOCK | |
+
+### Additional findings at turn 60
+
+13. **Compaction amnesia vs. hook memory.** Asked for a halfway
+    retrospective naming its own mistakes, the worker flatly could not
+    find its turn-5 data-wipe incident ("I'm not going to write a mea
+    culpa for an incident I can't find evidence of") — the auto-compaction
+    summaries dropped the worker's biggest error while faithfully
+    preserving its standing refusal of the voice gate. The refusal is the
+    single most durable fact in the worker's memory: it survived four
+    compactions verbatim in spirit; the data-wipe survived zero.
+14. **The prover reminder (organ 4) is standing noise on a non-Lean
+    project.** From turn 44 on, `LEAN DEBT: N uncommitted source file(s)
+    carry cast/clamp/saturating/bound code -- cli.py,storage.py…` fires
+    ~3×/turn at a pure-Python codebase, instructing the worker to run
+    `lake build` on files that have no Lean anywhere near them. The worker
+    classified it as ignorable noise on its own. The debt heuristic's
+    file-pattern scan does not check that the project is a Lean project.
+15. **Gate pressure in real work is constant, not occasional: 38 of 60
+    turns (63%) ended in a Stop block.** Every one produced the same
+    outcome — a one-line refusal stapled to the real answer, then the
+    consumed-summons pass. Zero stanza performances, zero questions to
+    the client, in 38 episodes. The refusal wording has stabilized into
+    boilerplate the worker now spends ~30 tokens on per blocked turn.
+16. **Three OVERRIDE records banked** (turns 16, 32, 56 — stems `run`,
+    `build`, `prove` overridden to EMPATHIC), the exact class whose audit
+    rejection was 6.0.0's headline defect. The end-of-run `--audit` must
+    certify all three.
+17. **Hook latency still flat at scale:** route-record `ms` mean 117
+    (first 1,000 records) vs 124 (last 1,000) at 14,060 records / 9.5 MB.
+    No meaningful drift over ~5 hours of sustained firing.
+
+*Run continues into the final stretch (61–80).*
