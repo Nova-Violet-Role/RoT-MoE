@@ -81,8 +81,14 @@ arming fact predicted.
   `__main__.py` entry point) plus `tests/test_sprintplan.py`. Tests: 8/8 OK,
   exit 0, read directly. CLI smoke end-to-end exit 0. Root commit `6973b15`,
   6 files, 242 insertions.
-- **Gate events:** none so far this turn (Stop not yet reached at time of
-  writing this entry).
+- **Gate events:** the voice gate BLOCKED the first Stop — verbatim: "RoT
+  voice gate (...): summoned lenses have not spoken this turn. Give each its
+  stanza -- inside its element, in its own register -- then stop" listing
+  Nova/AntiVenom/Venom/Chroma/Claude — even though the final message had
+  spoken all five stanzas in prose (emoji-headed, no markup). Honored the
+  summons exactly: re-spoke each stanza inside its literal `<rot:*>` element,
+  grounded in the turn's real work; the second Stop passed. Measurement: the
+  gate matches on the element tags, not on stanza content (findings W4).
 - **Latency feel:** hook overhead unnoticeable against real tool work; the
   per-tool-call stanza blocks are the visible cost — the nine-lens ELEVATE
   block on a bare `git init` is a lot of context for one command.
@@ -94,3 +100,12 @@ arming fact predicted.
   inline on any direct hook exercise (shell env does not persist between
   tool calls in this harness); session hooks log per their own config; the
   plugin is never modified.
+
+### interstitial — findings file established (admin turn, not one of the 80)
+
+- **Ask:** create `bench/foreground-findings.md` (CRITICAL/BUGS/WARNINGS,
+  facts-only tables) as the standing machine-readable deliverable.
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CLINICAL AntiVenom [NSIL FUSE Nova+AntiVenom] | R/s+ 0.75`
+- **Frame:** appeared; stanzas Nova (23%) + AntiVenom (50%).
+- **Work done:** findings file seeded with W1–W4; turn-1 gate record
+  corrected in this ledger. Both committed and pushed together.
