@@ -146,7 +146,7 @@ lens file may carry.
   <!ENTITY ENV.2  "ROTMOE_VOICE|0 or 1|0 silences the voice block; default on">
   <!ENTITY ENV.3  "ROTMOE_GATE|0 or 1|0 disarms the voice gate; default on">
   <!ENTITY ENV.4  "ROTMOE_MODEL|model name|names the convener on CONVERGENT instead of reading settings">
-  <!ENTITY ENV.5  "ROTMOE_DEBUG_LOG|path|central JSONL sink for route and gauge records">
+  <!ENTITY ENV.5  "ROTMOE_DEBUG_LOG|path or 0|central JSONL sink for route and gauge records; hook mode defaults to a per-session file under the state dir, 0 disables">
   <!ENTITY ENV.6  "ROTMOE_DEBUG_LOG_MAX|integer|line cap on that sink; default 5000">
   <!ENTITY ENV.7  "ROTMOE_DEBUG_LOCAL|0 or 1|forces or forbids the per-project .rot-moe sink">
   <!ENTITY ENV.8  "ROTMOE_DEBUG_SRC|test cli hook|declares record provenance; a declaration outranks inference">

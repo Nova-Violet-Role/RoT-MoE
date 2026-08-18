@@ -954,6 +954,43 @@ hook_mode () {
     . "${0%/*}/rot-env.sh" 2>/dev/null && rot_env_load "$_rot_proj" || :
   fi
 
+  # THE DEBUG CHANNEL IS ON BY DEFAULT IN HOOK MODE -- W7, and the finding
+  # that forced it: a 30-turn live campaign ended with NO log to audit,
+  # because `claude plugin install` wires the hooks and nothing anywhere
+  # sets ROTMOE_DEBUG_LOG. The auditor (checker/log-replay.sh) existed, the
+  # records were safe by design (`chars`, never the prompt), and the whole
+  # channel was dead on every default install (W7,
+  # bench/foreground-findings.md). A capability that is never on is a
+  # capability that does not ship.
+  #
+  # THE RULES, in the order they bind:
+  #   * SET wins, whatever set it -- an env export, or a rot.env parsed
+  #     above (unset-only, so the operator's export outranks the file).
+  #     An explicit path is used; an explicit '' or '0' is OFF.
+  #   * UNSET defaults to a per-session file in the state directory --
+  #     the same directory the summons and stamps already live in.
+  #   * BOUNDED twice: each file by the existing ROTMOE_DEBUG_LOG_MAX trim
+  #     (5000 lines, 80% low-water), and the FILE COUNT by a janitor that
+  #     runs once per session (only when this session's file does not
+  #     exist yet): session logs older than seven days age out. A default
+  #     that accumulates forever would be the 1.4 GB ~/.claude log this
+  #     file's own bounding comment names.
+  #   * HOOK MODE ONLY. The CLI paths (--vector, --route) stay opt-in:
+  #     a command a human runs by hand writes nothing they did not ask for.
+  #   * An unwritable state dir degrades to OFF, never to a failed turn.
+  if [ -z "${ROTMOE_DEBUG_LOG+x}" ]; then
+    _dl_dir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
+    ROTMOE_DEBUG_LOG="$_dl_dir/rot-debug.$_rot_sess.jsonl"
+    if [ ! -f "$ROTMOE_DEBUG_LOG" ]; then
+      if mkdir -p "$_dl_dir" 2>/dev/null; then
+        find "$_dl_dir" -maxdepth 1 -name 'rot-debug.*.jsonl' -mtime +7 -exec rm -f {} + 2>/dev/null || :
+      else
+        ROTMOE_DEBUG_LOG=''
+      fi
+    fi
+  fi
+  case "${ROTMOE_DEBUG_LOG:-}" in 0) ROTMOE_DEBUG_LOG='' ;; esac
+
   # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean. Inference first,
   # then an explicit declaration overrides it, and ONLY for the three known
   # values: unknown_declaration_falls_back proves a typo demotes to inference

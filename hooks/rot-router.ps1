@@ -741,6 +741,30 @@ try {
   }
 } catch { }
 
+# THE DEBUG CHANNEL DEFAULTS ON IN HOOK MODE -- W7; the sh arm carries the
+# full reasoning. PowerShell cannot express a set-but-empty environment
+# variable ($env:X = '' REMOVES it), so '0' is the canonical off switch on
+# both arms; the DTD's ENV.5 says so. Bounded twice: each file by the
+# existing ROTMOE_DEBUG_LOG_MAX trim, the file count by a once-per-session
+# janitor (only when this session's file does not exist yet). An unwritable
+# state dir degrades to OFF, never to a failed turn. CLI stays opt-in.
+if (-not $env:ROTMOE_DEBUG_LOG) {
+  $dlDir = if ($env:ROTMOE_STATE_DIR) { $env:ROTMOE_STATE_DIR }
+           elseif ($env:XDG_STATE_HOME) { Join-Path $env:XDG_STATE_HOME 'rot-moe' }
+           else { Join-Path $HOME '.local/state/rot-moe' }
+  try {
+    $dlPath = Join-Path $dlDir ("rot-debug." + $script:RotSession + ".jsonl")
+    if (-not (Test-Path -LiteralPath $dlPath)) {
+      New-Item -ItemType Directory -Force -Path $dlDir -ErrorAction Stop | Out-Null
+      Get-ChildItem -LiteralPath $dlDir -Filter 'rot-debug.*.jsonl' -ErrorAction SilentlyContinue |
+        Where-Object { $_.LastWriteTimeUtc -lt (Get-Date).ToUniversalTime().AddDays(-7) } |
+        Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+    $env:ROTMOE_DEBUG_LOG = $dlPath
+  } catch { }
+}
+if ($env:ROTMOE_DEBUG_LOG -eq '0') { $env:ROTMOE_DEBUG_LOG = $null }
+
 # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean.
 #
 # Measured 2026-08-09: seven checkers (bench-router, debug-channel, cross-diff,
