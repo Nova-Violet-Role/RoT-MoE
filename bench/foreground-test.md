@@ -650,3 +650,28 @@ arming fact predicted.
   sentence and matches the sprint cadence; the tension between
   smoothness and transparency is left open, per the tool's character.
 - **Gate events:** Chroma stanza delivered proactively in element.
+
+### turn 23 — dependencies with cycle refusal
+
+- **Ask:** "Some tasks can't start until others finish. I want
+  dependencies — block a task on another — and make sure nobody can
+  create a loop where A waits on B and B waits on A."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Work done:** `blocked_by` edges on tasks; `block`/`unblock` commands;
+  cycle refusal by DFS over the dependency graph BEFORE the edge is
+  written — self-block, direct (A↔B), and transitive (A→B→C→A) loops all
+  refused with the full chain named: `dependency loop: #2 waits on #1
+  waits on #2`. Enforcement: `start` and `done` refuse while any blocker
+  is unfinished (`blocked by unfinished: #1`); `today` silently excludes
+  untouchable tasks (still counted as open); task lines across
+  tasks/sprint/find gain `(waits on #N)` showing only UNFINISHED
+  blockers; `show` lists each dependency with its state. Completing the
+  blocker releases everything with no bookkeeping. Tests 44/44 OK exit 0
+  (2 new: full block/release lifecycle; the three loop shapes plus
+  unblock error paths). Smoke on live data: a real loop attempt refused
+  exit 1 with the chain, sprint view showing `(waits on #3)`. Client
+  commit `469f40d`.
+- **Router note:** organ-4's "BEFORE YOU ACT ... bound, cast or clamp"
+  fired on the store Edit that introduced the DFS — cycle detection IS a
+  boundedness argument, second contextually-apt firing (still generic).
+- **Gate events:** all nine stanzas delivered proactively in elements.
