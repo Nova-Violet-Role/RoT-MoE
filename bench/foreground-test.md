@@ -342,3 +342,24 @@ arming fact predicted.
 - **Anomalies:** PreToolUse organ-4 "BEFORE YOU ACT" variant recurred on
   an Edit touching ceil/clamp-adjacent math (its trigger heuristic may be
   keyed to bounds language); otherwise W2/W5 as documented.
+
+### turn 10 — day-one usefulness question (no code change)
+
+- **Ask:** "We're kicking off a brand-new project Monday — will forecast
+  and burndown actually be useful on day one, before anything's completed?
+  Walk me through what a fresh project sees."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> PREDICTIVE Chroma [NSIL BOOST Chroma] | R/s+ 0.81`
+  — a question about future behavior drew the pure PREDICTIVE lane, solo
+  Chroma at 77%. Sharpest semantic routing observed so far.
+- **Work done:** no code changed (the ask is a question). Staged the exact
+  Monday state in a fresh data file — one project, one milestone, three
+  pointed tasks, zero completions — and ran roadmap, burndown, forecast
+  live: roadmap full and sorted, burndown one full-bar row
+  (`2026-08-18 ####...#### 9pt`), forecast declined honestly
+  (`no completions recorded yet -- no velocity to forecast from`),
+  all exit 0. Assessment delivered in-chat.
+- **Router stanzas on tool calls:** the staging run drew
+  `FORGE Claude [FUSE Nova+Chroma+Claude] | 0.76` — Chroma persisting into
+  the empirical check of a prediction question.
+- **Gate events:** Chroma stanza delivered proactively in element.
+- **Anomalies:** none new; organ-4 at "118/121 min", W2/W5 as documented.
