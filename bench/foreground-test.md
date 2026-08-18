@@ -601,3 +601,28 @@ arming fact predicted.
   `STRATEGIC Nova [BOOST Nova] | 0.73` — a documentation-check command
   routed to the strategy lane, a new lane/content pairing for the record.
 - **Gate events:** Claude stanza delivered proactively in element.
+
+### turn 21 — two morning bugs
+
+- **Ask:** "`wick add-task` with `-p` blows up — it can't tell if I mean
+  priority or project. And I managed to create a milestone with a due
+  date in the past and nothing said a word."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CLINICAL AntiVenom [NSIL FUSE Nova+AntiVenom] | R/s+ 0.75`
+- **Work done:** both reproduced FIRST, both real. (1) `--p` hit argparse
+  prefix-abbreviation: "ambiguous option: --p could match --points,
+  --priority" (and --project/--priority on find) — the user's words
+  verbatim in the tool's own error. Fix: `allow_abbrev=False` via a
+  parser subclass all subparsers inherit; `--p` is now a clean
+  "unrecognized arguments", never a guess. (2) past-due milestone was
+  created silently, exit 0. Fix: still created (backfilling is
+  legitimate) but warns on stderr: "warning: due date 2026-08-01 is
+  already 17 days in the past". README troubleshooting rows added for
+  both. Tests 40/40 OK exit 0 (abbreviation rejected across three
+  spellings with no "ambiguous" in stderr; past-due warns, future stays
+  silent). Live verification exit codes read directly (2 and 0
+  respectively). Client commit `0c03410`.
+- **Router note:** first turn observed with PreToolUse hooks visibly
+  labeled `PreToolUse:` in transcript alongside PostToolUse — pre/post
+  pairs byte-identical throughout (W2, now seen from both sides on every
+  call).
+- **Gate events:** Nova+AntiVenom stanzas delivered proactively.
