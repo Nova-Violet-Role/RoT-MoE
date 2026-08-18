@@ -784,3 +784,25 @@ arming fact predicted.
 - **Router note:** PreToolUse hook context now visibly labeled on every
   call in this environment; pairs remain byte-identical (W2).
 - **Gate events:** all nine stanzas delivered proactively in elements.
+
+### turn 29 — config file
+
+- **Ask:** "I keep typing the same flags every day. Give wick a config
+  file — default project, my usual today limit, that sort of thing — and
+  sane precedence: flags beat config, config beats built-ins."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Work done:** `~/.wickrc` (JSON; `WICK_CONFIG` relocates it), keys
+  `data`/`project`/`today_limit`/`standup_since` with types validated
+  (bad value = clear error exit 1; unknown key = typo warning, still
+  works; broken JSON = refusal, not a guess). Precedence: flag > WICK_*
+  env > config > built-in, proven by tests both ways for `data`. Config
+  `project` fills the now-optional positional on tasks/milestones/
+  sprint/burndown ("no project given and no 'project' in config" when
+  neither); multi-project views deliberately keep their see-everything
+  default. `wick config` prints the file path and each key with its
+  source ("web (config)" / "3 (built-in)"). Test harness now also
+  isolates WICK_CONFIG into the sandbox. Tests 53/53 OK exit 0 (3 new).
+  Smoke exit 0: bare `wick sprint` and `wick today` running off config
+  with the 2-pick limit visible. Client commit `113685e`.
+- **Gate events:** all nine stanzas delivered proactively in elements.
+- **Anomalies:** none new; organ-4 at "358 min", W2/W5 steady.
