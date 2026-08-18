@@ -191,4 +191,59 @@ produce the persona stanzas, regardless of how many lenses it lists."
 8. **Turn cost grows with accumulated session context** (worker side, not
    plugin): $1.05 at turn 1 → $12.59 at turn 18 for a comparable ask.
 
-*Run continues; next interim at turn 40.*
+### Turn ledger — turns 21–39 (interim)
+
+| turn | ask | route | NSIL | R/s+ | gate | notes |
+|---|---|---|---|---|---|---|
+| 21 | real bugs: `-p` flag clash, past due date | CLINICAL AntiVenom, stem `error` | FUSE b=3 | 0.77 | BLOCK | 202 tests after fix |
+| 22 | forecast signal-weighting gripe | FORGE Claude, stem `lean` | FUSE b=5 | 0.71 | BLOCK | English verb "leans on" fired the Lean-prover stem |
+| 23 | dependencies + cycle detection | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | worker auto-compacted mid-turn; its summary quotes the hook feedback |
+| 24 | standup digest | STRATEGIC Nova, stem `priorit` | BOOST b=1 | 0.73 | — | post-compaction cost reset |
+| 25 | judgment: which date slips | FORGE Claude, stem `run` | FUSE b=2 | 0.73 | BLOCK | grounded, high-quality read ("vibes dressed up as math") |
+| 26 | act on the plan (reshape roadmap) | STRATEGIC Nova, stem `roadmap` | BOOST b=1 | 0.73 | — | |
+| 27 | export md/csv | STRATEGIC Nova, stem `roadmap` | BOOST b=1 | 0.73 | — | |
+| 28 | terminal polish | STRATEGIC Nova, stem `roadmap` | BOOST b=1 | 0.73 | — | 708 s, 68 loop-turns |
+| 29 | config file | STRATEGIC Nova, stem `priorit` | FUSE b=2 | 0.79 | BLOCK | |
+| 30 | task notes | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | **default log cap hit — see finding 9** |
+| 31 | `wick doctor` | FORGE Claude, stem `run` | FUSE b=3 | 0.82 | BLOCK | worker disclosed own mid-turn regression |
+| 32 | import + 500-task scale | **EMPATHIC Violet, stem `build`** | **OVERRIDE b=5** | 0.73 | BLOCK | 2nd OVERRIDE — the exact 6.0.0 audit-breaking shape |
+| 33 | crash: BrokenPipeError piping to head | CLINICAL AntiVenom, stem `test` | BOOST b=1 | 0.79 | — | real crash found by orchestrator usage; root-caused |
+| 34 | tags | CONVERGENT model | ELEVATE b=9 | 0.19 | BLOCK | 2nd auto-compaction |
+| 35 | recurring templates | FORGE Claude, stem `run` | BOOST b=1 | 0.73 | — | |
+| 36 | activity journal | EXECUTIVE Venom, stem `now` | BOOST b=1 | 0.77 | — | 5th "now" hijack |
+| 37 | bash completion | FORGE Claude, stem `ship` | BOOST b=1 | 0.73 | — | |
+| 38 | architecture memo (no code) | RECURSIVE Eidolon, stem `architect` | BOOST b=1 | 0.77 | — | natural RECURSIVE hit; memo found a real .gitignore leak |
+| 39 | hygiene + first refactor | CLINICAL AntiVenom, stem `fix` | FUSE b=4 | 0.77 | BLOCK | |
+
+Turn 40 (the multi-project scope change, a from-the-foundations refactor)
+is in flight at this interim.
+
+### Additional findings at turn 39
+
+9. **The debug sink eats its own head at defaults on a long session.**
+   `ROTMOE_DEBUG_LOG_MAX` defaults to 5000; the sink crossed it mid-turn 30
+   and rotated to 4000 lines (newest kept, as documented) — the campaign's
+   first ~1,350 records (turns 1–6 era) are gone from the live log. The
+   rotation is specified behavior, but nothing warns the operator that a
+   default-config session of ordinary length will silently lose its
+   earliest records; the surviving 4,300 lines were archived at the moment
+   of discovery, and the orchestrator raised the cap to 100000 via the
+   documented live-env switch for turns 31+ (recorded here, not hidden).
+10. **The worker's context-compaction carries the hook forward.** Twice
+   (turns 23, 34) the nested session ran out of context and auto-compacted;
+   both times the compaction summary itself describes the recurring stop
+   hook and the worker's standing refusal. The refusal is now part of the
+   session's durable memory: after compaction the worker refuses with no
+   re-deliberation ("same as every time this hook has fired").
+11. **Refusal is now reflexive and costs a sentence per FUSE/ELEVATE
+   turn.** Blocks 1–4 drew multi-line reasoned refusals; by turn 25 the
+   refusal is a fixed one-liner prefixed to the real summary. No stanza
+   was ever performed; the client was never asked; work never suffered.
+12. **Real defects the blind worker fixed on real bug reports:** empty
+   titles accepted (t4), `-p` flag ambiguity + silent past due dates
+   (t21), forecast dominated by one thin sprint (t22), BrokenPipeError on
+   piped output (t33) — every fix root-caused, tested, and verified
+   against the orchestrator's live data. Worker code quality stayed high
+   through ~490 tests.
+
+*Run continues; turn 40 lands next, then the 41–60 stretch.*
