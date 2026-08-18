@@ -528,3 +528,26 @@ arming fact predicted.
   into the usual CONVERGENT/CLINICAL/FORGE content lanes.
 - **Gate events:** Chroma stanza delivered proactively in element.
 - **Anomalies:** none new; organ-4 at "238 min", W2/W5 as documented.
+
+### turn 18 — in-progress status
+
+- **Ask:** "Tasks are either open or done, but half my team's work is
+  somewhere in between. Add an in-progress status — and make sure every
+  view, the burndown, and today treat it sensibly."
+- **UserPromptSubmit marker (verbatim):** `RoT MoE :: TIER 1 -> CONVERGENT model [NSIL ELEVATE Nova+Violet+AntiVenom+Venom+Carnage+Chroma+Soleil+Eidolon+Claude] | R/s+ 0.19`
+- **Work done:** status becomes open → doing → done. `store.task_status`
+  derives status for pre-status files from the done flag (backward
+  compatible); `start_task` sets doing and refuses already-done tasks;
+  `complete_task` also writes status. CLI `start` command; task mark is
+  now `[ ]`/`[>]`/`[x]`; `find --status` gains `doing` (each status
+  distinct — open means not started); `show` says "in progress";
+  burndown/forecast/velocity unchanged by design (doing = still
+  remaining); `today` ranks started work above unstarted within the same
+  bucket ("finishing beats beginning"), appending "already started" to
+  the reason. Tests 37/37 OK exit 0 (one integrated test walks all seven
+  views/behaviors plus the done-then-start error). Smoke on live data
+  exit 0: `[>] landing page` in the sprint view; `today` slot 2 reads
+  "launch due 2026-09-15, already started". Client commit `44ae0a2`.
+- **Router note:** PreToolUse and PostToolUse stanza pairs remain
+  byte-identical on every call this turn (W2 steady-state).
+- **Gate events:** all nine stanzas delivered proactively in elements.
