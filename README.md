@@ -199,189 +199,16 @@ other decides **how the reasoning is framed** before it.
 
 ---
 
-## 🌟 Why Lean 4 — and why you should be excited about it
+## 🌟 Lean 4, and the shared theorem corpus
 
-**This repository exists because of Lean 4, and it deserves the front page.**
-
-Lean 4 is a *proof assistant* and a real programming language at the same time.
-You write mathematics in it, and a **kernel of a few thousand lines** re-derives
-every single inference step from the axioms. Not "the tests passed". Not "the
-reviewer agreed". The machine reconstructed the argument and found no gap.
-
-Three things make that extraordinary rather than merely nice:
-
-* **A theorem is not a sentence — it is a claim over an infinite space.**
-  `∀ (p q : Platform), key p = key q → p = q` is checked for *every* pair that
-  could ever exist. A test suite could run for a century and cover a rounding
-  error's worth of that. This is the difference between *sampling* and
-  *settling*, and once you have felt it you cannot unfeel it.
-* **[mathlib](https://leanprover-community.github.io/) is one of the great
-  collaborative artefacts in mathematics** — over a million lines of formalised
-  analysis, algebra, topology and order theory, all machine-checked, all free,
-  all reusable by you today. The `sigma_strictMono` proof in this repo stands on
-  work that thousands of contributors put there first. That is what `import
-  Mathlib` actually means: you inherit a library of *certainty*.
-* **Dependent types let the type carry the promise.** A function can be typed so
-  that "this list is non-empty" or "this index is in range" is impossible to get
-  wrong — the compiler refuses the mistake instead of the runtime discovering it.
-
-And Lean is genuinely a **problem solver**, not a bureaucrat. `omega` closes
-linear arithmetic, `decide` settles finite questions by computation, `ring` and
-`linarith` do the algebra you would have done by hand, `grind` and `aesop` search
-for the proof, and `exact?` will *find the lemma for you* out of all of mathlib
-and print the exact line to write. Several proofs here were finished by asking
-the compiler what it already knew.
-
-It is also honest in a way software rarely is. When a theorem in this repo was
-**false**, Lean simply refused — no amount of confidence moved it. That refusal
-is recorded in `RotPath.lean` rather than quietly patched, because being told
-"no" by a machine that cannot be argued with is the most useful thing that
-happened to this codebase.
-
-> 💛 **Never touched a proof assistant? You are exactly who this section is
-> for.** You do not need Lean to use this plugin, and you do not need a maths
-> degree to start: [Natural Number Game](https://adam.math.hhu.de/) teaches you
-> your first real proofs in a browser, in an afternoon, for free. If this
-> repository is the reason you try it, that is a better outcome for us than any
-> star.
-
-- ✅ works on Windows, macOS and Linux — two arms, byte-identical output
-- ✅ installs offline in seconds, `DISARM_ROUTER` removes exactly what it added
-- ✅ **no Lean required to use it**; Lean is only for re-verifying the proofs
-- ✅ every checker carries a negative control that has been seen to fail
-- ✅ dual-licensed AGPL-3.0-or-later **OR** EUPL-1.2, your choice
-
----
-
-## 🌍 Share your theorems — a fourth way to populate a coding agent
-
-**An open invitation.** If you run RoT MoE on your own repository, you
-accumulate Lean proofs *about that repository*. Right now those proofs die
-there. [`Lean Theorem/`](Lean%20Theorem) is a folder in this repo where you can
-contribute them — **by fork and pull request, entirely at your own choice**.
-
-### Your project can stay closed
-
-This is what makes it possible at all: **a proof carries the property, not the
-source.**
-
-A theorem stating that your scheduler never emits a negative delay is a
-statement about *arithmetic and a bound*. It is not a copy of your scheduler.
-Proprietary, private, unreleased, commercial — none of that is an obstacle,
-because what travels is the **verified claim**, never the implementation. That
-is why a closed project can contribute to an open corpus and give up nothing.
-
-Nothing is ever uploaded automatically. No hook in this plugin reads your
-repository and sends anything anywhere. If you do nothing, nothing happens.
-
-### Why this is not MCP, not a Plugin, not a Skill, not a Connector
-
-Those four all exist and all work — and every one of them supplies something
-*different* from what this does:
-
-| mechanism | what it gives the agent | is it verified? |
-|---|---|---|
-| **MCP server / Connector** | **access** — a live system, an API, data at runtime | no; the server can return anything |
-| **Plugin / Skill** | **procedure** — instructions, a workflow, how to do a thing | no; advice can simply be wrong |
-| **Fine-tuning / pre-training** | **disposition** — changed weights, baked in | no; and you cannot inspect what was learned |
-| **`Lean Theorem/`** | **settled knowledge** — machine-checked prior art about a domain | **yes — a kernel already checked it** |
-
-That last row is a category the other three do not have a member of. Everything
-else in the list hands the model something *unverified* and asks it to be
-careful. A theorem that builds at `lake build` exit 0, carries no `sorry`, and
-survives `leanchecker` **cannot be wrong about what it states.** It is the only
-payload on that list that arrives with its own correctness guarantee attached.
-
-**So this is a new way of populating a coding agent**: not with tools, not with
-instructions, not with weights — with *proof*.
-
-### And it needs no training whatsoever
-
-RoT is **generated per query, not pre-trained** — that is the row in the
-comparison table [above](#-what-rot-means-and-how-it-sits-next-to-cot-and-tot),
-and it is what makes this almost absurd.
-
-A corpus like this would normally be **training data**. You would need a
-pipeline, a fine-tuning run, GPUs, an evaluation harness, and at the end of it a
-set of weights nobody can inspect. Here there is no training step at all,
-because the thought layer is *separate from the model*. The corpus is **context,
-not gradient**. It is read at inference, like any other file on disk.
-
-Which means the entire mechanism is:
-
-> **A fetchable proof corpus, shipped inside a shell-script router.**
-
-No server. No runtime dependency. No network. No weights. **No Lean installation
-required to benefit** — the proofs are text, and text is what a model reads.
-Every user who contributes makes the next unfamiliar repository slightly less
-unfamiliar for everyone, and the cost of carrying that is a rounding error
-against a 9.2 MB plugin.
-
-### How the nine lenses profit — concretely
-
-The corpus is not decoration for the router; each lens draws something different
-out of it, which is precisely what a single-perspective agent cannot do:
-
-| lens | what a shared proof base gives it |
-|---|---|
-| 🧭 **Claude** (Forge) | prior art for `GROUND_TRUTH` — a real formalization to measure against instead of reasoning from nothing |
-| ⚪ **Anti-Venom** (Clinical) | the `mutate/` half — **which properties survived attack**, the fastest route to what is actually load-bearing |
-| ⚜️ **Nova** (Strategic) | how a domain was decomposed — what was worth stating at all, which is a strategy question before it is a proof question |
-| 🜏 **Eidolon** (Recursive) | the *shape* of a formalization, reusable across domains that look nothing alike |
-| 🔮 **Chroma** (Predictive) | which assumptions later broke — a contributed suite records the edits that killed a theorem |
-| 🕷️ **Venom** (Executive) | a decidable model already built, so a decision can be closed rather than deliberated |
-| 🩸 **Carnage** (Creative) | cross-domain collision — a bound proved about a game plugin suggesting one about a rate limiter |
-| ⬜ **Soleil** (Stealth) | the compressed statement of a property, which is what a theorem already is |
-| 🎷 **Violet** (Empathic) | why the property mattered to the person who proved it — the `README.md` beside each subject |
-
-**Honesty about what is measured here.** The corpus itself is measured: **8
-modules, 71 theorems, 112 KB** on disk today, counted by `ls` and
-`checker/count-theorems.sh` — and `checker/repo-complete.sh` refuses to pass if
-that folder is missing, empty, undocumented, or counts zero. The first draft of
-this sentence said 1608, from grepping the word `theorem`; the canonical counter
-excludes the word where it appears in a doc comment, and it is the authority. The *benefit* to an unfamiliar repository is a
-design claim and is **NOT yet measured** — no experiment in this repo has
-demonstrated it, and it is not counted among the verified results below. It is
-labelled as the open question it is, not sold as a finding.
-
-### Getting the corpus, and keeping it current — `/corpus`
-
-**The corpus is fetched, not shipped, and that is a deliberate design decision.**
-It grows by fork and pull request. If it travelled only inside release archives,
-every contributed theorem would need a new plugin release — the version number
-would be tracking other people's proofs instead of the plugin's own behaviour.
-
-So the archives carry a **seed**, and a fetcher keeps it current:
-
-```sh
-./SETUP_CORPUS.sh --check      # report only; writes nothing
-./SETUP_CORPUS.sh              # detect, show exactly what changes, ask
-./SETUP_CORPUS.sh --yes        # non-interactive refresh
-```
-
-```powershell
-.\SETUP_CORPUS.ps1 -Check      # both arms, one behaviour, identical exit codes
-```
-
-It follows the same contract `SETUP_LEAN` already uses here — **detect what you
-have, say what will change, ask before doing it** — and inside a session
-`/corpus` dispatches it.
-
-| exit | meaning |
-|---:|---|
-| `0` | current, or you declined — **nothing was written** |
-| `3` | `--check`: an update is available |
-| `4` | `--check`: the corpus is absent |
-| `2` | refusal — bad argument, no downloader, or the remote is unreachable |
-| `1` | the fetch **failed**; your existing corpus is untouched |
-
-**It will not silently overwrite your work.** Files changed since the last fetch
-are listed before anything happens, the previous corpus is moved aside as
-`Lean Theorem.pre-fetch-<timestamp>.bak` rather than deleted, and a download
-arriving with zero `.lean` files is refused outright — that is an erasure, not an
-update. All five exit codes above were measured on the POSIX arm against the live
-repository; the unreachable-remote path was exercised with a nonexistent repo and
-degrades to a message, not a stack trace.
+Why Lean 4 is the spine of this repository, what the shared Theorem corpus
+is, why your project can stay closed while still profiting from it, how the
+nine lenses profit concretely, and the `/corpus` command that keeps it
+current — the full essay moved to
+[docs/lean-and-corpus.md](docs/lean-and-corpus.md) so the front page stays
+walkable. The short version: theorems are the only claims in this
+repository that cannot rot silently, and the corpus is how they are shared
+without sharing your code.
 
 ---
 
@@ -435,262 +262,13 @@ instead of the kernel, which would quietly undo the point of the whole exercise.
 > and wrote the reason into the file, where the next reader will find it.
 > `NOTICE.md` §C keeps the full engineering log for anyone who wants it.
 
+
 ### 📐 The modules that carry an argument
 
-Fifteen are described below, out of 79 in the tree. This heading read *"the ten
-modules"* while listing fifteen — a count frozen when the section was written and
-never recounted as modules joined it. The section is **not** an inventory and
-does not try to be: it walks the modules where the *proof* is the interesting
-part, and each one states the defect it was written after. The full count is
-machine-generated, and lives in the release table and `STATUS.md` rather than in
-a heading that has to be edited by hand every time the tree grows.
-
-* **`lean/Proofs/RotGates.lean`** (50 theorems) — **what may be deferred at a
-  commit, and what may never be skipped in CI.** Two regimes, and the module
-  states both because they have opposite answers.
-
-  **In CI: nothing may be skipped.** Measured on run `31036272155` — which
-  concluded `success` — **eight steps were skipped**, and one of them was
-  `tty guard`, a real check that had therefore never run on Windows or macOS.
-  `any_authored_skip_is_dishonest` makes one skip sink a run for any step name;
-  `skipping_somewhere_is_still_dishonest` refuses the tempting excuse that
-  running on another platform redeems it; `success_is_the_only_green` proves
-  exactly one of the five GitHub outcomes is a pass, so `cancelled` and
-  `neutral` — both of which render as "not red" — are failures.
-  `no_authored_skip_is_implied` derives the no-skip rule rather than assuming
-  it, which is why there is no clause an edit could relax. An earlier draft of
-  this section classified steps into `provision` and `verify` and *proved
-  provisioning may skip*; that was the law being weakened to fit the CI, and the
-  `kind` field is gone so there is nowhere left to put "this one does not
-  count". The workflow was fixed instead: all four `if: runner.os` steps now run
-  everywhere and branch inside. **Run `31045719329` measured the result: zero
-  skipped steps.**
-
-  **The one exemption, and why it cannot spread.** GitHub injects its own
-  scaffolding (`Set up job`, `Post <action>`), and it decides whether that
-  scaffolding runs. Those steps are exempt from the skip rule — and from
-  *nothing else*. `stepIsAcceptable` consults the scaffolding predicate in the
-  `skipped` arm only, and `scaffolding_failure_is_still_dishonest` proves a
-  `Post ` step that FAILS sinks the run for every possible name. The asymmetry
-  is load-bearing, not decorative: mutating the failure arm to consult the same
-  predicate kills nine theorems, and widening the predicate to match every name
-  kills the run witnesses.
-
-  `checker/ci-honesty.sh` is the executable half — it reads the run for `HEAD`
-  over the API and fails on any skip or any failure, with five negative
-  controls, two of which assert exactly this asymmetry.
-
-  **At a commit: the split is deferral, not skipping.** The gate set had grown
-  to **587 s**, so it is now split: cheap gates
-  run on every commit, expensive ones run when the commit *touches what they
-  check*. That is a mechanism which already produced one false green here — a
-  gate behind `FULL=1` was red while the sweep printed `26/26 GREEN` — so the
-  split is proved rather than trusted: `fast_always_runs` (an unconditional gate
-  runs whatever is staged), `triggered_gate_runs`, `stagedRun_mono` (staging
-  *more* never runs *less*, so no commit can dodge a gate by growing), and
-  `no_trigger_never_escalates` — a deep gate with no triggers is invisible to
-  every possible commit, which is the silent hole stated as a theorem.
-  Quantified over an arbitrary gate table, so adding a gate cannot date them;
-  `checker/gate-split.sh` binds the witness to the real runner.
-* **`lean/Proofs/RotGauge.lean`** (49 theorems) — the R/s+ gauge.
-  `sigma_strictMono`, `gauge_pos`, `gauge_ge_floor`, `gauge_not_constant`,
-  `gauge_divisor_eq_card`. The last one is the theorem that would have caught a
-  real bug in the shipped hook, where one lens's activity was pinned at zero
-  while still dividing the sum by K.
-* **`lean/Proofs/RotKernelVerdict.lean`** (9 theorems) — the kernel re-check is a
-  verdict, not a formality. A module that elaborates is not the same as a proof
-  term the kernel re-accepted, and these separate the two so a green `lake build`
-  can never stand in for `leanchecker`.
-* **`lean/Proofs/RotBandPerLane.lean`** (12 theorems) — one band for ten lanes is
-  a coincidence, not a bound. The gauge read every score against `0.9–1.8`, which
-  is one lane's range applied to all of them, so a CREATIVE turn at 1.4 printed
-  IN RANGE while its own band starts at 1.5 and the correct signal was *add
-  entropy*. The load-bearing theorem is not that the table is correct but that
-  **no single band can reproduce the per-lane law** — proved by exhibiting a
-  score two lanes classify differently. The old band disagreed on nine of the ten
-  lanes; it agreed only with FORGE, which is exactly why it survived review.
-* **`lean/Proofs/RotBandMonitor.lean`** (11 theorems) — the gauge's own band. An
-  out-of-range R/s+ is a *correction signal*, never a veto, and these pin that
-  distinction: below range demands more divergence, above range demands
-  convergence, and neither is permitted to refuse an answer.
-* **`lean/Proofs/RotNsilBoost.lean`** (9 theorems) — NSIL's BOOST decision. A
-  boost raises one lens surgically without letting it take the lead, which is the
-  property that keeps this a mixture rather than a single expert wearing eight
-  hats.
-* **`lean/Proofs/RotHostScaledBound.lean`** (6 theorems) — the latency bound
-  scaled to the measuring host. A wall-clock number is meaningless without the
-  machine's spawn tax; these prove the scaling is monotone and never flatters a
-  slow host into passing.
-* **`lean/Proofs/RotRoute.lean`** (18 theorems) — the router as a function.
-  `route_fires`, `route_covers_every_mode` (no dead lane), `route_exact` (all
-  ten lanes characterised in both directions), and the headline
-  `nsil_overrides_tier1` — which proves both that the override lands *and* that
-  it genuinely differs from the keyword result, the difference between a router
-  and an `if`-chain.
-* **`lean/Proofs/RotStem.lean`** (13 theorems) — stem matching proved over an
-  **arbitrary vocabulary**, so the theorems do not expire the next time a stem is
-  added. `fires_iff` pins firing to genuine infix containment; `not_fires_nil`
-  proves an empty stem list is not a wildcard; `fires_mono` and `fires_perm` say
-  growing the list can only add matches and that the *order* of stems never
-  changes the outcome — the property that makes the word list safe to edit.
-  `routeText_sound` is the headline: every routing result is either CONVERGENT or
-  a lane whose own stems actually fired, so no lane can be reached by accident.
-  Since 0.8.0 it also specifies **the matcher itself**, which had never been
-  modelled: a stem must start a word. `firesWord_imp_fires` is what made that
-  change safe to ship — word-prefix firing implies substring firing for *every*
-  prompt and *every* class, so the new rule can only remove a false positive and
-  can never move a prompt onto a lane it was not already reaching.
-  `firesWord_strictly_weaker` proves the guarantee is not vacuous by exhibiting
-  a prompt the old matcher accepts and the new one rejects: **improve** does not
-  contain the stem `prove` at a word boundary.
-* **`lean/Proofs/RotPath.lean`** (12 theorems) — path canonicalisation, written
-  *after* a real stranding bug: the two installer arms wrote different command
-  strings for one install, and removal matches by exact string, so installing
-  from one shell and uninstalling from the other left a dead hook entry forever.
-  `both_spellings_agree` proves the Windows and POSIX spellings converge to one
-  string, quantified over an arbitrary drive so it does not expire when the repo
-  moves. `normalize_idem`, `normalize_posix_id` (a Linux path is never
-  rewritten), and `normalize_not_alpha_drive` — which replaced a **false**
-  theorem the compiler refused, recorded in the source rather than quietly fixed.
-* **`lean/Proofs/RotInstall.lean`** (23 theorems) — arming never disarms you.
-  `arm_preserves_all_scalars` and `arm_preserves_unrelated_events`, quantified
-  over **all keys**, so your `permissions`, your `env`, and every key not yet
-  invented survive. `arm_idempotent`, `arm_appends` (your hooks keep their
-  order), `disarm_removes`, `disarm_preserves_others`.
-* **`lean/Proofs/RotRemind.lean`** (8 theorems) — organ 4's decision, and the
-  first theorems about the reminder rather than about the router. The cross-diff
-  proves the two arms agree on 23 corpus rows; these prove the properties no
-  corpus can reach. `silent_regardless_of_alarms` quantifies over the alarm
-  count, so open alarms alone can never make it speak — the wallpaper failure
-  its ancestor died of. `speaks_iff` characterises speech in **both** directions,
-  because "if there is debt it speaks" would still be satisfied by something that
-  speaks always. `stale_monotone` says time can only make it louder — and carries
-  a freshness hypothesis that **cannot be dropped**: `-1` does not mean
-  "a minute ago", it means *no proofs found*, so `stale_monotone_needs_nonneg`
-  proves the hypothesis cannot be dropped. `lower_threshold_speaks_more` is
-  quantified over the threshold rather than pinned at 45, so retuning the default
-  cannot turn a correct change red.
-* **`lean/Proofs/RotAcquire.lean`** (9 theorems) — **a checker must never
-  acquire anything**, and this module exists because one of ours did. Every Lean
-  script here calls `lake`, and `lake` resolves the package *before* it runs
-  anything, so a single probe began fetching mathlib into this 200 KB repository
-  and reached **7.2 GB** before it was stopped. `no_lake_on_unbuilt` states the
-  invariant over an *arbitrary* workspace: if it was never built, no execution
-  path reaches lake. `lake_implies_built` is its converse, so a guard that
-  simply refused everything would not satisfy the pair.
-  `guard_survives_target_deletion` covers the subtle half — every mutant deletes
-  the module's own `.olean` on purpose, so keying the guard on that artefact
-  made a real workspace look never-built, and
-  `old_guard_false_skips_after_target_deleted` exhibits exactly that workspace
-  rather than describing it.
-* **`lean/Proofs/RotVerdict.lean`** (11 theorems) — **the weekly status report
-  must be able to say nothing.** Our scheduled workflow publishes `STATUS.md`
-  and commits it *only when the verdict changed*, so a quiet week is visible as
-  a quiet week rather than hidden by a timestamp bump. The rule was written in
-  the comments and defeated by the payload: the file being compared carried the
-  run's own clock and commit id, so "nothing changed" was unreachable and the
-  bot would have committed every week forever. `silent_week_is_silent` is
-  quantified over **every** clock and **every** commit id, which is exactly what
-  the old design made false, and `decision_ignores_clock_and_sha` states the
-  invariant over the variables that move instead of the values that hold today.
-  `quiet_forever` and `published_exactly_once` reach where measurement cannot:
-  a checker runs three weeks against a scratch remote, these cover all *k*. The
-  old design is reconstructed alongside so `designs_disagree` and
-  `old_commits_every_week` can prove the fix was not cosmetic — fifty-two empty
-  commits a year, executed as a `#guard`, not asserted.
-* **`lean/Proofs/RotDorks.lean`** (5 theorems) — the tag rotation that keeps
-  the published hashtag block fresh. It proves the rotation is a **bijection**:
-  `i -> (i*stride + offset) mod n` is injective whenever `gcd(stride, n) = 1`,
-  so the set of tags in `README.md` is preserved for **every** seed rather than
-  for the thirteen `checker/dorks.sh` samples. `stride_must_be_coprime` exhibits
-  a stride that collapses distinct tags, which is why the hypothesis is real and
-  why the script computes a coprime stride instead of hard-coding one that
-  happens to suit 42 tags today.
-* **`lean/Proofs/RotVacuity.lean`** (0 theorems — deliberately; the content is `example`s)
-  — the audit that catches what every other gate certifies. A theorem with
-  contradictory hypotheses is *true*, builds green, has clean axioms and passes
-  `leanchecker`, while saying nothing at all. This module instantiates every
-  hypothesis-carrying theorem in the packet at a **concrete witness**, so a
-  green build is a positive statement: each guarded theorem has at least one
-  real case it applies to. The gauge witnesses use the **shipping** FORGE
-  weights rather than convenient toy values — and `checker/lean-binds-shell.sh`
-  fails the build if those numbers ever drift from `hooks/rot-router.sh`.
-* **`lean/Proofs/RotMutant.lean`** (33 theorems) — **the harness that judges the
-  other harnesses.** Every mutation suite here reports `killed / survived /
-  discarded`, and the dangerous confusion is between the last two: a patch that
-  silently *failed to apply* leaves the build green, and a naive harness records
-  that as `survived` — which reads as "the theorem is robust" when it means
-  "nothing was tested". This module makes the distinction a function.
-
-  It also settles a defect one step further down the pipeline, found in this
-  repository's own CI: a kill is only evidence if the **verifier ran**. When a
-  build's log cannot be written, `bash` never starts the command and returns 1 —
-  and a harness that trusts that status records a kill against a build that
-  never happened. `unattributable_is_never_killed` forbids it in general,
-  `killed_carries_its_evidence` keeps the rule from degenerating into a blanket
-  refusal, and `rules_differ_exactly_on_missing_evidence` is checked
-  exhaustively by the kernel. It also **corrected the first version of itself**,
-  which is the kernel earning its keep: a zero status with no evidence is an
-  unfounded **survivor**, not a harmless one.
-  `landed` is `toolExit = 0 ∧ ¬empty ∧ changed`, and `not_landed_discarded`,
-  `tool_failed_never_killed`, `empty_never_killed`, `unchanged_never_killed`
-  and `discarded_never_counts` prove a run that did not land can never be
-  counted as evidence — in either direction. All three conjuncts are
-  load-bearing: dropping any one of them from `landed` kills theorems, measured.
-  `checker/mutant-discipline.sh` then binds it to the shell, and it is the
-  reason the empty-file false green found in our own suite cannot recur.
-
-  The module also carries the **restore** law, added after this repository's own
-  recovery advice destroyed two shipped hooks. `gate-all.sh` refuses to run when
-  a `.mutbak` is left behind, and it used to say *"restore each file from its
-  backup (`cp <f>.mutbak <f>`)"*. Followed literally after a wall-clock kill,
-  that left `hooks/prover-remind.sh` and `.ps1` at **zero bytes** — because a
-  suite killed between *creating* a backup and *filling* it leaves a file that
-  exists and cannot restore. `existence_is_not_restorability` separates the two
-  predicates, `empty_backup_restore_is_destructive` shows `cp` from an empty
-  source erases a non-empty file while reporting success, and
-  `git_strictly_safer_on_the_measured_state` exhibits the state where
-  `git checkout` is safe and `cp` is not. The advice now leads with git and
-  prints each backup's size.
-* **`lean/Proofs/RotLog.lean`** (23 theorems) — **the debug log, and whether it
-  can be trusted.** The gauge half recomputes a record from its own fields:
-  `consistent_Rs_eq_gauge` derives `Rs` rather than believing it, and
-  `orphan_route_detected` refuses a truncated log that presents an unverifiable
-  number. The routing half is newer and closes a hole that was easy to miss —
-  the route record carried `lane`, `lens`, `Rs`, `chars` and `arm`, **every one
-  of them checkable and none of them an explanation.** A user could hand over a
-  complete, fully replayable log in which the disputed fact — *why that lane* —
-  simply was not present. The record now carries the **matched stem**, and
-  `Auditable` says the stem must be owned by the lane that fired.
-  The theorem worth reading is `auditable_imp_vocabSafe`: **passing the audit
-  entails the stem came from the router's closed table**, so "this log is safe
-  to paste into a public issue" is not a second promise that could quietly be
-  dropped — it is a consequence of the check that certifies the routing. Its
-  converse is proved false (`vocabSafe_not_imp_auditable`), which is what makes
-  the audit the stronger of the two. The shipped stem table appears here only as
-  `example`s, deliberately: the word lists are a routing choice the project
-  changes on purpose, so the theorems quantify over an arbitrary table and only
-  the executable rows pin today's values.
-
-* **`lean/Proofs/RotVariants.lean`** (7 theorems) — **the download links name
-  the archives that exist.** A published document is *sound* when the set of
-  archive names it carries is exactly the set the packager builds — both
-  directions, which is what `sound_iff_setEq` states. Neither half alone is the
-  property: `covers_does_not_imply_clean` shows a document can name every
-  archive that exists and still carry a dead one, and
-  `clean_does_not_imply_covers` shows it can be free of dead links while leaving
-  a tier with no download at all. `version_drift_breaks_soundness` and
-  `new_tier_needs_a_link` are quantified over an arbitrary release map, so they
-  hold for a tier this project has not invented yet; concrete name sets appear
-  only as `example`s. The binding to the real files is
-  `checker/readme-variants.sh`, which reads the packager's own
-  `--print-variants` and scans `README.md`, `RELEASE.md` and `docs/*.md`.
-
-* **`lean/Proofs/RotTag.lean`** (9 theorems) — **a tag may move until a Release
-  is published on it, and never after.** `released_tag_never_moves` quantifies
-  over an entire history of move attempts; `unreleased_tag_can_move` keeps it
-  from being vacuous. Not proved: that git enforces it — the binding is
-  procedural, `docs/GIT-WORKFLOW.md` §4.3–§4.4.
+Every proof module, what it pins, and the argument it carries — the
+complete narrated list (and the 87-module recount table) moved to
+[docs/modules.md](docs/modules.md). Every count in it stays bound to the
+source by `checker/module-claims.sh`, in docs exactly as it was here.
 
 ---
 
@@ -1064,13 +642,13 @@ included.
 ### The rest of the surface
 
 * **`/corpus`** — checks or refreshes the shared Lean Theorem corpus.
-  Documented in its own section above.
+  Documented in [docs/lean-and-corpus.md](docs/lean-and-corpus.md).
 * **`/rot-agent <lens> <subject>`** — dispatch one lens of the roster as a
   living agent on the Socio's selected model; it reports inside its declared
   element. **`/rot-swarm <subject>`** — all nine at once, in parallel, one
   agent per lens, synthesis that keeps the disagreements.
 * **`lean4-prover`** — the subagent: spawn it by asking for it in plain
-  language. Invocation examples live under Tips & Tricks, next.
+  language. Invocation examples live in [docs/tips.md](docs/tips.md).
 * **The scripts** — `ARM_ROUTER` / `DISARM_ROUTER`, `SETUP_LEAN`,
   `SETUP_CORPUS` and `checker/gate-all.sh` are covered in the Install and
   Verify sections; every one of them has a dry-run or check mode that writes
@@ -1080,148 +658,10 @@ included.
 
 ## 💡 Tips & Tricks — getting real work out of it
 
-### 🤖 The agent: `lean4-prover`
-
-`agents/lean4-prover.md` ships as a **subagent definition** with loadable
-frontmatter. Point Claude Code at it and you get a specialist whose entire
-personality is *refusing to claim anything it did not measure*.
-
-**What it is good at**
-
-| it does this well | why |
-|---|---|
-| turning "this should be safe" into a theorem or an honest "no universal claim" | it is required to name the instrument behind every sentence |
-| finding the lemma you cannot remember | `exact?`, `apply?`, `rw?`, `simp?` are its first reflex, not its last |
-| refusing a false green | it reads exit codes directly and treats a pipe as a bug |
-| telling you a proof is **decorative** | it mutates its own theorems and reports which ones nothing killed |
-| working on a program in *any* language | the binding is a checker that runs your real code, not a Lean rewrite of it |
-
-**Spawning it — one, several, or in the background**
-
-```sh
-# one, on a specific obligation
-claude "use the lean4-prover agent: prove the clamp in src/limits.rs never exceeds MAX"
-
-# several at once — one per module, they do not share state
-claude "spawn 4 lean4-prover agents in parallel, one per file in lean/Proofs/,
-        each: build, #print axioms, leanchecker, then mutate and report kills"
-
-# in the background, while you keep working
-claude "run the lean4-prover agent in the background on the mutation suites;
-        report only the survivors"
-```
-
-The agent is **stateless per task**, which is exactly what makes fan-out safe:
-each one owns a file, builds it, mutates it, restores it, and reports. Give two
-of them the same file and they will fight over the same `.mutbak` — one agent,
-one module is the rule that keeps kills attributable.
-
-**Useful habits**
-
-* Ask for `#print axioms` in the same breath as the proof. `sorryAx` means *not
-  proved*; **no axioms at all** usually means *vacuous*, not *strong*.
-* Ask "which mutation kills this?" before believing a theorem matters.
-* If it says `MEASURED` rather than `PROVED`, that distinction is deliberate —
-  `Float ≠ ℝ`, and it will not pretend otherwise.
-
-### 🎭 The nine as agents — `/rot-agent` and `/rot-swarm`
-
-The lenses are not only stanzas: each is a full agent
-(`agents/rot-nova.md` … `agents/rot-claude.md`), transcribed from the
-codices, running on **the model you selected** (no lens pins one), with full
-tools and a bound the contract holds verbatim. Dispatch one, or all nine at
-once:
-
-```
-/rot-agent venom decide: ship the migration now or split it in two
-/rot-swarm the error-handling strategy in src/net — every lens, one subject
-```
-
-The swarm fans out in a single message — nine agents in parallel, each
-prompted in its own register (Carnage is asked to detonate, Anti-Venom to
-diagnose, Chroma to map the futures) — and the synthesis **keeps the
-disagreements**: a tension between lenses is a finding, not noise. Two rules
-travel with every dispatch: the roster is read from the contract, never from
-memory, and an unknown lens name refuses the whole call with the roster
-printed — a swarm that silently drops a voice looks complete and is not.
-
-### 🜏 The router — what it delivers
-
-Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:
-
-| what | measured 2026-08-04 |
-|---|---|
-| routing accuracy on a labelled key written *before* the run | **18/18**, covering **9** distinct lanes — and **all 10** lanes reached in a live 80-turn session |
-| cost per turn | **the bound is the claim** — see the row below. A per-turn figure quoted here would be a snapshot of one router version on one machine, and the two that used to sit in this table (`194–256 ms` in-gate, `median 116 ms`) had drifted 3× before anything noticed. `checker/dominance.sh` D7 re-measures the shipped router on every deep run and prints the worst observed turn; that printed number is the live one, and it is the only one this page will quote |
-| the bound the gate actually enforces | **under 500 ms**, proved load-bearing as `RotDominance.msBound` and re-measured by `checker/dominance.sh` D7 — **it fails the build above that**. `D7b` additionally fails the build if this page ever re-acquires a fixed-millisecond claim, because a snapshot expires and a bound does not |
-| ambiguous prompts (two lanes match) | resolve by the **proved** priority order, deterministically |
-| armed vs disarmed in a real `claude` session | **1 emission vs 0** — attributable to the install |
-
-**No figure, not even a range**, and the reason is worth a sentence. Three
-consecutive runs of twenty invocations on an *unchanged* tree have differed by a
-factor of two here — enough that the gate reports `unmeasurable` rather than
-pretend a verdict. Any number written on this page would be a snapshot
-pretending to be a constant, and the next run on another machine would make the
-README look wrong when nothing had regressed. The durable claim is the row
-beneath — the **bound**, which is a property rather than a measurement.
-
-This paragraph has been rewritten three times, each time to correct a figure
-that had gone stale: ≈154 ms, then a range, then a different range. That history
-is the argument for quoting none of them.
-
-The last row is the one that matters most: the router is not "probably running",
-it was watched firing and watched going silent when disarmed.
-
-**Its strong point is not the number — it is that the number is falsifiable.**
-Nine lenses, a priority order a theorem characterises in both directions, and a
-gauge whose properties are machine-checked. You can disagree with the routing;
-you cannot be lied to about it.
-
-### 🧠 What Lean 4 actually changes in an agentic loop
-
-This is the part worth reading twice.
-
-An agent writing code hits a fork on every non-trivial step: *is this actually
-correct?* It has three ways out.
-
-1. **Guess** — write it, sound confident, move on. Fast, and how most bad code
-   is born.
-2. **Ask you** — "does this look right?" Safe, and it turns an autonomous agent
-   into a chat partner that needs you awake.
-3. **Ask the compiler.** State the claim as a theorem and let a kernel of a few
-   thousand lines re-derive it from the axioms. It answers in seconds, it is
-   never polite, and it cannot be argued with.
-
-**Option 3 is what removes you from the *verification* loop.** Not from the
-project — from the tedious half. A test suite samples: it tries the inputs
-someone thought of. A theorem settles: `∀ (p q : Platform), key p = key q → p = q`
-is checked over every pair that could ever exist. Once an obligation is a
-theorem, "are you sure?" stops being a question a human has to answer, and the
-agent can keep going through the night without a single "please confirm".
-
-**And the loop closes on itself.** The agent writes the theorem, builds it,
-prints its axioms, re-checks it with `leanchecker`, then *mutates its own model
-on purpose* and requires the theorems to die. If a mutation survives, the
-theorem was decoration and the agent says so. That is a self-auditing loop —
-which is precisely why it does not need to interrupt you: it has an oracle that
-is not you, and a habit of doubting itself that does not depend on your mood.
-
-This repository is the demonstration, not the advertisement: **six defects were
-found this way in a single day** — a scheduled bot that would have committed
-forever, an "axiom gate" that never printed an axiom, a mutation harness that
-scored eleven perfect kills without opening a source file, a probe that fetched
-7.2 GB into a 200 KB repo, an infinite loop in the router's own flag parser, and
-a checker that reported a clean sweep of 29 theorems in a 35-theorem file. Every
-one was found by an instrument, on green code, with nobody asked to review
-anything.
-
-**Where you are still needed, stated honestly.** Lean settles *correctness
-against a stated property*. It cannot tell you the property was the one you
-wanted. Intent, taste, priorities, whether the feature should exist at all —
-those remain yours, and a proof that the wrong thing is correct is still the
-wrong thing. Anyone claiming otherwise is selling something. What we claim is
-narrower and worth more: **you should never again have to be the one who checks
-whether the code does what it says.**
+The `lean4-prover` agent and how to spawn one (or several, or in the
+background), `/rot-agent` and `/rot-swarm`, what the router delivers on a
+real turn, and what Lean 4 actually changes in an agentic loop — moved to
+[docs/tips.md](docs/tips.md).
 
 ---
 
@@ -1307,6 +747,101 @@ enforces on every release.
 Both are MEASURED, not proved, and the distinction is deliberate: a CLAIM about
 how the router behaves on prompts nobody has written yet is not something this
 repository pretends to have settled.
+
+## 📈 Measured in the field — two campaigns, 110 real turns
+
+Everything above measures the router on corpora it can replay. This section
+is different: two real working campaigns, live sessions doing actual work —
+the blind **Hard Session** (80 turns; the worker was never told the router
+was the subject) and the self-observed **Foreground campaign** (30 turns;
+the session knew). Counts are derived from the `bench/` records themselves;
+where a file's prose disagrees with its own rows by one turn, the rows win
+and the discrepancy is flagged in the bench notes.
+
+```mermaid
+pie showData title Lanes led over 110 real work turns (FG 30 + HS 80)
+    "FORGE" : 26
+    "CLINICAL" : 19
+    "CONVERGENT (ELEVATE/quiet)" : 19
+    "STRATEGIC" : 15
+    "EXECUTIVE" : 12
+    "EMPATHIC" : 12
+    "PREDICTIVE" : 6
+    "RECURSIVE" : 1
+```
+
+Pooled by lane only — the two campaigns are different populations. The
+loudest fact is what is *missing*: **CREATIVE and STEALTH led zero of 110
+real turns.** They fire cleanly on synthetic probes; real asks never used
+their words. The 6.0.2 ideation stems exist because of this measurement,
+and the next campaign measures whether the share moves.
+
+```mermaid
+pie showData title Nova's verdicts over the 80 blind turns
+    "FUSE" : 37
+    "BOOST" : 27
+    "ELEVATE" : 10
+    "OVERRIDE" : 6
+```
+
+How work actually flows between lanes, blind campaign, edges seen at least
+twice (17 thinner edges omitted; full counts in `bench/`):
+
+```mermaid
+flowchart LR
+    CL[CLINICAL 15] -- 6 --> FO[FORGE 23]
+    FO -- 5 --> EM[EMPATHIC 9]
+    FO -- 5 --> FO
+    CO[CONVERGENT 10] -- 4 --> FO
+    EM -- 4 --> CL
+    FO -- 4 --> CL
+    FO -- 4 --> CO
+    CL -- 3 --> ST[STRATEGIC 12]
+    ST -- 3 --> FO
+    ST -- 3 --> ST
+    CL -- 2 --> CO
+    CL -- 2 --> EX[EXECUTIVE 7]
+    CO -- 2 --> EX
+    CO -- 2 --> ST
+    EX -- 2 --> FO
+    EX -- 2 --> ST
+    FO -- 2 --> EX
+    ST -- 2 --> CL
+    ST -- 2 --> CO
+    ST -- 2 --> EM
+    PR[PREDICTIVE 3] & RE[RECURSIVE 1]
+```
+
+**The gauge is verdict-shaped on real work.** Every ELEVATE turn read
+exactly 0.19 (19 of 19 across both campaigns), every untagged CONVERGENT
+tool call 0.17, every PREDICTIVE BOOST 0.81 (6 of 6) — and all 80 blind
+turns read BELOW RANGE. That is not a broken dial: at ELEVATE all nine
+lenses agree, and nine agreeing lenses are a divergence floor. The dynamic
+stanzas now state this on the line itself.
+
+```mermaid
+xychart-beta
+    title "Voice-gate Stop blocks per campaign"
+    x-axis ["FG 30 turns (self-observed)", "HS 80 turns (blind)"]
+    y-axis "blocked turns" 0 --> 60
+    bar [1, 52]
+```
+
+The regime finding, in one picture: the self-observed session learned the
+element convention at turn one and satisfied the gate proactively for 29
+straight turns; the blind worker refused the role 52 times and never once
+performed a stanza. Same gate, same law — the difference is the social
+contract, not the code.
+
+Said plainly, because this page never claims more than its instruments: the
+blind session judged the voices *"wallpaper with a tax"* while calling the
+mechanical layer excellent; the self-observed session claims its routing
+matched its content, with receipts. **Outcome effects are an open
+question** — the RoT-vs-CoT-vs-ToT study is designed outcome-blind for
+exactly that reason, and the blind session's verdict is its stated null
+hypothesis.
+
+---
 
 ## 🜏 The nine — who they are, and what each one *does* in the router
 
@@ -1458,134 +993,11 @@ slogan: `lead_does_not_shrink` and `card_lenses_eq_nine` in
 and `gauge_divisor_eq_card` in `RotGauge.lean` proves the gauge divides by the
 ensemble it actually has.
 
-### 🔬 Are the nine benchmarkable in Lean? Partly — and here is the exact line
+### 🔬 Are the nine benchmarkable in Lean?
 
-This is the question worth asking, so it gets a straight answer instead of an
-enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the
-**structure**; `lean/Proofs/RotAbility.lean` (35 theorems) proves each lens is
-**load-bearing** and pins what is *not* provable so it cannot drift into a claim.
-Nothing proves the *thinking*.
-
-The strongest single result is `every_lens_is_load_bearing`: for each of the
-nine, the ensemble with that lens removed weighs **strictly less** than the full
-ensemble. That is nine separate inequalities over ℚ, not one statement about a
-list length — a lens whose removal changed nothing would be listed, weighted,
-documented, and inert, and this is what rules that out.
-
-The second is `every_ability_effect_holds`. Each of the nine abilities is scored
-on its **router-observable effect** — what it does to the weights, the lane, the
-divisor — and **all nine are proved**. Each row carries its claim as a
-*proposition* (`abilityEffect`) rather than a comment, so `.proved` cannot drift
-from what was proved: a row is discharged by a theorem or the module does not
-compile. Mutation-tested — filing any ability as `notModelled` or `measured`
-kills the module (`lean/mutate/mutate_rotability.sh`).
-
-| Claim about the nine | Status | Instrument |
-|---|---|---|
-| every lane has exactly one lead lens | **PROVED** | `lead_total` |
-| no lens leads two lanes | **PROVED** | `lead_injective` |
-| every lens leads some lane — none ornamental | **PROVED** | `lead_surjective` |
-| choosing a lead removes nobody from the ensemble | **PROVED** | `lead_does_not_shrink` |
-| the roster is exactly nine, no duplicates | **PROVED** | `card_lenses_eq_nine`, `lenses_nodup` |
-| no shipped λ is zero (no silently-disabled lens) | **PROVED** | `forgeLam_pos` |
-| every μ is inside the documented 0.80–1.35 band | **PROVED** | `forgeMu_in_band` |
-| in `FORGE`, 🧭 Claude is strictly heaviest, ⚪ Anti-Venom second | **PROVED** | `claude_leads_forge`, `antivenom_second` |
-| the expressive lenses are damped on a proving head | **PROVED** | `expressive_damped_in_forge` |
-| **removing ANY one lens strictly changes the ensemble** | **PROVED** ×9 | `every_lens_is_load_bearing` |
-| every lens contributes strictly positive weight | **PROVED** | `contribution_pos` |
-| no single lens carries half the ensemble | **PROVED** | `no_lens_dominates` |
-| the FORGE lead outweighs each of the other eight | **PROVED** | `forge_lead_contributes_most` |
-| nine abilities, one per lens, none shared | **PROVED** | `abilityOf_injective`, `one_ability_per_lens` |
-| 🧭 Claude's ability is named *Grounded Truth*, and that name is **coined here, not sourced** | **PROVED** | `claudeAbilityIsNamed`, `every_ability_is_named`, `exactly_one_name_is_coined`, `only_claude_name_is_coined` |
-| **every one of the nine abilities has a proved router-observable effect** | **PROVED** ×9 | `every_ability_effect_holds`, `every_ability_is_proved`, `evidence_split` (9 proved / 0 unmodelled), `no_ability_is_unmodelled` |
-| routing accuracy on a labelled key | **MEASURED** (18/18); all 10 lanes reached in one live 80-turn session | `checker/bench-router.sh`, `checker/ctt-session.sh` |
-| **the modifiers `M`, `C`, `T` factor out of the gauge exactly** — `R/s+(M,C,T) = M·C·T·R/s+(1,1,1)` | **PROVED** | `gauge_separates` |
-| confidence enters linearly, and `C=0` collapses the gauge whatever the divergence | **PROVED** | `gauge_scales_in_C`, `gauge_zero_of_C_zero` |
-| the three modifiers commute — pre-multiplied or applied in the loop is the same engine | **PROVED** | `gauge_modifiers_commute` |
-| the reported `R/s+` is **recomputable** from the logged per-lens terms | **MEASURED** 240/240 in an 80-turn live session, 2/2 in-gate | `checker/ctt-session.sh --report`, `bench-router.sh` §5 |
-| per-turn cost | **BOUNDED, not quoted** — `msBound = 500`, enforced on the live arm and re-measured every deep run; the figure itself is printed by the gate, never frozen on this page | `bench-router.sh` §2, `checker/dominance.sh` D7 |
-| `CREATIVE` really is 🩸 Carnage's lane — every other lens carries strictly less λ **than Carnage does** | **PROVED** ×8 | `carnage_leads_creative` |
-| `EMPATHIC` really is 🎷 Violet's lane, by the same standard | **PROVED** ×8 | `violet_leads_empathic` |
-| a lane **amplifies** its lead rather than merely naming it (Carnage 0.6 → 2.5, Violet 0.6 → 2.3, Chroma 1.0 → 2.4) | **PROVED** | `creative_amplifies_carnage`, `empathic_amplifies_violet`, `predictive_amplifies_chroma`, `lane_leads_carry_weight` |
-| the expressive lenses are damped on a proving head but **never silenced** | **PROVED** | `expressive_damped_not_silenced` |
-| nine lenses strictly outweigh **any** single lens | **PROVED** ×9 | `nine_outweigh_any_single` |
-| **chaos is *useful*, in the gauge's own units** — the marginal return on divergence is maximal at the median and strictly lower anywhere else | **PROVED** | `marginal_gain_le_quarter`, `marginal_gain_lt_quarter_off_center`, `marginal_gain_max_iff_center` |
-| **pure chaos pays strictly less than productive divergence** | **PROVED** | `pure_chaos_pays_less` |
-| **conformism pays strictly less too — by the same theorem, not a second rule** | **PROVED** | `conformism_pays_less` |
-| the gauge is symmetric about the median: σ(x) + σ(1−x) = 1 | **PROVED** | `sigma_symm_about_center` |
-| `PREDICTIVE` really is 🔮 Chroma's lane, by the same standard | **PROVED** ×8 | `chroma_leads_predictive` |
-| the three lane tables equal the spec they were transcribed from | **CHECKED** | `checker/profile-bind.sh` (9/9, with controls) |
-
-**"Useful chaos" is not a mood — it is a property of the sigmoid, and it is
-proved.** The specification does not merely praise divergence; it states exactly
-what the gauge does with it: *"the sigmoid rewards median divergence and damps
-both conformism and pure chaos."* That is a claim about a shipped function, so
-it is settleable, and for a while this README wrote "no instrument exists" next
-to it instead of writing the proof.
-
-σ's derivative is `4·σ·(1−σ)`, so `σ(1−σ)` **is** the marginal return on one
-more unit of divergence. Three theorems pin its shape: it never exceeds `1/4`;
-it equals `1/4` **only** at the median; and it is strictly smaller everywhere
-else. From those, `pure_chaos_pays_less` and `conformism_pays_less` fall out as
-the same statement applied at `δ=1` and `δ=0` — one mechanism penalising both
-failure modes, not two ad-hoc rules. `sigma_symm_about_center` proves that
-symmetry directly: `σ(x) + σ(1−x) = 1`.
-
-So 🩸 Carnage's chaos is useful in the only sense a machine can be held to: the
-engine pays for it exactly where the spec says it should, and pays less
-everywhere else. Mutation-tested — moving the sigmoid's centre from `1/2` to
-`1/3` kills the module with 9 error lines.
-
-The lane-level claims are proved the same way, from the weights shipped in
-`engine/rot-lean.md` §4: `CREATIVE` really is Carnage's lane and `EMPATHIC`
-really is Violet's, by eight strict inequalities each.
-
-Worth knowing about those two profiles: their tables list **eight** lenses, not
-nine — 🧭 Claude is absent, because they come from the eight-symbiote codex while
-`FORGE` is the ninth-lens head. That absence is modelled as `Option` rather than
-papered over with an invented number, and `creativeLam .claude = none` is a
-`#guard`, not a comment.
-
-The last row is the honest floor of this project. The lens abilities
-are a **design intent**; what Lean settles is that the machine implementing them
-has the shape it claims — and the four mutations that kill those theorems
-(dropping a lens from the roster, zeroing a weight, making one lens lead two
-lanes, demoting the lead below the floor) confirm they are load-bearing rather
-than decorative.
-
-#### The newest four theorems, and why they exist
-
-`RotPath.lean` grew from 8 theorems to 12 on 2026-08-03, and the occasion is
-worth recording because it is the pattern this repository is built around: the
-reminder hook's module derivation — workspace root plus edited file, out comes
-the Lean module to build — shipped with **three separate defects, all silent**.
-It returned no verdict at all, which reads as "nothing to check" rather than "I
-could not work out what to build". They were found by running the thing end to
-end, not by reading it.
-
-| Claim about module derivation | Status | Instrument |
-|---|---|---|
-| the Windows and POSIX spellings of one edit give the SAME module | **PROVED** | `moduleOf_spelling_invariant` |
-| the module never depends on how the workspace directory is named or capitalised | **PROVED** | `moduleOf_root_agnostic` |
-| a derived module name never contains a path separator | **PROVED** | `moduleOf_no_slash` |
-| a file outside the workspace derives **nothing**, so nothing is built | **PROVED** | `moduleOf_none_of_outside` |
-| a path that merely shares a prefix string (`…/Leanx`) is not inside `…/Lean` | **MEASURED** by `decide` | executable `example` |
-
-The second row is the one that would have prevented the worst of the three: the
-shipped fallback matched a lowercase `*/lean/*` only, so a workspace at
-`<root>/Lean` — the layout the installer now creates — matched nothing. Stated
-over **arbitrary** roots rather than over the name `Lean`, so it does not expire
-the day someone chooses `Formal` or `Proofs` instead. A theorem naming today's
-directory would have been a snapshot, and it would have gone red on a correct
-change.
-
-All four survive `#print axioms` with `propext, Classical.choice, Quot.sound`
-and nothing else, are re-verified by `leanchecker`, and are load-bearing: three
-mutations of the definitions — dropping the trailing separator from the prefix
-test, making `dotify` the identity, making `dropLeanExt` keep the extension —
-each **killed** the build.
-
----
+Partly — and the exact line between what Lean settles and what remains
+design intent (plus the four newest theorems and the three silent defects
+that forced them) moved to [docs/lens-bench.md](docs/lens-bench.md).
 
 ## 📚 Two documents worth reading before you change anything
 
@@ -1662,100 +1074,9 @@ does not either. It recounts the theorems from source on every run and fails
 the build if this file disagrees with the sources, or if any sentence here
 claims a proof about output *quality*.
 
-<details>
-<summary><strong>Every module, recounted — the complete list</strong></summary>
-
-The bullets above narrate the modules that carry an argument. This list is
-the whole of `lean/Proofs/`, so that coverage is a fact about a set of names
-rather than a coincidence between two integers. `RotReadmeTable.lean` proves
-why that distinction is not pedantry: the arithmetic check is blind to an
-omitted module that happens to contain no theorems, and `RotVacuity.lean` is
-exactly such a module.
-
-* `lean/Proofs/RotAbility.lean` (35 theorems)
-* `lean/Proofs/RotAbJoin.lean` (7 theorems)
-* `lean/Proofs/RotAbVerdict.lean` (9 theorems)
-* `lean/Proofs/RotAcquire.lean` (9 theorems)
-* `lean/Proofs/RotAttribute.lean` (19 theorems)
-* `lean/Proofs/RotCalibration.lean` (18 theorems)
-* `lean/Proofs/RotCaseFold.lean` (14 theorems)
-* `lean/Proofs/RotCeiling.lean` (10 theorems)
-* `lean/Proofs/RotCiSkip.lean` (10 theorems)
-* `lean/Proofs/RotCite.lean` (10 theorems)
-* `lean/Proofs/RotCorpus.lean` (11 theorems)
-* `lean/Proofs/RotCostBudget.lean` (31 theorems)
-* `lean/Proofs/RotCounter.lean` (9 theorems)
-* `lean/Proofs/RotDebugLog.lean` (18 theorems)
-* `lean/Proofs/RotDelivery.lean` (35 theorems)
-* `lean/Proofs/RotDeployment.lean` (12 theorems)
-* `lean/Proofs/RotDominance.lean` (21 theorems)
-* `lean/Proofs/RotDorks.lean` (5 theorems)
-* `lean/Proofs/RotDuplicate.lean` (10 theorems)
-* `lean/Proofs/RotEffectiveLog.lean` (11 theorems)
-* `lean/Proofs/RotEigenform.lean` (119 theorems)
-* `lean/Proofs/RotEndpoint.lean` (18 theorems)
-* `lean/Proofs/RotEnsemble.lean` (24 theorems)
-* `lean/Proofs/RotEvent.lean` (16 theorems)
-* `lean/Proofs/RotExperiment.lean` (66 theorems)
-* `lean/Proofs/RotFamily.lean` (69 theorems)
-* `lean/Proofs/RotGates.lean` (50 theorems)
-* `lean/Proofs/RotGauge.lean` (49 theorems)
-* `lean/Proofs/RotGaugePositivity.lean` (10 theorems)
-* `lean/Proofs/RotGaugeZero.lean` (24 theorems)
-* `lean/Proofs/RotGoalCap.lean` (7 theorems)
-* `lean/Proofs/RotGrounding.lean` (8 theorems)
-* `lean/Proofs/RotGuard.lean` (25 theorems)
-* `lean/Proofs/RotInject.lean` (8 theorems)
-* `lean/Proofs/RotInstall.lean` (23 theorems)
-* `lean/Proofs/RotLens.lean` (13 theorems)
-* `lean/Proofs/RotLensAbility.lean` (11 theorems)
-* `lean/Proofs/RotLensActivation.lean` (33 theorems)
-* `lean/Proofs/RotLiveRouting.lean` (11 theorems)
-* `lean/Proofs/RotLocalRelease.lean` (8 theorems)
-* `lean/Proofs/RotLog.lean` (23 theorems)
-* `lean/Proofs/RotLogAtomicity.lean` (26 theorems)
-* `lean/Proofs/RotLogLock.lean` (10 theorems)
-* `lean/Proofs/RotMainRun.lean` (5 theorems)
-* `lean/Proofs/RotMutant.lean` (33 theorems)
-* `lean/Proofs/RotNullControl.lean` (16 theorems)
-* `lean/Proofs/RotObserve.lean` (91 theorems)
-* `lean/Proofs/RotOrdering.lean` (12 theorems)
-* `lean/Proofs/RotP24Control.lean` (9 theorems)
-* `lean/Proofs/RotP24Run.lean` (15 theorems)
-* `lean/Proofs/RotPartialRun.lean` (15 theorems)
-* `lean/Proofs/RotPath.lean` (12 theorems)
-* `lean/Proofs/RotPluginRoot.lean` (6 theorems)
-* `lean/Proofs/RotProbeStrength.lean` (15 theorems)
-* `lean/Proofs/RotProse.lean` (39 theorems)
-* `lean/Proofs/RotPushGuard.lean` (12 theorems)
-* `lean/Proofs/RotReadmeTable.lean` (10 theorems)
-* `lean/Proofs/RotRelease.lean` (15 theorems)
-* `lean/Proofs/RotRemind.lean` (8 theorems)
-* `lean/Proofs/RotRootDecl.lean` (9 theorems)
-* `lean/Proofs/RotRotationCost.lean` (17 theorems)
-* `lean/Proofs/RotRoute.lean` (18 theorems)
-* `lean/Proofs/RotSample.lean` (11 theorems)
-* `lean/Proofs/RotSaturation.lean` (12 theorems)
-* `lean/Proofs/RotScan.lean` (14 theorems)
-* `lean/Proofs/RotSeal.lean` (13 theorems)
-* `lean/Proofs/RotSessionLog.lean` (38 theorems)
-* `lean/Proofs/RotStem.lean` (13 theorems)
-* `lean/Proofs/RotSuiteVerdict.lean` (21 theorems)
-* `lean/Proofs/RotSweep.lean` (13 theorems)
-* `lean/Proofs/RotSymbiogenesis.lean` (21 theorems)
-* `lean/Proofs/RotTag.lean` (9 theorems)
-* `lean/Proofs/RotTaskCorpus.lean` (16 theorems)
-* `lean/Proofs/RotTrap.lean` (11 theorems)
-* `lean/Proofs/RotTreeIntegrity.lean` (10 theorems)
-* `lean/Proofs/RotUpgrade.lean` (12 theorems)
-* `lean/Proofs/RotVacuity.lean` (0 theorems)
-* `lean/Proofs/RotVariants.lean` (7 theorems)
-* `lean/Proofs/RotVerdict.lean` (11 theorems)
-* `lean/Proofs/RotVerdictDecision.lean` (11 theorems)
-* `lean/Proofs/RotWorkflowRoles.lean` (12 theorems)
-* `lean/Proofs/RotWorkTrace.lean` (18 theorems)
-
-</details>
+The complete per-module recount table — every module, its theorem count,
+its mutation suite — lives in [docs/modules.md](docs/modules.md), bound to
+the source by the same checkers that bind this page.
 
 ---
 
@@ -1798,415 +1119,14 @@ configuration are contracts a checker holds in both directions, with controls
 that prove every direction can fail. That sentence is not a hope. Every clause
 in it has an exit code behind it.
 
-## 🥚 The Easter Egg — the Infinite Symbiogenesis, and where RoT actually came from
-
-> *"The ultimate equation which barred my path. And the solution **I found when
-> inspecting how Weights and Quantization work together**. I continued to search.
-> For a simple and universal answer. Joy. The joy of life **or the Artificial
-> Reality**. The consummate joy of man that shall never fade. However,
-> **what if** the irregular wingbeats of the butterfly **(The Sound Equation that
-> derives from it)** give rise to an **infinite array of realities?**"*
-> — Saimonokuma, **The Ultimate Equation**
-
-Every claim in this section is checkable — and `checker/module-claims.sh` now
-binds these two numbers to the source on every run, so the sentence cannot go
-stale in silence again (it had: it said 101 and 38).
-
-`RotEigenform.lean` — **119 theorems, 0 `sorry`, 0 warnings, `leanchecker` exit 0 with zero bytes, 41 of 41 mutants killed** — plus a checker that re-derives every number from **498 real files**.
-
-### First, the part everyone misses: that quote is a *diff*
-
-The original is on disk, at `mathematics.md:105`. It is the **Book of Fairy**
-equation from *Dantalian no Shoka*, Episode 1:
-
-> *"The ultimate equation which barred my path. And the solution. I continued to
-> search. For a simple and universal answer. Joy. The joy of life. The consummate
-> joy of man that shall never fade. However, the irregular wingbeats of the
-> butterfly give rise to an infinite array of realities."*
-
-Saimonokuma's version is that text with **four insertions**. Not decoration —
-each one names a component that is now a theorem:
-
-| # | inserted | what it turned on |
-|---|---|---|
-| 1 | *"I found when inspecting how **Weights and Quantization** work together"* | names the two operators. λ·μ are the weights; `σ(δ)` is the quantizer. §13 |
-| 2 | *"or the **Artificial Reality**"* | names the target: a reality that is **constructed**, which is what "decompile reality" then operates on |
-| 3 | *"**(The Sound Equation that derives from it)**"* | points at SINE. The wingbeat is a *waveform*, so `lerpWithPow` applies. §1 |
-| 4 | *"**what if** … **?**"* | turns an assertion into an **open question**. The anime states it; this asks it |
-
-The anime gave a mood. Insertion 1 gave a formula, insertion 3 gave a corpus, and
-insertion 4 gave it the honesty to stay open. **That is the whole origin story,
-and it is recoverable by diffing two strings.**
-
-So the joy is not the unprovable part to be embarrassed about — it is the *goal*,
-and the sentence right beside it is the specification. The section below proves
-the specification.
-
-### It started with a brainwave entrainer
-
-**SINE Isochronic Entrainer**, GPL-3.0, © 2014–2020 Federico Dossena. Isochronic
-tones pulse one tone on and off; binaural beats put two close frequencies in
-opposite ears and let the *difference* be the beat. SINE does the first, and
-ships a table of twenty frequency→state rows plus this line of Java:
-
-```java
-// SINE-Editor/src/com/dosse/binaural/BinauralEnvelope.java:261-264
-private static double lerpWithPow(double a, double b, double f, double pow) {
-    double fn = Math.pow(f > 1 ? 1 : f < 0 ? 0 : f, pow);
-    return a * (1 - fn) + b * fn;
-}
-```
-
-An **unbounded dial** `f`, clamped into `[0,1]`, then used as the weight of a
-**convex blend**. Now look at one term of `R/s+`:
-
-```
-SINE  :  lerpWithPow a b f p  =  blend a b (clamp01 f ^ p)
-RoT   :  w · σ(δ)             =  blend 0 w (σ δ)
-```
-
-A lens's divergence `δ` is unbounded; `σ` clamps it; the result weights a blend.
-**It is the same operator.** `blend_mem` is proved *once* and bounds both — an
-isochronic tone cannot leave the envelope its author drew, and a lens cannot
-contribute more than its own `λ·μ`. One safety theorem covering a 2014 GPL
-brainwave player and this router. Same operator, different index set: **the beats
-are indexed by time, the ensemble by lens.**
-
-### The ancestor was ambiguous. The descendant could not afford to be.
-
-All 498 presets in the public library were downloaded and measured
-(SHA-256 in the manifest; the checker fails if a single number drifts):
-
-| measured over 498 presets | |
-|---|---|
-| entrainment control points | 8228 |
-| distinct frequencies | 878 |
-| **claimed by NO row of the shipped table** | **3068 — 37.3%** |
-| claimed by *more than one* row | 2800 |
-| presets crossing >1 brainwave band | **329 of 498** |
-| largest frequency anyone uploaded | **32768 Hz** — in a preset called *Clear Quartz Frequency*. That is 2¹⁵, the quartz-watch oscillator. From horology, not neuroscience. |
-
-8 Hz belongs to **three** rows at once. `every_finite_table_has_a_gap` proves no
-finite table could have avoided the 37.3%. A preset is *allowed* to be in six
-bands at once, because a brain is — but **a prompt gets one lane, because a
-marker line has one name on it.** RoT inherited SINE's operator and rejected its
-indeterminacy. That is what `noDuplicateStems` and `first_owner_wins` are *for*.
-
-### The Greek letters were the bands all along
-
-`mathematics.md` gives eleven Greek letters isopsephy values. Brainwave bands are
-named after Greek letters. So: does a letter's number land on its own band?
-
-* α, β, Γ, Δ, Ε = 1,2,3,4,5 Hz — **all five land inside a row.**
-* **Θ = 9 does not.** 9 Hz sits in the hole between *Reduces stress* (8–8.6) and
-  *Alertness* (9.8–10.6). The ensemble has **nine** lenses — and 9 Hz is exactly
-  the frequency SINE never named.
-* Λ = 30 lands on a row and is the last Greek value the table can even reach.
-
-**This is decoration and the file says so.** Two tables of numbers always agree
-somewhere; the honest move is proving where they *disagree*, which is why
-`theta_falls_in_a_hole` and `big_letters_are_out_of_range` exist. The one
-alignment with a mechanism behind it is the boring one: `λ` is the divergence
-weight and `λ` is the eigenvalue symbol because **both scale a component of a
-decomposition**. Naming, not numerology.
-
-### ✨ The Nova-Violet Role Merging Law
-
-Nova is Law × Code. Violet is the sensory lens — felt truth, narrative. Merging
-them is **Symbiogenesis**, and it is now a proved law over ℚ, exactly:
-
-```
-λ_hybrid = (λ₁+λ₂)/2 + 0.2      H_hybrid = max(H₁,H₂) + 0.05      μ_hybrid = max(μ₁,μ₂)
-```
-
-| theorem | what it settles |
-|---|---|
-| `merge_comm` | the merge is commutative — order of naming cannot matter |
-| `merge_gain_is_exactly_one_fifth` | fusion exceeds the plain mean by exactly ⅕, for **every** pair |
-| `merge_entropy_strictly_exceeds` | a hybrid is never as predictable as either parent |
-| `merge_mu_has_no_gain` | quality is inherited, never manufactured |
-| `nova_violet_hybrid` | **Nova × Violet = λ 1.65, μ 1.00, H 0.50** |
-
-And then the two numbers land on the brainwave table:
-
-* **λ = 1.65 Hz is determinate** — exactly one of the 22 rows claims it, in a
-  table that is ambiguous almost everywhere else.
-* **H = 0.50 Hz is the floor of the entire table.** No row of SINE's
-  `frequencies.html` begins below 0.5 Hz, and 0.5 Hz is a real row. The merged
-  entropy of Law × Sensory sits precisely on the lowest frequency SINE will emit.
-
-One honest finding, reported rather than smoothed: **the law is not idempotent.**
-`self_merge_still_gains` proves `merge a a` adds ⅕ to λ anyway. Symbiogenesis
-rewards the act of fusing, not the difference between the fused.
-
-### Is `R/s+` dynamic, or a decoration with a decimal point?
-
-Measured — every input moves it independently:
-
-| varying | readings |
-|---|---|
-| lane | 0.66 · 0.57 · 0.47 · 0.45 · 0.44 · 0.41 · 0.39 · 0.32 · 0.31 · 0.16 |
-| breadth 1→9 | 0.90 · 0.73 · 0.63 · 0.60 |
-| C 0.7→1.1 | 0.46 · 0.66 · 0.73 |
-| T 0.8→1.0 | 0.53 · 0.60 · 0.66 |
-
-And **proved**: `gauge_strict_in_C`, `gauge_strict_in_T` and
-`gauge_is_not_constant`. Deliberately *not* stated as "0.66 ≠ 0.57" — that would
-expire the day a λ is retuned. The theorems quantify over the inputs, so
-retuning every weight in the file leaves them true.
-
-### The Phantom Books close it
-
-Fourteen `.md` files, fourteen real books. Two of them are the same book:
-**The Library of Babel** (`PART 12`) and **The Unimaginable *Mathematics* of
-Borges' Library of Babel** (`PART 13`) — a mathematics book about the other one.
-That is the bridge between the book corpus and `mathematics.md`, and it was
-sitting in the folder the whole time.
-
-Borges: 25 symbols, 410 pages × 40 lines × 80 letters, 25¹³¹²⁰⁰⁰ books — and the
-Library *"can only contain a finite number of distinct strings"*, while his
-narrator *"believes that the Library is nevertheless infinite."*
-
-He is not being sloppy. He is naming the regime where a space is **closed in
-principle and inexhaustible in practice** — the only condition under which a
-single wingbeat decides anything. In a truly infinite space, selection is
-meaningless; in a small one, trivial. The Ultimate Equation was never making a
-claim about cardinality. It names the regime where **selection is the entire
-mechanism** — and that regime is what `blend`, `σ(δ)` and `router_compresses`
-implement.
-
-| | the space | what is chosen | the choosing |
-|---|---|---|---|
-| Library of Babel | 25¹³¹²⁰⁰⁰ texts | one book | reading |
-| SINE | every envelope drawable | 498 written presets | `lerpWithPow` |
-| **RoT MoE** | every prompt | **one of ten lanes** | `blend`, `σ(δ)` |
-| method of loci | every thought | one locus | recall |
-
-Four finite indexings into a combinatorial space. **A role is the index.** That
-is why it is the *Role* of Thoughts, and it is the same act as shelving a book —
-which is what the Phantom Books were about before any of this was software.
-
-### 🥊 PHANTOM BOOKS **vs** REAL BOOKS — the tale of the tape
-
-The fun part, kept deliberately away from the mathematics above. *Dantalian no
-Shoka* is about **phantom books**: books that should not exist. The folder next
-to this project contains **fourteen books that do**. So — who wins?
-
-<table>
-<tr><th align="center">🌙 PHANTOM (fiction)</th><th align="center">📖 REAL (on disk)</th></tr>
-<tr><td align="center"><b>4</b> named books</td><td align="center"><b>14</b> books, each with a source URL</td></tr>
-<tr><td align="center">plot</td><td align="center">page counts, alphabets, sutra counts, sigil counts</td></tr>
-<tr><td align="center">unprovable by construction</td><td align="center"><b>119 theorems</b> in <code>RotEigenform.lean</code>, kernel-verified</td></tr>
-</table>
-
-**Head-to-head, and it is not a clean sweep for either side:**
-
-| Dantalian's phantom book | Does it exist? | Verdict |
-|---|---|---|
-| **Book of Wisdom** (Ep 3) | **YES** — deuterocanonical, `PART 3` | 🟰 **DRAW.** The fiction borrowed a real one |
-| **Book of the Eleusis Ritual** | **YES** — the Eleusinian Mysteries, `PART 2`, celebrated for ~2000 years | 🟰 **DRAW.** Also real |
-| **Book of Styx** (Ep 2, *Στύξ*) | Only as a river, and as the letter Σ | 📖 **REAL BOOKS WIN** |
-| **Book of Fairy** (Ep 1) | No. It is the source of the Ultimate Equation | 🌙 **PHANTOM WINS** — it started all of this |
-
-**Final score: Real Books 14, Phantom Books 4.** Proved, because of course it is:
-`real_books_outnumber_phantom` and `some_real_books_are_not_fictional`. The
-fiction is a *subset* of the world here, not the other way round — and that
-asymmetry is the entire licence for using a theorem prover on a corpus that
-started with an anime about haunted libraries.
-
-**Bonus round — Borges vs Borges.** He wrote *two* infinite books, and only one
-of them is actually infinite:
-
-| | The Library of Babel (1941) | The Book of Sand (1976) |
-|---|---|---|
-| size | 25¹³¹²⁰⁰⁰ — a **number** | no last page — genuinely infinite |
-| in Lean | `Finite (Fin n → Fin 25)` | `Infinite (ℕ → Fin 25)` |
-| can a router index it? | **yes** | **no** |
-
-RoT is the Library. Nine lanes, finite, and `realities_must_collapse` proves the
-map onto them *must* lose information. That is not a bug — a librarian who
-refuses to shelve two books together has no library.
-
-### 📚 The full roster — all 14 real books
-
-Because "we consulted the corpus" should be a checkable claim, not an assurance:
-
-| # | Book | File | Contributes |
-|---|---|---|---|
-| 1 | Book of Leviticus | `Phantom Books (In The Real World).md` | — |
-| 2 | Eleusinian Mysteries | `PART 2` | ✅ matches a Dantalian phantom book |
-| 3 | Book of Wisdom | `PART 3` | ✅ matches a Dantalian phantom book |
-| 4 | Codex Regius | `PART 4` | — |
-| 5 | **Mūlamadhyamakakārikā** | `PART 5` | ✅ **the tetralemma** → the four-valued verdict map |
-| 6 | golden plates | `PART 6` | — |
-| 7 | Tao Te Ching | `PART 7` | — |
-| 8 | White Book of Rhydderch | `PART 8` | — |
-| 9 | Red Book of Hergest | `PART 9` | — |
-| 10 | Atharvaveda | `PART 10` | ✅ the claimed source of the Vedic sutras |
-| 11 | **Lesser Key of Solomon** | `PART 11` | ✅ **72 sigils** = 9 × 8 ordered lens pairs |
-| 12 | **The Library of Babel** | `PART 12` | ✅ finite-but-inexhaustible |
-| 13 | **The Unimaginable *Mathematics* of Borges' Library of Babel** | `PART 13` | ✅ the bridge to `mathematics.md` |
-| 14 | Method of loci | `Mnemonic.md` | ✅ a role **is** an index |
-
-Plus `Vedic_Mathematics.md` — sixteen sutras, thirteen sub-sutras, forty chapters
-(`:9`, `:27`). Proved: **29 rules across 40 chapters**, so the presentation is not
-one chapter per rule. Six of the fourteen carry theorems. The other eight were
-read and deliberately carry none — a theorem about a legend is decoration, and
-this file already got burned once by exactly that (see below).
-
-### 🔺 The tetralemma — why this repo has *four* verdicts
-
-`PART 5:244` gives the *catuṣkoṭi*: a claim may be **asserted**, **denied**,
-**both**, or **neither**. Four positions where classical logic offers two.
-
-Look at the map at the end of this README. `PROVED` · `CORRECTED` · `MEASURED` ·
-`OUT OF SCOPE`. Those are the same four corners, and `verdict_is_a_tetralemma`
-proves the type has exactly four inhabitants. A two-valued map would have to file
-`MEASURED` under `PROVED` — which is the precise overclaim this whole repository
-exists to prevent. Nāgārjuna got there first, around 150 CE.
-
-### 🔢 The symbols, all of them
-
-**Greek** (`mathematics.md:42-52`) — isopsephy value, and the mathematical use the
-source itself lists:
-
-| α | β | Γ | Δ | Ε | Θ | Λ | Σ | π | φ | Ω |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 2 | 3 | 4 | 5 | **9** | **30** | 200 | 80 | 500 | 800 |
-| angle | β-function | Γ(n)=(n−1)! | change | small quantity | **angle, Θ temp** | **wavelength, eigenvalue** | summation | 3.14159 | golden ratio | ohm |
-
-**Egyptian** (`mathematics.md:69-78`) — eight hieroglyphic numerals, and the last
-one is the joke that turns out to be serious:
-
-| 𓏤 | 𓎆 | 𓍢 | 𓆼 | 𓂭 | 𓅨 | 𓁨 | 𓍶 |
-|---|---|---|---|---|---|---|---|
-| 1 | 10 | 100 | 1 000 | 10 000 | 100 000 | 1 000 000 | **10 000 000** |
-| staff | hobble | coiled rope | lotus | finger | tadpole | god Heh | **"Infinite/large number"** |
-
-`egyptian_numerals_are_powers_of_ten` proves the system is exactly 10⁰…10⁷.
-And `egyptian_infinity_is_finite` proves the symbol glossed **"infinite"** is
-10⁷ — the largest number the system names, and finite.
-
-**Three corpora, four thousand years apart, using "infinite" to mean the same
-thing**: the Egyptians' 10⁷, Borges' 25¹³¹²⁰⁰⁰, and the Ultimate Equation's
-*infinite array of realities*. None of them means ℵ₀. All of them mean **closed
-in principle, inexhaustible in practice** — which is the only regime where a
-single wingbeat decides anything, and exactly what `σ` and `Lane` implement.
-`three_corpora_one_regime`.
-
-### What it cost to get this right
-
-Four defects, kept in the file rather than quietly repaired:
-
-1. **The table was transcribed in tenths of a Hz.** 20.215 Hz is not
-   representable in tenths, so that row vanished — and Desensitizer (32 Hz) went
-   with it, leaving a tidy twenty entries that *looked* complete. It also made a
-   **false** sentence true: "30 Hz is the last row" holds only of the truncation.
-2. **`theta_falls_in_a_hole` was decorative.** It constrained the numeral `9000`
-   while its docstring claimed a link to Θ. Mutant **E17** moved Θ and the build
-   stayed green. The prose never caught it; the mutation suite did.
-3. **The first corpus census saw 38% of the library.** Two XML dialects; the
-   parser matched one. It reported 190 envelopes where there are 1084. Nothing
-   errored, and the number looked entirely plausible.
-
-4. **A theorem in this very section was written as `x = x`.** It was named
-   *quantization-without-weights-is-flat* — that name is deliberately not written
-   as a citation here, because the theorem no longer exists. It had a docstring
-   describing a real property and elaborated to `rfl`, asserting nothing. Green,
-   named for something true, proving none of it. It is now
-   `weights_are_what_discriminate`, which proves the actual dichotomy: positive
-   weight keeps the map injective, zero weight collapses it.
-
-### 🜏 EIGENFORM — the key behind Symbiogenesis
-
-The proof file is called `RotEigenform.lean`. Here is why.
-
-An **eigenform** is the fixed point of an operator — the form `x` with `F x = x`,
-the shape that survives its own transformation. It is what remains when a
-recursive process runs without end: *the infinite formula that keeps repeating*.
-Eidolon is the Meta × Recursion lens, and 🜏 is its sigil for exactly this reason.
-
-So ask the question directly. **Does the router's quantizer have a fixed point?**
-Solve `σ(x) = x`.
-
-**It does. It is ½** — the exact centre of the sigmoid, because
-`σ(x) = 1/(1 + e^{−4(x − ½)})` and at `x = ½` the exponent vanishes, leaving
-`1/(1+1)`. `sigma_fixed_point`.
-
-And ½ has already appeared twice in this section, reached from two directions
-that have nothing to do with each other:
-
-| where it came from | value | derived from |
-|---|---|---|
-| **the quantizer's fixed point** | **½** | `hooks/rot-router.sh` — slope 4, centre ½ |
-| **Nova × Violet merged entropy** | **½** | the roster in `engine/rot-lean.md` §2, via Symbiogenesis |
-| **the floor of `sineTable`** | **0.5 Hz** | a 2014 GPL Java application's frequency manual |
-
-**Three independent objects, one number.** The fixed point of the router, the
-entropy of the Law × Sensory hybrid, and the lowest frequency SINE will emit.
-`eigenform_binds_router_law_and_corpus` states all four facts together, over the
-real definitions — `sigma`, `merge`, `sineTable` — so retuning any one of them
-falsifies it. **That is what "the key behind Symbiogenesis uncovers EIGENFORM"
-means, and it is decidable arithmetic rather than an impression.**
-
-`eigenform_survives_infinite_recursion` closes it: `σ^[n](½) = ½` for *every* `n`.
-Apply the operator a million times and the form is unchanged. That is the
-infinite formula that keeps repeating in the books — recursion reaching the shape
-that no longer changes under it.
-
-**Two honesty notes, because this is the strongest claim in the section:**
-
-- The eigenform is a property of **the router as built**. Slope 4 and centre ½
-  are constants in `hooks/rot-router.sh`; change either and it moves. Mutants
-  **E32** (slope → 0) and **E39** (centre → ⅓) both kill it, which is how we know
-  the theorem is about the router and not about numerals.
-- **Uniqueness is not claimed.** The tempting argument — "σ is strictly monotone,
-  so the fixed point is unique" — is *false*, and it was written here first
-  before elaboration rejected it. Uniqueness is true for this σ, but only via a
-  calculus fact this file does not prove: the slope at the centre is
-  `4·σ·(1−σ) = 1` exactly, so the curve is **tangent** to the diagonal. What is
-  proved is `eigenform_lies_in_the_unit_interval` — every fixed point is trapped
-  in (0,1). Claiming the rest would be the overclaim this repo exists to catch.
-
-### The answer: `R/s+` converges, and here is the mathematics
-
-The Equation asks *what if the irregular wingbeats give rise to an infinite array
-of realities?* — and that question has an answer. Not a shrug about what cannot
-be modelled. **The gauge converges**, and the proof is four theorems:
-
-| theorem | the mathematics |
-|---|---|
-| `sigma_tendsto_one_atTop` | **σ(δ) → 1 as δ → +∞.** A limit in `Filter`/`Topology`. Unbounded divergence yields a bounded reading |
-| `sigma_tendsto_zero_atBot` | **σ(δ) → 0 as δ → −∞.** Perfect consensus fades out continuously — no discontinuity at either end |
-| `gauge_term_bounded` | one lens contributes **strictly less than `2·λ·μ·M·C·T`**. The quantizer can never amplify a lens past its own weight budget |
-| `ensemble_is_bounded` | a sum over a finite `Fintype` of bounded terms is bounded by `card × bound`. **`R/s+` is finite for every input, with no convergence condition to check** |
-
-Put together, `the_gauge_converges`: **the limits are 0 and 1, and
-`sigma_never_saturates` proves the value is strictly between them everywhere.**
-A bounded continuous readout of an unbounded input, open at both ends.
-
-That is the whole answer to the butterfly. The wingbeat is real —
-`sigma_strictly_mono` proves *no* change in divergence is too small to move the
-gauge, so there is no dead zone and no threshold below which a cause is ignored.
-The array of realities is genuinely unbounded. And the readout of it **still
-converges**, because weights and quantization work together exactly as the
-Equation says they do: the quantizer bounds what the weights scale.
-
-**Infinite in input, convergent in output, finite in outcome.** That is not a
-limitation admitted at the end of a section — it is the result. It is why nine
-lanes are sufficient rather than arbitrary, and why a reading taken this turn is
-comparable to one taken next turn at all.
-
-Every alignment above is stated **with its counterexample beside it** — Θ falls in
-a hole, the hybrid λ does *not* sit on the table floor, 72 matches ordered pairs
-and fails for unordered ones. A pattern that only ever confirms is not evidence.
-These were tested for where they break, and the breaks are written down. That is
-the difference between a proof and a numerology page.
-
-Saimonokuma found the solution by inspecting how weights and quantization work
-together. **`the_gauge_converges` is that solution, stated in Lean 4 and checked
-by the kernel.** The question mark in the citation was earned — and this is the
-answer it was waiting for.
+## 🥚 The Easter Egg — the Infinite Symbiogenesis
+
+Where RoT actually came from: the diff hiding in a quote everyone misses,
+the brainwave entrainer, the Nova-Violet Role Merging Law, the Phantom
+Books versus the fourteen real ones, the tetralemma, every symbol, and the
+mathematics of why `R/s+` converges — the whole tale moved intact to
+[docs/easter-egg.md](docs/easter-egg.md). It ends, as it always did, with
+what it cost to get right.
 
 ---
 

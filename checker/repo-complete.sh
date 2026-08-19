@@ -590,7 +590,23 @@ for f in lean/Proofs/*.lean; do strip_lean_comments "$f"; done \
 
 # A citation is a backticked snake_case identifier: at least one underscore and
 # no dot or slash, which excludes file names, flags and module paths.
-grep -oE '`[a-z][a-z0-9]*(_[a-z0-9]+)+`' README.md | tr -d '`' | sort -u > "$RCTMP/cited.txt"
+#
+# THE SURFACE FOLLOWS THE CONTENT (7.0.0). The compression moved the front
+# page's depth -- the module arguments, the lens benchmark, the Easter Egg --
+# into docs/ files, and most of the 58 citations moved with it. A scan pinned
+# to README.md alone would have gone from 58 names to single digits and called
+# its own blindness a defect of the page. The surface is now the README plus
+# exactly the five depth files that carry moved front-page content. NOT the
+# whole of docs/: SCRUTINY-LOG and its kind are HISTORY -- they may cite
+# theorems as they stood at the time, and binding them would demand the log be
+# rewritten, the one thing a log must never do (module-claims.sh states the
+# same scope rule for counts).
+CIT_SURFACE="README.md docs/lean-and-corpus.md docs/modules.md docs/tips.md docs/lens-bench.md docs/easter-egg.md"
+: > "$RCTMP/cited.raw"
+for _cf in $CIT_SURFACE; do
+  [ -f "$_cf" ] && grep -oE '`[a-z][a-z0-9]*(_[a-z0-9]+)+`' "$_cf" >> "$RCTMP/cited.raw"
+done
+tr -d '`' < "$RCTMP/cited.raw" | sort -u > "$RCTMP/cited.txt"
 # Words that are legitimately snake_case and are NOT theorems.
 NOT_THEOREMS='native_decide|lake_build|lean_lib|rot_moe|claude_config_dir'
 grep -vE "^($NOT_THEOREMS)$" "$RCTMP/cited.txt" > "$RCTMP/cited2.txt" || true
@@ -598,17 +614,18 @@ grep -vE "^($NOT_THEOREMS)$" "$RCTMP/cited.txt" > "$RCTMP/cited2.txt" || true
 ghosts=0
 while read -r nm; do
   [ -n "$nm" ] || continue
-  grep -qx "$nm" "$RCTMP/real.txt" || { bad "README cites \`$nm\` -- no such theorem in lean/Proofs"; ghosts=$((ghosts+1)); }
+  grep -qx "$nm" "$RCTMP/real.txt" || { bad "the published pages cite \`$nm\` -- no such theorem in lean/Proofs"; ghosts=$((ghosts+1)); }
 done < "$RCTMP/cited2.txt"
 ncit=$(wc -l < "$RCTMP/cited2.txt" | tr -d ' ')
-[ "$ghosts" -eq 0 ] && ok "all $ncit theorem names cited in README.md resolve to a real declaration"
+[ "$ghosts" -eq 0 ] && ok "all $ncit theorem names cited across README.md + the docs depth files resolve to a real declaration"
 
 # The citation set must not be allowed to shrink to nothing: an extractor that
-# silently stops matching would report "0 ghosts" and look like a pass.
+# silently stops matching would report "0 ghosts" and look like a pass. The
+# floor is held over the whole surface (the depth files carry most names now).
 if [ "$ncit" -ge 40 ]; then
   ok "the citation extractor found $ncit names (a scan that matched nothing would pass vacuously)"
 else
-  bad "only $ncit citations extracted from README.md -- the extractor has gone blind, not the page clean"
+  bad "only $ncit citations extracted from the citation surface -- the extractor has gone blind, not the pages clean"
 fi
 
 # CONTROL: a cited name that does not exist MUST be reported. The needle is
