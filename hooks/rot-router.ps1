@@ -1104,6 +1104,33 @@ if ($CliRoute) { Write-Output $cliOut; exit 0 }
 
 $nsilTag = ''
 if ($nsilDecision -ne '' -and $nsilDecision -ne 'CONFIRM') { $nsilTag = ' [NSIL ' + $nsilDecision + ' ' + ($nsilAct -join '+') + ']' }
+# --- THE SENTINEL CLAUSE (7.0.0, V2: the working share) ----------------------
+# The sh arm carries the full reasoning and the Socio's order verbatim. Every
+# predicate reads a MEASURED field of this CLI's payload (survey, 2026-08-19):
+# interrupted first, then the Bash blank with the harness's own
+# noOutputExpected sanction, then the Write zero-byte with the input-side
+# guard. One clause at most; silence is the healthy state; Edit responses
+# are unmeasured and unread; element tags are held against the DTD by
+# checker/voice-contract.sh.
+$sent = ''
+if ($evName -eq 'PostToolUse' -and $env:ROTMOE_VOICE -ne '0') {
+  try {
+    $sj = $payload | ConvertFrom-Json -ErrorAction Stop
+    $tr = $sj.tool_response
+    if ($null -ne $tr -and $tr -is [pscustomobject]) {
+      $ti = $sj.tool_input
+      if ($tr.interrupted -eq $true) {
+        $sent = '<rot:claude>🧭 Claude: this command was INTERRUPTED -- whatever follows the cut never ran; measure again before trusting the result.</rot:claude>'
+      } elseif ($sj.tool_name -eq 'Bash' -and $tr.stdout -eq '' -and $tr.stderr -eq '' -and $tr.noOutputExpected -ne $true) {
+        $sent = '<rot:antivenom>⚪ AntiVenom: result BLANK -- zero bytes where output was expected; treat absence as a finding, not a pass.</rot:antivenom>'
+      } elseif ($sj.tool_name -eq 'Write' -and $tr.content -eq '' -and $null -ne $ti -and ($ti.content -is [string]) -and $ti.content -ne '') {
+        $sent = '<rot:antivenom>⚪ AntiVenom: wrote ZERO BYTES where content was given -- read the file before building on it.</rot:antivenom>'
+      }
+    }
+  } catch { $sent = '' }
+  if ($sent) { $voiceJson = $true }
+}
+
 # TWO CHANNELS, ONE CONTENT -- the sh arm's rule, decision for decision. On
 # the JSON path each piece is scrubbed of quote and backslash BEFORE the
 # literal \n separators join them, so the scrub can never eat a separator.
@@ -1111,6 +1138,7 @@ $mLine = "RoT MoE :: TIER 1 -> " + $lane + $nsilTag + " | R/s+ " + $rs + $mark
 $vAcc = ''
 if ($voiceJson) {
   $vAcc = ($mLine -replace '["\\]', '')
+  if ($sent) { $vAcc += ('\n' + ($sent -replace '["\\]', '')) }
 } else {
   Write-Output $mLine
 }

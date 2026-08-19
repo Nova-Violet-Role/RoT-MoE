@@ -1678,6 +1678,12 @@ hook_mode () {
   # RotInject.lean's accepting set is a MAY-carry set (context-gate.sh phase
   # A checks the gate exists; only the legacy sanctum hooks must match the
   # set exactly), so a subset here is sanctioned, not drift.
+  # ONE MEASURED EXCEPTION (7.0.0, V2): the SENTINEL below promotes a
+  # PostToolUse turn onto the envelope when -- and only when -- a clause
+  # fired on the RESULT. That is not the deduplicated echo W2 killed: W2's
+  # own evidence was that Pre and Post carried identical tool_input text,
+  # and a sentinel clause carries tool_response, which exists only after
+  # the act. The stanza block stays Pre-only; the sentinel is one line.
   CTX_EVENTS="PreToolUse"
   _voice=''
   _voicejson=''
@@ -1720,6 +1726,43 @@ hook_mode () {
     for _a in $_nsil_act; do _nsil_names="$_nsil_names+$_a"; done
     _nsil_tag=" [NSIL $NSIL_DECISION ${_nsil_names#+}]"
   fi
+  # --- THE SENTINEL CLAUSE (7.0.0, V2: the working share) --------------------
+  # The lenses' view of the RESULT, by Socio order: "the Model Inputs a Code
+  # that is Stalled, the Lens Notify the Main Model -- no need for a Timeout,
+  # cause of a blank space, or something in-between." W2 deduplicated the
+  # Post voice because Pre and Post built IDENTICAL text from tool_input;
+  # this clause reads tool_response -- information that exists only after
+  # the act -- so the moment that can change the NEXT action is when the
+  # result lands. Every predicate below is a MEASURED field of this CLI's
+  # own payload (the survey instrument above, run live on 2026-08-19:
+  # stdout/stderr/interrupted/isImage/noOutputExpected; there is NO
+  # exit_code, whatever the docs say). One clause at most per turn, the
+  # sharpest first; silence is the healthy state, exactly as the reminder's.
+  # `noOutputExpected` is the harness's OWN sanction of a blank result, so a
+  # blessed blank stays silent -- the guard no heuristic could supply.
+  # Edit responses are UNMEASURED on this CLI and therefore unread. The
+  # element tags are literals here and held against the DTD roster by
+  # checker/voice-contract.sh, like the frame.
+  _sent=''
+  if [ "$_ev" = 'PostToolUse' ] && [ "${ROTMOE_VOICE:-1}" != 0 ] \
+     && command -v node >/dev/null 2>&1; then
+    _sent=$(printf '%s' "$payload" | node -e '
+      let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+        try{const j=JSON.parse(s);const tr=j.tool_response;const ti=j.tool_input||{};
+          if(!tr||typeof tr!=="object"||Array.isArray(tr))return;
+          if(tr.interrupted===true){
+            process.stdout.write("<rot:claude>🧭 Claude: this command was INTERRUPTED -- whatever follows the cut never ran; measure again before trusting the result.</rot:claude>");return;}
+          if(j.tool_name==="Bash"&&tr.stdout===""&&tr.stderr===""&&tr.noOutputExpected!==true){
+            process.stdout.write("<rot:antivenom>⚪ AntiVenom: result BLANK -- zero bytes where output was expected; treat absence as a finding, not a pass.</rot:antivenom>");return;}
+          if(j.tool_name==="Write"&&tr.content===""&&typeof ti.content==="string"&&ti.content!==""){
+            process.stdout.write("<rot:antivenom>⚪ AntiVenom: wrote ZERO BYTES where content was given -- read the file before building on it.</rot:antivenom>");return;}
+        }catch(e){}});' 2>/dev/null)
+    # A sentinel that fired promotes this Post turn onto the envelope
+    # channel -- marker first, clause after, stanzas untouched (the stanza
+    # loop is gated on _voice, which stays empty here).
+    [ -n "$_sent" ] && _voicejson=1
+  fi
+
   # TWO CHANNELS, ONE CONTENT. On the plain-stdout events the marker and the
   # stanzas print as lines, exactly as they always did. On the tool-loop
   # events the same content travels inside the JSON envelope's
@@ -1731,6 +1774,7 @@ hook_mode () {
   _mline="RoT MoE :: TIER 1 -> $lane$_nsil_tag | R/s+ $_rs$_mark"
   if [ -n "$_voicejson" ]; then
     _vacc=$(printf '%s' "$_mline" | tr -d '"\\')
+    [ -n "$_sent" ] && _vacc="$_vacc\n$(printf '%s' "$_sent" | tr -d '"\\')"
   else
     echo "$_mline"
   fi

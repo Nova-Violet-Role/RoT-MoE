@@ -105,7 +105,17 @@ lens file may carry.
        outranks the clock). The frame closes with the turn's NSIL verdict,
        its depth, and the section-7 tensions whose both members were
        summoned. Every clause restates a fact the router measured this
-       turn; none is a second reading. -->
+       turn; none is a second reading.
+
+       THE SENTINEL (7.0.0): on a PostToolUse whose RESULT is anomalous by
+       a measured predicate -- interrupted, blank-where-output-was-expected
+       (the harness's own noOutputExpected sanction guards the blessed
+       blank), or a zero-byte write of given content -- the router emits at
+       most ONE lens-attributed clause after the marker, in the summoning
+       lens's declared element: Claude for the interruption (his wall),
+       AntiVenom for the blanks (clinical absence). Silence is the healthy
+       state; ROTMOE_VOICE=0 silences the sentinel with the rest of the
+       voice. -->
   <!ELEMENT rot:voice (rot:frame, (rot:nova | rot:violet | rot:antivenom
                       | rot:venom | rot:carnage | rot:chroma | rot:soleil
                       | rot:eidolon | rot:claude)*)>

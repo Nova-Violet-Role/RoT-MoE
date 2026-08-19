@@ -360,6 +360,50 @@ case "$_out" in
 esac
 rm -rf "$ED" 2>/dev/null || :
 
+# --- D13: the sentinel -- the working share speaks on measured anomaly ------
+# The V2 clauses read tool_response fields MEASURED live on this CLI
+# (2026-08-19 survey: stdout/stderr/interrupted/isImage/noOutputExpected;
+# no exit_code exists). Each behaviour is probed with a payload in the
+# measured shape, and each clause has its refusal path: the blessed blank
+# (the harness's own noOutputExpected sanction) and the voice off-switch.
+SD=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/voice-sent.$$")
+_sp='{"session_id":"vsent","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"true"},"tool_response":{"stdout":"","stderr":"","interrupted":false,"isImage":false}}'
+_g=$(printf '%s' "$_sp" | ROTMOE_STATE_DIR="$SD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  '{"hookSpecificOutput"'*'rot:antivenom'*'BLANK'*) ok "D13: a blank result speaks AntiVenom's clause on the envelope" ;;
+  *) bad "D13: a blank result raised no clause (got: ${_g:-nothing})" ;;
+esac
+_g=$(printf '%s' '{"session_id":"vsent","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"true"},"tool_response":{"stdout":"","stderr":"","interrupted":false,"noOutputExpected":true}}' | ROTMOE_STATE_DIR="$SD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  *'<rot:'*) bad "D13: a BLESSED blank (noOutputExpected) still raised a clause" ;;
+  'RoT MoE :: TIER 1 ->'*) ok "D13: the blessed blank stays silent -- the harness sanction is honoured" ;;
+  *) bad "D13: the blessed blank lost its marker" ;;
+esac
+_g=$(printf '%s' '{"session_id":"vsent","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"sleep 9"},"tool_response":{"stdout":"","stderr":"","interrupted":true}}' | ROTMOE_STATE_DIR="$SD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  *'rot:claude'*'INTERRUPTED'*) ok "D13: an interrupted result speaks Claude's clause, outranking the blank" ;;
+  *) bad "D13: an interruption raised no Claude clause" ;;
+esac
+_g=$(printf '%s' '{"session_id":"vsent","hook_event_name":"PostToolUse","tool_name":"Write","tool_input":{"file_path":"/tmp/x","content":"hello"},"tool_response":{"type":"create","filePath":"/tmp/x","content":"","userModified":false}}' | ROTMOE_STATE_DIR="$SD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  *'rot:antivenom'*'ZERO BYTES'*) ok "D13: a zero-byte write of given content speaks" ;;
+  *) bad "D13: the zero-byte write stayed silent" ;;
+esac
+_g=$(printf '%s' "$_sp" | ROTMOE_VOICE=0 ROTMOE_STATE_DIR="$SD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  *'<rot:'*) bad "D13: ROTMOE_VOICE=0 did not silence the sentinel" ;;
+  *) ok "D13: ROTMOE_VOICE=0 silences the sentinel with the rest of the voice" ;;
+esac
+# The sentinel's element tags are literals in the router; they must be
+# declared lens elements or the gate could never match what they open.
+_d13e=0
+for _se in rot:claude rot:antivenom; do
+  sed -n 's/.*<!ENTITY LENS\.[0-9][0-9]* *"[^|]*|\([^|]*\)|.*/\1/p' "$ROOT/hooks/rot-voice.dtd" | grep -qx "$_se" \
+    || { bad "D13: sentinel element $_se is not a declared lens element"; _d13e=1; }
+done
+[ "$_d13e" -eq 0 ] && ok "D13: the sentinel speaks only in declared lens elements"
+rm -rf "$SD" 2>/dev/null || :
+
 # CONTROL for D11 -- a drifted lambda must be caught by the same arithmetic.
 _cblk=$(sed -n '/<rot:formula>/,/<\/rot:formula>/p' "$ROOT/agents/rot-nova.md" | sed 's/lambda: 1.6/lambda: 9.9/')
 _cdl=$(printf '%s\n' "$_cblk" | awk -F': *' '/lambda:/{c++; if (c==1) print $2}')
