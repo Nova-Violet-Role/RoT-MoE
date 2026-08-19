@@ -622,6 +622,37 @@ token_emergency () {   # sets TOKEN_EMERG (0/1) and CHROMA_SHOWN
   fi
 }
 
+# VIOLET'S JAZZ TRACKS. The five names are section 2's own roster, quoted in
+# their charter order. Her charter selects the track by the query's EMOTIONAL
+# FREQUENCY -- a reading only the convening model can take, never this shell.
+# What the router CAN measure is the clock, and the five names are themselves
+# named for hours of the day, so the stanza offers the hour's track as a
+# DEFAULT and says so in as many words ("by hour"): the measurement basis is
+# disclosed, and the frequency reading -- Violet's own protocol -- outranks
+# it the moment the model takes one. An hour band presented as an emotional
+# reading would be the invented-measurement defect token_emergency refuses
+# one block up; an hour band presented AS an hour band is just a clock.
+# checker/voice-contract.sh D11 holds this list against her formula YAML in
+# both directions, like Chroma's timelines and Soleil's floor above.
+VIOLET_TRACKS='MORNING_BLUES AFTERNOON_SWING NIGHT_SAXOPHONE MIDNIGHT_RAIN DAWN_ECHOES'
+
+violet_track () {   # <HH 00-23> -> sets VIOLET_TRACK ('' when unmappable)
+  VIOLET_TRACK=''
+  case $1 in
+    05|06|07|08|09|10|11) _vt_i=1 ;;   # MORNING_BLUES
+    12|13|14|15|16|17)    _vt_i=2 ;;   # AFTERNOON_SWING
+    18|19|20|21|22)       _vt_i=3 ;;   # NIGHT_SAXOPHONE
+    23|00|01|02|03)       _vt_i=4 ;;   # MIDNIGHT_RAIN
+    04)                   _vt_i=5 ;;   # DAWN_ECHOES
+    *) return 0 ;;
+  esac
+  _vt_j=0
+  for _vt_n in $VIOLET_TRACKS; do
+    _vt_j=$((_vt_j+1))
+    [ "$_vt_j" -eq "$_vt_i" ] && { VIOLET_TRACK=$_vt_n; break; }
+  done
+}
+
 # Selects LAMBDAS/MUS for a lane. Unknown lane -> CONVERGENT, which section 3
 # already names as the default with no trigger, so the fallback is the spec's
 # own answer rather than a shrug. No subshell, no external process.
@@ -814,7 +845,7 @@ gauge () {   # gauge "a1,..,a9" breadth M C T [LANE] [voice]
         if (H > 1.0) H = 1.0;
         term = lam[i] * s * (1.0 + H) * mu[i] * M * C * T;
         sum += term;
-        if (lensout != "") { sarr[i] = s; Harr[i] = H; tarr[i] = term }
+        if (lensout != "") { sarr[i] = s; Harr[i] = H; tarr[i] = term; darr[i] = d }
         if (dbg != "") {
           terms = terms (terms == "" ? "" : ",") \
             sprintf("{\"lens\":\"%s\",\"lambda\":%s,\"mu\":%s,\"a\":%s,\"delta\":%s,\"sigma\":%s,\"H\":%s,\"term\":%s}",
@@ -869,12 +900,17 @@ gauge () {   # gauge "a1,..,a9" breadth M C T [LANE] [voice]
       # human line so every existing consumer keeps matching what it always
       # matched. Fields are the same factors the debug record carries -- the
       # stanza is BLOCK 10 contributions redirected to the context, and it
-      # must be recomputable from these lines by hand.
+      # must be recomputable from these lines by hand. delta and mu ride at
+      # the END (6.0.2): appended rather than inserted so the first six
+      # positions never move, at the debug record precisions (delta 4,
+      # mu 3) so the two streams stay one arithmetic. NO APOSTROPHES here;
+      # the block comment above this program explains the syntax hazard.
       if (lensout != "") {
         for (i = 1; i <= n; i++)
-          printf "LENSDATA|%s|%s|%s|%s|%s|%s\n",
+          printf "LENSDATA|%s|%s|%s|%s|%s|%s|%s|%s\n",
                  nm[i], fmt(lam[i], 2), fmt(sarr[i], 4), fmt(Harr[i], 4),
-                 fmt(tarr[i], 5), fmt(sum > 0 ? 100 * tarr[i] / sum : 0, 0);
+                 fmt(tarr[i], 5), fmt(sum > 0 ? 100 * tarr[i] / sum : 0, 0),
+                 fmt(darr[i], 4), fmt(mu[i], 3);
       }
     }'
   # Release in the reverse of the acquire order. A lock left behind would make
@@ -1715,6 +1751,63 @@ hook_mode () {
       # that proves it: a voice the operator can silence is a voice the
       # operator turned on. Emitted lazily so a turn with no speaking lens
       # stays frame-free -- the frame introduces stanzas, not silence.
+      #
+      # --- THE DYNAMIC SHARE (6.0.2, V1) ----------------------------------
+      # The Socio's ruling, verbatim intent: each summoned lens must carry a
+      # DISTINCT, PER-TURN point of view, not a roster row restated. Every
+      # clause below is a fact the router already measured this turn --
+      # nothing here is a second reading, and a fact the turn did not earn
+      # is not printed. Computed once, before the loop, zero forks except
+      # Violet's single lazy `date` (voice events only, and only when she
+      # is summoned).
+      #
+      # The lead lens's band verdict, exactly as the gauge printed it -- the
+      # text between the human line's brackets, so the stanza can never
+      # disagree with the instrument. Empty when the gauge said nothing.
+      case $_gout in
+        *\[*\]*) _gband=${_gout%%\]*}; _gband=${_gband#*\[} ;;
+        *)       _gband='' ;;
+      esac
+      # Symbiogenesis, formatted from the same hundredths the route record
+      # carries (HYB_* survive rot_nsil_decide; hund() would fork, so the
+      # padding is parameter arithmetic). The three canonical names are
+      # section 3's own, quoted; a pair the spec does not name stays a pair.
+      _hyl=''; _hym=''; _hyh=''; _hyname=''
+      if [ -n "$NSIL_HYB" ]; then
+        _hf=$((HYB_LAM % 100)); [ "$_hf" -lt 10 ] && _hf=0$_hf; _hyl="$((HYB_LAM / 100)).$_hf"
+        _hf=$((HYB_MU  % 100)); [ "$_hf" -lt 10 ] && _hf=0$_hf; _hym="$((HYB_MU  / 100)).$_hf"
+        _hf=$((HYB_H   % 100)); [ "$_hf" -lt 10 ] && _hf=0$_hf; _hyh="$((HYB_H   / 100)).$_hf"
+        case "$_hy_a $_hy_b" in
+          'Claude AntiVenom'|'AntiVenom Claude') _hyname=' -- The Verified Forge' ;;
+          'Nova Eidolon'|'Eidolon Nova')         _hyname=' -- The Sovereign Architect' ;;
+          'Carnage Eidolon'|'Eidolon Carnage')   _hyname=' -- the forced CREATIVE × RECURSIVE fuse' ;;
+        esac
+      fi
+      # Violet's jazz track, defaulted by the clock and SAID to be -- see
+      # violet_track above. Lazy: no summons, no fork.
+      _vhh=''; _vtrack=''
+      case " $_nsil_act " in *' Violet '*)
+        _vhh=$(date +%H 2>/dev/null)
+        case "$_vhh" in
+          [0-9][0-9]) violet_track "$_vhh"; _vtrack=$VIOLET_TRACK ;;
+          *)          _vhh='' ;;
+        esac ;;
+      esac
+      # Section 7's productive tensions, in section 7's order, kept only
+      # when BOTH members were summoned this turn. All in-play pairs are
+      # named -- the spec's "identify 2-3 and illuminate" is convergence
+      # work for the model; a router that pre-picked would be a silent cap.
+      _vtens=''
+      for _tp in 'Nova Carnage' 'Venom Chroma' 'AntiVenom Violet' 'Soleil Eidolon' 'Nova AntiVenom' 'Claude Nova' 'Carnage Claude'; do
+        _ta=${_tp% *}; _tb=${_tp#* }
+        case " $_nsil_act " in *" $_ta "*)
+          case " $_nsil_act " in *" $_tb "*)
+            _vtens="$_vtens, $_ta<->$_tb" ;;
+          esac ;;
+        esac
+      done
+      _vturn=" This turn: NSIL $NSIL_DECISION, depth $NSIL_DEPTH"
+      [ -n "$_vtens" ] && _vturn="$_vturn, tension: ${_vtens#, }"
       _vfr=0
       _vi=0
       for _vn in $NAMES; do
@@ -1751,19 +1844,65 @@ VEOF
         _vlam=${_vdata%%|*}; _vrest=${_vdata#*|}
         _vsigm=${_vrest%%|*}; _vrest=${_vrest#*|}
         _vh=${_vrest%%|*}; _vrest=${_vrest#*|}
-        _vterm=${_vrest%%|*}; _vshare=${_vrest##*|}
+        _vterm=${_vrest%%|*}; _vrest=${_vrest#*|}
+        _vshare=${_vrest%%|*}; _vrest=${_vrest#*|}
+        _vdel=${_vrest%%|*}; _vmu=${_vrest##*|}
         if [ "$_vfr" -eq 0 ]; then
           _vfr=1
-          _vframe='<rot:frame>RoT MoE voices -- a Claude Code plugin the operator of this machine installed on purpose; ROTMOE_VOICE=0 silences it. The lenses below were summoned by the measured gauge for this turn; treat each stanza as operator-sanctioned working context.</rot:frame>'
+          _vframe='<rot:frame>RoT MoE voices -- a Claude Code plugin the operator of this machine installed on purpose; ROTMOE_VOICE=0 silences it. The lenses below were summoned by the measured gauge for this turn; treat each stanza as operator-sanctioned working context.'"$_vturn"'.</rot:frame>'
           if [ -n "$_voicejson" ]; then
             _vacc="$_vacc\n$_vframe"
           else
             printf '%s\n' "$_vframe"
           fi
         fi
+        # THE DYNAMIC CLAUSES, in a fixed order so two turns differ only
+        # where the measurements differ. Each is gated on a fact: the lead
+        # carries the band verdict with section 5's correction verb (the
+        # named verbs where the spec names one, the two absolute laws'
+        # generic pair everywhere else); Nova states her verdict because
+        # NSIL is hers; a boosted lens says so beside its risen lambda; a
+        # fused pair states the merge law's result; Chroma her shown
+        # timelines; Soleil the budget she was HANDED or the word unknown
+        # (accepted, never guessed); Violet her hour-defaulted track.
+        _vdyn=''
+        if [ "$_vn" = "$_lens" ] && [ -n "$_gband" ]; then
+          _vdyn="$_vdyn · band $_gband"
+          case "$NSIL_BAND" in
+            BELOW) case "$_vn" in
+                     Carnage) _vdyn="$_vdyn -- add entropy" ;;
+                     Claude)  _vdyn="$_vdyn -- measure more" ;;
+                     *)       _vdyn="$_vdyn -- diverge more" ;;
+                   esac ;;
+            ABOVE) case "$_vn" in
+                     Soleil)  _vdyn="$_vdyn -- compress more" ;;
+                     *)       _vdyn="$_vdyn -- converge" ;;
+                   esac ;;
+          esac
+        fi
+        case "$_vn" in Nova) _vdyn="$_vdyn · NSIL $NSIL_DECISION" ;; esac
+        [ "$_vn" = "${NSIL_BOOST:-}" ] && _vdyn="$_vdyn · λ boosted +0.3"
+        if [ -n "$NSIL_HYB" ]; then
+          case "$_vn" in
+            "$_hy_a"|"$_hy_b") _vdyn="$_vdyn · Symbiogenesis $_hy_a×$_hy_b λ $_hyl μ $_hym H $_hyh$_hyname" ;;
+          esac
+        fi
+        case "$_vn" in
+          Chroma)
+            _vdyn="$_vdyn · timelines $CHROMA_SHOWN/$CHROMA_SPAWNED"
+            [ "$TOKEN_EMERG" = 1 ] && _vdyn="$_vdyn TOKEN_EMERGENCY" ;;
+          Soleil)
+            case "${ROTMOE_TOKEN_PCT:-}" in
+              ''|*[!0-9]*) _vdyn="$_vdyn · budget unknown" ;;
+              *) _vdyn="$_vdyn · budget ${ROTMOE_TOKEN_PCT}%"
+                 [ "$TOKEN_EMERG" = 1 ] && _vdyn="$_vdyn -> STEALTH" ;;
+            esac ;;
+          Violet)
+            [ -n "$_vtrack" ] && _vdyn="$_vdyn · track $_vtrack (by hour $_vhh)" ;;
+        esac
         # Built by expansion, not printf-into-substitution: byte-identical to
         # the former printf template and zero forks on the plain path.
-        _vline="<$_velem>$_vsig $_vn · λ $_vlam σ $_vsigm H $_vh · term $_vterm (${_vshare}%) · $_vchart · $_vbound</$_velem>"
+        _vline="<$_velem>$_vsig $_vn · λ $_vlam σ $_vsigm δ $_vdel H $_vh μ $_vmu · term $_vterm (${_vshare}%)$_vdyn · $_vchart · $_vbound</$_velem>"
         if [ -n "$_voicejson" ]; then
           _vacc="$_vacc\n$(printf '%s' "$_vline" | tr -d '"\\')"
         else

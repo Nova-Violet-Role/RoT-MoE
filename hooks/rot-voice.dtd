@@ -93,9 +93,19 @@ lens file may carry.
        lens stanzas in ROSTER ORDER. The router provides the frame and the
        measured stanza fields; the convening model gives the voices their
        words in the same turn. A stanza carries the lens's measured stance:
-       activity, lambda, mu, delta, sigma, term share, band signal — the
+       lambda, sigma, delta, breadth share H, mu, term and its percent — the
        gauge debug record's own fields, redirected from the log the model
-       never sees to the context it does. -->
+       never sees to the context it does — and, only when the turn earns
+       them, the DYNAMIC clauses (6.0.2): the lead lens's band verdict with
+       its section-5 correction verb, Nova's NSIL verdict, a boosted lambda
+       saying so, the Symbiogenesis pair with the merge law's constants and
+       its section-3 canonical name, Chroma's shown timelines, Soleil's
+       ACCEPTED budget or the word unknown, and Violet's hour-defaulted
+       jazz track (the hour is disclosed; her felt-frequency protocol
+       outranks the clock). The frame closes with the turn's NSIL verdict,
+       its depth, and the section-7 tensions whose both members were
+       summoned. Every clause restates a fact the router measured this
+       turn; none is a second reading. -->
   <!ELEMENT rot:voice (rot:frame, (rot:nova | rot:violet | rot:antivenom
                       | rot:venom | rot:carnage | rot:chroma | rot:soleil
                       | rot:eidolon | rot:claude)*)>

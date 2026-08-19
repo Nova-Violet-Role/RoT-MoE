@@ -232,6 +232,7 @@ eval "$(grep -E '^(DEF_LAM|DEF_MU|DEF_H|NAMES)=' "$ROOT/hooks/rot-router.sh")"
 eval "$(grep -E '^[LM]_(CONVERGENT|CLINICAL|EXECUTIVE|EMPATHIC|STRATEGIC|CREATIVE|PREDICTIVE|STEALTH|RECURSIVE|FORGE)=' "$ROOT/hooks/rot-router.sh")"
 eval "$(grep -E '^BAND_(LO|HI)_[A-Z]+=' "$ROOT/hooks/rot-router.sh")"
 eval "$(grep -E '^(CHROMA_SPAWNED|CHROMA_SHOWN_NORMAL|CHROMA_SHOWN_EMERGENCY|TOKEN_FLOOR_PCT)=' "$ROOT/hooks/rot-router.sh")"
+eval "$(grep -E '^VIOLET_TRACKS=' "$ROOT/hooks/rot-router.sh")"
 
 pos () { printf '%s\n' "$2" | awk -v i="$1" '{print $i}'; }
 numeq () { awk -v a="$1" -v b="$2" 'BEGIN{exit (a+0==b+0)?0:1}'; }
@@ -278,6 +279,18 @@ for _n in $NAMES; do
     Soleil)
       _tf=$(printf '%s\n' "$_blk" | sed -n 's/.*token_floor_pct: *\([0-9]*\).*/\1/p' | sed -n 1p)
       numeq "$_tf" "$TOKEN_FLOOR_PCT" || { bad "D11: Soleil token floor $_tf != shell $TOKEN_FLOOR_PCT"; _d11bad=1; }
+      ;;
+    Violet)
+      # The 6.0.2 dynamic stanza defaults her jazz track by the clock, so the
+      # five names became a shell constant -- held here in both directions
+      # like Chroma's timelines and Soleil's floor: the declared count must
+      # equal the shell roster's, and the declared names must BE the shell's,
+      # in order. YAML `[A, B]` normalises to the shell's space-joined list.
+      _jt=$(printf '%s\n' "$_blk" | sed -n 's/.*jazz_tracks: *\([0-9]*\).*/\1/p' | sed -n 1p)
+      _vtl=$(printf '%s\n' "$_blk" | sed -n 's/.* tracks: *\[\(.*\)\].*/\1/p' | sed -n 1p | tr -d ' ' | tr ',' ' ')
+      _vtn=0; for _vt in $VIOLET_TRACKS; do _vtn=$((_vtn+1)); done
+      numeq "$_jt" "$_vtn" || { bad "D11: Violet jazz_tracks $_jt != shell track roster $_vtn"; _d11bad=1; }
+      [ "$_vtl" = "$VIOLET_TRACKS" ] || { bad "D11: Violet tracks [$_vtl] != shell VIOLET_TRACKS [$VIOLET_TRACKS]"; _d11bad=1; }
       ;;
   esac
 done

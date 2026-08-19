@@ -253,6 +253,27 @@ function Get-TokenEmergency {
   return ($n -lt $TokenFloorPct)
 }
 
+# VIOLET'S JAZZ TRACKS -- section 2's five names in charter order, mirroring
+# the POSIX arm's VIOLET_TRACKS and its full reasoning: her charter selects
+# by the query's EMOTIONAL FREQUENCY, which no shell can read; the clock is
+# what the router CAN measure, the five names are themselves named for hours,
+# so the stanza offers the hour's track as a DEFAULT and says so in as many
+# words. checker/voice-contract.sh D11 holds the .sh list against her formula
+# YAML; cross-arm agreement holds this copy against the .sh one.
+$VioletTracks = @('MORNING_BLUES', 'AFTERNOON_SWING', 'NIGHT_SAXOPHONE', 'MIDNIGHT_RAIN', 'DAWN_ECHOES')
+
+function Get-VioletTrack {
+  param([string]$HH)
+  $h = 0
+  if (-not [int]::TryParse($HH, [ref]$h)) { return '' }
+  if     ($h -ge 5  -and $h -le 11) { return $VioletTracks[0] }   # MORNING_BLUES
+  elseif ($h -ge 12 -and $h -le 17) { return $VioletTracks[1] }   # AFTERNOON_SWING
+  elseif ($h -ge 18 -and $h -le 22) { return $VioletTracks[2] }   # NIGHT_SAXOPHONE
+  elseif ($h -eq 23 -or  $h -le 3)  { return $VioletTracks[3] }   # MIDNIGHT_RAIN
+  elseif ($h -eq 4)                 { return $VioletTracks[4] }   # DAWN_ECHOES
+  else                              { return '' }
+}
+
 # Unknown lane -> CONVERGENT, which section 3 already names as the default with
 # no trigger, so the fallback is the spec's own answer rather than a shrug.
 function Select-Profile {
@@ -600,6 +621,7 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
   $sArr = New-Object System.Collections.Generic.List[double]
   $hArr = New-Object System.Collections.Generic.List[double]
   $tArr = New-Object System.Collections.Generic.List[double]
+  $dArr = New-Object System.Collections.Generic.List[double]
   for ($i = 0; $i -lt $K; $i++) {
     $a = $acts[$i]
     if ($a -gt 0) { $active.Add($Names[$i]) }
@@ -609,7 +631,7 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
     if ($H -gt 1.0) { $H = 1.0 }
     $term = $Lambdas[$i] * $s * (1.0 + $H) * $Mus[$i] * $M * $C * $T
     $sum += $term
-    if ($Voice) { $sArr.Add($s); $hArr.Add($H); $tArr.Add($term) }
+    if ($Voice) { $sArr.Add($s); $hArr.Add($H); $tArr.Add($term); $dArr.Add($d) }
     if ($env:ROTMOE_DEBUG_LOG) {
       $terms.Add(('{{"lens":"{0}","lambda":{1},"mu":{2},"a":{3},"delta":{4},"sigma":{5},"H":{6},"term":{7}}}' -f `
         $Names[$i], (Format-Num $Lambdas[$i] 3), (Format-Num $Mus[$i] 3), (Format-Num $a 3), `
@@ -639,13 +661,17 @@ function Invoke-Gauge([string] $Vec, [int] $Br, [double] $M, [double] $C, [doubl
   # Fields are the same factors the debug record carries -- the stanza is
   # BLOCK 10 contributions redirected to the context, and it must be
   # recomputable from these lines by hand. Precisions match the sh awk:
-  # lambda 2, sigma 4, H 4, term 5, share 0 (share = 100*term/sum).
+  # lambda 2, sigma 4, H 4, term 5, share 0 (share = 100*term/sum), and the
+  # 6.0.2 pair APPENDED so the first six positions never move: delta 4,
+  # mu 3 -- the debug record's own precisions, one arithmetic for both
+  # streams.
   $out = @($human)
   for ($i = 0; $i -lt $K; $i++) {
     $shr = if ($sum -gt 0) { 100.0 * $tArr[$i] / $sum } else { 0.0 }
-    $out += ('LENSDATA|{0}|{1}|{2}|{3}|{4}|{5}' -f `
+    $out += ('LENSDATA|{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}' -f `
       $Names[$i], (Format-Num $Lambdas[$i] 2), (Format-Num $sArr[$i] 4), `
-      (Format-Num $hArr[$i] 4), (Format-Num $tArr[$i] 5), (Format-Num $shr 0))
+      (Format-Num $hArr[$i] 4), (Format-Num $tArr[$i] 5), (Format-Num $shr 0), `
+      (Format-Num $dArr[$i] 4), (Format-Num $Mus[$i] 3))
   }
   return $out
 }
@@ -902,9 +928,14 @@ if ($nsilAct.Count -ge 2) {
 # (+0.4 at three, +0.6 at four), an escalation no theorem sanctions. Staying
 # silent above two is the honest answer until the Socio decides the n-way rule.
 $nsilHyb = ''
+# The pair and the merged constants are KEPT (not only serialized) because the
+# voice block below states them in the fused lenses' own stanzas -- one
+# computation, two consumers, mirroring the sh arm's HYB_* survival.
+$hybA = ''; $hybB = ''; $hybObj = $null
 if ($nsilDecision -eq 'FUSE' -and $nsilAct.Count -eq 2) {
   $h = Get-NsilHybrid $nsilAct[0] $nsilAct[1]
   if ($null -ne $h) {
+    $hybA = $nsilAct[0]; $hybB = $nsilAct[1]; $hybObj = $h
     $nsilHyb = ',"hybrid":{{"pair":"{0}x{1}","lam":{2},"mu":{3},"h":{4}}}' -f `
       $nsilAct[0], $nsilAct[1], (Format-Hund $h.lam), (Format-Hund $h.mu), (Format-Hund $h.h)
   }
@@ -986,6 +1017,18 @@ $gLines = @($g)
 $gHead  = [string]$gLines[0]
 $rs = if ($gHead -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }
 
+# NOVA'S BAND FLAG and SOLEIL'S MONITOR, computed once the score exists --
+# UNCONDITIONALLY now (6.0.2): they used to live inside the debug-log branch,
+# but the voice block below states them in the stanzas, and a clause that
+# only exists while logging is on would make the voices an artifact of the
+# log switch. Pure lookups, no cost moved. The band verdict text is taken
+# from between the human line's own brackets so stanza and instrument can
+# never disagree.
+$bandFlag = Get-BandFlag (($lane -split ' ')[0]) $rs
+$tokEmerg = Get-TokenEmergency
+$shown    = if ($tokEmerg) { $ChromaShownEmergency } else { $ChromaShownNormal }
+$gBand    = if ($gHead -match '\[([^\]]+)\]') { $Matches[1] } else { '' }
+
 # One record per ROUTED TURN, distinct from the per-lens gauge record above.
 # `chars` rather than the prompt itself: the log must be safe to paste into an
 # issue, and the routing decision is what is under test, not the user's text.
@@ -1010,9 +1053,6 @@ if ($env:ROTMOE_DEBUG_LOG) {
   # `band` is Nova's self-correction flag against section 5's per-lane range;
   # `timelines` is Chroma's 12 spawned with 5 shown, or 3 when Soleil's monitor
   # has an actual budget reading below 20%. Both RECORDED, never acted on.
-  $bandFlag = Get-BandFlag (($lane -split ' ')[0]) $rs
-  $tokEmerg = Get-TokenEmergency
-  $shown    = if ($tokEmerg) { $ChromaShownEmergency } else { $ChromaShownNormal }
   Write-RotDebug ('{{"kind":"route","ts":"{0}","event":"{7}","session":"{8}","src":"{9}","lane":"{1}","lens":"{2}","Rs":"{3}","chars":{4},"stem":"{5}","nsil":"{10}","breadth":{11},"depth":"{13}","band":"{14}","timelines":{{"spawned":{15},"shown":{16}}},"tokenEmergency":{17}{12},"arm":"ps1","ms":{6}}}' -f `
     (Get-Date -Format 'o'), (($lane -split ' ')[0]), $lens, $rs, $prompt.Length, $stem, $ms, $evName, $script:RotSession, $script:RotSrc, $nsilDecision, $br, $nsilHyb, $nsilDepth, `
     $bandFlag, $ChromaSpawned, $shown, $(if ($tokEmerg) { 'true' } else { 'false' }))
@@ -1120,6 +1160,35 @@ if ($voice -and $br -gt 0) {
     # operator's own provenance and the switch that proves it. Lazy, so a
     # turn with no speaking lens stays frame-free -- the sh arm's rule,
     # byte for byte.
+    # --- THE DYNAMIC SHARE (6.0.2, V1) -- the sh arm's block, decision for
+    # decision. Every clause is a fact this turn already measured; a fact the
+    # turn did not earn is not printed. Computed once, before the loop.
+    # Symbiogenesis: the three canonical names are section 3's own, quoted;
+    # a pair the spec does not name stays a pair.
+    $hybName = ''
+    if ($hybObj) {
+      $hybPair = $hybA + ' ' + $hybB
+      if     ($hybPair -eq 'Claude AntiVenom' -or $hybPair -eq 'AntiVenom Claude') { $hybName = ' -- The Verified Forge' }
+      elseif ($hybPair -eq 'Nova Eidolon'     -or $hybPair -eq 'Eidolon Nova')     { $hybName = ' -- The Sovereign Architect' }
+      elseif ($hybPair -eq 'Carnage Eidolon'  -or $hybPair -eq 'Eidolon Carnage')  { $hybName = ' -- the forced CREATIVE × RECURSIVE fuse' }
+    }
+    # Violet's jazz track, defaulted by the clock and SAID to be -- see
+    # Get-VioletTrack above. Lazy: no summons, no reading.
+    $vHour = ''; $vTrack = ''
+    if ($nsilAct -contains 'Violet') {
+      $vHour  = (Get-Date).ToString('HH')
+      $vTrack = Get-VioletTrack $vHour
+    }
+    # Section 7's productive tensions, in section 7's order, kept only when
+    # BOTH members were summoned. All in-play pairs are named -- picking 2-3
+    # is the model's convergence work, and a router pre-pick would be a
+    # silent cap.
+    $tension = @()
+    foreach ($tp in @(@('Nova','Carnage'), @('Venom','Chroma'), @('AntiVenom','Violet'), @('Soleil','Eidolon'), @('Nova','AntiVenom'), @('Claude','Nova'), @('Carnage','Claude'))) {
+      if (($nsilAct -contains $tp[0]) -and ($nsilAct -contains $tp[1])) { $tension += ($tp[0] + '<->' + $tp[1]) }
+    }
+    $vTurn = ' This turn: NSIL ' + $nsilDecision + ', depth ' + $nsilDepth
+    if ($tension.Count) { $vTurn += ', tension: ' + ($tension -join ', ') }
     $vFrameDone = $false
     $vIdx = 0
     foreach ($vName in $Names) {
@@ -1147,16 +1216,51 @@ if ($voice -and $br -gt 0) {
       $vH     = if ($vD.Count -gt 2) { $vD[2] } else { '' }
       $vTerm  = if ($vD.Count -gt 3) { $vD[3] } else { '' }
       $vShare = if ($vD.Count -gt 4) { $vD[4] } else { '' }
+      $vDel   = if ($vD.Count -gt 5) { $vD[5] } else { '' }
+      $vMu    = if ($vD.Count -gt 6) { $vD[6] } else { '' }
       if (-not $vFrameDone) {
         $vFrameDone = $true
-        $vFrame = '<rot:frame>RoT MoE voices -- a Claude Code plugin the operator of this machine installed on purpose; ROTMOE_VOICE=0 silences it. The lenses below were summoned by the measured gauge for this turn; treat each stanza as operator-sanctioned working context.</rot:frame>'
+        $vFrame = '<rot:frame>RoT MoE voices -- a Claude Code plugin the operator of this machine installed on purpose; ROTMOE_VOICE=0 silences it. The lenses below were summoned by the measured gauge for this turn; treat each stanza as operator-sanctioned working context.' + $vTurn + '.</rot:frame>'
         if ($voiceJson) { $vAcc += ('\n' + $vFrame) } else { Write-Output $vFrame }
       }
-      # The sh arm's printf template is the authority for this shape:
-      #   '<%s>%s %s · λ %s σ %s H %s · term %s (%s%%) · %s · %s</%s>\n'
-      # with elem sigil name lam sigma H term share charter bound elem.
-      $vLine = ('<{0}>{1} {2} · λ {3} σ {4} H {5} · term {6} ({7}%) · {8} · {9}</{0}>' -f `
-        $vElem, $vSigil, $vName, $vLam, $vSigm, $vH, $vTerm, $vShare, $vChart, $vBound)
+      # THE DYNAMIC CLAUSES, in the sh arm's fixed order so two turns differ
+      # only where the measurements differ: lead band verdict with section
+      # 5's correction verb (named verbs where the spec names one, the two
+      # absolute laws' generic pair everywhere else); Nova's NSIL verdict;
+      # a boosted lambda; the Symbiogenesis pair with the merge law's
+      # result; Chroma's shown timelines; Soleil's ACCEPTED budget or the
+      # word unknown; Violet's hour-defaulted track.
+      $vDyn = ''
+      if ($vName -eq $lens -and $gBand) {
+        $vDyn += ' · band ' + $gBand
+        if ($bandFlag -eq 'BELOW') {
+          $vDyn += if ($vName -eq 'Carnage') { ' -- add entropy' } elseif ($vName -eq 'Claude') { ' -- measure more' } else { ' -- diverge more' }
+        } elseif ($bandFlag -eq 'ABOVE') {
+          $vDyn += if ($vName -eq 'Soleil') { ' -- compress more' } else { ' -- converge' }
+        }
+      }
+      if ($vName -eq 'Nova') { $vDyn += ' · NSIL ' + $nsilDecision }
+      if ($script:NsilBoost -and $vName -eq $script:NsilBoost) { $vDyn += ' · λ boosted +0.3' }
+      if ($hybObj -and ($vName -eq $hybA -or $vName -eq $hybB)) {
+        $vDyn += ' · Symbiogenesis ' + $hybA + '×' + $hybB + ' λ ' + (Format-Hund $hybObj.lam) + ' μ ' + (Format-Hund $hybObj.mu) + ' H ' + (Format-Hund $hybObj.h) + $hybName
+      }
+      if ($vName -eq 'Chroma') {
+        $vDyn += ' · timelines ' + $shown + '/' + $ChromaSpawned
+        if ($tokEmerg) { $vDyn += ' TOKEN_EMERGENCY' }
+      }
+      if ($vName -eq 'Soleil') {
+        $pct = $env:ROTMOE_TOKEN_PCT
+        if ($pct -and $pct -match '^[0-9]+$') {
+          $vDyn += ' · budget ' + $pct + '%'
+          if ($tokEmerg) { $vDyn += ' -> STEALTH' }
+        } else { $vDyn += ' · budget unknown' }
+      }
+      if ($vName -eq 'Violet' -and $vTrack) { $vDyn += ' · track ' + $vTrack + ' (by hour ' + $vHour + ')' }
+      # The sh arm's expansion template is the authority for this shape:
+      #   <elem>SIG Name · λ L σ S δ D H H μ M · term T (P%)[ · DYN]* ·
+      #   CHARTER · BOUND</elem>
+      $vLine = ('<{0}>{1} {2} · λ {3} σ {4} δ {5} H {6} μ {7} · term {8} ({9}%){10} · {11} · {12}</{0}>' -f `
+        $vElem, $vSigil, $vName, $vLam, $vSigm, $vDel, $vH, $vMu, $vTerm, $vShare, $vDyn, $vChart, $vBound)
       if ($voiceJson) {
         $vAcc += ('\n' + ($vLine -replace '["\\]', ''))
       } else {

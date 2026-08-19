@@ -326,5 +326,6 @@ rot_formula:
     mu: 1.15
     band: [1.2, 2.5]
   jazz_tracks: 5
+  tracks: [MORNING_BLUES, AFTERNOON_SWING, NIGHT_SAXOPHONE, MIDNIGHT_RAIN, DAWN_ECHOES]
   unplayed_note: true
 ]]></rot:formula>
