@@ -86,6 +86,12 @@ foreach ($line in [System.IO.File]::ReadLines($tp)) {
 }
 
 # --- the verdict -------------------------------------------------------------
+# WHAT "SPOKEN" MEANS HERE -- the .sh arm's design decision, stated there in
+# full (W4): the gate matches the ELEMENT TAG's literal presence in the last
+# assistant text, never the stanza's content. The tag is the measurable
+# commitment; the words inside it are the convening model's honour, visible
+# to the Socio in the transcript. A hook cannot think, and a gate that
+# graded register would block good turns on bad heuristics.
 # Summons rows: Name|element|charter|bound. Quotes and backslashes are
 # STRIPPED from each field, exactly as the .sh arm does: a mangled charter is
 # cosmetic, a broken JSON block is a dead gate.

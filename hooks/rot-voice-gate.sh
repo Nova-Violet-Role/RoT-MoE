@@ -124,6 +124,19 @@ _last=$(node -e '
 ' "$_tp" 2>/dev/null)
 
 # --- the verdict -------------------------------------------------------------
+# WHAT "SPOKEN" MEANS HERE, stated as a design decision rather than left for
+# a reader to discover (W4, measured over thirty live turns): the gate
+# matches the ELEMENT TAG's literal presence in the last assistant text --
+# `<rot:claude>` satisfies the Claude row whatever the stanza inside says,
+# and an empty element would satisfy it too. That is the honest reach of a
+# hook: "a hook cannot think" (the header's own first law), and a gate that
+# graded register or content would be pretending to a judgment only the
+# convening model -- or the Socio reading the transcript -- can make. The
+# tag is the measurable commitment; the words inside it are the model's
+# honour, and an empty tag sits in the transcript where the Socio can see
+# exactly what was and was not said. Grading content here would also turn
+# the one-refusal reminder into a taste arbiter that blocks good turns on
+# bad heuristics -- the opposite failure, and worse.
 # Summons rows are written by the router as: Name|element|charter|bound.
 # Every field originates in hooks/rot-voice.dtd, which this repository
 # authors -- but the JSON reason must stay valid even if someone edits the
