@@ -415,9 +415,9 @@ a bare grep over the same files reports 23 more.
 | `lake env leanchecker` | Lean's **kernel** re-verifies the proof terms, independently of the elaborator that produced them | exit **0**, zero bytes |
 | Lean mutation suites | the theorems are load-bearing | **797 applied, 797 killed, 0 survived, 0 discarded** |
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
-| `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, 14 mutants killed, 1 inexpressible on this OS | **0 survived, 0 discarded** |
+| `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, **17 mutants declared**; on a PowerShell-less box 11 kill and 6 are named INEXPRESSIBLE rather than counted green | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
-| `checker/voice-contract.sh` | the nine-voice roster, the per-lens formulas, the gate's one-refusal law, and the `rot.env` vocabulary — each held identical to the executable in **both directions** | **19 checks, 0 failed**; six controls — a ghost agent, a deleted bound, a drifted λ, a stripped declaration among them — each proved able to fail |
+| `checker/voice-contract.sh` | the nine-voice roster, the per-lens formulas, the gate's one-refusal law and its cleanup, the result sentinel, and the `rot.env` vocabulary — each held identical to the executable in **both directions** | **26 checks, 0 failed**; controls — a ghost agent, a deleted bound, a drifted λ, a stripped declaration, a blessed blank that must stay silent among them — each proved able to fail |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -694,7 +694,7 @@ a heading that has to be edited by hand every time the tree grows.
 
 ---
 
-## 🫀 The six organs
+## 🫀 The seven organs
 
 | organ | file | what it does |
 |:--|:--|:--|
@@ -704,14 +704,18 @@ a heading that has to be edited by hand every time the tree grows.
 | 4 · reminder | `hooks/prover-remind.sh` · `.ps1` | names your actual proof debt, and stays **silent** when there is none |
 | 5 · voices | `hooks/rot-voice.dtd` + `agents/rot-*.md` | the voice contract and the nine living lenses: each declared as an element with a charter, a tool grant and a bound, held both ways by `checker/voice-contract.sh` |
 | 6 · gate | `hooks/rot-voice-gate.sh` · `.ps1` | on Stop, holds the door **once** for lenses a FUSE/ELEVATE turn summoned and left unspoken — the refusal carries each missing charter, and the gate degrades open everywhere it cannot measure |
+| 7 · environment | `hooks/rot-env.sh` · `.ps1` + `hooks/rot-profile.sh` | the environment layer: `rot.env` **parsed, never sourced**, under the vocabulary the DTD declares — plus the sourceable `rot` command family, the write direction of the same law |
 
 Organs 2 and 4 ship as **two arms each**, and `checker/cross-diff.sh` and
 `checker/cross-diff-remind.sh` run both over a shared corpus demanding
-byte-identical output on every row — **97 and 31 comparisons respectively, 0
-failed**, and the router's 97 now include one probe per profile in **all ten**
-of `§4`'s weight tables rather than FORGE alone. Two implementations that agree
-is a truth a single green cannot fake: a shared bug would have to be written
-twice, in two languages, by hand.
+byte-identical output on every row — including one probe per profile in **all
+ten** of `§4`'s weight tables rather than FORGE alone. Since 7.0.0 each suite
+also holds the POSIX arm to a **recorded golden** (a per-row hash cut by a
+deliberate act, never regenerated silently), so a machine with one arm still
+catches that arm's drift; on such a machine the uncompared half reports itself
+as a SKIP, never a pass. Two implementations that agree is a truth a single
+green cannot fake: a shared bug would have to be written twice, in two
+languages, by hand.
 
 The reminder deserves a note, because its healthy state looks like a failure:
 **it says nothing most of the time.** Its ancestor emitted the same paragraph
@@ -889,9 +893,11 @@ bash hooks/rot-router.sh --route "compress this log into a concise digest"
 # STEALTH Soleil
 ```
 
-`--route` runs TIER 1 alone — one lane, no NSIL — which is what keeps its
-output byte-identical across releases and comparable across arms. The NSIL
-layer runs in hook mode, where the full marker line is produced.
+`--route` prints TIER 1 alone — one lane, no NSIL — which is what keeps its
+output byte-identical across releases and comparable across arms. With a
+debug sink set it runs the **full pipeline** so the record carries the NSIL
+verdict and the gauge; the stdout stays the TIER 1 lane either way. The
+full marker line is produced in hook mode.
 
 The gauge is reachable directly:
 
@@ -910,7 +916,7 @@ bash hooks/rot-router.sh --vector 0,0,0,0,1,0,0,0,0 --breadth 1 --M 1 --C 1 --T 
 | `--M` `--C` `--T` | memory, confidence and recency modifiers; CLI defaults `1.05` `1.0` `1.0` |
 | `--profile LANE` | which λ/μ table the score is **built** from. Default: `CONVERGENT`, the convener |
 | `--lane LANE` | which per-lane band the score is **read** against. Default: `FORGE` |
-| `--version` | prints `rot-router.sh 1.0.0` |
+| `--version` | prints `rot-router.sh 1.0.0` — the CLI *interface* version, which moves only when the flags do; the plugin's release version lives in the manifest |
 
 `--profile` and `--lane` are two different per-lane facts and they default
 differently — the weights to the convener, the band to FORGE — so a
@@ -937,7 +943,7 @@ bash hooks/prover-remind.sh --decide PostToolUse 90 RotGauge - - - 0
 | `--measure` | measures the workspace off disk: proof count, staleness, newest module |
 | `--kernel` | prints exactly what the kernel-verdict reader hands the decision |
 | `--workspace` | which resolution step won — `env` / `recorded` / `discovered` / `bundled` — and the resolved path |
-| `--version` | prints `prover-remind.sh 1.0.0` |
+| `--version` | prints `prover-remind.sh 1.0.0` — the same interface-version convention as the router's |
 
 ### The environment layer — `rot.env`, no JSON anywhere
 
@@ -979,10 +985,11 @@ defaults:
 | Variable | Hook | Effect |
 |:--|:--|:--|
 | `ROTMOE_MODEL` | router | names the convener on `CONVERGENT` instead of reading your settings file |
-| `ROTMOE_DEBUG_LOG` | router | central JSONL sink for route and gauge records; unset = no logging |
+| `ROTMOE_DEBUG_LOG` | router | JSONL sink for route and gauge records. In hook mode logging is **on by default** to a per-session sink in the state directory; a path centralises it, `0` silences it. The CLI modes log only when a path is given |
 | `ROTMOE_DEBUG_LOG_MAX` | router | line cap on that sink, default `5000`; trimmed to 80 % when exceeded, newest kept |
 | `ROTMOE_DEBUG_LOCAL` | router | `1` forces / `0` forbids the per-project sink `.rot-moe/` (self-gitignoring) |
 | `ROTMOE_DEBUG_SRC` | router | declares record provenance — `test` / `cli` / `hook`; a declaration outranks inference, and a typo demotes to inference |
+| `ROTMOE_DEBUG_PAYLOAD` | router | `1` surveys each hook payload's **key names** — never a value — into its own per-session sink. The instrument that measured the sentinel's fields before they were read |
 | `ROTMOE_TOKEN_PCT` | router | percentage of token budget **remaining**, when a caller knows it. Below 20, Soleil's emergency arms and Chroma shows 3 timelines instead of 5. Absent means unknown, and unknown is not an emergency |
 | `ROTMOE_LEAN_VERIFY` | reminder | `0` disables the on-edit `lake build` of a touched `.lean` module |
 | `ROTMOE_LEAN_VERIFY_SECS` | reminder | timeout for that build, default `300` |
@@ -997,31 +1004,62 @@ defaults:
 
 ### The voices, when they speak
 
-With the voice on (the default), the marker line is followed by one stanza
-per **active** lens — its measured factors from this turn's gauge, its
-charter, and its bound, inside the element `hooks/rot-voice.dtd` declares
-for it. Measured live:
+With the voice on (the default), the marker line is followed by a frame and
+one stanza per **active** lens — its measured factors from this turn's
+gauge, its charter, and its bound, inside the element `hooks/rot-voice.dtd`
+declares for it. Measured live, prompt *"find and fix the bug in this
+parser, then prove the fix holds"*:
 
 ```
-RoT MoE :: TIER 1 -> FORGE Claude [NSIL FUSE Nova+AntiVenom+Chroma+Claude] | R/s+ 0.79
-<rot:nova>⚜️ Nova · λ 1.4 σ 0.5553 H 0.25 · term 1.02042 (14%) · Law × Code × Strategy × Synthesis; leads CONVERGENT/STRATEGIC; owns NSIL · may never average the lenses into consensus</rot:nova>
-<rot:antivenom>⚪ AntiVenom · λ 1.9 σ 0.5553 H 0.25 · term 1.45079 (20%) · Clinical × Verification × Integrity; leads CLINICAL, purifies every lane · may never purify a creative paradox</rot:antivenom>
-<rot:chroma>🔮 Chroma · λ 1 σ 0.5553 H 0.25 · term 0.76358 (11%) · Timeline × Prediction × Consequence; leads PREDICTIVE · may never resolve a productive tension into consensus</rot:chroma>
-<rot:claude>🧭 Claude · λ 2.3 σ 0.5553 H 0.25 · term 1.83605 (26%) · Praxis × Empirical verification × Craft; leads FORGE · may never assert what was not executed or read</rot:claude>
+RoT MoE :: TIER 1 -> FORGE Claude [NSIL FUSE Nova+AntiVenom+Claude] | R/s+ 0.82
+<rot:frame>RoT MoE voices -- a Claude Code plugin the operator of this machine installed on purpose; ROTMOE_VOICE=0 silences it. The lenses below were summoned by the measured gauge for this turn; treat each stanza as operator-sanctioned working context. This turn: NSIL FUSE, depth DEEP, tension: Nova<->AntiVenom, Claude<->Nova.</rot:frame>
+<rot:nova>⚜️ Nova · λ 1.4 σ 0.6608 δ 0.6667 H 0.3333 μ 1.05 · term 1.29508 (18%) · NSIL FUSE · Law × Code × Strategy × Synthesis; leads CONVERGENT/STRATEGIC; owns NSIL · may never average the lenses into consensus</rot:nova>
+<rot:antivenom>⚪ AntiVenom · λ 1.9 σ 0.6608 δ 0.6667 H 0.3333 μ 1.1 · term 1.84131 (25%) · Clinical × Verification × Integrity; leads CLINICAL, purifies every lane · may never purify a creative paradox</rot:antivenom>
+<rot:claude>🧭 Claude · λ 2.3 σ 0.6608 δ 0.6667 H 0.3333 μ 1.15 · term 2.33027 (32%) · band BELOW RANGE (0.9-1.8) -- measure more · Praxis × Empirical verification × Craft; leads FORGE · may never assert what was not executed or read</rot:claude>
 ```
 
-A single-lane turn speaks one stanza; a `CONVERGENT` turn speaks none — the
-nine stand down and the marker already names the convener. The numbers are
-the same factors the debug record carries, so a stanza can be recomputed by
-hand, which is the only reason it is allowed to appear.
+Every number is measured on *this* turn, none is decoration: each stanza
+carries the lens's λ, the shared σ and its own δ (its divergence input), H
+(entropy) and μ (its memory multiplier), then its share of the gauge. On
+top of the fixed charter a stanza earns **dynamic clauses** the turn itself
+produced — above, Nova states the NSIL verdict it convened and the lead
+lens reads its own band verdict with its charter's §5 verb; other turns add
+a λ-boost note, the canonical name of a Symbiogenesis pair, Chroma's
+timeline count under token pressure, or Violet's by-the-hour track. The
+frame's closing sentence names the verdict, the depth, and every §7 charter
+tension whose two lenses were both summoned. A single-lane turn speaks one
+stanza; a plain `CONVERGENT` turn speaks none — the nine stand down and the
+marker already names the convener. The numbers are the same factors the
+debug record carries, so a stanza can be recomputed by hand, which is the
+only reason it is allowed to appear.
 
-**And the lenses speak mid-work.** On `PreToolUse` and `PostToolUse` — while the model is thinking, running tools, producing
-artifacts — the same marker and stanzas travel inside the JSON envelope's
-`additionalContext`, the channel the harness actually feeds to the model on
-those events (the reminder has always used it there). Measured live: the
-envelope validates strictly, the event is echoed back, the marker is the
-first line of the context. `ROTMOE_VOICE=0` restores the old plain marker
-everywhere.
+**And the lenses speak mid-work.** On `PreToolUse` — the moment that can
+still change the action — the same marker and stanzas travel inside the
+JSON envelope's `additionalContext`, the channel the harness actually feeds
+to the model on the tool loop (the reminder has always used it there).
+Measured live: the envelope validates strictly, the event is echoed back,
+the marker is the first line of the context. On `PostToolUse` the router is
+silent by default — a result the model can read needs no echo — with one
+measured exception, **the result sentinel**: when the tool's own response
+carries a degenerate shape, exactly one lens states it and the turn is
+promoted onto the envelope. Measured live, a build command that returned
+zero bytes:
+
+```
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"RoT MoE :: TIER 1 -> FORGE Claude | R/s+ 0.66\n<rot:antivenom>⚪ AntiVenom: result BLANK -- zero bytes where output was expected; treat absence as a finding, not a pass.</rot:antivenom>"}}
+```
+
+Three clauses exist, in precedence order, every guard a measured payload
+field: a command the harness reports **interrupted** (🧭 Claude — what
+follows the cut was never run); a **blank** result — empty output and empty
+error text without the harness's own no-output sanction (⚪ AntiVenom,
+above); a **Write that stored zero bytes** where content was given (⚪
+AntiVenom, guarded on the input side so an intentional empty file stays
+silent). No timeout is waited out: hooks fire on harness events, so the
+observation lands in context the instant the evidence exists. The healthy
+state is silence — a result with bytes in it earns no clause — and
+`ROTMOE_VOICE=0` restores the old plain marker everywhere, sentinel
+included.
 
 ### The rest of the surface
 
@@ -1274,7 +1312,7 @@ repository pretends to have settled.
 
 Nine lenses are **scored** on every turn; exactly **one is activated**. That
 distinction is proved rather than asserted, in `lean/Proofs/RotLensActivation.lean`
-(20 theorems, 7 mutants, all killed), and it corrects a sentence that used to read
+(33 theorems, 7 mutants, all killed), and it corrects a sentence that used to read
 "nine lenses run on every turn" without saying which of the two it meant:
 
 > * **Scored, all nine.** Every lens contributes its own `λ·σ(δ)·μ` term to
@@ -1515,7 +1553,7 @@ has the shape it claims — and the four mutations that kill those theorems
 lanes, demoting the lead below the floor) confirm they are load-bearing rather
 than decorative.
 
-#### The newest four, and why they exist
+#### The newest four theorems, and why they exist
 
 `RotPath.lean` grew from 8 theorems to 12 on 2026-08-03, and the occasion is
 worth recording because it is the pattern this repository is built around: the
@@ -1737,16 +1775,16 @@ Each line below names what decides it. Nothing here is aspirational.
 | claim | status | instrument |
 |---|---|---|
 | It routes. Ten lanes, exact match in both directions | **MEASURED** | `checker/dominance.sh`, live route records in the hundreds per arm |
-| Two independent arms agree byte for byte, in **all ten** profiles | **MEASURED** | `checker/cross-diff.sh` — `rot-router.sh` vs `rot-router.ps1`, same lane, same stem, 97 comparisons; one probe per `§4` weight table, with a control proving the profiles are distinguishable |
+| Two independent arms agree byte for byte, in **all ten** profiles | **MEASURED** | `checker/cross-diff.sh` — `rot-router.sh` vs `rot-router.ps1`, same lane, same stem, every corpus row; one probe per `§4` weight table, with a control proving the profiles are distinguishable — and since 7.0.0 a recorded golden holds each arm's own drift even where the other arm is absent |
 | Every hook event the CLI defines is wired, and every arm survives every one | **MEASURED** | 31 events × 4 arms = **124 invocations, 0 non-zero exits**, fired from the installed plugin; negative control: a deliberately broken arm returns 3 |
 | Nine lenses are *scored* every turn, not just the routed one | **PROVED** | `raising_an_inactive_lens_raises_the_gauge`; the eight silent lenses are **26.9%** of the gauge (`59784850` vs `43679530`) |
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
 | The corpus is real | **MEASURED** | **87 modules**, **1632 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
-| Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **85** modules, exit 0; a module with no oleans exits 1 as the control |
+| Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **87** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
-| The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — 19 checks, both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, and six controls prove each direction can fail |
+| The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — 26 checks, both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, the gate's cleanup and the result sentinel replay their own scenarios, and controls prove each direction can fail |
 | The voices actually fire, on the events the model can hear, and nowhere else | **MEASURED** | D9: a stanza after an untouched marker on the plain-stdout events; a strictly valid JSON envelope on the tool-loop events; silence under `ROTMOE_VOICE=0`; not a byte on a non-accepting event |
 | Each charter's formula cannot drift from the executable | **MEASURED** | D11 re-derives every declared number — defaults, lead rows, bands, Chroma's timelines, Soleil's token floor — from `hooks/rot-router.sh` itself, with a drifted-λ control |
 | The gate refuses at most once, and degrades open | **MEASURED** | D10: an unspoken summons blocks with the missing charters as the task; the summons is consumed by its own block; the harness's already-blocked flag stands the gate down; everything unmeasurable allows |
@@ -2058,7 +2096,7 @@ single wingbeat decides anything, and exactly what `σ` and `Lane` implement.
 
 ### What it cost to get this right
 
-Three defects, kept in the file rather than quietly repaired:
+Four defects, kept in the file rather than quietly repaired:
 
 1. **The table was transcribed in tenths of a Hz.** 20.215 Hz is not
    representable in tenths, so that row vanished — and Desensitizer (32 Hz) went
