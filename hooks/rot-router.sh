@@ -1498,6 +1498,36 @@ hook_mode () {
   fi
   case "${ROTMOE_DEBUG_LOG:-}" in 0) ROTMOE_DEBUG_LOG='' ;; esac
 
+  # THE PAYLOAD SURVEY (7.0.0) -- the instrument the ship-what-you-measure
+  # law demands before any hook reads a NEW payload field. The 2026-08-03
+  # comment below measured UserPromptSubmit by hand; V2 (the working share)
+  # needs the same standing for tool_response, and the docs are not a
+  # measurement. Opt-in (ROTMOE_DEBUG_PAYLOAD=1, declared in the DTD),
+  # KEYS ONLY -- top-level names, tool_input names, tool_response names --
+  # never a value, so the survey can never leak a byte of the user's work.
+  # Its own per-session sink beside the debug log (single writer, whole
+  # lines, no lock contention with the record writers); the same seven-day
+  # janitor pattern bounds it. Failure degrades to silence, never a turn.
+  case "${ROTMOE_DEBUG_PAYLOAD:-}" in
+    1)
+      if command -v node >/dev/null 2>&1; then
+        _ps_dir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
+        if mkdir -p "$_ps_dir" 2>/dev/null; then
+          printf '%s' "$payload" | node -e '
+            let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+              try{const j=JSON.parse(s);
+                const k=(o)=>(o&&typeof o==="object"&&!Array.isArray(o))?Object.keys(o).sort():[];
+                process.stdout.write(JSON.stringify({kind:"payload",
+                  event:String(j.hook_event_name||"-"),
+                  tool:String(j.tool_name||"-"),
+                  keys:k(j),toolInputKeys:k(j.tool_input),
+                  toolResponseKeys:k(j.tool_response),
+                  toolResponseType:(j.tool_response===undefined?"absent":Array.isArray(j.tool_response)?"array":typeof j.tool_response)})+"\n");
+              }catch(e){}});' 2>/dev/null >> "$_ps_dir/rot-payload.$_rot_sess.jsonl" || :
+        fi
+      fi ;;
+  esac
+
   # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean. Inference first,
   # then an explicit declaration overrides it, and ONLY for the three known
   # values: unknown_declaration_falls_back proves a typo demotes to inference

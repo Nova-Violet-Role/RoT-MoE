@@ -810,6 +810,31 @@ if (-not $CliRoute -and -not $env:ROTMOE_DEBUG_LOG) {
 }
 if ($env:ROTMOE_DEBUG_LOG -eq '0') { $env:ROTMOE_DEBUG_LOG = $null }
 
+# THE PAYLOAD SURVEY (7.0.0) -- the sh arm's instrument, reason stated there
+# in full: KEYS ONLY (top-level, tool_input, tool_response), never a value,
+# opt-in via ROTMOE_DEBUG_PAYLOAD=1, its own per-session sink, degrades to
+# silence. The ship-what-you-measure prerequisite for V2's result clauses.
+if (-not $CliRoute -and $env:ROTMOE_DEBUG_PAYLOAD -eq '1') {
+  try {
+    $psDir = if ($env:ROTMOE_STATE_DIR) { $env:ROTMOE_STATE_DIR }
+             elseif ($env:XDG_STATE_HOME) { Join-Path $env:XDG_STATE_HOME 'rot-moe' }
+             else { Join-Path $HOME '.local/state/rot-moe' }
+    New-Item -ItemType Directory -Force -Path $psDir -ErrorAction Stop | Out-Null
+    $pj = $payload | ConvertFrom-Json -ErrorAction Stop
+    $kf = { param($o) if ($null -ne $o -and $o -is [pscustomobject]) { @($o.PSObject.Properties.Name | Sort-Object) } else { @() } }
+    $trType = if ($null -eq $pj.tool_response) { 'absent' }
+              elseif ($pj.tool_response -is [System.Array]) { 'array' }
+              elseif ($pj.tool_response -is [pscustomobject]) { 'object' }
+              else { 'scalar' }
+    $line = (@{ kind = 'payload'
+                event = [string]($pj.hook_event_name); tool = [string]($pj.tool_name)
+                keys = (& $kf $pj); toolInputKeys = (& $kf $pj.tool_input)
+                toolResponseKeys = (& $kf $pj.tool_response); toolResponseType = $trType } |
+             ConvertTo-Json -Compress -Depth 4)
+    [System.IO.File]::AppendAllText((Join-Path $psDir ("rot-payload." + $script:RotSession + ".jsonl")), $line + "`n")
+  } catch { }
+}
+
 # PROVENANCE -- `classify` in lean/Proofs/RotSessionLog.lean.
 #
 # Measured 2026-08-09: seven checkers (bench-router, debug-channel, cross-diff,
