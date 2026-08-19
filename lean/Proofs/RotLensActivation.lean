@@ -7,9 +7,11 @@
 
 /-! # Nine lenses are SCORED every turn; exactly one is ACTIVATED
 
-`README.md:772` says *"Nine lenses run on every turn."* This module settles what
-that sentence may and may not mean, because a previous NEXT list of mine got it
-wrong in a way worth recording.
+The front page used to say *"Nine lenses run on every turn."* That sentence no
+longer ships: the README's "The nine" section now states the corrected split
+this module settled — SCORED, all nine, on every turn; ACTIVATED, one or
+several. This module is why the correction exists, because a previous NEXT
+list of mine got the sentence's meaning wrong in a way worth recording.
 
 ## The wrong diagnosis, and the measurement that corrected it
 

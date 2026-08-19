@@ -125,8 +125,10 @@ which binds `m` without using it and never mentions `lead`. Measured: pointing
 `lead` at a constant killed `lead_injective`, `lead_surjective`,
 `lanes_correspond_to_lenses` and `forge_lead_is_not_the_floor` — and this one
 SURVIVED, because it was not about `lead` at all. It was roster completeness
-wearing the name of a claim about leads, and `README.md:676` cites it for
-exactly the claim it did not make.
+wearing the name of a claim about leads, and the README's "The nine" section
+cited it at the time for exactly the claim it did not make. (This paragraph
+once carried that citation as a line number; the line moved and the number
+lied. The section is the address — line numbers rot faster than truth.)
 
 The old content is not lost: `∀ l : Lens, l ∈ lenses` is the second conjunct.
 What is added is the part that makes the name honest — the ensemble minus the
