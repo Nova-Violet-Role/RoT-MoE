@@ -217,6 +217,19 @@ if [ -z "$_g" ] && [ ! -e "$GD/voice-summons.vgate" ]; then
 else
   bad "D10: the gate argued with a stop that already survived one block"
 fi
+# U3 (measured 2026-08-19, closed in 7.0.0): a summons written while the gate
+# was ARMED must not survive a GATE=0 prompt turn. Opting out of the gate used
+# to skip the summons block entirely, so the file stood -- and the first Stop
+# after re-arming was blocked for a turn long dead. Sequence probed exactly:
+# armed FUSE writes it, a GATE=0 turn must remove it, the re-armed gate then
+# has nothing to hold.
+printf '%s' "$_fuse" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+printf '%s' '{"session_id":"vgate","cwd":"/tmp","hook_event_name":"UserPromptSubmit","prompt":"hello there"}' | ROTMOE_GATE=0 ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+if [ -e "$GD/voice-summons.vgate" ]; then
+  bad "D10: a GATE=0 turn left an armed turn's summons standing -- the first re-armed Stop is caged by a dead turn"
+else
+  ok "D10: GATE=0 still clears -- a stale summons cannot outlive its turn"
+fi
 rm -rf "$GD" 2>/dev/null || :
 
 # --- D11: the computed layer is the executable's, never a copy that drifts ---

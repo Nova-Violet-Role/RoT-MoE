@@ -1731,9 +1731,19 @@ hook_mode () {
   # stale summons cannot outlive its turn. ROTMOE_GATE=0 opts out.
   _gaterows=''
   _gatefile=''
-  if [ "$_ev" = 'UserPromptSubmit' ] && [ "${ROTMOE_GATE:-1}" != 0 ]; then
+  if [ "$_ev" = 'UserPromptSubmit' ]; then
     _gatedir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
-    _gatefile="$_gatedir/voice-summons.$_rot_sess"
+    if [ "${ROTMOE_GATE:-1}" != 0 ]; then
+      _gatefile="$_gatedir/voice-summons.$_rot_sess"
+    else
+      # GATE=0 STILL CLEARS (U3, measured 2026-08-19): opting out used to skip
+      # this block entirely, so a summons written while the gate was armed
+      # SURVIVED every GATE=0 turn -- and the first Stop after re-arming was
+      # blocked for a turn long dead. The comment above promises a stale
+      # summons cannot outlive its turn; under GATE=0 the code broke its own
+      # promise. Opting out of the GATE must not opt out of the CLEANUP.
+      rm -f "$_gatedir/voice-summons.$_rot_sess" 2>/dev/null || :
+    fi
   fi
   if [ -n "$_voice" ] && [ "$_br" -gt 0 ]; then
     _vdtd="${CLAUDE_PLUGIN_ROOT:-}"

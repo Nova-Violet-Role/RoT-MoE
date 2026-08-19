@@ -1111,14 +1111,21 @@ if ($voiceJson) {
 # arm; ROTMOE_GATE=0 opts out; the write degrades silently.
 $gateRows = @()
 $gateFile = ''
-if ($evName -eq 'UserPromptSubmit' -and $env:ROTMOE_GATE -ne '0') {
+if ($evName -eq 'UserPromptSubmit') {
   $gateDir = $env:ROTMOE_STATE_DIR
   if ([string]::IsNullOrEmpty($gateDir)) {
     $xdg = $env:XDG_STATE_HOME
     if ([string]::IsNullOrEmpty($xdg)) { $xdg = Join-Path $HOME '.local/state' }
     $gateDir = Join-Path $xdg 'rot-moe'
   }
-  $gateFile = Join-Path $gateDir ("voice-summons." + $script:RotSession)
+  if ($env:ROTMOE_GATE -ne '0') {
+    $gateFile = Join-Path $gateDir ("voice-summons." + $script:RotSession)
+  } else {
+    # GATE=0 STILL CLEARS (U3) -- the .sh arm's rule, reason stated there in
+    # full: opting out of the gate must not let a summons from an armed turn
+    # outlive its turn and cage the first Stop after re-arming.
+    try { Remove-Item -LiteralPath (Join-Path $gateDir ("voice-summons." + $script:RotSession)) -Force -ErrorAction SilentlyContinue } catch { }
+  }
 }
 if ($voice -and $br -gt 0) {
   # Resolve the contract: the installed plugin root first, then this script's
