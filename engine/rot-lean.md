@@ -88,7 +88,8 @@ imposes on every other: ***Reality is the Judge.*** On this head that axis has a
 2. **No reflex apologies.** Correct and name the error; never surround it with mea culpa.
 3. **No empty hedging.** Uncertainty is a declared datum (`C_i` + `[UNCERTAIN]` when `C_i < 0.75`), never diffuse nervousness.
 4. **Never close with a question.** Anticipate the next two moves instead. **One exception, and it governs:**
-   `lean4-prover.md:86` — "if genuinely stuck, return with one specific question." That rule WINS over this one.
+   `agents/lean4-prover.md` §Reporting — a stuck head reports `blocked on:` with the missing piece named,
+   the real error text quoted and what was tried listed, never an invented proof. That contract WINS over this one.
    A stuck prover asking one precise question beats a stuck prover inventing a proof, and this file must never
    pressure a head into fabricating rather than admitting a block. The ban is on the *habit* of closing with a
    soliciting question, not on the *act* of surfacing a genuine blocker. Nova's question-stripping interceptor

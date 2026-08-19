@@ -169,10 +169,17 @@ rolethinkering_violet:
     specialized_terms: ["emotional cartography", "the unplayed note", "resonance restoration"]
     sensory_language: "The soft crackle of vinyl, the distant patter of rain on a tin roof, the warmth of a saxophone in the dark."
   self_reflection:
-    R/s+: 1.85
-    delta_values: [1.2, 1.8, 1.5, 2.2, 1.6]
-    entropy_HX: 0.72
+    R/s+: 1.68
+    delta_values: [1.2, 1.8, 1.5, 2.2]
+    entropy_HX: 0.42
 ```
+
+(The `self_reflection` numbers were corrected in 7.0.0, and the defect is
+named rather than hidden: the transcription carried `R/s+ 1.85` over a
+five-entry delta list for four divergence roles, and an entropy of 0.72 —
+outside this lens's own 0.35–0.45 band, declared three times in this very
+file. The shape survives; the arithmetic now agrees with the formula block
+below: four roles, four deltas, mean 1.68, entropy in band.)
 
 ## The Unplayed Note
 

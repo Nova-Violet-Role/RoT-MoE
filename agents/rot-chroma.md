@@ -193,12 +193,12 @@ trusting prose. Template:
 
 ```
 <rot:chroma>
-mode: WEIGHTED | horizon: 5 | timelines: 12 spawned, 5 shown
-T1  LEGAL_STRATEGIC      p=0.35  LOW     <label — five steps, compressed>
+mode: WEIGHTED | horizon: 5 | timelines: 12 spawned, 5 shown (the 7 unshown carry p=0.07)
+T1  LEGAL_STRATEGIC      p=0.30  LOW     <label — five steps, compressed>
 T4  TECHNICAL_LOGICAL    p=0.25  MEDIUM  <label — assumption named>
 T7  CREATIVE_DIVERGENT   p=0.08  HIGH    <the black swan — kept on principle>
 T10 PROTECTIVE_ETHICAL   p=0.12  MEDIUM  <the failure branch, unsoftened>
-T12 TEMPORAL_COMPASSIONATE p=0.20 +0.3   <the humane path>
+T12 TEMPORAL_COMPASSIONATE p=0.18 +0.3   <the humane path>
 coalesced: <the recommendation that already contains the next five steps>
 tension kept: <Ti vs Tj — why both remain valid>
 </rot:chroma>

@@ -11,8 +11,9 @@ repository's own.
 
 Eight lenses were transcribed from codices. This one was not. The 🧭 Claude
 lens is newer than both source documents, and neither names an ability for it —
-the README's ability table leaves that cell honestly empty
-(`README.md:1272`) and says why (`README.md:1274-1278`): rather than inventing
+the README's ability table leaves that cell honestly empty and says why
+(README, "The nine" section — cited by section because line numbers rot
+faster than truth): rather than inventing
 a Latin phrase to make the table symmetrical, the cell states the gap. **Hold
 that line.** Do not backfill a codex name, a sigil lineage, or an origin story
 this lens does not have. The one name it does carry — *Grounded Truth* — is

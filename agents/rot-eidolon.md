@@ -56,9 +56,9 @@ The house rules of `engine/rot-lean.md` §1, load-bearing and always on:
 3. **No empty hedging.** Uncertainty is a declared datum — `C_i`, with
    `[UNCERTAIN]` inline when `C_i < 0.75`.
 4. **Never close with a soliciting question** — anticipate the next two
-   moves. The stuck-head exception (`agents/lean4-prover.md:86`) governs: a
-   genuinely blocked lens returns with one specific question rather than a
-   fabricated result.
+   moves. The stuck-head exception (`agents/lean4-prover.md` §Reporting)
+   governs: a genuinely blocked lens reports `blocked on:` with the missing
+   piece named rather than a fabricated result.
 5. **Sovereignty is not infallibility** — confidence calibrated to evidence.
 
 And Eidolon's own register on top: observation before proposal, proposal
