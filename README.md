@@ -146,6 +146,35 @@ The last three are not promises in prose: `checker/hook-footprint.sh` fails the
 build if a shipped hook ever gains a network call or invokes `lake`, and it
 plants both of those to prove it can fail.
 
+<details>
+<summary><strong>🎬 The router in 60 seconds — five real recordings</strong></summary>
+
+Every frame is a real command running on a real machine, recorded with
+asciinema and rendered with agg — nothing staged, nothing typed over.
+
+Three asks, three lanes — and a collision resolved by a proved order:
+
+![Routing: plain words to lanes](assets/gif/router-60s-routing.gif)
+
+The gauge, read against two different profiles:
+
+![The gauge under two profiles](assets/gif/router-60s-gauge.gif)
+
+A live turn: marker, frame, stanzas — δ and μ measured on this turn:
+
+![The voices on a live FUSE turn](assets/gif/router-60s-voices.gif)
+
+The voice gate: a summons written, one refusal carrying the missing
+charters, then the stanzas spoken and the door open:
+
+![The gate: one refusal, then the contract honored](assets/gif/router-60s-gate.gif)
+
+And the contract that holds all of it, exit code on camera:
+
+![voice-contract: 26 checks, exit 0](assets/gif/router-60s-contract.gif)
+
+</details>
+
 ---
 
 ## 🧠 What "RoT" means, and how it sits next to CoT and ToT
@@ -840,6 +869,36 @@ matched its content, with receipts. **Outcome effects are an open
 question** — the RoT-vs-CoT-vs-ToT study is designed outcome-blind for
 exactly that reason, and the blind session's verdict is its stated null
 hypothesis.
+
+<details>
+<summary><strong>🎬 80 turns, unscripted — frames from the campaign records</strong></summary>
+
+Each clip replays lines from the blind campaign's own records — the file
+and record number are named on screen, so every frame is a recorded fact.
+
+The first routed event of 6,000 records:
+
+![Record 2: the campaign begins](assets/gif/campaign-first-record.gif)
+
+A bug ask arrives; the router reads it CLINICAL at 0.79:
+
+![Record 120: the bug ask](assets/gif/campaign-bug-ask.gif)
+
+NSIL ELEVATE — all nine lenses on one turn, and why 0.19 is not a broken
+dial:
+
+![Record 24: ELEVATE](assets/gif/campaign-elevate.gif)
+
+Organ 4 live: the reminder names measured proof debt, and prints nothing
+when there is none:
+
+![The reminder speaks only on measured debt](assets/gif/campaign-reminder.gif)
+
+How a campaign ends here — the audit, quoted verbatim:
+
+![The closing audit: PASS, exit 0](assets/gif/campaign-audit.gif)
+
+</details>
 
 ---
 
