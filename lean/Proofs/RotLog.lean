@@ -446,7 +446,16 @@ def shipped : Table :=
    -- drift in plain sight. The section's own premise is "as it stands today".
    ("EMPATHIC", ["emot","feel","grief","lonel","soul","story","human","tired","lost","relation"]),
    ("STRATEGIC", ["strateg","plan","goal","roadmap","priorit","legal","recommend","analyz"]),
-   ("CREATIVE", ["creativ","chaos","surreal","disrupt","paradox","dream","invent"]),
+   -- `brainstorm ideat imagin tagline` joined the router's CREATIVE row in
+   -- 6.0.2 (W6): thirty measured turns showed ideation asks phrased in the
+   -- words people actually use -- "brainstorm", "ideate", "imagine", "a
+   -- tagline" -- routing CONVERGENT because the lane's vocabulary only knew
+   -- its own nouns. Word-prefix collisions were checked before admission
+   -- (`imagin` accepts "imaginary", a known and accepted overlap; `wild`,
+   -- `weird` and `name` were rejected for theirs). Trued up here the same
+   -- day, so this snapshot learns the change with the router, not after it.
+   ("CREATIVE", ["creativ","chaos","surreal","disrupt","paradox","dream","invent",
+                 "brainstorm","ideat","imagin","tagline"]),
    ("PREDICTIVE", ["futur","scenar","predict","trend","forec","likel","horizon","next"]),
    ("STEALTH", ["encod","optim","token","compress","concise","byte","distill"]),
    ("RECURSIVE", ["evolv","recurs","meta","architect","refactor","ontolog","hybrid"])]

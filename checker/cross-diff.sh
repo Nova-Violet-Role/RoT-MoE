@@ -173,6 +173,13 @@ hello there|CONVERGENT ROTMOE_TESTMODEL
 # most proof-shaped prompts imaginable.
 prove this lemma|FORGE Claude
 prove the read loop conserves bytes in lean|FORGE Claude
+# --- 6.0.2 (W6): the ideation vocabulary ------------------------------------
+# Measured over thirty live turns: asks phrased the way people actually ask
+# for creative work -- "brainstorm", "ideate", "imagine", "a tagline" --
+# routed CONVERGENT because CREATIVE only knew its own nouns. These rows
+# hold the four admitted stems; collisions were checked before admission.
+brainstorm a tagline for the launch|CREATIVE Carnage
+imagine an ideation exercise|CREATIVE Carnage
 # THE COLLISIONS THAT MADE THOSE STEMS UNADDABLE. Each row is a word CONTAINING
 # a stem: a substring matcher routes every one of them to FORGE, which is why
 # `prove`, `lemma` and `lean` could not simply be appended to the list. These

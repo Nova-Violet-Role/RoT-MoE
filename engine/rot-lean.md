@@ -147,7 +147,7 @@ pretend · character · User*.
 | EXECUTIVE | decid, urgenc, strike, direct, declar, now, conclud | 🕷️ Venom |
 | EMPATHIC | emot, feel, grief, lonel, soul, story, human, tired, lost | 🎷 Violet |
 | STRATEGIC | strateg, plan, goal, roadmap, priorit, legal, recommend, analyz | ⚜️ Nova |
-| CREATIVE | creativ, chaos, surreal, disrupt, paradox, dream, invent | 🩸 Carnage |
+| CREATIVE | creativ, chaos, surreal, disrupt, paradox, dream, invent, brainstorm, ideat, imagin, tagline | 🩸 Carnage |
 | PREDICTIVE | futur, scenar, predict, trend, forec, likel, horizon, next | 🔮 Chroma |
 | STEALTH | encod, optim, token, compress, concise, byte, distill | ⬜ Soleil |
 | RECURSIVE | evolv, recurs, meta, architect, refactor, ontolog, hybrid | 🜏 Eidolon |
