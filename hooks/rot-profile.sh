@@ -98,7 +98,22 @@ rot () {
             | awk -F'|' '{printf "  %-26s %-16s %s\n", $1, $2, $3}' ;;
         get)
           [ -n "${3:-}" ] || { echo "rot env get KEY" >&2; return 2; }
-          for _rp_f in ".rot-moe/rot.env" "${XDG_CONFIG_HOME:-$HOME/.config}/rot-moe/rot.env"; do
+          # The loader's own key charset, enforced BEFORE the key reaches
+          # grep: with only A-Z and _ admitted, the pattern below is a
+          # literal, and a regex-shaped argument is refused instead of
+          # silently pattern-matching (7.0.0, F-700-2b).
+          case "$3" in
+            ROTMOE_*) case "$3" in ROTMOE_*[!A-Z_]*)
+              echo "rot: '$3' is not a key -- A-Z and _ only after ROTMOE_" >&2; return 2 ;; esac ;;
+            *) echo "rot: '$3' is not a ROTMOE_ key" >&2; return 2 ;;
+          esac
+          # THE LOADER'S FILE ORDER, all three files -- ROTMOE_ENV first.
+          # Until 7.0.0 this read only project+global, so `get` could print
+          # a value `load` would never use (the ROTMOE_ENV file wins under
+          # first-writer-wins): a reading that misleads is worse than none
+          # (F-700-2a).
+          for _rp_f in "${ROTMOE_ENV:-}" ".rot-moe/rot.env" "${XDG_CONFIG_HOME:-$HOME/.config}/rot-moe/rot.env"; do
+            [ -n "$_rp_f" ] || continue
             [ -r "$_rp_f" ] || continue
             grep "^${3}=" "$_rp_f" 2>/dev/null && return 0
           done

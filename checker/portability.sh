@@ -35,8 +35,13 @@ set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-PASS=0; FAIL=0
+PASS=0; FAIL=0; SKIP=0
 ok () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
+# U2 (7.0.0): a section this machine cannot run must COUNT, not vanish. The
+# note existed; the verdict ignored it, so a pwsh-less run exited 0 with a
+# third of the instrument missing -- a fake green by omission. Skips now
+# carry to the exit code: fail outranks skip, and a skip is never a pass.
+skipnote () { printf '  SKIP  %s\n' "$*"; SKIP=$((SKIP+1)); }
 bad() { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=portability::%s\n' "$*"; FAIL=$((FAIL+1)); }
 
 command -v git >/dev/null 2>&1 || { echo "REFUSE: git absent"; exit 2; }
@@ -212,6 +217,7 @@ elif [ "$rc" -eq 3 ]; then
   echo "  SKIP  the POSIX arm handled the CRLF corpus (no row failed), but the arms"
   echo "        were NOT compared (no PowerShell). A skip is never a pass; a runner"
   echo "        with pwsh is where this comparison happens."
+  SKIP=$((SKIP+1))
 else
   bad "the arms disagree under a CRLF corpus -- exit $rc"
   grep -E "DISAGREES" "$ctl_dir/crlf.log" | head -3 | sed 's/^/        /'
@@ -286,7 +292,7 @@ if command -v pwsh >/dev/null 2>&1 && command -v env >/dev/null 2>&1; then
     ok "CONTROL: Join-Path on an unset variable DOES kill a script here"
   fi
 else
-  echo "  NOTE  pwsh or env(1) absent -- phase 3 NOT run (a gap, not a pass)"
+  skipnote "pwsh or env(1) absent -- phase 3 NOT run: the PowerShell arms were never probed without Windows variables"
 fi
 
 # A source-level scan as well, because the runtime probe only covers the code
@@ -684,6 +690,10 @@ else
   bad "not a git worktree -- phase 7 cannot read line endings and is NOT a pass"
 fi
 
-printf '\n== portability: %d passed, %d failed\n' "$PASS" "$FAIL"
+printf '\n== portability: %d passed, %d failed, %d skipped\n' "$PASS" "$FAIL" "$SKIP"
 [ "$FAIL" -eq 0 ] || exit 1
+if [ "$SKIP" -gt 0 ]; then
+  echo "   sections were SKIPPED on this machine. A skip is never a pass."
+  exit 3
+fi
 exit 0
