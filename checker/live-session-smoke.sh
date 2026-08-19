@@ -208,10 +208,37 @@ fi
 # caught before is still counted, which the control below proves by feeding it
 # one of each.
 STATUS_OK_RE='completed with status 0'
+# THE FOURTH ENTRY in this detector's history, and the first where the
+# detector was right about the fact and wrong about the ATTRIBUTION.
+# Measured 2026-08-19 by a controlled 2x2 across two CLI releases: under
+# claude CLI 2.1.235, the credential-less session's teardown line
+#     [DEBUG] StopFailure:authentication_failed [...] completed with status 0
+# -- the fixture below -- while under 2.1.236 the SAME teardown completes
+# with status 1, on ALL THREE runner platforms, for TWO DIFFERENT TREES:
+# run 197 (2.1.235, tree 29ec325) green; run 198 + its rerun (2.1.236,
+# tree f0e50aa) red; run 199 (2.1.236, tree 29ec325 -- the exact tree 197
+# had proven green) red. The status follows the CLI release, not the
+# repository, so it is the CLI failing ITS OWN auth-failed teardown around
+# a hook it invoked -- not the hook breaking. The same tree's router exits
+# 0 on every StopFailure payload shape when invoked directly.
+#
+# So that ONE measured shape -- StopFailure with the authentication_failed
+# reason, nonzero status -- is CLASSIFIED as CLI teardown and counted
+# separately, out loud, never silently dropped. The exception is scoped to
+# the reason string: a StopFailure with any OTHER reason and a nonzero
+# status is still an error, and the control below proves the scope cannot
+# widen.
+CLI_TEARDOWN_RE='StopFailure:authentication_failed .*completed with status [1-9]'
 ARMED_ERR=$(grep -hiE 'rot-router|Hook [A-Za-z]+ .*(failed|error)' \
               "$WORK/armed.debug" "$WORK/armed.err" 2>/dev/null \
             | grep -vE "$STATUS_OK_RE" \
+            | grep -vE "$CLI_TEARDOWN_RE" \
             | grep -ciE 'no mode given|Write-Error|Exception|command not found|usage:|failed')
+ARMED_TEARDOWN=$(grep -hiE 'rot-router|Hook [A-Za-z]+ .*(failed|error)' \
+              "$WORK/armed.debug" "$WORK/armed.err" 2>/dev/null \
+            | grep -cE "$CLI_TEARDOWN_RE")
+[ "$ARMED_TEARDOWN" -gt 0 ] && \
+  echo "  ----  $ARMED_TEARDOWN CLI-teardown line(s) classified, not counted: the CLI failing its own auth-failed teardown around the hook (measured behavior change at claude CLI 2.1.236)"
 
 # CONTROL, run every time, because a detector nobody has deliberately tripped is
 # an untested alarm -- and this one has now been wrong three separate ways.
@@ -222,13 +249,25 @@ printf '%s\n' \
 printf '%s\n' \
   '2026-08-08T22:03:11.402Z [DEBUG] Stop:end [pwsh -NoProfile -File "/x/hooks/rot-router.ps1"] no mode given (-Vector or -Route)' \
   > "$CTLDIR/real.log"
+printf '%s\n' \
+  '2026-08-19T20:17:15.353Z [DEBUG] StopFailure:authentication_failed [bash "/x/hooks/rot-router.sh"] completed with status 1' \
+  > "$CTLDIR/teardown.log"
+# The widening probe must stay CATCHABLE by the keyword tail (its first
+# draft used a reason with no 'failed' in it, which the base detector never
+# counted anyway -- the control caught its own fixture testing nothing).
+printf '%s\n' \
+  '2026-08-19T20:17:15.353Z [DEBUG] StopFailure:network_failed [bash "/x/hooks/rot-router.sh"] completed with status 1' \
+  > "$CTLDIR/otherstop.log"
 _count_err() {
   grep -hiE 'rot-router|Hook [A-Za-z]+ .*(failed|error)' "$1" 2>/dev/null \
     | grep -vE "$STATUS_OK_RE" \
+    | grep -vE "$CLI_TEARDOWN_RE" \
     | grep -ciE 'no mode given|Write-Error|Exception|command not found|usage:|failed'
 }
 CTL_BENIGN=$(_count_err "$CTLDIR/benign.log")
 CTL_REAL=$(_count_err "$CTLDIR/real.log")
+CTL_TEARDOWN=$(_count_err "$CTLDIR/teardown.log")
+CTL_OTHERSTOP=$(_count_err "$CTLDIR/otherstop.log")
 if [ "$CTL_BENIGN" -eq 0 ]; then
   ok "CONTROL: a StopFailure line that completed with status 0 is NOT counted as an error"
 else
@@ -238,6 +277,16 @@ if [ "$CTL_REAL" -eq 1 ]; then
   ok "CONTROL: a real router failure IS still counted -- the detector can fire"
 else
   bad "CONTROL: the detector no longer catches a real failure ($CTL_REAL) -- it was weakened, not sharpened"
+fi
+if [ "$CTL_TEARDOWN" -eq 0 ]; then
+  ok "CONTROL: the CLI's auth-failed teardown (status 1, CLI >= 2.1.236) is classified, not counted"
+else
+  bad "CONTROL: the 2.1.236 teardown line is still counted as a router error ($CTL_TEARDOWN)"
+fi
+if [ "$CTL_OTHERSTOP" -eq 1 ]; then
+  ok "CONTROL: a StopFailure with any OTHER reason and status 1 is STILL an error -- the exception cannot widen"
+else
+  bad "CONTROL: the teardown exception swallowed a non-auth StopFailure ($CTL_OTHERSTOP) -- it was weakened, not scoped"
 fi
 if [ "$ARMED_ERR" -eq 0 ]; then
   ok "ARMED: no error attributable to the router"
