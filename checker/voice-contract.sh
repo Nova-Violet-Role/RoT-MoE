@@ -404,6 +404,107 @@ done
 [ "$_d13e" -eq 0 ] && ok "D13: the sentinel speaks only in declared lens elements"
 rm -rf "$SD" 2>/dev/null || :
 
+# --- D14: the Animus -- the paired observer's channel, both directions ------
+# The worker-side ear (both router arms; the sh arm probed here, cross-diff
+# owns arm agreement) and the observer itself (hooks/animus-observe.sh, the
+# deterministic router-over-the-event-stream). Every row has its refusal or
+# silence path; every temp path is the row's own -- a checker that writes
+# into the repository is not a read-only observer, so the observer rows
+# override the project distillate explicitly.
+AD=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/voice-anim.$$")
+mkdir -p "$AD"
+_ap='{"session_id":"vanim","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"echo hi"},"tool_response":{"stdout":"hi","stderr":""}}'
+_aq="$AD/animus-queue.vanim"
+
+# consumption: a planted remark is spoken in its lens element, (animus)-tagged,
+# and the queue is consumed
+printf 'AntiVenom|a planted animus remark\n' > "$_aq"
+_g=$(printf '%s' "$_ap" | ROTMOE_ANIMUS=1 ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  '{"hookSpecificOutput"'*'rot:antivenom'*'AntiVenom (animus): a planted animus remark'*)
+    ok "D14: a queued remark speaks on the envelope, inside its lens element, tagged (animus)" ;;
+  *) bad "D14: the queued remark did not speak (got: ${_g:-nothing})" ;;
+esac
+[ -f "$_aq" ] && bad "D14: the queue survived consumption" || ok "D14: the queue was consumed"
+
+# FIFO: one remark per event, the remainder holds its order
+printf 'Venom|first remark\nSoleil|second remark\n' > "$_aq"
+_g=$(printf '%s' "$_ap" | ROTMOE_ANIMUS=1 ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  *'Venom (animus): first remark'*) ok "D14: FIFO -- the first remark spoke" ;;
+  *) bad "D14: FIFO order broken (got: ${_g:-nothing})" ;;
+esac
+[ "$(cat "$_aq" 2>/dev/null)" = 'Soleil|second remark' ] \
+  && ok "D14: one remark per event -- the second waits its turn" \
+  || bad "D14: the remainder queue is wrong: $(cat "$_aq" 2>/dev/null)"
+rm -f "$_aq"
+
+# silence: an absent queue is not a byte
+_g=$(printf '%s' "$_ap" | ROTMOE_ANIMUS=1 ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  *'(animus)'*) bad "D14: an empty queue produced a remark from nothing" ;;
+  *) ok "D14: empty queue, not a byte -- silence is the healthy state" ;;
+esac
+
+# the roster holds: an undeclared lens is refused AND dropped (no queue jam)
+printf 'Mallory|evil whisper\n' > "$_aq"
+_g=$(printf '%s' "$_ap" | ROTMOE_ANIMUS=1 ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in
+  *'Mallory'*|*'evil whisper'*) bad "D14: an undeclared lens SPOKE -- the roster fell" ;;
+  *) ok "D14: an undeclared lens is refused" ;;
+esac
+[ -f "$_aq" ] && bad "D14: the refused line was not dropped -- it would jam the queue head forever" \
+              || ok "D14: the refused line is dropped, the queue cannot jam"
+
+# unarmed: without ROTMOE_ANIMUS the queue is never read
+printf 'AntiVenom|should not be read\n' > "$_aq"
+_g=$(printf '%s' "$_ap" | ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in *'(animus)'*) bad "D14: an UNARMED worker consumed the queue" ;; *) : ;; esac
+[ "$(cat "$_aq" 2>/dev/null)" = 'AntiVenom|should not be read' ] \
+  && ok "D14: unarmed (ROTMOE_ANIMUS unset) -- the queue is never touched" \
+  || bad "D14: unarmed, yet the queue changed"
+
+# the off-switch: VOICE=0 silences remarks and leaves the queue standing
+_g=$(printf '%s' "$_ap" | ROTMOE_ANIMUS=1 ROTMOE_VOICE=0 ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in *'(animus)'*) bad "D14: ROTMOE_VOICE=0 did not silence the remark" ;; *) : ;; esac
+[ -f "$_aq" ] && ok "D14: ROTMOE_VOICE=0 silences the remark and keeps the queue" \
+              || bad "D14: ROTMOE_VOICE=0 consumed the queue while silent"
+rm -f "$_aq"
+
+# atomicity: a writer's half-landed tmp file beside the queue is invisible
+printf 'AntiVenom|half-written\n' > "$_aq.an.999"
+_g=$(printf '%s' "$_ap" | ROTMOE_ANIMUS=1 ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" 2>/dev/null)
+case "$_g" in *'(animus)'*) bad "D14: a tmp file beside the queue was consumed -- the rename-atomic contract is dead" ;; *) ok "D14: a writer's tmp file is invisible to the consumer" ;; esac
+rm -f "$_aq.an.999"
+
+# the sentinel's firing is a RECORD: without it the observer counts nothing
+_al="$AD/anomaly-probe.jsonl"
+printf '%s' '{"session_id":"vanim","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"true"},"tool_response":{"stdout":"","stderr":""}}' \
+  | ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_LOG="$_al" ROTMOE_DEBUG_LOCAL=0 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+grep -q '"kind":"anomaly".*"shape":"blank"' "$_al" 2>/dev/null \
+  && ok "D14: a sentinel firing writes its anomaly record -- falsifiable from the log" \
+  || bad "D14: the sentinel fired without a record (or did not fire)"
+printf '%s' "$_ap" | ROTMOE_STATE_DIR="$AD" ROTMOE_DEBUG_LOG="$_al" ROTMOE_DEBUG_LOCAL=0 ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+_an=$(grep -c '"kind":"anomaly"' "$_al" 2>/dev/null)
+[ "$_an" = 1 ] && ok "D14: a healthy result writes no anomaly record" \
+               || bad "D14: anomaly records after one blank and one healthy result: $_an, expected 1"
+
+# the observer: a planted recurrence queues AntiVenom; an empty sink queues nothing
+OD=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/voice-obs.$$")
+mkdir -p "$OD"
+printf '{"kind":"anomaly","ts":"T","event":"PostToolUse","session":"vobs","src":"test","shape":"blank","tool":"Bash","arm":"sh"}\n{"kind":"anomaly","ts":"T","event":"PostToolUse","session":"vobs","src":"test","shape":"blank","tool":"Bash","arm":"sh"}\n' > "$OD/rot-debug.vobs.jsonl"
+ROTMOE_STATE_DIR="$OD" ROTMOE_ANIMUS_DISTILLATE="$OD/dist.md" sh "$ROOT/hooks/animus-observe.sh" vobs --once >/dev/null 2>&1
+grep -q '^AntiVenom|the blank result has recurred' "$OD/animus-queue.vobs" 2>/dev/null \
+  && ok "D14: the observer queues AntiVenom on a measured recurrence" \
+  || bad "D14: the observer saw two blanks and queued nothing"
+OD2=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/voice-obs2.$$")
+mkdir -p "$OD2"
+: > "$OD2/rot-debug.vobs.jsonl"
+ROTMOE_STATE_DIR="$OD2" ROTMOE_ANIMUS_DISTILLATE="$OD2/dist.md" sh "$ROOT/hooks/animus-observe.sh" vobs --once >/dev/null 2>&1
+[ -f "$OD2/animus-queue.vobs" ] && bad "D14: the observer spoke over an empty sink" \
+                                || ok "D14: the observer is silent over an empty sink"
+rm -rf "$AD" "$OD" "$OD2" 2>/dev/null || :
+
 # CONTROL for D11 -- a drifted lambda must be caught by the same arithmetic.
 _cblk=$(sed -n '/<rot:formula>/,/<\/rot:formula>/p' "$ROOT/agents/rot-nova.md" | sed 's/lambda: 1.6/lambda: 9.9/')
 _cdl=$(printf '%s\n' "$_cblk" | awk -F': *' '/lambda:/{c++; if (c==1) print $2}')

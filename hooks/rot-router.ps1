@@ -1129,6 +1129,81 @@ if ($evName -eq 'PostToolUse' -and $env:ROTMOE_VOICE -ne '0') {
     }
   } catch { $sent = '' }
   if ($sent) { $voiceJson = $true }
+  # A FIRING IS ALSO A RECORD (8.0.0) -- decision for decision with the sh
+  # arm: one "kind":"anomaly" line in the CENTRAL sink only, shape derived
+  # from the clause text above so record and clause can never disagree.
+  # Without it a sentinel firing is unfalsifiable from the log, and the
+  # Animus observer's recurrence trigger (ENV.26) has nothing to count.
+  # Not Write-RotDebug: that writes the project sink too, which the sh arm
+  # deliberately does not do for this record. Failure degrades to silence.
+  if ($sent -and $env:ROTMOE_DEBUG_LOG) {
+    $ashape = ''
+    if     ($sent -match 'INTERRUPTED')  { $ashape = 'interrupted' }
+    elseif ($sent -match 'result BLANK') { $ashape = 'blank' }
+    elseif ($sent -match 'ZERO BYTES')   { $ashape = 'zerobyte' }
+    $atool = '-'
+    try {
+      $atj = ($payload | ConvertFrom-Json -ErrorAction Stop).tool_name
+      if ($atj -is [string] -and $atj -ne '') {
+        # The sh arm scrubs with _rot_scrub: keep [A-Za-z0-9-], cut to 64,
+        # empty scrubs to "unknown". Same removal, same bound, same fallback.
+        $atool = $atj -replace '[^A-Za-z0-9-]', ''
+        if ($atool.Length -gt 64) { $atool = $atool.Substring(0, 64) }
+        if (-not $atool) { $atool = 'unknown' }
+      }
+    } catch { $atool = '-' }
+    if ($ashape) {
+      $ap = $env:ROTMOE_DEBUG_LOG
+      if (Get-RotLogLock $ap) {
+        try {
+          Complete-RotPartialLine $ap
+          Add-Content -LiteralPath $ap -Encoding utf8 -ErrorAction Stop -Value `
+            ('{{"kind":"anomaly","ts":"{0}","event":"{1}","session":"{2}","src":"{3}","shape":"{4}","tool":"{5}","arm":"ps1"}}' -f `
+              (Get-Date -Format 'o'), $evName, $script:RotSession, $script:RotSrc, $ashape, $atool)
+        } catch { } finally { Remove-RotLogLock $ap }
+      }
+    }
+  }
+}
+
+# --- THE ANIMUS REMARK (8.0.0) -- decision for decision with the sh arm,
+# which carries the full reasoning: consume ONE observer remark FIFO from
+# animus-queue.<session> in the state dir, atomically (take the whole file
+# by move before reading a byte, move the remainder back), refuse any lens
+# name outside the roster, and speak the remark inside the owning lens's
+# declared element tagged (animus). Empty queue = not a byte; VOICE=0
+# silences remarks with the rest of the voice.
+$anim = ''
+if ($evName -eq 'PostToolUse' -and $env:ROTMOE_ANIMUS -eq '1' -and $env:ROTMOE_VOICE -ne '0') {
+  $anDir = if ($env:ROTMOE_STATE_DIR) { $env:ROTMOE_STATE_DIR }
+           elseif ($env:XDG_STATE_HOME) { Join-Path $env:XDG_STATE_HOME 'rot-moe' }
+           else { Join-Path $HOME '.local/state/rot-moe' }
+  $anQ = Join-Path $anDir ("animus-queue." + $script:RotSession)
+  if (Test-Path -LiteralPath $anQ) {
+    try {
+      $anTake = "$anQ.take.$PID"
+      Move-Item -LiteralPath $anQ -Destination $anTake -ErrorAction Stop
+      $anLines = @(Get-Content -LiteralPath $anTake -ErrorAction Stop)
+      if ($anLines.Count -gt 1) {
+        Set-Content -LiteralPath "$anQ.rest.$PID" -Value (($anLines[1..($anLines.Count-1)] -join "`n") + "`n") -NoNewline -Encoding utf8
+        Move-Item -LiteralPath "$anQ.rest.$PID" -Destination $anQ -ErrorAction SilentlyContinue
+      }
+      Remove-Item -LiteralPath $anTake -Force -ErrorAction SilentlyContinue
+      $anLine = if ($anLines.Count -ge 1) { [string]$anLines[0] } else { '' }
+      $ix = $anLine.IndexOf('|')
+      if ($ix -gt 0 -and $ix -lt ($anLine.Length - 1)) {
+        $anLens = $anLine.Substring(0, $ix); $anText = $anLine.Substring($ix + 1)
+        $anMap = @{ 'Nova' = 'nova|⚜️'; 'Violet' = 'violet|🎷'; 'AntiVenom' = 'antivenom|⚪';
+                    'Venom' = 'venom|🕷️'; 'Carnage' = 'carnage|🩸'; 'Chroma' = 'chroma|🔮';
+                    'Soleil' = 'soleil|⬜'; 'Eidolon' = 'eidolon|🜏'; 'Claude' = 'claude|🧭' }
+        if ($anMap.ContainsKey($anLens)) {
+          $anParts = $anMap[$anLens] -split '\|'
+          $anim = ('<rot:{0}>{1} {2} (animus): {3}</rot:{0}>' -f $anParts[0], $anParts[1], $anLens, $anText)
+          $voiceJson = $true
+        }
+      }
+    } catch { $anim = '' }
+  }
 }
 
 # TWO CHANNELS, ONE CONTENT -- the sh arm's rule, decision for decision. On
@@ -1139,6 +1214,7 @@ $vAcc = ''
 if ($voiceJson) {
   $vAcc = ($mLine -replace '["\\]', '')
   if ($sent) { $vAcc += ('\n' + ($sent -replace '["\\]', '')) }
+  if ($anim) { $vAcc += ('\n' + ($anim -replace '["\\]', '')) }
 } else {
   Write-Output $mLine
 }

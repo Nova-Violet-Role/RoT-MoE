@@ -455,6 +455,97 @@ else
 fi
 
 echo
+echo "== THE ANIMUS CONSUMPTION: one queue, two arms, one envelope =="
+# The worker-side ear (8.0.0) is a NEW observable on the envelope path, and
+# the lesson written all over this file is that a new observable left out of
+# the comparison is where the arms drift unseen. Each arm gets its OWN state
+# dir and an IDENTICALLY planted queue; the envelopes must agree byte for
+# byte, and so must what remains of the queue afterwards. The refusal and
+# the off-switch are compared too -- agreeing on when NOT to speak is half
+# the contract.
+if [ -n "$PWSH" ]; then
+  _AD="$(mktemp -d "${TMPDIR:-/tmp}/xdanim.XXXXXX")"
+  _apay='{"session_id":"xd-anim","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"echo hi"},"tool_response":{"stdout":"hi","stderr":""}}'
+  _adrive () {   # _adrive <arm> <statedir> [extra VAR=val...]
+    _arm=$1; _sd=$2; shift 2
+    if [ "$_arm" = sh ]; then
+      printf '%s' "$_apay" | env "$@" ROTMOE_ANIMUS=1 ROTMOE_STATE_DIR="$_sd" ROTMOE_DEBUG_LOCAL=0 "$SH" 2>/dev/null
+    else
+      printf '%s' "$_apay" | env "$@" ROTMOE_ANIMUS=1 ROTMOE_STATE_DIR="$_sd" ROTMOE_DEBUG_LOCAL=0 "$PWSH" -NoProfile -File "$PS1" 2>/dev/null
+    fi
+  }
+  mkdir -p "$_AD/a" "$_AD/b"
+
+  # one remark: spoken identically, consumed identically
+  printf 'AntiVenom|a planted animus remark\n' > "$_AD/a/animus-queue.xd-anim"
+  printf 'AntiVenom|a planted animus remark\n' > "$_AD/b/animus-queue.xd-anim"
+  _oa=$(_adrive sh  "$_AD/a"); _ob=$(_adrive ps1 "$_AD/b")
+  if [ "$_oa" = "$_ob" ]; then
+    case "$_oa" in
+      *'AntiVenom (animus): a planted animus remark'*) ok "ANIMUS: both arms speak the remark on one identical envelope" ;;
+      *) bad "ANIMUS: arms agree but neither spoke the remark: $_oa" ;;
+    esac
+  else
+    bad "ANIMUS ARMS DISAGREE on the consumption envelope -- sh: $_oa / ps1: $_ob"
+  fi
+  if [ ! -f "$_AD/a/animus-queue.xd-anim" ] && [ ! -f "$_AD/b/animus-queue.xd-anim" ]; then
+    ok "ANIMUS: both arms consumed the queue"
+  else
+    bad "ANIMUS: queue survival differs or both survived (sh: $(ls "$_AD/a" 2>/dev/null | tr '\n' ' ')/ ps1: $(ls "$_AD/b" 2>/dev/null | tr '\n' ' '))"
+  fi
+
+  # FIFO: same first remark spoken, same remainder left
+  printf 'Venom|first remark\nSoleil|second remark\n' > "$_AD/a/animus-queue.xd-anim"
+  printf 'Venom|first remark\nSoleil|second remark\n' > "$_AD/b/animus-queue.xd-anim"
+  _oa=$(_adrive sh  "$_AD/a"); _ob=$(_adrive ps1 "$_AD/b")
+  [ "$_oa" = "$_ob" ] && ok "ANIMUS: FIFO envelopes agree byte for byte" \
+                      || bad "ANIMUS ARMS DISAGREE on FIFO -- sh: $_oa / ps1: $_ob"
+  _ra=$(cat "$_AD/a/animus-queue.xd-anim" 2>/dev/null); _rb=$(cat "$_AD/b/animus-queue.xd-anim" 2>/dev/null)
+  [ "$_ra" = 'Soleil|second remark' ] && [ "$_ra" = "$_rb" ] \
+    && ok "ANIMUS: both arms leave the same one-line remainder" \
+    || bad "ANIMUS: remainders differ -- sh '$_ra' / ps1 '$_rb'"
+  rm -f "$_AD/a/animus-queue.xd-anim" "$_AD/b/animus-queue.xd-anim"
+
+  # the refusal: an undeclared lens is silence in both arms, and dropped
+  printf 'Mallory|evil whisper\n' > "$_AD/a/animus-queue.xd-anim"
+  printf 'Mallory|evil whisper\n' > "$_AD/b/animus-queue.xd-anim"
+  _oa=$(_adrive sh  "$_AD/a"); _ob=$(_adrive ps1 "$_AD/b")
+  if [ "$_oa" = "$_ob" ]; then
+    case "$_oa" in
+      *Mallory*|*'evil whisper'*) bad "ANIMUS: an undeclared lens SPOKE in both arms" ;;
+      *) ok "ANIMUS: both arms refuse the undeclared lens identically" ;;
+    esac
+  else
+    bad "ANIMUS ARMS DISAGREE on the refusal -- sh: $_oa / ps1: $_ob"
+  fi
+  [ ! -f "$_AD/a/animus-queue.xd-anim" ] && [ ! -f "$_AD/b/animus-queue.xd-anim" ] \
+    && ok "ANIMUS: both arms drop the refused line -- no queue jam on either" \
+    || bad "ANIMUS: the refused line lingers in an arm"
+
+  # the off-switch: VOICE=0 silences both and neither touches the queue
+  printf 'AntiVenom|should stay\n' > "$_AD/a/animus-queue.xd-anim"
+  printf 'AntiVenom|should stay\n' > "$_AD/b/animus-queue.xd-anim"
+  _oa=$(_adrive sh  "$_AD/a" ROTMOE_VOICE=0); _ob=$(_adrive ps1 "$_AD/b" ROTMOE_VOICE=0)
+  case "$_oa$_ob" in *'(animus)'*) bad "ANIMUS: ROTMOE_VOICE=0 leaked a remark" ;; *) : ;; esac
+  _ra=$(cat "$_AD/a/animus-queue.xd-anim" 2>/dev/null); _rb=$(cat "$_AD/b/animus-queue.xd-anim" 2>/dev/null)
+  [ "$_ra" = 'AntiVenom|should stay' ] && [ "$_ra" = "$_rb" ] \
+    && ok "ANIMUS: VOICE=0 -- both arms silent, both queues stand" \
+    || bad "ANIMUS: VOICE=0 queue handling differs -- sh '$_ra' / ps1 '$_rb'"
+
+  # CONTROL: the comparison must SEE a disagreement. Different remarks in,
+  # different envelopes out -- or this phase proves nothing.
+  printf 'Venom|sh side\n'  > "$_AD/a/animus-queue.xd-anim"
+  printf 'Venom|ps1 side\n' > "$_AD/b/animus-queue.xd-anim"
+  _oa=$(_adrive sh  "$_AD/a"); _ob=$(_adrive ps1 "$_AD/b")
+  [ "$_oa" != "$_ob" ] && ok "CONTROL: a genuine consumption difference IS visible to this comparison" \
+                       || bad "CONTROL DEAD: two different remarks read identically -- this phase proves nothing"
+  rm -rf "$_AD"
+else
+  echo "  SKIP  no PowerShell on this machine (the animus consumption cross-diff did not run)"
+  skip=$((skip+1))
+fi
+
+echo
 echo "== LOCALE INVARIANCE: the same row under every installed locale =="
 # The locale trap is the one defect that a numeric comparison cannot see and a
 # single-locale run cannot reach. Every available comma-decimal locale is forced

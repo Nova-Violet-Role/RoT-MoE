@@ -115,7 +115,38 @@ lens file may carry.
        lens's declared element: Claude for the interruption (his wall),
        AntiVenom for the blanks (clinical absence). Silence is the healthy
        state; ROTMOE_VOICE=0 silences the sentinel with the rest of the
-       voice. -->
+       voice. A clause that fires is also RECORDED: one "kind":"anomaly"
+       line (shape and tool, central debug sink only) -- without it a
+       sentinel firing is unfalsifiable from the log, and the observer's
+       recurrence trigger below would have nothing to count.
+
+       THE ANIMUS (8.0.0): a paired OBSERVER process (hooks/animus-observe.sh,
+       launched by /animus) watches the worker session's debug sink and may
+       queue lens-attributed remarks -- one line per remark, `Lens|text` --
+       into animus-queue.<session> in the state dir, written rename-atomically
+       (tmp then mv; the queue is cross-process, unlike the single-writer
+       summons). With ROTMOE_ANIMUS=1 the worker-side arm consumes exactly ONE
+       remark FIFO per PostToolUse and speaks it inside the owning lens's
+       declared element, tagged "(animus)" so a reader or checker can tell an
+       observer remark from a gauge stanza:
+         <rot:antivenom>⚪ AntiVenom (animus): ...</rot:antivenom>
+       A lens name outside the nine-element roster is REFUSED and the line
+       dropped -- the roster holds against a compromised writer. Empty queue =
+       not a byte; ROTMOE_VOICE=0 silences remarks with the rest of the voice.
+       The observer is DETERMINISTIC -- the router applied to the event
+       stream, never a second model -- and speaks only on measured triggers,
+       every threshold declared below (ENV.26-32), at most one remark per
+       event and three per lens per run (frozen 2026-08-19, Soleil's
+       pricing): AntiVenom on a recurring anomaly shape, Chroma on a run of
+       ever-costlier actions, Venom on prompt turns with no act between,
+       Soleil on actions growing longer each time, Eidolon on one lane+stem
+       pair looping, Violet and Chroma once each when the TASK text routes
+       EMPATHIC or PREDICTIVE and the stream never goes there, and Claude on
+       a PreToolUse whose Post never lands -- the stall caught on the run.
+       The distillates (project .rot-moe/animus-distillate.md, global
+       <state-dir>/animus-distillate.md; overridable via ENV.33/ENV.34;
+       global loads first, project overrides) are the observer's append-only
+       memory, never read by the hooks themselves. -->
   <!ELEMENT rot:voice (rot:frame, (rot:nova | rot:violet | rot:antivenom
                       | rot:venom | rot:carnage | rot:chroma | rot:soleil
                       | rot:eidolon | rot:claude)*)>
@@ -186,6 +217,16 @@ lens file may carry.
   <!ENTITY ENV.22 "ROTMOE_CWD|path|overrides the directory workspace discovery walks up from">
   <!ENTITY ENV.23 "ROTMOE_HOME|path|where the RoT-MoE tree lives, for the rot profile; never settable from a file -- it decides which code runs">
   <!ENTITY ENV.24 "ROTMOE_DEBUG_PAYLOAD|1 or unset|hook payload KEY survey (key names only, never a value) into a per-session state-dir sink -- the measuring instrument a new payload-field reader must run first">
+  <!ENTITY ENV.25 "ROTMOE_ANIMUS|1 or unset|arms the paired observer's worker-side ear: consume ONE queued lens remark per PostToolUse from animus-queue.<session> in the state dir (written by hooks/animus-observe.sh); unset = the queue is never read">
+  <!ENTITY ENV.26 "ROTMOE_ANIMUS_ANOMALY_N|count|observer: same-shape anomaly records (the sentinel's own log line) that summon AntiVenom's recurrence remark; default 2">
+  <!ENTITY ENV.27 "ROTMOE_ANIMUS_COST_N|count|observer: consecutive tool events with strictly rising ms that summon Chroma's pricing remark; default 3">
+  <!ENTITY ENV.28 "ROTMOE_ANIMUS_DITHER_N|count|observer: consecutive prompt events with no tool event between that summon Venom's decide-and-move remark; default 3">
+  <!ENTITY ENV.29 "ROTMOE_ANIMUS_BLOAT_N|count|observer: consecutive tool events whose action text grows every time (the chars field) that summon Soleil's compression remark; default 3">
+  <!ENTITY ENV.30 "ROTMOE_ANIMUS_LOOP_N|count|observer: recurrences of one lane+stem pair that summon Eidolon's self-similarity remark; default 4">
+  <!ENTITY ENV.31 "ROTMOE_ANIMUS_TEXT_N|count|observer: sink records without the task text's own lane before the text-vs-stream pair (Violet for EMPATHIC, Chroma for PREDICTIVE) may speak, once each per run; default 6">
+  <!ENTITY ENV.32 "ROTMOE_ANIMUS_STALL_SECS|seconds|observer: age of a PreToolUse with no Post behind it before Claude's stall remark -- the measurement that never returned; default 120">
+  <!ENTITY ENV.33 "ROTMOE_ANIMUS_DISTILLATE|path|overrides the project distillate (default <project>/.rot-moe/animus-distillate.md, self-gitignoring like the project sink)">
+  <!ENTITY ENV.34 "ROTMOE_ANIMUS_DISTILLATE_GLOBAL|path|overrides the global distillate (default <state-dir>/animus-distillate.md)">
 
   <!-- ================= THE EXCLUSIONS ================= -->
   <!-- What NO lens file may carry, transcription notwithstanding. The

@@ -1761,6 +1761,84 @@ hook_mode () {
     # channel -- marker first, clause after, stanzas untouched (the stanza
     # loop is gated on _voice, which stays empty here).
     [ -n "$_sent" ] && _voicejson=1
+    # A FIRING IS ALSO A RECORD (8.0.0). Until this line existed the clause
+    # went to the envelope and NOWHERE else: whether the sentinel ever fired
+    # was unfalsifiable from the log -- the same defect class the event field
+    # closed on 2026-08-08 -- and the Animus observer's recurrence trigger
+    # (ENV.26) would have had nothing to count. CENTRAL sink only, both arms
+    # identically; the shape is derived from the clause text the node block
+    # above owns, so record and clause can never name different verdicts.
+    if [ -n "$_sent" ] && [ -n "${ROTMOE_DEBUG_LOG:-}" ]; then
+      _ashape=''
+      case "$_sent" in
+        *INTERRUPTED*)    _ashape=interrupted ;;
+        *'result BLANK'*) _ashape=blank ;;
+        *'ZERO BYTES'*)   _ashape=zerobyte ;;
+      esac
+      _atool='-'
+      case "$payload" in
+        *'"tool_name"'*)
+          _atool=${payload#*\"tool_name\"}
+          _atool=${_atool#*\"}
+          _atool=${_atool%%\"*}
+          ;;
+      esac
+      _atool=$(_rot_scrub "$_atool")
+      if [ -n "$_ashape" ] && _rot_lock_acquire "$ROTMOE_DEBUG_LOG"; then
+        _rot_terminate "$ROTMOE_DEBUG_LOG"
+        printf '{"kind":"anomaly","ts":"%s","event":"%s","session":"%s","src":"%s","shape":"%s","tool":"%s","arm":"sh"}\n' \
+          "$(date -Is 2>/dev/null || date)" "$_ev" "$_rot_sess" "$_rot_src" "$_ashape" "$_atool" \
+          2>/dev/null >> "$ROTMOE_DEBUG_LOG" || :
+        _rot_lock_release "$ROTMOE_DEBUG_LOG"
+      fi
+    fi
+  fi
+
+  # --- THE ANIMUS REMARK (8.0.0: the paired observer) ------------------------
+  # A second PROCESS -- hooks/animus-observe.sh, launched by /animus -- watches
+  # this session's debug sink and queues at most one lens-attributed remark
+  # per measured trigger into animus-queue.<session> in the state dir. This
+  # block is the worker's EAR: on PostToolUse, with ROTMOE_ANIMUS=1, consume
+  # exactly ONE remark FIFO and speak it inside the owning lens's declared
+  # element, tagged (animus) so the contract can tell remark from stanza.
+  # The queue is cross-process -- the observer writes while this hook may be
+  # reading -- so BOTH sides are rename-atomic: the observer writes tmp+mv,
+  # and the consume here takes the whole file by mv before reading a byte,
+  # then moves the remainder back. A half-written line can never be read;
+  # the summons file never needed this (single-writer per turn; the
+  # difference is measured and recorded, 2026-08-19). Silence is the healthy
+  # state: empty queue = not a byte. A lens name outside the roster is
+  # REFUSED and the line dropped -- the roster holds even against a
+  # compromised queue writer. ROTMOE_VOICE=0 silences remarks with the rest.
+  _anim=''
+  if [ "$_ev" = 'PostToolUse' ] && [ "${ROTMOE_ANIMUS:-0}" = 1 ] \
+     && [ "${ROTMOE_VOICE:-1}" != 0 ]; then
+    _andir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
+    _anq="$_andir/animus-queue.$_rot_sess"
+    if [ -s "$_anq" ] && mv "$_anq" "$_anq.take.$$" 2>/dev/null; then
+      _anline=$(head -n 1 "$_anq.take.$$" 2>/dev/null)
+      tail -n +2 "$_anq.take.$$" > "$_anq.rest.$$" 2>/dev/null || :
+      if [ -s "$_anq.rest.$$" ]; then mv "$_anq.rest.$$" "$_anq" 2>/dev/null || :
+      else rm -f "$_anq.rest.$$" 2>/dev/null; fi
+      rm -f "$_anq.take.$$" 2>/dev/null
+      _anlens=${_anline%%|*}; _antext=${_anline#*|}
+      _anel=''; _ansig=''
+      case "$_anlens" in
+        Nova)      _anel='nova';      _ansig='⚜️' ;;
+        Violet)    _anel='violet';    _ansig='🎷' ;;
+        AntiVenom) _anel='antivenom'; _ansig='⚪' ;;
+        Venom)     _anel='venom';     _ansig='🕷️' ;;
+        Carnage)   _anel='carnage';   _ansig='🩸' ;;
+        Chroma)    _anel='chroma';    _ansig='🔮' ;;
+        Soleil)    _anel='soleil';    _ansig='⬜' ;;
+        Eidolon)   _anel='eidolon';   _ansig='🜏' ;;
+        Claude)    _anel='claude';    _ansig='🧭' ;;
+      esac
+      if [ -n "$_anel" ] && [ -n "$_antext" ] && [ "$_antext" != "$_anline" ]; then
+        _anim="<rot:$_anel>$_ansig $_anlens (animus): $_antext</rot:$_anel>"
+        _voicejson=1
+      fi
+    fi
   fi
 
   # TWO CHANNELS, ONE CONTENT. On the plain-stdout events the marker and the
@@ -1775,6 +1853,7 @@ hook_mode () {
   if [ -n "$_voicejson" ]; then
     _vacc=$(printf '%s' "$_mline" | tr -d '"\\')
     [ -n "$_sent" ] && _vacc="$_vacc\n$(printf '%s' "$_sent" | tr -d '"\\')"
+    [ -n "$_anim" ] && _vacc="$_vacc\n$(printf '%s' "$_anim" | tr -d '"\\')"
   else
     echo "$_mline"
   fi
