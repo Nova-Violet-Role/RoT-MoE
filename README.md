@@ -301,7 +301,7 @@ source by `checker/module-claims.sh`, in docs exactly as it was here.
 
 ---
 
-## 🫀 The seven organs
+## 🫀 The eight organs
 
 | organ | file | what it does |
 |:--|:--|:--|
@@ -312,6 +312,7 @@ source by `checker/module-claims.sh`, in docs exactly as it was here.
 | 5 · voices | `hooks/rot-voice.dtd` + `agents/rot-*.md` | the voice contract and the nine living lenses: each declared as an element with a charter, a tool grant and a bound, held both ways by `checker/voice-contract.sh` |
 | 6 · gate | `hooks/rot-voice-gate.sh` · `.ps1` | on Stop, holds the door **once** for lenses a FUSE/ELEVATE turn summoned and left unspoken — the refusal carries each missing charter, and the gate degrades open everywhere it cannot measure |
 | 7 · environment | `hooks/rot-env.sh` · `.ps1` + `hooks/rot-profile.sh` | the environment layer: `rot.env` **parsed, never sourced**, under the vocabulary the DTD declares — plus the sourceable `rot` command family, the write direction of the same law |
+| 8 · animus | `hooks/animus-observe.sh` + `commands/animus.md` | the paired observer: a second process watching the worker's **measured event stream** — never its prose — that injects the forgotten lens's remark mid-run through the worker-side ear in both router arms, and distils every firing into memory the next run loads |
 
 Organs 2 and 4 ship as **two arms each**, and `checker/cross-diff.sh` and
 `checker/cross-diff-remind.sh` run both over a shared corpus demanding
@@ -365,7 +366,7 @@ three carry the same version. Nothing is released until everything is green.
 
 | archive | what is in it |
 |---|---|
-| `RoT-MoE-Router.zip` | the whole running product: all seven organs — engine, both router arms, the prover head, both reminder arms, the voice contract with its nine charters, both gate arms, the environment layer — plus installers, commands, docs and licences |
+| `RoT-MoE-Router.zip` | the whole running product: all eight organs — engine, both router arms, the prover head, both reminder arms, the voice contract with its nine charters, both gate arms, the environment layer, the Animus observer with its command — plus installers, commands, docs and licences |
 | `RoT-MoE-Router-Lean.zip` | adds `lean/` — the proof corpus and its mutation suites — plus `checker/` (77 checkers) and `SETUP_LEAN`, for re-proving every claim on your own machine |
 | `RoT-MoE-Router-Lean-Extra.zip` | adds `UNSEALED.md` — the policy page that names the `native_decide` trade in full |
 
@@ -378,7 +379,7 @@ claude --plugin-dir RoT-MoE-Router.zip
 ```
 
 The packager (`checker/release-package.sh`) asserts each archive's contents
-before anything ships — the seven organs in the smallest tier, proof modules
+before anything ships — the eight organs in the smallest tier, proof modules
 counted against disk, charters counted against the declared roster, each
 tier a strict superset of the one below, no build output, no history — and
 the names on this page are held to the packager's own map by
@@ -608,6 +609,16 @@ defaults:
 | `ROTMOE_CWD` | reminder | overrides the directory the workspace discovery walks up from |
 | `ROTMOE_VOICE` | router | `0` silences the voice block. On by default: the active lenses speak one stanza each, after the marker, on the context-bearing events |
 | `ROTMOE_GATE` | router + gate | `0` disarms the voice gate. On by default: a FUSE/ELEVATE prompt records its summons, and Stop is blocked **once** if a summoned lens never spoke |
+| `ROTMOE_ANIMUS` | router | `1` arms the worker-side ear of the Animus pair: one queued observer remark consumed FIFO per `PostToolUse`, spoken `(animus)`-tagged in the owning lens's element. Unset, the queue is never read |
+| `ROTMOE_ANIMUS_ANOMALY_N` | observer | same-shape anomaly records before AntiVenom's recurrence remark, default `2` |
+| `ROTMOE_ANIMUS_COST_N` | observer | consecutive rising-`ms` tool events before Chroma's pricing remark, default `3` |
+| `ROTMOE_ANIMUS_DITHER_N` | observer | actless prompt turns before Venom's decide-and-move remark, default `3` |
+| `ROTMOE_ANIMUS_BLOAT_N` | observer | consecutive growing-`chars` actions before Soleil's compression remark, default `3` |
+| `ROTMOE_ANIMUS_LOOP_N` | observer | recurrences of one lane+stem pair before Eidolon's remark, default `4` |
+| `ROTMOE_ANIMUS_TEXT_N` | observer | stream records without the task's own lane before the text-vs-stream pair (Violet / Chroma) speaks once, default `6` |
+| `ROTMOE_ANIMUS_STALL_SECS` | observer | age of a `PreToolUse` with no Post behind it before Claude's stall remark, default `120` |
+| `ROTMOE_ANIMUS_DISTILLATE` | observer | overrides the project distillate, default `.rot-moe/animus-distillate.md` (self-gitignoring) |
+| `ROTMOE_ANIMUS_DISTILLATE_GLOBAL` | observer | overrides the global distillate, default `animus-distillate.md` in the state dir |
 
 ### The voices, when they speak
 
@@ -682,6 +693,76 @@ included.
   `SETUP_CORPUS` and `checker/gate-all.sh` are covered in the Install and
   Verify sections; every one of them has a dry-run or check mode that writes
   nothing.
+
+---
+
+## 🜂 Animus — two agents, one task (8.0.0)
+
+**The worker solves. The observer watches what the worker actually *does* —
+its measured event stream, never its prose — and injects the perspective the
+worker forgot, mid-run, spoken by the lens that owns it.** The worker never
+asks for it and cannot decline it: the remark arrives through the same hook
+channel the voices already use, behind the reasoning layer, on the very next
+event. And the observer is **deterministic** — the router applied to the
+worker's own debug records, never a second model. Every trigger is a measured
+predicate, every threshold a declared `ENV` row in the DTD, so any firing can
+be replayed by a checker from the same records.
+
+`/animus <task>` starts the pair: the observer
+(`hooks/animus-observe.sh`, an operator tool — nothing registers it, it
+blocks no turn) tails the worker's per-session debug sink at 1 s, and the
+worker runs with `ROTMOE_ANIMUS=1`, which arms the ear in both router arms:
+one queued remark consumed FIFO per `PostToolUse`, spoken inside the owning
+lens's declared element and tagged `(animus)` so a reader — or the contract —
+can tell an observer remark from a gauge stanza.
+
+What it catches, and on what evidence:
+
+| lens | fires on | threshold |
+|:--|:--|:--|
+| ⚪ AntiVenom | the same result anomaly recurring — the sentinel now *logs* each firing as a `kind:"anomaly"` record, so recurrence is countable | `ROTMOE_ANIMUS_ANOMALY_N`, default 2 |
+| 🔮 Chroma | consecutive actions each costlier than the last (the record's `ms`) | `ROTMOE_ANIMUS_COST_N`, default 3 |
+| 🕷️ Venom | prompt turns with no act between them — dithering | `ROTMOE_ANIMUS_DITHER_N`, default 3 |
+| ⬜ Soleil | actions growing longer every time (the record's `chars`) | `ROTMOE_ANIMUS_BLOAT_N`, default 3 |
+| 🜏 Eidolon | one lane+stem pair looping | `ROTMOE_ANIMUS_LOOP_N`, default 4 |
+| 🎷 Violet | the task text routes EMPATHIC and the stream never goes there | `ROTMOE_ANIMUS_TEXT_N`, default 6 |
+| 🔮 Chroma | the task text routes PREDICTIVE and the stream never goes there | `ROTMOE_ANIMUS_TEXT_N`, default 6 |
+| 🧭 Claude | a `PreToolUse` whose Post never lands — **the stall, caught while it is still happening**, no timeout waited out | `ROTMOE_ANIMUS_STALL_SECS`, default 120 |
+
+The live paired probe, quoted from its capture — a worker hit the same blank
+twice, and its **third** event arrived like this:
+
+```
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":
+"RoT MoE :: TIER 1 -> CONVERGENT model | R/s+ 0.17
+<rot:antivenom>⚪ AntiVenom (animus): the blank result has recurred 2x (last on
+Bash) -- the same absence twice is a pattern, not a coincidence; stop and read
+what is already there before acting again.</rot:antivenom>"}}
+```
+
+Nobody invoked anything between the failure and the remark — the observer
+counted, queued, and the router's next event carried it. The same probe on
+camera — a scratch-harness worker driven through the real router, against
+the live observer process, recorded as it ran:
+
+![The paired probe, live: two blanks, the observer counts to two, and the third event carries AntiVenom's (animus) remark](assets/gif/animus-pair.gif)
+
+**Self-distillation through hard study**: every remark appends to two
+distillates — the project's `.rot-moe/animus-distillate.md` and a global one
+in the state dir — together with the *measured* next-action delta (the three
+events before the injection against the three after, quoted from the sink,
+no prose judgment). The next `/animus` run loads global first, then project:
+the system learns behaviorally between runs, with no weights touched.
+
+The laws: at most one remark per event and **three per lens per run** — a
+critic that repeats is wallpaper. Silence is the healthy state; an uneventful
+run queues nothing. A lens name outside the nine-element roster is refused
+*and* dropped. `ROTMOE_VOICE=0` silences remarks with everything else. The
+queue is rename-atomic on both sides, so a half-written line can never be
+read and a consumed remark can never resurrect. All of it is held both ways
+by `checker/voice-contract.sh` **D14** — fifteen rows with negative controls —
+and the consumption path is compared arm against arm by
+`checker/cross-diff.sh`, refusals included.
 
 ---
 

@@ -503,6 +503,15 @@ mkdir -p "$OD2"
 ROTMOE_STATE_DIR="$OD2" ROTMOE_ANIMUS_DISTILLATE="$OD2/dist.md" sh "$ROOT/hooks/animus-observe.sh" vobs --once >/dev/null 2>&1
 [ -f "$OD2/animus-queue.vobs" ] && bad "D14: the observer spoke over an empty sink" \
                                 || ok "D14: the observer is silent over an empty sink"
+# the command is part of the organ: it must exist and bind the same names the
+# hooks answer to, or the organ-table claim that D14 holds organ 8 is prose.
+if [ -r "$ROOT/commands/animus.md" ] \
+   && grep -q 'animus-observe\.sh' "$ROOT/commands/animus.md" \
+   && grep -q 'ROTMOE_ANIMUS=1' "$ROOT/commands/animus.md"; then
+  ok "D14: commands/animus.md exists and names the observer and the arm switch"
+else
+  bad "D14: commands/animus.md missing, or unbound from the observer / the arm switch"
+fi
 rm -rf "$AD" "$OD" "$OD2" 2>/dev/null || :
 
 # CONTROL for D11 -- a drifted lambda must be caught by the same arithmetic.

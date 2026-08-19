@@ -37,8 +37,8 @@ divergence gauge (`R/s+`), specified in Lean 4 and bound to the shipped hooks by
 executable checkers. The router and the reminder are plain shell and PowerShell.
 **Lean is not required to use it** — only to re-verify the proofs yourself.
 
-Seven organs ship. Organs 1–4 are checked to exist by
-`checker/repo-complete.sh`; organs 5–7 are held, in both directions, by
+Eight organs ship. Organs 1–4 are checked to exist by
+`checker/repo-complete.sh`; organs 5–8 are held, in both directions, by
 `checker/voice-contract.sh`:
 
 | organ | file | what it does |
@@ -50,6 +50,7 @@ Seven organs ship. Organs 1–4 are checked to exist by
 | 5 | `hooks/rot-voice.dtd` + nine lens agents, `agents/rot-nova.md` through `agents/rot-claude.md` | the voice contract and the roster it declares |
 | 6 | `hooks/rot-voice-gate.sh` / `.ps1` | the voice gate: one refusal per unspoken summons on Stop, degrades open |
 | 7 | `hooks/rot-env.sh` / `.ps1` + `hooks/rot-profile.sh` | the environment layer: rot.env parsed under the DTD's declared vocabulary, and the sourceable `rot` command family |
+| 8 | `hooks/animus-observe.sh` + `commands/animus.md` | the Animus: a paired observer process that watches a worker session's measured event stream and injects lens remarks mid-run through the router arms' worker-side ear (`ROTMOE_ANIMUS=1`); deterministic, thresholds declared in the DTD |
 
 ---
 
