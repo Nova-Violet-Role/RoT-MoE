@@ -15,66 +15,109 @@ not be buried.
 
 ---
 
-## [6.0.1] — 2026-08-17
+## [6.0.2] — 2026-08-19
 
-**Patch: everything the first Real Test caught, fixed the same day.** Hours
-after `6.0.0` was published, a separate first-time-user session installed it
-from the public release page and exercised every user-facing claim — 12
-aimed tests across 35 live turns, every exit code read directly. It found
-one real defect, one behavioral gap, and two rough edges. All of it is
-repaired here; none of it was worked around; the tester itself fixed
-nothing, by design.
+**Patch: the thirty-turn foreground campaign's warnings, closed — and the
+original idea delivered.** A subject session running this plugin was fed
+thirty natural client asks, one per completed turn, and audited from the
+outside: zero critical findings, zero bugs, eight warnings. Everything
+below traces to one of those warnings or was found on the way to one. The
+first warning — the version string lagging the release — is retired by
+this release's own mechanics, which is the only way that one can be.
 
-### Fixed — the routing audit certifies OVERRIDE records
+### Added — the dynamic share: each summoned lens speaks its own turn
 
-The route record has always carried its NSIL verdict, and the audit had
-never read it: `checker/log-replay.sh --audit` demanded the stem be owned
-by the lane that fired, so the honest record of a documented feature —
-`fix our relationship`, a CLINICAL stem overridden to EMPATHIC by Nova's
-TIER 2 — was rejected as "a mis-route". It shipped that way because the
-checker's own replay corpus contained no OVERRIDE prompt. Now the auditor
-consults `nsil`, and the exemption is as narrow as the feature: only
-`OVERRIDE` earns it, the stem must still resolve in the router's table (the
-privacy property survives untouched), and an override whose lane still
-equals the stem's owner is rejected as a contradiction on the record's own
-evidence. The Lean model learned the same field (`RouteRec.nsil`,
-`Auditable`, `auditable_imp_vocabSafe` re-proved through the new branch),
-the replay corpus gained the OVERRIDE worked example, the checker gained
-two negative controls, the mutation suite gained three mutants aimed at the
-exemption — and the Lean snapshot's EMPATHIC row was trued up with the
-`relation` stem the router has carried since organ 5.
+The centerpiece, on the Socio's ruling: keep the lean defaults, but
+respect the original idea — the lenses' dynamic, distinct points of view,
+properly this time. Every stanza now carries δ and μ beside λ, σ and H, so
+the whole R/s+ term is recomputable by hand from the stanza alone — and on
+ELEVATE the visible δ 0 *explains* the low gauge: nine agreeing lenses,
+zero divergence, the engine's own teaching on display. On top of the
+measured base, dynamic clauses in a fixed order, each printed only when
+the turn earns it: the lead lens's band verdict between the gauge's own
+brackets with section 5's correction verb; Nova's NSIL verdict on every
+stanza she speaks; a boosted λ saying so beside the risen number; a fused
+pair stating the merge law's result with section 3's canonical name;
+Chroma's shown timelines; Soleil's *accepted* budget or the word unknown —
+never a guess; Violet's jazz track, defaulted by the clock and saying so
+("by hour HH") because her charter selects by emotional frequency and that
+reading belongs to the convening model, not to a shell. The frame closes
+with the turn: NSIL verdict, depth, and section 7's productive tensions
+whose both members were summoned. Violet's five track names became a
+shell constant mirrored in her formula YAML, held both ways by a new
+`voice-contract.sh` D11 arm that was proven able to fail before it was
+trusted. The DTD's voice-block comment now declares the grammar the
+emission actually honours.
 
-### Fixed — the voices carry their provenance
+### Added — the CREATIVE lane learns the words people actually use
 
-The Real Test's most important behavioral finding: an unbriefed convening
-model refused to perform the stanzas, correctly treating unexplained
-injected personas as untrusted framing — nothing in the block said the
-*operator* installed this. Both router arms now open the block with the
-`rot:frame` element the DTD had declared for the router's own voice all
-along and nothing had ever emitted: one line naming the plugin, the
-operator's deliberate install, the measured summons, and the
-`ROTMOE_VOICE=0` switch that proves the voice is opt-out. The voice gate's
-refusal leads with the same provenance and names `ROTMOE_GATE=0`. The
-marker line stays untouched.
+The campaign's ideation asks — "brainstorm", "ideate", "imagine", "a
+tagline" — routed CONVERGENT because the lane's vocabulary only knew its
+own nouns. Four stems admitted: `brainstorm`, `ideat`, `imagin`,
+`tagline`, across all five surfaces in one commit (both router arms, the
+engine spec's TIER 1 row, the Lean snapshot trued up the same day, two new
+cross-diff corpus rows). Negatives measured on the shipped matcher:
+"ideal", "idea", "brains" and "tag" all stay CONVERGENT. One overlap is
+accepted and disclosed: "imaginary" fires `imagin`.
 
-### Fixed — the registered hook commands ask before they leap
+### Fixed — the voice speaks before the act, once
 
-On a machine without PowerShell, `pwsh ... || bash ...` printed
-`pwsh: not found` on stderr for every hook command on every event —
-permanent, ubiquitous noise. Every registered command (the plugin's
-`hooks.json` and both `ARM_ROUTER`/`DISARM_ROUTER` arms) now guards the
-first arm with `command -v pwsh`, with fallback semantics unchanged.
+Both Pre and Post tool events built the same routing text from the same
+`tool_input` fields, so every tool call injected the identical voice block
+twice. The context events are now `PreToolUse` only: the voice speaks
+before the act, and the debug records still write on every event.
 
-### Fixed — `rot gauge` refuses a malformed vector
+### Fixed — the density verdicts belong to human queries
 
-Flag-style arguments where the positional form belongs fell through to a
-degenerate `K=1 lenses=none` gauge at exit 0 — a number computed from
-garbage, wearing the exit code of a measurement. The wrapper now refuses
-anything that is not nine comma-separated numbers, and a non-numeric
-breadth, with the usage line at exit 2.
+BOOST and ELEVATE read prompt density, and tool-loop events were reaching
+them with command text — nine lenses at full weight for a `grep`. Both
+verdicts are now gated on the query events; tool traffic keeps CONFIRM,
+FUSE and OVERRIDE, which never read density.
 
-### Changed
+### Fixed — the reminder cannot accuse the bundled corpus
 
-`RELEASE.md` names all four published files in one line — the Real Test's
-stranger had to guess the checksum file's name on a proxied network that
-blocked the release-asset API.
+On a machine with no Lean workspace the reminder fell back to the plugin's
+own bundled proofs and then reported *their* age as the operator's proof
+debt — an accusation with no defendant. A bundled corpus now suppresses
+the staleness clock entirely, and staleness-only advice (nothing failing,
+only old) repeats no faster than `STALE_MIN` itself, held by a stamp file.
+
+### Fixed — the debug channel defaults on in hook mode
+
+A capability that is never on does not ship: installed hooks now default
+`ROTMOE_DEBUG_LOG` to a per-session file under the state directory —
+explicit `0` disables, an explicit path redirects, and a janitor removes
+per-session sinks older than seven days. The CLI stays opt-in. `ENV.5`
+in the DTD says all of this.
+
+### Fixed — `--route` records like a turn
+
+The CLI printed a lane and wrote nothing, so a scripted route was
+invisible to the audit stream. With a debug log configured, `--route` now
+runs the same shared pipeline a hook turn runs and writes the same
+gauge+route record pair; stdout stays the pre-NSIL lane, byte-identical.
+
+### Fixed — a skip is never a pass
+
+Found on the way, the release's most important repair: on a machine
+without PowerShell, both cross-diff checkers skipped every arm-vs-arm row
+and then exited 0 — a fake green wearing the words "a skip is never a
+PASS". Skips now exit 3 (fail still outranks skip), the checker-mutation
+suite gained an INEXPRESSIBLE verdict and a PARTIAL exit for that state,
+and the portability gate learned the same branch. The wall distinguishes
+green from unmeasured, on every machine.
+
+### Changed — what "spoken" means is written where the gate decides it
+
+The voice gate matches the element tag's literal presence in the last
+assistant text, never the stanza's content — closed as works-as-designed,
+and the decision now sits at the verdict block of both arms: the tag is
+the measurable commitment, the words inside it are the convening model's
+honour, and a hook that graded register would block good turns on bad
+heuristics.
+
+### For 7.0.0
+
+`bench/ungap-7.0.0.md` opened, per the night order: a single-arm golden
+corpus so a pwsh-less machine can still kill single-arm mutants, and the
+portability gate's third section vanishing silently without PowerShell.

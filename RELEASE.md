@@ -16,7 +16,7 @@
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
-[![Release](https://img.shields.io/badge/v6.0.1-The%20Whole%20Packet-0969da?style=flat-square)](#-v601--the-whole-packet-three-ways)
+[![Release](https://img.shields.io/badge/v6.0.2-The%20Whole%20Packet-0969da?style=flat-square)](#-v602--the-whole-packet-three-ways)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
 
 </div>
@@ -25,7 +25,7 @@
 
 ## 🎯 Which one do I want?
 
-Three archives, one version — `6.0.1` — and the tier lives in the **name**,
+Three archives, one version — `6.0.2` — and the tier lives in the **name**,
 not the patch digit. The `5.x` convention (patch digit as tier) is retired:
 the voice contract, the nine charters, the voice gate and the environment
 layer are **the product**, so every archive carries all seven organs. The
@@ -42,7 +42,7 @@ promise: the `release` job in `ci.yml` is the only publisher, and it can
 only run after every checker job and the whole Lean job succeeded in the
 same run, on the same commit the tag lands on.
 
-## 📦 v6.0.1 — The Whole Packet, three ways
+## 📦 v6.0.2 — The Whole Packet, three ways
 
 `RoT-MoE-Router.zip` — the product, in every archive:
 
@@ -99,7 +99,7 @@ README's download links are held to the packager's map by
 
 ## 🗃️ Prior releases
 
-`6.0.0` (the first CI-published release), the `5.x` and earlier
+`6.0.1`, `6.0.0` (the first CI-published release), the `5.x` and earlier
 three-variant releases remain on the
 [Releases page](https://github.com/Nova-Violet-Role/RoT-MoE/releases) as
 history, unchanged. Their convention is documented in
