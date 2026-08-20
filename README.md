@@ -766,6 +766,114 @@ and the consumption path is compared arm against arm by
 
 ---
 
+## 🎬 The Grand Gallery — every organ on camera
+
+Twelve recordings, one law: **every frame is a real command running**,
+captured with asciinema and rendered with agg — nothing staged, nothing
+typed over, and every caption's claim was verified present in the recording
+bytes before the clip was kept. One take was reshot because its narration
+outran its footage; the reshoot is what you see.
+
+<details>
+<summary><strong>🎭 Reel one — the channel, the argument, the living stanzas</strong></summary>
+
+The hook channel itself: a `UserPromptSubmit` payload answered on stdout,
+then a `PreToolUse` payload answered inside the JSON envelope's
+`additionalContext` — the context the model meets behind the reasoning layer:
+
+![The backdoor: two payloads piped into hooks/rot-router.sh, two channels answering](assets/gif/grand-backdoor.gif)
+
+The argument, in two live turns: Carnage leads a CREATIVE turn and reads his
+own band — `BELOW RANGE -- add entropy` — then Claude leads a FORGE turn
+whose frame names the `Carnage<->Claude` tension and answers `measure more`.
+A disagreement the contract forbids averaging away:
+
+![Two turns of the same roster: add entropy vs measure more, the tension named in the frame](assets/gif/grand-arguing.gif)
+
+The dynamic clauses: the same migration question at full budget and at
+`ROTMOE_TOKEN_PCT=15` — Chroma's timelines drop `5/12 → 3/12
+TOKEN_EMERGENCY`; Soleil reads `budget 15% -> STEALTH` on her own turn; and
+Violet's stanza carries the jazz track the recording hour dealt:
+
+![The dynamic tour: timelines under a measured emergency, the budget lens arming STEALTH, the clock track](assets/gif/grand-dynamic.gif)
+
+</details>
+
+<details>
+<summary><strong>🜂 Reel two — the working share and the Animus, live</strong></summary>
+
+The sentinel triple: a blank result raises AntiVenom's clause on the
+envelope, the harness-blessed blank (`noOutputExpected`) stays silent, and
+an interrupted command outranks with the Claude lens naming the cut:
+
+![The sentinel: blank speaks, blessed blank is silence, interrupted outranks](assets/gif/grand-sentinel.gif)
+
+The lenses on the work artifacts: a stanza on the act of writing, the
+`ZERO BYTES` clause when the Write stored nothing of the given content,
+and silence when the bytes landed:
+
+![A Write as act and as result: stanza, clause, silence](assets/gif/grand-artifact.gif)
+
+The stall, caught while it is still happening: a `PreToolUse` opens, its
+Post never comes, and at the declared threshold the observer queues the
+Claude lens's remark — which rides the very next event into the worker:
+
+![Animus catches the stall on the run: observer log, queue, and the remark landing](assets/gif/grand-stall.gif)
+
+Self-distillation through hard study: run 1's blank loop draws the
+`(animus)` remark, both distillate tiers hold the memory, and run 2 begins
+by loading it — global first, project second:
+
+![The distillates: a remark earned, two tiers written, the next run loads them](assets/gif/grand-distill.gif)
+
+</details>
+
+<details>
+<summary><strong>⚖️ Reel three — the contracts: gate, armor, the rot family</strong></summary>
+
+The gate's one refusal: a FUSE turn records its summons, a Stop with no
+stanza spoken is blocked once with every missing charter named, and the
+next Stop passes — the refusal consumed the summons:
+
+![The gate: summons recorded, one refusal carrying the charters, then the allowed stop](assets/gif/grand-gate.gif)
+
+The armor, both directions: a hostile `rot.env` carrying a shell bomb and
+`LD_PRELOAD` is parsed, never sourced — the marker stays clean — and
+`rot env set LD_PRELOAD evil` is refused with the declared vocabulary
+printed:
+
+![The armor: the bomb stays literal text, the undeclared key is refused with the vocabulary](assets/gif/grand-armor.gif)
+
+The `rot` command family writing under the same schema: `rot env list`
+prints every key that exists, `rot voice off` / `on` land real declared
+writes in the project's `rot.env`, shown after each mutation:
+
+![The rot family: the vocabulary listed, declared writes landing in the file](assets/gif/grand-commands.gif)
+
+</details>
+
+<details>
+<summary><strong>🧬 Reel four — the tree defends itself, and the spine verified from outside</strong></summary>
+
+A one-digit mutation dies with the digit named: Nova's CONVERGENT λ planted
+`1.6 → 1.7`, the profile golden fails naming live `1.7` against golden
+`1.6`, the restore is proven, and the take ends with a **real** `gate-all`
+run — `ALL 66 GATES GREEN`, exit 0 — recorded inside the same clip:
+
+![A planted mutation killed by the golden, then the whole wall green — one take](assets/gif/grand-mutant.gif)
+
+The proof spine, stated exactly as strongly as it is: Lean is absent on
+the recording machine by design, so the clip verifies what any machine can
+— the v8.0.0 release assets downloaded live and `sha256sum -c` reading OK
+on all three, the artifact the CI runs published only after proving the
+whole board:
+
+![The spine from outside: four downloads, three OKs, sha exit 0 — CI's product verified live](assets/gif/grand-spine.gif)
+
+</details>
+
+---
+
 ## 💡 Tips & Tricks — getting real work out of it
 
 The `lean4-prover` agent and how to spawn one (or several, or in the
