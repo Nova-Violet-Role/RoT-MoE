@@ -1402,7 +1402,7 @@ if ($voice -and $br -gt 0) {
       } else {
         Write-Output $vLine
       }
-      $gateRows += ($vName + '|' + $vElem + '|' + $vChart + '|' + $vBound)
+      $gateRows += ($vName + '|' + $vElem + '|' + $vChart + '|' + $vBound + '|' + $vSigil)
     }
   }
 }

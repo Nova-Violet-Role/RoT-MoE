@@ -156,29 +156,34 @@ if (mode === "arm") {
     touched.push(ev);
   }
 
-  // THE OBSERVATION CHANNEL IS SWITCHED ON AT INSTALL TIME.
+  // THE OBSERVATION CHANNEL IS ON BY DEFAULT NOW -- THE PIN IS RETIRED.
   //
-  // MEASURED 2026-08-09: grepping ARM_ROUTER.sh, ARM_ROUTER.ps1, this file and
-  // both plugin manifests for ROTMOE_DEBUG_LOG returned ZERO hits, while the
-  // router's first act in the debug path is to return when the variable is
-  // unset. Every install shipped with the log switched off. The only machine in
-  // the world with router logs had them because the path had been set by hand,
-  // which also meant the only person who could inspect the router's behaviour
-  // was the one who already knew it needed configuring.
+  // History, because both halves were measured. 2026-08-09: no installer set
+  // ROTMOE_DEBUG_LOG and the router of that era wrote nothing when it was
+  // unset, so arm began pinning a fixed path here to switch the log on.
+  // 7.0.0 then gave the router a real default -- a per-session, trimmed,
+  // janitored sink in the STATE directory, the same place the summons live,
+  // and the place the Animus observer (ORGAN 8) pairs on. 2026-08-20 (8.0.1),
+  // a ten-turn live run measured the consequence of keeping both: the pinned
+  // path names a directory nothing creates, the router's writability probe
+  // fails, the sink degrades to OFF -- so every ARMED session ran with no
+  // sink at all, and the observer watched a file that could never exist.
+  // SET wins over the default by design, which made the fossil pin the one
+  // thing standing between organ 8 and the armed router.
   //
-  // WRITTEN ONLY WHEN ABSENT. A value the user chose is theirs; an installer
-  // that "corrects" it is an installer that loses data. The default lands next
-  // to the settings file it is recorded in, not in a build directory of some
-  // unrelated project -- which is where it had drifted to on this machine.
-  if (!s.env || typeof s.env !== "object" || Array.isArray(s.env)) s.env = s.env || {};
-  if (typeof s.env !== "object" || Array.isArray(s.env)) {
-    console.log("  env: present but not an object -- left untouched");
-  } else if (typeof s.env.ROTMOE_DEBUG_LOG === "string" && s.env.ROTMOE_DEBUG_LOG !== "") {
-    console.log("  ROTMOE_DEBUG_LOG: already set, left as the user configured it");
-  } else {
-    s.env.ROTMOE_DEBUG_LOG = DEFAULT_LOG;
-    wroteEnv = true;
-    console.log("  ROTMOE_DEBUG_LOG: " + DEFAULT_LOG);
+  // So arm now RETIRES its own pin: if the settings carry exactly the value
+  // this installer used to write, it is removed and the router's per-session
+  // default takes over. A value the user chose themselves is theirs -- kept,
+  // exactly as before. The log FILES are never touched.
+  if (s.env && typeof s.env === "object" && !Array.isArray(s.env)) {
+    if (s.env.ROTMOE_DEBUG_LOG === DEFAULT_LOG) {
+      delete s.env.ROTMOE_DEBUG_LOG;
+      if (Object.keys(s.env).length === 0) delete s.env;
+      wroteEnv = true;
+      console.log("  ROTMOE_DEBUG_LOG: retired our old pin -- the per-session sink takes over");
+    } else if (typeof s.env.ROTMOE_DEBUG_LOG === "string" && s.env.ROTMOE_DEBUG_LOG !== "") {
+      console.log("  ROTMOE_DEBUG_LOG: user-chosen value kept");
+    }
   }
   if (touched.length === 0 && !wroteEnv) { console.log("  nothing to do -- already armed on every event"); process.exit(10); }
 } else if (mode === "disarm" || mode === "disarm-any") {
@@ -292,18 +297,24 @@ if (mode === "arm") {
       g => !((g.hooks || []).some(h => h.command === cmd)));
     if (stripped.hooks[ev].length === 0 && !(before.hooks && before.hooks[ev])) delete stripped.hooks[ev];
   }
-  // The env default is stripped the same way the hook entries are. `touched`
-  // holds EVENT NAMES and is indexed into `stripped.hooks`, so pushing a
-  // non-event onto it crashes this block -- measured, TypeError at the filter.
-  // A separate flag keeps the strong invariant intact: after removing exactly
-  // what we added, the file must be deep-equal to the pre-image, not merely
-  // "close enough in the keys someone remembered to check".
-  if (wroteEnv && stripped.env) {
-    delete stripped.env.ROTMOE_DEBUG_LOG;
-    if (Object.keys(stripped.env).length === 0 && !before.env) delete stripped.env;
+  // The env RETIREMENT is validated the same way the hook additions are, but
+  // mirrored: arm now REMOVES our old pin (8.0.1), so the sanctioned mutation
+  // is subtracted from the PRE-image rather than the post-image -- deletion on
+  // both sides, never re-insertion, because JSON.stringify would put a
+  // restored key at the END and a mere reordering would read as corruption.
+  // `touched` holds EVENT NAMES and is indexed into `stripped.hooks`, so
+  // pushing a non-event onto it crashes this block -- measured, TypeError at
+  // the filter. The flag keeps the strong invariant intact: after removing
+  // exactly what we added here and exactly what we retired there, the two
+  // images must be deep-equal, not merely "close enough in the keys someone
+  // remembered to check".
+  const beforeCmp = JSON.parse(JSON.stringify(before));
+  if (wroteEnv && beforeCmp.env) {
+    delete beforeCmp.env.ROTMOE_DEBUG_LOG;
+    if (Object.keys(beforeCmp.env).length === 0) delete beforeCmp.env;
   }
-  if (Object.keys(stripped.hooks || {}).length === 0 && !before.hooks) delete stripped.hooks;
-  const a = JSON.stringify(stripped), b = JSON.stringify(before);
+  if (Object.keys(stripped.hooks || {}).length === 0 && !beforeCmp.hooks) delete stripped.hooks;
+  const a = JSON.stringify(stripped), b = JSON.stringify(beforeCmp);
   if (a !== b) {
     console.error("  VALIDATION FAILED: a pre-existing value changed.");
     console.error("  before: " + b.slice(0, 400));

@@ -2071,7 +2071,7 @@ VEOF
         else
           printf '%s\n' "$_vline"
         fi
-        _gaterows="$_gaterows$_vn|$_velem|$_vchart|$_vbound
+        _gaterows="$_gaterows$_vn|$_velem|$_vchart|$_vbound|$_vsig
 "
       done
     fi

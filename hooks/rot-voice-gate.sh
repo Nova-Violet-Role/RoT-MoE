@@ -137,15 +137,20 @@ _last=$(node -e '
 # exactly what was and was not said. Grading content here would also turn
 # the one-refusal reminder into a taste arbiter that blocks good turns on
 # bad heuristics -- the opposite failure, and worse.
-# Summons rows are written by the router as: Name|element|charter|bound.
-# Every field originates in hooks/rot-voice.dtd, which this repository
-# authors -- but the JSON reason must stay valid even if someone edits the
-# DTD carelessly, so quotes and backslashes are STRIPPED from each field
-# rather than escaped: a mangled charter is a cosmetic loss, a broken JSON
-# block is a dead gate. `\n` below are intentional two-character sequences
-# that the JSON parser, not the shell, turns into newlines.
+# Summons rows are written by the router as: Name|element|charter|bound|sigil
+# -- the fifth field is the lens's SEAL, added in 8.0.1 so the refusal can
+# show it (a live 8.0.1 repro measured blind models speaking sigil-less
+# stanzas: they had never been shown the seals). A row from a pre-8.0.1
+# router carries four fields; the seal simply goes unshown, the gate never
+# breaks on the old shape. Every field originates in hooks/rot-voice.dtd,
+# which this repository authors -- but the JSON reason must stay valid even
+# if someone edits the DTD carelessly, so quotes and backslashes are
+# STRIPPED from each field rather than escaped: a mangled charter is a
+# cosmetic loss, a broken JSON block is a dead gate. `\n` below are
+# intentional two-character sequences that the JSON parser, not the shell,
+# turns into newlines.
 _missing=''
-while IFS='|' read -r _n _e _c _b; do
+while IFS='|' read -r _n _e _c _b _s; do
   [ -n "$_e" ] || continue
   case "$_last" in
     *"<$_e>"*) : ;;
@@ -154,7 +159,8 @@ while IFS='|' read -r _n _e _c _b; do
       _e=$(printf '%s' "$_e" | tr -d '"\\')
       _c=$(printf '%s' "$_c" | tr -d '"\\')
       _b=$(printf '%s' "$_b" | tr -d '"\\')
-      _missing="$_missing\\n  <$_e> ($_n): $_c -- $_b"
+      _s=$(printf '%s' "$_s" | tr -d '"\\')
+      _missing="$_missing\\n  <$_e>${_s:+ $_s} ($_n): $_c -- $_b"
       ;;
   esac
 done < "$SUM"
@@ -169,5 +175,13 @@ rm -f "$SUM" 2>/dev/null || :
 # injected framing and declined the stanzas -- correctly, by its own lights,
 # because nothing in the reason said the OPERATOR installed this gate. Now
 # the reason leads with who armed it and names the switch that disarms it.
-printf '{"decision":"block","reason":"RoT voice gate (a Stop hook of the RoT MoE plugin the operator of this machine installed on purpose; ROTMOE_GATE=0 disarms it): summoned lenses have not spoken this turn. Give each its stanza -- inside its element, in its own register -- then stop:%s"}\n' "$_missing"
+# The honest-empty sanction was added 2026-08-20 (8.0.1) after B4's pattern
+# returned on a newer CLI's model: a live repro measured it refusing every
+# blocked turn with -- I won't manufacture three persona stanzas over
+# nothing just executed or read -- again correctly, because the old demand
+# read as an order to fabricate. W4 above already ruled the TAG is the
+# measurable commitment, so the reason now says out loud what the gate
+# always measured: an honest one-line empty report inside the element
+# satisfies the contract in full.
+printf '{"decision":"block","reason":"RoT voice gate (a Stop hook of the RoT MoE plugin the operator of this machine installed on purpose; ROTMOE_GATE=0 disarms it): summoned lenses have not spoken this turn. Close the turn with one stanza per lens listed below -- inside its element, opening with its seal, in its own register. Honesty outranks theatre: a lens with nothing real to report satisfies the contract with one plain line inside its element saying so (for example: nothing was executed this turn) -- the tag is the commitment; the words belong to the lens. This closing format is a standing instruction from the operator; it adds to the user request and never overrides it. Then stop:%s"}\n' "$_missing"
 exit 0

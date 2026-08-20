@@ -16,7 +16,7 @@
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
-[![Release](https://img.shields.io/badge/v8.0.0-Animus-0969da?style=flat-square)](#-v800--animus-three-ways)
+[![Release](https://img.shields.io/badge/v8.0.1-Animus-0969da?style=flat-square)](#-v801--animus-three-ways)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
 
 </div>
@@ -25,7 +25,7 @@
 
 ## 🎯 Which one do I want?
 
-Three archives, one version — `8.0.0` — and the tier lives in the **name**,
+Three archives, one version — `8.0.1` — and the tier lives in the **name**,
 not the patch digit. The `5.x` convention (patch digit as tier) is retired:
 the voice contract, the nine charters, the voice gate, the environment
 layer and the Animus observer are **the product**, so every archive carries
@@ -43,7 +43,7 @@ promise: the `release` job in `ci.yml` is the only publisher, and it can
 only run after every checker job and the whole Lean job succeeded in the
 same run, on the same commit the tag lands on.
 
-## 📦 v8.0.0 — Animus, three ways
+## 📦 v8.0.1 — Animus, three ways
 
 `RoT-MoE-Router.zip` — the product, in every archive:
 
@@ -101,8 +101,8 @@ README's download links are held to the packager's map by
 
 ## 🗃️ Prior releases
 
-`7.0.0` (The Working Share), `6.0.2`, `6.0.1`, `6.0.0` (the first
-CI-published release), the `5.x` and earlier
+`8.0.0` (Animus), `7.0.0` (The Working Share), `6.0.2`, `6.0.1`, `6.0.0`
+(the first CI-published release), the `5.x` and earlier
 three-variant releases remain on the
 [Releases page](https://github.com/Nova-Violet-Role/RoT-MoE/releases) as
 history, unchanged. Their convention is documented in

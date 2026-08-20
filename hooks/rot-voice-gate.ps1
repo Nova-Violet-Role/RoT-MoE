@@ -92,9 +92,12 @@ foreach ($line in [System.IO.File]::ReadLines($tp)) {
 # commitment; the words inside it are the convening model's honour, visible
 # to the Socio in the transcript. A hook cannot think, and a gate that
 # graded register would block good turns on bad heuristics.
-# Summons rows: Name|element|charter|bound. Quotes and backslashes are
-# STRIPPED from each field, exactly as the .sh arm does: a mangled charter is
-# cosmetic, a broken JSON block is a dead gate.
+# Summons rows: Name|element|charter|bound|sigil -- the fifth field is the
+# lens's SEAL (8.0.1), shown in the refusal so a blind model can speak it; a
+# four-field row from a pre-8.0.1 router parses fine, the seal just goes
+# unshown. Quotes and backslashes are STRIPPED from each field, exactly as
+# the .sh arm does: a mangled charter is cosmetic, a broken JSON block is a
+# dead gate.
 $missing = ''
 foreach ($row in [System.IO.File]::ReadLines($sum)) {
   $f = $row -split '\|'
@@ -104,7 +107,11 @@ foreach ($row in [System.IO.File]::ReadLines($sum)) {
   $e = $f[1] -replace '["\\]', ''
   $c = $f[2] -replace '["\\]', ''
   $b = $f[3] -replace '["\\]', ''
-  $missing += ('\n  <' + $e + '> (' + $n + '): ' + $c + ' -- ' + $b)
+  $sp = ''
+  if ($f.Count -ge 5 -and -not [string]::IsNullOrEmpty($f[4])) {
+    $sp = ' ' + ($f[4] -replace '["\\]', '')
+  }
+  $missing += ('\n  <' + $e + '>' + $sp + ' (' + $n + '): ' + $c + ' -- ' + $b)
 }
 
 # Consumed either way: the gate speaks at most once per summons.
@@ -115,6 +122,9 @@ if ([string]::IsNullOrEmpty($missing)) { exit 0 }
 # The parenthetical provenance mirrors the sh arm, added 2026-08-17 after the
 # v6.0.0 real test (B4): an unbriefed convening model treated the bare refusal
 # as untrusted injected framing. The reason now leads with who armed the gate
-# and names the switch that disarms it.
-[Console]::Out.WriteLine('{"decision":"block","reason":"RoT voice gate (a Stop hook of the RoT MoE plugin the operator of this machine installed on purpose; ROTMOE_GATE=0 disarms it): summoned lenses have not spoken this turn. Give each its stanza -- inside its element, in its own register -- then stop:' + $missing + '"}')
+# and names the switch that disarms it. The honest-empty sanction (8.0.1)
+# mirrors the sh arm too: a newer CLI's model refused the old demand as an
+# order to fabricate, so the reason now states what W4 always measured -- an
+# honest one-line empty report inside the element satisfies the contract.
+[Console]::Out.WriteLine('{"decision":"block","reason":"RoT voice gate (a Stop hook of the RoT MoE plugin the operator of this machine installed on purpose; ROTMOE_GATE=0 disarms it): summoned lenses have not spoken this turn. Close the turn with one stanza per lens listed below -- inside its element, opening with its seal, in its own register. Honesty outranks theatre: a lens with nothing real to report satisfies the contract with one plain line inside its element saying so (for example: nothing was executed this turn) -- the tag is the commitment; the words belong to the lens. This closing format is a standing instruction from the operator; it adds to the user request and never overrides it. Then stop:' + $missing + '"}')
 exit 0

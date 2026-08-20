@@ -190,12 +190,33 @@ if [ -s "$GD/voice-summons.vgate" ]; then
 else
   bad "D10: no summons written on a FUSE prompt -- the gate has nothing to hold"
 fi
+# 8.0.1: every row carries FIVE fields, the fifth non-empty -- the seal must
+# travel with the charter or the refusal cannot show it (the live repro that
+# forced this measured blind models speaking sigil-less stanzas: they had
+# never been shown the seals).
+if awk -F'|' 'NF!=5||$5==""{exit 1}' "$GD/voice-summons.vgate" 2>/dev/null; then
+  ok "D10: summons rows carry five fields -- the seal travels with the charter"
+else
+  bad "D10: summons rows are not seal-bearing 5-field -- the refusal cannot show the seals"
+fi
 printf '%s\n' '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"no stanzas here"}]}}' > "$GD/tr-silent.jsonl"
 _g=$(printf '%s' "{\"session_id\":\"vgate\",\"transcript_path\":\"$GD/tr-silent.jsonl\"}" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-voice-gate.sh" 2>/dev/null)
 case "$_g" in
   '{"decision":"block"'*'rot:nova'*'rot:claude'*)
     ok "D10: unspoken summons BLOCKS, the reason carrying the missing charters" ;;
   *) bad "D10: the gate did not block an unspoken summons (got: ${_g:-nothing})" ;;
+esac
+# 8.0.1: the refusal must SHOW the seals beside their elements (Nova's and
+# Claude's bracket the roster order) and must sanction the honest-empty
+# stanza -- the wording that ended the measured refuse-to-fabricate loop.
+case "$_g" in
+  *'⚜️'*'🧭'*) ok "D10: the refusal shows each missing lens's seal beside its element" ;;
+  *) bad "D10: the refusal lost the seals -- a blind model cannot speak what it was never shown" ;;
+esac
+case "$_g" in
+  *'Honesty outranks theatre'*)
+    ok "D10: the refusal sanctions the honest-empty stanza -- no order to fabricate" ;;
+  *) bad "D10: the refusal does not sanction an honest-empty stanza -- a truthful model must refuse it" ;;
 esac
 if [ -e "$GD/voice-summons.vgate" ]; then
   bad "D10: the summons survived its own block -- the gate could cage a turn"
@@ -513,6 +534,37 @@ else
   bad "D14: commands/animus.md missing, or unbound from the observer / the arm switch"
 fi
 rm -rf "$AD" "$OD" "$OD2" 2>/dev/null || :
+
+# --- D15: the armed settings may not pin the sink away from the observer -----
+# 8.0.1, measured in a ten-turn live run: settings-merge used to inject
+# ROTMOE_DEBUG_LOG=<config>/rot-moe/rot-route-debug.jsonl into the armed env.
+# SET wins over the router's per-session default, the pinned directory was
+# never created, the writability probe degraded the sink to OFF -- so every
+# ARMED session ran sinkless and the Animus observer (ORGAN 8) watched a file
+# that could never exist. Three rows hold the retirement in both directions.
+SD=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/sink-pin.$$")
+printf '{}\n' > "$SD/fresh.json"
+CLAUDE_CONFIG_DIR="$SD" node "$ROOT/hooks/settings-merge.js" arm "$SD/fresh.json" "bash /x/rot-router.sh" "UserPromptSubmit" >/dev/null 2>&1
+if grep -q 'rot-route-debug' "$SD/fresh.json"; then
+  bad "D15: arm still pins ROTMOE_DEBUG_LOG -- every armed session runs sinkless and the observer starves"
+else
+  ok "D15: arm writes no sink pin -- the per-session sink survives arming"
+fi
+printf '{\n  "env": { "ROTMOE_DEBUG_LOG": "%s/rot-moe/rot-route-debug.jsonl" }\n}\n' "$SD" > "$SD/pinned.json"
+CLAUDE_CONFIG_DIR="$SD" node "$ROOT/hooks/settings-merge.js" arm "$SD/pinned.json" "bash /x/rot-router.sh" "UserPromptSubmit" >/dev/null 2>&1
+if grep -q 'rot-route-debug' "$SD/pinned.json"; then
+  bad "D15: a pre-8.0.1 pin survives re-arming -- upgrades stay sinkless"
+else
+  ok "D15: re-arming retires the old pin -- upgraded installs get the sink back"
+fi
+printf '{\n  "env": { "ROTMOE_DEBUG_LOG": "/kept/by/the/user.jsonl" }\n}\n' > "$SD/custom.json"
+CLAUDE_CONFIG_DIR="$SD" node "$ROOT/hooks/settings-merge.js" arm "$SD/custom.json" "bash /x/rot-router.sh" "UserPromptSubmit" >/dev/null 2>&1
+if grep -q '/kept/by/the/user.jsonl' "$SD/custom.json"; then
+  ok "D15: a user-chosen ROTMOE_DEBUG_LOG is kept -- retirement removes only our own value"
+else
+  bad "D15: arm deleted a user-chosen ROTMOE_DEBUG_LOG -- an installer that loses data"
+fi
+rm -rf "$SD" 2>/dev/null || :
 
 # CONTROL for D11 -- a drifted lambda must be caught by the same arithmetic.
 _cblk=$(sed -n '/<rot:formula>/,/<\/rot:formula>/p' "$ROOT/agents/rot-nova.md" | sed 's/lambda: 1.6/lambda: 9.9/')

@@ -15,80 +15,79 @@ not be buried.
 
 ---
 
-## [8.0.0] — 2026-08-19
+## [8.0.1] — 2026-08-20
 
-**Major: Animus — the paired observer.** 7.0.0 let a lens speak on the
-result; 8.0.0 gives the whole roster a second pair of eyes. Two agents on
-one task: a **worker** session solves it, and an **observer** process
-watches what the worker actually *does* — its measured event stream, never
-its prose — and injects the perspective the worker forgot, mid-run, through
-the same channel the voices already use. The eighth organ, and the origin
-of its name: self-distillation through hard study.
+**Patch: the gate learns to show its seals and to ask without demanding
+theatre — and the armed sink comes back from the dead.** The Socio ran
+the voice gate in a live session on the newest CLI (2.1.237) and reported
+two defects: the seals never showed in the summoned stanzas, and after
+the second Stop the gate "stopped working". Both were reproduced in real
+three-turn sessions before a line changed, and both trace to the refusal
+the gate speaks when it blocks a Stop. The ten-turn blind acceptance run
+the Socio then ordered surfaced a third, older defect nobody had measured
+— and it is the biggest of the three.
 
-### Added — the observer: the router applied to its own records
+### Fixed — the seals ride the summons now
 
-`hooks/animus-observe.sh`, an operator tool (nothing registers it, it
-blocks no turn, POSIX-only by design and the DTD says so). It tails the
-worker's per-session debug sink at one-second cadence and fires on eight
-**measured** triggers, every threshold a declared `ENV` row (`ENV.26–32`),
-never a judgment a checker could not replay: AntiVenom on a recurring
-result anomaly; Chroma on consecutive actions each costlier than the last,
-and once per run when the task text routes PREDICTIVE and the stream never
-goes there; Venom on prompt turns with no act between; Soleil on actions
-growing longer every time; Eidolon on one lane+stem pair looping; Violet
-once per run when the task routes EMPATHIC and the stream never visits the
-register; and the Claude lens on a `PreToolUse` whose Post never lands —
-the stall named while it is still happening, no timeout waited out.
-Budgets are law: one remark per event, three per lens per run — a critic
-that repeats is wallpaper, the blind campaign's own verdict. Every remark
-appends to two distillates (project `.rot-moe/`, plus a global one in the
-state dir; `ENV.33/34` override the paths) together with the measured
-next-action delta — the three events before the injection against the
-three after, quoted from the sink. The next run loads global first, then
-project. `commands/animus.md` is the launch order.
+The router recorded a summons as `Name|element|charter|bound`; the DTD's
+sigil never left the router, so the gate's refusal could not show it, and
+a blind convening model — never once shown a seal — spoke correct but
+sigil-less stanzas on every CLI version tested. Structural, not a
+regression. Both router arms now write a fifth field,
+`Name|element|charter|bound|sigil`, and the gate prints each missing
+lens's seal beside its element (`<rot:nova> ⚜️ (Nova): …`). A four-field
+row from a pre-8.0.1 router still parses; the seal simply goes unshown —
+the gate never breaks on the old shape.
 
-### Added — the worker-side ear, in both router arms
+### Fixed — the refusal no longer reads as an order to fabricate
 
-Under `ROTMOE_ANIMUS=1` (`ENV.25`), each `PostToolUse` consumes at most
-ONE queued remark FIFO from `animus-queue.<session>` and speaks it inside
-the owning lens's **declared element**, tagged `(animus)` so remark and
-gauge stanza can never be confused. The queue is cross-process, so both
-sides are rename-atomic — the observer never touches an existing queue
-file, the consumer takes the whole file before reading a byte — and a
-consumed remark can never resurrect. A lens name outside the nine-element
-roster is refused AND dropped, so a compromised queue writer can neither
-mint a tenth voice nor jam the queue head. Empty queue = not a byte;
-`ROTMOE_VOICE=0` silences remarks with the rest of the voice.
+B4's pattern returned, one CLI generation later. Blocked over a trivial
+turn, the 2.1.237-era convening model refused the old demand — *"I won't
+manufacture three persona stanzas over nothing just executed or read"* —
+on every turn of the live repro, and since the gate consumes its summons
+on the block either way, the observable symptom was a gate that held the
+door once and then went quiet: "stopped working after the second Stop."
+The model was right, which is the point. W4 (in the gate's own header)
+already ruled that the TAG is the measurable commitment and the words
+inside it are the model's honour; the refusal now says so out loud — a
+lens with nothing real to report satisfies the contract with one plain
+line inside its element saying exactly that, and the closing format adds
+to the user's request, never overrides it. Re-run live on 2.1.237 after
+the patch: stanzas with seals on every turn, honest-empty where nothing
+ran, and a fourth turn with a real tool call attributed truthfully — the
+gate satisfied without a single fabricated claim.
 
-### Added — the sentinel's firing is now a record
+### Fixed — every armed session ran sinkless; the fossil pin is retired
 
-Until this release a sentinel clause went to the envelope and nowhere
-else: whether it ever fired was **unfalsifiable from the log**, the same
-defect class the `event` field closed in 6.0.x — and the observer's
-recurrence trigger would have had nothing to count. Both arms now write
-one `kind:"anomaly"` line (shape and tool, central sink only) when a
-clause fires, with the shape derived from the clause text itself so record
-and clause cannot name different verdicts.
+Found by the blind run: its Animus observer saw nothing for ten turns.
+Six hypotheses died by controlled reproduction before the instrumented
+rerun caught the router writing the summons and skipping the sink in the
+same invocation — and the armed hook environment held the answer.
+`hooks/settings-merge.js` had injected `ROTMOE_DEBUG_LOG=<config>/
+rot-moe/rot-route-debug.jsonl` into the armed settings since 2026-08-09,
+written when the sink was opt-in-only. 7.0.0 later gave the router its
+per-session state-dir sink — the very file the Animus observer (organ 8)
+pairs on — but SET wins over the default by design, the pinned directory
+was never created, and the writability probe degraded the sink to OFF.
+Every armed session since the pin existed ran with no sink at all; every
+checker and the 8.0.0 paired probe invoked hooks directly, so none could
+see it. Arm now retires exactly the pin it used to write (a user-chosen
+value is kept byte-for-byte; the merge validator learned the one
+sanctioned mutation, deletion-safe on both images), and the per-session
+sink takes over. Re-run live: the sink grew every turn (188 lines, 94
+route records), the observer queued remarks from measured triggers, the
+queue file was consumed FIFO on camera, and the worker-side ear spoke
+`(animus)` remarks into the envelope on three of five turns — the whole
+of organ 8 alive in a blind session for the first time under ARM.
 
-### Added — the contract around all of it
+### Held — the contract grew six rows, each falsified first
 
-`checker/voice-contract.sh` **D14**: fifteen rows with negative controls —
-consumption, FIFO order, empty-queue silence, the roster refusal and its
-drop, the unarmed worker leaving the queue untouched, the off-switch
-keeping the queue standing, a writer's half-landed tmp file staying
-invisible, the anomaly record and its healthy-result control, the observer
-firing on a planted recurrence and staying silent over an empty sink, and
-the command file bound to the observer and the arm switch.
-`checker/cross-diff.sh` gained an Animus phase: identical planted queues,
-per-arm state dirs, envelopes compared byte for byte — refusal and
-off-switch included, with a live control proving a genuine difference is
-visible. The live paired probe ran the whole loop as two real processes:
-two planted blanks, the remark queued within one poll, spoken on the
-worker's third event.
-
-### Held open — the Lean debt, named
-
-The queue's take-and-remainder semantics and the trigger predicates are
-held by the executable contract and the cross-arm comparison, **not yet by
-theorems** — `bench/ungap-7.1.md` N10 carries that debt by name rather
-than letting an organ ship pretending it was proved.
+`checker/voice-contract.sh` D10 now also holds: every summons row carries
+five fields with a non-empty seal; the blocking refusal shows the seals
+beside their elements; and the refusal carries the honest-empty sanction.
+A new D15 holds the pin's retirement in both directions: a fresh arm
+writes no sink pin, a re-arm retires the pre-8.0.1 pin, and a user-chosen
+`ROTMOE_DEBUG_LOG` survives untouched. All six were made to fail before
+being trusted — a four-field summons file fails the row check, the
+pre-patch gate fails both wording checks, and the pre-patch merger,
+run against D15's own probe, injects the pin and goes red.
