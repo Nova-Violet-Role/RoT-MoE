@@ -3,7 +3,7 @@
   "files": {
     "animus-observe.sh": {
       "hash": "05bacbc228a1",
-      "indexed_at": "2026-08-20T21:31:52.119053+00:00",
+      "indexed_at": "2026-08-21T07:50:35.589059+00:00",
       "language": "shell",
       "lines": 338,
       "mtime_ns": 1787209313000000000,
@@ -64,7 +64,7 @@
     },
     "plugin-detect.js": {
       "hash": "5b2d16afa47b",
-      "indexed_at": "2026-08-20T21:31:52.120054+00:00",
+      "indexed_at": "2026-08-21T07:50:35.589615+00:00",
       "language": "javascript",
       "lines": 156,
       "mtime_ns": 1787209313000000000,
@@ -83,7 +83,7 @@
     },
     "prover-remind.sh": {
       "hash": "ffda0862e6bd",
-      "indexed_at": "2026-08-20T21:31:52.123710+00:00",
+      "indexed_at": "2026-08-21T07:50:35.591742+00:00",
       "language": "shell",
       "lines": 729,
       "mtime_ns": 1787209313000000000,
@@ -213,7 +213,7 @@
     },
     "rot-env.sh": {
       "hash": "db0cbdd79e63",
-      "indexed_at": "2026-08-20T21:31:52.124226+00:00",
+      "indexed_at": "2026-08-21T07:50:35.592030+00:00",
       "language": "shell",
       "lines": 93,
       "mtime_ns": 1787209313000000000,
@@ -231,7 +231,7 @@
     },
     "rot-profile.sh": {
       "hash": "16f553623ac2",
-      "indexed_at": "2026-08-20T21:31:52.125017+00:00",
+      "indexed_at": "2026-08-21T07:50:35.592463+00:00",
       "language": "shell",
       "lines": 159,
       "mtime_ns": 1787209313000000000,
@@ -249,10 +249,10 @@
     },
     "rot-router.sh": {
       "hash": "2d27207bf5b7",
-      "indexed_at": "2026-08-21T09:15:01.036113+00:00",
+      "indexed_at": "2026-08-21T11:46:33.568553+00:00",
       "language": "shell",
       "lines": 2215,
-      "mtime_ns": 1787302885186879400,
+      "mtime_ns": 1787306994099620200,
       "size": 119363,
       "symbols": [
         {
@@ -441,7 +441,7 @@
     },
     "rot-voice-gate.sh": {
       "hash": "5dcad00deacb",
-      "indexed_at": "2026-08-20T21:31:52.142503+00:00",
+      "indexed_at": "2026-08-21T07:50:35.603187+00:00",
       "language": "shell",
       "lines": 187,
       "mtime_ns": 1787209313000000000,
@@ -450,10 +450,10 @@
     },
     "settings-merge.js": {
       "hash": "db13e1a713f4",
-      "indexed_at": "2026-08-21T09:15:01.037679+00:00",
+      "indexed_at": "2026-08-21T11:46:33.570019+00:00",
       "language": "javascript",
       "lines": 352,
-      "mtime_ns": 1787302885186879400,
+      "mtime_ns": 1787305184227995900,
       "size": 18492,
       "symbols": [
         {
@@ -469,6 +469,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T09:15:01.099871+00:00",
+  "generated_at": "2026-08-21T11:46:33.631737+00:00",
   "version": "1.0"
 }

@@ -3,10 +3,10 @@
   "files": {
     "ARM_ROUTER.sh": {
       "hash": "4306077eeb57",
-      "indexed_at": "2026-08-21T09:15:00.876792+00:00",
+      "indexed_at": "2026-08-21T11:46:33.423181+00:00",
       "language": "shell",
       "lines": 354,
-      "mtime_ns": 1787302885173762000,
+      "mtime_ns": 1787305184215238500,
       "size": 17626,
       "symbols": [
         {
@@ -22,7 +22,7 @@
     },
     "CHANGELOG-ARCHIVE.md": {
       "hash": "2a03380b2d77",
-      "indexed_at": "2026-08-20T21:31:52.139459+00:00",
+      "indexed_at": "2026-08-21T07:50:35.509505+00:00",
       "language": "markdown",
       "lines": 7743,
       "mtime_ns": 1787209313000000000,
@@ -2663,20 +2663,49 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "3614e09c6943",
-      "indexed_at": "2026-08-21T09:15:00.935828+00:00",
+      "hash": "a726ae415982",
+      "indexed_at": "2026-08-21T11:46:33.472078+00:00",
       "language": "markdown",
-      "lines": 93,
-      "mtime_ns": 1787302885174765500,
-      "size": 5311,
+      "lines": 121,
+      "mtime_ns": 1787312772202108200,
+      "size": 6801,
       "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "- **CmdPulse** \u2014 a live progress bar for every Claude Code tool call, drawn in Claude Code's own status line. ETA against the learned median for each",
+              "lines": [
+                23,
+                37
+              ],
+              "name": "Added",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- Ships `refreshInterval: 3`. The status line floors at 1 s (`Math.max(1,t)*1000`) and a render slower than the interval is aborted by the next one, b",
+              "lines": [
+                38,
+                45
+              ],
+              "name": "Notes",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Not a version of the router. A standalone tool shipped alongside it, in [`bonus/cmdpulse/`](bonus/cmdpulse/README.md), under the same licence.",
+          "lines": [
+            18,
+            45
+          ],
+          "name": "[Bonus] \u2014 CmdPulse \u2014 2026-08-21",
+          "type": "section"
+        },
         {
           "children": [
             {
               "docstring": "The router recorded a summons as `Name|element|charter|bound`; the DTD's sigil never left the router, so the gate's refusal could not show it, and a b",
               "lines": [
-                30,
-                41
+                58,
+                69
               ],
               "name": "Fixed \u2014 the seals ride the summons now",
               "type": "subsection"
@@ -2684,8 +2713,8 @@
             {
               "docstring": "B4's pattern returned, one CLI generation later. Blocked over a trivial turn, the 2.1.237-era convening model refused the old demand \u2014 *\"I won't manuf",
               "lines": [
-                42,
-                59
+                70,
+                87
               ],
               "name": "Fixed \u2014 the refusal no longer reads as an order to fabricate",
               "type": "subsection"
@@ -2693,8 +2722,8 @@
             {
               "docstring": "Found by the blind run: its Animus observer saw nothing for ten turns. Six hypotheses died by controlled reproduction before the instrumented rerun ca",
               "lines": [
-                60,
-                82
+                88,
+                110
               ],
               "name": "Fixed \u2014 every armed session ran sinkless; the fossil pin is retired",
               "type": "subsection"
@@ -2702,8 +2731,8 @@
             {
               "docstring": "`checker/voice-contract.sh` D10 now also holds: every summons row carries five fields with a non-empty seal; the blocking refusal shows the seals besi",
               "lines": [
-                83,
-                94
+                111,
+                122
               ],
               "name": "Held \u2014 the contract grew six rows, each falsified first",
               "type": "subsection"
@@ -2711,8 +2740,8 @@
           ],
           "docstring": "**Patch: the gate learns to show its seals and to ask without demanding theatre \u2014 and the armed sink comes back from the dead.** The Socio ran the voi",
           "lines": [
-            18,
-            94
+            46,
+            122
           ],
           "name": "[8.0.1] \u2014 2026-08-20",
           "type": "section"
@@ -2721,7 +2750,7 @@
     },
     "CLAUDE.md": {
       "hash": "a2e913b5f804",
-      "indexed_at": "2026-08-20T21:31:52.140303+00:00",
+      "indexed_at": "2026-08-21T07:50:35.510222+00:00",
       "language": "markdown",
       "lines": 164,
       "mtime_ns": 1787209313000000000,
@@ -2813,7 +2842,7 @@
     },
     "CODE_OF_CONDUCT.md": {
       "hash": "c859256e95f9",
-      "indexed_at": "2026-08-20T21:31:52.140497+00:00",
+      "indexed_at": "2026-08-21T07:50:35.510356+00:00",
       "language": "markdown",
       "lines": 30,
       "mtime_ns": 1787209313000000000,
@@ -2850,7 +2879,7 @@
     },
     "CONTRIBUTING.md": {
       "hash": "60983cc28d4f",
-      "indexed_at": "2026-08-20T21:31:52.140732+00:00",
+      "indexed_at": "2026-08-21T07:50:35.510508+00:00",
       "language": "markdown",
       "lines": 105,
       "mtime_ns": 1787209313000000000,
@@ -2913,10 +2942,10 @@
     },
     "DISARM_ROUTER.sh": {
       "hash": "2b3b557f5f19",
-      "indexed_at": "2026-08-21T09:15:00.936777+00:00",
+      "indexed_at": "2026-08-21T11:46:33.473237+00:00",
       "language": "shell",
       "lines": 238,
-      "mtime_ns": 1787302885174765500,
+      "mtime_ns": 1787305184215238500,
       "size": 11750,
       "symbols": [
         {
@@ -2941,10 +2970,10 @@
     },
     "FINDINGS-8.0.1.md": {
       "hash": "febcf3fa56c7",
-      "indexed_at": "2026-08-21T09:15:00.043461+00:00",
+      "indexed_at": "2026-08-21T11:46:33.474132+00:00",
       "language": "markdown",
       "lines": 711,
-      "mtime_ns": 1787303699283123400,
+      "mtime_ns": 1787305184217071000,
       "size": 46817,
       "symbols": [
         {
@@ -3334,7 +3363,7 @@
     },
     "NOTICE.md": {
       "hash": "689675ac46d9",
-      "indexed_at": "2026-08-20T21:31:52.141668+00:00",
+      "indexed_at": "2026-08-21T07:50:35.511095+00:00",
       "language": "markdown",
       "lines": 201,
       "mtime_ns": 1787209313000000000,
@@ -3420,10 +3449,10 @@
     },
     "README.md": {
       "hash": "ea6e8eb95840",
-      "indexed_at": "2026-08-21T09:15:00.939559+00:00",
+      "indexed_at": "2026-08-21T11:46:33.475818+00:00",
       "language": "markdown",
       "lines": 1502,
-      "mtime_ns": 1787302885176772600,
+      "mtime_ns": 1787306754969029900,
       "size": 84480,
       "symbols": [
         {
@@ -3829,18 +3858,27 @@
       ]
     },
     "RELEASE.md": {
-      "hash": "4dfc583b92c3",
-      "indexed_at": "2026-08-21T09:15:00.939754+00:00",
+      "hash": "92dd799a861c",
+      "indexed_at": "2026-08-21T11:46:33.476151+00:00",
       "language": "markdown",
-      "lines": 109,
-      "mtime_ns": 1787302885176772600,
-      "size": 4785,
+      "lines": 153,
+      "mtime_ns": 1787312772202108200,
+      "size": 6988,
       "symbols": [
+        {
+          "docstring": "> *\"for everyone tired about waiting for the next update \u2014 I made something everyone was > searching for, because it is far easier than what I'm worki",
+          "lines": [
+            26,
+            69
+          ],
+          "name": "\ud83c\udf81 BONUS \u2014 CmdPulse",
+          "type": "section"
+        },
         {
           "docstring": "Three archives, one version \u2014 `8.0.1` \u2014 and the tier lives in the **name**, not the patch digit. The `5.x` convention (patch digit as tier) is retired",
           "lines": [
-            26,
-            45
+            70,
+            89
           ],
           "name": "\ud83c\udfaf Which one do I want?",
           "type": "section"
@@ -3848,8 +3886,8 @@
         {
           "docstring": "`RoT-MoE-Router.zip` \u2014 the product, in every archive:",
           "lines": [
-            46,
-            80
+            90,
+            124
           ],
           "name": "\ud83d\udce6 v8.0.1 \u2014 Animus, three ways",
           "type": "section"
@@ -3857,8 +3895,8 @@
         {
           "docstring": "Four files are published, and these are their exact names \u2014 so a download script needs no directory listing (the v6.0.0 Real Test's stranger sat on a",
           "lines": [
-            81,
-            101
+            125,
+            145
           ],
           "name": "\ud83d\udd0f Verify what you downloaded",
           "type": "section"
@@ -3866,8 +3904,8 @@
         {
           "docstring": "`8.0.0` (Animus), `7.0.0` (The Working Share), `6.0.2`, `6.0.1`, `6.0.0` (the first CI-published release), the `5.x` and earlier three-variant release",
           "lines": [
-            102,
-            110
+            146,
+            154
           ],
           "name": "\ud83d\uddc3\ufe0f Prior releases",
           "type": "section"
@@ -3876,7 +3914,7 @@
     },
     "SECURITY.md": {
       "hash": "4594c9020526",
-      "indexed_at": "2026-08-20T21:31:52.144626+00:00",
+      "indexed_at": "2026-08-21T07:50:35.513089+00:00",
       "language": "markdown",
       "lines": 84,
       "mtime_ns": 1787209313000000000,
@@ -3941,7 +3979,7 @@
     },
     "SETUP_CORPUS.sh": {
       "hash": "1a4db043ee82",
-      "indexed_at": "2026-08-20T21:31:52.145162+00:00",
+      "indexed_at": "2026-08-21T07:50:35.513427+00:00",
       "language": "shell",
       "lines": 215,
       "mtime_ns": 1787209313000000000,
@@ -3959,7 +3997,7 @@
     },
     "SETUP_LEAN.sh": {
       "hash": "bd21bdc2996c",
-      "indexed_at": "2026-08-20T21:31:52.146371+00:00",
+      "indexed_at": "2026-08-21T07:50:35.514158+00:00",
       "language": "shell",
       "lines": 489,
       "mtime_ns": 1787209313000000000,
@@ -4031,7 +4069,7 @@
     },
     "STATUS.md": {
       "hash": "0db57bed32cc",
-      "indexed_at": "2026-08-20T21:31:52.146542+00:00",
+      "indexed_at": "2026-08-21T07:50:35.514305+00:00",
       "language": "markdown",
       "lines": 28,
       "mtime_ns": 1787209313000000000,
@@ -4040,7 +4078,7 @@
     },
     "UNSEALED.md": {
       "hash": "8995e135fa26",
-      "indexed_at": "2026-08-20T21:31:52.146805+00:00",
+      "indexed_at": "2026-08-21T07:50:35.514456+00:00",
       "language": "markdown",
       "lines": 128,
       "mtime_ns": 1787209313000000000,
@@ -4103,6 +4141,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T09:15:01.084168+00:00",
+  "generated_at": "2026-08-21T11:46:33.615688+00:00",
   "version": "1.0"
 }

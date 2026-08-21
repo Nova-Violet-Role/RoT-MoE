@@ -202,3 +202,28 @@ instead of each overwriting the last.
 A status-line render currently costs ~1.0–1.7s on Windows (~75 subprocess spawns at ~14ms
 each). Reaching 100ms there would need roughly an 11× speedup — a single-jq rewrite of the
 render path, not a config change. Until then, the split pane is the fast surface.
+
+---
+
+## Real progress, when the command reports it
+
+A generic tool cannot know how much work an arbitrary command has left — nothing exposes
+that. But the command itself often says so, and with `CMDPULSE_STREAM=1` that output is
+already on disk, so CmdPulse parses it:
+
+```
+⠴ Bash  ██░░░░░░░░ 25%  45s ETA 2m15s 5/20   cargo test --release
+    └ [  5/20] seed 0004: 145832  (mean: 152340.2, 3.1s/seed)
+```
+
+`[5/20]`, `12 of 34`, `73%` — all recognised. The ETA is then computed from the counter
+itself (elapsed ÷ done × remaining) and needs **no history at all**.
+
+| bar colour | meaning |
+|---|---|
+| **cyan** | the number came from the command's own output — measured |
+| violet/gold | estimated from the learned median for that signature |
+| sweep + `ETA ?` | fewer than 2 recorded runs; no honest estimate exists |
+
+If a command reports nothing, the bar falls back to the median rather than inventing a
+number. That fallback is verified by a control test, not assumed.

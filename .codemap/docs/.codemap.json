@@ -3,7 +3,7 @@
   "files": {
     "GIT-WORKFLOW.md": {
       "hash": "dd1140824700",
-      "indexed_at": "2026-08-20T21:31:52.110413+00:00",
+      "indexed_at": "2026-08-21T07:50:35.585028+00:00",
       "language": "markdown",
       "lines": 375,
       "mtime_ns": 1787209313000000000,
@@ -179,7 +179,7 @@
     },
     "SCRUTINY-0.7.md": {
       "hash": "e48bcbe2f9a9",
-      "indexed_at": "2026-08-20T21:31:52.112327+00:00",
+      "indexed_at": "2026-08-21T07:50:35.585972+00:00",
       "language": "markdown",
       "lines": 212,
       "mtime_ns": 1787209313000000000,
@@ -292,7 +292,7 @@
     },
     "SCRUTINY-LOG.md": {
       "hash": "094b68fe311b",
-      "indexed_at": "2026-08-20T21:31:52.112852+00:00",
+      "indexed_at": "2026-08-21T07:50:35.586258+00:00",
       "language": "markdown",
       "lines": 299,
       "mtime_ns": 1787209313000000000,
@@ -412,7 +412,7 @@
     },
     "STUDY-USAGE-AGENTS.md": {
       "hash": "5e283b236d9c",
-      "indexed_at": "2026-08-20T21:31:52.115636+00:00",
+      "indexed_at": "2026-08-21T07:50:35.587043+00:00",
       "language": "markdown",
       "lines": 813,
       "mtime_ns": 1787209313000000000,
@@ -681,7 +681,7 @@
     },
     "easter-egg.md": {
       "hash": "78eff5036215",
-      "indexed_at": "2026-08-20T21:31:52.108942+00:00",
+      "indexed_at": "2026-08-21T07:50:35.584712+00:00",
       "language": "markdown",
       "lines": 421,
       "mtime_ns": 1787209313000000000,
@@ -828,7 +828,7 @@
     },
     "lean-and-corpus.md": {
       "hash": "cab1f37a05fd",
-      "indexed_at": "2026-08-20T21:31:52.110897+00:00",
+      "indexed_at": "2026-08-21T07:50:35.585274+00:00",
       "language": "markdown",
       "lines": 195,
       "mtime_ns": 1787209313000000000,
@@ -903,7 +903,7 @@
     },
     "lens-bench.md": {
       "hash": "f0a77598c076",
-      "indexed_at": "2026-08-20T21:31:52.111312+00:00",
+      "indexed_at": "2026-08-21T07:50:35.585472+00:00",
       "language": "markdown",
       "lines": 138,
       "mtime_ns": 1787209313000000000,
@@ -933,7 +933,7 @@
     },
     "modules.md": {
       "hash": "6502580a5410",
-      "indexed_at": "2026-08-20T21:31:52.111851+00:00",
+      "indexed_at": "2026-08-21T07:50:35.585740+00:00",
       "language": "markdown",
       "lines": 363,
       "mtime_ns": 1787209313000000000,
@@ -952,7 +952,7 @@
     },
     "tips.md": {
       "hash": "8438682e1d1f",
-      "indexed_at": "2026-08-20T21:31:52.116053+00:00",
+      "indexed_at": "2026-08-21T07:50:35.587253+00:00",
       "language": "markdown",
       "lines": 156,
       "mtime_ns": 1787209313000000000,
@@ -1007,6 +1007,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-20T21:31:52.273453+00:00",
+  "generated_at": "2026-08-21T07:50:35.662261+00:00",
   "version": "1.0"
 }

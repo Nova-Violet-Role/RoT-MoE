@@ -297,3 +297,17 @@ time (echo '{"model":{"display_name":"T"},"workspace":{"current_dir":"/tmp"},
 Keep `refreshInterval` comfortably above that. Measured on Windows: ~1.3s idle, ~2.5s with
 several phases, because each subprocess spawn costs ~14ms and a render makes ~75.
 `STATUSLINE_NO_GIT=1` removes four of them.
+
+## Stall detection
+
+`CMDPULSE_STALL_S` (default 300) — when a command's own output log has not grown for that
+many seconds, its bar shows `STALL` and `quiet 7m` in red instead of a percentage.
+
+```
+⠇ Bash  ████░░░░░░  STALL  10m01s  quiet 7m   cargo build --release
+```
+
+This is a **measurement, not a diagnosis**. It means the command has printed nothing for
+that long — it does not mean the process is hung, and the bar never claims it is. A silent
+linker is silent and healthy. Requires `CMDPULSE_STREAM=1` (the default), since the log is
+what gets measured. One `stat` call covers every row regardless of how many are drawn.

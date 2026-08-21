@@ -63,7 +63,12 @@ case "$EV" in
       # --- moments: flash briefly so they are visible, then expire --------------------
       Stop)               P_MODE=flash; P_KIND=turn;     P_TTL=4000 ;;
       StopFailure)        P_MODE=flash; P_KIND=turnfail; P_TTL=8000 ;;
-      PostToolUseFailure) P_MODE=flash; P_KIND=toolfail; P_TTL=8000 ;;
+      # A tool call that FAILS fires PostToolUseFailure, not PostToolUse — so the `post`
+      # recorder never runs and active/<id>.json is never removed. Every failed command
+      # therefore leaked a marker that the bar kept rendering as in-flight forever, and
+      # once stall detection landed they all showed as STALL: "commands from the past".
+      # Clear the marker here as well as flashing the failure.
+      PostToolUseFailure) P_MODE=flash; P_KIND=toolfail; P_TTL=8000; P_CLEAR=1 ;;
       PostToolBatch)      P_MODE=flash; P_KIND=batch;    P_TTL=3000 ;;
       UserPromptSubmit)   P_MODE=flash; P_KIND=prompt;   P_TTL=3000 ;;
       UserPromptExpansion) P_MODE=flash; P_KIND=expand;  P_TTL=3000 ;;
@@ -113,6 +118,12 @@ case "$EV" in
       *)                   LBL="$EVNAME" ;;
     esac
     LBL=$(printf '%s' "$LBL" | tr -d '\r\n' | cut -c1-64)
+    # Reap the in-flight marker for a call that ended by failing. Without this the row
+    # stays on screen for the rest of the session.
+    if [ "${P_CLEAR:-0}" = "1" ] && [ -n "$JQE" ]; then
+      _fid=$(printf '%s' "$raw" | "$JQE" -r '.tool_use_id // ""' 2>/dev/null | tr -d '\r' | tr -cd 'A-Za-z0-9_.-')
+      [ -n "$_fid" ] && rm -f "$ROOT/active/$_fid.json" "$ROOT/stream/$_fid.log" 2>/dev/null
+    fi
     case "$P_MODE" in
       reset) rm -f "$ROOT/phase/"*.json 2>/dev/null ;;
       stop)  rm -f "$ROOT/phase/$P_KIND.json" 2>/dev/null ;;
@@ -151,7 +162,8 @@ NOW_MS=$(( $(date +%s) * 1000 ))
 
 # One jq pass: derive id, a human subject line, and the grouping signature.
 # The signature is what lets the dashboard learn a duration baseline per command shape.
-read_line=$(printf '%s' "$input" | "$JQ" -r --arg ev "$EV" --argjson now "$NOW_MS" '
+read_line=$(printf '%s' "$input" | "$JQ" -r --arg ev "$EV" --argjson now "$NOW_MS" \
+  --arg DQ '"' --arg SQ "'" '
   def clean: (. // "") | tostring | gsub("[\n\r\t]"; " ") | sub("^ +";"") | sub(" +$";"");
   def subject:
     .tool_name as $t | .tool_input as $i |
@@ -177,10 +189,42 @@ read_line=$(printf '%s' "$input" | "$JQ" -r --arg ev "$EV" --argjson now "$NOW_M
     # Tools that genuinely take no input (CronList, ListAgents, ExitPlanMode) still need a
     # label, otherwise the bar renders a nameless row.
     | if length == 0 then ($t // "") else . end;
+  # Signature = the grouping key for the learned median, and therefore for ETA.
+  # Naive "first two words" produced a UNIQUE key for any command starting with variable
+  # assignments or paths — measured at 37% of signatures stuck on one sample, so their ETA
+  # could never appear. Normalise instead:
+  #   drop leading VAR=... assignments   (S=/path R=/path bash -n  ->  bash -n)
+  #   drop flags                          (-n, --porcelain)
+  #   reduce a path to its basename       (/c/Users/x/statusline.sh  ->  statusline.sh)
+  #   drop tokens carrying quotes or $    (interpolated, never stable across runs)
+  # so repeated work collapses onto one key and earns an ETA.
+  #
+  # $DQ and $SQ arrive via --arg: a literal quote inside this program cannot survive the
+  # write path, so the quote characters are passed in rather than escaped here.
+  def normtok:
+    . as $tok
+    | if ($tok | test("^[A-Za-z_][A-Za-z0-9_]*=")) then ""
+      # Wrappers say nothing about what is being run. Without this, every command in a repo
+      # that starts `cd <path> && ...` collapsed onto one key, so an 8s echo and a 30m gate
+      # sweep shared a median — and the long one was flagged slow within seconds.
+      elif ($tok | test("^(cd|sudo|env|time|timeout|nohup|exec|command|nice|xargs)$")) then ""
+      elif ($tok | test("^[0-9]+$")) then ""
+      elif ($tok | startswith("-")) then ""
+      elif ($tok | contains($DQ)) or ($tok | contains($SQ)) or ($tok | contains("$")) then ""
+      elif ($tok | contains("/")) then ($tok | split("/") | last)
+      else $tok end
+    | gsub("[;&|]+$"; "");
   def signature:
     .tool_name as $t |
     if $t == "Bash" or $t == "PowerShell"
-    then $t + ":" + ((subject | split(" ") | map(select(startswith("-") | not)) | .[0:2] | join(" ")))
+    # Strip quoted segments FIRST. Splitting on spaces shatters "C:/GIT External Repo/RoT
+    # MoE" into External / Repo / MoE, and those word fragments survived tokenising — so
+    # every command in that directory still shared one signature.
+    then ( subject
+           | gsub($DQ + "[^" + $DQ + "]*" + $DQ; " ")
+           | gsub($SQ + "[^" + $SQ + "]*" + $SQ; " ")
+           | split(" ") | map(normtok) | map(select(length > 0)) | .[0:2] | join(" ") ) as $s
+         | $t + ":" + (if ($s | length) > 0 then $s else "cmd" end)
     else ($t // "Unknown") end;
   ( .tool_use_id // ("noid-" + ((now*1000)|floor|tostring)) ) as $id |
   [ $id,
@@ -221,7 +265,7 @@ if [ "$EV" = "pre" ]; then
   # a green one. `exit ${PIPESTATUS[0]}` restores the real status — verified against a command
   # exiting 101 (naive form returned 0, this form returned 101). Never remove it.
   # Off unless CMDPULSE_STREAM=1, and only ever applied to Bash.
-  if [ "${CMDPULSE_STREAM:-0}" = "1" ]; then
+  if [ "${CMDPULSE_STREAM:-1}" = "1" ]; then
     s_tool=$(printf '%s' "$input" | "$JQ" -r '.tool_name // ""' 2>/dev/null)
     if [ "$s_tool" = "Bash" ]; then
       s_cmd=$(printf '%s' "$input" | "$JQ" -r '.tool_input.command // ""' 2>/dev/null)
@@ -266,6 +310,15 @@ else
                 median: (if $n % 2 == 1 then $v[($n/2|floor)] else (($v[$n/2-1]+$v[$n/2])/2) end) }) })
     | from_entries' >"$ROOT/baseline.json.tmp" 2>/dev/null \
     && mv "$ROOT/baseline.json.tmp" "$ROOT/baseline.json" 2>/dev/null
+
+  # Streaming is on by default, so every Bash command now leaves a log. Unpruned that is an
+  # unbounded write to the user's disk — reap anything older than CMDPULSE_STREAM_KEEP_MIN
+  # (60m default). The bar only ever reads the log of a call that is still running or in its
+  # afterglow, so nothing visible is lost. Set 0 to keep everything.
+  keep=$(printf '%s' "${CMDPULSE_STREAM_KEEP_MIN:-60}" | tr -cd '0-9')
+  if [ -n "$keep" ] && [ "$keep" -gt 0 ] 2>/dev/null && [ -d "$ROOT/stream" ]; then
+    find "$ROOT/stream" -type f -name '*.log' -mmin "+$keep" -delete 2>/dev/null
+  fi
 fi
 
 # Append-only ledger. Retention is the dashboard's job so this stays O(1).

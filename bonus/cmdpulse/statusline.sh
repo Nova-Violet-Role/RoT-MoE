@@ -24,6 +24,8 @@ fail() {
   exit 0
 }
 
+NOW_S=$(date +%s)          # one clock read for the whole render; rows must agree anyway
+NOW_MS=$(( NOW_S * 1000 ))
 input=$(cat)
 [ -n "$input" ] || fail "empty stdin"
 if [ "${STATUSLINE_DEBUG:-0}" = "1" ]; then
@@ -62,13 +64,14 @@ raw=$(printf '%s' "$input" | "$JQ" -j '
   , (.pr.kind // "")
   , (.worktree.name // .workspace.git_worktree // "")
   , (.agent.name // "")
+  , (.session_id // "")
   , "END"
   ] | map(s | split("\n") | join(" ") | split("\r") | join(" ") | split("\u001f") | join(" ")) | join("\u001f")
 ' 2>/dev/null) || fail "jq parse failed"
 [ -n "$raw" ] || fail "jq produced nothing"
 
 IFS="$US" read -r -a F <<<"$raw"
-[ "${F[20]:-}" = "END" ] || fail "field count mismatch (${#F[@]})"
+[ "${F[21]:-}" = "END" ] || fail "field count mismatch (${#F[@]})"
 
 model="${F[0]}";     sname="${F[1]}";     cwd="${F[2]}"
 ctx_used="${F[3]}";  ctx_size="${F[4]}";  ctx_pct="${F[5]}"
@@ -76,6 +79,7 @@ cost="${F[6]}";      ladd="${F[7]}";      ldel="${F[8]}";      dur_ms="${F[9]}"
 effort="${F[10]}";   thinking="${F[11]}"; fastmode="${F[12]}"; over200k="${F[13]}"
 rl5="${F[14]}";      rl7="${F[15]}"
 pr_num="${F[16]}";   pr_kind="${F[17]}";  wt="${F[18]}";       agent="${F[19]}"
+sess="${F[20]}"
 
 # --- 3. Colors (Violet / Gold / Grey) ---
 RESET=$'\033[0m'; DIM=$'\033[2m'; BOLD=$'\033[1m'
@@ -91,15 +95,26 @@ CYAN=$'\033[38;2;110;220;235m'
 if [ "${STATUSLINE_ASCII:-0}" = "1" ]; then
   G_BRANCH="git"; G_FULL="#"; G_EMPTY="-"; G_THINK="*"; G_FAST=">>"
 else
-  G_BRANCH=$''; G_FULL=$'█'; G_EMPTY=$'░'; G_THINK=$'✻'; G_FAST=$'⚡'
+  G_BRANCH=$'\356\202\240'   # U+E0A0 branch icon as octal bytes: no subshell, file stays ASCII
+  G_FULL=$'█'; G_EMPTY=$'░'; G_THINK=$'✻'; G_FAST=$'⚡'
 fi
 
 int() {
   local v="${1%%.*}"
   case "$v" in ''|*[!0-9]*) echo 0 ;; *) echo "$v" ;; esac
 }
+# Fork-free equivalents. $(int x) costs a subprocess (~28ms on Windows); iv sets a global
+# instead. Same for padding: $(printf '%-12s') forks, rp/lp use parameter expansion.
+_SPX='                                                                '
+iv() { _I="${1%%.*}"; case "$_I" in ''|*[!0-9]*) _I=0 ;; esac; }
+# Pad only, NEVER truncate. These strings carry ANSI colour codes, which count toward
+# ${x:0:n} and ${x: -n} but are invisible on screen — truncating turned "STALL" into "LL".
+# printf's %Ns only ever pads, so these must too.
+rp() { _P="$1"; while [ "${#_P}" -lt "$2" ]; do _P="$_P "; done; }   # like printf %-Ns
+lp() { _P="$1"; while [ "${#_P}" -lt "$2" ]; do _P=" $_P"; done; }   # like printf %Ns
+z2() { _Z="$1"; [ "$_Z" -lt 10 ] 2>/dev/null && _Z="0$_Z"; }   # like printf %02d
 fmt_num() {
-  local n; n=$(int "${1:-0}")
+  local n; iv "${1:-0}"; n=$_I
   if [ "$n" -ge 1000000 ]; then
     local m=$((n / 100000)); printf '%d.%dM' $((m / 10)) $((m % 10))
   elif [ "$n" -ge 1000 ]; then printf '%dk' $((n / 1000))
@@ -107,8 +122,8 @@ fmt_num() {
 }
 
 # --- 4. Context load bar ---
-used_i=$(int "$ctx_used"); size_i=$(int "$ctx_size")
-if [ -n "$ctx_pct" ]; then pct=$(int "$ctx_pct")
+iv "$ctx_used"; used_i=$_I; iv "$ctx_size"; size_i=$_I
+if [ -n "$ctx_pct" ]; then iv "$ctx_pct"; pct=$_I
 elif [ "$size_i" -gt 0 ]; then pct=$(( (used_i * 100 + size_i / 2) / size_i ))
 else pct=0; fi
 [ "$pct" -gt 100 ] && pct=100
@@ -155,14 +170,17 @@ fi
 caveman=""
 flag="$CLAUDE_DIR/.caveman-active"
 if [ -f "$flag" ] && [ ! -L "$flag" ]; then
-  sz=$(wc -c <"$flag" 2>/dev/null || echo 999)
-  if [ "$(int "$sz")" -le 64 ]; then
-    mode=$(head -c 64 "$flag" 2>/dev/null | head -n 1 | tr -d '\r\n' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
+  # Six forks (wc, head, head, tr, tr, tr) for a badge, measured at 83ms. `read` takes the
+  # first line as a builtin, ${x,,} lowercases, and ${x//[^a-z0-9-]/} strips — all zero forks.
+  # The old size guard existed to avoid slurping a huge file; reading one line already does.
+  mode=""; read -r mode < "$flag" 2>/dev/null
+  mode="${mode%$'\r'}"; mode="${mode,,}"; mode="${mode//[^a-z0-9-]/}"
+  if [ "${#mode}" -le 64 ]; then
     case "$mode" in
       full) caveman="${ORANGE}[CAVEMAN]${RESET}" ;;
       off)  caveman="" ;;
       lite|ultra|wenyan|wenyan-lite|wenyan-full|wenyan-ultra|commit|review|compress)
-            caveman="${ORANGE}[CAVEMAN:$(printf '%s' "$mode" | tr '[:lower:]' '[:upper:]')]${RESET}" ;;
+            caveman="${ORANGE}[CAVEMAN:${mode^^}]${RESET}" ;;
     esac
   fi
 fi
@@ -176,22 +194,68 @@ cmd_lines=""
 CP="$CLAUDE_DIR/cmdpulse"
 # Each running tool gets its OWN line above the status line, with a bar the same 10 cells
 # as the context bar — so several concurrent calls stack without eating the screen.
-CMD_BAR_W=$(int "${CMDPULSE_BAR_WIDTH:-10}")
+iv "${CMDPULSE_BAR_WIDTH:-10}"; CMD_BAR_W=$_I
 [ "$CMD_BAR_W" -lt 4 ] && CMD_BAR_W=10
+# ONE jq for every active file AND the baseline, instead of four per row. Profiled at
+# ~360ms per row on Windows because each jq startup costs ~60ms; three rows meant twelve
+# jq processes. Eight newline-separated fields per file — newlines, because no escape
+# survives this file's write path reliably.
+declare -A A_SESS A_TOOL A_SIG A_SUB A_START A_MED A_N
+_active_list=""
+if [ -d "$CP/active" ] && compgen -G "$CP/active/*.json" >/dev/null 2>&1; then
+  _bl="$CP/baseline.json"; [ -s "$_bl" ] || _bl=/dev/null
+  while IFS= read -r _k; do
+    IFS= read -r _v1 || break; IFS= read -r _v2 || break; IFS= read -r _v3 || break
+    IFS= read -r _v4 || break; IFS= read -r _v5 || break; IFS= read -r _v6 || break
+    IFS= read -r _v7 || break
+    A_SESS["$_k"]="$_v1"; A_TOOL["$_k"]="$_v2"; A_SIG["$_k"]="$_v3"; A_SUB["$_k"]="$_v4"
+    A_START["$_k"]="$_v5"; A_MED["$_k"]="$_v6"; A_N["$_k"]="$_v7"
+  done < <("$JQ" -r --slurpfile bl "$_bl" '
+      (.sig // "") as $s
+      | ($bl[0] // {}) as $B
+      | (.id // ""),
+        (.session // ""),
+        (.tool // "?"),
+        $s,
+        ((.subject // "") | gsub("[\n\r]"; " ")),
+        ((.start // 0) | tostring),
+        (($B[$s].median // 0) | tostring),
+        (($B[$s].n // 0) | tostring)
+    ' "$CP/active"/*.json 2>/dev/null | tr -d '\r')
+fi
+# Stall detection. The bar cannot know whether a process is hung — nothing exposes that.
+# What IS measurable is silence: if the command's own output log has not grown, it has
+# produced nothing for that long. One stat call covers every log, so this costs one fork
+# regardless of how many rows are drawn. Only ever says STALLED, never "stuck": a silent
+# compile is silent but healthy, and the label must not claim more than it observed.
+declare -A A_MT
+iv "${CMDPULSE_STALL_S:-300}"; STALL_S=$_I
+[ "$STALL_S" -lt 5 ] && STALL_S=300
+if [ -d "$CP/stream" ] && compgen -G "$CP/stream/*.log" >/dev/null 2>&1; then
+  while read -r _mt _lp; do
+    [ -n "${_lp:-}" ] || continue
+    _lk="${_lp##*/}"; _lk="${_lk%.log}"; A_MT["$_lk"]="$_mt"
+  done < <(stat -c '%Y %n' "$CP/stream"/*.log 2>/dev/null | tr -d '\r')
+fi
 if [ -d "$CP/active" ]; then
   for af in $(ls -t "$CP/active"/*.json 2>/dev/null); do
     if [ -f "$af" ]; then
-    IFS=$'\037' read -r a_tool a_sig a_sub a_start < <(
-      "$JQ" -r '[.tool,.sig,.subject,(.start|tostring)]|join("\u001f")' "$af" 2>/dev/null | tr -d '\r')
-    if [ -n "${a_start:-}" ]; then
-      now_ms=$(( $(date +%s) * 1000 ))
-      el=$(( now_ms - $(int "$a_start") ))
+    # Every Claude Code window shares ~/.claude/cmdpulse, so without this a second window
+    # shows the first one's in-flight calls — and its own look untracked.
+    _ak="${af##*/}"; _ak="${_ak%.json}"
+    a_sess="${A_SESS[$_ak]:-}"
+    if [ -n "${sess:-}" ] && [ -n "$a_sess" ] && [ "$a_sess" != "$sess" ]; then continue; fi
+    a_tool="${A_TOOL[$_ak]:-?}"; a_sig="${A_SIG[$_ak]:-}"
+    a_sub="${A_SUB[$_ak]:-}";    a_start="${A_START[$_ak]:-}"
+    if [ -n "${a_start:-}" ] && [ "$a_start" != "0" ]; then
+      now_ms=$NOW_MS
+      iv "$a_start"; el=$(( now_ms - _I ))
       [ "$el" -lt 0 ] && el=0
       # An interrupted or denied tool call orphans its active file, so it does need reaping —
       # but the threshold must be far above any REAL command. A 2-minute default reaped
       # 35-minute builds, i.e. precisely the long-running commands this bar exists for.
       # 6 hours: long enough that no genuine tool call is ever discarded.
-      if [ "$el" -gt "$(int "${CMDPULSE_STALE_MS:-21600000}")" ]; then
+      iv "${CMDPULSE_STALE_MS:-21600000}"; if [ "$el" -gt "$_I" ]; then
         rm -f "$af" 2>/dev/null
         continue
       fi
@@ -201,12 +265,8 @@ if [ -d "$CP/active" ]; then
       # (`#_(){ this.#s?.abort() }` in 2.1.238), so any render slower than the interval never
       # completes and the line goes blank. record.sh writes baseline.json at PostToolUse; two
       # tiny reads of a small map replace an O(ledger) slurp.
-      med=0; nsamp=0
-      if [ -s "$CP/baseline.json" ]; then
-        med=$("$JQ" -r --arg s "$a_sig" '(.[$s].median // 0)|tostring' "$CP/baseline.json" 2>/dev/null | tr -d '\r')
-        nsamp=$("$JQ" -r --arg s "$a_sig" '(.[$s].n // 0)|tostring' "$CP/baseline.json" 2>/dev/null | tr -d '\r')
-      fi
-      med=$(int "${med:-0}"); nsamp=$(int "${nsamp:-0}")
+      # already fetched in the single jq pass above
+      iv "${A_MED[$_ak]:-0}"; med=$_I; iv "${A_N[$_ak]:-0}"; nsamp=$_I
       CW=$CMD_BAR_W
       spin_i=$(( (el / 120) % 10 ))
       case "$spin_i" in
@@ -214,7 +274,66 @@ if [ -d "$CP/active" ]; then
         5) sp=$'⠴';; 6) sp=$'⠦';; 7) sp=$'⠧';; 8) sp=$'⠇';; *) sp=$'⠏';;
       esac
       cbar=""; k=0
-      if [ "$nsamp" -ge 2 ] && [ "$med" -gt 0 ]; then
+      # --- TIER 1: real progress, read from the command's OWN output -------------------
+      # A generic tool cannot know how much work an arbitrary command has left — but the
+      # command itself often says so ([5/20], 45%, "12 of 34"). With CMDPULSE_STREAM=1 that
+      # output is already on disk, so parse it. This is MEASURED progress; the median below
+      # is only the fallback for commands that report nothing.
+      real_pct=""; real_now=""; real_tot=""
+      p_log="$CP/stream/${af##*/}"; p_log="${p_log%.json}.log"
+      # ONE read of the log, parsed by bash builtins. The previous version read it twice
+      # through eight forks (tail|tr|grep|tail, twice) — measured at ~613ms per row on
+      # Windows, which alone pushed a three-row render past 4s. mapfile from a single tail
+      # is one fork; the regex below costs none.
+      s_tail=""
+      if [ -f "$p_log" ]; then
+        mapfile -t s_lines < <(tail -c 4096 "$p_log" 2>/dev/null | tr -d '\r') 2>/dev/null
+        n=${#s_lines[@]}
+        # newest non-blank line, for the display row under the bar
+        j=$(( n - 1 ))
+        while [ "$j" -ge 0 ]; do
+          case "${s_lines[$j]}" in ''|' '*) ;; *) s_tail="${s_lines[$j]}"; break ;; esac
+          j=$(( j - 1 ))
+        done
+        # newest line carrying a progress marker, scanning backwards
+        j=$(( n - 1 ))
+        while [ "$j" -ge 0 ] && [ -z "$real_pct" ]; do
+          ln="${s_lines[$j]}"
+          if [[ $ln =~ \[[[:space:]]*([0-9]+)[[:space:]]*/[[:space:]]*([0-9]+)[[:space:]]*\] ]]; then
+            real_now="${BASH_REMATCH[1]}"; real_tot="${BASH_REMATCH[2]}"
+          elif [[ $ln =~ ([0-9]+)[[:space:]]+of[[:space:]]+([0-9]+) ]]; then
+            real_now="${BASH_REMATCH[1]}"; real_tot="${BASH_REMATCH[2]}"
+          elif [[ $ln =~ ([0-9]+)(\.[0-9]+)?% ]]; then
+            real_pct="${BASH_REMATCH[1]}"
+          elif [[ $ln =~ ([0-9]+)/([0-9]+) ]]; then
+            real_now="${BASH_REMATCH[1]}"; real_tot="${BASH_REMATCH[2]}"
+          fi
+          if [ -n "$real_tot" ] && [ "$real_tot" -gt 0 ] 2>/dev/null; then
+            real_pct=$(( real_now * 100 / real_tot ))
+          fi
+          j=$(( j - 1 ))
+        done
+        [ -n "$real_pct" ] && [ "$real_pct" -gt 100 ] 2>/dev/null && real_pct=100
+      fi
+      if [ -n "$real_pct" ]; then
+        cpct="$real_pct"
+        ccol="$CYAN"                      # cyan = this number came from the command itself
+        cfill=$(( cpct * CW / 100 ))
+        while [ "$k" -lt "$cfill" ]; do cbar="${cbar}${ccol}${G_FULL}"; k=$((k+1)); done
+        while [ "$k" -lt "$CW" ]; do cbar="${cbar}${DIM}${G_EMPTY}${RESET}"; k=$((k+1)); done
+        clbl="${ccol}${cpct}%${RESET}"
+        # ETA from real progress: elapsed / done * remaining. No history needed.
+        if [ -n "$real_now" ] && [ "$real_now" -gt 0 ] 2>/dev/null && [ -n "$real_tot" ]; then
+          rem_ms=$(( el * (real_tot - real_now) / real_now ))
+          rs=$(( rem_ms / 1000 ))
+          if   [ "$rs" -ge 3600 ]; then eta_s="$(( rs / 3600 ))h$(printf '%02d' $(( (rs % 3600) / 60 )))m"
+          elif [ "$rs" -ge 60 ];   then eta_s="$(( rs / 60 ))m$(printf '%02d' $(( rs % 60 )))s"
+          else                          eta_s="${rs}s"; fi
+          eta_s="${DIM}ETA ${RESET}${ccol}${eta_s}${RESET} ${DIM}${real_now}/${real_tot}${RESET}"
+        else
+          eta_s="${DIM}live${RESET}"
+        fi
+      elif [ "$nsamp" -ge 2 ] && [ "$med" -gt 0 ]; then
         cpct=$(( el * 100 / med ))
         [ "$cpct" -gt 100 ] && cpct=100
         ccol="$VIOLET"; [ "$cpct" -ge 80 ] && ccol="$GOLD"
@@ -226,9 +345,17 @@ if [ -d "$CP/active" ]; then
         # recorded runs; otherwise there is no honest estimate and the bar sweeps instead.
         eta_ms=$(( med - el ))
         if [ "$(( el * 100 / med ))" -ge 100 ]; then
-          clbl="${RED}over${RESET}"; eta_s=""
+          # "over" read as "finished/failed" to every human who saw it. The command is still
+          # RUNNING — it is merely past its usual time. Say how far past, and keep the word
+          # "run" so the state is unambiguous.
+          ov=$(( (el - med) / 1000 ))
+          if   [ "$ov" -ge 3600 ]; then ov_s="+$(( ov / 3600 ))h$(printf '%02d' $(( (ov % 3600) / 60 )))m"
+          elif [ "$ov" -ge 60 ];   then ov_s="+$(( ov / 60 ))m$(printf '%02d' $(( ov % 60 )))s"
+          else                          ov_s="+${ov}s"
+          fi
+          clbl="${RED}${ov_s}${RESET}"; eta_s="${DIM}run${RESET}"
         else
-          clbl=$(printf '%s%d%%%s' "$ccol" "$cpct" "$RESET")
+          clbl="${ccol}${cpct}%${RESET}"
           e=$(( eta_ms / 1000 ))
           if   [ "$e" -ge 3600 ]; then eta_s="$(( e / 3600 ))h$(printf '%02d' $(( (e % 3600) / 60 )))m"
           elif [ "$e" -ge 60 ];   then eta_s="$(( e / 60 ))m$(printf '%02d' $(( e % 60 )))s"
@@ -255,14 +382,26 @@ if [ -d "$CP/active" ]; then
       elif [ "$el_s" -ge 60 ];   then el_s="$(( el_s / 60 ))m$(printf '%02d' $(( el_s % 60 )))s"
       else                            el_s="${el_s}s"
       fi
-      cmd_lines="${cmd_lines}${GOLD}${sp}${RESET} ${BOLD}${WHITE}$(printf '%-12s' "${a_tool:0:12}")${RESET} ${cbar}${RESET} $(printf '%6s' "$clbl") ${DIM}$(printf '%7s' "$el_s")${RESET} ${eta_s:-} ${WHITE}$(printf '%s' "${a_sub:0:60}")${RESET}"$'\n'
+      # Measured silence outranks the estimate: if the command has printed nothing for
+      # STALL_S seconds, that observation is worth more than a percentage derived from
+      # history. Says STALLED (no output), never "stuck" — a silent compile is healthy.
+      _mt="${A_MT[$_ak]:-}"
+      if [ -n "$_mt" ]; then
+        quiet=$(( NOW_S - _mt ))
+        if [ "$quiet" -ge "$STALL_S" ]; then
+          if   [ "$quiet" -ge 3600 ]; then q_s="$(( quiet / 3600 ))h"
+          elif [ "$quiet" -ge 60 ];   then q_s="$(( quiet / 60 ))m"
+          else                             q_s="${quiet}s"
+          fi
+          clbl="${RED}STALL${RESET}"; eta_s="${RED}quiet ${q_s}${RESET}"
+        fi
+      fi
+      rp "${a_tool:0:12}" 12; f_tool="$_P"; lp "$clbl" 6; f_lbl="$_P"; lp "$el_s" 7; f_el="$_P"
+      cmd_lines="${cmd_lines}${GOLD}${sp}${RESET} ${BOLD}${WHITE}${f_tool}${RESET} ${cbar}${RESET} ${f_lbl} ${DIM}${f_el}${RESET} ${eta_s:-} ${WHITE}${a_sub:0:60}${RESET}"$'\n'
       # If CMDPULSE_STREAM wrapped this command, its own output is being tee'd to a log.
       # Show the newest non-empty line: that is the script's real progress, live.
-      s_log="$CP/stream/$(printf '%s' "$af" | sed 's#.*/##; s#\.json$##').log"
-      if [ -f "$s_log" ]; then
-        s_last=$(tail -c 4096 "$s_log" 2>/dev/null | tr -d '\r' | grep -v '^[[:space:]]*$' | tail -n 1)
-        [ -n "$s_last" ] && cmd_lines="${cmd_lines}    ${DIM}└ ${RESET}${GREY}$(printf '%s' "${s_last:0:88}")${RESET}"$'\n'
-      fi
+      # Already read above in the single mapfile pass — no second tail, no extra forks.
+      [ -n "${s_tail:-}" ] && cmd_lines="${cmd_lines}    ${DIM}└ ${RESET}${GREY}${s_tail:0:88}${RESET}"$'\n'
     fi
     fi
   done
@@ -273,7 +412,7 @@ fi
 # is what it can actually show. ONE jq over a small file (never the ledger) emits preformatted
 # rows; bash only colours them. CMDPULSE_ROWS controls how many (default 3, max 12).
 if [ -z "$cmd_lines" ] || [ "${CMDPULSE_ROWS:-3}" -gt 1 ] 2>/dev/null; then
-  ROWS=$(int "${CMDPULSE_ROWS:-3}")
+  iv "${CMDPULSE_ROWS:-3}"; ROWS=$_I
   [ "$ROWS" -lt 1 ] && ROWS=1
   [ "$ROWS" -gt 12 ] && ROWS=12
   if [ -s "$CP/recent.ndjson" ]; then
@@ -283,8 +422,8 @@ if [ -z "$cmd_lines" ] || [ "${CMDPULSE_ROWS:-3}" -gt 1 ] 2>/dev/null; then
       rbar=""; rk=0
       while [ "$rk" -lt "$CMD_BAR_W" ]; do rbar="${rbar}${rcol}${G_FULL}"; rk=$((rk+1)); done
       cmd_lines="${cmd_lines}${rcol}${rmark}${RESET} ${BOLD}${WHITE}$(printf '%-12s' "${r_tool:0:12}")${RESET} ${rbar}${RESET} $(printf '%6s' "done") ${DIM}$(printf '%7s' "$r_dur")${RESET} ${DIM}@${r_when}${RESET} ${WHITE}$(printf '%s' "${r_sub:0:52}")${RESET}"$'\n'
-    done < <("$JQ" -r --argjson n "$ROWS" '
-        [inputs | select(type == "object")] as $all
+    done < <("$JQ" -r --argjson n "$ROWS" --arg S "${sess:-}" '
+        [inputs | select(type == "object") | select(($S == "") or ((.session // "") == $S))] as $all
         | ($all | length) as $len
         | $all[ (if $len > $n then $len - $n else 0 end) : ]
         | reverse
@@ -314,7 +453,7 @@ if [ -d "$CP/phase" ]; then
       "$JQ" -r '(.kind // "phase"), (.label // ""), ((.t // 0)|tostring), ((.ttl // 0)|tostring)' \
         "$pf" 2>/dev/null | tr -d '\r')
     [ -n "${p_lab:-}" ] || continue
-    p_ms=$(( $(date +%s) * 1000 - $(int "$p_t") ))
+    iv "$p_t"; p_ms=$(( NOW_S * 1000 - _I ))
     [ "$p_ms" -lt 0 ] && p_ms=0
     # Flash events (Stop, Notification, FileChanged …) are moments, not durations: they carry
     # a ttl and reap themselves once shown. ttl 0 means "runs until its matching stop event".
@@ -372,37 +511,37 @@ dir_seg_s="${VIOLET}${short_dir_s}${RESET}${dir_suffix}"
 ctx_seg="${bar} ${pct_c}${pct}%${RESET}"
 
 rc_seg=""
-rc_trig=$(int "${ROLLING_CONTEXT_TRIGGER:-0}")
+iv "${ROLLING_CONTEXT_TRIGGER:-0}"; rc_trig=$_I
 if [ "$rc_trig" -gt 0 ] && [ "$used_i" -ge "$rc_trig" ]; then rc_seg="${GOLD}RC${RESET}"; fi
 
 tok_seg="${DIM}$(fmt_num "$used_i")/$(fmt_num "$size_i") tok${RESET}"
 
 rl_color() {
-  local p; p=$(int "$1")
+  local p; iv "$1"; p=$_I
   if   [ "$p" -ge 90 ]; then printf '%s' "$RED"
   elif [ "$p" -ge 70 ]; then printf '%s' "$GOLD"
   else printf '%s' "$GREY"; fi
 }
 rl_seg=""
-[ -n "$rl5" ] && rl_seg="$(rl_color "$rl5")5h $(int "$rl5")%${RESET}"
+if [ -n "$rl5" ]; then iv "$rl5"; rl_seg="$(rl_color "$rl5")5h ${_I}%${RESET}"; fi
 if [ -n "$rl7" ]; then
   [ -n "$rl_seg" ] && rl_seg="${rl_seg}${DIM} . ${RESET}"
-  rl_seg="${rl_seg}$(rl_color "$rl7")7d $(int "$rl7")%${RESET}"
+  iv "$rl7"; rl_seg="${rl_seg}$(rl_color "$rl7")7d ${_I}%${RESET}"
 fi
 
 cost_seg=$(printf '%s$%.2f%s' "$GREEN" "$cost" "$RESET" 2>/dev/null)
 
-dur_seg=""; d=$(int "$dur_ms")
+dur_seg=""; iv "$dur_ms"; d=$_I
 [ "$d" -ge 60000 ] && dur_seg="${DIM}~$((d / 60000))m${RESET}"
 
-lines_seg=""; la=$(int "$ladd"); ld=$(int "$ldel")
+lines_seg=""; iv "$ladd"; la=$_I; iv "$ldel"; ld=$_I
 [ $((la + ld)) -gt 0 ] && lines_seg="${GREEN}+${la}${RESET}${DIM}/${RESET}${RED}-${ld}${RESET}"
 
 sess_seg=""
 [ -n "$sname" ] && sess_seg="${DIM}<${sname}>${RESET}"
 
 # --- 8. Assemble, degrading segment by segment until it fits ---
-MAXW=$(int "${STATUSLINE_MAX_WIDTH:-${COLUMNS:-190}}")
+iv "${STATUSLINE_MAX_WIDTH:-${COLUMNS:-190}}"; MAXW=$_I
 [ "$MAXW" -lt 60 ] && MAXW=190
 
 # OSC 8 hyperlink — clickable in WezTerm, Windows Terminal and most modern terminals.

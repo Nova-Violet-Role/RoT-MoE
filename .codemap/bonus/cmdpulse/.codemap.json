@@ -2,12 +2,12 @@
   "directory": "bonus\\cmdpulse",
   "files": {
     "README.md": {
-      "hash": "91f5d0ec082b",
-      "indexed_at": "2026-08-21T09:15:00.969651+00:00",
+      "hash": "d9bad5b638cc",
+      "indexed_at": "2026-08-21T11:46:33.504539+00:00",
       "language": "markdown",
-      "lines": 204,
-      "mtime_ns": 1787302885178779600,
-      "size": 8184,
+      "lines": 229,
+      "mtime_ns": 1787312790694992100,
+      "size": 9190,
       "symbols": [
         {
           "docstring": "| element | meaning | |---|---| | `\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591 61%` | how far through the **learned median time for this exact command shape** | | `over` (red) | alrea",
@@ -106,16 +106,25 @@
           "docstring": "| surface | interval | why | |---|---|---| | Claude Code status line | **1s floor**, ships at 3 | `Math.max(1,t)*1000` in the binary; sub-second is no",
           "lines": [
             194,
-            205
+            207
           ],
           "name": "Refresh rate \u2014 what is actually achievable",
+          "type": "section"
+        },
+        {
+          "docstring": "A generic tool cannot know how much work an arbitrary command has left \u2014 nothing exposes that. But the command itself often says so, and with `CMDPULS",
+          "lines": [
+            208,
+            230
+          ],
+          "name": "Real progress, when the command reports it",
           "type": "section"
         }
       ]
     },
     "REPRODUCE.md": {
       "hash": "d88553346c05",
-      "indexed_at": "2026-08-21T08:08:17.197506+00:00",
+      "indexed_at": "2026-08-21T07:50:35.540556+00:00",
       "language": "markdown",
       "lines": 205,
       "mtime_ns": 1787298618742605300,
@@ -222,12 +231,12 @@
       ]
     },
     "USAGE.md": {
-      "hash": "8da718b60369",
-      "indexed_at": "2026-08-21T08:08:17.198531+00:00",
+      "hash": "43a44109e746",
+      "indexed_at": "2026-08-21T11:46:33.506004+00:00",
       "language": "markdown",
-      "lines": 299,
-      "mtime_ns": 1787298618742605300,
-      "size": 11875,
+      "lines": 313,
+      "mtime_ns": 1787312790732227400,
+      "size": 12531,
       "symbols": [
         {
           "children": [
@@ -345,25 +354,34 @@
           ],
           "name": "10. Performance \u2014 the thing that breaks it",
           "type": "section"
+        },
+        {
+          "docstring": "`CMDPULSE_STALL_S` (default 300) \u2014 when a command's own output log has not grown for that many seconds, its bar shows `STALL` and `quiet 7m` in red in",
+          "lines": [
+            301,
+            314
+          ],
+          "name": "Stall detection",
+          "type": "section"
         }
       ]
     },
     "install.sh": {
       "hash": "fbd9a7e867f5",
-      "indexed_at": "2026-08-21T09:15:00.969382+00:00",
+      "indexed_at": "2026-08-21T11:46:56.797530+00:00",
       "language": "shell",
       "lines": 54,
-      "mtime_ns": 1787302885180786400,
+      "mtime_ns": 1787312815544012200,
       "size": 2923,
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "00492ebeff07",
-      "indexed_at": "2026-08-21T09:15:00.970658+00:00",
+      "hash": "114feb670516",
+      "indexed_at": "2026-08-21T11:46:56.798443+00:00",
       "language": "shell",
-      "lines": 462,
-      "mtime_ns": 1787302885181790000,
-      "size": 21430,
+      "lines": 601,
+      "mtime_ns": 1787312815621798400,
+      "size": 29410,
       "symbols": [
         {
           "lines": [
@@ -375,24 +393,24 @@
         },
         {
           "lines": [
-            97,
-            100
+            102,
+            105
           ],
           "name": "int",
           "type": "function"
         },
         {
           "lines": [
-            101,
-            107
+            116,
+            122
           ],
           "name": "fmt_num",
           "type": "function"
         },
         {
           "lines": [
-            380,
-            385
+            519,
+            524
           ],
           "name": "rl_color",
           "type": "function"
@@ -400,8 +418,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            421,
-            438
+            560,
+            577
           ],
           "name": "build",
           "type": "function"
@@ -409,8 +427,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            441,
-            446
+            580,
+            585
           ],
           "name": "vis_len",
           "type": "function"
@@ -418,6 +436,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T09:15:01.095651+00:00",
+  "generated_at": "2026-08-21T11:46:56.800186+00:00",
   "version": "1.0"
 }
