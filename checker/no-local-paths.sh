@@ -241,14 +241,58 @@ fi
 # loud: if this number is bigger than you expect, that is the finding.
 hits=$(printf '%s\n' "$raw" | grep -v 'R2-ALLOW' | grep -v '^$')
 allowed=$(printf '%s\n' "$raw" | grep -c 'R2-ALLOW')
+# ARCHIVES ARE SWEPT TOO -- `grep -rI` SKIPS THEM, AND THEY SHIP.
+#
+# Measured, not theorised: bonus/cmdpulse/cmdpulse-bonus.zip carried this
+# machine's directory inside a comment while the tree above was clean and this
+# gate was GREEN. The zip is committed as a binary artifact and nothing rebuilds
+# it from source, so a fix to the .sh never reached the thing users download.
+# `-I` treats it as binary and skips it -- the sweep was structurally blind to
+# the one file that actually gets shipped.
+#
+# So: unpack every tracked archive to stdout and sweep the text. No temp dir, no
+# extraction to disk. An archive that cannot be listed is REPORTED, never
+# silently skipped -- a sweep that quietly covers nothing is the failure this
+# whole checker exists to prevent.
+zip_hits=0
+if command -v unzip >/dev/null 2>&1; then
+  while IFS= read -r _z; do
+    [ -f "$_z" ] || continue
+    if ! unzip -Z1 "$_z" >/dev/null 2>&1; then
+      echo "FAIL: archive present but unreadable, so it was NOT swept: $_z"
+      fail=$((fail+1)); continue
+    fi
+    _zh=$(unzip -p "$_z" 2>/dev/null | grep -F -f "$PAT" | grep -v 'R2-ALLOW' | head -5)
+    if [ -n "$_zh" ]; then
+      echo "FAIL: machine-local path INSIDE a shipped archive: $_z"
+      printf '%s\n' "$_zh" | sed 's/^/        /'
+      zip_hits=$((zip_hits+1))
+    fi
+  done <<EOF
+$(find "$ROOT" -name '*.zip' -not -path '*/.git/*' -not -path '*/.release/*' -not -path '*/.lake/*' 2>/dev/null)
+EOF
+  if [ "$zip_hits" -eq 0 ]; then
+    echo "archives swept: no machine-local path inside any shipped .zip"
+  fi
+else
+  echo "FAIL: unzip absent -- shipped archives could NOT be swept, and silence here would be a lie"
+  zip_hits=1
+fi
+
 echo "allowlisted lines (must carry an explicit R2-ALLOW marker): $allowed"
 
 if [ -n "$hits" ]; then
   echo "FAIL: machine-local paths present in the packet:"
   printf '%s\n' "$hits"
   rc=1
+elif [ "${zip_hits:-0}" -ne 0 ]; then
+  # The tree is clean but a SHIPPED ARCHIVE is not -- and the zip is what users
+  # download. It must move the EXIT CODE, not merely print. Measured the hard
+  # way: the first version of this block printed FAIL and still exited 0.
+  echo "FAIL: the tree is clean but a shipped archive carries a machine-local path"
+  rc=1
 else
-  echo "PASS: no machine-local path in the packet"
+  echo "PASS: no machine-local path in the packet, archives included"
 fi
 
 exit "$rc"

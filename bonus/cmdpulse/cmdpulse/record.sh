@@ -217,9 +217,10 @@ read_line=$(printf '%s' "$input" | "$JQ" -r --arg ev "$EV" --argjson now "$NOW_M
   def signature:
     .tool_name as $t |
     if $t == "Bash" or $t == "PowerShell"
-    # Strip quoted segments FIRST. Splitting on spaces shatters "C:/GIT External Repo/RoT
-    # MoE" into External / Repo / MoE, and those word fragments survived tokenising — so
-    # every command in that directory still shared one signature.
+    # Strip quoted segments FIRST. Splitting on spaces shatters a quoted path
+    # like "C:/Some Dir/With Spaces" into Dir / With / Spaces, and those word
+    # fragments survived tokenising - so every command run in one such directory
+    # still shared a single signature.
     then ( subject
            | gsub($DQ + "[^" + $DQ + "]*" + $DQ; " ")
            | gsub($SQ + "[^" + $SQ + "]*" + $SQ; " ")
