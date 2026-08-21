@@ -135,7 +135,7 @@ fi
 # arm a real UserPromptSubmit payload and require: a stanza in the routed
 # lens's element AFTER the untouched marker line; silence under
 # ROTMOE_VOICE=0; and silence on an event whose stdout the model never sees.
-# The ps1 arm is exercised by CI where pwsh exists; here the reference arm is
+# The ps1 arm is compared against this one by D16 below where pwsh exists.
 # the measurement.
 # No pipes into grep -q here: SIGPIPE under pipefail is platform-dependent
 # (checker/portability.sh refuses the construct). Captured output, `case`
@@ -181,7 +181,7 @@ esac
 # FUSE prompt writes the summons, a transcript where nobody spoke must BLOCK
 # with every missing charter, the summons must be CONSUMED by that block, a
 # transcript where everyone spoke must allow, and stop_hook_active must stand
-# the gate down. All against the POSIX arm; CI exercises the ps1 twin.
+# the gate down. All against the POSIX arm; D16 below holds the ps1 twin
 GD=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/voice-gate.$$")
 _fuse='{"session_id":"vgate","cwd":"/tmp","hook_event_name":"UserPromptSubmit","prompt":"plan a strategy to debug the build and predict the next failure"}'
 printf '%s' "$_fuse" | ROTMOE_STATE_DIR="$GD" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
@@ -252,6 +252,60 @@ else
   ok "D10: GATE=0 still clears -- a stale summons cannot outlive its turn"
 fi
 rm -rf "$GD" 2>/dev/null || :
+
+# --- D16: the two GATE arms must emit the SAME BYTES -----------------------
+# MEASURED 2026-08-21 and the reason this block exists: NOTHING in this repo
+# had ever EXECUTED hooks/rot-voice-gate.ps1. Not a checker, not a CI job --
+# the only references were ARM/DISARM path-wiring and the packager. Two
+# comments in this very file said CI exercised it. They were wrong, and they
+# are corrected above.
+#
+# What that cost: the ps1 arm never set [Console]::OutputEncoding, so on a
+# Windows console codepage every seal in its refusal became a question mark
+# and U+00D7 was transliterated to 'x'. Both refusals were the SAME LENGTH
+# (1438 chars) and differed at 23 positions -- which is precisely why a
+# length, line or shape check could never have found it, and why this
+# assertion compares BYTES.
+#
+# cross-diff.sh owns arm agreement for the ROUTER. This owns it for the GATE.
+_D16D="${TMPDIR:-/tmp}/rotmoe-d16.$$"
+rm -rf "$_D16D"; mkdir -p "$_D16D"
+# ONE payload, both arms -- that is the whole point, so the path inside it has
+# to be legible to both. MEASURED: git-bash hands an env var to pwsh verbatim,
+# so a POSIX "/tmp/x" reaches PowerShell as a drive-relative path, resolves
+# against the current drive root, does not exist -- and the gate then quite
+# correctly degrades open on a state dir that is genuinely absent. That is the
+# harness lying, not the hook: it cost one false "the Windows gate never
+# blocks" finding. cygpath -m emits the mixed form (C:/...), which MSYS bash
+# and PowerShell both accept, so both arms get the identical string. No
+# cygpath (Linux CI) -> the path is already native to both.
+_D16W="$_D16D"
+command -v cygpath >/dev/null 2>&1 && _D16W=$(cygpath -m "$_D16D")
+_D16PWSH=''
+for _c in pwsh powershell; do command -v "$_c" >/dev/null 2>&1 && { _D16PWSH="$_c"; break; }; done
+printf '%s
+' '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"no stanzas here"}]}}' > "$_D16D/tr.jsonl"
+_d16p='{"session_id":"vd16","cwd":"/tmp","hook_event_name":"UserPromptSubmit","prompt":"weigh the ontology of the release against what the grieving user will feel when the timeline forecast collides with the compressed audit"}'
+_d16s='{"session_id":"vd16","cwd":"/tmp","hook_event_name":"Stop","transcript_path":"'"$_D16W"'/tr.jsonl"}'
+if [ -z "$_D16PWSH" ]; then
+  printf 'NOTE  D16: no pwsh -- the gate arm-parity check is SKIPPED, which is never a pass
+'
+elif ! command -v node >/dev/null 2>&1; then
+  printf 'NOTE  D16: no node -- the gate cannot measure, so parity is SKIPPED, which is never a pass
+'
+else
+  printf %s "$_d16p" | ROTMOE_STATE_DIR="$_D16W" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+  printf %s "$_d16s" | ROTMOE_STATE_DIR="$_D16W" sh "$ROOT/hooks/rot-voice-gate.sh" > "$_D16D/a.json" 2>/dev/null
+  printf %s "$_d16p" | ROTMOE_STATE_DIR="$_D16W" ROTMOE_DEBUG_SRC=test sh "$ROOT/hooks/rot-router.sh" >/dev/null 2>&1
+  printf %s "$_d16s" | ROTMOE_STATE_DIR="$_D16W" "$_D16PWSH" -NoProfile -File "$ROOT/hooks/rot-voice-gate.ps1" > "$_D16D/b.json" 2>/dev/null
+  _d16v=$(node -e 'const f=require("fs");const g=p=>{try{return JSON.parse(f.readFileSync(p,"utf8")).reason||""}catch(e){return ""}};const a=g(process.argv[1]),b=g(process.argv[2]);if(!a||!b){console.log("EMPTY");}else if(a===b){console.log("SAME");}else{let n=0;for(let i=0;i<Math.max(a.length,b.length);i++)if(a[i]!==b[i])n++;console.log("DIFF "+n);}' "$_D16D/a.json" "$_D16D/b.json" 2>/dev/null)
+  case "$_d16v" in
+    SAME) ok "D16: both gate arms emit byte-identical refusals -- the seals survive the Windows console encoder" ;;
+    EMPTY) bad "D16: one gate arm produced no parseable refusal -- parity cannot be judged, which is never a pass" ;;
+    *) bad "D16: the gate arms disagree ($_d16v differing characters) -- a Windows install is being served a different contract" ;;
+  esac
+fi
+rm -rf "$_D16D" 2>/dev/null || :
 
 # --- D11: the computed layer is the executable's, never a copy that drifts ---
 # Every charter carries its formula as YAML inside a CDATA section (the codex
