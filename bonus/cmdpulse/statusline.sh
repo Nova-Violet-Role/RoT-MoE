@@ -88,7 +88,8 @@ CYAN=$'\033[38;2;110;220;235m'
 if [ "${STATUSLINE_ASCII:-0}" = "1" ]; then
   G_BRANCH="git"; G_FULL="#"; G_EMPTY="-"; G_THINK="*"; G_FAST=">>"
 else
-  G_BRANCH=$''; G_FULL=$'█'; G_EMPTY=$'░'; G_THINK=$'✻'; G_FAST=$'⚡'
+  G_BRANCH=$(printf '\356\202\240')   # U+E0A0 Nerd Font branch icon, as UTF-8 octal so this file stays ASCII
+  G_FULL=$'█'; G_EMPTY=$'░'; G_THINK=$'✻'; G_FAST=$'⚡'
 fi
 
 int() {

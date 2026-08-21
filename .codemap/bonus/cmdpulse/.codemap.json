@@ -367,12 +367,12 @@
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "34582f02d484",
-      "indexed_at": "2026-08-21T07:50:35.541343+00:00",
+      "hash": "2e04a0a8ffb9",
+      "indexed_at": "2026-08-21T08:09:53.243086+00:00",
       "language": "shell",
-      "lines": 459,
-      "mtime_ns": 1787298618744643000,
-      "size": 21311,
+      "lines": 460,
+      "mtime_ns": 1787299792862662200,
+      "size": 21404,
       "symbols": [
         {
           "lines": [
@@ -384,24 +384,24 @@
         },
         {
           "lines": [
-            94,
-            97
+            95,
+            98
           ],
           "name": "int",
           "type": "function"
         },
         {
           "lines": [
-            98,
-            104
+            99,
+            105
           ],
           "name": "fmt_num",
           "type": "function"
         },
         {
           "lines": [
-            377,
-            382
+            378,
+            383
           ],
           "name": "rl_color",
           "type": "function"
@@ -409,8 +409,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            418,
-            435
+            419,
+            436
           ],
           "name": "build",
           "type": "function"
@@ -418,8 +418,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            438,
-            443
+            439,
+            444
           ],
           "name": "vis_len",
           "type": "function"
@@ -427,6 +427,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:54:17.301514+00:00",
+  "generated_at": "2026-08-21T08:09:53.243162+00:00",
   "version": "1.0"
 }
