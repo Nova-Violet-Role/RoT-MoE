@@ -44,7 +44,7 @@ rc=0
 list_sources () {
   find "$ROOT" -type f \
     \( -name '*.lean' -o -name '*.sh' -o -name '*.ps1' -o -name '*.yml' \
-       -o -name '*.yaml' -o -name '*.toml' -o -name '*.js' -o -name '*.dtd' \) \
+       -o -name '*.yaml' -o -name '*.toml' -o -name '*.js' -o -name '*.dtd' -o -name '*.lua' \) \
     -not -path '*/.git/*' -not -path '*/.lake/*' -not -path '*/LICENSES/*'
 }
 
@@ -53,7 +53,7 @@ list_sources () {
 # EXEMPT (declared here, with the reason). Anything else REFUSES and is named,
 # so the next file type that lands forces a decision instead of slipping past.
 # A list nobody can add to silently is the only kind that stays honest.
-SPDX_COVERED='lean sh ps1 yml yaml toml js dtd'
+SPDX_COVERED='lean sh ps1 yml yaml toml js dtd lua'
 # EXEMPT, and why: prose and data carry no code; archives and images are opaque;
 # .bak is a working-copy artefact and is git-ignored.
 SPDX_EXEMPT='md gif jsonl txt json zip bak tsv log done count cff 2'

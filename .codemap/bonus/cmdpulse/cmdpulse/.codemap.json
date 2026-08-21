@@ -2,25 +2,25 @@
   "directory": "bonus\\cmdpulse\\cmdpulse",
   "files": {
     "cmdpulse-web.sh": {
-      "hash": "e4057a3f19a8",
-      "indexed_at": "2026-08-21T07:35:54.470468+00:00",
+      "hash": "ee7cc4a603e5",
+      "indexed_at": "2026-08-21T07:58:03.477818+00:00",
       "language": "shell",
-      "lines": 280,
-      "mtime_ns": 1787297734833979400,
-      "size": 18032,
+      "lines": 283,
+      "mtime_ns": 1787299066965304600,
+      "size": 18151,
       "symbols": [
         {
           "lines": [
-            37,
-            119
+            40,
+            122
           ],
           "name": "build_payload",
           "type": "function"
         },
         {
           "lines": [
-            261,
-            265
+            264,
+            268
           ],
           "name": "write_page",
           "type": "function"
@@ -28,25 +28,25 @@
       ]
     },
     "cmdpulse.sh": {
-      "hash": "7e658a711d8c",
-      "indexed_at": "2026-08-21T07:45:07.449634+00:00",
+      "hash": "82b232f255bb",
+      "indexed_at": "2026-08-21T07:58:03.478420+00:00",
       "language": "shell",
-      "lines": 260,
-      "mtime_ns": 1787298306747520300,
-      "size": 11339,
+      "lines": 263,
+      "mtime_ns": 1787299067088966800,
+      "size": 11458,
       "symbols": [
         {
           "lines": [
-            45,
-            51
+            48,
+            54
           ],
           "name": "fmt_dur",
           "type": "function"
         },
         {
           "lines": [
-            52,
-            58
+            55,
+            61
           ],
           "name": "fmt_bytes",
           "type": "function"
@@ -54,40 +54,40 @@
         {
           "docstring": "Baseline: median / p95 / max duration per signature, from the ledger.",
           "lines": [
-            63,
-            76
+            66,
+            79
           ],
           "name": "baseline",
           "type": "function"
         },
         {
           "lines": [
-            78,
-            92
+            81,
+            95
           ],
           "name": "bar",
           "type": "function"
         },
         {
           "lines": [
-            94,
-            129
+            97,
+            132
           ],
           "name": "inspect",
           "type": "function"
         },
         {
           "lines": [
-            131,
-            156
+            134,
+            159
           ],
           "name": "show_top",
           "type": "function"
         },
         {
           "lines": [
-            158,
-            170
+            161,
+            173
           ],
           "name": "follow",
           "type": "function"
@@ -95,15 +95,15 @@
       ]
     },
     "record.sh": {
-      "hash": "c53574b2c2f2",
-      "indexed_at": "2026-08-21T07:45:07.578300+00:00",
+      "hash": "2503b2146f12",
+      "indexed_at": "2026-08-21T07:58:03.478845+00:00",
       "language": "shell",
-      "lines": 271,
-      "mtime_ns": 1787298306747520300,
-      "size": 14662,
+      "lines": 274,
+      "mtime_ns": 1787299067242300900,
+      "size": 14781,
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T07:45:07.578373+00:00",
+  "generated_at": "2026-08-21T07:58:03.479902+00:00",
   "version": "1.0"
 }

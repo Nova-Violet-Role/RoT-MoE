@@ -349,50 +349,50 @@
       ]
     },
     "install.sh": {
-      "hash": "ffdb74dbbe12",
-      "indexed_at": "2026-08-21T07:35:54.788114+00:00",
+      "hash": "fbd9a7e867f5",
+      "indexed_at": "2026-08-21T07:58:03.476338+00:00",
       "language": "shell",
-      "lines": 51,
-      "mtime_ns": 1787297734821725600,
-      "size": 2804,
+      "lines": 54,
+      "mtime_ns": 1787299067441375000,
+      "size": 2923,
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "34582f02d484",
-      "indexed_at": "2026-08-21T07:45:07.727565+00:00",
+      "hash": "00492ebeff07",
+      "indexed_at": "2026-08-21T07:58:03.477156+00:00",
       "language": "shell",
-      "lines": 459,
-      "mtime_ns": 1787298306733976200,
-      "size": 21311,
+      "lines": 462,
+      "mtime_ns": 1787299067502958100,
+      "size": 21430,
       "symbols": [
         {
           "lines": [
-            18,
-            22
+            21,
+            25
           ],
           "name": "fail",
           "type": "function"
         },
         {
           "lines": [
-            94,
-            97
+            97,
+            100
           ],
           "name": "int",
           "type": "function"
         },
         {
           "lines": [
-            98,
-            104
+            101,
+            107
           ],
           "name": "fmt_num",
           "type": "function"
         },
         {
           "lines": [
-            377,
-            382
+            380,
+            385
           ],
           "name": "rl_color",
           "type": "function"
@@ -400,8 +400,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            418,
-            435
+            421,
+            438
           ],
           "name": "build",
           "type": "function"
@@ -409,8 +409,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            438,
-            443
+            441,
+            446
           ],
           "name": "vis_len",
           "type": "function"
@@ -418,6 +418,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:45:07.727643+00:00",
+  "generated_at": "2026-08-21T07:58:03.479205+00:00",
   "version": "1.0"
 }

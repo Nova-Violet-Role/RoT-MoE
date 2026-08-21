@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
 # ~/.claude/cmdpulse/cmdpulse-web.sh
 # CmdPulse web inspector — full input/output dashboard, selectable and copyable.
 #

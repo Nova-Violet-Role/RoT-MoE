@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
 # CmdPulse installer — copies scripts, merges settings, wires all 31 hook events.
 set -u
 HERE=$(cd "$(dirname "$0")" && pwd)
