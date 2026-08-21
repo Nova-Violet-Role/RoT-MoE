@@ -173,19 +173,19 @@
     },
     "ci-audit-freshness.sh": {
       "hash": "51caff829091",
-      "indexed_at": "2026-08-21T03:26:23.545968+00:00",
+      "indexed_at": "2026-08-21T08:08:17.205113+00:00",
       "language": "shell",
       "lines": 222,
-      "mtime_ns": 1787282782477636700,
+      "mtime_ns": 1787299039366863400,
       "size": 10798,
       "symbols": []
     },
     "ci-dryrun.sh": {
       "hash": "357a09e72bd5",
-      "indexed_at": "2026-08-21T04:21:25.789244+00:00",
+      "indexed_at": "2026-08-21T08:08:17.205845+00:00",
       "language": "shell",
       "lines": 524,
-      "mtime_ns": 1787286085035886200,
+      "mtime_ns": 1787299039366863400,
       "size": 28212,
       "symbols": [
         {
@@ -226,10 +226,10 @@
     },
     "ci-honesty.sh": {
       "hash": "efa2a5bbc73f",
-      "indexed_at": "2026-08-21T03:26:23.546514+00:00",
+      "indexed_at": "2026-08-21T08:08:17.206419+00:00",
       "language": "shell",
       "lines": 443,
-      "mtime_ns": 1787282782452098800,
+      "mtime_ns": 1787299039366863400,
       "size": 22296,
       "symbols": [
         {
@@ -381,10 +381,10 @@
     },
     "cross-diff.sh": {
       "hash": "4d9afad44954",
-      "indexed_at": "2026-08-21T05:28:58.948249+00:00",
+      "indexed_at": "2026-08-21T08:08:17.209864+00:00",
       "language": "shell",
       "lines": 703,
-      "mtime_ns": 1787284563264277800,
+      "mtime_ns": 1787299039367869200,
       "size": 37537,
       "symbols": [
         {
@@ -699,10 +699,10 @@
     },
     "hook-contract.sh": {
       "hash": "eaecb146d013",
-      "indexed_at": "2026-08-21T05:28:58.958156+00:00",
+      "indexed_at": "2026-08-21T08:08:17.215412+00:00",
       "language": "shell",
       "lines": 259,
-      "mtime_ns": 1787284563254392300,
+      "mtime_ns": 1787299039367869200,
       "size": 14330,
       "symbols": [
         {
@@ -1402,10 +1402,10 @@
     },
     "release-package.sh": {
       "hash": "3459d5c3c323",
-      "indexed_at": "2026-08-21T03:26:23.547220+00:00",
+      "indexed_at": "2026-08-21T08:08:17.230830+00:00",
       "language": "shell",
       "lines": 613,
-      "mtime_ns": 1787282782556658000,
+      "mtime_ns": 1787299039367869200,
       "size": 30293,
       "symbols": [
         {
@@ -1872,10 +1872,10 @@
     },
     "voice-contract.sh": {
       "hash": "5911c5ea1f62",
-      "indexed_at": "2026-08-21T03:26:23.548571+00:00",
+      "indexed_at": "2026-08-21T08:08:17.238603+00:00",
       "language": "shell",
       "lines": 642,
-      "mtime_ns": 1787282782530704700,
+      "mtime_ns": 1787299039368874700,
       "size": 38977,
       "symbols": [
         {
@@ -2083,6 +2083,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T07:58:03.480271+00:00",
+  "generated_at": "2026-08-21T08:08:17.319435+00:00",
   "version": "1.0"
 }

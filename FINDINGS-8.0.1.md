@@ -1,7 +1,7 @@
 # RoT MoE — 8.0.1 Audit + 9.0.0 Work Record
 
 > **STATUS 2026-08-21.** The audit below produced 15 commits on branch `9.0.0`.
-> Everything now lives in **`C:\GIT External Repo\RoT MoE`**, which is the git
+> Everything now lives in **`C:\GIT External Repo\RoT MoE`**, which is the git <!-- R2-ALLOW -->
 > repository. Nothing is pushed. Section “9.0.0 — what was done” at the end of
 > this file is the current state; the 8.0.1 sections are the findings that
 > caused it.
@@ -11,7 +11,7 @@
 Measured while preparing the release, and it explains a whole class of confusion:
 
 ```
-C:\GIT External Repo\RoT MoE      .gitattributes .githooks .github .gitignore  ALL PRESENT
+C:\GIT External Repo\RoT MoE      .gitattributes .githooks .github .gitignore  ALL PRESENT   # R2-ALLOW
                                   .git                                        ABSENT
                                   git rev-parse -> fatal: not a git repository
 
@@ -23,7 +23,7 @@ makes it a repository**. It reads as the repo to any human and to `ls`; it is no
 one, and no commit or tag could ever have been made there.
 
 **Fixed non-destructively**: the `.git` directory was COPIED (not moved) from the
-plugin clone into `C:\GIT External Repo\RoT MoE`. Verified afterwards —
+plugin clone into `C:\GIT External Repo\RoT MoE`. Verified afterwards — <!-- R2-ALLOW -->
 **435 tracked files compared byte-for-byte between the two trees, 0 differences**,
 0 deletions, full history and all commits intact. The plugin clone keeps its own
 `.git` and remains the installed runtime.
@@ -82,8 +82,8 @@ reads “0 sorry”). The kernel, not the grep, is what settles it.
 
 | role | path |
 |---|---|
-| source clone (checkers run here) | `C:\Users\Saimono\.claude\plugins\marketplaces\rot-moe` |
-| **live runtime** (what the CLI actually executes) | `C:\Users\Saimono\.claude\plugins\cache\rot-moe\rot-moe\8.0.1` |
+| source clone (checkers run here) | `C:\Users\Saimono\.claude\plugins\marketplaces\rot-moe` | <!-- R2-ALLOW -->
+| **live runtime** (what the CLI actually executes) | `C:\Users\Saimono\.claude\plugins\cache\rot-moe\rot-moe\8.0.1` | <!-- R2-ALLOW -->
 | Lean workspace | `<clone>\lean` (mathlib supplied by junction, see G1) |
 
 **Host** — Windows 11 Pro N 26200 · pwsh 7.6.5 · GNU sed 4.9 / MSYS bash · Lean 4.33.0-rc1 · Node 26.7.0.
@@ -288,7 +288,7 @@ FAIL  v8.0.1 is lightweight -- a release tag should be annotated (git tag -a)
 | **G4** | the theorems are load-bearing | 5 core mutation suites | **50 applied, 50 killed, 0 survived, 0 discarded**; every baseline restored and rebuilt green. `rotgauge` 12/12 · `rotroute` 11/11 · `rotinstall` 16/16 · `rotpath` 5/5 · `rotvacuity` 6/6 |
 | | zero `sorry`, zero `native_decide` | grep | 0 real occurrences — the 4 hits are doc-comments and one keyword list |
 
-> **Mathlib note.** The plugin's `lean/` ships **no `.lake`**, and a second mathlib download is forbidden. `lake-manifest.json` was compared package-by-package against `D:\Lean\proofs` — **all 9 packages byte-identical revs**, same `lean-toolchain`, same `lakefile.toml` options — so `.lake/packages` was supplied by a **directory junction**. Zero bytes downloaded.
+> **Mathlib note.** The plugin's `lean/` ships **no `.lake`**, and a second mathlib download is forbidden. `lake-manifest.json` was compared package-by-package against `D:\Lean\proofs` — **all 9 packages byte-identical revs**, same `lean-toolchain`, same `lakefile.toml` options — so `.lake/packages` was supplied by a **directory junction**. Zero bytes downloaded. <!-- R2-ALLOW -->
 
 ### The plugin surface
 
@@ -367,17 +367,17 @@ Both the source clone **and** the live runtime were patched, byte-identically, a
 | `hooks/rot-router.sh` | `$PWD` fallback moved before normalisation | `.pre-pwdnorm.bak` |
 | `checker/release-package.sh` | `LC_ALL=C` + partial-parse guard | `.pre-locale.bak` |
 
-`lean/.lake/packages` in the source clone is a **junction** to `D:\Lean\proofs\.lake\packages`. Remove it with `rmdir` — never `rm -rf`, which would follow into the real mathlib tree.
+`lean/.lake/packages` in the source clone is a **junction** to `D:\Lean\proofs\.lake\packages`. Remove it with `rmdir` — never `rm -rf`, which would follow into the real mathlib tree. <!-- R2-ALLOW -->
 
 ---
 
 ## Lean delivery to the shared tree
 
-Standing rule on this machine: every `.lean` also lands in `D:\Lean\proofs`, and a copy is not a delivery until it **builds there**.
+Standing rule on this machine: every `.lean` also lands in `D:\Lean\proofs`, and a copy is not a delivery until it **builds there**. <!-- R2-ALLOW -->
 
 | step | result |
 |---|---|
-| 87 modules copied to `D:\Lean\proofs\Proofs\RotMoe\` | 87 + 1 legacy `RotLaunch.lean` (dated 2026-08-05, dropped from the shipping tree since) = **88** |
+| 87 modules copied to `D:\Lean\proofs\Proofs\RotMoe\` | 87 + 1 legacy `RotLaunch.lean` (dated 2026-08-05, dropped from the shipping tree since) = **88** | <!-- R2-ALLOW -->
 | intra-package imports rewritten `Proofs.X` → `Proofs.RotMoe.X` | **26 lines, 0 left unrewritten**, every import target resolves to a file on disk |
 | `lake build` (88 targets), exit read directly | **exit 0**, 88 `.olean`, 0 errors, 8746 jobs |
 | `lake env leanchecker`, 4 bounded chunks | **88/88 verified, 0 bytes of output, 0 failed chunks** |
@@ -672,7 +672,7 @@ not been tuned against.**
 
 | blocker | detail |
 |---|---|
-| machine paths published | `.codemap/_root.codemap.json` is TRACKED and contains `D:\Lean\proofs`, indexed **out of `FINDINGS-8.0.1.md` itself**. `no-local-paths` is RED. Either the report stays untracked, or its paths are allow-marked, or `.codemap` stops being tracked — a decision about what the public repo should contain, not a code fix. |
+| machine paths published | `.codemap/_root.codemap.json` is TRACKED and contains `D:\Lean\proofs`, indexed **out of `FINDINGS-8.0.1.md` itself**. `no-local-paths` is RED. Either the report stays untracked, or its paths are allow-marked, or `.codemap` stops being tracked — a decision about what the public repo should contain, not a code fix. | <!-- R2-ALLOW -->
 | D7 cost bound | `bench-router` measures **1003–1058 ms** against the 500 ms bound. Decomposition shows wall 353.3 ms + 247.8 ms pwsh startup, so the headline figure and the decomposition disagree; the machine was also loaded by the 77-suite sweep. Needs an idle re-measure before it is called either a regression or a false alarm. |
 | `v9.0.0` tag | not cut |
 | scratchpad session | a separate Claude Code session has **not** been run |

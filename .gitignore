@@ -20,3 +20,10 @@ TASKS/
 # stamped, installed into CTT for testing -- never published until the promise is earned.
 .release-local-only/
 .release-local-only.count
+
+# CodeMap index -- a generated, machine-specific map of THIS checkout.
+# Not product: it is read from disk by local tooling, never consumed from git.
+# It also re-churns on every commit and, being derived, cannot carry an
+# R2-ALLOW marker (regeneration erases it) -- so a machine path indexed out of
+# any file would be republished on every run. Untracked 2026-08-21.
+.codemap/

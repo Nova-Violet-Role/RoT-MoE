@@ -3,10 +3,10 @@
   "files": {
     "ARM_ROUTER.sh": {
       "hash": "4306077eeb57",
-      "indexed_at": "2026-08-21T03:26:23.538030+00:00",
+      "indexed_at": "2026-08-21T08:08:17.117819+00:00",
       "language": "shell",
       "lines": 354,
-      "mtime_ns": 1787282782688097300,
+      "mtime_ns": 1787299039361671800,
       "size": 17626,
       "symbols": [
         {
@@ -2664,10 +2664,10 @@
     },
     "CHANGELOG.md": {
       "hash": "3614e09c6943",
-      "indexed_at": "2026-08-20T21:31:52.139993+00:00",
+      "indexed_at": "2026-08-21T08:08:17.165415+00:00",
       "language": "markdown",
       "lines": 93,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787299039361671800,
       "size": 5311,
       "symbols": [
         {
@@ -2913,10 +2913,10 @@
     },
     "DISARM_ROUTER.sh": {
       "hash": "2b3b557f5f19",
-      "indexed_at": "2026-08-21T03:26:23.538472+00:00",
+      "indexed_at": "2026-08-21T08:08:17.166357+00:00",
       "language": "shell",
       "lines": 238,
-      "mtime_ns": 1787282782739686500,
+      "mtime_ns": 1787299039362673400,
       "size": 11750,
       "symbols": [
         {
@@ -2940,12 +2940,12 @@
       ]
     },
     "FINDINGS-8.0.1.md": {
-      "hash": "6c14935613df",
-      "indexed_at": "2026-08-21T07:58:51.509550+00:00",
+      "hash": "711be59979de",
+      "indexed_at": "2026-08-21T08:07:30.228985+00:00",
       "language": "markdown",
       "lines": 678,
-      "mtime_ns": 1787299130860126200,
-      "size": 45120,
+      "mtime_ns": 1787299644743140600,
+      "size": 45295,
       "symbols": [
         {
           "docstring": "Measured while preparing the release, and it explains a whole class of confusion:",
@@ -3167,7 +3167,7 @@
               "type": "subsection"
             }
           ],
-          "docstring": "Standing rule on this machine: every `.lean` also lands in `D:\\Lean\\proofs`, and a copy is not a delivery until it **builds there**.",
+          "docstring": "Standing rule on this machine: every `.lean` also lands in `D:\\Lean\\proofs`, and a copy is not a delivery until it **builds there**. <!-- R2-ALLOW -->",
           "lines": [
             374,
             399
@@ -3411,10 +3411,10 @@
     },
     "README.md": {
       "hash": "ea6e8eb95840",
-      "indexed_at": "2026-08-21T03:26:23.540809+00:00",
+      "indexed_at": "2026-08-21T08:08:17.168898+00:00",
       "language": "markdown",
       "lines": 1502,
-      "mtime_ns": 1787282782792190000,
+      "mtime_ns": 1787299039363695900,
       "size": 84480,
       "symbols": [
         {
@@ -3821,10 +3821,10 @@
     },
     "RELEASE.md": {
       "hash": "4dfc583b92c3",
-      "indexed_at": "2026-08-20T21:31:52.144383+00:00",
+      "indexed_at": "2026-08-21T08:08:17.169081+00:00",
       "language": "markdown",
       "lines": 109,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787299039363695900,
       "size": 4785,
       "symbols": [
         {
@@ -4094,6 +4094,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:58:51.509654+00:00",
+  "generated_at": "2026-08-21T08:08:17.307693+00:00",
   "version": "1.0"
 }
