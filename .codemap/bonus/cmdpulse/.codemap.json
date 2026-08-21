@@ -358,41 +358,41 @@
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "00492ebeff07",
-      "indexed_at": "2026-08-21T07:58:03.477156+00:00",
+      "hash": "e9ca3107e6be",
+      "indexed_at": "2026-08-21T08:33:35.910549+00:00",
       "language": "shell",
-      "lines": 462,
-      "mtime_ns": 1787299067502958100,
-      "size": 21430,
+      "lines": 469,
+      "mtime_ns": 1787300920965147600,
+      "size": 21987,
       "symbols": [
         {
           "lines": [
-            21,
-            25
+            18,
+            22
           ],
           "name": "fail",
           "type": "function"
         },
         {
           "lines": [
-            97,
-            100
+            99,
+            102
           ],
           "name": "int",
           "type": "function"
         },
         {
           "lines": [
-            101,
-            107
+            103,
+            109
           ],
           "name": "fmt_num",
           "type": "function"
         },
         {
           "lines": [
-            380,
-            385
+            387,
+            392
           ],
           "name": "rl_color",
           "type": "function"
@@ -400,8 +400,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            421,
-            438
+            428,
+            445
           ],
           "name": "build",
           "type": "function"
@@ -409,8 +409,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            441,
-            446
+            448,
+            453
           ],
           "name": "vis_len",
           "type": "function"
@@ -418,6 +418,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T08:08:17.318369+00:00",
+  "generated_at": "2026-08-21T08:33:35.911137+00:00",
   "version": "1.0"
 }

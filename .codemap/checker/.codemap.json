@@ -1138,12 +1138,12 @@
       ]
     },
     "no-local-paths.sh": {
-      "hash": "94ae9d9aee30",
-      "indexed_at": "2026-08-20T21:31:52.076890+00:00",
+      "hash": "f67508f24419",
+      "indexed_at": "2026-08-21T08:38:33.551318+00:00",
       "language": "shell",
-      "lines": 240,
-      "mtime_ns": 1787209313000000000,
-      "size": 11693,
+      "lines": 254,
+      "mtime_ns": 1787301512246477700,
+      "size": 12599,
       "symbols": []
     },
     "plugin-install.sh": {
@@ -2083,6 +2083,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T08:08:17.319435+00:00",
+  "generated_at": "2026-08-21T08:38:33.551403+00:00",
   "version": "1.0"
 }

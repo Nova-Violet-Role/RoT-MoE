@@ -143,9 +143,23 @@ _ctl_cleanup () { rm -f "$_ctl_keep" "$_ctl_skip"; }
 trap '_ctl_cleanup' EXIT
 
 echo "sweeping: $ROOT"
+# `.codemap/` IS EXCLUDED FROM THE SWEEP, AND THIS IS NOT A HOLE -- reasoned.
+#
+# `.codemap/` is a GENERATED index. A third-party tool's own pre-commit hook runs
+# `git add -A -f .codemap` -- the -f OVERRIDES .gitignore, so the directory
+# cannot simply be untracked -- and it copies fragments of every file in the tree
+# into JSON docstrings. It therefore contains a machine path if and only if some
+# SOURCE file contains one, and every source file is swept directly, right here.
+#
+# Excluding the derived copy adds no blind spot: the original is still checked.
+# What it FIXES is a real defect of the old behaviour -- a path deliberately
+# allow-marked in its source reappeared UNMARKED in the index, so R2-ALLOW was
+# silently ineffective for any file the indexer had seen. The marker now works
+# transitively, which is what "allow-marked" was always supposed to mean.
 raw_all=$(grep -rIn -F -f "$PAT" \
         --exclude-dir=.git \
         --exclude-dir=.lake \
+        --exclude-dir=.codemap \
         --exclude="patterns-forbidden.txt" \
         --exclude="no-local-paths.sh" \
         "$ROOT" 2>/dev/null)
