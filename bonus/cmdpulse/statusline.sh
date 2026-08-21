@@ -363,7 +363,11 @@ if [ -d "$CP/active" ]; then
         fi
       else
         # no history for this command shape: sweep instead of inventing a number
-        pos=$(( (el / 150) % (CW * 2) ))
+        # Sweep period must not divide evenly into the refresh interval, or every render
+        # samples the same phase and the block looks frozen. At 150ms/cell the cycle was
+        # 3.0s against a 3s refresh — perfect aliasing. 700ms/cell gives a 14s cycle, so
+        # consecutive renders land on visibly different positions.
+        pos=$(( (el / 700) % (CW * 2) ))
         [ "$pos" -ge "$CW" ] && pos=$(( CW * 2 - pos - 1 ))
         while [ "$k" -lt "$CW" ]; do
           d=$(( k > pos ? k - pos : pos - k ))
