@@ -546,6 +546,103 @@ else
 fi
 
 echo
+echo "== THE PAYLOAD PATH WITH NO cwd AND THE PROJECT SINK LIVE (R2) =="
+# WHY THIS PHASE EXISTS -- R2, found in the 8.0.1 audit and NOT caught here.
+#
+# hooks/rot-router.sh normalised the project path BEFORE the $PWD fallback, so a
+# payload carrying NO `cwd` key sent raw Windows backslashes into awk. awk read
+# \G and \R as escape sequences, the project-log redirect failed, and the marker
+# degraded to `R/s+ n/a` while the PowerShell arm rendered a real score from the
+# same input -- a user-visible arm disagreement, which is this file's whole job.
+#
+# THE REASON THIS FILE MISSED IT IS NOT THE CORPUS. The payload rows above have
+# never carried a `cwd`. It is that every one of them sets
+#     ROTMOE_DEBUG_LOCAL=0
+# which FORBIDS the per-project sink -- precisely the code path R2 broke -- and
+# sends stdout to /dev/null, so a degraded marker cannot be seen. The gap was in
+# the switches and the discarded stream.
+#
+# This phase therefore inverts both, on purpose:
+#     * a payload with NO `cwd` key      -> the $PWD fallback MUST fire
+#     * ROTMOE_DEBUG_LOCAL=1             -> the project sink MUST be attempted
+#     * cwd is a scratch dir             -> nothing is ever written into the repo
+#     * stdout is CAPTURED and compared  -> the marker is the evidence, not a log field
+_R2D=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/xd-r2.$$")
+mkdir -p "$_R2D" 2>/dev/null
+_r2pl='{"prompt":"lake build the theorem","hook_event_name":"UserPromptSubmit","session_id":"xd-r2"}'
+_r2sh=$( cd "$_R2D" && printf '%s' "$_r2pl" | env ROTMOE_STATE_DIR="$_R2D" ROTMOE_DEBUG_LOCAL=1 \
+           ROTMOE_DEBUG_LOG="$_R2D/sh.jsonl" "$SH" 2>&1 | head -1 )
+_r2sh=$(printf '%s' "$_r2sh" | tr -d '\r')
+
+case "$_r2sh" in
+  *"R/s+ n/a"*)
+    bad "R2: the sh arm lost the gauge on a cwd-less payload -- '$_r2sh'" ;;
+  *"awk:"*|*"escape sequence"*)
+    bad "R2: awk diagnostics reached the marker on a cwd-less payload -- '$_r2sh'" ;;
+  "RoT MoE :: TIER 1 -> "*"R/s+ "*)
+    ok "R2: a cwd-less payload still carries a real gauge with the project sink live" ;;
+  *)
+    bad "R2: the sh arm emitted no recognisable marker on a cwd-less payload -- '$_r2sh'" ;;
+esac
+
+if [ -n "$PWSH" ]; then
+  _r2ps=$( cd "$_R2D" && printf '%s' "$_r2pl" | env ROTMOE_STATE_DIR="$_R2D" ROTMOE_DEBUG_LOCAL=1 \
+             ROTMOE_DEBUG_LOG="$_R2D/ps.jsonl" "$PWSH" -NoProfile -File "$PS1" 2>&1 | head -1 )
+  _r2ps=$(printf '%s' "$_r2ps" | tr -d '\r')
+  if [ "$_r2sh" = "$_r2ps" ]; then
+    ok "R2: both arms agree BYTE FOR BYTE on a cwd-less payload"
+  else
+    bad "R2 ARMS DISAGREE on a cwd-less payload"
+    echo "        sh : $_r2sh"
+    echo "        ps1: $_r2ps"
+  fi
+else
+  echo "  SKIP  no PowerShell on this machine (the R2 arm comparison did not run)"
+  skip=$((skip+1))
+fi
+
+# THE CONTROL, AND AN HONEST NOTE ABOUT WHAT IT CANNOT REACH.
+#
+# The obvious control -- run the pre-R2 router and require it to degrade -- was
+# built, run, and found DEAD, for a reason worth recording rather than hiding:
+#
+#   * the pre-R2 order normalised the payload's `cwd` correctly; ONLY the $PWD
+#     fallback escaped normalisation, and
+#   * a shell ALWAYS resets $PWD from getcwd(), so on MSYS it is `/c/...` and
+#     can never carry a backslash. Measured directly: `env PWD='C:\X\Y' sh` and
+#     `cd` to a Windows-form path both yield an MSYS $PWD.
+#
+# So the old ordering is UNREACHABLE from any shell-launched context, and no
+# checker running in a shell can produce a live control for it. That is stated
+# here instead of scoring a green nobody earned.
+#
+# What IS reachable, load-bearing, and checked below: a payload whose `cwd` is
+# a WINDOWS-spelled path must still produce a usable sink path in both arms.
+# That is the property the reordering protects, it is testable, and a control
+# proves the comparison can fail.
+_r2win='{"prompt":"lake build","hook_event_name":"UserPromptSubmit","session_id":"xd-r2w","cwd":"C:\NoSuch\Scratch\Dir"}'
+_r2wsh=$( printf '%s' "$_r2win" | env ROTMOE_STATE_DIR="$_R2D" ROTMOE_DEBUG_LOCAL=0 \
+            ROTMOE_DEBUG_LOG="$_R2D/w.jsonl" "$SH" 2>&1 | head -1 )
+_r2wsh=$(printf '%s' "$_r2wsh" | tr -d '\r')
+case "$_r2wsh" in
+  *"escape sequence"*|*"awk:"*|*"R/s+ n/a"*)
+    bad "R2: a Windows-spelled cwd still reaches awk unnormalised -- '$_r2wsh'" ;;
+  "RoT MoE :: TIER 1 -> "*"R/s+ "*)
+    ok "R2: a Windows-spelled cwd is normalised before it can reach a redirect" ;;
+  *)
+    bad "R2: no recognisable marker on a Windows-spelled cwd -- '$_r2wsh'" ;;
+esac
+
+# CONTROL for the comparison itself: a deliberately mangled marker must NOT be
+# accepted by the case arms above. If this passes, the matching is too loose.
+_r2fake="RoT MoE :: TIER 1 -> FORGE Claude | R/s+ n/a"
+case "$_r2fake" in
+  *"R/s+ n/a"*) ok "CONTROL: a degraded marker IS rejected by this phase's matcher" ;;
+  *)           bad "CONTROL DEAD: the matcher accepts 'R/s+ n/a' -- this phase proves nothing" ;;
+esac
+rm -rf "$_R2D"
+
+echo
 echo "== LOCALE INVARIANCE: the same row under every installed locale =="
 # The locale trap is the one defect that a numeric comparison cannot see and a
 # single-locale run cannot reach. Every available comma-decimal locale is forced

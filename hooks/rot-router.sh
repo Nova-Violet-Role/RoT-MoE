@@ -1450,15 +1450,30 @@ hook_mode () {
   # ambiguous across implementations, and checker/portability.sh refuses it:
   # a strip that fails OPEN on BSD would leave separators in a value that
   # reaches a directory path. tr has no delimiter to collide with.
-  # ORDER IS LOAD-BEARING -- MEASURED 2026-08-21 on Windows. The normalisation
-  # below used to run BEFORE this fallback, so a $PWD that is ALREADY a Windows
-  # path -- exactly what Claude Code hands a bash hook here, measured
-  # PWD is handed to a bash hook in its WINDOWS spelling, backslashes and all --
-  # awk then read \G and \R as escape sequences, dropped them, and redirected the
-  # gauge record to `C:GIT External RepoRoT MoE/.rot-moe/...`, which does not
-  # exist: the record was LOST and the marker rendered `R/s+ n/a` while the
-  # PowerShell arm rendered 0.17 from the same input. Fall back FIRST, then
-  # normalise EVERY path that can reach a redirect -- not just the JSON one.
+  # ORDER IS LOAD-BEARING, and the reason is stated exactly as strongly as it
+  # can be justified -- corrected 2026-08-21 after the first version of this
+  # comment overclaimed.
+  #
+  # The normalisation below used to run BEFORE this fallback. That left the
+  # $PWD branch -- and only that branch -- unnormalised, because a `cwd` taken
+  # from the payload is extracted well above and was normalised either way.
+  #
+  # WHAT WAS OBSERVED: a live hook invocation emitted awk escape-sequence
+  # warnings and redirected the gauge record to `C:GIT External RepoRoT MoE/
+  # .rot-moe/...` -- backslashes eaten by awk -- so the record was lost and the
+  # marker read `R/s+ n/a` while the PowerShell arm rendered a real score.
+  #
+  # WHAT COULD NOT BE REPRODUCED: that failure, from any shell. A shell always
+  # resets $PWD from getcwd(), so under MSYS it is `/c/...` and cannot carry a
+  # backslash -- measured: `env PWD='C:\X\Y' sh` and `cd` to a Windows-form path
+  # both yield an MSYS $PWD. Driven from a shell the old and new orders are
+  # byte-identical. So the old ordering is unreachable from a shell-launched
+  # context, and whatever produced the live corruption is NOT established.
+  #
+  # The reorder is kept regardless, because it is correct by construction: every
+  # path that can reach a redirect is normalised, not just the JSON one. It is a
+  # safety property, not a reproduced bug fix, and the checker phase in
+  # checker/cross-diff.sh says the same thing rather than scoring a dead control.
   [ -n "$_rot_proj" ] || _rot_proj=$PWD
   _rot_proj=$(printf '%s' "$_rot_proj" | tr '\\' '/')
 

@@ -248,12 +248,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "e09408183aac",
-      "indexed_at": "2026-08-21T02:15:41.471649+00:00",
+      "hash": "32a4e7ac6980",
+      "indexed_at": "2026-08-21T03:38:14.764289+00:00",
       "language": "shell",
-      "lines": 2202,
-      "mtime_ns": 1787274615571797300,
-      "size": 118588,
+      "lines": 2217,
+      "mtime_ns": 1787283269474807600,
+      "size": 119405,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -329,7 +329,7 @@
           "docstring": "--- TIER 2: NSIL -- FUSE and ELEVATE ---------------------------------------- These two were SPECIFIED in rot-lean.md section 3 and NOT IMPLEMENTED. T",
           "lines": [
             436,
-            2203
+            2218
           ],
           "name": "nsil_active_lenses",
           "type": "function"
@@ -355,7 +355,7 @@
         {
           "lines": [
             573,
-            2203
+            2218
           ],
           "name": "band_flag",
           "type": "function"
@@ -397,7 +397,7 @@
         {
           "lines": [
             760,
-            2203
+            2218
           ],
           "name": "gauge",
           "type": "function"
@@ -406,7 +406,7 @@
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
             952,
-            2203
+            2218
           ],
           "name": "rot_nsil_decide",
           "type": "function"
@@ -415,7 +415,7 @@
           "docstring": "Part two: gauge + both records. $1 non-empty = the voice path (LENSDATA on).",
           "lines": [
             1207,
-            2203
+            2218
           ],
           "name": "rot_gauge_record",
           "type": "function"
@@ -423,7 +423,7 @@
         {
           "lines": [
             1414,
-            2203
+            2218
           ],
           "name": "hook_mode",
           "type": "function"
@@ -431,8 +431,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            2126,
-            2133
+            2141,
+            2148
           ],
           "name": "need_value",
           "type": "function"
@@ -458,6 +458,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T03:05:07.375272+00:00",
+  "generated_at": "2026-08-21T03:38:14.764406+00:00",
   "version": "1.0"
 }
