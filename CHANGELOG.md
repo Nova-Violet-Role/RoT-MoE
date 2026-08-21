@@ -43,6 +43,54 @@ Not a version of the router. A standalone tool shipped alongside it, in
 
 ---
 
+## [9.0.1] — 2026-08-21
+
+**The tier is the patch digit again — and the audit that earned the release.**
+`9.0.0` core · **`9.0.1` lean** · `9.0.2` unsealed, published separately. `9.0.1`
+is what `/plugin install` serves: the verification surface is the point of this
+project, so the default carries it.
+
+### Fixed — two RED, found by audit and each proven load-bearing by mutation
+
+- **R1** both PowerShell arms emitted OEM best-fit garbage for every non-ASCII
+  byte (`⚜️`→`??`, `λ`→`?`, `·`→`0xFA`). One pinned encoding per arm. Reverting
+  the pin turns `cross-diff` red — mutation-proven, not asserted.
+- **R2** the project path was normalised BEFORE the `$PWD` fallback. Reordered.
+  **Stated honestly: the live corruption was real, its mechanism was NOT
+  reproducible from any shell, and the reorder is kept as a safety property
+  rather than a reproduced fix.**
+
+### Fixed — instrument and latent defects
+
+- **R3** the CI audit judged whatever run came back; it now NAMES its workflow
+  and refuses (exit 2) if that workflow is absent. Steps read: 5 → **221**.
+- **O1** byte-wise locale for the DTD reader, bound to the declaration.
+- **O2** the sink-retirement check asked node for its own path. `voice-contract`
+  46/1 → **47/0**.
+- **O3** an unbound "26 checks" claim removed from three README spots — **and a
+  guard added**, because replanting it was previously undetected.
+- **O5 / O5b** the licence gate had never opened a `.js`, and `bonus/` shipped
+  **six unlicensed files**. 287 → **318** source files, 0 missing a header.
+- **O6** every hook command ran BOTH arms when the ps1 arm failed
+  (`A && B || C`). All 63 rewritten to the conditional form; installers carry
+  legacy strings so an old arm still disarms.
+- **Y1** path equality is not string equality — a pin this installer wrote
+  survived `arm` under a different true spelling of the same directory.
+- **Y5** cross-diff never reached the payload path. **Y6** the ps1 sink wrote
+  CRLF into `.jsonl`. **Y7** dead `ROT_PROFILE` removed from both arms.
+  **Y8** three deliberate control bytes documented. **Y10** the arm fallback
+  finally has a checker — shape AND behaviour.
+
+### Verified
+
+87/87 modules kernel re-verified · **797/797 mutants killed, 0 survived** ·
+1632 theorems · **0 sorry** · 31 hook events / 63 entries all execute ·
+Animus consume-and-emit proven with five controls · 190 `.sh` files,
+0 syntax failures, error tier cleared · two separate Claude Code 2.1.238
+scratchpad sessions wrote their own sinks and fired 10 distinct hook events.
+
+---
+
 ## [8.0.1] — 2026-08-20
 
 **Patch: the gate learns to show its seals and to ask without demanding

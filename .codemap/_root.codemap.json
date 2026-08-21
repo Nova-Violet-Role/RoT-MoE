@@ -2663,12 +2663,12 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "a726ae415982",
-      "indexed_at": "2026-08-21T11:46:33.472078+00:00",
+      "hash": "0832e51c85b4",
+      "indexed_at": "2026-08-21T13:13:00.677060+00:00",
       "language": "markdown",
-      "lines": 121,
-      "mtime_ns": 1787312772202108200,
-      "size": 6801,
+      "lines": 169,
+      "mtime_ns": 1787317960570611500,
+      "size": 9384,
       "symbols": [
         {
           "children": [
@@ -2702,10 +2702,48 @@
         {
           "children": [
             {
+              "docstring": "- **R1** both PowerShell arms emitted OEM best-fit garbage for every non-ASCII byte (`\u269c\ufe0f`\u2192`??`, `\u03bb`\u2192`?`, `\u00b7`\u2192`0xFA`). One pinned encoding per arm. Rev",
+              "lines": [
+                53,
+                62
+              ],
+              "name": "Fixed \u2014 two RED, found by audit and each proven load-bearing by mutation",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **R3** the CI audit judged whatever run came back; it now NAMES its workflow and refuses (exit 2) if that workflow is absent. Steps read: 5 \u2192 **221*",
+              "lines": [
+                63,
+                83
+              ],
+              "name": "Fixed \u2014 instrument and latent defects",
+              "type": "subsection"
+            },
+            {
+              "docstring": "87/87 modules kernel re-verified \u00b7 **797/797 mutants killed, 0 survived** \u00b7 1632 theorems \u00b7 **0 sorry** \u00b7 31 hook events / 63 entries all execute \u00b7 An",
+              "lines": [
+                84,
+                93
+              ],
+              "name": "Verified",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**The tier is the patch digit again \u2014 and the audit that earned the release.** `9.0.0` core \u00b7 **`9.0.1` lean** \u00b7 `9.0.2` unsealed, published separatel",
+          "lines": [
+            46,
+            93
+          ],
+          "name": "[9.0.1] \u2014 2026-08-21",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
               "docstring": "The router recorded a summons as `Name|element|charter|bound`; the DTD's sigil never left the router, so the gate's refusal could not show it, and a b",
               "lines": [
-                58,
-                69
+                106,
+                117
               ],
               "name": "Fixed \u2014 the seals ride the summons now",
               "type": "subsection"
@@ -2713,8 +2751,8 @@
             {
               "docstring": "B4's pattern returned, one CLI generation later. Blocked over a trivial turn, the 2.1.237-era convening model refused the old demand \u2014 *\"I won't manuf",
               "lines": [
-                70,
-                87
+                118,
+                135
               ],
               "name": "Fixed \u2014 the refusal no longer reads as an order to fabricate",
               "type": "subsection"
@@ -2722,8 +2760,8 @@
             {
               "docstring": "Found by the blind run: its Animus observer saw nothing for ten turns. Six hypotheses died by controlled reproduction before the instrumented rerun ca",
               "lines": [
-                88,
-                110
+                136,
+                158
               ],
               "name": "Fixed \u2014 every armed session ran sinkless; the fossil pin is retired",
               "type": "subsection"
@@ -2731,8 +2769,8 @@
             {
               "docstring": "`checker/voice-contract.sh` D10 now also holds: every summons row carries five fields with a non-empty seal; the blocking refusal shows the seals besi",
               "lines": [
-                111,
-                122
+                159,
+                170
               ],
               "name": "Held \u2014 the contract grew six rows, each falsified first",
               "type": "subsection"
@@ -2740,8 +2778,8 @@
           ],
           "docstring": "**Patch: the gate learns to show its seals and to ask without demanding theatre \u2014 and the armed sink comes back from the dead.** The Socio ran the voi",
           "lines": [
-            46,
-            122
+            94,
+            170
           ],
           "name": "[8.0.1] \u2014 2026-08-20",
           "type": "section"
@@ -3876,12 +3914,12 @@
       ]
     },
     "RELEASE.md": {
-      "hash": "92dd799a861c",
-      "indexed_at": "2026-08-21T11:46:33.476151+00:00",
+      "hash": "09919c8301f3",
+      "indexed_at": "2026-08-21T13:12:02.627247+00:00",
       "language": "markdown",
-      "lines": 153,
-      "mtime_ns": 1787312772202108200,
-      "size": 6988,
+      "lines": 157,
+      "mtime_ns": 1787317921459511200,
+      "size": 7173,
       "symbols": [
         {
           "docstring": "> *\"for everyone tired about waiting for the next update \u2014 I made something everyone was > searching for, because it is far easier than what I'm worki",
@@ -3893,10 +3931,10 @@
           "type": "section"
         },
         {
-          "docstring": "Three archives, one version \u2014 `8.0.1` \u2014 and the tier lives in the **name**, not the patch digit. The `5.x` convention (patch digit as tier) is retired",
+          "docstring": "Three archives, three releases \u2014 and **the patch digit is the tier again**. The `5.x` convention is RESTORED at `9.0.x`: `9.0.0` core, **`9.0.1` lean*",
           "lines": [
             70,
-            89
+            93
           ],
           "name": "\ud83c\udfaf Which one do I want?",
           "type": "section"
@@ -3904,17 +3942,17 @@
         {
           "docstring": "`RoT-MoE-Router.zip` \u2014 the product, in every archive:",
           "lines": [
-            90,
-            124
+            94,
+            128
           ],
-          "name": "\ud83d\udce6 v8.0.1 \u2014 Animus, three ways",
+          "name": "\ud83d\udce6 v9.0.1 \u2014 Animus, three ways",
           "type": "section"
         },
         {
           "docstring": "Four files are published, and these are their exact names \u2014 so a download script needs no directory listing (the v6.0.0 Real Test's stranger sat on a",
           "lines": [
-            125,
-            145
+            129,
+            149
           ],
           "name": "\ud83d\udd0f Verify what you downloaded",
           "type": "section"
@@ -3922,8 +3960,8 @@
         {
           "docstring": "`8.0.0` (Animus), `7.0.0` (The Working Share), `6.0.2`, `6.0.1`, `6.0.0` (the first CI-published release), the `5.x` and earlier three-variant release",
           "lines": [
-            146,
-            154
+            150,
+            158
           ],
           "name": "\ud83d\uddc3\ufe0f Prior releases",
           "type": "section"
@@ -4159,6 +4197,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T12:48:20.924704+00:00",
+  "generated_at": "2026-08-21T13:13:00.677147+00:00",
   "version": "1.0"
 }

@@ -63,6 +63,35 @@ case "$TREEVER" in
   *) echo "REFUSE: could not read a semver version from $MANIFEST (got '$TREEVER')"; exit 2 ;;
 esac
 
+# THE PATCH DIGIT IS THE TIER AGAIN -- restored at 9.0.x, and stamped, not hoped.
+#
+# Through 5.x the patch digit WAS the tier; 6.0.0 retired it and deleted the
+# per-variant rewrite with a warning worth keeping: "a sed that should change
+# nothing is a defect waiting for the day it does." That warning is honoured
+# here rather than ignored -- the stamp is applied, and then READ BACK OUT OF
+# THE ZIP and compared against THIS TIER's expected digit (assertion 6). A sed
+# that writes the wrong version is therefore caught by the assertion, which is
+# the protection the old comment was asking for.
+#
+# The tree's manifest declares the DEFAULT INSTALL tier -- lean -- because the
+# verification surface is the point of this project. BASEVER is its major.minor.
+BASEVER=${TREEVER%.*}
+tier_version () {                      # core=.0  lean=.1  unsealed=.2
+  case "$1" in
+    core)     echo "$BASEVER.0" ;;
+    lean)     echo "$BASEVER.1" ;;
+    unsealed) echo "$BASEVER.2" ;;
+    *) echo "REFUSE: no tier digit declared for variant '$1'" >&2; return 2 ;;
+  esac
+}
+# The tree's own version MUST be one the map can produce, or the manifest and
+# the packager have silently diverged.
+_tv_ok=0
+for _t in core lean unsealed; do [ "$(tier_version "$_t")" = "$TREEVER" ] && _tv_ok=1; done
+[ "$_tv_ok" -eq 1 ] || { echo "REFUSE: $MANIFEST declares $TREEVER, which no tier digit produces"; exit 2; }
+case x in x)
+esac
+
 # --- THE VARIANT MAP ----------------------------------------------------------
 # One place, read by everything below. Adding a variant means adding an entry
 # here and a paths block; nothing else in this file hard-codes an archive name.
@@ -241,7 +270,20 @@ for vp in $VARIANTS; do
   done
   IFS=$_OLDIFS
 
-  # THE MANIFEST IS NOT REWRITTEN ANY MORE. Through 5.x this loop sed-ed each
+  # STAMP THE STAGED MANIFEST WITH THIS TIER'S VERSION. Not a no-op sed: for two
+  # of the three variants it genuinely changes the digit, and assertion 6 reads
+  # it back out of the finished zip to prove which one landed.
+  _tver=$(tier_version "$v") || exit 2
+  _sm="$STAGE/.claude-plugin/plugin.json"
+  if [ -f "$_sm" ]; then
+    sed 's/"version"[[:space:]]*:[[:space:]]*"[^"]*"/"version": "'"$_tver"'"/' "$_sm" > "$_sm.n" && mv "$_sm.n" "$_sm" || { echo "REFUSE: could not stamp $v manifest with $_tver"; exit 2; }
+    _got=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$_sm" | head -1)
+    [ "$_got" = "$_tver" ] || { echo "REFUSE: stamp did not land for $v (wanted $_tver, got '$_got')"; exit 2; }
+  else
+    echo "REFUSE: no staged manifest to stamp for $v"; exit 2
+  fi
+
+  # HISTORY. Through 5.x this loop sed-ed each
   # staged plugin.json to its variant's version, because the patch digit WAS
   # the tier and an archive named 0.5.0 carrying a manifest saying 0.5.2 would
   # contradict its own name. That convention is retired at 6.0.0: all three
@@ -392,10 +434,11 @@ for vp in $VARIANTS; do
   [ -s "$z" ] || continue
   inner=$(unzip -p "$z" ".claude-plugin/plugin.json" 2>/dev/null \
           | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
-  if [ "$inner" = "$TREEVER" ]; then
-    ok "$zn declares version $inner inside -- the tree's own"
+  _want=$(tier_version "${vp%%:*}") || _want='<no tier>'
+  if [ "$inner" = "$_want" ]; then
+    ok "$zn declares version $inner inside -- this tier's own digit"
   else
-    bad "$zn ships a manifest saying '$inner' but the tree declares $TREEVER"
+    bad "$zn ships a manifest saying '$inner' but tier ${vp%%:*} must declare $_want"
   fi
 done
 

@@ -10,13 +10,13 @@
 
 **Nine voices, one mind — and a kernel that checks the arithmetic**
 
-*Three archives, one version. The tier lives in the name now.*
+*Three releases, three tiers. The patch digit is the tier again.*
 
 [![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/saimonokuma)
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
-[![Release](https://img.shields.io/badge/v8.0.1-Animus-0969da?style=flat-square)](#-v801--animus-three-ways)
+[![Release](https://img.shields.io/badge/v9.0.1-Animus-0969da?style=flat-square)](#-v901--animus-three-ways)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
 
 </div>
@@ -69,12 +69,16 @@ Local only. Nothing is uploaded. Requires `bash` and `jq`.
 
 ## 🎯 Which one do I want?
 
-Three archives, one version — `8.0.1` — and the tier lives in the **name**,
-not the patch digit. The `5.x` convention (patch digit as tier) is retired:
-the voice contract, the nine charters, the voice gate, the environment
-layer and the Animus observer are **the product**, so every archive carries
-all eight organs. The tiers differ only in how much of the verification
-surface rides along:
+Three archives, three releases — and **the patch digit is the tier again**.
+The `5.x` convention is RESTORED at `9.0.x`: `9.0.0` core, **`9.0.1` lean**,
+`9.0.2` unsealed, each published on its own. `9.0.1` is what `/plugin install`
+serves, because the verification surface is the point of this project and the
+default should carry it.
+
+The voice contract, the nine charters, the voice gate, the environment layer
+and the Animus observer are **the product**, so every archive carries all
+eight organs. The tiers differ only in how much of the verification surface
+rides along:
 
 | archive | take it when |
 |---|---|
@@ -87,7 +91,7 @@ promise: the `release` job in `ci.yml` is the only publisher, and it can
 only run after every checker job and the whole Lean job succeeded in the
 same run, on the same commit the tag lands on.
 
-## 📦 v8.0.1 — Animus, three ways
+## 📦 v9.0.1 — Animus, three ways
 
 `RoT-MoE-Router.zip` — the product, in every archive:
 

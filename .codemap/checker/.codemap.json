@@ -1401,18 +1401,26 @@
       ]
     },
     "release-package.sh": {
-      "hash": "3459d5c3c323",
-      "indexed_at": "2026-08-21T12:23:25.208797+00:00",
+      "hash": "932e74ef88c9",
+      "indexed_at": "2026-08-21T13:17:05.156219+00:00",
       "language": "shell",
-      "lines": 613,
-      "mtime_ns": 1787313045774545800,
-      "size": 30293,
+      "lines": 656,
+      "mtime_ns": 1787318185092697500,
+      "size": 32545,
       "symbols": [
+        {
+          "lines": [
+            79,
+            86
+          ],
+          "name": "tier_version",
+          "type": "function"
+        },
         {
           "docstring": "Joined with NEWLINE, never with a space -- a space here would re-introduce the very splitting the newline IFS exists to prevent, and it would do so si",
           "lines": [
-            167,
-            173
+            196,
+            202
           ],
           "name": "paths_for",
           "type": "function"
@@ -1420,8 +1428,8 @@
         {
           "docstring": "--- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ---------------------- The property that makes the naming mean something. Checked by set differ",
           "lines": [
-            363,
-            371
+            405,
+            413
           ],
           "name": "superset",
           "type": "function"
@@ -2083,6 +2091,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T12:23:25.295479+00:00",
+  "generated_at": "2026-08-21T13:17:05.156294+00:00",
   "version": "1.0"
 }
