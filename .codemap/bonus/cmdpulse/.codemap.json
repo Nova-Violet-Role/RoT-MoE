@@ -2,27 +2,18 @@
   "directory": "bonus\\cmdpulse",
   "files": {
     "README.md": {
-      "hash": "43a6426670d9",
-      "indexed_at": "2026-08-21T08:23:45.634918+00:00",
+      "hash": "d9bad5b638cc",
+      "indexed_at": "2026-08-21T08:36:33.217395+00:00",
       "language": "markdown",
-      "lines": 228,
-      "mtime_ns": 1787300624029678800,
-      "size": 9500,
+      "lines": 229,
+      "mtime_ns": 1787301392578173400,
+      "size": 9190,
       "symbols": [
-        {
-          "docstring": "A real frame, captured mid-session \u2014 two commands in flight, three finished, one phase row:",
-          "lines": [
-            25,
-            48
-          ],
-          "name": "In the wild",
-          "type": "section"
-        },
         {
           "docstring": "| element | meaning | |---|---| | `\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591 61%` | how far through the **learned median time for this exact command shape** | | `over` (red) | alrea",
           "lines": [
-            49,
-            67
+            25,
+            43
           ],
           "name": "What it shows",
           "type": "section"
@@ -30,40 +21,40 @@
         {
           "docstring": "Tool bars only cover `PreToolUse` \u2192 `PostToolUse`. Three things happen *outside* that window and look identical to a freeze:",
           "lines": [
-            68,
-            81
+            44,
+            57
           ],
           "name": "Why the phase rows matter most",
           "type": "section"
         },
         {
           "lines": [
-            82,
-            99
+            58,
+            75
           ],
           "name": "Install",
           "type": "section"
         },
         {
           "lines": [
-            100,
-            125
+            76,
+            101
           ],
           "name": "The one number that matters: `refreshInterval`",
           "type": "section"
         },
         {
           "lines": [
-            126,
-            143
+            102,
+            119
           ],
           "name": "Live output streaming (opt-in)",
           "type": "section"
         },
         {
           "lines": [
-            144,
-            159
+            120,
+            135
           ],
           "name": "The other two surfaces",
           "type": "section"
@@ -71,8 +62,8 @@
         {
           "docstring": "- **Fast tools can't be caught live.** `Read` averages 66ms, `Write` 24ms, `Edit` 111ms. The status line needs a 300ms quiet gap plus the render time,",
           "lines": [
-            160,
-            175
+            136,
+            151
           ],
           "name": "Honest limits",
           "type": "section"
@@ -80,24 +71,24 @@
         {
           "docstring": "`~/.claude/cmdpulse/` records **every command you run and its output** in `events.ndjson`, `runs/` and (if streaming is on) `stream/`. This package sh",
           "lines": [
-            176,
-            183
+            152,
+            159
           ],
           "name": "Privacy",
           "type": "section"
         },
         {
           "lines": [
-            184,
-            199
+            160,
+            175
           ],
           "name": "Uninstall",
           "type": "section"
         },
         {
           "lines": [
-            200,
-            211
+            176,
+            187
           ],
           "name": "ETA",
           "type": "section"
@@ -105,8 +96,8 @@
         {
           "docstring": "`CMDPULSE_ROWS` (default 3, max 12) shows the last N completed calls stacked above the status line, each with mark, duration and start clock \u2014 so a bu",
           "lines": [
-            212,
-            217
+            188,
+            193
           ],
           "name": "Rolling history",
           "type": "section"
@@ -114,10 +105,19 @@
         {
           "docstring": "| surface | interval | why | |---|---|---| | Claude Code status line | **1s floor**, ships at 3 | `Math.max(1,t)*1000` in the binary; sub-second is no",
           "lines": [
-            218,
-            229
+            194,
+            207
           ],
           "name": "Refresh rate \u2014 what is actually achievable",
+          "type": "section"
+        },
+        {
+          "docstring": "A generic tool cannot know how much work an arbitrary command has left \u2014 nothing exposes that. But the command itself often says so, and with `CMDPULS",
+          "lines": [
+            208,
+            230
+          ],
+          "name": "Real progress, when the command reports it",
           "type": "section"
         }
       ]
@@ -359,20 +359,20 @@
     },
     "install.sh": {
       "hash": "ffdb74dbbe12",
-      "indexed_at": "2026-08-21T08:23:45.634638+00:00",
+      "indexed_at": "2026-08-21T08:36:33.781396+00:00",
       "language": "shell",
       "lines": 51,
-      "mtime_ns": 1787300624031730300,
+      "mtime_ns": 1787301392425169600,
       "size": 2804,
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "12360d5be7c7",
-      "indexed_at": "2026-08-21T08:28:30.539436+00:00",
+      "hash": "b577dfa4508c",
+      "indexed_at": "2026-08-21T08:36:33.363083+00:00",
       "language": "shell",
-      "lines": 477,
-      "mtime_ns": 1787300909894415900,
-      "size": 22550,
+      "lines": 519,
+      "mtime_ns": 1787301392567025200,
+      "size": 25085,
       "symbols": [
         {
           "lines": [
@@ -400,8 +400,8 @@
         },
         {
           "lines": [
-            395,
-            400
+            437,
+            442
           ],
           "name": "rl_color",
           "type": "function"
@@ -409,8 +409,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            436,
-            453
+            478,
+            495
           ],
           "name": "build",
           "type": "function"
@@ -418,8 +418,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            456,
-            461
+            498,
+            503
           ],
           "name": "vis_len",
           "type": "function"
@@ -427,6 +427,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T08:28:30.539513+00:00",
+  "generated_at": "2026-08-21T08:36:33.902854+00:00",
   "version": "1.0"
 }

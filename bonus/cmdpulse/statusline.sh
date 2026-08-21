@@ -221,7 +221,49 @@ if [ -d "$CP/active" ]; then
         5) sp=$'⠴';; 6) sp=$'⠦';; 7) sp=$'⠧';; 8) sp=$'⠇';; *) sp=$'⠏';;
       esac
       cbar=""; k=0
-      if [ "$nsamp" -ge 2 ] && [ "$med" -gt 0 ]; then
+      # --- TIER 1: real progress, read from the command's OWN output -------------------
+      # A generic tool cannot know how much work an arbitrary command has left — but the
+      # command itself often says so ([5/20], 45%, "12 of 34"). With CMDPULSE_STREAM=1 that
+      # output is already on disk, so parse it. This is MEASURED progress; the median below
+      # is only the fallback for commands that report nothing.
+      real_pct=""; real_now=""; real_tot=""
+      p_log="$CP/stream/${af##*/}"; p_log="${p_log%.json}.log"
+      if [ -f "$p_log" ]; then
+        pm=$(tail -c 2048 "$p_log" 2>/dev/null | tr -d '\r' \
+             | grep -oE '\[ *[0-9]+ */ *[0-9]+ *\]|[0-9]+ of [0-9]+|[0-9]+/[0-9]+|[0-9]+(\.[0-9]+)?%' \
+             | tail -n 1)
+        case "$pm" in
+          "") ;;
+          *%) real_pct="${pm%\%}"; real_pct="${real_pct%%.*}" ;;
+          *)  pn=$(printf '%s' "$pm" | tr -cd '0-9/ofn' | tr -s ' ')
+              pn="${pm//[^0-9\/ ]/ }"; pn="${pn//of/ }"
+              real_now=$(printf '%s' "$pn" | tr -s ' /' '  ' | awk '{print $1}')
+              real_tot=$(printf '%s' "$pn" | tr -s ' /' '  ' | awk '{print $2}')
+              if [ -n "$real_tot" ] && [ "$real_tot" -gt 0 ] 2>/dev/null; then
+                real_pct=$(( real_now * 100 / real_tot ))
+              fi ;;
+        esac
+        [ -n "$real_pct" ] && [ "$real_pct" -gt 100 ] 2>/dev/null && real_pct=100
+      fi
+      if [ -n "$real_pct" ]; then
+        cpct="$real_pct"
+        ccol="$CYAN"                      # cyan = this number came from the command itself
+        cfill=$(( cpct * CW / 100 ))
+        while [ "$k" -lt "$cfill" ]; do cbar="${cbar}${ccol}${G_FULL}"; k=$((k+1)); done
+        while [ "$k" -lt "$CW" ]; do cbar="${cbar}${DIM}${G_EMPTY}${RESET}"; k=$((k+1)); done
+        clbl=$(printf '%s%d%%%s' "$ccol" "$cpct" "$RESET")
+        # ETA from real progress: elapsed / done * remaining. No history needed.
+        if [ -n "$real_now" ] && [ "$real_now" -gt 0 ] 2>/dev/null && [ -n "$real_tot" ]; then
+          rem_ms=$(( el * (real_tot - real_now) / real_now ))
+          rs=$(( rem_ms / 1000 ))
+          if   [ "$rs" -ge 3600 ]; then eta_s="$(( rs / 3600 ))h$(printf '%02d' $(( (rs % 3600) / 60 )))m"
+          elif [ "$rs" -ge 60 ];   then eta_s="$(( rs / 60 ))m$(printf '%02d' $(( rs % 60 )))s"
+          else                          eta_s="${rs}s"; fi
+          eta_s="${DIM}ETA ${RESET}${ccol}${eta_s}${RESET} ${DIM}${real_now}/${real_tot}${RESET}"
+        else
+          eta_s="${DIM}live${RESET}"
+        fi
+      elif [ "$nsamp" -ge 2 ] && [ "$med" -gt 0 ]; then
         cpct=$(( el * 100 / med ))
         [ "$cpct" -gt 100 ] && cpct=100
         ccol="$VIOLET"; [ "$cpct" -ge 80 ] && ccol="$GOLD"
