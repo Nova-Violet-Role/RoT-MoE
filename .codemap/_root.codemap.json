@@ -3026,12 +3026,12 @@
       ]
     },
     "README.md": {
-      "hash": "f74c2fe6376a",
-      "indexed_at": "2026-08-21T02:15:41.381500+00:00",
+      "hash": "ea6e8eb95840",
+      "indexed_at": "2026-08-21T03:06:17.938953+00:00",
       "language": "markdown",
       "lines": 1502,
-      "mtime_ns": 1787224588636947700,
-      "size": 84513,
+      "mtime_ns": 1787281555611637600,
+      "size": 84480,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -3710,6 +3710,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T03:03:12.565213+00:00",
+  "generated_at": "2026-08-21T03:06:17.939074+00:00",
   "version": "1.0"
 }

@@ -171,7 +171,7 @@ charters, then the stanzas spoken and the door open:
 
 And the contract that holds all of it, exit code on camera:
 
-![voice-contract: 26 checks, exit 0](assets/gif/router-60s-contract.gif)
+![voice-contract: exit 0](assets/gif/router-60s-contract.gif)
 
 </details>
 
@@ -273,7 +273,7 @@ a bare grep over the same files reports 23 more.
 | `checker/gauge-cross.sh` | the Lean mirror and the running hook agree | **6 corpus rows, hook == Lean to 2 dp**; control = retune one λ in the hook alone → 6 rows disagree |
 | `checker/mutate-checker.sh` | the *checkers* can fail — 2 meta-controls green, **17 mutants declared**; on a PowerShell-less box 11 kill and 6 are named INEXPRESSIBLE rather than counted green | **0 survived, 0 discarded** |
 | `checker/ci-dryrun.sh` | the **CI step list itself**, taken from `ci.yml` and executed on a clean copy of the tree — so a pipeline defect is caught before the push, not by it | every runnable step exit **0**; runner-only steps listed as **DEFERRED, never passed** |
-| `checker/voice-contract.sh` | the nine-voice roster, the per-lens formulas, the gate's one-refusal law and its cleanup, the result sentinel, and the `rot.env` vocabulary — each held identical to the executable in **both directions** | **26 checks, 0 failed**; controls — a ghost agent, a deleted bound, a drifted λ, a stripped declaration, a blessed blank that must stay silent among them — each proved able to fail |
+| `checker/voice-contract.sh` | the nine-voice roster, the per-lens formulas, the gate's one-refusal law and its cleanup, the result sentinel, and the `rot.env` vocabulary — each held identical to the executable in **both directions** | **0 failed**; controls — a ghost agent, a deleted bound, a drifted λ, a stripped declaration, a blessed blank that must stay silent among them — each proved able to fail |
 
 Every one of those has a **negative control** recorded beside it, because an
 instrument that has never been seen to fail proves nothing. `leanchecker`
@@ -1353,7 +1353,7 @@ Each line below names what decides it. Nothing here is aspirational.
 | The corpus is real | **MEASURED** | **87 modules**, **1632 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **87** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
-| The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — 26 checks, both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, the gate's cleanup and the result sentinel replay their own scenarios, and controls prove each direction can fail |
+| The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, the gate's cleanup and the result sentinel replay their own scenarios, and controls prove each direction can fail |
 | The voices actually fire, on the events the model can hear, and nowhere else | **MEASURED** | D9: a stanza after an untouched marker on the plain-stdout events; a strictly valid JSON envelope on the tool-loop events; silence under `ROTMOE_VOICE=0`; not a byte on a non-accepting event |
 | Each charter's formula cannot drift from the executable | **MEASURED** | D11 re-derives every declared number — defaults, lead rows, bands, Chroma's timelines, Soleil's token floor — from `hooks/rot-router.sh` itself, with a drifted-λ control |
 | The gate refuses at most once, and degrades open | **MEASURED** | D10: an unspoken summons blocks with the missing charters as the task; the summons is consumed by its own block; the harness's already-blocked flag stands the gate down; everything unmeasurable allows |
