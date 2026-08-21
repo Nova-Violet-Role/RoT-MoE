@@ -3426,6 +3426,61 @@
         }
       ]
     },
+    "NEXT-STEPS-9.0.x.md": {
+      "hash": "496bafcd54d2",
+      "indexed_at": "2026-08-21T15:53:17.899790+00:00",
+      "language": "markdown",
+      "lines": 51,
+      "mtime_ns": 1787327597519874600,
+      "size": 2404,
+      "symbols": [
+        {
+          "docstring": "| item | evidence | |---|---| | three tiers manufacture | 9.0.0 / 9.0.1 / 9.0.2 read OUT of the zips; 21/0 | | eight organs | each measured with a con",
+          "lines": [
+            5,
+            14
+          ],
+          "name": "Ready",
+          "type": "section"
+        },
+        {
+          "docstring": "`marketplace.json` was never version-pinned (0 refs to any version). It points at the source, so `/plugin install` follows the branch, not the tag. **",
+          "lines": [
+            15,
+            20
+          ],
+          "name": "Blocking the tag \u2014 one thing",
+          "type": "section"
+        },
+        {
+          "docstring": "1. Merge `9.0.0` into `main` (fast-forward, 0 behind). 2. Tag `v9.0.0`, `v9.0.1`, `v9.0.2` on the SAME commit \u2014 the tiers differ by archive content, n",
+          "lines": [
+            21,
+            31
+          ],
+          "name": "Order of operations",
+          "type": "section"
+        },
+        {
+          "docstring": "- `plugin root` \u2014 two registered roots on this machine. Environmental. - `release consistency` \u2014 clears when the tags exist. - `workflow lint` \u2014 CodeM",
+          "lines": [
+            32,
+            39
+          ],
+          "name": "Known red, all attributed",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **21 of 31 hook events never observed live.** `hook-contract` proves all 63 commands EXECUTE; only 10 events were seen firing in a real session. Th",
+          "lines": [
+            40,
+            52
+          ],
+          "name": "Debts still open",
+          "type": "section"
+        }
+      ]
+    },
     "NOTICE.md": {
       "hash": "689675ac46d9",
       "indexed_at": "2026-08-21T07:50:35.511095+00:00",
@@ -4206,6 +4261,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T14:09:18.635707+00:00",
+  "generated_at": "2026-08-21T15:53:17.899859+00:00",
   "version": "1.0"
 }
