@@ -143,6 +143,23 @@ runner_only () {   # runner_only <cmd> -> 0 if it must be deferred
   esac
 }
 
+# ⚠ THIS FILE CONTAINS THREE RAW CONTROL BYTES ON PURPOSE -- DO NOT "CLEAN" THEM.
+#
+# The line below and the read at the bottom of this file use ASCII RS (0x1E,
+# record separator) and US (0x1F, unit separator) as delimiters. They are
+# written as `printf '<RS>'` and `$'<US>'`, so in an editor they look like an
+# EMPTY string and an odd `$''` -- which is exactly why this note exists.
+#
+# WHY THESE BYTES: a workflow step's `run:` block contains newlines, tabs,
+# quotes, pipes and colons, so every printable delimiter can occur inside the
+# payload. RS and US cannot: they are the two bytes YAML will never carry.
+#
+# THEY ARE THE ONLY EXCEPTION to the project's "no control bytes but TAB and LF"
+# rule, they are load-bearing, and a sweep that strips them does not fail
+# silently -- `nsteps` becomes 0 and the guard immediately below refuses with
+# "no steps extracted ... a green here would be vacuous". Loud, not quiet. But
+# a reader who deletes them will still have broken a working checker, so:
+#   verify with   LC_ALL=C grep -c -P '[\x1e\x1f]' checker/ci-dryrun.sh   -> 3
 nsteps=$(extract_steps "$WF" | tr -cd "$(printf '')" | wc -c | tr -d ' ')
 echo "  NOTE  $nsteps run-steps extracted from $WF"
 if [ "$nsteps" -eq 0 ]; then
