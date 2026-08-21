@@ -286,7 +286,23 @@ fi
 # declaration -- parsed with the same pattern checker/voice-contract.sh uses --
 # because a "9" written here would be a snapshot, false the day a lens lands,
 # while the DTD is the contract the voice gate already answers to.
-NLENS=$(sed -n 's/.*<!ENTITY LENS\.[0-9][0-9]* *"\(.*\)">.*/\1/p' hooks/rot-voice.dtd 2>/dev/null | grep -c . || true)
+# LOCALE, and it is load-bearing -- MEASURED 2026-08-21 on Win11 + GNU sed 4.9.
+# Under a UTF-8 locale this sed SILENTLY DROPS every DTD row whose sigil is a
+# 4-byte (astral) character: `.*` fails to match once mbrtowc rejects the
+# sequence, so U+1F3B7 U+1F577 U+1FA78 U+1F52E U+1F70F U+1F9ED vanish and the
+# nine-lens roster is counted as THREE. checker/voice-contract.sh has exported
+# LC_ALL=C since its line 33 and therefore never saw this; this file had not,
+# and read a whole product as incomplete. Byte-wise is the correct mode here:
+# the pattern is pure ASCII and the payload is opaque.
+NLENS=$(LC_ALL=C sed -n 's/.*<!ENTITY LENS\.[0-9][0-9]* *"\(.*\)">.*/\1/p' hooks/rot-voice.dtd 2>/dev/null | grep -c . || true)
+# A PARTIAL parse used to be indistinguishable from a small roster: the guard
+# below only refused NLENS=0. Bind the extractor to the raw declaration count
+# instead, so "the reader lost rows" can never again be read as "the product
+# lost lenses". This holds for any future roster size, not just nine.
+NLENS_RAW=$(LC_ALL=C grep -c '<!ENTITY LENS\.' hooks/rot-voice.dtd || true)
+if [ "$NLENS" -ne "$NLENS_RAW" ]; then
+  bad "the DTD reader extracted $NLENS of $NLENS_RAW declared LENS rows -- the EXTRACTOR lost rows (locale?), the roster did not"
+fi
 if [ -s "$L_CORE" ]; then
   organ=0
   for needed in hooks/rot-voice.dtd \
