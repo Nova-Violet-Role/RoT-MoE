@@ -578,6 +578,25 @@
         }
       ]
     },
+    "env-layer.sh": {
+      "hash": "c83ae9703182",
+      "indexed_at": "2026-08-21T18:13:45.881701+00:00",
+      "language": "shell",
+      "lines": 306,
+      "mtime_ns": 1787336024448992200,
+      "size": 16858,
+      "symbols": [
+        {
+          "docstring": "CLAUDE_PLUGIN_ROOT is not decoration here. rot-env.sh:42-46 resolves the vocabulary from dirname \"$0\", then falls back to $CLAUDE_PLUGIN_ROOT/hooks; u",
+          "lines": [
+            79,
+            83
+          ],
+          "name": "sandbox",
+          "type": "function"
+        }
+      ]
+    },
     "facts-block.sh": {
       "hash": "cfbb85a307b6",
       "indexed_at": "2026-08-21T12:23:25.192571+00:00",
@@ -605,18 +624,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "5437d6e4a2a7",
-      "indexed_at": "2026-08-21T16:10:25.552549+00:00",
+      "hash": "08297239fa84",
+      "indexed_at": "2026-08-21T18:06:10.618636+00:00",
       "language": "shell",
-      "lines": 420,
-      "mtime_ns": 1787328536102641800,
-      "size": 23556,
+      "lines": 421,
+      "mtime_ns": 1787335568756739500,
+      "size": 23650,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            180,
-            195
+            181,
+            196
           ],
           "name": "fires",
           "type": "function"
@@ -2109,6 +2128,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T17:40:28.141254+00:00",
+  "generated_at": "2026-08-21T18:13:45.881785+00:00",
   "version": "1.0"
 }

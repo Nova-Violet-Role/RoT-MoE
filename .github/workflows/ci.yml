@@ -1147,6 +1147,13 @@ jobs:
 
       - name: voice contract -- the lens roster, held both ways
         run: bash checker/voice-contract.sh
+
+      # ORGAN 7 had no verifier until 9.0.x, and the file it guards is the one
+      # README.md:576 tells a user to source from their shell rc. Runs under sh,
+      # not bash, on purpose: that is the shell the shebang claims and the one a
+      # /bin/sh user would bring to it.
+      - name: env layer -- the rot command family and the three loader laws
+        run: sh checker/env-layer.sh
       # THE ONE REMAINING SKIP IN THIS WORKFLOW, and it is a boundary rather than
       # an omission. Stated plainly so nobody has to rediscover it:
       #

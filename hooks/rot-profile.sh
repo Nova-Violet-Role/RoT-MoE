@@ -149,6 +149,18 @@ rot () {
       done
       [ "$_rp_found" -eq 1 ] || echo "rot: no live summons -- every summoned lens has spoken" ;;
     check)
+      # MEASURED 2026-08-21 on the built archives: the Router tier ships
+      # hooks/ and NO checker/ at all, while still shipping this file and
+      # advertising `rot check` in its help. Without this guard the branch ran
+      # sh against a path that does not exist and then printed
+      # "voice-contract exit=<sh's own error code>" -- a verdict line for a
+      # suite that never ran, which is the one thing a checker family must
+      # never emit. The Lean and Lean+Extra tiers carry checker/ and are
+      # unaffected.
+      if [ ! -r "$_rp_home/checker/voice-contract.sh" ]; then
+        echo "rot: this install carries no checker/ -- the Router tier ships hooks only, the Lean tiers carry the suite"
+        return 2
+      fi
       sh "$_rp_home/checker/voice-contract.sh"
       _rp_rc=$?
       echo "voice-contract exit=$_rp_rc"
