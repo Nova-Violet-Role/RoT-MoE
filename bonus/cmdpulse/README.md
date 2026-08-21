@@ -22,6 +22,30 @@ Everything is local. Nothing is uploaded. No dependencies beyond `bash` and `jq`
 
 ---
 
+## In the wild
+
+A real frame, captured mid-session — two commands in flight, three finished, one phase row:
+
+```
+⠿ Bash    ▌▌░░░░░░░░    ···      0s  ETA ?      REPO="/c/GIT External Repo/RoT MoE" echo "=== RELEASE.md hea…
+⠿ Bash    ▌▌░░░░░░░░    12%     47s  ETA 5m36s  cd "C:/GIT External Repo/RoT MoE" echo "=== the .lua file(s)…
+✓ Bash    ██████████   done    5.9s  @07:50:47  set -u REPO="/c/GIT External Repo/RoT MoE" git -C "$…
+✓ Bash    ██████████   done   1m36s  @07:50:34  cd "C:/GIT External Repo/RoT MoE" echo "=== 1. SPDX…
+✓ Bash    ██████████   done   619ms  @07:50:19  set -u REPO="/c/GIT External Repo/RoT MoE" P="/c/Use…
+◈ msg     ░░░▓▓░░░░░   wait      1s  message
+```
+
+Reading it top to bottom: the first command is brand new, so it honestly reports `ETA ?`
+rather than guessing. The second has history — 47 seconds elapsed, **5m36s** predicted
+remaining, 12% of its learned median. Three completed calls hold their real durations and
+start clocks. The `◈ msg` row is a lifecycle event, not a tool call.
+
+<!-- Drop a PNG at docs/cmdpulse-live.png and uncomment to show the coloured original:
+![CmdPulse running](docs/cmdpulse-live.png)
+-->
+
+---
+
 ## What it shows
 
 | element | meaning |

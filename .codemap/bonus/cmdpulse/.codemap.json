@@ -2,18 +2,27 @@
   "directory": "bonus\\cmdpulse",
   "files": {
     "README.md": {
-      "hash": "91f5d0ec082b",
-      "indexed_at": "2026-08-21T07:50:35.540319+00:00",
+      "hash": "43a6426670d9",
+      "indexed_at": "2026-08-21T07:54:17.301432+00:00",
       "language": "markdown",
-      "lines": 204,
-      "mtime_ns": 1787298618741274300,
-      "size": 8184,
+      "lines": 228,
+      "mtime_ns": 1787298837399384800,
+      "size": 9500,
       "symbols": [
+        {
+          "docstring": "A real frame, captured mid-session \u2014 two commands in flight, three finished, one phase row:",
+          "lines": [
+            25,
+            48
+          ],
+          "name": "In the wild",
+          "type": "section"
+        },
         {
           "docstring": "| element | meaning | |---|---| | `\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591 61%` | how far through the **learned median time for this exact command shape** | | `over` (red) | alrea",
           "lines": [
-            25,
-            43
+            49,
+            67
           ],
           "name": "What it shows",
           "type": "section"
@@ -21,40 +30,40 @@
         {
           "docstring": "Tool bars only cover `PreToolUse` \u2192 `PostToolUse`. Three things happen *outside* that window and look identical to a freeze:",
           "lines": [
-            44,
-            57
+            68,
+            81
           ],
           "name": "Why the phase rows matter most",
           "type": "section"
         },
         {
           "lines": [
-            58,
-            75
+            82,
+            99
           ],
           "name": "Install",
           "type": "section"
         },
         {
           "lines": [
-            76,
-            101
+            100,
+            125
           ],
           "name": "The one number that matters: `refreshInterval`",
           "type": "section"
         },
         {
           "lines": [
-            102,
-            119
+            126,
+            143
           ],
           "name": "Live output streaming (opt-in)",
           "type": "section"
         },
         {
           "lines": [
-            120,
-            135
+            144,
+            159
           ],
           "name": "The other two surfaces",
           "type": "section"
@@ -62,8 +71,8 @@
         {
           "docstring": "- **Fast tools can't be caught live.** `Read` averages 66ms, `Write` 24ms, `Edit` 111ms. The status line needs a 300ms quiet gap plus the render time,",
           "lines": [
-            136,
-            151
+            160,
+            175
           ],
           "name": "Honest limits",
           "type": "section"
@@ -71,24 +80,24 @@
         {
           "docstring": "`~/.claude/cmdpulse/` records **every command you run and its output** in `events.ndjson`, `runs/` and (if streaming is on) `stream/`. This package sh",
           "lines": [
-            152,
-            159
+            176,
+            183
           ],
           "name": "Privacy",
           "type": "section"
         },
         {
           "lines": [
-            160,
-            175
+            184,
+            199
           ],
           "name": "Uninstall",
           "type": "section"
         },
         {
           "lines": [
-            176,
-            187
+            200,
+            211
           ],
           "name": "ETA",
           "type": "section"
@@ -96,8 +105,8 @@
         {
           "docstring": "`CMDPULSE_ROWS` (default 3, max 12) shows the last N completed calls stacked above the status line, each with mark, duration and start clock \u2014 so a bu",
           "lines": [
-            188,
-            193
+            212,
+            217
           ],
           "name": "Rolling history",
           "type": "section"
@@ -105,8 +114,8 @@
         {
           "docstring": "| surface | interval | why | |---|---|---| | Claude Code status line | **1s floor**, ships at 3 | `Math.max(1,t)*1000` in the binary; sub-second is no",
           "lines": [
-            194,
-            205
+            218,
+            229
           ],
           "name": "Refresh rate \u2014 what is actually achievable",
           "type": "section"
@@ -418,6 +427,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:50:35.659424+00:00",
+  "generated_at": "2026-08-21T07:54:17.301514+00:00",
   "version": "1.0"
 }
