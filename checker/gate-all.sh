@@ -112,6 +112,7 @@ A/B corpus vs published figures|fast||bash checker/ab-analyze.sh
 A/B instruction compliance -- exit 3 SKIP without the raw corpus|deep|bench/,CHANGELOG.md,checker/ab-compliance.sh|bash checker/ab-compliance.sh
 Lean witness vs shipped weights|fast||bash checker/lean-binds-shell.sh
 release package|fast||bash checker/release-package.sh
+release notes -- one body, three tiers|fast||bash checker/release-notes.sh core > /dev/null && bash checker/release-notes.sh lean > /dev/null && bash checker/release-notes.sh unsealed > /dev/null
 hook contract|fast||bash checker/hook-contract.sh
 voice contract (the lens roster, held both ways)|fast||bash checker/voice-contract.sh
 workflow lint + drift|fast||bash checker/workflow-lint.sh

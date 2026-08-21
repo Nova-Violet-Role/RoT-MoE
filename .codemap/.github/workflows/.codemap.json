@@ -292,12 +292,12 @@
       ]
     },
     "ci.yml": {
-      "hash": "3aa24b74c443",
-      "indexed_at": "2026-08-21T07:50:35.517125+00:00",
+      "hash": "9e7138f685e8",
+      "indexed_at": "2026-08-21T16:06:35.929573+00:00",
       "language": "yaml",
-      "lines": 1536,
-      "mtime_ns": 1787209313000000000,
-      "size": 87565,
+      "lines": 1545,
+      "mtime_ns": 1787328394897756900,
+      "size": 88100,
       "symbols": [
         {
           "docstring": "CI",
@@ -2800,7 +2800,7 @@
                       "type": "key"
                     },
                     {
-                      "docstring": "publish the release -- only a dispatch asks, only this run's proof answers",
+                      "docstring": "publish -- three tags, one body, three archives",
                       "lines": [
                         1472,
                         1472
@@ -2848,7 +2848,7 @@
                     {
                       "lines": [
                         1477,
-                        1537
+                        1546
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2856,7 +2856,7 @@
                   ],
                   "lines": [
                     1465,
-                    1537
+                    1546
                   ],
                   "name": "steps",
                   "type": "list"
@@ -2864,7 +2864,7 @@
               ],
               "lines": [
                 1455,
-                1537
+                1546
               ],
               "name": "release",
               "type": "section"
@@ -2872,7 +2872,7 @@
           ],
           "lines": [
             73,
-            1537
+            1546
           ],
           "name": "jobs",
           "type": "section"
@@ -3853,6 +3853,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:50:35.652540+00:00",
+  "generated_at": "2026-08-21T16:06:35.929773+00:00",
   "version": "1.0"
 }

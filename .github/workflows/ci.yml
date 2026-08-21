@@ -1469,68 +1469,77 @@ jobs:
         shell: bash
         run: bash checker/release-package.sh
 
-      - name: publish the release -- only a dispatch asks, only this run's proof answers
+      - name: publish -- three tags, one body, three archives
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_ASK: ${{ github.event.inputs.publish }}
         run: |
           set -e
-          VER=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .claude-plugin/plugin.json | head -1)
-          TAG="v$VER"
+          # THE SHAPE, stated once: three tags cut from ONE commit. They differ
+          # by the archive each carries, not by source tree. v$BASE.0 Router,
+          # v$BASE.1 Lean, v$BASE.2 Lean+Extra -- the same digits
+          # checker/release-package.sh stamps into each zip.
+          #
+          # No backslash escape appears anywhere in this step, deliberately. The
+          # awk field split below needs none, and a backslash that goes missing
+          # turns a regex into a character class that matches nothing while
+          # still exiting 0. Field 4 of a quote-split `"version": "9.0.1",` is
+          # the version.
+          VER=$(awk -F'"' '/"version"/{print $4; exit}' .claude-plugin/plugin.json)
+          BASE=${VER%.*}
+          [ -n "$BASE" ] || { echo "FAIL: unreadable version in .claude-plugin/plugin.json"; exit 1; }
+
+          # Compose all three notes FIRST, before any tag ref can exist.
+          # checker/release-notes.sh refuses when a tier's archive declares a
+          # version that tier does not publish, or when the CHANGELOG section is
+          # empty. A packet that cannot describe itself dies here, unpublished.
+          for t in core lean unsealed; do
+            bash checker/release-notes.sh "$t" "$RUNNER_TEMP/notes.$t.md"
+          done
+
           if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ] || [ "${RELEASE_ASK:-}" != "release" ]; then
-            echo "rehearsal only: the $VER packet built and asserted above; publishing"
-            echo "waits for an explicit dispatch with publish=release. Nothing uploaded."
+            echo "rehearsal only: the $BASE.x packet built above, and all three"
+            echo "release notes composed and asserted. Publishing waits for an"
+            echo "explicit dispatch with publish=release. Nothing uploaded."
             exit 0
           fi
-          # A tag with a Release attached NEVER moves, so every ambiguous prior
-          # state below is a refusal, never a repair.
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "FAIL: release $TAG already exists -- a published release never moves"; exit 1
-          fi
-          # Existence judged by gh's EXIT CODE, never by output emptiness --
-          # MEASURED 2026-08-17, run 32040024147 attempt 2: on a missing ref,
-          # `gh api` prints the 404 error body to STDOUT, so the captured
-          # value read {"message":"Not Found",...}, compared unequal to the
-          # SHA, and the exists-elsewhere refusal fired on a tag that did not
-          # exist. The refusal failed closed -- nothing was published -- but
-          # it was aimed at a ghost. This repository's own first rule, applied
-          # to the one step that forgot it.
-          have=""
-          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.sha' > "$RUNNER_TEMP/tag-sha" 2>/dev/null; then
-            have=$(cat "$RUNNER_TEMP/tag-sha")
-          fi
-          if [ -n "$have" ] && [ "$have" != "$GITHUB_SHA" ]; then
-            echo "FAIL: tag $TAG already points at $have, not at $GITHUB_SHA -- refusing to publish another commit under it"; exit 1
-          fi
-          if [ -z "$have" ]; then
-            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" >/dev/null
-            echo "tag $TAG cut at $GITHUB_SHA -- the commit this very run just proved"
-          else
-            echo "tag $TAG already at $GITHUB_SHA -- adopting it"
-          fi
-          # The release note is the CHANGELOG section for THIS version --
-          # authored once, derived here, never retyped. An empty section is a
-          # refusal: a release with nothing to say should not exist.
-          awk -v v="$VER" '$0 ~ ("^## \\[" v "\\]") {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
-          if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
-            echo "FAIL: CHANGELOG.md carries no [$VER] section -- refusing an empty release note"; exit 1
-          fi
-          printf '\n---\n\nVerify any download against its published checksum: sha256sum -c SHA256SUMS.txt\n' >> "$RUNNER_TEMP/notes.md"
-          gh release create "$TAG" \
-            .release/RoT-MoE-Router.zip \
-            .release/RoT-MoE-Router-Lean.zip \
-            .release/RoT-MoE-Router-Lean-Extra.zip \
-            .release/SHA256SUMS.txt \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "RoT MoE $VER -- The Whole Packet, three ways" \
-            --notes-file "$RUNNER_TEMP/notes.md" \
-            --verify-tag
-          # Count what actually landed. A publish that half-worked is a red
-          # run, not a smaller success.
-          n=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets | length')
-          echo "assets on $TAG: $n"
-          if [ "$n" -ne 4 ]; then
-            echo "FAIL: expected 4 assets on $TAG, found $n"; exit 1
-          fi
-          echo "published: $TAG, three archives + SHA256SUMS.txt, from the run that proved $GITHUB_SHA"
+
+          publish_one () {
+            _tier=$1; _tag=$2; _zip=$3; _title=$4
+            if gh release view "$_tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "FAIL: release $_tag already exists -- a published release never moves"; exit 1
+            fi
+            # Existence judged by gh's EXIT CODE, never by output emptiness --
+            # MEASURED 2026-08-17, run 32040024147 attempt 2: on a missing ref
+            # `gh api` prints its 404 body to STDOUT, so the captured value read
+            # {"message":"Not Found"...}, compared unequal to the SHA, and the
+            # refusal fired at a tag that did not exist. It failed closed, but
+            # it was aimed at a ghost.
+            have=""
+            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$_tag" --jq '.object.sha' > "$RUNNER_TEMP/tag-sha" 2>/dev/null; then
+              have=$(cat "$RUNNER_TEMP/tag-sha")
+            fi
+            if [ -n "$have" ] && [ "$have" != "$GITHUB_SHA" ]; then
+              echo "FAIL: tag $_tag already points at $have, not at $GITHUB_SHA -- refusing to publish another commit under it"; exit 1
+            fi
+            if [ -z "$have" ]; then
+              gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$_tag" -f sha="$GITHUB_SHA" >/dev/null
+              echo "tag $_tag cut at $GITHUB_SHA -- the commit this very run just proved"
+            else
+              echo "tag $_tag already at $GITHUB_SHA -- adopting it"
+            fi
+            gh release create "$_tag" ".release/$_zip" .release/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --title "$_title" --notes-file "$RUNNER_TEMP/notes.$_tier.md" --verify-tag
+            # Count what landed. A publish that half-worked is a red run, not a
+            # smaller success: one archive plus the shared checksum file.
+            n=$(gh release view "$_tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets | length')
+            echo "assets on $_tag: $n"
+            if [ "$n" -ne 2 ]; then
+              echo "FAIL: expected 2 assets on $_tag, found $n"; exit 1
+            fi
+          }
+
+          publish_one core     "v$BASE.0" RoT-MoE-Router.zip            "RoT MoE $BASE.0 -- Router"
+          publish_one lean     "v$BASE.1" RoT-MoE-Router-Lean.zip       "RoT MoE $BASE.1 -- Lean"
+          publish_one unsealed "v$BASE.2" RoT-MoE-Router-Lean-Extra.zip "RoT MoE $BASE.2 -- Lean+Extra"
+          echo "published: v$BASE.0, v$BASE.1, v$BASE.2 -- one body, three archives, from the run that proved $GITHUB_SHA"
