@@ -3,10 +3,10 @@
   "files": {
     "cmdpulse-web.sh": {
       "hash": "e4057a3f19a8",
-      "indexed_at": "2026-08-21T08:36:33.783752+00:00",
+      "indexed_at": "2026-08-21T09:00:39.213996+00:00",
       "language": "shell",
       "lines": 280,
-      "mtime_ns": 1787301392423993300,
+      "mtime_ns": 1787302837546188100,
       "size": 18032,
       "symbols": [
         {
@@ -29,10 +29,10 @@
     },
     "cmdpulse.sh": {
       "hash": "7e658a711d8c",
-      "indexed_at": "2026-08-21T08:36:33.784385+00:00",
+      "indexed_at": "2026-08-21T09:00:39.214627+00:00",
       "language": "shell",
       "lines": 260,
-      "mtime_ns": 1787301392423993300,
+      "mtime_ns": 1787302837546188100,
       "size": 11339,
       "symbols": [
         {
@@ -95,15 +95,15 @@
       ]
     },
     "record.sh": {
-      "hash": "2aca6e9d0e91",
-      "indexed_at": "2026-08-21T08:36:33.784875+00:00",
+      "hash": "ecca58a8e641",
+      "indexed_at": "2026-08-21T09:00:38.074457+00:00",
       "language": "shell",
-      "lines": 304,
-      "mtime_ns": 1787301392423993300,
-      "size": 16723,
+      "lines": 313,
+      "mtime_ns": 1787302837600553300,
+      "size": 17312,
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T08:36:33.903439+00:00",
+  "generated_at": "2026-08-21T09:00:39.334154+00:00",
   "version": "1.0"
 }

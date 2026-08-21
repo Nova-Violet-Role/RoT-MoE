@@ -100,8 +100,15 @@ int() {
   local v="${1%%.*}"
   case "$v" in ''|*[!0-9]*) echo 0 ;; *) echo "$v" ;; esac
 }
+# Fork-free equivalents. $(int x) costs a subprocess (~28ms on Windows); iv sets a global
+# instead. Same for padding: $(printf '%-12s') forks, rp/lp use parameter expansion.
+_SPX='                                                                '
+iv() { _I="${1%%.*}"; case "$_I" in ''|*[!0-9]*) _I=0 ;; esac; }
+rp() { _P="$1$_SPX"; _P="${_P:0:$2}"; }              # like printf %-Ns
+lp() { _P="$_SPX$1"; _P="${_P: -$2}"; }              # like printf %Ns
+z2() { _Z="$1"; [ "$_Z" -lt 10 ] 2>/dev/null && _Z="0$_Z"; }   # like printf %02d
 fmt_num() {
-  local n; n=$(int "${1:-0}")
+  local n; iv "${1:-0}"; n=$_I
   if [ "$n" -ge 1000000 ]; then
     local m=$((n / 100000)); printf '%d.%dM' $((m / 10)) $((m % 10))
   elif [ "$n" -ge 1000 ]; then printf '%dk' $((n / 1000))
@@ -109,8 +116,8 @@ fmt_num() {
 }
 
 # --- 4. Context load bar ---
-used_i=$(int "$ctx_used"); size_i=$(int "$ctx_size")
-if [ -n "$ctx_pct" ]; then pct=$(int "$ctx_pct")
+iv "$ctx_used"; used_i=$_I; iv "$ctx_size"; size_i=$_I
+if [ -n "$ctx_pct" ]; then iv "$ctx_pct"; pct=$_I
 elif [ "$size_i" -gt 0 ]; then pct=$(( (used_i * 100 + size_i / 2) / size_i ))
 else pct=0; fi
 [ "$pct" -gt 100 ] && pct=100
@@ -158,7 +165,7 @@ caveman=""
 flag="$CLAUDE_DIR/.caveman-active"
 if [ -f "$flag" ] && [ ! -L "$flag" ]; then
   sz=$(wc -c <"$flag" 2>/dev/null || echo 999)
-  if [ "$(int "$sz")" -le 64 ]; then
+  iv "$sz"; if [ "$_I" -le 64 ]; then
     mode=$(head -c 64 "$flag" 2>/dev/null | head -n 1 | tr -d '\r\n' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
     case "$mode" in
       full) caveman="${ORANGE}[CAVEMAN]${RESET}" ;;
@@ -178,7 +185,7 @@ cmd_lines=""
 CP="$CLAUDE_DIR/cmdpulse"
 # Each running tool gets its OWN line above the status line, with a bar the same 10 cells
 # as the context bar — so several concurrent calls stack without eating the screen.
-CMD_BAR_W=$(int "${CMDPULSE_BAR_WIDTH:-10}")
+iv "${CMDPULSE_BAR_WIDTH:-10}"; CMD_BAR_W=$_I
 [ "$CMD_BAR_W" -lt 4 ] && CMD_BAR_W=10
 if [ -d "$CP/active" ]; then
   for af in $(ls -t "$CP/active"/*.json 2>/dev/null); do
@@ -192,13 +199,13 @@ if [ -d "$CP/active" ]; then
       "$JQ" -r '[.tool,.sig,.subject,(.start|tostring)]|join("\u001f")' "$af" 2>/dev/null | tr -d '\r')
     if [ -n "${a_start:-}" ]; then
       now_ms=$NOW_MS
-      el=$(( now_ms - $(int "$a_start") ))
+      iv "$a_start"; el=$(( now_ms - _I ))
       [ "$el" -lt 0 ] && el=0
       # An interrupted or denied tool call orphans its active file, so it does need reaping —
       # but the threshold must be far above any REAL command. A 2-minute default reaped
       # 35-minute builds, i.e. precisely the long-running commands this bar exists for.
       # 6 hours: long enough that no genuine tool call is ever discarded.
-      if [ "$el" -gt "$(int "${CMDPULSE_STALE_MS:-21600000}")" ]; then
+      iv "${CMDPULSE_STALE_MS:-21600000}"; if [ "$el" -gt "$_I" ]; then
         rm -f "$af" 2>/dev/null
         continue
       fi
@@ -213,7 +220,7 @@ if [ -d "$CP/active" ]; then
         med=$("$JQ" -r --arg s "$a_sig" '(.[$s].median // 0)|tostring' "$CP/baseline.json" 2>/dev/null | tr -d '\r')
         nsamp=$("$JQ" -r --arg s "$a_sig" '(.[$s].n // 0)|tostring' "$CP/baseline.json" 2>/dev/null | tr -d '\r')
       fi
-      med=$(int "${med:-0}"); nsamp=$(int "${nsamp:-0}")
+      iv "${med:-0}"; med=$_I; iv "${nsamp:-0}"; nsamp=$_I
       CW=$CMD_BAR_W
       spin_i=$(( (el / 120) % 10 ))
       case "$spin_i" in
@@ -228,21 +235,38 @@ if [ -d "$CP/active" ]; then
       # is only the fallback for commands that report nothing.
       real_pct=""; real_now=""; real_tot=""
       p_log="$CP/stream/${af##*/}"; p_log="${p_log%.json}.log"
+      # ONE read of the log, parsed by bash builtins. The previous version read it twice
+      # through eight forks (tail|tr|grep|tail, twice) — measured at ~613ms per row on
+      # Windows, which alone pushed a three-row render past 4s. mapfile from a single tail
+      # is one fork; the regex below costs none.
+      s_tail=""
       if [ -f "$p_log" ]; then
-        pm=$(tail -c 2048 "$p_log" 2>/dev/null | tr -d '\r' \
-             | grep -oE '\[ *[0-9]+ */ *[0-9]+ *\]|[0-9]+ of [0-9]+|[0-9]+/[0-9]+|[0-9]+(\.[0-9]+)?%' \
-             | tail -n 1)
-        case "$pm" in
-          "") ;;
-          *%) real_pct="${pm%\%}"; real_pct="${real_pct%%.*}" ;;
-          *)  pn=$(printf '%s' "$pm" | tr -cd '0-9/ofn' | tr -s ' ')
-              pn="${pm//[^0-9\/ ]/ }"; pn="${pn//of/ }"
-              real_now=$(printf '%s' "$pn" | tr -s ' /' '  ' | awk '{print $1}')
-              real_tot=$(printf '%s' "$pn" | tr -s ' /' '  ' | awk '{print $2}')
-              if [ -n "$real_tot" ] && [ "$real_tot" -gt 0 ] 2>/dev/null; then
-                real_pct=$(( real_now * 100 / real_tot ))
-              fi ;;
-        esac
+        mapfile -t s_lines < <(tail -c 4096 "$p_log" 2>/dev/null | tr -d '\r') 2>/dev/null
+        n=${#s_lines[@]}
+        # newest non-blank line, for the display row under the bar
+        j=$(( n - 1 ))
+        while [ "$j" -ge 0 ]; do
+          case "${s_lines[$j]}" in ''|' '*) ;; *) s_tail="${s_lines[$j]}"; break ;; esac
+          j=$(( j - 1 ))
+        done
+        # newest line carrying a progress marker, scanning backwards
+        j=$(( n - 1 ))
+        while [ "$j" -ge 0 ] && [ -z "$real_pct" ]; do
+          ln="${s_lines[$j]}"
+          if [[ $ln =~ \[[[:space:]]*([0-9]+)[[:space:]]*/[[:space:]]*([0-9]+)[[:space:]]*\] ]]; then
+            real_now="${BASH_REMATCH[1]}"; real_tot="${BASH_REMATCH[2]}"
+          elif [[ $ln =~ ([0-9]+)[[:space:]]+of[[:space:]]+([0-9]+) ]]; then
+            real_now="${BASH_REMATCH[1]}"; real_tot="${BASH_REMATCH[2]}"
+          elif [[ $ln =~ ([0-9]+)(\.[0-9]+)?% ]]; then
+            real_pct="${BASH_REMATCH[1]}"
+          elif [[ $ln =~ ([0-9]+)/([0-9]+) ]]; then
+            real_now="${BASH_REMATCH[1]}"; real_tot="${BASH_REMATCH[2]}"
+          fi
+          if [ -n "$real_tot" ] && [ "$real_tot" -gt 0 ] 2>/dev/null; then
+            real_pct=$(( real_now * 100 / real_tot ))
+          fi
+          j=$(( j - 1 ))
+        done
         [ -n "$real_pct" ] && [ "$real_pct" -gt 100 ] 2>/dev/null && real_pct=100
       fi
       if [ -n "$real_pct" ]; then
@@ -251,7 +275,7 @@ if [ -d "$CP/active" ]; then
         cfill=$(( cpct * CW / 100 ))
         while [ "$k" -lt "$cfill" ]; do cbar="${cbar}${ccol}${G_FULL}"; k=$((k+1)); done
         while [ "$k" -lt "$CW" ]; do cbar="${cbar}${DIM}${G_EMPTY}${RESET}"; k=$((k+1)); done
-        clbl=$(printf '%s%d%%%s' "$ccol" "$cpct" "$RESET")
+        clbl="${ccol}${cpct}%${RESET}"
         # ETA from real progress: elapsed / done * remaining. No history needed.
         if [ -n "$real_now" ] && [ "$real_now" -gt 0 ] 2>/dev/null && [ -n "$real_tot" ]; then
           rem_ms=$(( el * (real_tot - real_now) / real_now ))
@@ -285,7 +309,7 @@ if [ -d "$CP/active" ]; then
           fi
           clbl="${RED}${ov_s}${RESET}"; eta_s="${DIM}run${RESET}"
         else
-          clbl=$(printf '%s%d%%%s' "$ccol" "$cpct" "$RESET")
+          clbl="${ccol}${cpct}%${RESET}"
           e=$(( eta_ms / 1000 ))
           if   [ "$e" -ge 3600 ]; then eta_s="$(( e / 3600 ))h$(printf '%02d' $(( (e % 3600) / 60 )))m"
           elif [ "$e" -ge 60 ];   then eta_s="$(( e / 60 ))m$(printf '%02d' $(( e % 60 )))s"
@@ -315,11 +339,8 @@ if [ -d "$CP/active" ]; then
       cmd_lines="${cmd_lines}${GOLD}${sp}${RESET} ${BOLD}${WHITE}$(printf '%-12s' "${a_tool:0:12}")${RESET} ${cbar}${RESET} $(printf '%6s' "$clbl") ${DIM}$(printf '%7s' "$el_s")${RESET} ${eta_s:-} ${WHITE}$(printf '%s' "${a_sub:0:60}")${RESET}"$'\n'
       # If CMDPULSE_STREAM wrapped this command, its own output is being tee'd to a log.
       # Show the newest non-empty line: that is the script's real progress, live.
-      s_log="$CP/stream/$(printf '%s' "$af" | sed 's#.*/##; s#\.json$##').log"
-      if [ -f "$s_log" ]; then
-        s_last=$(tail -c 4096 "$s_log" 2>/dev/null | tr -d '\r' | grep -v '^[[:space:]]*$' | tail -n 1)
-        [ -n "$s_last" ] && cmd_lines="${cmd_lines}    ${DIM}└ ${RESET}${GREY}$(printf '%s' "${s_last:0:88}")${RESET}"$'\n'
-      fi
+      # Already read above in the single mapfile pass — no second tail, no extra forks.
+      [ -n "${s_tail:-}" ] && cmd_lines="${cmd_lines}    ${DIM}└ ${RESET}${GREY}${s_tail:0:88}${RESET}"$'\n'
     fi
     fi
   done
@@ -330,7 +351,7 @@ fi
 # is what it can actually show. ONE jq over a small file (never the ledger) emits preformatted
 # rows; bash only colours them. CMDPULSE_ROWS controls how many (default 3, max 12).
 if [ -z "$cmd_lines" ] || [ "${CMDPULSE_ROWS:-3}" -gt 1 ] 2>/dev/null; then
-  ROWS=$(int "${CMDPULSE_ROWS:-3}")
+  iv "${CMDPULSE_ROWS:-3}"; ROWS=$_I
   [ "$ROWS" -lt 1 ] && ROWS=1
   [ "$ROWS" -gt 12 ] && ROWS=12
   if [ -s "$CP/recent.ndjson" ]; then
@@ -371,7 +392,7 @@ if [ -d "$CP/phase" ]; then
       "$JQ" -r '(.kind // "phase"), (.label // ""), ((.t // 0)|tostring), ((.ttl // 0)|tostring)' \
         "$pf" 2>/dev/null | tr -d '\r')
     [ -n "${p_lab:-}" ] || continue
-    p_ms=$(( NOW_S * 1000 - $(int "$p_t") ))
+    iv "$p_t"; p_ms=$(( NOW_S * 1000 - _I ))
     [ "$p_ms" -lt 0 ] && p_ms=0
     # Flash events (Stop, Notification, FileChanged …) are moments, not durations: they carry
     # a ttl and reap themselves once shown. ttl 0 means "runs until its matching stop event".
@@ -429,37 +450,37 @@ dir_seg_s="${VIOLET}${short_dir_s}${RESET}${dir_suffix}"
 ctx_seg="${bar} ${pct_c}${pct}%${RESET}"
 
 rc_seg=""
-rc_trig=$(int "${ROLLING_CONTEXT_TRIGGER:-0}")
+iv "${ROLLING_CONTEXT_TRIGGER:-0}"; rc_trig=$_I
 if [ "$rc_trig" -gt 0 ] && [ "$used_i" -ge "$rc_trig" ]; then rc_seg="${GOLD}RC${RESET}"; fi
 
 tok_seg="${DIM}$(fmt_num "$used_i")/$(fmt_num "$size_i") tok${RESET}"
 
 rl_color() {
-  local p; p=$(int "$1")
+  local p; iv "$1"; p=$_I
   if   [ "$p" -ge 90 ]; then printf '%s' "$RED"
   elif [ "$p" -ge 70 ]; then printf '%s' "$GOLD"
   else printf '%s' "$GREY"; fi
 }
 rl_seg=""
-[ -n "$rl5" ] && rl_seg="$(rl_color "$rl5")5h $(int "$rl5")%${RESET}"
+if [ -n "$rl5" ]; then iv "$rl5"; rl_seg="$(rl_color "$rl5")5h ${_I}%${RESET}"; fi
 if [ -n "$rl7" ]; then
   [ -n "$rl_seg" ] && rl_seg="${rl_seg}${DIM} . ${RESET}"
-  rl_seg="${rl_seg}$(rl_color "$rl7")7d $(int "$rl7")%${RESET}"
+  iv "$rl7"; rl_seg="${rl_seg}$(rl_color "$rl7")7d ${_I}%${RESET}"
 fi
 
 cost_seg=$(printf '%s$%.2f%s' "$GREEN" "$cost" "$RESET" 2>/dev/null)
 
-dur_seg=""; d=$(int "$dur_ms")
+dur_seg=""; iv "$dur_ms"; d=$_I
 [ "$d" -ge 60000 ] && dur_seg="${DIM}~$((d / 60000))m${RESET}"
 
-lines_seg=""; la=$(int "$ladd"); ld=$(int "$ldel")
+lines_seg=""; iv "$ladd"; la=$_I; iv "$ldel"; ld=$_I
 [ $((la + ld)) -gt 0 ] && lines_seg="${GREEN}+${la}${RESET}${DIM}/${RESET}${RED}-${ld}${RESET}"
 
 sess_seg=""
 [ -n "$sname" ] && sess_seg="${DIM}<${sname}>${RESET}"
 
 # --- 8. Assemble, degrading segment by segment until it fits ---
-MAXW=$(int "${STATUSLINE_MAX_WIDTH:-${COLUMNS:-190}}")
+iv "${STATUSLINE_MAX_WIDTH:-${COLUMNS:-190}}"; MAXW=$_I
 [ "$MAXW" -lt 60 ] && MAXW=190
 
 # OSC 8 hyperlink — clickable in WezTerm, Windows Terminal and most modern terminals.

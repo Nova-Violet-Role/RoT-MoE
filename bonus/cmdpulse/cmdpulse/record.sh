@@ -251,7 +251,7 @@ if [ "$EV" = "pre" ]; then
   # a green one. `exit ${PIPESTATUS[0]}` restores the real status — verified against a command
   # exiting 101 (naive form returned 0, this form returned 101). Never remove it.
   # Off unless CMDPULSE_STREAM=1, and only ever applied to Bash.
-  if [ "${CMDPULSE_STREAM:-0}" = "1" ]; then
+  if [ "${CMDPULSE_STREAM:-1}" = "1" ]; then
     s_tool=$(printf '%s' "$input" | "$JQ" -r '.tool_name // ""' 2>/dev/null)
     if [ "$s_tool" = "Bash" ]; then
       s_cmd=$(printf '%s' "$input" | "$JQ" -r '.tool_input.command // ""' 2>/dev/null)
@@ -296,6 +296,15 @@ else
                 median: (if $n % 2 == 1 then $v[($n/2|floor)] else (($v[$n/2-1]+$v[$n/2])/2) end) }) })
     | from_entries' >"$ROOT/baseline.json.tmp" 2>/dev/null \
     && mv "$ROOT/baseline.json.tmp" "$ROOT/baseline.json" 2>/dev/null
+
+  # Streaming is on by default, so every Bash command now leaves a log. Unpruned that is an
+  # unbounded write to the user's disk — reap anything older than CMDPULSE_STREAM_KEEP_MIN
+  # (60m default). The bar only ever reads the log of a call that is still running or in its
+  # afterglow, so nothing visible is lost. Set 0 to keep everything.
+  keep=$(printf '%s' "${CMDPULSE_STREAM_KEEP_MIN:-60}" | tr -cd '0-9')
+  if [ -n "$keep" ] && [ "$keep" -gt 0 ] 2>/dev/null && [ -d "$ROOT/stream" ]; then
+    find "$ROOT/stream" -type f -name '*.log' -mmin "+$keep" -delete 2>/dev/null
+  fi
 fi
 
 # Append-only ledger. Retention is the dashboard's job so this stays O(1).
