@@ -3007,12 +3007,12 @@
       ]
     },
     "FINDINGS-8.0.1.md": {
-      "hash": "54a0294ef848",
-      "indexed_at": "2026-08-21T12:48:20.924608+00:00",
+      "hash": "e243e87ffbe8",
+      "indexed_at": "2026-08-21T14:09:18.635610+00:00",
       "language": "markdown",
-      "lines": 757,
-      "mtime_ns": 1787316500022044100,
-      "size": 49704,
+      "lines": 783,
+      "mtime_ns": 1787321358374105600,
+      "size": 50941,
       "symbols": [
         {
           "docstring": "Measured while preparing the release, and it explains a whole class of confusion:",
@@ -3413,6 +3413,15 @@
             758
           ],
           "name": "`bench-router.sh` \u2014 an alarm that cried error on correct code",
+          "type": "section"
+        },
+        {
+          "docstring": "A third separate `claude -p` session (2.1.238), fresh temp directory, dense prompt chosen to force a wide summons. Not this session, not this transcri",
+          "lines": [
+            759,
+            784
+          ],
+          "name": "Scratchpad, deep run \u2014 the lenses SPOKE, unsupervised",
           "type": "section"
         }
       ]
@@ -4197,6 +4206,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T13:13:00.677147+00:00",
+  "generated_at": "2026-08-21T14:09:18.635707+00:00",
   "version": "1.0"
 }

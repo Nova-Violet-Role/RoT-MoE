@@ -755,3 +755,29 @@ before and after and is **byte-identical** (`23 passed, 1 failed` both ways).
 
 An error tier that contains a known false positive teaches everyone to ignore
 the error tier.
+
+## Scratchpad, deep run — the lenses SPOKE, unsupervised
+
+A third separate `claude -p` session (2.1.238), fresh temp directory, dense
+prompt chosen to force a wide summons. Not this session, not this transcript.
+
+| measured | value |
+|---|---|
+| distinct events | **10** — incl. PreToolUse/PostToolUse/PostToolBatch ×2, MessageDisplay ×3, Stop ×2 |
+| lanes | **CONVERGENT ×31 · FORGE ×3** — the lane moved with content |
+| NSIL | CONFIRM ×33 · **FUSE ×1** — the tier-2 layer fired in a real session |
+| max breadth | **7 lenses summoned in one turn** |
+| records / arm | 34, **every one through the `ps1` arm** |
+
+The part no gate can assert: **the charters held with nobody watching.**
+
+- Chroma **left the tension open** ("that tension … stays open") — its charter
+  forbids resolving one into consensus.
+- Eidolon proposed and marked the proposal **unapplied** — its charter forbids
+  applying its own.
+- Soleil compressed to two facts and added no meta-commentary.
+- Claude: *"Executed two commands … Nothing else was run, nothing else is
+  asserted."*
+
+That is the product behaving as specified in a process this session did not
+control, which is a different and stronger claim than any checker exit code.
