@@ -8,12 +8,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -25,12 +25,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -42,12 +42,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -59,12 +59,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -76,12 +76,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -93,12 +93,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -110,12 +110,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -127,12 +127,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -144,12 +144,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -161,17 +161,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-voice-gate.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-voice-gate.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-voice-gate.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-voice-gate.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -183,12 +183,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -200,12 +200,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -217,12 +217,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -234,12 +234,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -251,12 +251,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -268,12 +268,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -285,12 +285,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -302,12 +302,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -319,12 +319,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -336,12 +336,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -353,12 +353,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -370,12 +370,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -387,12 +387,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -404,12 +404,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -421,12 +421,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -438,12 +438,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -455,12 +455,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -472,12 +472,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -489,12 +489,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -506,12 +506,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
@@ -523,12 +523,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rot-router.sh\"; fi",
             "timeout": 18000
           },
           {
             "type": "command",
-            "command": "command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\" || bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"",
+            "command": "if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.ps1\"; else bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prover-remind.sh\"; fi",
             "timeout": 18000
           }
         ]
