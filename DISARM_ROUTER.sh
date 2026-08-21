@@ -67,7 +67,12 @@ canon_path () {
 
 ROUTER_SH="$(canon_path "$ROUTER_SH")"
 ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
-ROUTER_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
+ROUTER_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$ROUTER_PS1\"; else bash \"$ROUTER_SH\"; fi"
+# LEGACY (<= 8.0.1). Kept so an install made by the old ARM_ROUTER can still be
+# removed by this one. Dropping it would strand those entries with no documented
+# way to remove them -- the defect the comment below records, reintroduced by an
+# upgrade instead of by a second hook.
+ROUTER_CMD_LEGACY="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
 
 # EXACT MODE MUST KNOW EVERY STRING THE INSTALLER WRITES.
 #
@@ -83,10 +88,38 @@ ROUTER_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$ROUTER_P
 # could reach an entry the installer did not create.
 REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
 REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
-REMIND_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
+REMIND_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$REMIND_PS1\"; else bash \"$REMIND_SH\"; fi"
+# LEGACY (<= 8.0.1). Kept so an install made by the old ARM_ROUTER can still be
+# removed by this one. Dropping it would strand those entries with no documented
+# way to remove them -- the defect the comment below records, reintroduced by an
+# upgrade instead of by a second hook.
+REMIND_CMD_LEGACY="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
 GATE_SH="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.sh")"
 GATE_PS1="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.ps1")"
-GATE_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$GATE_PS1\" || bash \"$GATE_SH\""
+GATE_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$GATE_PS1\"; else bash \"$GATE_SH\"; fi"
+# LEGACY (<= 8.0.1). Kept so an install made by the old ARM_ROUTER can still be
+# removed by this one. Dropping it would strand those entries with no documented
+# way to remove them -- the defect the comment below records, reintroduced by an
+# upgrade instead of by a second hook.
+GATE_CMD_LEGACY="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$GATE_PS1\" || bash \"$GATE_SH\""
+
+# ALL SIX STRINGS, ONE FOLD -- three current, three legacy (<= 8.0.1).
+# settings-merge.js exit 10 means "this string was not present", which is not a
+# failure of a pass that DID remove something. So 10 survives only if EVERY pass
+# reported 10, and a real error (neither 0 nor 10) wins immediately and stops.
+# Sets _DA_RC rather than echoing, so node's own output still reaches the user
+# instead of being swallowed by a command substitution.
+_disarm_all () {   # <settings-file>
+  _DA_RC=10
+  for _da_cmd in "$ROUTER_CMD" "$REMIND_CMD" "$GATE_CMD" \
+                 "$ROUTER_CMD_LEGACY" "$REMIND_CMD_LEGACY" "$GATE_CMD_LEGACY"; do
+    _da_one=0
+    node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$1" "$_da_cmd" || _da_one=$?
+    if [ "$_da_one" -ne 0 ] && [ "$_da_one" -ne 10 ]; then _DA_RC=$_da_one; return 0; fi
+    { [ "$_DA_RC" -eq 10 ] && [ "$_da_one" -ne 10 ]; } && _DA_RC=$_da_one
+  done
+  return 0
+}
 
 # --- flags -------------------------------------------------------------------
 # `--dry-run` was ACCEPTED AND SILENTLY IGNORED here while ARM_ROUTER honoured
@@ -143,17 +176,7 @@ if [ "$DRY" -eq 1 ]; then
   TMP="$(mktemp "${TMPDIR:-/tmp}/rotmoe-disarm-dry.XXXXXX")"
   cp "$SETTINGS" "$TMP"
   chmod u+w "$TMP" 2>/dev/null || true   # a read-only settings.json copies read-only
-  RC=0
-  node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$ROUTER_CMD" || RC=$?
-  # Second pass for the reminder: see REMIND_CMD above. `10` means that half was
-  # not present, which is not a failure of the pass that did remove something.
-  RC2=0
-  node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$REMIND_CMD" || RC2=$?
-  { [ "$RC" -eq 10 ] && [ "$RC2" -ne 10 ]; } && RC=$RC2
-  # Third pass for the voice gate, same absence rule.
-  RC3=0
-  node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$TMP" "$GATE_CMD" || RC3=$?
-  { [ "$RC" -eq 10 ] && [ "$RC3" -ne 10 ]; } && RC=$RC3
+  _disarm_all "$TMP"; RC=$_DA_RC
   if [ "$RC" -eq 10 ]; then
     echo "  would remove: 0 router hook entries"
   elif [ "$RC" -ne 0 ]; then
@@ -183,17 +206,7 @@ cp "$SETTINGS" "$BACKUP"
 echo "  backup     : $BACKUP"
 echo "  restore    : cp \"$BACKUP\" \"$SETTINGS\""
 
-RC=0
-node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$ROUTER_CMD" || RC=$?
-RC2=0
-node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$REMIND_CMD" || RC2=$?
-# If the router half was absent but the reminder half was removed, the run DID
-# change the file; reporting `nothing to remove` would be a false all-clear.
-{ [ "$RC" -eq 10 ] && [ "$RC2" -ne 10 ]; } && RC=$RC2
-# Third pass for the voice gate, same absence rule as the reminder.
-RC3=0
-node "$SELF_DIR/hooks/settings-merge.js" "$MODE" "$SETTINGS" "$GATE_CMD" || RC3=$?
-{ [ "$RC" -eq 10 ] && [ "$RC3" -ne 10 ]; } && RC=$RC3
+_disarm_all "$SETTINGS"; RC=$_DA_RC
 
 if [ "$RC" -eq 4 ]; then
   cp "$BACKUP" "$SETTINGS"; echo "  AUTO-RESTORED from backup."; exit 4

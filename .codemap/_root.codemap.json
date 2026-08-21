@@ -2,12 +2,12 @@
   "directory": "",
   "files": {
     "ARM_ROUTER.sh": {
-      "hash": "a5716710ab9a",
-      "indexed_at": "2026-08-21T02:15:41.325168+00:00",
+      "hash": "4306077eeb57",
+      "indexed_at": "2026-08-21T03:03:12.564657+00:00",
       "language": "shell",
       "lines": 354,
-      "mtime_ns": 1787224588630881200,
-      "size": 17587,
+      "mtime_ns": 1787281153317180100,
+      "size": 17626,
       "symbols": [
         {
           "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
@@ -2912,12 +2912,12 @@
       ]
     },
     "DISARM_ROUTER.sh": {
-      "hash": "e6d50a9e28f8",
-      "indexed_at": "2026-08-21T02:15:41.379718+00:00",
+      "hash": "2b3b557f5f19",
+      "indexed_at": "2026-08-21T03:03:12.565145+00:00",
       "language": "shell",
-      "lines": 225,
-      "mtime_ns": 1787224588632885500,
-      "size": 10733,
+      "lines": 238,
+      "mtime_ns": 1787281121387602600,
+      "size": 11750,
       "symbols": [
         {
           "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
@@ -2926,6 +2926,15 @@
             66
           ],
           "name": "canon_path",
+          "type": "function"
+        },
+        {
+          "docstring": "ALL SIX STRINGS, ONE FOLD -- three current, three legacy (<= 8.0.1). settings-merge.js exit 10 means \"this string was not present\", which is not a fai",
+          "lines": [
+            112,
+            122
+          ],
+          "name": "_disarm_all",
           "type": "function"
         }
       ]
@@ -3701,6 +3710,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T02:15:41.518355+00:00",
+  "generated_at": "2026-08-21T03:03:12.565213+00:00",
   "version": "1.0"
 }

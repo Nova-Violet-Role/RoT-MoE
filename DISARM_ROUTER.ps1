@@ -54,8 +54,8 @@ function ConvertTo-PosixPath([string] $p) {
   if ($q -match '^([A-Za-z]):/(.*)$') { $q = '/' + $Matches[1].ToLowerInvariant() + '/' + $Matches[2] }
   return $q
 }
-$RouterCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
-             '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
+$RouterCmd = 'if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
+             '"; else bash "' + (ConvertTo-PosixPath $RouterSh) + '"; fi'
 
 # EXACT MODE MUST KNOW EVERY STRING THE INSTALLER WRITES -- same block, same
 # reason, as DISARM_ROUTER.sh. Measured 2026-08-05: once ARM_ROUTER began wiring
@@ -66,13 +66,39 @@ $RouterCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (Con
 # one contract drift.
 $RemindPs1 = Join-Path $SelfDir 'hooks/prover-remind.ps1'
 $RemindSh  = Join-Path $SelfDir 'hooks/prover-remind.sh'
-$RemindCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
-             '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
+$RemindCmd = 'if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
+             '"; else bash "' + (ConvertTo-PosixPath $RemindSh) + '"; fi'
 $GatePs1 = Join-Path $SelfDir 'hooks/rot-voice-gate.ps1'
 $GateSh  = Join-Path $SelfDir 'hooks/rot-voice-gate.sh'
-$GateCmd = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $GatePs1) +
-           '" || bash "' + (ConvertTo-PosixPath $GateSh) + '"'
+$GateCmd = 'if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File "' + (ConvertTo-PosixPath $GatePs1) +
+           '"; else bash "' + (ConvertTo-PosixPath $GateSh) + '"; fi'
 
+
+# LEGACY (<= 8.0.1) command strings. An install made by the old ARM_ROUTER wrote
+# the `A && B || C` shape; dropping it here would strand those entries with no
+# documented way to remove them. Kept in lockstep with DISARM_ROUTER.sh.
+$RouterCmdLegacy = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RouterPs1) +
+                   '" || bash "' + (ConvertTo-PosixPath $RouterSh) + '"'
+$RemindCmdLegacy = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $RemindPs1) +
+                   '" || bash "' + (ConvertTo-PosixPath $RemindSh) + '"'
+$GateCmdLegacy   = 'command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "' + (ConvertTo-PosixPath $GatePs1) +
+                   '" || bash "' + (ConvertTo-PosixPath $GateSh) + '"'
+
+# ALL SIX STRINGS, ONE FOLD -- mirrors _disarm_all in DISARM_ROUTER.sh.
+# Exit 10 means "this string was not present", which is not a failure of a pass
+# that DID remove something, so 10 survives only if EVERY pass reported 10.
+# A real error (neither 0 nor 10) wins immediately and stops.
+function Invoke-DisarmAll {
+  param([string]$Target, [bool]$Quiet)
+  $script:DaRc = 10
+  foreach ($c in @($RouterCmd, $RemindCmd, $GateCmd,
+                   $RouterCmdLegacy, $RemindCmdLegacy, $GateCmdLegacy)) {
+    if ($Quiet) { & node $Merge $Mode $Target $c | Out-Null } else { & node $Merge $Mode $Target $c }
+    $one = $LASTEXITCODE
+    if ($one -ne 0 -and $one -ne 10) { $script:DaRc = $one; return }
+    if ($script:DaRc -eq 10 -and $one -ne 10) { $script:DaRc = $one }
+  }
+}
 $Mode = if ($All) { 'disarm-any' } else { 'disarm' }
 
 Write-Output 'RoT MoE :: DISARM_ROUTER (PowerShell arm)'
@@ -98,15 +124,8 @@ if ($DryRun) {
   # write -- reporting "would FAIL" for a removal that would in fact succeed.
   try { Set-ItemProperty -LiteralPath $Tmp -Name IsReadOnly -Value $false } catch { }
   $before = @(Select-String -LiteralPath $Settings -Pattern 'rot-router' -SimpleMatch).Count
-  & node $Merge $Mode $Tmp $RouterCmd | Out-Null
-  $rc = $LASTEXITCODE
-  & node $Merge $Mode $Tmp $RemindCmd | Out-Null
-  $rc2 = $LASTEXITCODE
-  if ($rc -eq 10 -and $rc2 -ne 10) { $rc = $rc2 }
-  # Third pass for the voice gate, same absence rule as the reminder.
-  & node $Merge $Mode $Tmp $GateCmd | Out-Null
-  $rc3 = $LASTEXITCODE
-  if ($rc -eq 10 -and $rc3 -ne 10) { $rc = $rc3 }
+  Invoke-DisarmAll $Tmp $true
+  $rc = $script:DaRc
   if ($rc -eq 10) {
     Write-Output '  would remove: 0 router hook entries'
   } elseif ($rc -ne 0) {
@@ -126,17 +145,8 @@ Copy-Item -LiteralPath $Settings -Destination $Backup -Force
 Write-Output ('  backup     : ' + $Backup)
 Write-Output ('  restore    : Copy-Item "' + $Backup + '" "' + $Settings + '" -Force')
 
-& node $Merge $Mode $Settings $RouterCmd
-$rc = $LASTEXITCODE
-& node $Merge $Mode $Settings $RemindCmd
-$rc2 = $LASTEXITCODE
-# A run that removed only the reminder still CHANGED the file; reporting
-# `nothing to remove` there would be a false all-clear.
-if ($rc -eq 10 -and $rc2 -ne 10) { $rc = $rc2 }
-# Third pass for the voice gate, same absence rule as the reminder.
-& node $Merge $Mode $Settings $GateCmd
-$rc3 = $LASTEXITCODE
-if ($rc -eq 10 -and $rc3 -ne 10) { $rc = $rc3 }
+Invoke-DisarmAll $Settings $false
+$rc = $script:DaRc
 
 switch ($rc) {
   4 { Copy-Item -LiteralPath $Backup -Destination $Settings -Force

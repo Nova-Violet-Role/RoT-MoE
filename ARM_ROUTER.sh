@@ -151,7 +151,7 @@ ROUTER_PS1="$(canon_path "$ROUTER_PS1")"
 # stderr for EVERY hook event -- measured in the v6.0.0 real test (anomaly 1),
 # one line per hook command per event, permanent. The guard asks before it
 # leaps; the fallback semantics are byte-for-byte the same.
-ROUTER_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$ROUTER_PS1\" || bash \"$ROUTER_SH\""
+ROUTER_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$ROUTER_PS1\"; else bash \"$ROUTER_SH\"; fi"
 
 # EVERY LIFECYCLE EVENT, NOT TWO -- 2026-08-08.
 #
@@ -187,7 +187,7 @@ EVENTS_CSV='PreToolUse,PostToolUse,PostToolUseFailure,PostToolBatch,Notification
 # different products -- see the block at the merge call for the measurement.
 REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
 REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
-REMIND_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$REMIND_PS1\" || bash \"$REMIND_SH\""
+REMIND_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$REMIND_PS1\"; else bash \"$REMIND_SH\"; fi"
 REMIND_EVENTS_CSV="$EVENTS_CSV"
 
 # The voice gate (ORGAN 6) binds on Stop ONLY: it holds the door for summoned
@@ -196,7 +196,7 @@ REMIND_EVENTS_CSV="$EVENTS_CSV"
 # two documented installs deliver different products.
 GATE_PS1="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.ps1")"
 GATE_SH="$(canon_path "$SELF_DIR/hooks/rot-voice-gate.sh")"
-GATE_CMD="command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File \"$GATE_PS1\" || bash \"$GATE_SH\""
+GATE_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$GATE_PS1\"; else bash \"$GATE_SH\"; fi"
 GATE_EVENTS_CSV='Stop'
 
 echo "RoT MoE :: ARM_ROUTER"

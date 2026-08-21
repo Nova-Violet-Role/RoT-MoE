@@ -117,12 +117,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-21T02:15:41.535150+00:00",
+  "generated_at": "2026-08-21T03:03:12.568514+00:00",
   "root": "C:\\Users\\Saimono\\.claude\\plugins\\marketplaces\\rot-moe",
   "stats": {
-    "last_full_index": "2026-08-21T02:15:41.518347+00:00",
+    "last_full_index": "2026-08-21T03:03:12.565210+00:00",
     "total_files": 255,
-    "total_symbols": 1645
+    "total_symbols": 1646
   },
   "version": "1.0"
 }
