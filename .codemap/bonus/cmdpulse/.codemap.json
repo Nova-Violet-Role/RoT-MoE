@@ -1,0 +1,423 @@
+{
+  "directory": "bonus\\cmdpulse",
+  "files": {
+    "README.md": {
+      "hash": "91f5d0ec082b",
+      "indexed_at": "2026-08-21T07:50:35.540319+00:00",
+      "language": "markdown",
+      "lines": 204,
+      "mtime_ns": 1787298618741274300,
+      "size": 8184,
+      "symbols": [
+        {
+          "docstring": "| element | meaning | |---|---| | `\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591 61%` | how far through the **learned median time for this exact command shape** | | `over` (red) | alrea",
+          "lines": [
+            25,
+            43
+          ],
+          "name": "What it shows",
+          "type": "section"
+        },
+        {
+          "docstring": "Tool bars only cover `PreToolUse` \u2192 `PostToolUse`. Three things happen *outside* that window and look identical to a freeze:",
+          "lines": [
+            44,
+            57
+          ],
+          "name": "Why the phase rows matter most",
+          "type": "section"
+        },
+        {
+          "lines": [
+            58,
+            75
+          ],
+          "name": "Install",
+          "type": "section"
+        },
+        {
+          "lines": [
+            76,
+            101
+          ],
+          "name": "The one number that matters: `refreshInterval`",
+          "type": "section"
+        },
+        {
+          "lines": [
+            102,
+            119
+          ],
+          "name": "Live output streaming (opt-in)",
+          "type": "section"
+        },
+        {
+          "lines": [
+            120,
+            135
+          ],
+          "name": "The other two surfaces",
+          "type": "section"
+        },
+        {
+          "docstring": "- **Fast tools can't be caught live.** `Read` averages 66ms, `Write` 24ms, `Edit` 111ms. The status line needs a 300ms quiet gap plus the render time,",
+          "lines": [
+            136,
+            151
+          ],
+          "name": "Honest limits",
+          "type": "section"
+        },
+        {
+          "docstring": "`~/.claude/cmdpulse/` records **every command you run and its output** in `events.ndjson`, `runs/` and (if streaming is on) `stream/`. This package sh",
+          "lines": [
+            152,
+            159
+          ],
+          "name": "Privacy",
+          "type": "section"
+        },
+        {
+          "lines": [
+            160,
+            175
+          ],
+          "name": "Uninstall",
+          "type": "section"
+        },
+        {
+          "lines": [
+            176,
+            187
+          ],
+          "name": "ETA",
+          "type": "section"
+        },
+        {
+          "docstring": "`CMDPULSE_ROWS` (default 3, max 12) shows the last N completed calls stacked above the status line, each with mark, duration and start clock \u2014 so a bu",
+          "lines": [
+            188,
+            193
+          ],
+          "name": "Rolling history",
+          "type": "section"
+        },
+        {
+          "docstring": "| surface | interval | why | |---|---|---| | Claude Code status line | **1s floor**, ships at 3 | `Math.max(1,t)*1000` in the binary; sub-second is no",
+          "lines": [
+            194,
+            205
+          ],
+          "name": "Refresh rate \u2014 what is actually achievable",
+          "type": "section"
+        }
+      ]
+    },
+    "REPRODUCE.md": {
+      "hash": "d88553346c05",
+      "indexed_at": "2026-08-21T07:50:35.540556+00:00",
+      "language": "markdown",
+      "lines": 205,
+      "mtime_ns": 1787298618742605300,
+      "size": 8025,
+      "symbols": [
+        {
+          "docstring": "| file | goes to | role | |---|---|---| | `statusline.sh` | `~/.claude/statusline.sh` | draws the status line + the command bars | | `cmdpulse/record.",
+          "lines": [
+            10,
+            21
+          ],
+          "name": "0. What you are installing",
+          "type": "section"
+        },
+        {
+          "docstring": "- **Claude Code 2.1.238 or newer.** The status line contract used here (`context_window`, `rate_limits`, `effort`, `refreshInterval`) was read out of",
+          "lines": [
+            22,
+            42
+          ],
+          "name": "1. Requirements",
+          "type": "section"
+        },
+        {
+          "lines": [
+            43,
+            57
+          ],
+          "name": "2. Install",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "lines": [
+                63,
+                80
+              ],
+              "name": "Linux / macOS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`~` does not expand under `cmd.exe`, and a `.sh` file is not directly executable. Use an absolute path to Git's `bash.exe` with absolute script paths",
+              "lines": [
+                81,
+                118
+              ],
+              "name": "Windows",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Three keys. Merge them into `~/.claude/settings.json` \u2014 **do not replace the file**, it holds the rest of your configuration.",
+          "lines": [
+            58,
+            118
+          ],
+          "name": "3. Wire it into settings.json",
+          "type": "section"
+        },
+        {
+          "docstring": "**No restart is needed** \u2014 Claude Code re-reads `settings.json` live.",
+          "lines": [
+            119,
+            155
+          ],
+          "name": "4. Verify it works",
+          "type": "section"
+        },
+        {
+          "docstring": "- **The status line renders only when Claude Code is idle**, and a render slower than `refreshInterval` is aborted by the next one. `refreshInterval`",
+          "lines": [
+            156,
+            170
+          ],
+          "name": "5. Known limits",
+          "type": "section"
+        },
+        {
+          "lines": [
+            171,
+            183
+          ],
+          "name": "6. Uninstall",
+          "type": "section"
+        },
+        {
+          "docstring": "`~/.claude/cmdpulse/` records **every command you run and its output**, in `events.ndjson` and `runs/`. This package deliberately ships neither. If yo",
+          "lines": [
+            184,
+            191
+          ],
+          "name": "7. Privacy note before you share further",
+          "type": "section"
+        },
+        {
+          "docstring": "- **`refreshInterval` is now `3`, not `1`.** A render slower than the interval is aborted by the next one, blanking the status line completely. On Win",
+          "lines": [
+            192,
+            206
+          ],
+          "name": "8. Update \u2014 what changed since first release",
+          "type": "section"
+        }
+      ]
+    },
+    "USAGE.md": {
+      "hash": "8da718b60369",
+      "indexed_at": "2026-08-21T07:50:35.541673+00:00",
+      "language": "markdown",
+      "lines": 299,
+      "mtime_ns": 1787298618742605300,
+      "size": 11875,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "| you see | it means | |---|---| | `36%` | 36% of the **median time this exact command shape usually takes on your machine** | | `over` | already past",
+              "lines": [
+                28,
+                41
+              ],
+              "name": "Reading the progress figure",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The status line can only redraw once per second, but most tool calls finish in 50\u2013200ms. So each finished call is held on screen for 6 seconds:",
+              "lines": [
+                42,
+                54
+              ],
+              "name": "Finished calls (the afterglow)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| variable | default | effect | |---|---|---| | `CMDPULSE_BAR_WIDTH` | `10` | cells per bar | | `CMDPULSE_AFTERGLOW_MS` | `6000` | how long a finished",
+              "lines": [
+                55,
+                67
+              ],
+              "name": "Tuning",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Nothing to run. Once installed, every tool call gets a row **above** the status line:",
+          "lines": [
+            14,
+            67
+          ],
+          "name": "1. The bars inside Claude Code",
+          "type": "section"
+        },
+        {
+          "docstring": "Everything after the bars, left to right:",
+          "lines": [
+            68,
+            95
+          ],
+          "name": "2. The status line itself",
+          "type": "section"
+        },
+        {
+          "docstring": "Run it in a **second pane**. It takes over that screen and never touches Claude Code.",
+          "lines": [
+            96,
+            141
+          ],
+          "name": "3. Terminal dashboard \u2014 `cmdpulse.sh`",
+          "type": "section"
+        },
+        {
+          "docstring": "The full-detail view. Everything selectable and copyable.",
+          "lines": [
+            142,
+            165
+          ],
+          "name": "4. HTML inspector \u2014 `cmdpulse-web.sh`",
+          "type": "section"
+        },
+        {
+          "lines": [
+            166,
+            194
+          ],
+          "name": "5. Where things live",
+          "type": "section"
+        },
+        {
+          "docstring": "**No bars at all.** Check the status line renders standalone first:",
+          "lines": [
+            195,
+            235
+          ],
+          "name": "6. Troubleshooting",
+          "type": "section"
+        },
+        {
+          "docstring": "`events.ndjson` and `runs/` contain **every command you ran and its full output**. Delete them before handing the folder to anyone.",
+          "lines": [
+            236,
+            242
+          ],
+          "name": "7. Before sharing this directory",
+          "type": "section"
+        },
+        {
+          "docstring": "Tool bars cover `PreToolUse` \u2192 `PostToolUse` only. These rows cover the rest:",
+          "lines": [
+            243,
+            265
+          ],
+          "name": "8. Phase rows \u2014 what is happening when no tool is running",
+          "type": "section"
+        },
+        {
+          "lines": [
+            266,
+            285
+          ],
+          "name": "9. Live output streaming",
+          "type": "section"
+        },
+        {
+          "docstring": "A render slower than `refreshInterval` is **aborted by the next render**, so the status line goes blank. Symptoms look identical to \"the tool is broke",
+          "lines": [
+            286,
+            300
+          ],
+          "name": "10. Performance \u2014 the thing that breaks it",
+          "type": "section"
+        }
+      ]
+    },
+    "install.sh": {
+      "hash": "ffdb74dbbe12",
+      "indexed_at": "2026-08-21T07:50:35.540062+00:00",
+      "language": "shell",
+      "lines": 51,
+      "mtime_ns": 1787298618743642000,
+      "size": 2804,
+      "symbols": []
+    },
+    "statusline.sh": {
+      "hash": "34582f02d484",
+      "indexed_at": "2026-08-21T07:50:35.541343+00:00",
+      "language": "shell",
+      "lines": 459,
+      "mtime_ns": 1787298618744643000,
+      "size": 21311,
+      "symbols": [
+        {
+          "lines": [
+            18,
+            22
+          ],
+          "name": "fail",
+          "type": "function"
+        },
+        {
+          "lines": [
+            94,
+            97
+          ],
+          "name": "int",
+          "type": "function"
+        },
+        {
+          "lines": [
+            98,
+            104
+          ],
+          "name": "fmt_num",
+          "type": "function"
+        },
+        {
+          "lines": [
+            377,
+            382
+          ],
+          "name": "rl_color",
+          "type": "function"
+        },
+        {
+          "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
+          "lines": [
+            418,
+            435
+          ],
+          "name": "build",
+          "type": "function"
+        },
+        {
+          "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
+          "lines": [
+            438,
+            443
+          ],
+          "name": "vis_len",
+          "type": "function"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-08-21T07:50:35.659424+00:00",
+  "version": "1.0"
+}

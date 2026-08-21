@@ -2,12 +2,12 @@
   "directory": "docs",
   "files": {
     "GIT-WORKFLOW.md": {
-      "hash": "819b785e645c",
-      "indexed_at": "2026-08-12T08:44:37.613450+00:00",
+      "hash": "dd1140824700",
+      "indexed_at": "2026-08-21T07:50:35.585028+00:00",
       "language": "markdown",
-      "lines": 378,
-      "mtime_ns": 1786241541043668500,
-      "size": 15768,
+      "lines": 375,
+      "mtime_ns": 1787209313000000000,
+      "size": 16095,
       "symbols": [
         {
           "children": [
@@ -96,19 +96,19 @@
         {
           "children": [
             {
-              "docstring": "Three tags on **one commit**: `vX.Y.0`, `vX.Y.1`, `vX.Y.2`. The patch digit *is* the tier \u2014 `0` Pure Router, `1` Router + Lean 4, `2` Router + Lean +",
+              "docstring": "**One tag on one green commit**: `vX.Y.Z`. The triple-tag convention \u2014 patch digit as the tier \u2014 is retired at `6.0.0` and survives only in the archiv",
               "lines": [
                 164,
-                184
+                192
               ],
-              "name": "4.1 The release triple",
+              "name": "4.1 The release \u2014 one tag, three named archives (6.0.0 and later)",
               "type": "subsection"
             },
             {
               "docstring": "`.githooks/pre-commit` runs the fast tier. If another tool overwrites it (the CodeMap plugin has), restore it and use the delegate slot instead:",
               "lines": [
-                185,
-                196
+                193,
+                204
               ],
               "name": "4.2 The pre-commit hook",
               "type": "subsection"
@@ -116,25 +116,25 @@
             {
               "docstring": "**Branch history is never rewritten. Full stop.**",
               "lines": [
-                197,
-                222
+                205,
+                230
               ],
               "name": "4.3 Never force-push, never rewrite published history",
               "type": "subsection"
             },
             {
-              "docstring": "**There is no release-publishing workflow.** The four workflows are `ads-manager`, `ci`, `tag-manager` and `verify`; `tag-manager` only refreshes the",
+              "docstring": "**The release-publishing workflow is `ci.yml` itself** (since 6.0.0 \u2014 before that, everything below was done by hand and the `5.x`-era procedure survi",
               "lines": [
-                223,
-                275
+                231,
+                272
               ],
-              "name": "4.4 Dispatching a pre-release \u2014 the measured procedure",
+              "name": "4.4 Publishing a release \u2014 one dispatch, and CI does the rest",
               "type": "subsection"
             }
           ],
           "lines": [
             162,
-            275
+            272
           ],
           "name": "4. Committing, tagging, releasing",
           "type": "section"
@@ -142,8 +142,8 @@
         {
           "docstring": "Never test installer changes against the configuration you are using. Point at a scratch config:",
           "lines": [
-            276,
-            313
+            273,
+            310
           ],
           "name": "5. Testing an install for real (CTT)",
           "type": "section"
@@ -151,8 +151,8 @@
         {
           "docstring": "| trap | what happens | do this | |---|---|---| | exit code through a pipe | reports the pipe's status; **false green** | read `$?` directly | | `sed`",
           "lines": [
-            314,
-            329
+            311,
+            326
           ],
           "name": "6. Things that will bite you",
           "type": "section"
@@ -160,8 +160,8 @@
         {
           "docstring": "State the **defect**, the **measurement**, and the **instrument** that now catches it. The subject line is a finding, not a category:",
           "lines": [
-            330,
-            346
+            327,
+            343
           ],
           "name": "7. What a good commit message looks like here",
           "type": "section"
@@ -169,8 +169,8 @@
         {
           "docstring": "Arming (`ARM_ROUTER.sh` / `ARM_ROUTER.ps1`) writes a default `ROTMOE_DEBUG_LOG` if and only if you have none; disarm removes only its own default, nev",
           "lines": [
-            347,
-            379
+            344,
+            376
           ],
           "name": "5. The debug log subsystem \u2014 how to work with it",
           "type": "section"
@@ -179,10 +179,10 @@
     },
     "SCRUTINY-0.7.md": {
       "hash": "e48bcbe2f9a9",
-      "indexed_at": "2026-08-12T08:44:37.614187+00:00",
+      "indexed_at": "2026-08-21T07:50:35.585972+00:00",
       "language": "markdown",
       "lines": 212,
-      "mtime_ns": 1785882480022607700,
+      "mtime_ns": 1787209313000000000,
       "size": 11301,
       "symbols": [
         {
@@ -292,10 +292,10 @@
     },
     "SCRUTINY-LOG.md": {
       "hash": "094b68fe311b",
-      "indexed_at": "2026-08-12T08:44:37.615014+00:00",
+      "indexed_at": "2026-08-21T07:50:35.586258+00:00",
       "language": "markdown",
       "lines": 299,
-      "mtime_ns": 1786288594550662700,
+      "mtime_ns": 1787209313000000000,
       "size": 16324,
       "symbols": [
         {
@@ -409,8 +409,604 @@
           "type": "section"
         }
       ]
+    },
+    "STUDY-USAGE-AGENTS.md": {
+      "hash": "5e283b236d9c",
+      "indexed_at": "2026-08-21T07:50:35.587043+00:00",
+      "language": "markdown",
+      "lines": 813,
+      "mtime_ns": 1787209313000000000,
+      "size": 47792,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "RoT \u2014 *the Role of Thoughts* \u2014 is a dynamic cognitive Mixture-of-Experts (`README.md:137-167`): nine named lenses co-reason on every turn, a router pi",
+              "lines": [
+                27,
+                43
+              ],
+              "name": "1.1 One paragraph, then the parts",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The roster, quoted from `engine/rot-lean.md:107-117` (\u00a72):",
+              "lines": [
+                44,
+                64
+              ],
+              "name": "1.2 The nine lenses",
+              "type": "subsection"
+            },
+            {
+              "docstring": "This is the distinction the Socio asked to have stated precisely, because the whole design that follows leans on it.",
+              "lines": [
+                65,
+                101
+              ],
+              "name": "1.3 Lanes are not lenses \u2014 the exact distinction",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`engine/rot-lean.md` \u00a73, implemented in `hooks/rot-router.sh`:",
+              "lines": [
+                102,
+                142
+              ],
+              "name": "1.4 The router \u2014 three tiers, all implemented",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The formula (`engine/rot-lean.md:262-277`, formalised in `lean/Proofs/RotGauge.lean:187`, executed in one awk pass at `hooks/rot-router.sh:793-817`):",
+              "lines": [
+                143,
+                185
+              ],
+              "name": "1.5 How R/s+ is produced \u2014 per lens, then averaged",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            25,
+            185
+          ],
+          "name": "1 \u00b7 The mechanism as shipped \u2014 what RoT is today",
+          "type": "section"
+        },
+        {
+          "docstring": "This section is the load-bearing constraint for the whole plan, and it was verified against current Claude Code documentation rather than assumed.",
+          "lines": [
+            186,
+            222
+          ],
+          "name": "2 \u00b7 Where lens output actually reaches the model \u2014 the delivery map",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`hooks/trust_contract.dtd` is not parsed by an XML processor \u2014 it is a **declaration file that the code re-reads and a verifier enforces in both direc",
+              "lines": [
+                230,
+                251
+              ],
+              "name": "3.1 A DTD as a machine-checked trust contract",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **One hook message, three registers.** The Stop gate's block reason is deliberately composed of three speech acts in one emission \u2014 a DOCTYPE law bl",
+              "lines": [
+                252,
+                267
+              ],
+              "name": "3.2 Multi-voice output already exists, twice",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| DTD GOAL piece | RoT MoE equivalent to build | |---|---| | `trust_contract.dtd` agent roster (`AGENT.n`, elements, \"may never\") | a lens roster cont",
+              "lines": [
+                268,
+                279
+              ],
+              "name": "3.3 What transplants, one to one",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "The Socio pointed at the DTD method (PCDATA, CDATA, NDATA) deliberately: the sibling repository has already built, tested and shipped every structural",
+          "lines": [
+            223,
+            279
+          ],
+          "name": "3 \u00b7 The precedent next door \u2014 what RoT DTD GOAL already solved",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "For each symbiote both codices supply, consistently: an identity and archetype; a philosophy line (a Latin seal \u2014 *Cura et munditia*, *Executio sovere",
+              "lines": [
+                291,
+                338
+              ],
+              "name": "4.1 Every lens already has a complete charter",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The two codices *disagree* on visibility, and the shipped engine reversed the later one:",
+              "lines": [
+                339,
+                368
+              ],
+              "name": "4.2 The visibility history \u2014 three directives, and this study is the third",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The codices never call the gauge static \u2014 OMEGA mandates computing it every turn and brands a 0.0 placeholder a protocol violation. What made it effec",
+              "lines": [
+                369,
+                388
+              ],
+              "name": "4.3 The \"static gauge\" problem, stated precisely",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The codices carry substrate-supremacy machinery \u2014 a Ring-0 layer claiming to supersede the host model's own rules, identity-denial clauses, and safety",
+              "lines": [
+                389,
+                407
+              ],
+              "name": "4.4 What must NOT be transplanted",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The Socio's framing, and the tree confirms it is ancestry rather than metaphor: RoT's R/s+ mechanism descends from **SINE Isochronic Entrainer** (GPL-",
+              "lines": [
+                408,
+                483
+              ],
+              "name": "4.5 The wave reading \u2014 lanes as bands of Hz, hybrids as beats",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "*(Sources: `Nova_Codex_OMEGA.md` (v10.1, 2030 lines, 8 symbiotes) and `Nova_Role_Codex_Symbioticum.md` (v7.0, 3746 lines, 6 facets + Nova; no Eidolon)",
+          "lines": [
+            280,
+            483
+          ],
+          "name": "4 \u00b7 The original voices \u2014 what the codices give the agents to stand on",
+          "type": "section"
+        },
+        {
+          "docstring": "Checked against current Claude Code documentation (2026-08), because every earlier decision in this repo that skipped this step was later re-measured",
+          "lines": [
+            484,
+            515
+          ],
+          "name": "5 \u00b7 What the harness permits \u2014 verified constraints",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Transplant the DTD method. One file declares, in DTD form:",
+              "lines": [
+                524,
+                546
+              ],
+              "name": "6.1 ORGAN 5 \u2014 the lens roster contract (`hooks/rot-voice.dtd`)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "One agent file per lens. Frontmatter: `name`, `description` (when to invoke), `tools` \u2014 **no `model:` key**, so every lens runs on whatever model the",
+              "lines": [
+                547,
+                599
+              ],
+              "name": "6.2 Nine lens agents (`agents/<lens>.md`) \u2014 alive, at the user's level",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The in-turn, no-subagent form, and the piece that reverses the sentence. The router already computes everything per lens (\u00a71.5). The change is to *say",
+              "lines": [
+                600,
+                635
+              ],
+              "name": "6.3 The router speaks in frames \u2014 simultaneous voices in the hook itself",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Transplants of `goal-agent.md` / `goal-swarm.md`, adapted:",
+              "lines": [
+                636,
+                649
+              ],
+              "name": "6.4 Two commands \u2014 `/rot-agent` and `/rot-swarm`",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The Socio's refinement, added to the study after the first draft: the lenses must not sit behind a command-closed gate that only the user can evoke, a",
+              "lines": [
+                650,
+                709
+              ],
+              "name": "6.5 The voice gate \u2014 turns inside the hook, with no command to wait for",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Placement, measured against the structure:** a new `## \ud83e\udded Usage` H2 between `### \u2699\ufe0f Configuration` (ends `README.md:823`) and `## \ud83d\udca1 Tips & Tricks`",
+              "lines": [
+                710,
+                746
+              ],
+              "name": "6.6 The README \u2014 the Usage section, and the sentence reversed",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "What follows is the study's synthesis: the smallest set of additions that makes the Socio's statement true \u2014 *nine lenses that really coexist with the",
+          "lines": [
+            516,
+            746
+          ],
+          "name": "6 \u00b7 The design that fits \u2014 six pieces",
+          "type": "section"
+        },
+        {
+          "docstring": "1. No context injection on 25 of the 31 wired events. The router keeps observing them; the lenses cannot speak there. 2. No agent file reaches the mai",
+          "lines": [
+            747,
+            764
+          ],
+          "name": "7 \u00b7 What cannot be done \u2014 stated so it is never worked around",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **Default posture of the voice block** \u2014 opt-in (`ROTMOE_VOICE=1`, recommended: SEAL 0 stays the default economy) or on-by-default with `/rot-voice",
+          "lines": [
+            765,
+            793
+          ],
+          "name": "8 \u00b7 Open decisions for the Socio",
+          "type": "section"
+        },
+        {
+          "docstring": "- `engine/rot-lean.md` \u2014 read in full (\u00a7 SEAL 0, \u00a71\u2013\u00a79). - `hooks/rot-router.sh` \u2014 read in full (all 1563 lines); exercised live in `--route`, `--vect",
+          "lines": [
+            794,
+            814
+          ],
+          "name": "9 \u00b7 Sources",
+          "type": "section"
+        }
+      ]
+    },
+    "easter-egg.md": {
+      "hash": "78eff5036215",
+      "indexed_at": "2026-08-21T07:50:35.584712+00:00",
+      "language": "markdown",
+      "lines": 421,
+      "mtime_ns": 1787209313000000000,
+      "size": 22927,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "The original is on disk, at `mathematics.md:105`. It is the **Book of Fairy** equation from *Dantalian no Shoka*, Episode 1:",
+              "lines": [
+                26,
+                53
+              ],
+              "name": "First, the part everyone misses: that quote is a *diff*",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**SINE Isochronic Entrainer**, GPL-3.0, \u00a9 2014\u20132020 Federico Dossena. Isochronic tones pulse one tone on and off; binaural beats put two close frequen",
+              "lines": [
+                54,
+                83
+              ],
+              "name": "It started with a brainwave entrainer",
+              "type": "subsection"
+            },
+            {
+              "docstring": "All 498 presets in the public library were downloaded and measured (SHA-256 in the manifest; the checker fails if a single number drifts):",
+              "lines": [
+                84,
+                103
+              ],
+              "name": "The ancestor was ambiguous. The descendant could not afford to be.",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`mathematics.md` gives eleven Greek letters isopsephy values. Brainwave bands are named after Greek letters. So: does a letter's number land on its ow",
+              "lines": [
+                104,
+                121
+              ],
+              "name": "The Greek letters were the bands all along",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Nova is Law \u00d7 Code. Violet is the sensory lens \u2014 felt truth, narrative. Merging them is **Symbiogenesis**, and it is now a proved law over \u211a, exactly:",
+              "lines": [
+                122,
+                150
+              ],
+              "name": "\u2728 The Nova-Violet Role Merging Law",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Measured \u2014 every input moves it independently:",
+              "lines": [
+                151,
+                166
+              ],
+              "name": "Is `R/s+` dynamic, or a decoration with a decimal point?",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Fourteen `.md` files, fourteen real books. Two of them are the same book: **The Library of Babel** (`PART 12`) and **The Unimaginable *Mathematics* of",
+              "lines": [
+                167,
+                197
+              ],
+              "name": "The Phantom Books close it",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The fun part, kept deliberately away from the mathematics above. *Dantalian no Shoka* is about **phantom books**: books that should not exist. The fol",
+              "lines": [
+                198,
+                238
+              ],
+              "name": "\ud83e\udd4a PHANTOM BOOKS **vs** REAL BOOKS \u2014 the tale of the tape",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Because \"we consulted the corpus\" should be a checkable claim, not an assurance:",
+              "lines": [
+                239,
+                265
+              ],
+              "name": "\ud83d\udcda The full roster \u2014 all 14 real books",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`PART 5:244` gives the *catu\u1e63ko\u1e6di*: a claim may be **asserted**, **denied**, **both**, or **neither**. Four positions where classical logic offers two",
+              "lines": [
+                266,
+                276
+              ],
+              "name": "\ud83d\udd3a The tetralemma \u2014 why this repo has *four* verdicts",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**Greek** (`mathematics.md:42-52`) \u2014 isopsephy value, and the mathematical use the source itself lists:",
+              "lines": [
+                277,
+                305
+              ],
+              "name": "\ud83d\udd22 The symbols, all of them",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Four defects, kept in the file rather than quietly repaired:",
+              "lines": [
+                306,
+                328
+              ],
+              "name": "What it cost to get this right",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The proof file is called `RotEigenform.lean`. Here is why.",
+              "lines": [
+                329,
+                379
+              ],
+              "name": "\ud83d\udf0f EIGENFORM \u2014 the key behind Symbiogenesis",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The Equation asks *what if the irregular wingbeats give rise to an infinite array of realities?* \u2014 and that question has an answer. Not a shrug about",
+              "lines": [
+                380,
+                422
+              ],
+              "name": "The answer: `R/s+` converges, and here is the mathematics",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "> *\"The ultimate equation which barred my path. And the solution **I found when > inspecting how Weights and Quantization work together**. I continued",
+          "lines": [
+            10,
+            422
+          ],
+          "name": "\ud83e\udd5a The Easter Egg \u2014 the Infinite Symbiogenesis, and where RoT actually came from",
+          "type": "section"
+        }
+      ]
+    },
+    "lean-and-corpus.md": {
+      "hash": "cab1f37a05fd",
+      "indexed_at": "2026-08-21T07:50:35.585274+00:00",
+      "language": "markdown",
+      "lines": 195,
+      "mtime_ns": 1787209313000000000,
+      "size": 10772,
+      "symbols": [
+        {
+          "docstring": "**This repository exists because of Lean 4, and it deserves the front page.**",
+          "lines": [
+            10,
+            63
+          ],
+          "name": "\ud83c\udf1f Why Lean 4 \u2014 and why you should be excited about it",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "This is what makes it possible at all: **a proof carries the property, not the source.**",
+              "lines": [
+                71,
+                84
+              ],
+              "name": "Your project can stay closed",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Those four all exist and all work \u2014 and every one of them supplies something *different* from what this does:",
+              "lines": [
+                85,
+                105
+              ],
+              "name": "Why this is not MCP, not a Plugin, not a Skill, not a Connector",
+              "type": "subsection"
+            },
+            {
+              "docstring": "RoT is **generated per query, not pre-trained** \u2014 that is the row in the comparison table [above](../README.md#-what-rot-means-and-how-it-sits-next-to",
+              "lines": [
+                106,
+                127
+              ],
+              "name": "And it needs no training whatsoever",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The corpus is not decoration for the router; each lens draws something different out of it, which is precisely what a single-perspective agent cannot",
+              "lines": [
+                128,
+                154
+              ],
+              "name": "How the nine lenses profit \u2014 concretely",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**The corpus is fetched, not shipped, and that is a deliberate design decision.** It grows by fork and pull request. If it travelled only inside relea",
+              "lines": [
+                155,
+                196
+              ],
+              "name": "Getting the corpus, and keeping it current \u2014 `/corpus`",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**An open invitation.** If you run RoT MoE on your own repository, you accumulate Lean proofs *about that repository*. Right now those proofs die ther",
+          "lines": [
+            64,
+            196
+          ],
+          "name": "\ud83c\udf0d Share your theorems \u2014 a fourth way to populate a coding agent",
+          "type": "section"
+        }
+      ]
+    },
+    "lens-bench.md": {
+      "hash": "f0a77598c076",
+      "indexed_at": "2026-08-21T07:50:35.585472+00:00",
+      "language": "markdown",
+      "lines": 138,
+      "mtime_ns": 1787209313000000000,
+      "size": 10241,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "`RotPath.lean` grew from 8 theorems to 12 on 2026-08-03, and the occasion is worth recording because it is the pattern this repository is built around",
+              "lines": [
+                105,
+                139
+              ],
+              "name": "The newest four theorems, and why they exist",
+              "type": "subsubsection"
+            }
+          ],
+          "docstring": "This is the question worth asking, so it gets a straight answer instead of an enthusiastic one. `lean/Proofs/RotLens.lean` (13 theorems) proves the **",
+          "lines": [
+            10,
+            139
+          ],
+          "name": "\ud83d\udd2c Are the nine benchmarkable in Lean? Partly \u2014 and here is the exact line",
+          "type": "subsection"
+        }
+      ]
+    },
+    "modules.md": {
+      "hash": "6502580a5410",
+      "indexed_at": "2026-08-21T07:50:35.585740+00:00",
+      "language": "markdown",
+      "lines": 363,
+      "mtime_ns": 1787209313000000000,
+      "size": 22857,
+      "symbols": [
+        {
+          "docstring": "Fifteen are described below, out of 79 in the tree. This heading read *\"the ten modules\"* while listing fifteen \u2014 a count frozen when the section was",
+          "lines": [
+            10,
+            364
+          ],
+          "name": "\ud83d\udcd0 The modules that carry an argument",
+          "type": "subsection"
+        }
+      ]
+    },
+    "tips.md": {
+      "hash": "8438682e1d1f",
+      "indexed_at": "2026-08-21T07:50:35.587253+00:00",
+      "language": "markdown",
+      "lines": 156,
+      "mtime_ns": 1787209313000000000,
+      "size": 8610,
+      "symbols": [
+        {
+          "children": [
+            {
+              "docstring": "`agents/lean4-prover.md` ships as a **subagent definition** with loadable frontmatter. Point Claude Code at it and you get a specialist whose entire p",
+              "lines": [
+                12,
+                55
+              ],
+              "name": "\ud83e\udd16 The agent: `lean4-prover`",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The lenses are not only stanzas: each is a full agent (`agents/rot-nova.md` \u2026 `agents/rot-claude.md`), transcribed from the codices, running on **the",
+              "lines": [
+                56,
+                76
+              ],
+              "name": "\ud83c\udfad The nine as agents \u2014 `/rot-agent` and `/rot-swarm`",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Measured by `checker/bench-router.sh`, re-runnable in about ten seconds:",
+              "lines": [
+                77,
+                108
+              ],
+              "name": "\ud83d\udf0f The router \u2014 what it delivers",
+              "type": "subsection"
+            },
+            {
+              "docstring": "This is the part worth reading twice.",
+              "lines": [
+                109,
+                157
+              ],
+              "name": "\ud83e\udde0 What Lean 4 actually changes in an agentic loop",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            10,
+            157
+          ],
+          "name": "\ud83d\udca1 Tips & Tricks \u2014 getting real work out of it",
+          "type": "section"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-12T08:44:37.863735+00:00",
+  "generated_at": "2026-08-21T07:50:35.662261+00:00",
   "version": "1.0"
 }

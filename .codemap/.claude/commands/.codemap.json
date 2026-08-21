@@ -3,14 +3,14 @@
   "files": {
     "rot-moe-install.md": {
       "hash": "6aca0bff5cf4",
-      "indexed_at": "2026-08-12T08:44:37.360659+00:00",
+      "indexed_at": "2026-08-21T07:50:35.515011+00:00",
       "language": "markdown",
       "lines": 46,
-      "mtime_ns": 1785512177262747900,
+      "mtime_ns": 1787209313000000000,
       "size": 2216,
       "symbols": []
     }
   },
-  "generated_at": "2026-08-12T08:44:37.851793+00:00",
+  "generated_at": "2026-08-21T07:50:35.651654+00:00",
   "version": "1.0"
 }

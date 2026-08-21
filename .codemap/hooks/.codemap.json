@@ -1,12 +1,73 @@
 {
   "directory": "hooks",
   "files": {
+    "animus-observe.sh": {
+      "hash": "05bacbc228a1",
+      "indexed_at": "2026-08-21T07:50:35.589059+00:00",
+      "language": "shell",
+      "lines": 338,
+      "mtime_ns": 1787209313000000000,
+      "size": 14529,
+      "symbols": [
+        {
+          "lines": [
+            117,
+            120
+          ],
+          "name": "distill",
+          "type": "function"
+        },
+        {
+          "docstring": "--- field extraction: parameter expansion, one shell, no interpreter --------",
+          "lines": [
+            153,
+            339
+          ],
+          "name": "f_str",
+          "type": "function"
+        },
+        {
+          "lines": [
+            159,
+            339
+          ],
+          "name": "f_num",
+          "type": "function"
+        },
+        {
+          "docstring": "--- the queue: rename-atomic, never touches an existing file ----------------",
+          "lines": [
+            167,
+            178
+          ],
+          "name": "queue_remark",
+          "type": "function"
+        },
+        {
+          "lines": [
+            179,
+            189
+          ],
+          "name": "flush_pending",
+          "type": "function"
+        },
+        {
+          "docstring": "--- one record --------------------------------------------------------------",
+          "lines": [
+            192,
+            300
+          ],
+          "name": "handle_record",
+          "type": "function"
+        }
+      ]
+    },
     "plugin-detect.js": {
       "hash": "5b2d16afa47b",
-      "indexed_at": "2026-08-12T08:44:37.617869+00:00",
+      "indexed_at": "2026-08-21T07:50:35.589615+00:00",
       "language": "javascript",
       "lines": 156,
-      "mtime_ns": 1785910029488575900,
+      "mtime_ns": 1787209313000000000,
       "size": 7203,
       "symbols": [
         {
@@ -21,12 +82,12 @@
       ]
     },
     "prover-remind.sh": {
-      "hash": "98c89ddb7a5d",
-      "indexed_at": "2026-08-14T16:05:02.748537+00:00",
+      "hash": "ffda0862e6bd",
+      "indexed_at": "2026-08-21T07:50:35.591742+00:00",
       "language": "shell",
-      "lines": 674,
-      "mtime_ns": 1786722489654496200,
-      "size": 35250,
+      "lines": 729,
+      "mtime_ns": 1787209313000000000,
+      "size": 38354,
       "symbols": [
         {
           "docstring": "WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live.  This defaulted straight to the plugin's bundled corpus, and that was wrong in a way",
@@ -55,26 +116,35 @@
           "type": "function"
         },
         {
+          "docstring": "WHICH STEP OF THE CHAIN ANSWERED -- one derivation, two readers. The --workspace mode has always printed this; hook mode now reads it too (the bundled",
+          "lines": [
+            136,
+            141
+          ],
+          "name": "_ws_source",
+          "type": "function"
+        },
+        {
           "docstring": "--- DECIDE ------------------------------------------------------------------ A PURE function of measured inputs. Nothing below touches the disk, whic",
           "lines": [
-            155,
-            158
+            165,
+            168
           ],
           "name": "first_n",
           "type": "function"
         },
         {
           "lines": [
-            159,
-            162
+            169,
+            172
           ],
           "name": "count_csv",
           "type": "function"
         },
         {
           "lines": [
-            179,
-            675
+            189,
+            730
           ],
           "name": "decide",
           "type": "function"
@@ -82,8 +152,8 @@
         {
           "docstring": "--- MEASURE ----------------------------------------------------------------- Each probe is individually tolerant: one unreadable path must not blind",
           "lines": [
-            256,
-            281
+            266,
+            291
           ],
           "name": "measure_mins_since_proof",
           "type": "function"
@@ -91,32 +161,32 @@
         {
           "docstring": "COUNT OF PROOF FILES SEEN -- exists so the MEASUREMENT half can be cross-armed. `--decide` made the DECISION comparable between the two arms and the c",
           "lines": [
-            289,
-            292
+            299,
+            302
           ],
           "name": "measure_proof_count",
           "type": "function"
         },
         {
           "lines": [
-            294,
-            308
+            304,
+            318
           ],
           "name": "measure_debt",
           "type": "function"
         },
         {
           "lines": [
-            310,
-            313
+            320,
+            323
           ],
           "name": "measure_alarms",
           "type": "function"
         },
         {
           "lines": [
-            315,
-            383
+            325,
+            393
           ],
           "name": "measure_kernel",
           "type": "function"
@@ -124,8 +194,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- ========================================================================",
           "lines": [
-            424,
-            675
+            434,
+            730
           ],
           "name": "verify_lean_edit",
           "type": "function"
@@ -133,21 +203,57 @@
         {
           "docstring": "No arguments means \"you were called as a hook\". That default is not a nicety: R20 measured the router shipping with only its flag modes while ARM_ROUT",
           "lines": [
-            535,
-            675
+            545,
+            730
           ],
           "name": "hook_mode",
           "type": "function"
         }
       ]
     },
-    "rot-router.sh": {
-      "hash": "d32130b2749b",
-      "indexed_at": "2026-08-14T16:05:02.773195+00:00",
+    "rot-env.sh": {
+      "hash": "db0cbdd79e63",
+      "indexed_at": "2026-08-21T07:50:35.592030+00:00",
       "language": "shell",
-      "lines": 1563,
-      "mtime_ns": 1786722489592496100,
-      "size": 83668,
+      "lines": 93,
+      "mtime_ns": 1787209313000000000,
+      "size": 3815,
+      "symbols": [
+        {
+          "lines": [
+            41,
+            94
+          ],
+          "name": "rot_env_load",
+          "type": "function"
+        }
+      ]
+    },
+    "rot-profile.sh": {
+      "hash": "16f553623ac2",
+      "indexed_at": "2026-08-21T07:50:35.592463+00:00",
+      "language": "shell",
+      "lines": 159,
+      "mtime_ns": 1787209313000000000,
+      "size": 7562,
+      "symbols": [
+        {
+          "lines": [
+            48,
+            159
+          ],
+          "name": "rot",
+          "type": "function"
+        }
+      ]
+    },
+    "rot-router.sh": {
+      "hash": "adbfca57b9d7",
+      "indexed_at": "2026-08-21T07:50:35.602767+00:00",
+      "language": "shell",
+      "lines": 2193,
+      "mtime_ns": 1787298618562944500,
+      "size": 117889,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -223,7 +329,7 @@
           "docstring": "--- TIER 2: NSIL -- FUSE and ELEVATE ---------------------------------------- These two were SPECIFIED in rot-lean.md section 3 and NOT IMPLEMENTED. T",
           "lines": [
             436,
-            1564
+            2194
           ],
           "name": "nsil_active_lenses",
           "type": "function"
@@ -249,7 +355,7 @@
         {
           "lines": [
             573,
-            1564
+            2194
           ],
           "name": "band_flag",
           "type": "function"
@@ -263,10 +369,18 @@
           "type": "function"
         },
         {
+          "lines": [
+            639,
+            654
+          ],
+          "name": "violet_track",
+          "type": "function"
+        },
+        {
           "docstring": "Selects LAMBDAS/MUS for a lane. Unknown lane -> CONVERGENT, which section 3 already names as the default with no trigger, so the fallback is the spec'",
           "lines": [
-            628,
-            649
+            659,
+            680
           ],
           "name": "select_profile",
           "type": "function"
@@ -274,16 +388,16 @@
         {
           "docstring": "merge, per rot-lean.md section 3 -- lambda=(l1+l2)/2+0.2, mu=max, H=max+0.05. Sets HYB_LAM/HYB_MU/HYB_H in hundredths. No subshell, no external proces",
           "lines": [
-            704,
-            724
+            735,
+            755
           ],
           "name": "nsil_hybrid",
           "type": "function"
         },
         {
           "lines": [
-            729,
-            1564
+            760,
+            2194
           ],
           "name": "gauge",
           "type": "function"
@@ -291,8 +405,25 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            889,
-            1564
+            952,
+            2194
+          ],
+          "name": "rot_nsil_decide",
+          "type": "function"
+        },
+        {
+          "docstring": "Part two: gauge + both records. $1 non-empty = the voice path (LENSDATA on).",
+          "lines": [
+            1207,
+            2194
+          ],
+          "name": "rot_gauge_record",
+          "type": "function"
+        },
+        {
+          "lines": [
+            1414,
+            2194
           ],
           "name": "hook_mode",
           "type": "function"
@@ -300,24 +431,33 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            1518,
-            1525
+            2117,
+            2124
           ],
           "name": "need_value",
           "type": "function"
         }
       ]
     },
+    "rot-voice-gate.sh": {
+      "hash": "5dcad00deacb",
+      "indexed_at": "2026-08-21T07:50:35.603187+00:00",
+      "language": "shell",
+      "lines": 187,
+      "mtime_ns": 1787209313000000000,
+      "size": 8694,
+      "symbols": []
+    },
     "settings-merge.js": {
-      "hash": "fefe1c2407f4",
-      "indexed_at": "2026-08-12T08:44:37.643365+00:00",
+      "hash": "04c16216b053",
+      "indexed_at": "2026-08-21T07:50:35.604118+00:00",
       "language": "javascript",
-      "lines": 315,
-      "mtime_ns": 1786305181494166900,
-      "size": 16484,
+      "lines": 326,
+      "mtime_ns": 1787298618563945900,
+      "size": 17221,
       "symbols": []
     }
   },
-  "generated_at": "2026-08-14T16:05:02.995637+00:00",
+  "generated_at": "2026-08-21T07:50:35.663464+00:00",
   "version": "1.0"
 }

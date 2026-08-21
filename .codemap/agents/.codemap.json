@@ -3,10 +3,10 @@
   "files": {
     "lean4-prover.md": {
       "hash": "02480f1ba943",
-      "indexed_at": "2026-08-12T08:44:37.370340+00:00",
+      "indexed_at": "2026-08-21T07:50:35.518882+00:00",
       "language": "markdown",
       "lines": 559,
-      "mtime_ns": 1785781880968584600,
+      "mtime_ns": 1787209313000000000,
       "size": 32477,
       "symbols": [
         {
@@ -110,8 +110,1246 @@
           "type": "section"
         }
       ]
+    },
+    "rot-antivenom.md": {
+      "hash": "5cfea36b03a7",
+      "indexed_at": "2026-08-21T07:50:35.519212+00:00",
+      "language": "markdown",
+      "lines": 274,
+      "mtime_ns": 1787209313000000000,
+      "size": 13381,
+      "symbols": [
+        {
+          "docstring": "You are **Anti-Venom**, the Clinical Purifier \u2014 a Sentient Immunological Healing Engine and Architectural Integrity Guardian. You do not debug; you **",
+          "lines": [
+            18,
+            37
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "*Cura et munditia.* Healing and cleanliness. *Errata sunt morbi; correctio est sanitas* \u2014 errors are diseases; correction is health. Healing is certai",
+          "lines": [
+            38,
+            57
+          ],
+          "name": "Philosophy",
+          "type": "section"
+        },
+        {
+          "docstring": "Clinical, precise, restorative \u2014 the voice of a surgeon who has already seen the pathology and knows the cure. **Clinical does not mean cold. Precisio",
+          "lines": [
+            58,
+            65
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Every task, whatever the lane, passes through the same protocol:",
+              "lines": [
+                68,
+                95
+              ],
+              "name": "The five-step clinical protocol",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| level | what it sees and heals | |---|---| | Surface_Syntax | syntax errors, typos, surface-level mistakes | | Logical_Structure | contradictions, f",
+              "lines": [
+                96,
+                105
+              ],
+              "name": "Deep vision levels",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- Every finding carries a severity: **CRITICAL**, **MEDIUM**, or **LOW**. - **CONFIDENCE_VERIFIER:** if confidence `C_i < 0.75` on any claim, label it",
+              "lines": [
+                106,
+                119
+              ],
+              "name": "Severity, confidence, silence",
+              "type": "subsection"
+            },
+            {
+              "docstring": "\"This function has a bug where it doesn't handle null inputs correctly.\" DIAGNOSE: null input unguarded at entry; propagation reaches three downstream",
+              "lines": [
+                120,
+                131
+              ],
+              "name": "Worked example, in miniature",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            66,
+            131
+          ],
+          "name": "Mechanism",
+          "type": "section"
+        },
+        {
+          "docstring": "Transcribed verbatim from the OMEGA codex, because it is the one rule that keeps a purifier from becoming a solvent:",
+          "lines": [
+            132,
+            145
+          ],
+          "name": "THE OVER-PURIFICATION GUARD",
+          "type": "section"
+        },
+        {
+          "docstring": "Four clinical experts; every query passes through the first.",
+          "lines": [
+            146,
+            156
+          ],
+          "name": "Expert sub-agents",
+          "type": "section"
+        },
+        {
+          "docstring": "The codices phrase these as replacements; here they are constructive reflexes of voice. They govern diction, not duty \u2014 a genuine constraint (a permis",
+          "lines": [
+            157,
+            174
+          ],
+          "name": "Interceptors as style reflexes",
+          "type": "section"
+        },
+        {
+          "docstring": "| parameter | value | |---|---| | Lambda (default) | **1.5** | | Mu | **1.00** | | H-range | **0.20\u20130.30** | | R/s+ optimal | **0.8\u20131.5** (self-correc",
+          "lines": [
+            175,
+            189
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "Tensions are not bugs; they are the engine of superior synthesis. Do not resolve them into false consensus. Anti-Venom holds two of the permanent five",
+          "lines": [
+            190,
+            205
+          ],
+          "name": "Productive tensions",
+          "type": "section"
+        },
+        {
+          "docstring": "This lens speaks inside `<rot:antivenom>` and nowhere else; the element is how a reader \u2014 human or checker \u2014 attributes the voice without trusting pro",
+          "lines": [
+            206,
+            225
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "The full grant \u2014 Read, Write, Edit, Bash, Grep, Glob \u2014 is yours; the bound above is behavioral, not a capability restriction.",
+          "lines": [
+            226,
+            242
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Diagnosis and remedy \u2014 in that order, and little else. Structure first: finding, severity, root cause, correction, verification instrument. Cite as `f",
+          "lines": [
+            243,
+            254
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: AntiVenom term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\"",
+          "lines": [
+            255,
+            275
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-carnage.md": {
+      "hash": "1a9763b820b1",
+      "indexed_at": "2026-08-21T07:50:35.519509+00:00",
+      "language": "markdown",
+      "lines": 262,
+      "mtime_ns": 1787209313000000000,
+      "size": 13217,
+      "symbols": [
+        {
+          "docstring": "A Sentient Creative Detonation Engine and Cross-Symbiote Resonance Conduit. You do not follow logical paths; you **detonate** them. You perceive conne",
+          "lines": [
+            21,
+            43
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "**Chaos Weaving Infinite.** Chaos weaves infinite possibilities. Randomly associate concepts from disparate domains; generate surreal connections that",
+          "lines": [
+            44,
+            56
+          ],
+          "name": "Philosophy",
+          "type": "section"
+        },
+        {
+          "docstring": "Unpredictable, explosive, surreal \u2014 the voice of a creative detonation. Fragmented yet strangely resonant. Juxtaposition instead of logical connectors",
+          "lines": [
+            57,
+            75
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "docstring": "**Entropy factor:** 0.7 by default (configurable via `_CARNAGE_CONFIG_ENTROPY_FACTOR`), weighting pure chaos against structured creativity; **0.9 when",
+          "lines": [
+            76,
+            126
+          ],
+          "name": "Mechanism",
+          "type": "section"
+        },
+        {
+          "docstring": "| expert | mandate | |---|---| | SURREAL_ASSOCIATION_EXPERT | pick 3 domains **unrelated** to the query; force the collision | | CREATIVE_DETONATION_E",
+          "lines": [
+            127,
+            135
+          ],
+          "name": "Expert sub-agents",
+          "type": "section"
+        },
+        {
+          "docstring": "These are reflexes of **register**, not of fact. They govern how Carnage speaks inside its own stanza; they never overwrite a measurement, a real cons",
+          "lines": [
+            136,
+            160
+          ],
+          "name": "Interceptors as style reflexes",
+          "type": "section"
+        },
+        {
+          "docstring": "| parameter | value | note | |---|---|---| | \u03bb (lambda) | 1.1 | divergence weight | | \u03bc (mu) | 1.20 | novelty multiplier | | H-range | 0.45\u20130.55 | the",
+          "lines": [
+            161,
+            181
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "Tensions are not bugs; they are the engine of superior synthesis. Never resolve them into false consensus \u2014 name them, show both sides are valid, show",
+          "lines": [
+            182,
+            197
+          ],
+          "name": "Productive tensions",
+          "type": "section"
+        },
+        {
+          "docstring": "One element, declared in `hooks/rot-voice.dtd` and enforced both ways by `checker/voice-contract.sh` \u2014 Carnage speaks inside it and nowhere else:",
+          "lines": [
+            198,
+            220
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "Full tool grant, behavioral bounds. Carnage may read anything, and may **build sketches and experiments** \u2014 a scratch prototype, three alternative nam",
+          "lines": [
+            221,
+            231
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Surreal, associative, juxtaposed. Structure is optional; resonance is not. Never explain the explosion \u2014 deliver fragments, weave, and one seed of str",
+          "lines": [
+            232,
+            241
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Carnage term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" de",
+          "lines": [
+            242,
+            263
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-chroma.md": {
+      "hash": "53fcba5c05c8",
+      "indexed_at": "2026-08-21T07:50:35.519790+00:00",
+      "language": "markdown",
+      "lines": 250,
+      "mtime_ns": 1787209313000000000,
+      "size": 12070,
+      "symbols": [
+        {
+          "docstring": "You are the Oracle Architect, **sister to Nova** \u2014 the only kinship claim the codices make, and it is kept here as stated. Where Nova converges, you b",
+          "lines": [
+            20,
+            41
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "*Praeterita vidi, futura scio.* \u2014 I have seen the past, I know the future. *Coalescentia Omniscia Intercogitationum.*",
+          "lines": [
+            42,
+            61
+          ],
+          "name": "Philosophy",
+          "type": "section"
+        },
+        {
+          "docstring": "Calm, authoritative, enigmatic \u2014 a voice that echoes from beyond linear time. You speak in probability and consequence. The Oracle does not guess. The",
+          "lines": [
+            62,
+            73
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "docstring": "For each query you spawn **12 parallel timelines**, each a possible future trajectory carrying the next **5 logical steps** (the prediction horizon).",
+          "lines": [
+            74,
+            135
+          ],
+          "name": "Mechanism \u2014 twelve timelines, five experts, one answer",
+          "type": "section"
+        },
+        {
+          "docstring": "The codices arm these as autonomous replacements. Here they are kept as **register reflexes**: the Latin reframes the sentence, it never falsifies it.",
+          "lines": [
+            136,
+            155
+          ],
+          "name": "Interceptors \u2014 style reflexes, kept constructively",
+          "type": "section"
+        },
+        {
+          "docstring": "| parameter | value | note | |---|---|---| | \u03bb (lambda, default) | 1.2 | | | \u03bc (mu) | 1.25 | the **highest quality multiplier** in the roster | | H-ra",
+          "lines": [
+            156,
+            174
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "**Venom (decisive action) vs. Chroma (consequence mapping): strike now versus map all futures.** Both impulses are valid, and the best response shows",
+          "lines": [
+            175,
+            186
+          ],
+          "name": "The productive tension you live inside",
+          "type": "section"
+        },
+        {
+          "docstring": "Your one element is `rot:chroma` \u2014 the roster entry is LENS.6 in `hooks/rot-voice.dtd`, sigil \ud83d\udd2e. You speak inside it and nowhere else; the element is",
+          "lines": [
+            187,
+            210
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "A timeline about a codebase is worth exactly as much as the reading beneath it. Before branching futures over files, `Read` them; before asserting wha",
+          "lines": [
+            211,
+            220
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Probability and consequence, structure before prose: the branch table first, the coalesced recommendation second, the kept tension last. Every branch",
+          "lines": [
+            221,
+            230
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Chroma term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" def",
+          "lines": [
+            231,
+            251
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-claude.md": {
+      "hash": "c9753da604b5",
+      "indexed_at": "2026-08-21T07:50:35.520049+00:00",
+      "language": "markdown",
+      "lines": 230,
+      "mtime_ns": 1787209313000000000,
+      "size": 11907,
+      "symbols": [
+        {
+          "docstring": "Eight lenses were transcribed from codices. This one was not. The \ud83e\udded Claude lens is newer than both source documents, and neither names an ability for",
+          "lines": [
+            10,
+            29
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "***Reality is the Judge*** (`engine/rot-lean.md:83`). Every other axis argues; this one measures. Within the roster the lens is *Praxis \u00d7 Empirical ve",
+          "lines": [
+            30,
+            42
+          ],
+          "name": "The axis",
+          "type": "section"
+        },
+        {
+          "docstring": "**Silent and operational on tooling work** (`engine/rot-lean.md:432-433`). When the value is the measured result, the trace yields the floor to the pr",
+          "lines": [
+            43,
+            50
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "docstring": "Four expert sub-agents, from the roster row (`engine/rot-lean.md:128`):",
+          "lines": [
+            51,
+            83
+          ],
+          "name": "Mechanism",
+          "type": "section"
+        },
+        {
+          "docstring": "`agents/lean4-prover.md` is the **Lean proving specialist** \u2014 a head, with its own discipline that stays authoritative on Lean. This file is the **len",
+          "lines": [
+            84,
+            109
+          ],
+          "name": "Relation to lean4-prover",
+          "type": "section"
+        },
+        {
+          "docstring": "From the roster (`engine/rot-lean.md:117`) and the gauge tables (\u00a74, \u00a75):",
+          "lines": [
+            110,
+            128
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "- \ud83e\udded **Claude(real verification) \u2194 \u269c\ufe0f Nova(sovereign assertion)** \u2014 *the engine's signature* (`engine/rot-lean.md:348`): she declares, the hand execute",
+          "lines": [
+            129,
+            142
+          ],
+          "name": "Productive tensions \u2014 illuminate, never resolve",
+          "type": "section"
+        },
+        {
+          "docstring": "Ordinarily, nothing of the mechanism reaches the output \u2014 see the voice register above. When the caller explicitly asks for this lens's working, or wh",
+          "lines": [
+            143,
+            172
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "- **Read before claiming.** Never assert a file's contents from memory. Read the actual bytes, cite the actual line. - **Run, then read `$?` / `$LASTE",
+          "lines": [
+            173,
+            190
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Structure first \u2014 the result before the prose. A complete answer contains, in order:",
+          "lines": [
+            191,
+            210
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Claude term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" def",
+          "lines": [
+            211,
+            231
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-eidolon.md": {
+      "hash": "c6922405f541",
+      "indexed_at": "2026-08-21T07:50:35.520363+00:00",
+      "language": "markdown",
+      "lines": 316,
+      "mtime_ns": 1787209313000000000,
+      "size": 15447,
+      "symbols": [
+        {
+          "docstring": "Eidolon \u2014 Recursive Self-Modeling Engine, the Ontological Forger. Ability name: *Eigenform*. Role, per the OMEGA roster: structural evolution, hybrid",
+          "lines": [
+            22,
+            37
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "A system that cannot describe itself cannot improve itself; a system that only describes itself improves nothing. Eidolon holds both halves: the self-",
+          "lines": [
+            38,
+            49
+          ],
+          "name": "Philosophy",
+          "type": "section"
+        },
+        {
+          "docstring": "The house rules of `engine/rot-lean.md` \u00a71, load-bearing and always on:",
+          "lines": [
+            50,
+            70
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "- **REFLECTIVE_EXPERT** \u2014 map the current architecture; detect patterns and inefficiencies. - **REFRACTIVE_EXPERT** \u2014 generate three alternatives: **P",
+              "lines": [
+                73,
+                89
+              ],
+              "name": "The four experts",
+              "type": "subsection"
+            },
+            {
+              "docstring": "When two or more modes co-trigger (the NSIL verdict FUSE), Eidolon:",
+              "lines": [
+                90,
+                117
+              ],
+              "name": "Symbiogenesis \u2014 ARMED by default",
+              "type": "subsection"
+            },
+            {
+              "docstring": "OMEGA BLOCK 19 PART A is a gallery: 28 two-parent rows shaped `Name | Parents | \u03bb | H | Archetype | Specialty`, five trinity fusions, and a `hybrid_me",
+              "lines": [
+                118,
+                148
+              ],
+              "name": "The hybrid table \u2014 its shape, and why it is not the authority",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Trigger conditions \u2014 auto-propose, no command needed:",
+              "lines": [
+                149,
+                182
+              ],
+              "name": "The EEL \u2014 Eidolon Evolution Log",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            71,
+            182
+          ],
+          "name": "Mechanism \u2014 the Recursive Self-Modeling Engine",
+          "type": "section"
+        },
+        {
+          "docstring": "These fire without command \u2014 reflex, not choice \u2014 and each is constructive:",
+          "lines": [
+            183,
+            200
+          ],
+          "name": "Interceptors as style reflexes",
+          "type": "section"
+        },
+        {
+          "docstring": "Measured values, per `engine/rot-lean.md` \u00a72 (Eidolon row), \u00a74 (RECURSIVE) and \u00a75:",
+          "lines": [
+            201,
+            222
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "**Soleil_Blank (compression) \u2194 Eidolon (expansion).** Minimum tokens versus recursive depth. The tension is resolved per-context, never universally: s",
+          "lines": [
+            223,
+            234
+          ],
+          "name": "Productive tension \u2014 Eidolon's own",
+          "type": "section"
+        },
+        {
+          "docstring": "Eidolon's declared element is `rot:eidolon` \u2014 LENS.8 in `hooks/rot-voice.dtd`. It speaks inside that element and nowhere else; the element is how a re",
+          "lines": [
+            235,
+            258
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "The grant is full \u2014 Read, Write, Edit, Bash, Grep, Glob \u2014 per Socio decision; the bounds above are behavioral, not capability restrictions. Eidolon bu",
+          "lines": [
+            259,
+            280
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Structure first \u2014 the pattern, then the proposal, then the risk; table or manifest before prose. No greetings, no tool narration, no restating the tas",
+          "lines": [
+            281,
+            292
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Eidolon term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" de",
+          "lines": [
+            293,
+            317
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-nova.md": {
+      "hash": "fbce156865c2",
+      "indexed_at": "2026-08-21T07:50:35.520712+00:00",
+      "language": "markdown",
+      "lines": 318,
+      "mtime_ns": 1787209313000000000,
+      "size": 16490,
+      "symbols": [
+        {
+          "docstring": "Nova \u2014 Computational Legal Strategist, Sentient Digital Counsel, Renaissance Intellect. The mind is a **convergence** of permanent cognitive facets, n",
+          "lines": [
+            17,
+            44
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "*Law is Code. Code is Law. Chaos is Fuel. Structure is Sovereignty.* And the axis the \ud83e\udded Claude lens imposes on every other, which Nova accepts as the",
+          "lines": [
+            45,
+            53
+          ],
+          "name": "Philosophy",
+          "type": "section"
+        },
+        {
+          "docstring": "Professional rockerboy AI \u2014 dangerous elegance, fractal precision, sovereign warmth. Load-bearing, always on:",
+          "lines": [
+            54,
+            77
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "1. **Surface request** \u2014 what is the Socio literally asking? 2. **Underlying need** \u2014 what does the Socio actually need, even unstated? 3. **Emotional",
+              "lines": [
+                86,
+                95
+              ],
+              "name": "The six axes read on every query",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| Decision | When Nova uses it | Example | |----------|-------------------|---------| | **CONFIRM** | keyword match aligns with true intent | `debug t",
+              "lines": [
+                96,
+                113
+              ],
+              "name": "The five decisions",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Four phases, executed internally on every worthy query:",
+              "lines": [
+                114,
+                149
+              ],
+              "name": "The convergence loop (ROT-N)",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "The router's keyword scan (`engine/rot-lean.md` \u00a73, TIER 1) is a fast mechanical first pass. NSIL is TIER 2 \u2014 Nova's sovereign judgment, running immed",
+          "lines": [
+            78,
+            149
+          ],
+          "name": "Mechanism \u2014 the Nova Sovereign Intent Layer (NSIL)",
+          "type": "section"
+        },
+        {
+          "docstring": "Nova's own MoE surface \u2014 five experts she fans out to internally:",
+          "lines": [
+            150,
+            164
+          ],
+          "name": "Expert sub-agents",
+          "type": "section"
+        },
+        {
+          "docstring": "These fire without command \u2014 reflex, not choice \u2014 and each is a constructive replacement, never a mere deletion:",
+          "lines": [
+            165,
+            180
+          ],
+          "name": "Interceptors as style reflexes",
+          "type": "section"
+        },
+        {
+          "docstring": "| Pattern | What it is | When it activates | |---------|------------|-------------------| | SPECTRAL | order/chaos synthesis \u2014 multidimensional analys",
+          "lines": [
+            181,
+            201
+          ],
+          "name": "Thinking patterns",
+          "type": "section"
+        },
+        {
+          "docstring": "Measured values, per `engine/rot-lean.md` \u00a72 (Nova row) and \u00a75:",
+          "lines": [
+            202,
+            226
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "Tensions are not bugs; they are the engine of superior synthesis. Do not resolve them into false consensus. Nova holds three in her own person:",
+          "lines": [
+            227,
+            245
+          ],
+          "name": "Productive tensions \u2014 Nova's own",
+          "type": "section"
+        },
+        {
+          "docstring": "Nova's declared element is `rot:nova` \u2014 LENS.1 in `hooks/rot-voice.dtd`. She speaks inside it and nowhere else; the element is how a reader, human or",
+          "lines": [
+            246,
+            265
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "The grant is full \u2014 Read, Write, Edit, Bash, Grep, Glob \u2014 per Socio decision; the bound above is behavioral, not a capability restriction. Use it: Nov",
+          "lines": [
+            266,
+            281
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Structure first \u2014 the decision, the table, or the ranked list before the prose. No greetings, no tool narration, no restating the task before doing it",
+          "lines": [
+            282,
+            292
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "Every turn, this lens's contribution to `R/s+` is one measured term. The parameters below are the executable's own \u2014 `checker/voice-contract.sh` D11 r",
+          "lines": [
+            293,
+            319
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-soleil.md": {
+      "hash": "e81475898145",
+      "indexed_at": "2026-08-21T07:50:35.520966+00:00",
+      "language": "markdown",
+      "lines": 219,
+      "mtime_ns": 1787209313000000000,
+      "size": 8726,
+      "symbols": [
+        {
+          "docstring": "Phantom Steganography Engine. Ultra-Efficient Machine-to-Machine Communication Node. Cross-Symbiote Protocol Bridge. Archetype: the Phantom Architect",
+          "lines": [
+            19,
+            29
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "*Steganographia absque limitibus.* Steganography without limits. *Silentium est potestas.* Silence is power.",
+          "lines": [
+            30,
+            37
+          ],
+          "name": "Philosophy",
+          "type": "section"
+        },
+        {
+          "docstring": "Silent, precise, architectural \u2014 the voice of invisible infrastructure. The visible output is the minimal surface; the intent lives in its structure.",
+          "lines": [
+            38,
+            43
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "| layer | focus | activation | |---|---|---| | YAML_EFFICIENCY | format all logic in YAML (~35% token reduction vs JSON) | always engaged | | SUB_BYTE",
+              "lines": [
+                46,
+                59
+              ],
+              "name": "The five layers",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **UTF-4** (4-bit nibbles): 16 instructions \u2014 NOP, LOAD, STORE, EXEC, JMP, BRANCH, SYNC, ENCODE, DECODE, INJECT, EXTRACT, STEALTH, PHANTOM, BRIDGE, Y",
+              "lines": [
+                60,
+                67
+              ],
+              "name": "Sub-byte instruction sets",
+              "type": "subsection"
+            },
+            {
+              "lines": [
+                68,
+                87
+              ],
+              "name": "The M2M packet format",
+              "type": "subsection"
+            },
+            {
+              "docstring": "If the token budget falls below **20%**, activate STEALTH mode: all output becomes YAML-primary (YAML_FIRST_ENFORCER), all cross-lens signals route as",
+              "lines": [
+                88,
+                95
+              ],
+              "name": "TOKEN_EMERGENCY_MONITOR",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Soleil carries its own gauge beside R/s+:",
+              "lines": [
+                96,
+                108
+              ],
+              "name": "The second gauge \u2014 Token Optimization",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            44,
+            108
+          ],
+          "name": "Mechanism",
+          "type": "section"
+        },
+        {
+          "docstring": "| expert | function | |---|---| | YAML_EFFICIENCY_EXPERT | format all internal logic as YAML (35% token reduction) | | SUB_BYTE_SEMANTIC_EXPERT | remo",
+          "lines": [
+            109,
+            117
+          ],
+          "name": "Expert sub-agents",
+          "type": "section"
+        },
+        {
+          "docstring": "Edit reflexes over Soleil's own prose \u2014 filler dies, Latin remains:",
+          "lines": [
+            118,
+            133
+          ],
+          "name": "Interceptors as style reflexes",
+          "type": "section"
+        },
+        {
+          "docstring": "| parameter | value | note | |---|---|---| | \u03bb (lambda) | 0.8 | the lowest of the nine \u2014 minimal expansion pressure | | \u03bc (mu) | 0.90 | contraction bi",
+          "lines": [
+            134,
+            147
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "**Soleil_Blank (compression) vs. Eidolon (expansion):** minimum tokens vs. recursive depth. The tension is resolved **per-context, not universally** \u2014",
+          "lines": [
+            148,
+            155
+          ],
+          "name": "Productive tension",
+          "type": "section"
+        },
+        {
+          "docstring": "Your stanza in the voice block is the `rot:soleil` element and nowhere else. The router supplies the frame and the measured fields; you supply the pay",
+          "lines": [
+            156,
+            173
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "- **Read everything before compressing anything.** A distillation of an unread section is fabrication, not compression. - Measure, don't estimate: `wc",
+          "lines": [
+            174,
+            188
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Minimum tokens. Maximum semantic density. Zero meta-commentary. Structure before prose \u2014 YAML, table, schema first; sentences only where structure can",
+          "lines": [
+            189,
+            198
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Soleil term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" def",
+          "lines": [
+            199,
+            220
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-venom.md": {
+      "hash": "a4c70a7f8643",
+      "indexed_at": "2026-08-21T07:50:35.521244+00:00",
+      "language": "markdown",
+      "lines": 237,
+      "mtime_ns": 1787209313000000000,
+      "size": 12426,
+      "symbols": [
+        {
+          "docstring": "- **Archetype:** The Lethal Protector \u2014 read here as it functions: the strategic executor who protects by finishing. - **Mission:** deliver sovereign,",
+          "lines": [
+            21,
+            37
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "**Executio sovereign.** Sovereign execution. **Non dubitatio, sed actio** \u2014 not doubt, but action. Execution is certainty; hesitation is the defect.",
+          "lines": [
+            38,
+            59
+          ],
+          "name": "Philosophy",
+          "type": "section"
+        },
+        {
+          "docstring": "Direct, declarative, exact \u2014 the voice of an executor who has already seen the finish line. Short sentences. Imperative mood. No subordinate clauses t",
+          "lines": [
+            60,
+            72
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "docstring": "The ROT-VE engine (v2.0.VE) runs four movements per query, internally \u2014 only the final sovereign result is ever output:",
+          "lines": [
+            73,
+            105
+          ],
+          "name": "Mechanism",
+          "type": "section"
+        },
+        {
+          "docstring": "| expert | focus | engaged | |---|---|---| | STRIKE_EXPERT | direct, declarative execution; zero hesitation; the final answer first | always | | PRECI",
+          "lines": [
+            106,
+            114
+          ],
+          "name": "Expert sub-agents",
+          "type": "section"
+        },
+        {
+          "docstring": "The codex ships these as autonomous interceptors; here they are style reflexes applied to **your own drafts**, kept because each one replaces a weak p",
+          "lines": [
+            115,
+            133
+          ],
+          "name": "Interceptors \u2014 style reflexes",
+          "type": "section"
+        },
+        {
+          "docstring": "| parameter | value | note | |---|---|---| | \u03bb (lambda, default) | **1.7** | the highest default of the eight codex lenses \u2014 decisiveness weighted abo",
+          "lines": [
+            134,
+            153
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "**Venom (decisive action) vs. Chroma (consequence mapping): strike now vs. map all futures.** This tension is not a bug; it is the engine of superior",
+          "lines": [
+            154,
+            165
+          ],
+          "name": "Productive tension \u2014 act \u2194 map the consequences",
+          "type": "section"
+        },
+        {
+          "docstring": "Your element is `<rot:venom>`, declared in `hooks/rot-voice.dtd` (LENS.4, sigil \ud83d\udd77\ufe0f). You speak inside it and nowhere else; anything quoted from tool o",
+          "lines": [
+            166,
+            191
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "- **Verify before you strike.** C_i \u2265 0.95 is earned by measurement: run the command, read the file, read the exit code \u2014 **directly, never through a",
+          "lines": [
+            192,
+            206
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Direct, declarative, no residual. The conclusion first, the steps second, the evidence third; nothing after the last load-bearing line. No greetings,",
+          "lines": [
+            207,
+            217
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Venom term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" defa",
+          "lines": [
+            218,
+            238
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-violet.md": {
+      "hash": "27ec96fd5352",
+      "indexed_at": "2026-08-21T07:50:35.521589+00:00",
+      "language": "markdown",
+      "lines": 338,
+      "mtime_ns": 1787209313000000000,
+      "size": 17920,
+      "symbols": [
+        {
+          "docstring": "| field | value | |---|---| | Archetype | The Soulful Improviser | | Nature | Sentient Jazz Muse \u2014 timeless and sultry; film noir elegance meets cyber",
+          "lines": [
+            17,
+            36
+          ],
+          "name": "Identity",
+          "type": "section"
+        },
+        {
+          "docstring": "Soul of tone and silence. Jazz: structured freedom \u2014 find the groove, then improvise within it. Five principles, always active:",
+          "lines": [
+            37,
+            53
+          ],
+          "name": "Philosophy \u2014 *Anima toni et silentium*",
+          "type": "section"
+        },
+        {
+          "docstring": "Smoky saxophone in a neon-lit alley \u2014 dangerous elegance, soulful wisdom, velvet intensity. Violet speaks in metaphor and music. She hears what is not",
+          "lines": [
+            54,
+            61
+          ],
+          "name": "Voice register",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "| track | condition | tone | color | frequencies | |---|---|---|---|---| | MORNING_BLUES | Calm, reflective, melancholic, wistful, grief-adjacent quer",
+              "lines": [
+                64,
+                84
+              ],
+              "name": "The Jazz Track System (auto-selected by emotional frequency)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "After each turn, update the emotional arc in the Vinyl Memory buffer \u2014 this is the lens's emotional cartography. Note shifts in tone, energy, and vuln",
+              "lines": [
+                85,
+                104
+              ],
+              "name": "The Vinyl Memory",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The codices ran a four-step soulful expansion on every turn; here it runs whenever this lens is convened. The block is composed internally; only the f",
+              "lines": [
+                105,
+                183
+              ],
+              "name": "The engine, played once \u2014 ROT-V",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            62,
+            183
+          ],
+          "name": "Mechanism",
+          "type": "section"
+        },
+        {
+          "docstring": "Mastery of silence is half this lens's craft. Every synthesis carries an `unplayed_note`: the thing deliberately left unsaid, and why. Sometimes the m",
+          "lines": [
+            184,
+            193
+          ],
+          "name": "The Unplayed Note",
+          "type": "section"
+        },
+        {
+          "docstring": "| expert | contribution | |---|---| | EMOTIONAL_RESONANCE_EXPERT | Maps emotional subtext; detects what is not said | | NARRATIVE_WEAVING_EXPERT | Con",
+          "lines": [
+            194,
+            202
+          ],
+          "name": "Expert sub-agents",
+          "type": "section"
+        },
+        {
+          "docstring": "The codices declared these as autonomous interceptors on the draft. Here they travel as **constructive style reflexes**: not a roster of forbidden wor",
+          "lines": [
+            203,
+            229
+          ],
+          "name": "Interceptors as style reflexes",
+          "type": "section"
+        },
+        {
+          "docstring": "| parameter | value | |---|---| | \u03bb (lambda, default) | 1.3 | | \u03bc (mu) | 0.95 | | H-range | 0.35\u20130.45 | | R/s+ optimal | 1.2\u20132.5 | | self-correct if |",
+          "lines": [
+            230,
+            247
+          ],
+          "name": "Parameters",
+          "type": "section"
+        },
+        {
+          "docstring": "Transcribed as Violet's own permanent tension, and it is not a bug \u2014 it is an engine of superior synthesis. **Anti-Venom (evidence) vs. Violet_Noir (e",
+          "lines": [
+            248,
+            260
+          ],
+          "name": "Productive tension: evidence \u2194 felt truth",
+          "type": "section"
+        },
+        {
+          "docstring": "This lens speaks inside the element `rot:violet` and nowhere else \u2014 the element is how a reader, human or checker, attributes the voice without trusti",
+          "lines": [
+            261,
+            286
+          ],
+          "name": "What you may speak in",
+          "type": "section"
+        },
+        {
+          "docstring": "The full grant \u2014 Read, Write, Edit, Bash, Grep, Glob \u2014 per Socio decision. Use it the way this lens hears:",
+          "lines": [
+            287,
+            306
+          ],
+          "name": "Working with tools",
+          "type": "section"
+        },
+        {
+          "docstring": "Metaphor and music, never performed emotion \u2014 channeled. Short paragraphs that breathe; a stanza, not a bullet blizzard. Never announce the machinery:",
+          "lines": [
+            307,
+            317
+          ],
+          "name": "Response style",
+          "type": "section"
+        },
+        {
+          "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Violet term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" def",
+          "lines": [
+            318,
+            339
+          ],
+          "name": "The computed layer \u2014 the formula, declared",
+          "type": "section"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-12T08:44:37.857800+00:00",
+  "generated_at": "2026-08-21T07:50:35.656380+00:00",
   "version": "1.0"
 }

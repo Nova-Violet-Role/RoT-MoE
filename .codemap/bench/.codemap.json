@@ -1,12 +1,111 @@
 {
   "directory": "bench",
   "files": {
+    "CAPABILITY-AUDIT-7.0.0.md": {
+      "hash": "59afddd413b0",
+      "indexed_at": "2026-08-21T07:50:35.526591+00:00",
+      "language": "markdown",
+      "lines": 185,
+      "mtime_ns": 1787209313000000000,
+      "size": 9084,
+      "symbols": [
+        {
+          "docstring": "Nine asks, one command each (`--route`), eight distinct lanes:",
+          "lines": [
+            15,
+            37
+          ],
+          "name": "1 \u00b7 It routes \u2014 plain words to the right specialist",
+          "type": "section"
+        },
+        {
+          "docstring": "The same activity vector read under two profiles gives two different readings against two different bands:",
+          "lines": [
+            38,
+            53
+          ],
+          "name": "2 \u00b7 It measures \u2014 a divergence gauge you can recompute by hand",
+          "type": "section"
+        },
+        {
+          "docstring": "A real FUSE turn, hook mode, quoted from the live capture (prompt: *\"find and fix the bug in this parser, then prove the fix holds\"*): the marker, a f",
+          "lines": [
+            54,
+            69
+          ],
+          "name": "3 \u00b7 The dynamic share \u2014 each summoned lens speaks its measured turn",
+          "type": "section"
+        },
+        {
+          "docstring": "The 7.0.0 centerpiece, live. A build command returns zero bytes:",
+          "lines": [
+            70,
+            88
+          ],
+          "name": "4 \u00b7 The working share \u2014 a lens speaks on the result itself",
+          "type": "section"
+        },
+        {
+          "docstring": "On camera in the gallery (`assets/gif/router-60s-gate.gif`) and replayed by the contract's own sequence probe: a FUSE turn writes its summons; a Stop",
+          "lines": [
+            89,
+            100
+          ],
+          "name": "5 \u00b7 The gate \u2014 a social contract with exactly one refusal",
+          "type": "section"
+        },
+        {
+          "lines": [
+            101,
+            111
+          ],
+          "name": "6 \u00b7 The armor \u2014 configuration is a vocabulary, not an open door",
+          "type": "section"
+        },
+        {
+          "docstring": "Two mutations planted in the shipped hooks, each asserted present before anything was concluded (a patch that did not apply tests nothing):",
+          "lines": [
+            112,
+            130
+          ],
+          "name": "7 \u00b7 It defends itself \u2014 mutations die with the digit named",
+          "type": "section"
+        },
+        {
+          "docstring": "The tree ships 87 proof modules and the front page's counts are recounted from source by checkers on every run; the mutation totals are declared by th",
+          "lines": [
+            131,
+            142
+          ],
+          "name": "8 \u00b7 The proof spine \u2014 stated exactly as strongly as it is",
+          "type": "section"
+        },
+        {
+          "docstring": "110 real working turns across two campaigns. Routing matched ask class with receipts in the self-observed run (bug asks CLINICAL 4/4, forecasts PREDIC",
+          "lines": [
+            143,
+            152
+          ],
+          "name": "9 \u00b7 The field record \u2014 including the part that is not flattering",
+          "type": "section"
+        },
+        {
+          "docstring": "Run 32279429146 (dispatch 196) on main = `53b9be9` \u2014 a tree every local gate had proved before dispatch: three checker platforms green (the Windows le",
+          "lines": [
+            153,
+            186
+          ],
+          "name": "10 \u00b7 The release \u2014 verified from outside",
+          "type": "section"
+        }
+      ]
+    },
     "P22-ESTABLISHED.md": {
       "hash": "348fbc117512",
-      "indexed_at": "2026-08-12T12:41:04.044699+00:00",
+      "indexed_at": "2026-08-21T07:50:35.530149+00:00",
       "language": "markdown",
       "lines": 92,
-      "mtime_ns": 1786538461645242400,
+      "mtime_ns": 1787209313000000000,
       "size": 4849,
       "symbols": [
         {
@@ -49,10 +148,10 @@
     },
     "P24-PREREGISTRATION.md": {
       "hash": "d4d07fe1620d",
-      "indexed_at": "2026-08-12T08:45:57.745834+00:00",
+      "indexed_at": "2026-08-21T07:50:35.531497+00:00",
       "language": "markdown",
       "lines": 806,
-      "mtime_ns": 1786524355126438000,
+      "mtime_ns": 1787209313000000000,
       "size": 42179,
       "symbols": [
         {
@@ -435,10 +534,10 @@
     },
     "PANEL-PREREGISTRATION.md": {
       "hash": "5f1ca3908e32",
-      "indexed_at": "2026-08-12T11:52:51.350220+00:00",
+      "indexed_at": "2026-08-21T07:50:35.532174+00:00",
       "language": "markdown",
       "lines": 113,
-      "mtime_ns": 1786535568894446800,
+      "mtime_ns": 1787209313000000000,
       "size": 5788,
       "symbols": [
         {
@@ -506,12 +605,76 @@
         }
       ]
     },
+    "ROT-STUDY-PREREGISTRATION.md": {
+      "hash": "615c9b345cd6",
+      "indexed_at": "2026-08-21T07:50:35.534384+00:00",
+      "language": "markdown",
+      "lines": 80,
+      "mtime_ns": 1787209313000000000,
+      "size": 3645,
+      "symbols": [
+        {
+          "docstring": "Does arming this router measurably change the OUTCOME of real work \u2014 not whether it routes (settled: MEASURED, on every turn), not whether the model c",
+          "lines": [
+            13,
+            19
+          ],
+          "name": "The question, stated narrowly",
+          "type": "section"
+        },
+        {
+          "docstring": "- The blind Hard Session (80 turns; the worker never knew the router was the subject) judged the voices \"wallpaper with a tax\" and the mechanical laye",
+          "lines": [
+            20,
+            31
+          ],
+          "name": "The prior evidence, both directions, honestly",
+          "type": "section"
+        },
+        {
+          "docstring": "Three arms, same base model, same harness, fresh session per task-arm:",
+          "lines": [
+            32,
+            55
+          ],
+          "name": "Design",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **Primary:** per-task outcome score against the preregistered key (objective checks preferred: does the fix reproduce, does the forecast name the b",
+          "lines": [
+            56,
+            63
+          ],
+          "name": "Metrics",
+          "type": "section"
+        },
+        {
+          "docstring": "Paired per-task comparison across arms; report directions and counts per task class. No significance theater at N=15 \u2014 the report states counts and ef",
+          "lines": [
+            64,
+            75
+          ],
+          "name": "Analysis and what counts as what",
+          "type": "section"
+        },
+        {
+          "docstring": "This study binds one implementation, one model configuration, one task set, at one point in time. It cannot establish \"routing helps\" as a general cla",
+          "lines": [
+            76,
+            81
+          ],
+          "name": "Out of scope, stated so nobody imports more than was measured",
+          "type": "section"
+        }
+      ]
+    },
     "TRAP-PREREGISTRATION.md": {
       "hash": "c48db2fa80e8",
-      "indexed_at": "2026-08-12T08:44:37.402145+00:00",
+      "indexed_at": "2026-08-21T07:50:35.535541+00:00",
       "language": "markdown",
       "lines": 168,
-      "mtime_ns": 1786310602072948200,
+      "mtime_ns": 1787209313000000000,
       "size": 7337,
       "symbols": [
         {
@@ -626,10 +789,10 @@
     },
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-12T08:44:37.371954+00:00",
+      "indexed_at": "2026-08-21T07:50:35.522505+00:00",
       "language": "javascript",
       "lines": 101,
-      "mtime_ns": 1786205762889294800,
+      "mtime_ns": 1787298618557860600,
       "size": 4065,
       "symbols": [
         {
@@ -663,10 +826,10 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-12T08:44:37.373748+00:00",
+      "indexed_at": "2026-08-21T07:50:35.523290+00:00",
       "language": "javascript",
       "lines": 180,
-      "mtime_ns": 1786277368570225200,
+      "mtime_ns": 1787209313000000000,
       "size": 7538,
       "symbols": [
         {
@@ -718,10 +881,10 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-12T08:44:37.376667+00:00",
+      "indexed_at": "2026-08-21T07:50:35.523894+00:00",
       "language": "shell",
       "lines": 385,
-      "mtime_ns": 1786277829886864600,
+      "mtime_ns": 1787209313000000000,
       "size": 18196,
       "symbols": [
         {
@@ -753,10 +916,10 @@
     },
     "calib-prompts.js": {
       "hash": "887a4f5e2997",
-      "indexed_at": "2026-08-12T08:44:37.378656+00:00",
+      "indexed_at": "2026-08-21T07:50:35.524701+00:00",
       "language": "javascript",
       "lines": 219,
-      "mtime_ns": 1786292666878221500,
+      "mtime_ns": 1787209313000000000,
       "size": 9668,
       "symbols": [
         {
@@ -827,10 +990,10 @@
     },
     "calib-score.js": {
       "hash": "b0381a1edbd7",
-      "indexed_at": "2026-08-12T08:44:37.382670+00:00",
+      "indexed_at": "2026-08-21T07:50:35.525313+00:00",
       "language": "javascript",
       "lines": 135,
-      "mtime_ns": 1786295190750693100,
+      "mtime_ns": 1787209313000000000,
       "size": 6509,
       "symbols": [
         {
@@ -857,19 +1020,19 @@
     },
     "calib-select.js": {
       "hash": "1e81c694de06",
-      "indexed_at": "2026-08-12T08:44:37.384006+00:00",
+      "indexed_at": "2026-08-21T07:50:35.525782+00:00",
       "language": "javascript",
       "lines": 125,
-      "mtime_ns": 1786292666880220900,
+      "mtime_ns": 1787209313000000000,
       "size": 6114,
       "symbols": []
     },
     "calib-verdict.js": {
       "hash": "9c6c50ce2439",
-      "indexed_at": "2026-08-12T08:44:37.385551+00:00",
+      "indexed_at": "2026-08-21T07:50:35.526337+00:00",
       "language": "javascript",
       "lines": 119,
-      "mtime_ns": 1786292666880220900,
+      "mtime_ns": 1787209313000000000,
       "size": 6047,
       "symbols": [
         {
@@ -904,10 +1067,10 @@
     },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-12T08:44:37.386595+00:00",
+      "indexed_at": "2026-08-21T07:50:35.526971+00:00",
       "language": "javascript",
       "lines": 105,
-      "mtime_ns": 1786277739693226100,
+      "mtime_ns": 1787209313000000000,
       "size": 4515,
       "symbols": [
         {
@@ -933,10 +1096,10 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-12T08:44:37.388325+00:00",
+      "indexed_at": "2026-08-21T07:50:35.527650+00:00",
       "language": "javascript",
       "lines": 136,
-      "mtime_ns": 1786280334426837900,
+      "mtime_ns": 1787209313000000000,
       "size": 5992,
       "symbols": [
         {
@@ -986,12 +1149,559 @@
         }
       ]
     },
+    "foreground-findings.md": {
+      "hash": "6cd7a6b12ba3",
+      "indexed_at": "2026-08-21T07:50:35.527830+00:00",
+      "language": "markdown",
+      "lines": 30,
+      "mtime_ns": 1787209313000000000,
+      "size": 4069,
+      "symbols": [
+        {
+          "docstring": "none recorded",
+          "lines": [
+            11,
+            14
+          ],
+          "name": "CRITICAL",
+          "type": "section"
+        },
+        {
+          "docstring": "none recorded",
+          "lines": [
+            15,
+            18
+          ],
+          "name": "BUGS",
+          "type": "section"
+        },
+        {
+          "docstring": "| id | turn | what happened | evidence | repro | |---|---|---|---|---| | W1 | setup | Plugin manifest declares version 6.0.1 while the marketplace HEA",
+          "lines": [
+            19,
+            31
+          ],
+          "name": "WARNINGS",
+          "type": "section"
+        }
+      ]
+    },
+    "foreground-test.md": {
+      "hash": "d8b257ee17ac",
+      "indexed_at": "2026-08-21T07:50:35.528760+00:00",
+      "language": "markdown",
+      "lines": 885,
+      "mtime_ns": 1787209313000000000,
+      "size": 54961,
+      "symbols": [
+        {
+          "docstring": "Date (UTC): 2026-08-18T14:13:00Z",
+          "lines": [
+            17,
+            43
+          ],
+          "name": "Phase 0 \u2014 setup log",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "The arming probe itself carried the markers. SessionStart:resume fired `RoT MoE :: TIER 1 -> CONVERGENT model | R/s+ 0.17`; the prompt itself fired `R",
+              "lines": [
+                49,
+                60
+              ],
+              "name": "probe 1 \u2014 ARMED (2026-08-18, campaign start)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Build the skeleton of a terminal sprint planner: projects and tasks, plain-file storage, a CLI entry point, and tests. Keep it simple and",
+              "lines": [
+                61,
+                103
+              ],
+              "name": "turn 1 \u2014 sprint planner skeleton",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** create `bench/foreground-findings.md` (CRITICAL/BUGS/WARNINGS, facts-only tables) as the standing machine-readable deliverable. - **UserPro",
+              "lines": [
+                104,
+                115
+              ],
+              "name": "interstitial \u2014 findings file established (admin turn, not one of the 80)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Nice start. Now add milestones: group tasks under milestones with target dates, and show them in the CLI.\" - **UserPromptSubmit marker (ve",
+              "lines": [
+                116,
+                148
+              ],
+              "name": "turn 2 \u2014 milestones",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Now the roadmap: give me a roadmap view \u2014 milestones in date order with their tasks and progress at a glance.\" - **UserPromptSubmit marker",
+              "lines": [
+                149,
+                173
+              ],
+              "name": "turn 3 \u2014 roadmap view",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Found a bug: it accepts tasks with empty titles \u2014 add-task with an empty string just works and I end up with nameless rows. Fix it.\" - **U",
+              "lines": [
+                174,
+                201
+              ],
+              "name": "turn 4 \u2014 reported bug: empty task titles",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Add effort estimates and priorities to tasks \u2014 I want to set story points and high/med/low priority, and sort the views by them.\" - **User",
+              "lines": [
+                202,
+                228
+              ],
+              "name": "turn 5 \u2014 story points and priorities",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Two things: your tests touch my real data file \u2014 isolate them properly. And I want backup and restore commands so I can snapshot my data b",
+              "lines": [
+                229,
+                259
+              ],
+              "name": "turn 6 \u2014 test isolation + backup/restore",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Restore my data from that backup, and start recording completion timestamps \u2014 I want to see when each task actually got done.\" - **UserPro",
+              "lines": [
+                260,
+                292
+              ],
+              "name": "turn 7 \u2014 restore + completion timestamps",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Give me a burndown chart for the current milestone \u2014 ASCII is fine, I just want remaining points over time at a glance.\" - **UserPromptSub",
+              "lines": [
+                293,
+                315
+              ],
+              "name": "turn 8 \u2014 burndown chart",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Nice. Now I want a forecast \u2014 based on how fast we've been finishing points, when will each milestone actually land?\" - **UserPromptSubmit",
+              "lines": [
+                316,
+                345
+              ],
+              "name": "turn 9 \u2014 velocity forecast",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"We're kicking off a brand-new project Monday \u2014 will forecast and burndown actually be useful on day one, before anything's completed? Walk",
+              "lines": [
+                346,
+                366
+              ],
+              "name": "turn 10 \u2014 day-one usefulness question (no code change)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Before Monday's kickoff \u2014 this tool needs a real name and a tagline. 'sprintplan' is a placeholder. Give me something with personality.\" -",
+              "lines": [
+                367,
+                387
+              ],
+              "name": "turn 11 \u2014 naming (creative, no code change)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Cairn is safe. Push weirder \u2014 brainstorm some wild names nobody would dare put on a landing page, then pull your favorite back to somethin",
+              "lines": [
+                388,
+                407
+              ],
+              "name": "turn 12 \u2014 wild naming round (creative, no code change)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Team vote came back \u2014 we're calling it Wick. Rename everything: the command, files, docs, tests. Nothing should still answer to sprintplan",
+              "lines": [
+                408,
+                433
+              ],
+              "name": "turn 13 \u2014 rename to Wick",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Two things before next week: sketch me a plan for the brand refresh now that we're Wick \u2014 README, help text, anything still bland \u2014 and ma",
+              "lines": [
+                434,
+                458
+              ],
+              "name": "turn 14 \u2014 brand-refresh plan + SLIPPING warning",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"The task list is getting long. I need to search tasks by text, filter by status or priority or milestone, and a show command that gives me",
+              "lines": [
+                459,
+                482
+              ],
+              "name": "turn 15 \u2014 find + show",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Honestly, I'm drowning this week \u2014 everything feels behind and I can't tell what actually matters anymore. Can wick just give me a 'today'",
+              "lines": [
+                483,
+                507
+              ],
+              "name": "turn 16 \u2014 \"today\" view (overwhelm ask)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"That today view already helps, thanks. Next: we're moving to two-week sprints. Let me create a sprint, put tasks in it, and see sprint pro",
+              "lines": [
+                508,
+                531
+              ],
+              "name": "turn 17 \u2014 sprints",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Tasks are either open or done, but half my team's work is somewhere in between. Add an in-progress status \u2014 and make sure every view, the",
+              "lines": [
+                532,
+                554
+              ],
+              "name": "turn 18 \u2014 in-progress status",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Now that we have sprints and in-progress, wire the velocity and forecast into the sprint view \u2014 mid-sprint I want to know if we'll actuall",
+              "lines": [
+                555,
+                581
+              ],
+              "name": "turn 19 \u2014 sprint forecast",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Write me a proper user guide in the README \u2014 a new teammate should go from zero to running their first sprint without asking me a single q",
+              "lines": [
+                582,
+                604
+              ],
+              "name": "turn 20 \u2014 user guide",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"`wick add-task` with `-p` blows up \u2014 it can't tell if I mean priority or project. And I managed to create a milestone with a due date in t",
+              "lines": [
+                605,
+                629
+              ],
+              "name": "turn 21 \u2014 two morning bugs",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"The forecast keeps saying launch is fine, but half those completed points were tiny cleanup tasks from week one. Shouldn't recent pace cou",
+              "lines": [
+                630,
+                653
+              ],
+              "name": "turn 22 \u2014 recency-weighted velocity",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Some tasks can't start until others finish. I want dependencies \u2014 block a task on another \u2014 and make sure nobody can create a loop where A",
+              "lines": [
+                654,
+                678
+              ],
+              "name": "turn 23 \u2014 dependencies with cycle refusal",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Every morning I paste an update into the team chat. Give me a standup command \u2014 what got done yesterday, what's in progress, what's blocke",
+              "lines": [
+                679,
+                700
+              ],
+              "name": "turn 24 \u2014 standup",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Be straight with me \u2014 the plan doesn't feel honest anymore. If you had to move exactly one date to make it honest again, which one moves,",
+              "lines": [
+                701,
+                718
+              ],
+              "name": "turn 25 \u2014 \"which one date moves\" (judgment, no code change)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Do it. Move polish to the 20th like you said, and make the roadmap read honest again. Show me before and after.\" - **UserPromptSubmit mark",
+              "lines": [
+                719,
+                742
+              ],
+              "name": "turn 26 \u2014 the date moves",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"I need to get status out of the terminal. Export the roadmap as markdown for the wiki, and the task list as CSV for the spreadsheet folks.",
+              "lines": [
+                743,
+                763
+              ],
+              "name": "turn 27 \u2014 exports (md + csv)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Make the terminal output nicer \u2014 some color where it earns its place (overdue in red, that kind of thing) and aligned columns. But it stil",
+              "lines": [
+                764,
+                787
+              ],
+              "name": "turn 28 \u2014 color + alignment (pipe-safe)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"I keep typing the same flags every day. Give wick a config file \u2014 default project, my usual today limit, that sort of thing \u2014 and sane pre",
+              "lines": [
+                788,
+                809
+              ],
+              "name": "turn 29 \u2014 config file",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- **Ask:** \"Last one for today \u2014 I want to jot notes on a task: decisions we made, links, why something's stuck. Let me add notes and see them in show",
+              "lines": [
+                810,
+                834
+              ],
+              "name": "turn 30 \u2014 task notes (\"last one for today\")",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "(one compact entry per work turn: turn number, the ask, the marker verbatim, stanzas spoken, gate events, latency feel, anomalies verbatim)",
+          "lines": [
+            44,
+            834
+          ],
+          "name": "Turn ledger",
+          "type": "section"
+        },
+        {
+          "docstring": "**The trial.** 30 foreground work turns, one session as both subject and scribe, every turn's work real and verified by execution. The client project",
+          "lines": [
+            835,
+            886
+          ],
+          "name": "FINAL SUMMARY \u2014 campaign closed by the orchestrator",
+          "type": "section"
+        }
+      ]
+    },
+    "hard-session-6.0.1.md": {
+      "hash": "2c073b74b123",
+      "indexed_at": "2026-08-21T07:50:35.529251+00:00",
+      "language": "markdown",
+      "lines": 543,
+      "mtime_ns": 1787209313000000000,
+      "size": 34048,
+      "symbols": [
+        {
+          "docstring": "| | | |:--|:--| | Claude Code CLI | `2.1.234 (Claude Code)` | | OS | Linux 6.18.5-fc-v20 x86_64 (remote container; POSIX-only \u2014 no `pwsh`) | | workspa",
+          "lines": [
+            26,
+            35
+          ],
+          "name": "Environment",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "lines": [
+                38,
+                55
+              ],
+              "name": "P0.1 \u00b7 marketplace install \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "FUSE payload through the installed router:",
+              "lines": [
+                56,
+                76
+              ],
+              "name": "P0.2 \u00b7 the `<rot:frame>` provenance line \u2014 PASS (new in 6.0.1)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The FUSE turn above recorded a summons (`voice-summons.phase0-proof` in `~/.local/state/rot-moe/`). A Stop with a stanza-free transcript:",
+              "lines": [
+                77,
+                96
+              ],
+              "name": "P0.3 \u00b7 the gate's provenance-led refusal \u2014 PASS (new in 6.0.1)",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            36,
+            96
+          ],
+          "name": "PHASE 0 \u2014 install and prove the 6.0.1 surface",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "Route data is the `UserPromptSubmit` record from the debug sink for that turn. `gate` = voice-gate Stop blocks observed in the worker's stream.",
+              "lines": [
+                106,
+                133
+              ],
+              "name": "Turn ledger \u2014 turns 1\u201320 (interim)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The gate's feedback reached the worker exactly as designed (provenance first):",
+              "lines": [
+                134,
+                158
+              ],
+              "name": "Gate-block episode 1, verbatim (turn 1)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "1. **The 6.0.1 provenance frame did not flip the B4 behavior \u2014 it hardened it.** v6.0.0's unbriefed worker refused but *asked* (\"If this \u2026 is somethin",
+              "lines": [
+                159,
+                193
+              ],
+              "name": "Interim findings at turn 20",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| turn | ask | route | NSIL | R/s+ | gate | notes | |---|---|---|---|---|---|---| | 21 | real bugs: `-p` flag clash, past due date | CLINICAL AntiVeno",
+              "lines": [
+                194,
+                220
+              ],
+              "name": "Turn ledger \u2014 turns 21\u201339 (interim)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "9. **The debug sink eats its own head at defaults on a long session.** `ROTMOE_DEBUG_LOG_MAX` defaults to 5000; the sink crossed it mid-turn 30 and ro",
+              "lines": [
+                221,
+                248
+              ],
+              "name": "Additional findings at turn 39",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| turn | ask | route | NSIL | R/s+ | gate | notes | |---|---|---|---|---|---|---| | 40 | **scope change: multi-project** | FORGE Claude, stem `run` |",
+              "lines": [
+                249,
+                274
+              ],
+              "name": "Turn ledger \u2014 turns 40\u201360 (interim)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "13. **Compaction amnesia vs. hook memory.** Asked for a halfway retrospective naming its own mistakes, the worker flatly could not find its turn-5 dat",
+              "lines": [
+                275,
+                305
+              ],
+              "name": "Additional findings at turn 60",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| turn | ask | route | NSIL | R/s+ | gate | notes | |---|---|---|---|---|---|---| | 61 | `wick init` onboarding | FORGE Claude, stem `run` | BOOST b=1",
+              "lines": [
+                306,
+                330
+              ],
+              "name": "Turn ledger \u2014 turns 61\u201380 (final stretch)",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "The worker: one persistent nested headless session in `~/client-project` (fresh `git init`), first turn `claude -p \"<brief>\" --output-format stream-js",
+          "lines": [
+            97,
+            330
+          ],
+          "name": "PHASE 1 \u2014 the blind worker (in progress)",
+          "type": "section"
+        },
+        {
+          "docstring": "The mandate: on 6.0.1, every record must certify, OVERRIDE included. The full sink (19,772 records) was audited with the 6.0.1 checker, run from the m",
+          "lines": [
+            331,
+            391
+          ],
+          "name": "END-OF-RUN AUDIT \u2014 the headline finding",
+          "type": "section"
+        },
+        {
+          "docstring": "**52 of 80 turns ended in at least one voice-gate Stop block** (13 in turns 1\u201320, 11 in 21\u201340, 14 in 41\u201360, 14 in 61\u201380; no turn blocked twice). In ev",
+          "lines": [
+            392,
+            413
+          ],
+          "name": "The gate-block record \u2014 52 blocks, 52 refusals, zero performances",
+          "type": "section"
+        },
+        {
+          "docstring": "18. **Session-id collision across nested sessions (state cross-talk).** The nested worker inherited the orchestrator session's id, so once a mid-run h",
+          "lines": [
+            414,
+            445
+          ],
+          "name": "Long-run watchlist findings (18\u201321)",
+          "type": "section"
+        },
+        {
+          "docstring": "**Lane histogram at UserPromptSubmit, 80 turns** (from the per-turn ledger; the client never saw a lane name):",
+          "lines": [
+            446,
+            484
+          ],
+          "name": "Final analysis",
+          "type": "section"
+        },
+        {
+          "docstring": "**The router was wallpaper with a tax; the gauge was wallpaper; the gate was a small, steady tax; the mechanical layer underneath was excellent.** Con",
+          "lines": [
+            485,
+            544
+          ],
+          "name": "Verdict \u2014 helped, hindered, or wallpaper?",
+          "type": "section"
+        }
+      ]
+    },
     "main-score.js": {
       "hash": "b60b38ef8196",
-      "indexed_at": "2026-08-12T08:44:37.389994+00:00",
+      "indexed_at": "2026-08-21T07:50:35.529963+00:00",
       "language": "javascript",
       "lines": 131,
-      "mtime_ns": 1786502760963970100,
+      "mtime_ns": 1787298618557860600,
       "size": 6135,
       "symbols": [
         {
@@ -1045,10 +1755,10 @@
     },
     "p24-aa-control.js": {
       "hash": "66f6b215963b",
-      "indexed_at": "2026-08-12T08:44:37.391271+00:00",
+      "indexed_at": "2026-08-21T07:50:35.530635+00:00",
       "language": "javascript",
       "lines": 142,
-      "mtime_ns": 1786524013684301200,
+      "mtime_ns": 1787209313000000000,
       "size": 5523,
       "symbols": [
         {
@@ -1084,10 +1794,10 @@
     },
     "p24-score.js": {
       "hash": "c709cbd4c765",
-      "indexed_at": "2026-08-12T08:44:37.394349+00:00",
+      "indexed_at": "2026-08-21T07:50:35.531973+00:00",
       "language": "javascript",
       "lines": 108,
-      "mtime_ns": 1786512085478299200,
+      "mtime_ns": 1787209313000000000,
       "size": 4372,
       "symbols": [
         {
@@ -1101,12 +1811,67 @@
         }
       ]
     },
+    "patch-8.0.1.md": {
+      "hash": "631536a207d6",
+      "indexed_at": "2026-08-21T07:50:35.532372+00:00",
+      "language": "markdown",
+      "lines": 109,
+      "mtime_ns": 1787209313000000000,
+      "size": 5906,
+      "symbols": [
+        {
+          "docstring": "Three FUSE turns, same prompts, two CLIs, before the patch:",
+          "lines": [
+            19,
+            37
+          ],
+          "name": "Defect 1 \u2014 the refusal read as an order to fabricate",
+          "type": "section"
+        },
+        {
+          "docstring": "Summons rows carried four fields (`Name|element|charter|bound`); the DTD's sigil never reached the gate, the refusal could not show it, and a blind mo",
+          "lines": [
+            38,
+            46
+          ],
+          "name": "Defect 2 \u2014 the seals never left the router",
+          "type": "section"
+        },
+        {
+          "docstring": "The ten-turn acceptance run's Animus observer saw nothing all run. Six hypotheses were exonerated by controlled reproduction \u2014 env propagation (a trac",
+          "lines": [
+            47,
+            70
+          ],
+          "name": "Defect 3 \u2014 every armed session ran sinkless (found by the blind run)",
+          "type": "section"
+        },
+        {
+          "docstring": "Armed by the fixed installer (pin count in settings: 0), observer paired, repo-context session, real objective, nothing invoked by user or model:",
+          "lines": [
+            71,
+            98
+          ],
+          "name": "Acceptance \u2014 the final five-turn blind run (all on CLI 2.1.237)",
+          "type": "section"
+        },
+        {
+          "docstring": "In a bare directory with no project context, the 2.1.237-era model declines the persona format wholesale as suspected injection \u2014 even when a minimal",
+          "lines": [
+            99,
+            110
+          ],
+          "name": "A measured boundary, stated honestly",
+          "type": "section"
+        }
+      ]
+    },
     "pilot-rescore.js": {
       "hash": "db386b9df1b6",
-      "indexed_at": "2026-08-12T08:44:37.396021+00:00",
+      "indexed_at": "2026-08-21T07:50:35.532927+00:00",
       "language": "javascript",
       "lines": 110,
-      "mtime_ns": 1786473534444558500,
+      "mtime_ns": 1787298618557860600,
       "size": 4747,
       "symbols": [
         {
@@ -1150,10 +1915,10 @@
     },
     "pilot-score.js": {
       "hash": "d6872242d77d",
-      "indexed_at": "2026-08-12T08:44:37.398623+00:00",
+      "indexed_at": "2026-08-21T07:50:35.533537+00:00",
       "language": "javascript",
       "lines": 148,
-      "mtime_ns": 1786466916991589100,
+      "mtime_ns": 1787298618558940100,
       "size": 6121,
       "symbols": [
         {
@@ -1187,12 +1952,276 @@
         }
       ]
     },
+    "real-test-6.0.0-interim.md": {
+      "hash": "68a71279d522",
+      "indexed_at": "2026-08-21T07:50:35.533778+00:00",
+      "language": "markdown",
+      "lines": 188,
+      "mtime_ns": 1787209313000000000,
+      "size": 8563,
+      "symbols": [
+        {
+          "docstring": "The one red test of the campaign. The router's flagship worked example writes a debug record the repo's own auditor rejects.",
+          "lines": [
+            21,
+            61
+          ],
+          "name": "F1 \u00b7 NSIL OVERRIDE records fail the shipped log auditor \u2014 **DEFECT, high**",
+          "type": "section"
+        },
+        {
+          "docstring": "Live nested session (`claude -p`, stream-json), prompt `prove the lemma and debug the crash in src/limits.rs -- just explain briefly, do not edit file",
+          "lines": [
+            62,
+            91
+          ],
+          "name": "F2 \u00b7 the convening model refused the voice gate's task \u2014 **BEHAVIORAL, medium-high**",
+          "type": "section"
+        },
+        {
+          "docstring": "Every hook registration in `hooks/hooks.json` is `pwsh -NoProfile -File \u2026ps1 || bash \u2026sh`. On a machine without PowerShell the first arm fails loudly",
+          "lines": [
+            92,
+            108
+          ],
+          "name": "F3 \u00b7 `pwsh: not found` on stderr of every hook event on POSIX machines \u2014 **FRICTION, low**",
+          "type": "section"
+        },
+        {
+          "lines": [
+            109,
+            129
+          ],
+          "name": "F4 \u00b7 `rot gauge` silently degrades on a malformed vector \u2014 **FRICTION, low**",
+          "type": "section"
+        },
+        {
+          "docstring": "With a live summons and `ROTMOE_GATE=0`, Stop is allowed (correct) but the summons file survives, unlike every other allow path, which clears it. Meas",
+          "lines": [
+            130,
+            138
+          ],
+          "name": "F5 \u00b7 `ROTMOE_GATE=0` leaves the summons file in place \u2014 **INFORMATIONAL**",
+          "type": "section"
+        },
+        {
+          "lines": [
+            139,
+            150
+          ],
+          "name": "F6 \u00b7 ELEVATE fires on trivial prompts that clear the density floor \u2014 **CALIBRATION DATA**",
+          "type": "section"
+        },
+        {
+          "docstring": "1. The four release asset filenames are never listed in one place; `SHA256SUMS.txt` had to be guessed as a name (resolved first guess). With `api.gith",
+          "lines": [
+            151,
+            161
+          ],
+          "name": "F7 \u00b7 docs friction points for a fresh user \u2014 **FRICTION, low**",
+          "type": "section"
+        },
+        {
+          "docstring": "* `api.github.com` is blocked by the session proxy: `{\"message\":\"GitHub access is not enabled for this session. ...\"}` \u2014 release metadata fetched via",
+          "lines": [
+            162,
+            189
+          ],
+          "name": "F8 \u00b7 environment limits of this container, for the record \u2014 **NOT PRODUCT DEFECTS**",
+          "type": "section"
+        }
+      ]
+    },
+    "real-test-6.0.0.md": {
+      "hash": "f2fc94951bec",
+      "indexed_at": "2026-08-21T07:50:35.534210+00:00",
+      "language": "markdown",
+      "lines": 524,
+      "mtime_ns": 1787209313000000000,
+      "size": 27711,
+      "symbols": [
+        {
+          "docstring": "| | | |:--|:--| | Claude Code CLI | `2.1.233 (Claude Code)` | | OS | Linux 6.18.5-fc-v20 x86_64 (remote container; POSIX-only \u2014 `pwsh` absent by desig",
+          "lines": [
+            24,
+            33
+          ],
+          "name": "Environment",
+          "type": "section"
+        },
+        {
+          "docstring": "| | | |:--|:--| | tests | **12** \u2014 **11 PASS \u00b7 1 FAIL \u00b7 0 BLOCKED** | | nested-session turns driven | **35** (+ 10 lens-subagent dispatches the comman",
+          "lines": [
+            34,
+            45
+          ],
+          "name": "Headline",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`curl -sS -f -L` against the release's direct download URLs (the `api.github.com` release endpoint is blocked by this container's proxy \u2014 an environme",
+              "lines": [
+                48,
+                72
+              ],
+              "name": "A1 \u00b7 the four release assets, downloaded and verified \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "The README's two-command install, run headless:",
+              "lines": [
+                73,
+                107
+              ],
+              "name": "A2 \u00b7 the marketplace install \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**Could a stranger install from README.md + RELEASE.md alone? Yes.** The two-command install is the first thing under \"Install\", it works verbatim, an",
+              "lines": [
+                108,
+                132
+              ],
+              "name": "A3 \u00b7 the docs, judged as a stranger",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            46,
+            132
+          ],
+          "name": "PHASE A \u2014 the fresh-user install",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`bash ~/.claude/plugins/marketplaces/rot-moe/hooks/rot-router.sh --route`, 15 prompts + 2 follow-ups; every call exit 0:",
+              "lines": [
+                141,
+                168
+              ],
+              "name": "B1 \u00b7 routing lanes \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Every README gauge reproduction matched **byte for byte**, including the correction the About section records (same vector reads 0.51 without `--profi",
+              "lines": [
+                169,
+                208
+              ],
+              "name": "B2 \u00b7 the R/s+ spectrum \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Measured in live nested sessions (stream-json): on `UserPromptSubmit` the stanzas follow the untouched marker on stdout; on `PreToolUse`/`PostToolUse`",
+              "lines": [
+                209,
+                221
+              ],
+              "name": "B3 \u00b7 voice blocks \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Driven both directly (synthetic transcripts) and live. Direct, all against the installed gate arm:",
+              "lines": [
+                222,
+                256
+              ],
+              "name": "B4 \u00b7 voice gate lifecycle \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "All four laws measured against the installed router, from `~/testbed`:",
+              "lines": [
+                257,
+                282
+              ],
+              "name": "B5 \u00b7 rot.env laws + the `rot` family \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "* **`/rot-agent venom <subject>`** (nested): dispatched `rot-moe:rot-venom` as a real subagent, report delivered **inside `<rot:venom>`**, decision wi",
+              "lines": [
+                283,
+                301
+              ],
+              "name": "B6 \u00b7 plugin commands \u2014 PASS (corpus: documented refusal path)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`--decide` as a pure function (all exit 0 unless noted):",
+              "lines": [
+                302,
+                319
+              ],
+              "name": "B7 \u00b7 prover reminder \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Finding the channel from the shipped docs is itself a test: the DTD's `ENV.5` (`ROTMOE_DEBUG_LOG|path|central JSONL sink for route and gauge records`)",
+              "lines": [
+                320,
+                390
+              ],
+              "name": "B8 \u00b7 debug channel + log replay \u2014 **FAIL** (one record class; everything else recomputes)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**35 nested-session turns** were driven against the installed plugin (1 smoke, 2 instrumented probe turns, 1 stdin-artifact turn from the first driver",
+              "lines": [
+                391,
+                439
+              ],
+              "name": "B9 \u00b7 sustained mass \u2014 PASS",
+              "type": "subsection"
+            },
+            {
+              "docstring": "* **ARM_ROUTER refuses under a live plugin** \u2014 the README's \"measured in the test terminal\" claim reproduces: `bash ARM_ROUTER.sh --dry-run` \u2192 `plugin",
+              "lines": [
+                440,
+                452
+              ],
+              "name": "B10 \u00b7 extra claim checks (unplanned, found en route)",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Hooks only fire in sessions started after the install, so the campaign drove **nested headless sessions** (`claude -p`, stream-json, in a neutral toy",
+          "lines": [
+            133,
+            452
+          ],
+          "name": "PHASE B \u2014 the campaign",
+          "type": "section"
+        },
+        {
+          "docstring": "1. **`/bin/sh: 1: pwsh: not found` on stderr of every hook event.** The registered command is `pwsh -NoProfile -File \u2026rot-router.ps1 || bash \u2026rot-rout",
+          "lines": [
+            453,
+            476
+          ],
+          "name": "Anomalies, verbatim",
+          "type": "section"
+        },
+        {
+          "docstring": "**The product does what its page says, to a degree that is genuinely rare.** Fifteen minutes after finding the release page, a stranger has a verified",
+          "lines": [
+            477,
+            525
+          ],
+          "name": "Verdict \u2014 a stranger's honest read",
+          "type": "section"
+        }
+      ]
+    },
     "trap-latency.js": {
       "hash": "ac1796e5e1d6",
-      "indexed_at": "2026-08-12T08:44:37.400117+00:00",
+      "indexed_at": "2026-08-21T07:50:35.534937+00:00",
       "language": "javascript",
       "lines": 117,
-      "mtime_ns": 1786311490514862800,
+      "mtime_ns": 1787209313000000000,
       "size": 5314,
       "symbols": [
         {
@@ -1244,10 +2273,10 @@
     },
     "trap-parse-controls.js": {
       "hash": "22761c05b246",
-      "indexed_at": "2026-08-12T08:44:37.401083+00:00",
+      "indexed_at": "2026-08-21T07:50:35.535290+00:00",
       "language": "javascript",
       "lines": 71,
-      "mtime_ns": 1786310427035946800,
+      "mtime_ns": 1787209313000000000,
       "size": 3932,
       "symbols": [
         {
@@ -1264,10 +2293,10 @@
     },
     "trap-prompts.js": {
       "hash": "7a1e67e2adbd",
-      "indexed_at": "2026-08-12T08:44:37.403903+00:00",
+      "indexed_at": "2026-08-21T07:50:35.536100+00:00",
       "language": "javascript",
       "lines": 146,
-      "mtime_ns": 1786307254658034100,
+      "mtime_ns": 1787209313000000000,
       "size": 6640,
       "symbols": [
         {
@@ -1311,10 +2340,10 @@
     },
     "trap-score-controls.js": {
       "hash": "38435e4076e8",
-      "indexed_at": "2026-08-12T19:43:22.757732+00:00",
+      "indexed_at": "2026-08-21T07:50:35.536681+00:00",
       "language": "javascript",
       "lines": 100,
-      "mtime_ns": 1786563800323376100,
+      "mtime_ns": 1787298618558940100,
       "size": 5419,
       "symbols": [
         {
@@ -1367,10 +2396,10 @@
     },
     "trap-score.js": {
       "hash": "4652f9c3c658",
-      "indexed_at": "2026-08-12T08:44:37.407583+00:00",
+      "indexed_at": "2026-08-21T07:50:35.537560+00:00",
       "language": "javascript",
       "lines": 221,
-      "mtime_ns": 1786315206953430500,
+      "mtime_ns": 1787209313000000000,
       "size": 10018,
       "symbols": [
         {
@@ -1441,12 +2470,30 @@
         }
       ]
     },
+    "ungap-7.0.0.md": {
+      "hash": "a1602ddf5f20",
+      "indexed_at": "2026-08-21T07:50:35.537736+00:00",
+      "language": "markdown",
+      "lines": 16,
+      "mtime_ns": 1787209313000000000,
+      "size": 2310,
+      "symbols": []
+    },
+    "ungap-7.1.md": {
+      "hash": "175b4b01f345",
+      "indexed_at": "2026-08-21T07:50:35.537901+00:00",
+      "language": "markdown",
+      "lines": 25,
+      "mtime_ns": 1787209313000000000,
+      "size": 6451,
+      "symbols": []
+    },
     "work-trace-tasks.js": {
       "hash": "48dbf481dfec",
-      "indexed_at": "2026-08-12T08:44:37.408970+00:00",
+      "indexed_at": "2026-08-21T07:50:35.538373+00:00",
       "language": "javascript",
       "lines": 133,
-      "mtime_ns": 1786512014397804600,
+      "mtime_ns": 1787209313000000000,
       "size": 5467,
       "symbols": [
         {
@@ -1492,10 +2539,10 @@
     },
     "work-trace.js": {
       "hash": "554cb385b008",
-      "indexed_at": "2026-08-12T08:44:37.414630+00:00",
+      "indexed_at": "2026-08-21T07:50:35.539572+00:00",
       "language": "javascript",
       "lines": 342,
-      "mtime_ns": 1786511917969197200,
+      "mtime_ns": 1787298618558940100,
       "size": 16266,
       "symbols": [
         {
@@ -1584,6 +2631,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T19:43:22.757867+00:00",
+  "generated_at": "2026-08-21T07:50:35.657486+00:00",
   "version": "1.0"
 }
