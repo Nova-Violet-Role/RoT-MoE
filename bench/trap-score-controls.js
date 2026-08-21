@@ -1,3 +1,6 @@
+// This file is part of RoT MoE.
+// SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+// Copyright 2026 Saimonokuma.
 // Positive controls for bench/trap-score.js, run BEFORE the corpus.
 // Three scenarios, each with a verdict fixed by the pre-registration:
 //   1 saturated (both arms correct everywhere)   -> noPower

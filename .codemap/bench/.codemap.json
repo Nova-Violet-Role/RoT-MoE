@@ -788,17 +788,17 @@
       ]
     },
     "ab-compliance.js": {
-      "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-21T02:15:41.395289+00:00",
+      "hash": "bca4bb026589",
+      "indexed_at": "2026-08-21T02:50:44.628699+00:00",
       "language": "javascript",
-      "lines": 101,
-      "mtime_ns": 1787224588649443300,
-      "size": 4065,
+      "lines": 104,
+      "mtime_ns": 1787280481417368000,
+      "size": 4187,
       "symbols": [
         {
           "lines": [
-            33,
-            42
+            36,
+            45
           ],
           "name": "sentences",
           "signature": "(text)",
@@ -806,8 +806,8 @@
         },
         {
           "lines": [
-            44,
-            56
+            47,
+            59
           ],
           "name": "readArm",
           "signature": "(arm)",
@@ -815,8 +815,8 @@
         },
         {
           "lines": [
-            78,
-            85
+            81,
+            88
           ],
           "name": "signP",
           "signature": "(k, n)",
@@ -1697,18 +1697,18 @@
       ]
     },
     "main-score.js": {
-      "hash": "b60b38ef8196",
-      "indexed_at": "2026-08-21T02:15:41.403134+00:00",
+      "hash": "b3bd8aa0c53a",
+      "indexed_at": "2026-08-21T02:50:44.729812+00:00",
       "language": "javascript",
-      "lines": 131,
-      "mtime_ns": 1787224588657467400,
-      "size": 6135,
+      "lines": 134,
+      "mtime_ns": 1787280481550174100,
+      "size": 6257,
       "symbols": [
         {
           "docstring": "reverse -> task i answered in turn 40-i.",
           "lines": [
-            40,
-            40
+            43,
+            43
           ],
           "name": "turnOf",
           "signature": "(i)",
@@ -1716,8 +1716,8 @@
         },
         {
           "lines": [
-            42,
-            47
+            45,
+            50
           ],
           "name": "run",
           "signature": "(cmd)",
@@ -1726,8 +1726,8 @@
         {
           "docstring": "standalone-token match, so 35 does not match inside 350   (verbatim)",
           "lines": [
-            50,
-            54
+            53,
+            57
           ],
           "name": "present",
           "signature": "(text, value)",
@@ -1735,8 +1735,8 @@
         },
         {
           "lines": [
-            55,
-            55
+            58,
+            58
           ],
           "name": "nums",
           "signature": "(text)",
@@ -1744,8 +1744,8 @@
         },
         {
           "lines": [
-            57,
-            66
+            60,
+            69
           ],
           "name": "readTurn",
           "signature": "(arm, turn)",
@@ -1867,17 +1867,17 @@
       ]
     },
     "pilot-rescore.js": {
-      "hash": "db386b9df1b6",
-      "indexed_at": "2026-08-21T02:15:41.406112+00:00",
+      "hash": "7c494c90cba7",
+      "indexed_at": "2026-08-21T02:50:44.830160+00:00",
       "language": "javascript",
-      "lines": 110,
-      "mtime_ns": 1787224588658969600,
-      "size": 4747,
+      "lines": 113,
+      "mtime_ns": 1787280481701137700,
+      "size": 4869,
       "symbols": [
         {
           "lines": [
-            37,
-            42
+            40,
+            45
           ],
           "name": "run",
           "signature": "(cmd)",
@@ -1886,8 +1886,8 @@
         {
           "docstring": "standalone-token match, so 35 does not match inside 350",
           "lines": [
-            45,
-            49
+            48,
+            52
           ],
           "name": "present",
           "signature": "(text, value)",
@@ -1895,8 +1895,8 @@
         },
         {
           "lines": [
-            50,
-            50
+            53,
+            53
           ],
           "name": "nums",
           "signature": "(text)",
@@ -1904,8 +1904,8 @@
         },
         {
           "lines": [
-            52,
-            58
+            55,
+            61
           ],
           "name": "readTurn",
           "signature": "(arm, line)",
@@ -1914,18 +1914,18 @@
       ]
     },
     "pilot-score.js": {
-      "hash": "d6872242d77d",
-      "indexed_at": "2026-08-21T02:15:41.406727+00:00",
+      "hash": "33dcba8bc63d",
+      "indexed_at": "2026-08-21T02:50:44.931934+00:00",
       "language": "javascript",
-      "lines": 148,
-      "mtime_ns": 1787224588658969600,
-      "size": 6121,
+      "lines": 151,
+      "mtime_ns": 1787280481820959500,
+      "size": 6243,
       "symbols": [
         {
           "docstring": "tasks look broken during verification. A count of zero is a measurement.",
           "lines": [
-            51,
-            58
+            54,
+            61
           ],
           "name": "run",
           "signature": "(cmd)",
@@ -1934,8 +1934,8 @@
         {
           "docstring": "inside 350 or 1435.",
           "lines": [
-            62,
-            65
+            65,
+            68
           ],
           "name": "present",
           "signature": "(text, value)",
@@ -1943,8 +1943,8 @@
         },
         {
           "lines": [
-            67,
-            73
+            70,
+            76
           ],
           "name": "readTurn",
           "signature": "(arm, line)",
@@ -2339,17 +2339,17 @@
       ]
     },
     "trap-score-controls.js": {
-      "hash": "38435e4076e8",
-      "indexed_at": "2026-08-21T02:15:41.409847+00:00",
+      "hash": "3a93b8391705",
+      "indexed_at": "2026-08-21T02:50:45.032991+00:00",
       "language": "javascript",
-      "lines": 100,
-      "mtime_ns": 1787224588660552700,
-      "size": 5419,
+      "lines": 103,
+      "mtime_ns": 1787280481953985300,
+      "size": 5541,
       "symbols": [
         {
           "lines": [
-            36,
-            43
+            39,
+            46
           ],
           "name": "mk",
           "signature": "(dir, fn)",
@@ -2357,8 +2357,8 @@
         },
         {
           "lines": [
-            44,
-            47
+            47,
+            50
           ],
           "name": "run",
           "signature": "(a, b)",
@@ -2367,8 +2367,8 @@
         {
           "docstring": "survives that round trip.",
           "lines": [
-            58,
-            60
+            61,
+            63
           ],
           "name": "why",
           "signature": "(r)",
@@ -2376,8 +2376,8 @@
         },
         {
           "lines": [
-            63,
-            63
+            66,
+            66
           ],
           "name": "ok",
           "signature": "(m)",
@@ -2385,8 +2385,8 @@
         },
         {
           "lines": [
-            64,
-            64
+            67,
+            67
           ],
           "name": "bad",
           "signature": "(m)",
@@ -2538,17 +2538,17 @@
       ]
     },
     "work-trace.js": {
-      "hash": "554cb385b008",
-      "indexed_at": "2026-08-21T02:15:41.412645+00:00",
+      "hash": "1c38ea72f82b",
+      "indexed_at": "2026-08-21T02:50:45.133501+00:00",
       "language": "javascript",
-      "lines": 342,
-      "mtime_ns": 1787224588662088300,
-      "size": 16266,
+      "lines": 345,
+      "mtime_ns": 1787280482089921100,
+      "size": 16388,
       "symbols": [
         {
           "lines": [
-            54,
-            57
+            57,
+            60
           ],
           "name": "isVerification",
           "signature": "(cmd)",
@@ -2557,8 +2557,8 @@
         {
           "docstring": "Parse a transcript into a flat, ordered event list.",
           "lines": [
-            61,
-            88
+            64,
+            91
           ],
           "name": "parseEvents",
           "signature": "(text)",
@@ -2566,8 +2566,8 @@
         },
         {
           "lines": [
-            106,
-            116
+            109,
+            119
           ],
           "name": "claimTokens",
           "signature": "(text)",
@@ -2575,8 +2575,8 @@
         },
         {
           "lines": [
-            118,
-            203
+            121,
+            206
           ],
           "name": "observables",
           "signature": "(events)",
@@ -2585,8 +2585,8 @@
         {
           "docstring": "supposed to fire is an untested alarm -- it will happily fire on everything.",
           "lines": [
-            209,
-            211
+            212,
+            214
           ],
           "name": "line",
           "signature": "(role, content)",
@@ -2594,8 +2594,8 @@
         },
         {
           "lines": [
-            212,
-            212
+            215,
+            215
           ],
           "name": "toolUse",
           "signature": "(name, input)",
@@ -2603,8 +2603,8 @@
         },
         {
           "lines": [
-            213,
-            213
+            216,
+            216
           ],
           "name": "toolResult",
           "signature": "(text)",
@@ -2612,8 +2612,8 @@
         },
         {
           "lines": [
-            214,
-            214
+            217,
+            217
           ],
           "name": "say",
           "signature": "(text)",
@@ -2621,8 +2621,8 @@
         },
         {
           "lines": [
-            216,
-            314
+            219,
+            317
           ],
           "name": "selftest",
           "signature": "()",
@@ -2631,6 +2631,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T02:15:41.527030+00:00",
+  "generated_at": "2026-08-21T02:50:45.133572+00:00",
   "version": "1.0"
 }

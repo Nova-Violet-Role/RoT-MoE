@@ -30,12 +30,49 @@ rc=0
 
 # Source files that must carry the header. Verbatim licence texts must NOT --
 # editing them would break the licences themselves.
+# THE TYPE LIST IS THE WHOLE GATE, AND IT WAS A SNAPSHOT -- O5, 8.0.1 audit.
+#
+# This list read: lean sh ps1 yml yaml toml. `.js` and `.dtd` were absent, so
+# the sweep reported "checked 287 source file(s); 0 missing a header" while
+# examining ZERO of the 24 JavaScript files -- including the SHIPPED
+# hooks/settings-merge.js and hooks/plugin-detect.js -- and zero of the voice
+# contract itself. Six bench/*.js were in fact unlicensed and this gate could
+# not see them. Same defect as R3 and O1: an instrument whose scope is written
+# down instead of derived, reporting green over territory it never covered.
+#
+# The types are added; the GUARD below is what stops it happening again.
 list_sources () {
   find "$ROOT" -type f \
     \( -name '*.lean' -o -name '*.sh' -o -name '*.ps1' -o -name '*.yml' \
-       -o -name '*.yaml' -o -name '*.toml' \) \
+       -o -name '*.yaml' -o -name '*.toml' -o -name '*.js' -o -name '*.dtd' \) \
     -not -path '*/.git/*' -not -path '*/.lake/*' -not -path '*/LICENSES/*'
 }
+
+# --- NO EXTENSION MAY ESCAPE UNDECLARED --------------------------------------
+# Every extension in the tree must be either COVERED (carries the header) or
+# EXEMPT (declared here, with the reason). Anything else REFUSES and is named,
+# so the next file type that lands forces a decision instead of slipping past.
+# A list nobody can add to silently is the only kind that stays honest.
+SPDX_COVERED='lean sh ps1 yml yaml toml js dtd'
+# EXEMPT, and why: prose and data carry no code; archives and images are opaque;
+# .bak is a working-copy artefact and is git-ignored.
+SPDX_EXEMPT='md gif jsonl txt json zip bak tsv log done count cff 2'
+_unknown=''
+for _ext in $(find "$ROOT" -type f \
+                -not -path '*/.git/*' -not -path '*/.lake/*' \
+                -not -path '*/LICENSES/*' -not -path '*/.codemap/*' \
+              | sed -n 's/.*\.\([A-Za-z0-9]\{1,6\}\)$/\1/p' | sort -u); do
+  case " $SPDX_COVERED $SPDX_EXEMPT " in
+    *" $_ext "*) : ;;
+    *) _unknown="$_unknown $_ext" ;;
+  esac
+done
+if [ -n "$_unknown" ]; then
+  echo "FAIL: extension(s) in the tree are neither covered nor declared exempt:$_unknown"
+  echo "      Add them to SPDX_COVERED (and give them headers) or to SPDX_EXEMPT"
+  echo "      with a reason. An undeclared type is how .js escaped this gate."
+  exit 1
+fi
 
 # --- POSITIVE CONTROL --------------------------------------------------------
 mkdir -p "$TMP"
@@ -92,7 +129,7 @@ rm -f "$LIST"
 # and started measuring themselves.
 if grep -rIl 'Released under Apache 2.0 license as described in the file LICENSE' \
      --exclude-dir=.git --exclude-dir=.lake --exclude-dir=LICENSES \
-     --exclude="spdx-sweep.sh" "$ROOT" 2>/dev/null | grep -q .; then
+     --exclude="spdx-sweep.sh*" --exclude="*.bak" "$ROOT" 2>/dev/null | grep -q .; then
   echo "FAIL: a mathlib Apache-2.0 header is present -- wrong attribution"
   rc=1
 fi

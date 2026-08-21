@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// This file is part of RoT MoE.
+// SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+// Copyright 2026 Saimonokuma.
 // work-trace.js -- extract the P2.4 PROCESS observables from a Claude Code
 // session transcript.
 //

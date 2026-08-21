@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// This file is part of RoT MoE.
+// SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+// Copyright 2026 Saimonokuma.
 // pilot-rescore.js -- rescore the ALREADY-COLLECTED pilot under several rules.
 //
 // WHY. The 2026-08-11 pilot scored 3/12 and 1/12 under one rule, and the low

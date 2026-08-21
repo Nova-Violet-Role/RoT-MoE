@@ -1,3 +1,6 @@
+// This file is part of RoT MoE.
+// SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+// Copyright 2026 Saimonokuma.
 // MAIN-RUN SCORER -- 160 sessions, per-ordering, never pooled.
 //
 // The pilot rescorer (bench/pilot-rescore.js) hardcodes pilot-manifest.jsonl

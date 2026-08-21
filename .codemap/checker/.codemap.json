@@ -1674,18 +1674,18 @@
       ]
     },
     "spdx-sweep.sh": {
-      "hash": "e7538638c1a2",
-      "indexed_at": "2026-08-21T02:15:41.445679+00:00",
+      "hash": "2dc2cfaf93f7",
+      "indexed_at": "2026-08-21T02:50:45.233293+00:00",
       "language": "shell",
-      "lines": 102,
-      "mtime_ns": 1787224588675742000,
-      "size": 4506,
+      "lines": 139,
+      "mtime_ns": 1787280609859312000,
+      "size": 6546,
       "symbols": [
         {
-          "docstring": "Source files that must carry the header. Verbatim licence texts must NOT -- editing them would break the licences themselves.",
+          "docstring": "Source files that must carry the header. Verbatim licence texts must NOT -- editing them would break the licences themselves. THE TYPE LIST IS THE WHO",
           "lines": [
-            33,
-            38
+            44,
+            49
           ],
           "name": "list_sources",
           "type": "function"
@@ -2083,6 +2083,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T02:26:18.373323+00:00",
+  "generated_at": "2026-08-21T02:50:45.233360+00:00",
   "version": "1.0"
 }
