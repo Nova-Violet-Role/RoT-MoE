@@ -187,17 +187,44 @@ CP="$CLAUDE_DIR/cmdpulse"
 # as the context bar — so several concurrent calls stack without eating the screen.
 iv "${CMDPULSE_BAR_WIDTH:-10}"; CMD_BAR_W=$_I
 [ "$CMD_BAR_W" -lt 4 ] && CMD_BAR_W=10
+# ONE jq for every active file AND the baseline, instead of four per row. Profiled at
+# ~360ms per row on Windows because each jq startup costs ~60ms; three rows meant twelve
+# jq processes. Eight newline-separated fields per file — newlines, because no escape
+# survives this file's write path reliably.
+declare -A A_SESS A_TOOL A_SIG A_SUB A_START A_MED A_N
+_active_list=""
+if [ -d "$CP/active" ] && compgen -G "$CP/active/*.json" >/dev/null 2>&1; then
+  _bl="$CP/baseline.json"; [ -s "$_bl" ] || _bl=/dev/null
+  while IFS= read -r _k; do
+    IFS= read -r _v1 || break; IFS= read -r _v2 || break; IFS= read -r _v3 || break
+    IFS= read -r _v4 || break; IFS= read -r _v5 || break; IFS= read -r _v6 || break
+    IFS= read -r _v7 || break
+    A_SESS["$_k"]="$_v1"; A_TOOL["$_k"]="$_v2"; A_SIG["$_k"]="$_v3"; A_SUB["$_k"]="$_v4"
+    A_START["$_k"]="$_v5"; A_MED["$_k"]="$_v6"; A_N["$_k"]="$_v7"
+  done < <("$JQ" -r --slurpfile bl "$_bl" '
+      (.sig // "") as $s
+      | ($bl[0] // {}) as $B
+      | (.id // ""),
+        (.session // ""),
+        (.tool // "?"),
+        $s,
+        ((.subject // "") | gsub("[\n\r]"; " ")),
+        ((.start // 0) | tostring),
+        (($B[$s].median // 0) | tostring),
+        (($B[$s].n // 0) | tostring)
+    ' "$CP/active"/*.json 2>/dev/null | tr -d '\r')
+fi
 if [ -d "$CP/active" ]; then
   for af in $(ls -t "$CP/active"/*.json 2>/dev/null); do
     if [ -f "$af" ]; then
     # Every Claude Code window shares ~/.claude/cmdpulse, so without this a second window
-    # shows the first one's in-flight calls — and its own look untracked. Read the owning
-    # session and skip anything that is not ours.
-    a_sess=$("$JQ" -r '.session // ""' "$af" 2>/dev/null | tr -d '\r')
+    # shows the first one's in-flight calls — and its own look untracked.
+    _ak="${af##*/}"; _ak="${_ak%.json}"
+    a_sess="${A_SESS[$_ak]:-}"
     if [ -n "${sess:-}" ] && [ -n "$a_sess" ] && [ "$a_sess" != "$sess" ]; then continue; fi
-    IFS=$'\037' read -r a_tool a_sig a_sub a_start < <(
-      "$JQ" -r '[.tool,.sig,.subject,(.start|tostring)]|join("\u001f")' "$af" 2>/dev/null | tr -d '\r')
-    if [ -n "${a_start:-}" ]; then
+    a_tool="${A_TOOL[$_ak]:-?}"; a_sig="${A_SIG[$_ak]:-}"
+    a_sub="${A_SUB[$_ak]:-}";    a_start="${A_START[$_ak]:-}"
+    if [ -n "${a_start:-}" ] && [ "$a_start" != "0" ]; then
       now_ms=$NOW_MS
       iv "$a_start"; el=$(( now_ms - _I ))
       [ "$el" -lt 0 ] && el=0
@@ -215,12 +242,8 @@ if [ -d "$CP/active" ]; then
       # (`#_(){ this.#s?.abort() }` in 2.1.238), so any render slower than the interval never
       # completes and the line goes blank. record.sh writes baseline.json at PostToolUse; two
       # tiny reads of a small map replace an O(ledger) slurp.
-      med=0; nsamp=0
-      if [ -s "$CP/baseline.json" ]; then
-        med=$("$JQ" -r --arg s "$a_sig" '(.[$s].median // 0)|tostring' "$CP/baseline.json" 2>/dev/null | tr -d '\r')
-        nsamp=$("$JQ" -r --arg s "$a_sig" '(.[$s].n // 0)|tostring' "$CP/baseline.json" 2>/dev/null | tr -d '\r')
-      fi
-      iv "${med:-0}"; med=$_I; iv "${nsamp:-0}"; nsamp=$_I
+      # already fetched in the single jq pass above
+      iv "${A_MED[$_ak]:-0}"; med=$_I; iv "${A_N[$_ak]:-0}"; nsamp=$_I
       CW=$CMD_BAR_W
       spin_i=$(( (el / 120) % 10 ))
       case "$spin_i" in
