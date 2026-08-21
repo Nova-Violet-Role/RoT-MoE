@@ -1,3 +1,81 @@
+# RoT MoE — 8.0.1 Audit + 9.0.0 Work Record
+
+> **STATUS 2026-08-21.** The audit below produced 15 commits on branch `9.0.0`.
+> Everything now lives in **`C:\GIT External Repo\RoT MoE`**, which is the git
+> repository. Nothing is pushed. Section “9.0.0 — what was done” at the end of
+> this file is the current state; the 8.0.1 sections are the findings that
+> caused it.
+
+## 🔴 The repository was not where anyone thought it was
+
+Measured while preparing the release, and it explains a whole class of confusion:
+
+```
+C:\GIT External Repo\RoT MoE      .gitattributes .githooks .github .gitignore  ALL PRESENT
+                                  .git                                        ABSENT
+                                  git rev-parse -> fatal: not a git repository
+
+<plugins>\marketplaces\rot-moe    .git present, origin Nova-Violet-Role/RoT-MoE.git
+```
+
+The working folder carried **every piece of git furniture except the one that
+makes it a repository**. It reads as the repo to any human and to `ls`; it is not
+one, and no commit or tag could ever have been made there.
+
+**Fixed non-destructively**: the `.git` directory was COPIED (not moved) from the
+plugin clone into `C:\GIT External Repo\RoT MoE`. Verified afterwards —
+**435 tracked files compared byte-for-byte between the two trees, 0 differences**,
+0 deletions, full history and all commits intact. The plugin clone keeps its own
+`.git` and remains the installed runtime.
+
+## 🟢 Y3 — the full 77-suite Lean mutation sweep, RUN
+
+The one item that had been **NOT RUN** through the whole audit. Executed in this
+repository, against its own freshly built workspace:
+
+| suites | killed | survived | discarded | unparsed / non-zero |
+|---|---|---|---|---|
+| 1–20 | 200 | 0 | 0 | 0 |
+| 21–45 | 320 | 0 | 0 | 0 |
+| 46–62 | 142 | 0 | 0 | 0 |
+| 63–77 | 135 | 0 | 0 | 0 |
+| **total** | **797** | **0** | **0** | **0** |
+
+**797 is exactly the README's published figure**, reproduced from a cold run with
+a parser validated independently beforehand. The Lean tree was `git status`-clean
+after every batch, so every suite restored its baseline.
+
+**The parser had to be fixed twice before any number could be trusted**, and both
+bugs are recorded because both are false-reading traps:
+
+1. `[0-9]+ survived` matched **across a field boundary** — in `killed=5 survived=0`
+   the substring `5 survived` matched, inventing five survivors that did not
+   exist. A false ALARM.
+2. Four suites use a different summary format. There are **five** in the tree:
+   `All N mutants killed (N ran, …)` · `killed=N survived=N` · `=== Name: N killed, …`
+   · `killed: N   survived: N` · `all N mutants killed, none discarded`.
+   A single-format parser silently scored those as zero — a false NEGATIVE.
+
+The final parser was validated on all five formats **plus three survivor controls
+and a junk control**, so a reported `0 survived` means zero rather than "not
+matched".
+
+## 🟢 The three Lean instruments, in this repository
+
+```
+lake build            exit 0   (8746 jobs; exit read via PIPESTATUS[0], not through a pipe)
+leanchecker           87 / 87 modules re-verified, 0 failed
+  negative control    Proofs.NoSuchModule -> exit 1   (the instrument can fail)
+sorry in kernel terms 0        (#eval over constants: "constants whose value contains sorry: 0")
+modules / theorems    87 / 1632
+```
+
+A naive `grep -c '\bsorry\b'` reported **5** and was a false alarm: all five are
+prose or string literals (a keyword list, three doc comments, and a line that
+reads “0 sorry”). The kernel, not the grep, is what settles it.
+
+---
+
 # RoT MoE 8.0.1 — Full Test Compendium
 
 **Subject** — `rot-moe` v8.0.1, tag `v8.0.1`, commit `1f57594`.
@@ -506,3 +584,95 @@ Every claim in the README's organ / marker / flag / switch tables was **executed
 
 **Two I could NOT settle, said plainly.** `ROTMOE_GATE=0`: armed and disarmed both gave 0 bytes because with no transcript the gate **degrades open** — my harness could not discriminate. (It demonstrably fires: it refused a turn in this session naming three charters.) And `:535` "refuses interactively": my probe piped `/dev/null`, not a TTY — **my test was wrong, the claim is untested, not disproved.**
 
+
+---
+
+# 9.0.0 — what was done
+
+Branch `9.0.0`, 15 commits, **nothing pushed**. Every commit carries its measured
+evidence and its controls in the message body.
+
+| # | commit | what it fixes |
+|---|---|---|
+| 1 | `3ad003e` R3 | the CI audit must NAME the workflow it judges |
+| 2 | `5062751` R1 | pin UTF-8 on the PowerShell arms' stdout |
+| 3 | `6e0db2d` R2 | normalise the project path AFTER the `$PWD` fallback |
+| 4 | `3cce14f` O1 | byte-wise locale for the DTD reader, bound to the declaration |
+| 5 | `3a73a5f` O5 | the licence gate had never opened a `.js` file |
+| 6 | `6b044bb` O2 | D15 asks node for the path instead of reconstructing it |
+| 7 | `76ffe43` O6a | `hooks.json` stops running BOTH arms when the ps1 arm fails |
+| 8 | `f107f77` O6b | installers write the conditional shape; DISARM keeps the legacy one |
+| 9 | `4de1a78` O3 | stop publishing an unbound check count |
+| 10 | `5fa4acb` Y5 | cross-diff reaches the payload path — **and R2's claim is corrected downward** |
+| 11 | `5279cdf` Y10 | the O6 fallback finally has a checker — shape AND behaviour |
+| 12 | `62057cf` Y1 | path equality is not string equality in `settings-merge.js` |
+| 13 | `e8161e4` Y6+Y7 | the ps1 sink writes LF; the dead `ROT_PROFILE` is gone |
+| 14 | `320e4e6` Y8 | name the three deliberate control bytes in `ci-dryrun.sh` |
+| 15 | `a4d1e1d` | (Socio) track `FINDINGS-8.0.1.md` in the repository |
+
+## Gate movement
+
+**6 red → 3 red.** Now green: `cross-diff` (123 passed, up from 121),
+`session-log`, `release-package`, `voice-contract` (47/0), `hook-contract`
+(74/0, up from 70), `spdx-sweep` (312 files, up from 287).
+
+Still red, none of them a code defect:
+
+- **plugin root consistency** — two registered roots on this machine. Environment.
+- **release consistency** — `v8.0.1` is a lightweight tag. Clears when `v9.0.0` is cut with `-a`.
+- **workflow lint** — `core.hooksPath` is unset and `.git/hooks/pre-commit` is a
+  CodeMap hook with **zero** non-zero exit paths, so it never refuses. That is why
+  15 commits were admitted with no project gate examining them. Environmental:
+  `git archive` of `1f57594` runs the same checker at **exit 0**.
+
+## A correction I owe the record: R2 was overclaimed
+
+`6e0db2d` asserts a measured mechanism I could **not** reproduce. Investigated
+while building the Y5 checker:
+
+- the pre-R2 order normalised the payload's `cwd` correctly; only the `$PWD`
+  fallback escaped;
+- a shell **always** resets `$PWD` from `getcwd()` — measured: `env PWD='C:\X\Y' sh`
+  and `cd` to a Windows-form path both yield an MSYS `/c/...`;
+- driven from a shell, old and new orders are **byte-identical**.
+
+The live corruption was real and is in the session record, but its cause is **NOT
+ESTABLISHED**. The reorder is kept because it is correct by construction, not
+because a bug was reproduced. Both the source comment and the checker now say so
+rather than scoring a dead control.
+
+## Still open
+
+| item | state |
+|---|---|
+| O4 | `git tag -a v9.0.0` — not cut |
+| push | not done, not requested |
+| B1 | one registered plugin root |
+| O7 | chain the project gate from the CodeMap pre-commit, or set `core.hooksPath` |
+| Y4 | re-tier `gate-all` (a bare sweep exceeded 1800 s against its 587 s claim) |
+| Y9 | per-event hook timeouts (all 63 share `timeout 18000`) |
+| B3 | `verify.yml` green within 72 h |
+| scratchpad | a separate Claude Code session has **not** yet been run |
+
+## 🟥 O5b — `bonus/` was shipping five unlicensed files (found after the repo move)
+
+The O5 extension guard, moved into the real repository, refused immediately:
+`extension(s) neither covered nor declared exempt: lua`. `bonus/cmdpulse/`
+exists here and **not** in the plugin clone the whole earlier audit ran against
+— 11 files in HEAD that the licence gate had never opened. With `lua` declared,
+the content check ran there for the first time and found **five `.sh` files with
+no header** in a repository that publishes a dual grant.
+
+All six now carry it. `checked 318 source file(s); 0 missing a header`, exit 0.
+
+**The guard caught real unlicensed product the first time it met a tree it had
+not been tuned against.**
+
+## ⚠️ Release blockers still open in the repository
+
+| blocker | detail |
+|---|---|
+| machine paths published | `.codemap/_root.codemap.json` is TRACKED and contains `D:\Lean\proofs`, indexed **out of `FINDINGS-8.0.1.md` itself**. `no-local-paths` is RED. Either the report stays untracked, or its paths are allow-marked, or `.codemap` stops being tracked — a decision about what the public repo should contain, not a code fix. |
+| D7 cost bound | `bench-router` measures **1003–1058 ms** against the 500 ms bound. Decomposition shows wall 353.3 ms + 247.8 ms pwsh startup, so the headline figure and the decomposition disagree; the machine was also loaded by the 77-suite sweep. Needs an idle re-measure before it is called either a regression or a false alarm. |
+| `v9.0.0` tag | not cut |
+| scratchpad session | a separate Claude Code session has **not** been run |

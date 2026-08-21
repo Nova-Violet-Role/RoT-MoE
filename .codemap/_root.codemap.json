@@ -2940,12 +2940,12 @@
       ]
     },
     "FINDINGS-8.0.1.md": {
-      "hash": "06b8f875ff01",
-      "indexed_at": "2026-08-21T07:26:33.386941+00:00",
+      "hash": "6c14935613df",
+      "indexed_at": "2026-08-21T07:58:51.509550+00:00",
       "language": "markdown",
-      "lines": 655,
-      "mtime_ns": 1787297192395379600,
-      "size": 43513,
+      "lines": 678,
+      "mtime_ns": 1787299130860126200,
+      "size": 45120,
       "symbols": [
         {
           "docstring": "Measured while preparing the release, and it explains a whole class of confusion:",
@@ -3301,6 +3301,24 @@
             656
           ],
           "name": "Still open",
+          "type": "section"
+        },
+        {
+          "docstring": "The O5 extension guard, moved into the real repository, refused immediately: `extension(s) neither covered nor declared exempt: lua`. `bonus/cmdpulse/",
+          "lines": [
+            657,
+            670
+          ],
+          "name": "\ud83d\udfe5 O5b \u2014 `bonus/` was shipping five unlicensed files (found after the repo move)",
+          "type": "section"
+        },
+        {
+          "docstring": "| blocker | detail | |---|---| | machine paths published | `.codemap/_root.codemap.json` is TRACKED and contains `D:\\Lean\\proofs`, indexed **out of `F",
+          "lines": [
+            671,
+            679
+          ],
+          "name": "\u26a0\ufe0f Release blockers still open in the repository",
           "type": "section"
         }
       ]
@@ -4076,6 +4094,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:26:33.387040+00:00",
+  "generated_at": "2026-08-21T07:58:51.509654+00:00",
   "version": "1.0"
 }
