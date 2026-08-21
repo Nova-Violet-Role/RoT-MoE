@@ -117,12 +117,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-21T03:47:18.893754+00:00",
-  "root": "C:\\Users\\Saimono\\.claude\\plugins\\marketplaces\\rot-moe",
+  "generated_at": "2026-08-21T03:47:19.900678+00:00",
+  "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-21T03:47:18.893011+00:00",
-    "total_files": 255,
-    "total_symbols": 1647
+    "last_full_index": "2026-08-21T03:47:19.899865+00:00",
+    "total_files": 256,
+    "total_symbols": 1680
   },
   "version": "1.0"
 }

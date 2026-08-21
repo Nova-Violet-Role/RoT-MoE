@@ -3,10 +3,10 @@
   "files": {
     "animus-observe.sh": {
       "hash": "05bacbc228a1",
-      "indexed_at": "2026-08-21T02:15:41.457872+00:00",
+      "indexed_at": "2026-08-20T21:31:52.119053+00:00",
       "language": "shell",
       "lines": 338,
-      "mtime_ns": 1787224588681470100,
+      "mtime_ns": 1787209313000000000,
       "size": 14529,
       "symbols": [
         {
@@ -64,10 +64,10 @@
     },
     "plugin-detect.js": {
       "hash": "5b2d16afa47b",
-      "indexed_at": "2026-08-21T02:15:41.458478+00:00",
+      "indexed_at": "2026-08-20T21:31:52.120054+00:00",
       "language": "javascript",
       "lines": 156,
-      "mtime_ns": 1787224588681470100,
+      "mtime_ns": 1787209313000000000,
       "size": 7203,
       "symbols": [
         {
@@ -83,10 +83,10 @@
     },
     "prover-remind.sh": {
       "hash": "ffda0862e6bd",
-      "indexed_at": "2026-08-21T02:15:41.460644+00:00",
+      "indexed_at": "2026-08-20T21:31:52.123710+00:00",
       "language": "shell",
       "lines": 729,
-      "mtime_ns": 1787274427267399400,
+      "mtime_ns": 1787209313000000000,
       "size": 38354,
       "symbols": [
         {
@@ -213,10 +213,10 @@
     },
     "rot-env.sh": {
       "hash": "db0cbdd79e63",
-      "indexed_at": "2026-08-21T02:15:41.460930+00:00",
+      "indexed_at": "2026-08-20T21:31:52.124226+00:00",
       "language": "shell",
       "lines": 93,
-      "mtime_ns": 1787224588682473600,
+      "mtime_ns": 1787209313000000000,
       "size": 3815,
       "symbols": [
         {
@@ -231,10 +231,10 @@
     },
     "rot-profile.sh": {
       "hash": "16f553623ac2",
-      "indexed_at": "2026-08-21T02:15:41.461361+00:00",
+      "indexed_at": "2026-08-20T21:31:52.125017+00:00",
       "language": "shell",
       "lines": 159,
-      "mtime_ns": 1787224588682473600,
+      "mtime_ns": 1787209313000000000,
       "size": 7562,
       "symbols": [
         {
@@ -249,10 +249,10 @@
     },
     "rot-router.sh": {
       "hash": "2d27207bf5b7",
-      "indexed_at": "2026-08-21T03:55:41.151350+00:00",
+      "indexed_at": "2026-08-21T03:56:04.042621+00:00",
       "language": "shell",
       "lines": 2215,
-      "mtime_ns": 1787284077447199900,
+      "mtime_ns": 1787284563226114400,
       "size": 119363,
       "symbols": [
         {
@@ -441,19 +441,19 @@
     },
     "rot-voice-gate.sh": {
       "hash": "5dcad00deacb",
-      "indexed_at": "2026-08-21T02:15:41.472427+00:00",
+      "indexed_at": "2026-08-20T21:31:52.142503+00:00",
       "language": "shell",
       "lines": 187,
-      "mtime_ns": 1787224588683723300,
+      "mtime_ns": 1787209313000000000,
       "size": 8694,
       "symbols": []
     },
     "settings-merge.js": {
       "hash": "db13e1a713f4",
-      "indexed_at": "2026-08-21T03:47:18.892947+00:00",
+      "indexed_at": "2026-08-21T05:28:59.050503+00:00",
       "language": "javascript",
       "lines": 352,
-      "mtime_ns": 1787284013656214700,
+      "mtime_ns": 1787284563244771100,
       "size": 18492,
       "symbols": [
         {
@@ -469,6 +469,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T03:55:41.151476+00:00",
+  "generated_at": "2026-08-21T05:28:59.159726+00:00",
   "version": "1.0"
 }

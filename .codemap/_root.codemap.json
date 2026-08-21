@@ -3,10 +3,10 @@
   "files": {
     "ARM_ROUTER.sh": {
       "hash": "4306077eeb57",
-      "indexed_at": "2026-08-21T03:03:12.564657+00:00",
+      "indexed_at": "2026-08-21T03:26:23.538030+00:00",
       "language": "shell",
       "lines": 354,
-      "mtime_ns": 1787281153317180100,
+      "mtime_ns": 1787282782688097300,
       "size": 17626,
       "symbols": [
         {
@@ -22,10 +22,10 @@
     },
     "CHANGELOG-ARCHIVE.md": {
       "hash": "2a03380b2d77",
-      "indexed_at": "2026-08-21T02:15:41.378232+00:00",
+      "indexed_at": "2026-08-20T21:31:52.139459+00:00",
       "language": "markdown",
       "lines": 7743,
-      "mtime_ns": 1787224588631882500,
+      "mtime_ns": 1787209313000000000,
       "size": 438897,
       "symbols": [
         {
@@ -2664,10 +2664,10 @@
     },
     "CHANGELOG.md": {
       "hash": "3614e09c6943",
-      "indexed_at": "2026-08-21T02:15:41.378843+00:00",
+      "indexed_at": "2026-08-20T21:31:52.139993+00:00",
       "language": "markdown",
       "lines": 93,
-      "mtime_ns": 1787224588632885500,
+      "mtime_ns": 1787209313000000000,
       "size": 5311,
       "symbols": [
         {
@@ -2721,10 +2721,10 @@
     },
     "CLAUDE.md": {
       "hash": "a2e913b5f804",
-      "indexed_at": "2026-08-21T02:15:41.379064+00:00",
+      "indexed_at": "2026-08-20T21:31:52.140303+00:00",
       "language": "markdown",
       "lines": 164,
-      "mtime_ns": 1787224588632885500,
+      "mtime_ns": 1787209313000000000,
       "size": 6838,
       "symbols": [
         {
@@ -2813,10 +2813,10 @@
     },
     "CODE_OF_CONDUCT.md": {
       "hash": "c859256e95f9",
-      "indexed_at": "2026-08-21T02:15:41.379193+00:00",
+      "indexed_at": "2026-08-20T21:31:52.140497+00:00",
       "language": "markdown",
       "lines": 30,
-      "mtime_ns": 1787224588632885500,
+      "mtime_ns": 1787209313000000000,
       "size": 1330,
       "symbols": [
         {
@@ -2850,10 +2850,10 @@
     },
     "CONTRIBUTING.md": {
       "hash": "60983cc28d4f",
-      "indexed_at": "2026-08-21T02:15:41.379349+00:00",
+      "indexed_at": "2026-08-20T21:31:52.140732+00:00",
       "language": "markdown",
       "lines": 105,
-      "mtime_ns": 1787224588632885500,
+      "mtime_ns": 1787209313000000000,
       "size": 4881,
       "symbols": [
         {
@@ -2913,10 +2913,10 @@
     },
     "DISARM_ROUTER.sh": {
       "hash": "2b3b557f5f19",
-      "indexed_at": "2026-08-21T03:03:12.565145+00:00",
+      "indexed_at": "2026-08-21T03:26:23.538472+00:00",
       "language": "shell",
       "lines": 238,
-      "mtime_ns": 1787281121387602600,
+      "mtime_ns": 1787282782739686500,
       "size": 11750,
       "symbols": [
         {
@@ -2939,12 +2939,325 @@
         }
       ]
     },
+    "FINDINGS-8.0.1.md": {
+      "hash": "a61cc79a70c6",
+      "indexed_at": "2026-08-21T03:26:23.539212+00:00",
+      "language": "markdown",
+      "lines": 508,
+      "mtime_ns": 1787282782372869200,
+      "size": 36484,
+      "symbols": [
+        {
+          "docstring": "| band | meaning | |---|---| | \ud83d\udfe5 **RED** | product defect, user-visible, blocks a stable release | | \ud83d\udfe7 **ORANGE** | instrument or spec defect \u2014 goes r",
+          "lines": [
+            18,
+            31
+          ],
+          "name": "Severity bands",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "**Files** `hooks/rot-router.ps1`, `hooks/prover-remind.ps1` \u2014 both arms, both trees.",
+              "lines": [
+                34,
+                70
+              ],
+              "name": "R1 \u00b7 The PowerShell arms emit OEM best-fit garbage for every non-ASCII byte",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**File** `hooks/rot-router.sh`, formerly lines 1453\u20131454.",
+              "lines": [
+                71,
+                98
+              ],
+              "name": "R2 \u00b7 `rot-router.sh` normalises backslashes **before** the `$PWD` fallback \u2014 the gauge record is lost",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            32,
+            98
+          ],
+          "name": "\ud83d\udfe5 RED \u2014 2 found, 2 fixed and re-verified",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "**File** `checker/release-package.sh:289`.",
+              "lines": [
+                101,
+                132
+              ],
+              "name": "O1 \u00b7 `release-package.sh` reads a nine-lens roster as three \u00b7 **FIXED**",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**File** `checker/voice-contract.sh:553-558`, against `hooks/settings-merge.js:179`.",
+              "lines": [
+                133,
+                162
+              ],
+              "name": "O2 \u00b7 `voice-contract.sh` D15 goes red on a **correct** product, Windows only \u00b7 NOT FIXED",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`README.md` claims **\"26 checks, 0 failed\"**. Measured today: **47 checks** (46 passed + 1 failed). The FACTS block (87 / 1632 / 77 / 77 / 31) *is* re",
+              "lines": [
+                163,
+                166
+              ],
+              "name": "O3 \u00b7 README's voice-contract count is stale, unbound prose",
+              "type": "subsection"
+            },
+            {
+              "lines": [
+                167,
+                176
+              ],
+              "name": "O4 \u00b7 The `v8.0.1` tag is lightweight",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            99,
+            176
+          ],
+          "name": "\ud83d\udfe7 ORANGE \u2014 4 found, 1 fixed",
+          "type": "section"
+        },
+        {
+          "docstring": "| # | finding | evidence | |---|---|---| | **Y1** | `settings-merge.js:179,208` compares **filesystem paths with `===`**. Correct when both spellings",
+          "lines": [
+            177,
+            188
+          ],
+          "name": "\ud83d\udfe8 YELLOW \u2014 latent, no impact today",
+          "type": "section"
+        },
+        {
+          "docstring": "| # | finding | evidence | |---|---|---| | **B1** | **Two `rot-moe` roots are registered on this machine** \u2014 `plugins/marketplaces/rot-moe` and `.clau",
+          "lines": [
+            189,
+            200
+          ],
+          "name": "\ud83d\udfe6 BLUE \u2014 environment and process, not the codebase",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "| # | claim | instrument | result | |---|---|---|---| | **G1** | all 87 modules elaborate | `lake build`, exit read directly | **exit 0**, 87 `.olean`",
+              "lines": [
+                203,
+                214
+              ],
+              "name": "Lean 4 \u2014 the proof spine",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| # | claim | instrument | result | |---|---|---|---| | **G5** | all **31 hook events** actually execute on every arm | `checker/hook-contract.sh` | *",
+              "lines": [
+                215,
+                228
+              ],
+              "name": "The plugin surface",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| phase | result | |---|---| | **negative control**, empty sink | observer exit 0, **0 queue files, not a byte** | | drive the router 6\u00d7 on one stem \u2192",
+              "lines": [
+                229,
+                240
+              ],
+              "name": "Animus (ORGAN 8) \u2014 end to end, both directions",
+              "type": "subsection"
+            },
+            {
+              "docstring": "All three declared laws hold, each with a **positive and a negative** control in the same run:",
+              "lines": [
+                241,
+                253
+              ],
+              "name": "The environment layer (`*.env`, `*.bashrc`)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`checker/marketplace-session.sh` \u2192 **exit 0, 10 passed / 0 failed**, in a **scratch `CLAUDE_DIR`**; the live `~/.claude` was never armed or disarmed.",
+              "lines": [
+                254,
+                264
+              ],
+              "name": "The live scratchpad Claude Code session",
+              "type": "subsection"
+            },
+            {
+              "docstring": "`checker/mutate-checker.sh` \u2192 **17 declared, 17 killed, 0 survived, 0 discarded, 0 inexpressible** (pwsh present on this host), ending `baseline resto",
+              "lines": [
+                265,
+                268
+              ],
+              "name": "Instruments proven able to fail",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| what | README | recomputed | |---|---|---| | Lean modules | 87 | **87** | | theorems | 1632 | **1632** | | mutation suites | 77 | **77** | | checker",
+              "lines": [
+                269,
+                280
+              ],
+              "name": "FACTS block \u2014 all five numbers reproduced against the tree",
+              "type": "subsection"
+            }
+          ],
+          "lines": [
+            201,
+            280
+          ],
+          "name": "\ud83d\udfe9 GREEN \u2014 verified, each with its control seen to fire",
+          "type": "section"
+        },
+        {
+          "docstring": "Both the source clone **and** the live runtime were patched, byte-identically, after confirming the runtime was identical to the source pre-patch. **N",
+          "lines": [
+            281,
+            295
+          ],
+          "name": "Changes made to the trees",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "The first delivery attempt used `Proofs/RotMoE/` (capital **E**). A directory `Proofs/RotMoe/` (lowercase **e**) already existed from an August sessio",
+              "lines": [
+                308,
+                321
+              ],
+              "name": "A trap worth recording: `lake build` passed where `leanchecker` could not",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Standing rule on this machine: every `.lean` also lands in `D:\\Lean\\proofs`, and a copy is not a delivery until it **builds there**.",
+          "lines": [
+            296,
+            321
+          ],
+          "name": "Lean delivery to the shared tree",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "| # | item | why it is in this release | |---|---|---| | 1 | **R3** \u2014 filter both CI selectors by `workflow_id`, print the workflow name in the verdic",
+              "lines": [
+                326,
+                336
+              ],
+              "name": "9.0.0 \u2014 make the verdict trustworthy, then the product correct",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| # | item | |---|---| | 7 | **Y5** \u2014 add a `cross-diff` corpus row with **no `cwd` key**; R2 lived exactly there | | 8 | **Y10** \u2014 add a checker for",
+              "lines": [
+                337,
+                347
+              ],
+              "name": "9.0.1 \u2014 close the blind spots the fixes revealed",
+              "type": "subsection"
+            },
+            {
+              "docstring": "| # | item | |---|---| | 13 | **Y3** \u2014 full 77-suite Lean mutation sweep in CI (\u22483.5 h) so 797/797 is regenerated, not asserted | | 14 | **Y4** \u2014 re-t",
+              "lines": [
+                348,
+                356
+              ],
+              "name": "9.0.2 \u2014 budget, coverage, hygiene",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Three of the four most serious findings \u2014 **R3**, **O5**, and the earlier **O1** \u2014 are the *same defect wearing different clothes: an instrument whose",
+              "lines": [
+                357,
+                370
+              ],
+              "name": "The through-line",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Ordered so nothing depends on a later item. **R3 goes first and alone**: until the audit chain names its own subject, every later green is unfalsifiab",
+          "lines": [
+            322,
+            370
+          ],
+          "name": "Release plan \u2014 9.0.0 \u00b7 9.0.1 \u00b7 9.0.2",
+          "type": "section"
+        },
+        {
+          "docstring": "This is the finding that explains the release.",
+          "lines": [
+            371,
+            419
+          ],
+          "name": "\ud83d\udfe5 R3 \u00b7 The CI-audit chain certified 8.0.1 against the WRONG WORKFLOW",
+          "type": "section"
+        },
+        {
+          "docstring": "`checker/spdx-sweep.sh:34-37`:",
+          "lines": [
+            420,
+            435
+          ],
+          "name": "\ud83d\udfe7 O5 \u00b7 The SPDX gate has never examined a `.js` file or the DTD",
+          "type": "section"
+        },
+        {
+          "docstring": "All 63 hook entries share three command strings of this shape:",
+          "lines": [
+            436,
+            464
+          ],
+          "name": "\ud83d\udfe7 O6 \u00b7 The hook command shape RUNS BOTH ARMS when the ps1 arm fails",
+          "type": "section"
+        },
+        {
+          "docstring": "| # | finding | evidence | |---|---|---| | **Y6** | The **ps1 arm writes CRLF** into the `.jsonl` debug sink; the sh arm writes LF (measured: sh CR=0,",
+          "lines": [
+            465,
+            474
+          ],
+          "name": "\ud83d\udfe8 New yellows",
+          "type": "section"
+        },
+        {
+          "docstring": "Found by `checker/workflow-lint.sh` going red during 9.0.0 work. Not a defect in the tree \u2014 local repository state, and it is live:",
+          "lines": [
+            475,
+            490
+          ],
+          "name": "\ud83d\udfe7 O7 \u00b7 The active pre-commit gate is a CodeMap hook that never refuses",
+          "type": "section"
+        },
+        {
+          "docstring": "Every claim in the README's organ / marker / flag / switch tables was **executed**. Nothing was found false.",
+          "lines": [
+            491,
+            509
+          ],
+          "name": "\ud83d\udfe9 README claim-by-claim verification",
+          "type": "section"
+        }
+      ]
+    },
     "NOTICE.md": {
       "hash": "689675ac46d9",
-      "indexed_at": "2026-08-21T02:15:41.379933+00:00",
+      "indexed_at": "2026-08-20T21:31:52.141668+00:00",
       "language": "markdown",
       "lines": 201,
-      "mtime_ns": 1787224588635945100,
+      "mtime_ns": 1787209313000000000,
       "size": 11861,
       "symbols": [
         {
@@ -3027,10 +3340,10 @@
     },
     "README.md": {
       "hash": "ea6e8eb95840",
-      "indexed_at": "2026-08-21T03:06:17.938953+00:00",
+      "indexed_at": "2026-08-21T03:26:23.540809+00:00",
       "language": "markdown",
       "lines": 1502,
-      "mtime_ns": 1787281555611637600,
+      "mtime_ns": 1787282782792190000,
       "size": 84480,
       "symbols": [
         {
@@ -3437,10 +3750,10 @@
     },
     "RELEASE.md": {
       "hash": "4dfc583b92c3",
-      "indexed_at": "2026-08-21T02:15:41.381691+00:00",
+      "indexed_at": "2026-08-20T21:31:52.144383+00:00",
       "language": "markdown",
       "lines": 109,
-      "mtime_ns": 1787224588636947700,
+      "mtime_ns": 1787209313000000000,
       "size": 4785,
       "symbols": [
         {
@@ -3483,10 +3796,10 @@
     },
     "SECURITY.md": {
       "hash": "4594c9020526",
-      "indexed_at": "2026-08-21T02:15:41.381920+00:00",
+      "indexed_at": "2026-08-20T21:31:52.144626+00:00",
       "language": "markdown",
       "lines": 84,
-      "mtime_ns": 1787224588636947700,
+      "mtime_ns": 1787209313000000000,
       "size": 4120,
       "symbols": [
         {
@@ -3548,10 +3861,10 @@
     },
     "SETUP_CORPUS.sh": {
       "hash": "1a4db043ee82",
-      "indexed_at": "2026-08-21T02:15:41.382260+00:00",
+      "indexed_at": "2026-08-20T21:31:52.145162+00:00",
       "language": "shell",
       "lines": 215,
-      "mtime_ns": 1787224588636947700,
+      "mtime_ns": 1787209313000000000,
       "size": 7928,
       "symbols": [
         {
@@ -3566,10 +3879,10 @@
     },
     "SETUP_LEAN.sh": {
       "hash": "bd21bdc2996c",
-      "indexed_at": "2026-08-21T02:15:41.382989+00:00",
+      "indexed_at": "2026-08-20T21:31:52.146371+00:00",
       "language": "shell",
       "lines": 489,
-      "mtime_ns": 1787224588637957500,
+      "mtime_ns": 1787209313000000000,
       "size": 22882,
       "symbols": [
         {
@@ -3638,19 +3951,19 @@
     },
     "STATUS.md": {
       "hash": "0db57bed32cc",
-      "indexed_at": "2026-08-21T02:15:41.383097+00:00",
+      "indexed_at": "2026-08-20T21:31:52.146542+00:00",
       "language": "markdown",
       "lines": 28,
-      "mtime_ns": 1787224588637957500,
+      "mtime_ns": 1787209313000000000,
       "size": 1011,
       "symbols": []
     },
     "UNSEALED.md": {
       "hash": "8995e135fa26",
-      "indexed_at": "2026-08-21T02:15:41.383244+00:00",
+      "indexed_at": "2026-08-20T21:31:52.146805+00:00",
       "language": "markdown",
       "lines": 128,
-      "mtime_ns": 1787224588637957500,
+      "mtime_ns": 1787209313000000000,
       "size": 5050,
       "symbols": [
         {
@@ -3710,6 +4023,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T03:06:17.939074+00:00",
+  "generated_at": "2026-08-21T03:26:23.557352+00:00",
   "version": "1.0"
 }
