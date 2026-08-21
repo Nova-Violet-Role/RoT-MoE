@@ -190,6 +190,36 @@ else
   bad "CONTROL: canonical counter and naive grep now agree (${_canon}) -- the counter may have stopped filtering"
 fi
 
+# O3: NO UNBOUND COUNT MAY RE-ENTER THE README.
+#
+# 8.0.1 published "voice-contract: 26 checks" in THREE places while the gate
+# actually reported 47. The fix was to REMOVE the digit rather than refresh it,
+# because a fresher digit goes stale identically -- but nothing then stopped it
+# coming back. Measured: planting "26 checks" into README left this gate at
+# exit 0, so the repair was real and completely unguarded.
+#
+# The rule is about BINDING, not about a value. Inside the FACTS block a count
+# is regenerated from the tree on every run, so it can never drift. Anywhere
+# else in the README a hand-written "<n> check(s)" is a snapshot with nothing
+# recomputing it -- exactly the defect O3 removed. So: zero such phrases outside
+# the block. This does not freeze any number; it forbids an UNBOUND one.
+_o3_body=$(awk -v b="$BEGIN" -v e="$END" '
+  index($0,b){skip=1} !skip{print} index($0,e){skip=0}' README.md)
+_o3_hits=$(printf '%s\n' "$_o3_body" | grep -nEc '[0-9]+ +checks?\b' || true)
+_o3_hits=${_o3_hits:-0}
+if [ "$_o3_hits" -eq 0 ]; then
+  ok "O3: no unbound '<n> checks' claim outside the FACTS block"
+else
+  bad "O3: $_o3_hits unbound count claim(s) outside the FACTS block -- bind them or drop the digit"
+  printf '%s\n' "$_o3_body" | grep -nE '[0-9]+ +checks?\b' | head -3 | sed 's/^/        /'
+fi
+
+# CONTROL: the assertion must be able to fail. Run it against a body that has one.
+_o3_ctl=$(printf 'voice-contract: 26 checks\n' | grep -cE '[0-9]+ +checks?\b')
+[ "$_o3_ctl" -eq 1 ] \
+  && ok "CONTROL: the O3 matcher DOES catch a planted unbound count" \
+  || bad "CONTROL DEAD: the O3 matcher does not recognise '26 checks' -- it proves nothing"
+
 echo "== facts-block: $pass passed, $fail failed"
 [ "$fail" -eq 0 ] || exit 1
 exit 0
