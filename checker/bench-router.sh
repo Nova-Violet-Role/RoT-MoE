@@ -456,7 +456,7 @@ if [ ! -f "$RM" ]; then
   bad "README.md not found -- the diagram cannot be bound to the benchmark"
 else
   rm_fail=0
-  grep -q "[*][*]$hit/$total[*][*]" "$RM" || { rm_fail=1; note "README does not carry the score $hit/$total"; }
+  grep -q "[*][*]${hit}/${total}[*][*]" "$RM" || { rm_fail=1; note "README does not carry the score $hit/$total"; }
   grep -q "$lanes lanes" "$RM"       || { rm_fail=1; note "README does not carry the lane count $lanes"; }
   grep -q "500 ms" "$RM"             || { rm_fail=1; note "README does not state the 500 ms bound this gate enforces"; }
   grep -q '```mermaid' "$RM"       || { rm_fail=1; note "README has no mermaid diagram block"; }
@@ -469,12 +469,12 @@ else
 
   # -- controls: the phase must be able to fail, and must not always fail --
   probe="$(mktemp)"
-  sed "s|[*][*]$hit/$total[*][*]|**999/999**|" "$RM" > "$probe"; src=$?
+  sed "s|[*][*]${hit}/${total}[*][*]|**999/999**|" "$RM" > "$probe"; src=$?
   if [ "$src" -ne 0 ] || [ ! -s "$probe" ]; then
     bad "CONTROL DID NOT APPLY: sed exit $src / empty mutant -- discarded, NOT survived"
   elif cmp -s "$probe" "$RM"; then
     bad "CONTROL DID NOT APPLY: the mutated copy is identical -- discarded, NOT survived"
-  elif grep -q "[*][*]$hit/$total[*][*]" "$probe"; then
+  elif grep -q "[*][*]${hit}/${total}[*][*]" "$probe"; then
     bad "CONTROL: a README with the wrong score was still accepted"
   else
     ok "CONTROL: a README whose case total is wrong IS rejected -- the check can fail"
@@ -545,7 +545,7 @@ INNER
   else
     bad "the README lane->lens table has drifted from $ROUTER"
   fi
-  if grep -q "[*][*]$hit/$total[*][*]" "$RM"; then
+  if grep -q "[*][*]${hit}/${total}[*][*]" "$RM"; then
     ok "CONTROL: the real README passes that same predicate -- it is not always-fail"
   else
     bad "CONTROL: the predicate rejects the real README -- always-fail proves nothing"

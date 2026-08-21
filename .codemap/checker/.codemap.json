@@ -137,12 +137,12 @@
       ]
     },
     "bench-router.sh": {
-      "hash": "36a3939a5875",
-      "indexed_at": "2026-08-21T07:50:35.548508+00:00",
+      "hash": "41ce9b43cf40",
+      "indexed_at": "2026-08-21T12:23:00.290057+00:00",
       "language": "shell",
       "lines": 850,
-      "mtime_ns": 1787209313000000000,
-      "size": 45630,
+      "mtime_ns": 1787314841445476400,
+      "size": 45646,
       "symbols": [
         {
           "lines": [
@@ -173,19 +173,19 @@
     },
     "ci-audit-freshness.sh": {
       "hash": "51caff829091",
-      "indexed_at": "2026-08-21T11:46:33.513174+00:00",
+      "indexed_at": "2026-08-21T12:23:25.184407+00:00",
       "language": "shell",
       "lines": 222,
-      "mtime_ns": 1787305184222261200,
+      "mtime_ns": 1787313045772062900,
       "size": 10798,
       "symbols": []
     },
     "ci-dryrun.sh": {
       "hash": "357a09e72bd5",
-      "indexed_at": "2026-08-21T11:46:33.513902+00:00",
+      "indexed_at": "2026-08-21T12:23:25.185129+00:00",
       "language": "shell",
       "lines": 524,
-      "mtime_ns": 1787305184222261200,
+      "mtime_ns": 1787313045772062900,
       "size": 28212,
       "symbols": [
         {
@@ -226,10 +226,10 @@
     },
     "ci-honesty.sh": {
       "hash": "efa2a5bbc73f",
-      "indexed_at": "2026-08-21T11:46:33.514466+00:00",
+      "indexed_at": "2026-08-21T12:23:25.185687+00:00",
       "language": "shell",
       "lines": 443,
-      "mtime_ns": 1787305184222261200,
+      "mtime_ns": 1787313045772062900,
       "size": 22296,
       "symbols": [
         {
@@ -381,10 +381,10 @@
     },
     "cross-diff.sh": {
       "hash": "4d9afad44954",
-      "indexed_at": "2026-08-21T11:46:33.517949+00:00",
+      "indexed_at": "2026-08-21T12:23:25.189052+00:00",
       "language": "shell",
       "lines": 703,
-      "mtime_ns": 1787305184223591800,
+      "mtime_ns": 1787313045773879100,
       "size": 37537,
       "symbols": [
         {
@@ -580,10 +580,10 @@
     },
     "facts-block.sh": {
       "hash": "cfbb85a307b6",
-      "indexed_at": "2026-08-21T11:48:40.842435+00:00",
+      "indexed_at": "2026-08-21T12:23:25.192571+00:00",
       "language": "shell",
       "lines": 225,
-      "mtime_ns": 1787312884498800100,
+      "mtime_ns": 1787313045773879100,
       "size": 11595,
       "symbols": [
         {
@@ -699,10 +699,10 @@
     },
     "hook-contract.sh": {
       "hash": "eaecb146d013",
-      "indexed_at": "2026-08-21T11:46:33.523506+00:00",
+      "indexed_at": "2026-08-21T12:23:25.194452+00:00",
       "language": "shell",
       "lines": 259,
-      "mtime_ns": 1787305184223591800,
+      "mtime_ns": 1787313045773879100,
       "size": 14330,
       "symbols": [
         {
@@ -1139,10 +1139,10 @@
     },
     "no-local-paths.sh": {
       "hash": "f67508f24419",
-      "indexed_at": "2026-08-21T11:46:33.532522+00:00",
+      "indexed_at": "2026-08-21T12:23:25.203017+00:00",
       "language": "shell",
       "lines": 254,
-      "mtime_ns": 1787305184223591800,
+      "mtime_ns": 1787313045774545800,
       "size": 12599,
       "symbols": []
     },
@@ -1402,10 +1402,10 @@
     },
     "release-package.sh": {
       "hash": "3459d5c3c323",
-      "indexed_at": "2026-08-21T11:46:33.538518+00:00",
+      "indexed_at": "2026-08-21T12:23:25.208797+00:00",
       "language": "shell",
       "lines": 613,
-      "mtime_ns": 1787305184224780600,
+      "mtime_ns": 1787313045774545800,
       "size": 30293,
       "symbols": [
         {
@@ -1675,10 +1675,10 @@
     },
     "spdx-sweep.sh": {
       "hash": "e3df6a253a65",
-      "indexed_at": "2026-08-21T11:46:33.542527+00:00",
+      "indexed_at": "2026-08-21T12:23:25.212574+00:00",
       "language": "shell",
       "lines": 139,
-      "mtime_ns": 1787305184224780600,
+      "mtime_ns": 1787313045774545800,
       "size": 6567,
       "symbols": [
         {
@@ -1872,10 +1872,10 @@
     },
     "voice-contract.sh": {
       "hash": "5911c5ea1f62",
-      "indexed_at": "2026-08-21T11:46:33.546495+00:00",
+      "indexed_at": "2026-08-21T12:23:25.216440+00:00",
       "language": "shell",
       "lines": 642,
-      "mtime_ns": 1787305184224780600,
+      "mtime_ns": 1787313045774545800,
       "size": 38977,
       "symbols": [
         {
@@ -2083,6 +2083,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T11:48:40.842511+00:00",
+  "generated_at": "2026-08-21T12:23:25.295479+00:00",
   "version": "1.0"
 }
