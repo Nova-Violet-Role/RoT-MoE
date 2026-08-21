@@ -15,6 +15,34 @@ not be buried.
 
 ---
 
+## [Bonus] — CmdPulse — 2026-08-21
+
+Not a version of the router. A standalone tool shipped alongside it, in
+[`bonus/cmdpulse/`](bonus/cmdpulse/README.md), under the same licence.
+
+### Added
+
+- **CmdPulse** — a live progress bar for every Claude Code tool call, drawn in Claude Code's
+  own status line. ETA against the learned median for each command signature; `over` in red
+  past that median; a sweeping bar and `ETA ?` when fewer than two runs are recorded, because
+  an estimate that does not exist should not be invented.
+- Phase rows for the intervals that are not tool calls — compaction, a pending permission
+  prompt, a subagent between calls. All 31 hook events wired; every row names what it is.
+- Rolling history of the last N completed calls (`CMDPULSE_ROWS`, default 3, max 12).
+- Opt-in live stdout streaming through `PreToolUse` `updatedInput`, with exit codes preserved
+  by `exit ${PIPESTATUS[0]}` — verified against a command exiting 101, where the naive
+  `| tee` form returns 0 and silently turns a failed build green.
+- Split-pane dashboard and WezTerm status-bar renderer, both at 100 ms on their own clocks,
+  plus an HTML inspector carrying the full input and output of every call.
+
+### Notes
+
+- Ships `refreshInterval: 3`. The status line floors at 1 s (`Math.max(1,t)*1000`) and a
+  render slower than the interval is aborted by the next one, blanking the line entirely.
+- Everything is local. No network, no telemetry. Requires `bash` and `jq`.
+
+---
+
 ## [8.0.1] — 2026-08-20
 
 **Patch: the gate learns to show its seals and to ask without demanding

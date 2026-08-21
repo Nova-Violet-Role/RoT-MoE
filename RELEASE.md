@@ -23,6 +23,50 @@
 
 ---
 
+## 🎁 BONUS — CmdPulse
+
+> *"for everyone tired about waiting for the next update — I made something everyone was
+> searching for, because it is far easier than what I'm working on.*
+>
+> *It took me about 1 hour to produce that, a function everyone was searching for, easy…
+> imagine what the router is capable of after 2 weeks…"*
+
+**A live progress bar for every Claude Code tool call**, rendered inside Claude Code's own
+status line. It answers the one question the UI never answers: *is it still working, or is
+it stuck?*
+
+```
+⠸ Bash         ██████░░░░  61%   2m14s  ETA 47s  cargo test --release
+    └ [  5/20] seed 0004: 145832  (mean: 152340.2, 3.1s/seed)
+◈ perm         ██░░░░░░░░  wait     8s  awaiting permission: Bash
+✓ Edit         ██████████  done   111ms @09:41:10  src/main.rs
+██████░░░░ 47% | [Opus 5 (1M context)] xhigh ✻ | my-project  main* | ⧉ Inspect
+```
+
+- **ETA** against the learned median for that command signature — `over` in red once it
+  exceeds its usual time. Unseen commands sweep and say `ETA ?` rather than invent a number.
+- **Phase rows** for the silences that are *not* tool calls: compaction, a pending permission
+  prompt, a subagent running. All **31** hook events wired, every row named.
+- **Live stdout streaming** (opt-in) with exit codes preserved — verified against a command
+  exiting 101.
+- **Split-pane dashboard** and **WezTerm status bar** at 100 ms, plus an HTML inspector with
+  the full input/output of every call.
+
+Local only. Nothing is uploaded. Requires `bash` and `jq`.
+
+| | |
+|---|---|
+| **Install** | `bash bonus/cmdpulse/install.sh` |
+| **Archive** | [`bonus/cmdpulse/cmdpulse-bonus.zip`](bonus/cmdpulse/cmdpulse-bonus.zip) |
+| **Read first** | [`bonus/cmdpulse/README.md`](bonus/cmdpulse/README.md) |
+| **Reproduce** | [`bonus/cmdpulse/REPRODUCE.md`](bonus/cmdpulse/REPRODUCE.md) |
+| **Every flag** | [`bonus/cmdpulse/USAGE.md`](bonus/cmdpulse/USAGE.md) |
+
+> ⚠ Ships `refreshInterval: 3`. The status line floors at 1 s and a render slower than the
+> interval is **aborted**, blanking the line. Read the README before lowering it.
+
+---
+
 ## 🎯 Which one do I want?
 
 Three archives, one version — `8.0.1` — and the tier lives in the **name**,
