@@ -37,6 +37,19 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# --- WINDOWS OUTPUT ENCODING ------------------------------------------------
+# MEASURED 2026-08-21, Win11 26200 + pwsh 7.6.5: under `pwsh -NoProfile -File`
+# [Console]::OutputEncoding is the OEM CONSOLE codepage (ibm437 on this host)
+# even though the ANSI codepage is utf-8 and $OutputEncoding is utf-8. Every
+# non-ASCII byte this arm writes is then best-fit mapped: a lens sigil becomes
+# one '?' per UTF-16 code unit (U+1F577 U+FE0F -> '???'), U+00D7 -> 'x',
+# U+00B7 -> byte 0xFA. checker/cross-diff.sh and checker/session-log.sh both
+# saw the two arms disagree here, and a live session rendered '?? Nova'.
+# The .sh arm has no such layer, so this is the one place the arms can drift
+# without either author writing a bug. Degrade OPEN: a host with no console
+# attached must not lose its router over an encoding assignment.
+try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch { }
 $inv = [System.Globalization.CultureInfo]::InvariantCulture
 
 # Start of THIS invocation, used only by the debug log's per-turn `ms` field.
