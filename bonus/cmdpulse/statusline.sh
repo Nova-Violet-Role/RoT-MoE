@@ -233,7 +233,15 @@ if [ -d "$CP/active" ]; then
         # recorded runs; otherwise there is no honest estimate and the bar sweeps instead.
         eta_ms=$(( med - el ))
         if [ "$(( el * 100 / med ))" -ge 100 ]; then
-          clbl="${RED}over${RESET}"; eta_s=""
+          # "over" read as "finished/failed" to every human who saw it. The command is still
+          # RUNNING — it is merely past its usual time. Say how far past, and keep the word
+          # "run" so the state is unambiguous.
+          ov=$(( (el - med) / 1000 ))
+          if   [ "$ov" -ge 3600 ]; then ov_s="+$(( ov / 3600 ))h$(printf '%02d' $(( (ov % 3600) / 60 )))m"
+          elif [ "$ov" -ge 60 ];   then ov_s="+$(( ov / 60 ))m$(printf '%02d' $(( ov % 60 )))s"
+          else                          ov_s="+${ov}s"
+          fi
+          clbl="${RED}${ov_s}${RESET}"; eta_s="${DIM}run${RESET}"
         else
           clbl=$(printf '%s%d%%%s' "$ccol" "$cpct" "$RESET")
           e=$(( eta_ms / 1000 ))

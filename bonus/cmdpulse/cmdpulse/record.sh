@@ -190,6 +190,11 @@ read_line=$(printf '%s' "$input" | "$JQ" -r --arg ev "$EV" --argjson now "$NOW_M
   def normtok:
     . as $tok
     | if ($tok | test("^[A-Za-z_][A-Za-z0-9_]*=")) then ""
+      # Wrappers say nothing about what is being run. Without this, every command in a repo
+      # that starts `cd <path> && ...` collapsed onto one key, so an 8s echo and a 30m gate
+      # sweep shared a median — and the long one was flagged slow within seconds.
+      elif ($tok | test("^(cd|sudo|env|time|timeout|nohup|exec|command|nice|xargs)$")) then ""
+      elif ($tok | test("^[0-9]+$")) then ""
       elif ($tok | startswith("-")) then ""
       elif ($tok | contains($DQ)) or ($tok | contains($SQ)) or ($tok | contains("$")) then ""
       elif ($tok | contains("/")) then ($tok | split("/") | last)
@@ -198,7 +203,13 @@ read_line=$(printf '%s' "$input" | "$JQ" -r --arg ev "$EV" --argjson now "$NOW_M
   def signature:
     .tool_name as $t |
     if $t == "Bash" or $t == "PowerShell"
-    then ( subject | split(" ") | map(normtok) | map(select(length > 0)) | .[0:2] | join(" ") ) as $s
+    # Strip quoted segments FIRST. Splitting on spaces shatters "C:/GIT External Repo/RoT
+    # MoE" into External / Repo / MoE, and those word fragments survived tokenising — so
+    # every command in that directory still shared one signature.
+    then ( subject
+           | gsub($DQ + "[^" + $DQ + "]*" + $DQ; " ")
+           | gsub($SQ + "[^" + $SQ + "]*" + $SQ; " ")
+           | split(" ") | map(normtok) | map(select(length > 0)) | .[0:2] | join(" ") ) as $s
          | $t + ":" + (if ($s | length) > 0 then $s else "cmd" end)
     else ($t // "Unknown") end;
   ( .tool_use_id // ("noid-" + ((now*1000)|floor|tostring)) ) as $id |
