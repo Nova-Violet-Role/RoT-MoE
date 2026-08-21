@@ -60,7 +60,12 @@ case "$EV" in
       # --- moments: flash briefly so they are visible, then expire --------------------
       Stop)               P_MODE=flash; P_KIND=turn;     P_TTL=4000 ;;
       StopFailure)        P_MODE=flash; P_KIND=turnfail; P_TTL=8000 ;;
-      PostToolUseFailure) P_MODE=flash; P_KIND=toolfail; P_TTL=8000 ;;
+      # A tool call that FAILS fires PostToolUseFailure, not PostToolUse — so the `post`
+      # recorder never runs and active/<id>.json is never removed. Every failed command
+      # therefore leaked a marker that the bar kept rendering as in-flight forever, and
+      # once stall detection landed they all showed as STALL: "commands from the past".
+      # Clear the marker here as well as flashing the failure.
+      PostToolUseFailure) P_MODE=flash; P_KIND=toolfail; P_TTL=8000; P_CLEAR=1 ;;
       PostToolBatch)      P_MODE=flash; P_KIND=batch;    P_TTL=3000 ;;
       UserPromptSubmit)   P_MODE=flash; P_KIND=prompt;   P_TTL=3000 ;;
       UserPromptExpansion) P_MODE=flash; P_KIND=expand;  P_TTL=3000 ;;
@@ -110,6 +115,12 @@ case "$EV" in
       *)                   LBL="$EVNAME" ;;
     esac
     LBL=$(printf '%s' "$LBL" | tr -d '\r\n' | cut -c1-64)
+    # Reap the in-flight marker for a call that ended by failing. Without this the row
+    # stays on screen for the rest of the session.
+    if [ "${P_CLEAR:-0}" = "1" ] && [ -n "$JQE" ]; then
+      _fid=$(printf '%s' "$raw" | "$JQE" -r '.tool_use_id // ""' 2>/dev/null | tr -d '\r' | tr -cd 'A-Za-z0-9_.-')
+      [ -n "$_fid" ] && rm -f "$ROOT/active/$_fid.json" "$ROOT/stream/$_fid.log" 2>/dev/null
+    fi
     case "$P_MODE" in
       reset) rm -f "$ROOT/phase/"*.json 2>/dev/null ;;
       stop)  rm -f "$ROOT/phase/$P_KIND.json" 2>/dev/null ;;
