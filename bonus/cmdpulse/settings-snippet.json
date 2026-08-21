@@ -1,0 +1,18 @@
+{
+  "_comment": "MERGE these keys into ~/.claude/settings.json. Do NOT replace the file. Windows users: see REPRODUCE.md section 3 for the bash.exe form.",
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline.sh",
+    "refreshInterval": 3
+  },
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [
+        { "type": "command", "command": "bash ~/.claude/cmdpulse/record.sh pre", "timeout": 10000 } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "*", "hooks": [
+        { "type": "command", "command": "bash ~/.claude/cmdpulse/record.sh post", "timeout": 10000 } ] }
+    ]
+  }
+}

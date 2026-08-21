@@ -2940,18 +2940,44 @@
       ]
     },
     "FINDINGS-8.0.1.md": {
-      "hash": "a61cc79a70c6",
-      "indexed_at": "2026-08-21T03:26:23.539212+00:00",
+      "hash": "06b8f875ff01",
+      "indexed_at": "2026-08-21T07:26:33.386941+00:00",
       "language": "markdown",
-      "lines": 508,
-      "mtime_ns": 1787282782372869200,
-      "size": 36484,
+      "lines": 655,
+      "mtime_ns": 1787297192395379600,
+      "size": 43513,
       "symbols": [
+        {
+          "docstring": "Measured while preparing the release, and it explains a whole class of confusion:",
+          "lines": [
+            9,
+            30
+          ],
+          "name": "\ud83d\udd34 The repository was not where anyone thought it was",
+          "type": "section"
+        },
+        {
+          "docstring": "The one item that had been **NOT RUN** through the whole audit. Executed in this repository, against its own freshly built workspace:",
+          "lines": [
+            31,
+            62
+          ],
+          "name": "\ud83d\udfe2 Y3 \u2014 the full 77-suite Lean mutation sweep, RUN",
+          "type": "section"
+        },
+        {
+          "lines": [
+            63,
+            95
+          ],
+          "name": "\ud83d\udfe2 The three Lean instruments, in this repository",
+          "type": "section"
+        },
         {
           "docstring": "| band | meaning | |---|---| | \ud83d\udfe5 **RED** | product defect, user-visible, blocks a stable release | | \ud83d\udfe7 **ORANGE** | instrument or spec defect \u2014 goes r",
           "lines": [
-            18,
-            31
+            96,
+            109
           ],
           "name": "Severity bands",
           "type": "section"
@@ -2961,8 +2987,8 @@
             {
               "docstring": "**Files** `hooks/rot-router.ps1`, `hooks/prover-remind.ps1` \u2014 both arms, both trees.",
               "lines": [
-                34,
-                70
+                112,
+                148
               ],
               "name": "R1 \u00b7 The PowerShell arms emit OEM best-fit garbage for every non-ASCII byte",
               "type": "subsection"
@@ -2970,16 +2996,16 @@
             {
               "docstring": "**File** `hooks/rot-router.sh`, formerly lines 1453\u20131454.",
               "lines": [
-                71,
-                98
+                149,
+                176
               ],
               "name": "R2 \u00b7 `rot-router.sh` normalises backslashes **before** the `$PWD` fallback \u2014 the gauge record is lost",
               "type": "subsection"
             }
           ],
           "lines": [
-            32,
-            98
+            110,
+            176
           ],
           "name": "\ud83d\udfe5 RED \u2014 2 found, 2 fixed and re-verified",
           "type": "section"
@@ -2989,8 +3015,8 @@
             {
               "docstring": "**File** `checker/release-package.sh:289`.",
               "lines": [
-                101,
-                132
+                179,
+                210
               ],
               "name": "O1 \u00b7 `release-package.sh` reads a nine-lens roster as three \u00b7 **FIXED**",
               "type": "subsection"
@@ -2998,8 +3024,8 @@
             {
               "docstring": "**File** `checker/voice-contract.sh:553-558`, against `hooks/settings-merge.js:179`.",
               "lines": [
-                133,
-                162
+                211,
+                240
               ],
               "name": "O2 \u00b7 `voice-contract.sh` D15 goes red on a **correct** product, Windows only \u00b7 NOT FIXED",
               "type": "subsection"
@@ -3007,24 +3033,24 @@
             {
               "docstring": "`README.md` claims **\"26 checks, 0 failed\"**. Measured today: **47 checks** (46 passed + 1 failed). The FACTS block (87 / 1632 / 77 / 77 / 31) *is* re",
               "lines": [
-                163,
-                166
+                241,
+                244
               ],
               "name": "O3 \u00b7 README's voice-contract count is stale, unbound prose",
               "type": "subsection"
             },
             {
               "lines": [
-                167,
-                176
+                245,
+                254
               ],
               "name": "O4 \u00b7 The `v8.0.1` tag is lightweight",
               "type": "subsection"
             }
           ],
           "lines": [
-            99,
-            176
+            177,
+            254
           ],
           "name": "\ud83d\udfe7 ORANGE \u2014 4 found, 1 fixed",
           "type": "section"
@@ -3032,8 +3058,8 @@
         {
           "docstring": "| # | finding | evidence | |---|---|---| | **Y1** | `settings-merge.js:179,208` compares **filesystem paths with `===`**. Correct when both spellings",
           "lines": [
-            177,
-            188
+            255,
+            266
           ],
           "name": "\ud83d\udfe8 YELLOW \u2014 latent, no impact today",
           "type": "section"
@@ -3041,8 +3067,8 @@
         {
           "docstring": "| # | finding | evidence | |---|---|---| | **B1** | **Two `rot-moe` roots are registered on this machine** \u2014 `plugins/marketplaces/rot-moe` and `.clau",
           "lines": [
-            189,
-            200
+            267,
+            278
           ],
           "name": "\ud83d\udfe6 BLUE \u2014 environment and process, not the codebase",
           "type": "section"
@@ -3052,8 +3078,8 @@
             {
               "docstring": "| # | claim | instrument | result | |---|---|---|---| | **G1** | all 87 modules elaborate | `lake build`, exit read directly | **exit 0**, 87 `.olean`",
               "lines": [
-                203,
-                214
+                281,
+                292
               ],
               "name": "Lean 4 \u2014 the proof spine",
               "type": "subsection"
@@ -3061,8 +3087,8 @@
             {
               "docstring": "| # | claim | instrument | result | |---|---|---|---| | **G5** | all **31 hook events** actually execute on every arm | `checker/hook-contract.sh` | *",
               "lines": [
-                215,
-                228
+                293,
+                306
               ],
               "name": "The plugin surface",
               "type": "subsection"
@@ -3070,8 +3096,8 @@
             {
               "docstring": "| phase | result | |---|---| | **negative control**, empty sink | observer exit 0, **0 queue files, not a byte** | | drive the router 6\u00d7 on one stem \u2192",
               "lines": [
-                229,
-                240
+                307,
+                318
               ],
               "name": "Animus (ORGAN 8) \u2014 end to end, both directions",
               "type": "subsection"
@@ -3079,8 +3105,8 @@
             {
               "docstring": "All three declared laws hold, each with a **positive and a negative** control in the same run:",
               "lines": [
-                241,
-                253
+                319,
+                331
               ],
               "name": "The environment layer (`*.env`, `*.bashrc`)",
               "type": "subsection"
@@ -3088,8 +3114,8 @@
             {
               "docstring": "`checker/marketplace-session.sh` \u2192 **exit 0, 10 passed / 0 failed**, in a **scratch `CLAUDE_DIR`**; the live `~/.claude` was never armed or disarmed.",
               "lines": [
-                254,
-                264
+                332,
+                342
               ],
               "name": "The live scratchpad Claude Code session",
               "type": "subsection"
@@ -3097,8 +3123,8 @@
             {
               "docstring": "`checker/mutate-checker.sh` \u2192 **17 declared, 17 killed, 0 survived, 0 discarded, 0 inexpressible** (pwsh present on this host), ending `baseline resto",
               "lines": [
-                265,
-                268
+                343,
+                346
               ],
               "name": "Instruments proven able to fail",
               "type": "subsection"
@@ -3106,16 +3132,16 @@
             {
               "docstring": "| what | README | recomputed | |---|---|---| | Lean modules | 87 | **87** | | theorems | 1632 | **1632** | | mutation suites | 77 | **77** | | checker",
               "lines": [
-                269,
-                280
+                347,
+                358
               ],
               "name": "FACTS block \u2014 all five numbers reproduced against the tree",
               "type": "subsection"
             }
           ],
           "lines": [
-            201,
-            280
+            279,
+            358
           ],
           "name": "\ud83d\udfe9 GREEN \u2014 verified, each with its control seen to fire",
           "type": "section"
@@ -3123,8 +3149,8 @@
         {
           "docstring": "Both the source clone **and** the live runtime were patched, byte-identically, after confirming the runtime was identical to the source pre-patch. **N",
           "lines": [
-            281,
-            295
+            359,
+            373
           ],
           "name": "Changes made to the trees",
           "type": "section"
@@ -3134,8 +3160,8 @@
             {
               "docstring": "The first delivery attempt used `Proofs/RotMoE/` (capital **E**). A directory `Proofs/RotMoe/` (lowercase **e**) already existed from an August sessio",
               "lines": [
-                308,
-                321
+                386,
+                399
               ],
               "name": "A trap worth recording: `lake build` passed where `leanchecker` could not",
               "type": "subsection"
@@ -3143,8 +3169,8 @@
           ],
           "docstring": "Standing rule on this machine: every `.lean` also lands in `D:\\Lean\\proofs`, and a copy is not a delivery until it **builds there**.",
           "lines": [
-            296,
-            321
+            374,
+            399
           ],
           "name": "Lean delivery to the shared tree",
           "type": "section"
@@ -3154,8 +3180,8 @@
             {
               "docstring": "| # | item | why it is in this release | |---|---|---| | 1 | **R3** \u2014 filter both CI selectors by `workflow_id`, print the workflow name in the verdic",
               "lines": [
-                326,
-                336
+                404,
+                414
               ],
               "name": "9.0.0 \u2014 make the verdict trustworthy, then the product correct",
               "type": "subsection"
@@ -3163,8 +3189,8 @@
             {
               "docstring": "| # | item | |---|---| | 7 | **Y5** \u2014 add a `cross-diff` corpus row with **no `cwd` key**; R2 lived exactly there | | 8 | **Y10** \u2014 add a checker for",
               "lines": [
-                337,
-                347
+                415,
+                425
               ],
               "name": "9.0.1 \u2014 close the blind spots the fixes revealed",
               "type": "subsection"
@@ -3172,8 +3198,8 @@
             {
               "docstring": "| # | item | |---|---| | 13 | **Y3** \u2014 full 77-suite Lean mutation sweep in CI (\u22483.5 h) so 797/797 is regenerated, not asserted | | 14 | **Y4** \u2014 re-t",
               "lines": [
-                348,
-                356
+                426,
+                434
               ],
               "name": "9.0.2 \u2014 budget, coverage, hygiene",
               "type": "subsection"
@@ -3181,8 +3207,8 @@
             {
               "docstring": "Three of the four most serious findings \u2014 **R3**, **O5**, and the earlier **O1** \u2014 are the *same defect wearing different clothes: an instrument whose",
               "lines": [
-                357,
-                370
+                435,
+                448
               ],
               "name": "The through-line",
               "type": "subsection"
@@ -3190,8 +3216,8 @@
           ],
           "docstring": "Ordered so nothing depends on a later item. **R3 goes first and alone**: until the audit chain names its own subject, every later green is unfalsifiab",
           "lines": [
-            322,
-            370
+            400,
+            448
           ],
           "name": "Release plan \u2014 9.0.0 \u00b7 9.0.1 \u00b7 9.0.2",
           "type": "section"
@@ -3199,8 +3225,8 @@
         {
           "docstring": "This is the finding that explains the release.",
           "lines": [
-            371,
-            419
+            449,
+            497
           ],
           "name": "\ud83d\udfe5 R3 \u00b7 The CI-audit chain certified 8.0.1 against the WRONG WORKFLOW",
           "type": "section"
@@ -3208,8 +3234,8 @@
         {
           "docstring": "`checker/spdx-sweep.sh:34-37`:",
           "lines": [
-            420,
-            435
+            498,
+            513
           ],
           "name": "\ud83d\udfe7 O5 \u00b7 The SPDX gate has never examined a `.js` file or the DTD",
           "type": "section"
@@ -3217,8 +3243,8 @@
         {
           "docstring": "All 63 hook entries share three command strings of this shape:",
           "lines": [
-            436,
-            464
+            514,
+            542
           ],
           "name": "\ud83d\udfe7 O6 \u00b7 The hook command shape RUNS BOTH ARMS when the ps1 arm fails",
           "type": "section"
@@ -3226,8 +3252,8 @@
         {
           "docstring": "| # | finding | evidence | |---|---|---| | **Y6** | The **ps1 arm writes CRLF** into the `.jsonl` debug sink; the sh arm writes LF (measured: sh CR=0,",
           "lines": [
-            465,
-            474
+            543,
+            552
           ],
           "name": "\ud83d\udfe8 New yellows",
           "type": "section"
@@ -3235,8 +3261,8 @@
         {
           "docstring": "Found by `checker/workflow-lint.sh` going red during 9.0.0 work. Not a defect in the tree \u2014 local repository state, and it is live:",
           "lines": [
-            475,
-            490
+            553,
+            568
           ],
           "name": "\ud83d\udfe7 O7 \u00b7 The active pre-commit gate is a CodeMap hook that never refuses",
           "type": "section"
@@ -3244,10 +3270,37 @@
         {
           "docstring": "Every claim in the README's organ / marker / flag / switch tables was **executed**. Nothing was found false.",
           "lines": [
-            491,
-            509
+            569,
+            612
           ],
           "name": "\ud83d\udfe9 README claim-by-claim verification",
+          "type": "section"
+        },
+        {
+          "docstring": "**6 red \u2192 3 red.** Now green: `cross-diff` (123 passed, up from 121), `session-log`, `release-package`, `voice-contract` (47/0), `hook-contract` (74/0",
+          "lines": [
+            613,
+            627
+          ],
+          "name": "Gate movement",
+          "type": "section"
+        },
+        {
+          "docstring": "`6e0db2d` asserts a measured mechanism I could **not** reproduce. Investigated while building the Y5 checker:",
+          "lines": [
+            628,
+            643
+          ],
+          "name": "A correction I owe the record: R2 was overclaimed",
+          "type": "section"
+        },
+        {
+          "docstring": "| item | state | |---|---| | O4 | `git tag -a v9.0.0` \u2014 not cut | | push | not done, not requested | | B1 | one registered plugin root | | O7 | chain",
+          "lines": [
+            644,
+            656
+          ],
+          "name": "Still open",
           "type": "section"
         }
       ]
@@ -4023,6 +4076,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T03:26:23.557352+00:00",
+  "generated_at": "2026-08-21T07:26:33.387040+00:00",
   "version": "1.0"
 }

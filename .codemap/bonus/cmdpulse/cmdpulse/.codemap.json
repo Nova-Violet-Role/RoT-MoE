@@ -1,0 +1,109 @@
+{
+  "directory": "bonus\\cmdpulse\\cmdpulse",
+  "files": {
+    "cmdpulse-web.sh": {
+      "hash": "e4057a3f19a8",
+      "indexed_at": "2026-08-21T07:35:54.470468+00:00",
+      "language": "shell",
+      "lines": 280,
+      "mtime_ns": 1787297734833979400,
+      "size": 18032,
+      "symbols": [
+        {
+          "lines": [
+            37,
+            119
+          ],
+          "name": "build_payload",
+          "type": "function"
+        },
+        {
+          "lines": [
+            261,
+            265
+          ],
+          "name": "write_page",
+          "type": "function"
+        }
+      ]
+    },
+    "cmdpulse.sh": {
+      "hash": "7e658a711d8c",
+      "indexed_at": "2026-08-21T07:45:07.449634+00:00",
+      "language": "shell",
+      "lines": 260,
+      "mtime_ns": 1787298306747520300,
+      "size": 11339,
+      "symbols": [
+        {
+          "lines": [
+            45,
+            51
+          ],
+          "name": "fmt_dur",
+          "type": "function"
+        },
+        {
+          "lines": [
+            52,
+            58
+          ],
+          "name": "fmt_bytes",
+          "type": "function"
+        },
+        {
+          "docstring": "Baseline: median / p95 / max duration per signature, from the ledger.",
+          "lines": [
+            63,
+            76
+          ],
+          "name": "baseline",
+          "type": "function"
+        },
+        {
+          "lines": [
+            78,
+            92
+          ],
+          "name": "bar",
+          "type": "function"
+        },
+        {
+          "lines": [
+            94,
+            129
+          ],
+          "name": "inspect",
+          "type": "function"
+        },
+        {
+          "lines": [
+            131,
+            156
+          ],
+          "name": "show_top",
+          "type": "function"
+        },
+        {
+          "lines": [
+            158,
+            170
+          ],
+          "name": "follow",
+          "type": "function"
+        }
+      ]
+    },
+    "record.sh": {
+      "hash": "c53574b2c2f2",
+      "indexed_at": "2026-08-21T07:45:07.578300+00:00",
+      "language": "shell",
+      "lines": 271,
+      "mtime_ns": 1787298306747520300,
+      "size": 14662,
+      "symbols": []
+    }
+  },
+  "generated_at": "2026-08-21T07:45:07.578373+00:00",
+  "version": "1.0"
+}
