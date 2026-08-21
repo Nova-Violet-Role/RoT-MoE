@@ -191,6 +191,68 @@ out="$(printf '%s' "$PAYLOAD" | { [ "$have_timeout" -eq 1 ] \
   && ok "CONTROL: prover-remind.sh SPEAKS when given a workspace with no proofs -- its silence elsewhere is a decision, not a breakage" \
   || bad "CONTROL DEAD: prover-remind.sh stayed silent even with no proofs to find (exit $rc) -- silence cannot be distinguished from breakage"
 
+
+echo
+echo "== THE ARM FALLBACK: a FAILING ps1 must not silently run the sh arm too (O6) =="
+# WHY THIS EXISTS -- O6, 8.0.1 audit. Every one of the 63 entries in hooks.json
+# used to read
+#     command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File X.ps1 || bash X.sh
+# and `A && B || C` runs C whenever B FAILS, not only when A fails. Measured with
+# a ps1 exiting 3 and a bash arm that speaks: BOTH arms ran and the overall exit
+# was 0 -- duplicate injection, a masked ps1 failure, and doubled latency, on
+# every event. No checker covered it: router-duplication.sh covers a DIFFERENT
+# duplication (a plugin install stacking with ARM_ROUTER's settings.json entry).
+#
+# `grep -c` PRINTS its count AND EXITS 1 when that count is ZERO -- which here is
+# the DESIRED state. `|| echo 0` would append a second zero ("0\n0", the trap
+# ci-honesty.sh:201 records paying for) and `|| VAR=""` would DISCARD the valid 0.
+# Both were written and both were wrong. `|| true` keeps the printed count and
+# neutralises the status; the value is then required to be a number.
+_o6bad=$(grep -c 'command -v pwsh >/dev/null 2>&1 && pwsh' hooks/hooks.json 2>/dev/null || true)
+_o6new=$(grep -c 'if command -v pwsh >/dev/null 2>&1; then pwsh' hooks/hooks.json 2>/dev/null || true)
+case "${_o6bad:-x}|${_o6new:-x}" in
+  *[!0-9\|]*|x\||\|x)
+    bad "O6: hooks.json shape counts unreadable ('$_o6bad'/'$_o6new') -- refusing to judge" ;;
+  *)
+    if [ "$_o6bad" -ne 0 ]; then
+      bad "O6: $_o6bad hook command(s) still use '&& pwsh || bash' -- a failing ps1 arm runs the sh arm too"
+    elif [ "$_o6new" -eq 0 ]; then
+      bad "O6: no conditional-shape command in hooks.json -- the shape assertion is measuring nothing"
+    else
+      ok "O6: all $_o6new hook command(s) use the conditional shape; zero use '&& pwsh || bash'"
+    fi ;;
+esac
+
+# THE BEHAVIOUR, not only the spelling: a stand-in ps1 that EXITS NON-ZERO and a
+# stand-in sh arm that speaks -- exactly one may be heard.
+_O6D=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/o6.$$"); mkdir -p "$_O6D" 2>/dev/null
+printf 'Write-Output "PS1-SPOKE"; exit 3\n' > "$_O6D/a.ps1"
+printf '#!/usr/bin/env bash\necho "SH-SPOKE"\n'  > "$_O6D/a.sh"
+if command -v pwsh >/dev/null 2>&1; then
+  _o6out=$(if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File "$_O6D/a.ps1"; else bash "$_O6D/a.sh"; fi 2>&1); _o6rc=$?
+  _o6out=$(printf '%s' "$_o6out" | tr -d '\r')
+  case "$_o6out" in
+    *SH-SPOKE*)  bad "O6: the conditional shape STILL ran both arms on a failing ps1 -- '$_o6out'" ;;
+    *PS1-SPOKE*) [ "$_o6rc" -eq 0 ] \
+                   && bad "O6: a ps1 arm exiting 3 was masked to exit 0 -- the failure cannot be seen" \
+                   || ok  "O6: a failing ps1 arm runs ALONE and its exit ($_o6rc) survives" ;;
+    *)           bad "O6: neither arm spoke -- '$_o6out'" ;;
+  esac
+  _o6ctl=$(command -v pwsh >/dev/null 2>&1 && pwsh -NoProfile -File "$_O6D/a.ps1" || bash "$_O6D/a.sh")
+  _o6ctl=$(printf '%s' "$_o6ctl" | tr -d '\r')
+  case "$_o6ctl" in
+    *PS1-SPOKE*SH-SPOKE*) ok "CONTROL: the old '&& ||' shape DOES double-run here -- this phase can fail" ;;
+    *) bad "CONTROL DEAD: the old shape did not double-run -- the O6 phase proves nothing" ;;
+  esac
+  _o6fb=$(PATH=/usr/bin:/bin; if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File "$_O6D/a.ps1"; else bash "$_O6D/a.sh"; fi 2>&1)
+  case "$_o6fb" in
+    *SH-SPOKE*) ok  "O6: with pwsh absent the sh arm still runs -- the fallback is intact" ;;
+    *)          bad "O6: with pwsh absent NOTHING ran -- the fallback was lost -- '$_o6fb'" ;;
+  esac
+else
+  echo "  SKIP  no PowerShell here (O6 behaviour rows did not run; the shape assertion did)"
+fi
+rm -rf "$_O6D"
 rm -f "$CMDS"
 printf '\n== hook-contract: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
