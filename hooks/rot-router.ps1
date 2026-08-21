@@ -294,7 +294,6 @@ function Select-Profile {
   $p = if ($Profiles.ContainsKey($Lane)) { $Profiles[$Lane] } else { $Profiles['CONVERGENT'] }
   $script:Lambdas = $p.L
   $script:Mus     = $p.M
-  $script:RotProfile = $Lane
 }
 
 # THE DEFAULT IS CONVERGENT, LED BY NOVA -- not FORGE. Corrected 2026-08-13.
@@ -306,7 +305,6 @@ function Select-Profile {
 # which is the hand's profile, not the convener's.
 $Lambdas = $Profiles['CONVERGENT'].L
 $Mus     = $Profiles['CONVERGENT'].M
-$RotProfile = 'CONVERGENT'
 
 # THE SECTION 2 DEFAULT ROSTER -- the table Symbiogenesis is defined over.
 # $Lambdas/$Mus above are the FORGE PROFILE (section 4) and score the turn; they
@@ -543,7 +541,15 @@ function Write-RotDebugLocal([string] $Line) {
     if (-not (Get-RotLogLock $f)) { $script:RotLocalLost = $true; return }
     try {
       Complete-RotPartialLine $f
-      Add-Content -LiteralPath $f -Value $Line -Encoding utf8 -ErrorAction Stop
+      # LF, NOT CRLF -- Y6. `Add-Content` uses the PLATFORM line ending, so this
+      # arm wrote CRLF into a .jsonl sink while the sh arm wrote LF: measured
+      # sh CR=0 / ps1 CR=2 over the same two records. The record CONTENT was
+      # byte-identical (only "arm":"sh" vs "arm":"ps1" differed, by design), so
+      # nothing misbehaved -- but a .jsonl consumer splitting on \n keeps a
+      # trailing \r on every line this arm wrote, and the project's own rule is
+      # LF everywhere. AppendAllText writes exactly the bytes given, and the
+      # same call already appears at line 514 for the partial-line terminator.
+      [System.IO.File]::AppendAllText($f, $Line + "`n", (New-Object System.Text.UTF8Encoding($false)))
     } finally { Remove-RotLogLock $f }
   } catch {
     # Never fails the turn. Recorded so the marker can say so.
@@ -568,7 +574,15 @@ function Write-RotDebug([string] $Line) {
     if (-not (Get-RotLogLock $p)) { $script:RotDebugLost = $true; return }
     try {
       Complete-RotPartialLine $p
-      Add-Content -LiteralPath $p -Value $Line -Encoding utf8 -ErrorAction Stop
+      # LF, NOT CRLF -- Y6. `Add-Content` uses the PLATFORM line ending, so this
+      # arm wrote CRLF into a .jsonl sink while the sh arm wrote LF: measured
+      # sh CR=0 / ps1 CR=2 over the same two records. The record CONTENT was
+      # byte-identical (only "arm":"sh" vs "arm":"ps1" differed, by design), so
+      # nothing misbehaved -- but a .jsonl consumer splitting on \n keeps a
+      # trailing \r on every line this arm wrote, and the project's own rule is
+      # LF everywhere. AppendAllText writes exactly the bytes given, and the
+      # same call already appears at line 514 for the partial-line terminator.
+      [System.IO.File]::AppendAllText($p, $Line + "`n", (New-Object System.Text.UTF8Encoding($false)))
     } finally { Remove-RotLogLock $p }
   } catch {
     $script:RotDebugLost = $true

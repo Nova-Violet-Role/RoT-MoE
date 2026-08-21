@@ -248,12 +248,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "32a4e7ac6980",
-      "indexed_at": "2026-08-21T03:38:14.764289+00:00",
+      "hash": "2d27207bf5b7",
+      "indexed_at": "2026-08-21T03:55:41.151350+00:00",
       "language": "shell",
-      "lines": 2217,
-      "mtime_ns": 1787283269474807600,
-      "size": 119405,
+      "lines": 2215,
+      "mtime_ns": 1787284077447199900,
+      "size": 119363,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -329,7 +329,7 @@
           "docstring": "--- TIER 2: NSIL -- FUSE and ELEVATE ---------------------------------------- These two were SPECIFIED in rot-lean.md section 3 and NOT IMPLEMENTED. T",
           "lines": [
             436,
-            2218
+            2216
           ],
           "name": "nsil_active_lenses",
           "type": "function"
@@ -355,7 +355,7 @@
         {
           "lines": [
             573,
-            2218
+            2216
           ],
           "name": "band_flag",
           "type": "function"
@@ -380,7 +380,7 @@
           "docstring": "Selects LAMBDAS/MUS for a lane. Unknown lane -> CONVERGENT, which section 3 already names as the default with no trigger, so the fallback is the spec'",
           "lines": [
             659,
-            680
+            679
           ],
           "name": "select_profile",
           "type": "function"
@@ -388,16 +388,16 @@
         {
           "docstring": "merge, per rot-lean.md section 3 -- lambda=(l1+l2)/2+0.2, mu=max, H=max+0.05. Sets HYB_LAM/HYB_MU/HYB_H in hundredths. No subshell, no external proces",
           "lines": [
-            735,
-            755
+            733,
+            753
           ],
           "name": "nsil_hybrid",
           "type": "function"
         },
         {
           "lines": [
-            760,
-            2218
+            758,
+            2216
           ],
           "name": "gauge",
           "type": "function"
@@ -405,8 +405,8 @@
         {
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
-            952,
-            2218
+            950,
+            2216
           ],
           "name": "rot_nsil_decide",
           "type": "function"
@@ -414,16 +414,16 @@
         {
           "docstring": "Part two: gauge + both records. $1 non-empty = the voice path (LENSDATA on).",
           "lines": [
-            1207,
-            2218
+            1205,
+            2216
           ],
           "name": "rot_gauge_record",
           "type": "function"
         },
         {
           "lines": [
-            1414,
-            2218
+            1412,
+            2216
           ],
           "name": "hook_mode",
           "type": "function"
@@ -431,8 +431,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            2141,
-            2148
+            2139,
+            2146
           ],
           "name": "need_value",
           "type": "function"
@@ -469,6 +469,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T03:47:18.893015+00:00",
+  "generated_at": "2026-08-21T03:55:41.151476+00:00",
   "version": "1.0"
 }

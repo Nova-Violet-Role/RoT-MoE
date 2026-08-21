@@ -676,7 +676,6 @@ select_profile () {   # <LANE>
     CONVERGENT) LAMBDAS=$L_CONVERGENT; MUS=$M_CONVERGENT ;;
     *)          LAMBDAS=$L_CONVERGENT; MUS=$M_CONVERGENT ;;
   esac
-  ROT_PROFILE=$1
 }
 
 # THE DEFAULT IS CONVERGENT, LED BY NOVA -- not FORGE. Corrected 2026-08-13 on
@@ -695,7 +694,6 @@ select_profile () {   # <LANE>
 # the convener. Nova leads it, exactly as section 2 and section 4 both say.
 LAMBDAS=$L_CONVERGENT
 MUS=$M_CONVERGENT
-ROT_PROFILE='CONVERGENT'
 
 # TIER 2's density floor: one word per lens, COUNTED from the roster above so a
 # tenth lens moves it automatically. It must be derived HERE, immediately after
