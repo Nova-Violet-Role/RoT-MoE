@@ -1450,8 +1450,17 @@ hook_mode () {
   # ambiguous across implementations, and checker/portability.sh refuses it:
   # a strip that fails OPEN on BSD would leave separators in a value that
   # reaches a directory path. tr has no delimiter to collide with.
-  _rot_proj=$(printf '%s' "$_rot_proj" | tr '\\' '/')
+  # ORDER IS LOAD-BEARING -- MEASURED 2026-08-21 on Windows. The normalisation
+  # below used to run BEFORE this fallback, so a $PWD that is ALREADY a Windows
+  # path -- exactly what Claude Code hands a bash hook here, measured
+  # PWD is handed to a bash hook in its WINDOWS spelling, backslashes and all --
+  # awk then read \G and \R as escape sequences, dropped them, and redirected the
+  # gauge record to `C:GIT External RepoRoT MoE/.rot-moe/...`, which does not
+  # exist: the record was LOST and the marker rendered `R/s+ n/a` while the
+  # PowerShell arm rendered 0.17 from the same input. Fall back FIRST, then
+  # normalise EVERY path that can reach a redirect -- not just the JSON one.
   [ -n "$_rot_proj" ] || _rot_proj=$PWD
+  _rot_proj=$(printf '%s' "$_rot_proj" | tr '\\' '/')
 
   # ORGAN 7 -- the environment layer. Declared config from rot.env files,
   # PARSED never sourced, declared-only, unset-only (the live environment
