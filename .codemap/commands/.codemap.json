@@ -1,12 +1,49 @@
 {
   "directory": "commands",
   "files": {
+    "animus.md": {
+      "hash": "754369c8b7c9",
+      "indexed_at": "2026-08-21T02:15:41.452516+00:00",
+      "language": "markdown",
+      "lines": 85,
+      "mtime_ns": 1787224588678259500,
+      "size": 3803,
+      "symbols": [
+        {
+          "docstring": "1. **Load the memory, global first.** Read `${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe/animus-distillate.md` (if present), then the project's `.rot",
+          "lines": [
+            20,
+            58
+          ],
+          "name": "How to run it",
+          "type": "section"
+        },
+        {
+          "docstring": "| lens | fires on | threshold | |---|---|---| | AntiVenom | the same result anomaly recurring (the sentinel's own log line) | ENV.26, default 2 | | Ch",
+          "lines": [
+            59,
+            74
+          ],
+          "name": "What the observer can catch, and on what evidence",
+          "type": "section"
+        },
+        {
+          "docstring": "* The observer never blocks the worker and never touches the Stop gate. * A lens name outside the nine-element roster is refused and dropped. * `ROTMO",
+          "lines": [
+            75,
+            86
+          ],
+          "name": "Laws",
+          "type": "section"
+        }
+      ]
+    },
     "corpus.md": {
       "hash": "7c93e71de5e8",
-      "indexed_at": "2026-08-14T03:20:53.214760+00:00",
+      "indexed_at": "2026-08-21T02:15:41.452672+00:00",
       "language": "markdown",
       "lines": 59,
-      "mtime_ns": 1786677650143762700,
+      "mtime_ns": 1787224588678259500,
       "size": 2119,
       "symbols": [
         {
@@ -46,8 +83,98 @@
           "type": "section"
         }
       ]
+    },
+    "rot-agent.md": {
+      "hash": "699ac200b423",
+      "indexed_at": "2026-08-21T02:15:41.452829+00:00",
+      "language": "markdown",
+      "lines": 49,
+      "mtime_ns": 1787224588678259500,
+      "size": 2170,
+      "symbols": [
+        {
+          "lines": [
+            14,
+            24
+          ],
+          "name": "Step 1 \u2014 read the roster from the contract, never from memory",
+          "type": "section"
+        },
+        {
+          "docstring": "- The first word is the lens. Accept the short form (`nova`, `violet`, `antivenom`, `venom`, `carnage`, `chroma`, `soleil`, `eidolon`, `claude`) and m",
+          "lines": [
+            25,
+            37
+          ],
+          "name": "Step 2 \u2014 parse the arguments",
+          "type": "section"
+        },
+        {
+          "docstring": "One Task call, `subagent_type` set to the lens's agent. Frame the subject for the lens's charter and **restate its bound in the prompt** \u2014 the \"may ne",
+          "lines": [
+            38,
+            43
+          ],
+          "name": "Step 3 \u2014 dispatch",
+          "type": "section"
+        },
+        {
+          "docstring": "Present the lens's report **inside its declared element** (`<rot:nova>\u2026 </rot:nova>`, and so on), and close with the standing rule: a lens's report is",
+          "lines": [
+            44,
+            50
+          ],
+          "name": "Step 4 \u2014 present",
+          "type": "section"
+        }
+      ]
+    },
+    "rot-swarm.md": {
+      "hash": "dc2654f6ecb1",
+      "indexed_at": "2026-08-21T02:15:41.452975+00:00",
+      "language": "markdown",
+      "lines": 55,
+      "mtime_ns": 1787224588678259500,
+      "size": 2488,
+      "symbols": [
+        {
+          "lines": [
+            15,
+            22
+          ],
+          "name": "Step 1 \u2014 read the roster from the contract, never from memory",
+          "type": "section"
+        },
+        {
+          "docstring": "- `lenses=` narrows the roster (short names, comma-joined). Absent means **all nine**. - An unknown name **refuses the whole swarm** with the roster p",
+          "lines": [
+            23,
+            31
+          ],
+          "name": "Step 2 \u2014 scope the swarm",
+          "type": "section"
+        },
+        {
+          "docstring": "Issue **all the Task calls in a single message** \u2014 one call per lens, `subagent_type` set to that lens's agent \u2014 so they run concurrently. Never one a",
+          "lines": [
+            32,
+            44
+          ],
+          "name": "Step 3 \u2014 fan out, genuinely in parallel",
+          "type": "section"
+        },
+        {
+          "docstring": "- Present each lens's report **inside its declared element**, roster order. - Then the combined read: name the 2\u20133 productive tensions between the rep",
+          "lines": [
+            45,
+            56
+          ],
+          "name": "Step 4 \u2014 synthesise without flattening",
+          "type": "section"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-14T03:20:53.470583+00:00",
+  "generated_at": "2026-08-21T02:15:41.530909+00:00",
   "version": "1.0"
 }

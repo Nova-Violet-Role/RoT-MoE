@@ -85,6 +85,33 @@ prov () { printf '  ....  PROVISIONAL (run not finished, this is NOT a pass): %s
 
 REPO="${CI_HONESTY_REPO:-Nova-Violet-Role/RoT-MoE}"
 
+# --- WHICH WORKFLOW, AND HOW MANY STEPS IT AUTHORS ---------------------------
+# R3. Until 8.0.1 this file never named the workflow it judged. It asked the
+# API for "the newest run for this commit", took whatever came back, and then
+# printed "every authored step ran on every platform". On 2026-08-20 what came
+# back was verify.yml -- five steps -- and the sentence was printed anyway, so
+# tag v8.0.1 rests on 5 of the 92 steps this repository authors.
+#
+# Two values, and NEITHER is written down as a number:
+#   CI_WORKFLOW  -- the subject, overridable for tests, always PRINTED
+#   CI_AUTHORED  -- counted from that file, so it moves when the file moves
+# A count baked in here would be a snapshot, and a snapshot is what failed.
+CI_WORKFLOW="${CI_WORKFLOW:-ci.yml}"
+CI_WF_FILE=".github/workflows/$CI_WORKFLOW"
+if [ ! -f "$CI_WF_FILE" ]; then
+  echo "REFUSE: $CI_WF_FILE does not exist -- cannot judge a workflow that is"
+  echo "        not in the tree. Exit 2 (bad tree), never a pass."
+  exit 2
+fi
+CI_AUTHORED="$(grep -cE '^ +- name:' "$CI_WF_FILE")" || CI_AUTHORED=0
+case "$CI_AUTHORED" in
+  ''|*[!0-9]*|0)
+    echo "REFUSE: $CI_WF_FILE authors no readable steps ('$CI_AUTHORED')."
+    echo "        A floor of zero would pass every run, including an empty one."
+    echo "        Exit 2, never a pass."
+    exit 2 ;;
+esac
+
 # --- runner scaffolding ------------------------------------------------------
 # GitHub injects these; the repository does not author them, so they are not
 # steps this project can be held to. NOTHING the workflow writes appears here --
@@ -157,7 +184,12 @@ if [ -z "$JOBS_JSON" ]; then
     # instead of checking their network. Reading curl's status through a pipe
     # would have hidden it, so the body is captured first and the status read
     # directly.
-    RUNS_JSON="$(api "https://api.github.com/repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=1")"
+    # SCOPED TO THE WORKFLOW. The old query was
+    #   actions/runs?head_sha=$HEAD_SHA&per_page=1
+    # which is "the newest run of ANY workflow for this commit" -- and on
+    # 2026-08-20 that was verify.yml, five steps, while ci.yml authors 87.
+    # The per-workflow endpoint asks the question we actually mean.
+    RUNS_JSON="$(api "https://api.github.com/repos/$REPO/actions/workflows/$CI_WORKFLOW/runs?head_sha=$HEAD_SHA&per_page=1")"
     API_RC=$?
     if [ "$API_RC" -ne 0 ]; then
       echo "SKIP: the GitHub API could not be reached (curl exit $API_RC)."
@@ -183,12 +215,35 @@ if [ -z "$JOBS_JSON" ]; then
                | sed 's/.*: "//; s/"//')"
   RUN_STATUS="$(printf '%s' "$RUN_JSON" | grep -oE '"status": "[a-z_]+"' | head -1 \
                | sed 's/.*: "//; s/"//')"
+
+  # --- IDENTITY: this run must BE the workflow we claim to be judging --------
+  # R3, the defect that shipped v8.0.1. Selection above asks for the right
+  # workflow, but selection is not the only way RUN_ID arrives -- it can be
+  # passed as $1. So the identity is asserted on the OBJECT, not trusted from
+  # the query: the run's own `path` must be the workflow file we counted.
+  # Without this, a five-step run of a different workflow answers a question
+  # nobody asked, and the verdict line still says "every authored step".
+  RUN_PATH="$(printf '%s' "$RUN_JSON" | grep -oE '"path": "[^"]*"' | head -1 \
+              | sed 's/.*: "//; s/"//')"
+  if [ -z "$RUN_PATH" ]; then
+    echo "SKIP: run $RUN_ID returned no workflow path -- cannot establish WHICH"
+    echo "      workflow it is. A verdict that cannot name its subject is not a"
+    echo "      verdict. Exit 3, never a pass."
+    exit 3
+  fi
+  if [ "$RUN_PATH" != ".github/workflows/$CI_WORKFLOW" ]; then
+    echo "SKIP: run $RUN_ID is '$RUN_PATH', not '.github/workflows/$CI_WORKFLOW'."
+    echo "      THIS IS THE v8.0.1 SHAPE: the newest run for a commit is whichever"
+    echo "      workflow finished last, and judging it certifies the wrong thing."
+    echo "      Re-run against a $CI_WORKFLOW run. Exit 3, never a pass."
+    exit 3
+  fi
 else
   RUN_CONCL="${CI_RUN_CONCLUSION:-success}"
   RUN_STATUS="${CI_RUN_STATUS:-completed}"
 fi
 
-echo "== CI HONESTY -- run ${RUN_ID:-<offline>} on $REPO =="
+echo "== CI HONESTY -- run ${RUN_ID:-<offline>} of ${CI_WORKFLOW} on $REPO =="
 echo
 
 # The API response must actually contain jobs. An empty or error payload that
@@ -219,9 +274,23 @@ case "${TOTAL_STEPS}" in
     echo "SKIP: step count unreadable ('${TOTAL_STEPS}') -- refusing to judge. Exit 3, never a pass."
     exit 3 ;;
 esac
-if [ "${TOTAL_STEPS:-0}" -lt 5 ]; then
-  echo "SKIP: the jobs payload has $TOTAL_STEPS outcome fields -- too few to judge."
-  echo "      Refusing to report a verdict on an empty response. Exit 3, never a pass."
+# THE FLOOR IS DERIVED FROM THE TREE, NOT WRITTEN DOWN -- R3, 8.0.1 post-mortem.
+#
+# This read `-lt 5`, and 5 is exactly what verify.yml authors. So the run that
+# certified v8.0.1 -- five steps, the wrong workflow entirely -- cleared the
+# guard by sitting precisely on its boundary, and this file then printed
+# "every authored step ran on every platform" about 5 of the 92 steps this
+# repository authors. A floor that a whole wrong workflow can satisfy is not a
+# floor. The header of this very file expects "(158 steps read)".
+#
+# CI_AUTHORED is counted from the selected workflow FILE, so it moves when the
+# workflow moves and can never go stale. A run must show at least as many step
+# outcomes as the workflow authors: the matrix fans out, so real runs exceed it
+# comfortably, and only a run of a DIFFERENT (smaller) workflow falls short.
+if [ "${TOTAL_STEPS:-0}" -lt "$CI_AUTHORED" ]; then
+  echo "SKIP: the jobs payload has $TOTAL_STEPS step outcome(s), but $CI_WORKFLOW"
+  echo "      authors $CI_AUTHORED step(s). A run that cannot cover the authored"
+  echo "      steps cannot certify them -- this is the v8.0.1 shape. Exit 3, never a pass."
   head -c 200 "$JOBS_JSON" 2>/dev/null
   exit 3
 fi

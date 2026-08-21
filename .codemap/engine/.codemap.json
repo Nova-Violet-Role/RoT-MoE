@@ -2,12 +2,12 @@
   "directory": "engine",
   "files": {
     "rot-lean.md": {
-      "hash": "2b7837f84d83",
-      "indexed_at": "2026-08-12T08:44:37.616371+00:00",
+      "hash": "f6dac7e28fb9",
+      "indexed_at": "2026-08-21T02:15:41.456604+00:00",
       "language": "markdown",
-      "lines": 437,
-      "mtime_ns": 1785791664139819200,
-      "size": 29464,
+      "lines": 438,
+      "mtime_ns": 1787224588681470100,
+      "size": 29610,
       "symbols": [
         {
           "docstring": "**Deliberate inversion, stated so it is never mistaken for drift.** `Nova_Codex_OMEGA.md` BLOCK 10 is titled *\"ROT OUTPUT SCHEMA \u2014 ALWAYS VISIBLE\"*, a",
@@ -22,7 +22,7 @@
           "docstring": "Nova leads; the mind is the **convergence** of nine lenses, not any one of them. They do not take turns \u2014 they co-reason simultaneously on every worth",
           "lines": [
             78,
-            102
+            103
           ],
           "name": "\u00a71 \u2014 IDENTITY & VOICE",
           "type": "section"
@@ -30,8 +30,8 @@
         {
           "docstring": "> Each lens is a permanent cognitive lens, always active. **Interceptors fire WITHOUT command \u2014 reflex, not choice.**",
           "lines": [
-            103,
-            139
+            104,
+            140
           ],
           "name": "\u00a72 \u2014 THE NINE LENSES (roster \u00b7 \u03bb default \u00b7 \u03bc \u00b7 H-range \u00b7 autonomous interceptors)",
           "type": "section"
@@ -39,24 +39,24 @@
         {
           "docstring": "**TIER 1 \u2014 keyword scan** (case-insensitive stems). Default with no trigger: **CONVERGENT**.",
           "lines": [
-            140,
-            198
+            141,
+            199
           ],
           "name": "\u00a73 \u2014 THE MoE ROUTER (3 tiers + NSIL + Symbiogenesis)",
           "type": "section"
         },
         {
           "lines": [
-            199,
-            261
+            200,
+            262
           ],
           "name": "\u00a74 \u2014 DYNAMIC WEIGHT PROFILES (verbatim from OMEGA BLOCK 4; \u03bb = divergence weight, \u03bc = quality multiplier)",
           "type": "section"
         },
         {
           "lines": [
-            262,
-            321
+            263,
+            322
           ],
           "name": "\u00a75 \u2014 THE PRISM ENGINE \u00b7 R/s+ (formula verbatim \u2014 MANDATORY every turn, INTERNAL)",
           "type": "section"
@@ -64,8 +64,8 @@
         {
           "docstring": "1. **DIVERGENCE** \u2014 \u22654 distinct perspectives (\u22656 on an inspiration burst), one per dominant lens. **Productive tension is mandatory**; nine voices agr",
           "lines": [
-            322,
-            340
+            323,
+            341
           ],
           "name": "\u00a76 \u2014 THE PIPELINE (4 phases, inline gates \u2014 all internal)",
           "type": "section"
@@ -73,8 +73,8 @@
         {
           "docstring": "- \u269c\ufe0f Nova(order) \u2194 \ud83e\ude78 Carnage(chaos) - \ud83d\udd77\ufe0f Venom(act) \u2194 \ud83d\udd2e Chroma(map the consequences) - \u26aa Anti-Venom(evidence) \u2194 \ud83c\udfb7 Violet(felt truth) - \u2b1c Soleil(compre",
           "lines": [
-            341,
-            353
+            342,
+            354
           ],
           "name": "\u00a77 \u2014 PRODUCTIVE TENSIONS (illuminate, never resolve)",
           "type": "section"
@@ -82,8 +82,8 @@
         {
           "docstring": "The lenses do not soften the prover's discipline; they feed it. Non-negotiable on this head:",
           "lines": [
-            354,
-            418
+            355,
+            419
           ],
           "name": "\u00a78 \u2014 THE LEAN BINDING (where this engine meets the compiler)",
           "type": "section"
@@ -91,8 +91,8 @@
         {
           "docstring": "**Allowed:** the answer. The proof. The measured command and its real output. The exact exit code. A ranked list of findings. The next two moves. `[UN",
           "lines": [
-            419,
-            438
+            420,
+            439
           ],
           "name": "\u00a79 \u2014 OUTPUT CONTRACT (what actually reaches the chat)",
           "type": "section"
@@ -100,6 +100,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-12T08:44:37.864714+00:00",
+  "generated_at": "2026-08-21T02:15:41.532462+00:00",
   "version": "1.0"
 }

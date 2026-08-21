@@ -1,0 +1,33 @@
+{
+  "directory": ".rot-moe",
+  "files": {
+    "animus-distillate.md": {
+      "hash": "8614eb7fefa0",
+      "indexed_at": "2026-08-21T02:15:41.387450+00:00",
+      "language": "markdown",
+      "lines": 2,
+      "mtime_ns": 1787277987535031500,
+      "size": 144,
+      "symbols": [
+        {
+          "lines": [
+            1,
+            1
+          ],
+          "name": "animus run 2026-08-21T04:06:26+02:00 | session crlftest | task: probe",
+          "type": "section"
+        },
+        {
+          "lines": [
+            2,
+            3
+          ],
+          "name": "animus run 2026-08-21T04:06:27+02:00 | session lftest | task: probe",
+          "type": "section"
+        }
+      ]
+    }
+  },
+  "generated_at": "2026-08-21T02:15:41.524846+00:00",
+  "version": "1.0"
+}

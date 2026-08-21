@@ -52,6 +52,9 @@ inf() { printf '  ----  %s\n' "$1"; }
 echo "== CI audit freshness: is the run you are reading the tree you fixed? =="
 
 SLUG="Nova-Violet-Role/RoT-MoE"
+# R3: name the workflow being audited; never "whichever finished last".
+CI_WORKFLOW="${CI_WORKFLOW:-ci.yml}"
+[ -f ".github/workflows/$CI_WORKFLOW" ] || { echo "REFUSE: .github/workflows/$CI_WORKFLOW is not in the tree"; exit 2; }
 
 TOKEN="$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill 2>/dev/null \
          | grep '^password=' | cut -d= -f2)"
@@ -103,7 +106,7 @@ if [ -z "$RUN_ID" ]; then
   _try=0
   while [ "$_try" -lt 3 ]; do
     _body=$(curl -s --max-time 20 -H "Authorization: Bearer $TOKEN" \
-      "https://api.github.com/repos/$SLUG/actions/runs?per_page=1")
+      "https://api.github.com/repos/$SLUG/actions/workflows/$CI_WORKFLOW/runs?per_page=1")
     if [ -n "$_body" ]; then
       RUN_ID=$(printf '%s' "$_body" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{
           try{const r=JSON.parse(d).workflow_runs;process.stdout.write(r&&r[0]?String(r[0].id):"")}
@@ -133,6 +136,18 @@ RUN_SHA=$(printf '%s' "$META" | node -e 'let d="";process.stdin.on("data",c=>d+=
 RUN_CONC=$(printf '%s' "$META" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{
     try{const j=JSON.parse(d);process.stdout.write(String(j.conclusion||j.status||"?"))}catch(e){process.stdout.write("?")}})')
 
+RUN_PATH=$(printf '%s' "$META" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{
+    try{process.stdout.write(String(JSON.parse(d).path||""))}catch(e){process.stdout.write("")}})')
+# R3: the run must BE the workflow we claim to audit. Measured 2026-08-21: for
+# commit 1f57594 the newest run of ANY workflow was
+# 'dynamic/dependabot/dependabot-updates' -- a Dependabot run, not an authored
+# workflow at all -- and this gate blessed it as "the verdict is about the code
+# you have". The real ci.yml run for the same commit sat one position below it.
+if [ "$RUN_PATH" != ".github/workflows/$CI_WORKFLOW" ]; then
+  bad "run $RUN_ID is '$RUN_PATH', not '.github/workflows/$CI_WORKFLOW' -- freshness was measured on the wrong object"
+  echo "== ci-audit-freshness: 0 passed, 1 failed"
+  exit 1
+fi
 if [ -z "$RUN_SHA" ]; then
   bad "run $RUN_ID returned no head_sha -- cannot establish what it tested"
   echo "== ci-audit-freshness: 0 passed, 1 failed"

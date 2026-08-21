@@ -104,6 +104,7 @@
     ".claude\\commands",
     ".github",
     ".github\\workflows",
+    ".rot-moe",
     "Lean Theorem",
     "Lean Theorem\\Skyrim\\mutate",
     "agents",
@@ -116,12 +117,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-14T14:43:26.517569+00:00",
-  "root": "C:\\GIT External Repo\\RoT MoE",
+  "generated_at": "2026-08-21T02:15:41.535150+00:00",
+  "root": "C:\\Users\\Saimono\\.claude\\plugins\\marketplaces\\rot-moe",
   "stats": {
-    "last_full_index": "2026-08-14T14:43:26.511746+00:00",
-    "total_files": 221,
-    "total_symbols": 1273
+    "last_full_index": "2026-08-21T02:15:41.518347+00:00",
+    "total_files": 255,
+    "total_symbols": 1645
   },
   "version": "1.0"
 }
