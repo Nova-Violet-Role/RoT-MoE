@@ -98,6 +98,32 @@ const WIN_SEP = String.fromCharCode(92);   // a backslash, spelled without one
 const CONFIG_DIR = (process.env.CLAUDE_CONFIG_DIR
   || require("path").join(require("os").homedir(), ".claude")).split(WIN_SEP).join("/");
 const DEFAULT_LOG = CONFIG_DIR + "/rot-moe/rot-route-debug.jsonl";
+
+// PATH EQUALITY IS NOT STRING EQUALITY -- Y1, and O2 was its symptom.
+//
+// The retirement below compared with `===`. That is right only when both sides
+// were spelled by the same writer. They are not: this file receives
+// CLAUDE_CONFIG_DIR from whatever launched node, and on Windows the same
+// directory has several true spellings --
+//
+//   C:/Users/x/.claude   c:/users/x/.claude   C:/Users/x/.claude/
+//
+// -- all of which name one directory on a case-insensitive filesystem. A pin
+// written under one spelling then survived `arm` under another, and the user
+// was told "user-chosen value kept" about a value THIS INSTALLER wrote.
+// checker/voice-contract.sh D15 spent a release red on exactly that.
+//
+// Case folding is applied ONLY on win32. Doing it on Linux would be a real bug
+// in the opposite direction: there, two spellings that differ in case ARE two
+// different files, and treating them as one would delete a pin the user chose.
+function samePath (a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const norm = function (p) {
+    p = p.split(WIN_SEP).join("/").replace(/\/+/g, "/").replace(/\/+$/, "");
+    return process.platform === "win32" ? p.toLowerCase() : p;
+  };
+  return norm(a) === norm(b);
+}
 // --- read, preserving every encoding decision the file already made ---------
 const raw = fs.readFileSync(file, "utf8");
 const hadBOM = raw.charCodeAt(0) === 0xFEFF;
@@ -176,7 +202,7 @@ if (mode === "arm") {
   // default takes over. A value the user chose themselves is theirs -- kept,
   // exactly as before. The log FILES are never touched.
   if (s.env && typeof s.env === "object" && !Array.isArray(s.env)) {
-    if (s.env.ROTMOE_DEBUG_LOG === DEFAULT_LOG) {
+    if (samePath(s.env.ROTMOE_DEBUG_LOG, DEFAULT_LOG)) {
       delete s.env.ROTMOE_DEBUG_LOG;
       if (Object.keys(s.env).length === 0) delete s.env;
       wroteEnv = true;
@@ -205,7 +231,7 @@ if (mode === "arm") {
   // a harmless variable behind. The log FILES are never touched -- they are the
   // user's data, and an uninstaller that deletes evidence is not a good citizen.
   if (s.env && typeof s.env === "object" && !Array.isArray(s.env)) {
-    if (s.env.ROTMOE_DEBUG_LOG === DEFAULT_LOG) {
+    if (samePath(s.env.ROTMOE_DEBUG_LOG, DEFAULT_LOG)) {
       delete s.env.ROTMOE_DEBUG_LOG;
       if (Object.keys(s.env).length === 0) delete s.env;
       console.log("  ROTMOE_DEBUG_LOG: our default removed (log files left in place)");

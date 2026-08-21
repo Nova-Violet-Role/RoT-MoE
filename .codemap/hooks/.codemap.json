@@ -449,15 +449,26 @@
       "symbols": []
     },
     "settings-merge.js": {
-      "hash": "04c16216b053",
-      "indexed_at": "2026-08-21T03:05:07.318523+00:00",
+      "hash": "db13e1a713f4",
+      "indexed_at": "2026-08-21T03:47:18.892947+00:00",
       "language": "javascript",
-      "lines": 326,
-      "mtime_ns": 1787280761213116800,
-      "size": 17221,
-      "symbols": []
+      "lines": 352,
+      "mtime_ns": 1787284013656214700,
+      "size": 18492,
+      "symbols": [
+        {
+          "docstring": "different files, and treating them as one would delete a pin the user chose.",
+          "lines": [
+            119,
+            126
+          ],
+          "name": "samePath",
+          "signature": "(a, b)",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-21T03:38:14.764406+00:00",
+  "generated_at": "2026-08-21T03:47:18.893015+00:00",
   "version": "1.0"
 }
