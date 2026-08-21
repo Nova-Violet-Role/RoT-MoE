@@ -104,8 +104,11 @@ int() {
 # instead. Same for padding: $(printf '%-12s') forks, rp/lp use parameter expansion.
 _SPX='                                                                '
 iv() { _I="${1%%.*}"; case "$_I" in ''|*[!0-9]*) _I=0 ;; esac; }
-rp() { _P="$1$_SPX"; _P="${_P:0:$2}"; }              # like printf %-Ns
-lp() { _P="$_SPX$1"; _P="${_P: -$2}"; }              # like printf %Ns
+# Pad only, NEVER truncate. These strings carry ANSI colour codes, which count toward
+# ${x:0:n} and ${x: -n} but are invisible on screen — truncating turned "STALL" into "LL".
+# printf's %Ns only ever pads, so these must too.
+rp() { _P="$1"; while [ "${#_P}" -lt "$2" ]; do _P="$_P "; done; }   # like printf %-Ns
+lp() { _P="$1"; while [ "${#_P}" -lt "$2" ]; do _P=" $_P"; done; }   # like printf %Ns
 z2() { _Z="$1"; [ "$_Z" -lt 10 ] 2>/dev/null && _Z="0$_Z"; }   # like printf %02d
 fmt_num() {
   local n; iv "${1:-0}"; n=$_I
@@ -164,14 +167,17 @@ fi
 caveman=""
 flag="$CLAUDE_DIR/.caveman-active"
 if [ -f "$flag" ] && [ ! -L "$flag" ]; then
-  sz=$(wc -c <"$flag" 2>/dev/null || echo 999)
-  iv "$sz"; if [ "$_I" -le 64 ]; then
-    mode=$(head -c 64 "$flag" 2>/dev/null | head -n 1 | tr -d '\r\n' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
+  # Six forks (wc, head, head, tr, tr, tr) for a badge, measured at 83ms. `read` takes the
+  # first line as a builtin, ${x,,} lowercases, and ${x//[^a-z0-9-]/} strips — all zero forks.
+  # The old size guard existed to avoid slurping a huge file; reading one line already does.
+  mode=""; read -r mode < "$flag" 2>/dev/null
+  mode="${mode%$'\r'}"; mode="${mode,,}"; mode="${mode//[^a-z0-9-]/}"
+  if [ "${#mode}" -le 64 ]; then
     case "$mode" in
       full) caveman="${ORANGE}[CAVEMAN]${RESET}" ;;
       off)  caveman="" ;;
       lite|ultra|wenyan|wenyan-lite|wenyan-full|wenyan-ultra|commit|review|compress)
-            caveman="${ORANGE}[CAVEMAN:$(printf '%s' "$mode" | tr '[:lower:]' '[:upper:]')]${RESET}" ;;
+            caveman="${ORANGE}[CAVEMAN:${mode^^}]${RESET}" ;;
     esac
   fi
 fi
@@ -213,6 +219,20 @@ if [ -d "$CP/active" ] && compgen -G "$CP/active/*.json" >/dev/null 2>&1; then
         (($B[$s].median // 0) | tostring),
         (($B[$s].n // 0) | tostring)
     ' "$CP/active"/*.json 2>/dev/null | tr -d '\r')
+fi
+# Stall detection. The bar cannot know whether a process is hung — nothing exposes that.
+# What IS measurable is silence: if the command's own output log has not grown, it has
+# produced nothing for that long. One stat call covers every log, so this costs one fork
+# regardless of how many rows are drawn. Only ever says STALLED, never "stuck": a silent
+# compile is silent but healthy, and the label must not claim more than it observed.
+declare -A A_MT
+iv "${CMDPULSE_STALL_S:-300}"; STALL_S=$_I
+[ "$STALL_S" -lt 5 ] && STALL_S=300
+if [ -d "$CP/stream" ] && compgen -G "$CP/stream/*.log" >/dev/null 2>&1; then
+  while read -r _mt _lp; do
+    [ -n "${_lp:-}" ] || continue
+    _lk="${_lp##*/}"; _lk="${_lk%.log}"; A_MT["$_lk"]="$_mt"
+  done < <(stat -c '%Y %n' "$CP/stream"/*.log 2>/dev/null | tr -d '\r')
 fi
 if [ -d "$CP/active" ]; then
   for af in $(ls -t "$CP/active"/*.json 2>/dev/null); do
@@ -359,7 +379,22 @@ if [ -d "$CP/active" ]; then
       elif [ "$el_s" -ge 60 ];   then el_s="$(( el_s / 60 ))m$(printf '%02d' $(( el_s % 60 )))s"
       else                            el_s="${el_s}s"
       fi
-      cmd_lines="${cmd_lines}${GOLD}${sp}${RESET} ${BOLD}${WHITE}$(printf '%-12s' "${a_tool:0:12}")${RESET} ${cbar}${RESET} $(printf '%6s' "$clbl") ${DIM}$(printf '%7s' "$el_s")${RESET} ${eta_s:-} ${WHITE}$(printf '%s' "${a_sub:0:60}")${RESET}"$'\n'
+      # Measured silence outranks the estimate: if the command has printed nothing for
+      # STALL_S seconds, that observation is worth more than a percentage derived from
+      # history. Says STALLED (no output), never "stuck" — a silent compile is healthy.
+      _mt="${A_MT[$_ak]:-}"
+      if [ -n "$_mt" ]; then
+        quiet=$(( NOW_S - _mt ))
+        if [ "$quiet" -ge "$STALL_S" ]; then
+          if   [ "$quiet" -ge 3600 ]; then q_s="$(( quiet / 3600 ))h"
+          elif [ "$quiet" -ge 60 ];   then q_s="$(( quiet / 60 ))m"
+          else                             q_s="${quiet}s"
+          fi
+          clbl="${RED}STALL${RESET}"; eta_s="${RED}quiet ${q_s}${RESET}"
+        fi
+      fi
+      rp "${a_tool:0:12}" 12; f_tool="$_P"; lp "$clbl" 6; f_lbl="$_P"; lp "$el_s" 7; f_el="$_P"
+      cmd_lines="${cmd_lines}${GOLD}${sp}${RESET} ${BOLD}${WHITE}${f_tool}${RESET} ${cbar}${RESET} ${f_lbl} ${DIM}${f_el}${RESET} ${eta_s:-} ${WHITE}${a_sub:0:60}${RESET}"$'\n'
       # If CMDPULSE_STREAM wrapped this command, its own output is being tee'd to a log.
       # Show the newest non-empty line: that is the script's real progress, live.
       # Already read above in the single mapfile pass — no second tail, no extra forks.

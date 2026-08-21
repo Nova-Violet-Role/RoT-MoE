@@ -3,10 +3,10 @@
   "files": {
     "README.md": {
       "hash": "d9bad5b638cc",
-      "indexed_at": "2026-08-21T09:00:39.211898+00:00",
+      "indexed_at": "2026-08-21T09:31:23.671176+00:00",
       "language": "markdown",
       "lines": 229,
-      "mtime_ns": 1787302837545135700,
+      "mtime_ns": 1787304681567942700,
       "size": 9190,
       "symbols": [
         {
@@ -231,12 +231,12 @@
       ]
     },
     "USAGE.md": {
-      "hash": "8da718b60369",
-      "indexed_at": "2026-08-21T07:50:35.541673+00:00",
+      "hash": "43a44109e746",
+      "indexed_at": "2026-08-21T09:31:22.785203+00:00",
       "language": "markdown",
-      "lines": 299,
-      "mtime_ns": 1787298618742605300,
-      "size": 11875,
+      "lines": 313,
+      "mtime_ns": 1787304681695839400,
+      "size": 12531,
       "symbols": [
         {
           "children": [
@@ -354,25 +354,34 @@
           ],
           "name": "10. Performance \u2014 the thing that breaks it",
           "type": "section"
+        },
+        {
+          "docstring": "`CMDPULSE_STALL_S` (default 300) \u2014 when a command's own output log has not grown for that many seconds, its bar shows `STALL` and `quiet 7m` in red in",
+          "lines": [
+            301,
+            314
+          ],
+          "name": "Stall detection",
+          "type": "section"
         }
       ]
     },
     "install.sh": {
       "hash": "ffdb74dbbe12",
-      "indexed_at": "2026-08-21T09:00:39.211627+00:00",
+      "indexed_at": "2026-08-21T09:31:23.670901+00:00",
       "language": "shell",
       "lines": 51,
-      "mtime_ns": 1787302837547690800,
+      "mtime_ns": 1787304681569713600,
       "size": 2804,
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "e50a8f0fbe0f",
-      "indexed_at": "2026-08-21T09:20:39.697695+00:00",
+      "hash": "6484d74c9b5e",
+      "indexed_at": "2026-08-21T09:31:22.904193+00:00",
       "language": "shell",
-      "lines": 563,
-      "mtime_ns": 1787304039089714800,
-      "size": 27308,
+      "lines": 598,
+      "mtime_ns": 1787304681682561900,
+      "size": 29291,
       "symbols": [
         {
           "lines": [
@@ -392,16 +401,16 @@
         },
         {
           "lines": [
-            110,
-            116
+            113,
+            119
           ],
           "name": "fmt_num",
           "type": "function"
         },
         {
           "lines": [
-            481,
-            486
+            516,
+            521
           ],
           "name": "rl_color",
           "type": "function"
@@ -409,8 +418,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            522,
-            539
+            557,
+            574
           ],
           "name": "build",
           "type": "function"
@@ -418,8 +427,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            542,
-            547
+            577,
+            582
           ],
           "name": "vis_len",
           "type": "function"
@@ -427,6 +436,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T09:20:39.697768+00:00",
+  "generated_at": "2026-08-21T09:31:23.791647+00:00",
   "version": "1.0"
 }

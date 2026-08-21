@@ -789,10 +789,10 @@
     },
     "ab-compliance.js": {
       "hash": "c93ac79e5243",
-      "indexed_at": "2026-08-21T09:00:39.193794+00:00",
+      "indexed_at": "2026-08-21T09:31:23.653035+00:00",
       "language": "javascript",
       "lines": 101,
-      "mtime_ns": 1787302837544134400,
+      "mtime_ns": 1787304681565907400,
       "size": 4065,
       "symbols": [
         {
@@ -1698,10 +1698,10 @@
     },
     "main-score.js": {
       "hash": "b60b38ef8196",
-      "indexed_at": "2026-08-21T09:00:39.201384+00:00",
+      "indexed_at": "2026-08-21T09:31:23.660647+00:00",
       "language": "javascript",
       "lines": 131,
-      "mtime_ns": 1787302837544134400,
+      "mtime_ns": 1787304681565907400,
       "size": 6135,
       "symbols": [
         {
@@ -1868,10 +1868,10 @@
     },
     "pilot-rescore.js": {
       "hash": "db386b9df1b6",
-      "indexed_at": "2026-08-21T09:00:39.204472+00:00",
+      "indexed_at": "2026-08-21T09:31:23.663654+00:00",
       "language": "javascript",
       "lines": 110,
-      "mtime_ns": 1787302837544134400,
+      "mtime_ns": 1787304681565907400,
       "size": 4747,
       "symbols": [
         {
@@ -1915,10 +1915,10 @@
     },
     "pilot-score.js": {
       "hash": "d6872242d77d",
-      "indexed_at": "2026-08-21T09:00:39.205096+00:00",
+      "indexed_at": "2026-08-21T09:31:23.664272+00:00",
       "language": "javascript",
       "lines": 148,
-      "mtime_ns": 1787302837544134400,
+      "mtime_ns": 1787304681566939500,
       "size": 6121,
       "symbols": [
         {
@@ -2340,10 +2340,10 @@
     },
     "trap-score-controls.js": {
       "hash": "38435e4076e8",
-      "indexed_at": "2026-08-21T09:00:39.208276+00:00",
+      "indexed_at": "2026-08-21T09:31:23.667455+00:00",
       "language": "javascript",
       "lines": 100,
-      "mtime_ns": 1787302837545135700,
+      "mtime_ns": 1787304681566939500,
       "size": 5419,
       "symbols": [
         {
@@ -2539,10 +2539,10 @@
     },
     "work-trace.js": {
       "hash": "554cb385b008",
-      "indexed_at": "2026-08-21T09:00:39.211129+00:00",
+      "indexed_at": "2026-08-21T09:31:23.670367+00:00",
       "language": "javascript",
       "lines": 342,
-      "mtime_ns": 1787302837545135700,
+      "mtime_ns": 1787304681566939500,
       "size": 16266,
       "symbols": [
         {
@@ -2631,6 +2631,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T09:00:39.331602+00:00",
+  "generated_at": "2026-08-21T09:31:23.789739+00:00",
   "version": "1.0"
 }
