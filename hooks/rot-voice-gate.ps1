@@ -16,6 +16,27 @@
 
 $ErrorActionPreference = 'SilentlyContinue'
 
+# [Console]::OutputEncoding is the OEM CONSOLE codepage (ibm437 on this host)
+# even though the ANSI codepage is utf-8 and $OutputEncoding is utf-8. Every
+# byte this arm writes goes through that encoder, so without this line the
+# refusal is transliterated on the way out. The sibling arms rot-router.ps1
+# and prover-remind.ps1 have carried this guard for releases; THIS arm did
+# not, and the omission was invisible because the .sh arm -- the reference --
+# is unaffected.
+#
+# MEASURED 2026-08-21, cold-unpacked 9.0.1 archive, both arms fed one payload:
+# the two refusals came out the same LENGTH (1438 chars) and differed at 23
+# positions. Every sigil was destroyed -- U+269C+U+FE0F -> '??', U+1F3B7 ->
+# '??', U+26AA/U+1F52E/U+2B1C/U+1F70F -> '?' -- and U+00D7 was best-fit
+# transliterated to ASCII 'x'. Equal length is why a size or line check would
+# never have caught it.
+#
+# That is not cosmetic. The seal field exists because 8.0.1 measured blind
+# models speaking sigil-less stanzas, having never been shown the seals, and
+# the reason this gate emits still orders each lens to open "with its seal".
+# On Windows the gate was demanding a seal it had just replaced with '?'.
+try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch { }
+
 if (-not [Console]::IsInputRedirected) {
   [Console]::Error.WriteLine('rot-voice-gate.ps1: hook mode expects a JSON payload on stdin.')
   exit 2
