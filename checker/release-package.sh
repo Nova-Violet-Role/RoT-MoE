@@ -263,7 +263,7 @@ for vp in $VARIANTS; do
       # tar is the portable way to copy a tree WITH exclusions applied as it
       # goes; cp has no --exclude on every platform this must run on.
       tar -cf - --exclude='.lake' --exclude='*.olean' --exclude='.git' \
-                --exclude='*.mutbak' "$p" 2>/dev/null | ( cd "$STAGE" && tar -xf - ) 2>/dev/null
+                --exclude='*.mutbak' --exclude='*.bak' --exclude='.rot-moe' "$p" 2>/dev/null | ( cd "$STAGE" && tar -xf - ) 2>/dev/null
     else
       cp "$p" "$d/" 2>/dev/null
     fi
@@ -558,6 +558,30 @@ if [ "$TREEVER" = "0.0.0-not-a-real-version" ]; then
 else
   ok "CONTROL: a wrong version string IS distinguishable from $TREEVER"
 fi
+
+# ASSERTION 7 -- nothing ships that git does not track.
+# MEASURED 2026-08-21: the staging tar above copies from the WORKING TREE, not
+# from a commit, so seven stray *.bak backups and a session route log carrying a
+# live UUID were sitting inside the Lean archives while every assertion here
+# reported green. Excluding *.bak and .rot-moe removes today's leak; THIS
+# assertion is what makes the class impossible, because the next stray file
+# will not be called .bak.
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  echo "REFUSE: not a git work tree -- cannot prove the archives ship only tracked files"; exit 2
+fi
+git ls-files | sort > "$OUT/.tracked"
+for vp in $VARIANTS; do
+  _zn=${vp#*:}
+  unzip -Z1 "$OUT/$_zn" | grep -v "/$" | sort > "$OUT/.inzip"
+  _stray=$(comm -23 "$OUT/.inzip" "$OUT/.tracked" | wc -l)
+  if [ "$_stray" -eq 0 ]; then
+    ok "$_zn ships only files git tracks"
+  else
+    bad "$_zn ships $_stray file(s) git does not track"
+    comm -23 "$OUT/.inzip" "$OUT/.tracked" | sed "s|^|         |"
+  fi
+done
+rm -f "$OUT/.tracked" "$OUT/.inzip"
 
 printf '\n== release package: %d passed, %d failed\n' "$PASS" "$FAIL"
 if [ "$FAIL" -ne 0 ]; then
