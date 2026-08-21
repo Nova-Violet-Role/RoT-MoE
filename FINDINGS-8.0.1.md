@@ -676,3 +676,36 @@ not been tuned against.**
 | D7 cost bound | `bench-router` measures **1003–1058 ms** against the 500 ms bound. Decomposition shows wall 353.3 ms + 247.8 ms pwsh startup, so the headline figure and the decomposition disagree; the machine was also loaded by the 77-suite sweep. Needs an idle re-measure before it is called either a regression or a false alarm. |
 | `v9.0.0` tag | not cut |
 | scratchpad session | a separate Claude Code session has **not** been run |
+
+## 🟩 Scratchpad proof — a SEPARATE Claude Code 2.1.238 session
+
+Two independent sessions launched with `claude -p` from fresh temp directories
+outside the repository. Not this session, not this transcript.
+
+```
+claude --version                 2.1.238 (Claude Code)
+session 1  "reply SCRATCHPAD-OK"        -> exit 0, 50 records written
+session 2  read a file + run a command  -> exit 0, tool hooks fired
+```
+
+The proof is not the reply — it is that **the plugin wrote its own sink inside a
+directory it had never seen**, `.rot-moe/rot-route-<uuid>.jsonl`, under a session
+id belonging to neither this session nor the other:
+
+```json
+{"kind":"route","event":"SessionEnd","session":"fc71f47e-…","src":"hook",
+ "lane":"CONVERGENT","lens":"opus[1m]","Rs":"0.17","nsil":"CONFIRM",
+ "breadth":0,"depth":"TRIVIAL","band":"BELOW",
+ "timelines":{"spawned":12,"shown":5},"arm":"ps1","ms":144}
+```
+
+**Events observed live across the two sessions — 10 distinct:**
+
+| SessionStart · InstructionsLoaded ×19 · ConfigChange · UserPromptSubmit · PreToolUse · PostToolUse · PostToolBatch · MessageDisplay · Stop · SessionEnd |
+|---|
+
+`hooks.json` registers **31 events / 63 entries**. The 21 not seen are the ones a
+non-interactive `-p` run never reaches (notification, compaction, subagent,
+permission-decision families) — **not observed, therefore not claimed**. Both
+record kinds appeared (`route` and `gauge`), every record came through the
+**`ps1` arm**, and `ms` was recorded per event (144 ms on SessionEnd).

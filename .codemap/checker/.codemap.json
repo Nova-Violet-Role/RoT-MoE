@@ -173,19 +173,19 @@
     },
     "ci-audit-freshness.sh": {
       "hash": "51caff829091",
-      "indexed_at": "2026-08-21T08:08:17.205113+00:00",
+      "indexed_at": "2026-08-21T09:15:00.977619+00:00",
       "language": "shell",
       "lines": 222,
-      "mtime_ns": 1787299039366863400,
+      "mtime_ns": 1787302885181790000,
       "size": 10798,
       "symbols": []
     },
     "ci-dryrun.sh": {
       "hash": "357a09e72bd5",
-      "indexed_at": "2026-08-21T08:08:17.205845+00:00",
+      "indexed_at": "2026-08-21T09:15:00.978367+00:00",
       "language": "shell",
       "lines": 524,
-      "mtime_ns": 1787299039366863400,
+      "mtime_ns": 1787302885181790000,
       "size": 28212,
       "symbols": [
         {
@@ -226,10 +226,10 @@
     },
     "ci-honesty.sh": {
       "hash": "efa2a5bbc73f",
-      "indexed_at": "2026-08-21T08:08:17.206419+00:00",
+      "indexed_at": "2026-08-21T09:15:00.978981+00:00",
       "language": "shell",
       "lines": 443,
-      "mtime_ns": 1787299039366863400,
+      "mtime_ns": 1787302885182793400,
       "size": 22296,
       "symbols": [
         {
@@ -381,10 +381,10 @@
     },
     "cross-diff.sh": {
       "hash": "4d9afad44954",
-      "indexed_at": "2026-08-21T08:08:17.209864+00:00",
+      "indexed_at": "2026-08-21T09:15:00.982435+00:00",
       "language": "shell",
       "lines": 703,
-      "mtime_ns": 1787299039367869200,
+      "mtime_ns": 1787302885183297800,
       "size": 37537,
       "symbols": [
         {
@@ -699,10 +699,10 @@
     },
     "hook-contract.sh": {
       "hash": "eaecb146d013",
-      "indexed_at": "2026-08-21T08:08:17.215412+00:00",
+      "indexed_at": "2026-08-21T09:15:00.988025+00:00",
       "language": "shell",
       "lines": 259,
-      "mtime_ns": 1787299039367869200,
+      "mtime_ns": 1787302885183297800,
       "size": 14330,
       "symbols": [
         {
@@ -1139,10 +1139,10 @@
     },
     "no-local-paths.sh": {
       "hash": "f67508f24419",
-      "indexed_at": "2026-08-21T08:38:33.551318+00:00",
+      "indexed_at": "2026-08-21T09:15:00.996953+00:00",
       "language": "shell",
       "lines": 254,
-      "mtime_ns": 1787301512246477700,
+      "mtime_ns": 1787302885183297800,
       "size": 12599,
       "symbols": []
     },
@@ -1402,10 +1402,10 @@
     },
     "release-package.sh": {
       "hash": "3459d5c3c323",
-      "indexed_at": "2026-08-21T08:08:17.230830+00:00",
+      "indexed_at": "2026-08-21T09:15:01.003056+00:00",
       "language": "shell",
       "lines": 613,
-      "mtime_ns": 1787299039367869200,
+      "mtime_ns": 1787302885184303500,
       "size": 30293,
       "symbols": [
         {
@@ -1675,10 +1675,10 @@
     },
     "spdx-sweep.sh": {
       "hash": "e3df6a253a65",
-      "indexed_at": "2026-08-21T07:58:03.479131+00:00",
+      "indexed_at": "2026-08-21T09:15:01.006982+00:00",
       "language": "shell",
       "lines": 139,
-      "mtime_ns": 1787299048913827400,
+      "mtime_ns": 1787302885184303500,
       "size": 6567,
       "symbols": [
         {
@@ -1872,10 +1872,10 @@
     },
     "voice-contract.sh": {
       "hash": "5911c5ea1f62",
-      "indexed_at": "2026-08-21T08:08:17.238603+00:00",
+      "indexed_at": "2026-08-21T09:15:01.011534+00:00",
       "language": "shell",
       "lines": 642,
-      "mtime_ns": 1787299039368874700,
+      "mtime_ns": 1787302885184303500,
       "size": 38977,
       "symbols": [
         {
@@ -2083,6 +2083,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T08:38:33.551403+00:00",
+  "generated_at": "2026-08-21T09:15:01.096580+00:00",
   "version": "1.0"
 }

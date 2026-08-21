@@ -3,10 +3,10 @@
   "files": {
     "README.md": {
       "hash": "91f5d0ec082b",
-      "indexed_at": "2026-08-21T08:08:17.197259+00:00",
+      "indexed_at": "2026-08-21T09:15:00.969651+00:00",
       "language": "markdown",
       "lines": 204,
-      "mtime_ns": 1787299039365857400,
+      "mtime_ns": 1787302885178779600,
       "size": 8184,
       "symbols": [
         {
@@ -350,49 +350,49 @@
     },
     "install.sh": {
       "hash": "fbd9a7e867f5",
-      "indexed_at": "2026-08-21T07:58:03.476338+00:00",
+      "indexed_at": "2026-08-21T09:15:00.969382+00:00",
       "language": "shell",
       "lines": 54,
-      "mtime_ns": 1787299067441375000,
+      "mtime_ns": 1787302885180786400,
       "size": 2923,
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "e9ca3107e6be",
-      "indexed_at": "2026-08-21T08:33:35.910549+00:00",
+      "hash": "00492ebeff07",
+      "indexed_at": "2026-08-21T09:15:00.970658+00:00",
       "language": "shell",
-      "lines": 469,
-      "mtime_ns": 1787300920965147600,
-      "size": 21987,
+      "lines": 462,
+      "mtime_ns": 1787302885181790000,
+      "size": 21430,
       "symbols": [
         {
           "lines": [
-            18,
-            22
+            21,
+            25
           ],
           "name": "fail",
           "type": "function"
         },
         {
           "lines": [
-            99,
-            102
+            97,
+            100
           ],
           "name": "int",
           "type": "function"
         },
         {
           "lines": [
-            103,
-            109
+            101,
+            107
           ],
           "name": "fmt_num",
           "type": "function"
         },
         {
           "lines": [
-            387,
-            392
+            380,
+            385
           ],
           "name": "rl_color",
           "type": "function"
@@ -400,8 +400,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            428,
-            445
+            421,
+            438
           ],
           "name": "build",
           "type": "function"
@@ -409,8 +409,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            448,
-            453
+            441,
+            446
           ],
           "name": "vis_len",
           "type": "function"
@@ -418,6 +418,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T08:33:35.911137+00:00",
+  "generated_at": "2026-08-21T09:15:01.095651+00:00",
   "version": "1.0"
 }

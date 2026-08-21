@@ -20,8 +20,7 @@
       "**/.release/**",
       "**/TASKS/**",
       "**/.release-local-only/**",
-      "**/.release-local-only.count/**",
-      "**/.codemap/**"
+      "**/.release-local-only.count/**"
     ],
     "include_patterns": [
       "**/*.py",
@@ -120,12 +119,12 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-21T08:08:17.324551+00:00",
+  "generated_at": "2026-08-21T09:15:01.102490+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-21T08:08:17.307687+00:00",
+    "last_full_index": "2026-08-21T09:15:01.084160+00:00",
     "total_files": 264,
-    "total_symbols": 1739
+    "total_symbols": 1740
   },
   "version": "1.0"
 }

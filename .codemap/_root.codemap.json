@@ -3,10 +3,10 @@
   "files": {
     "ARM_ROUTER.sh": {
       "hash": "4306077eeb57",
-      "indexed_at": "2026-08-21T08:08:17.117819+00:00",
+      "indexed_at": "2026-08-21T09:15:00.876792+00:00",
       "language": "shell",
       "lines": 354,
-      "mtime_ns": 1787299039361671800,
+      "mtime_ns": 1787302885173762000,
       "size": 17626,
       "symbols": [
         {
@@ -2664,10 +2664,10 @@
     },
     "CHANGELOG.md": {
       "hash": "3614e09c6943",
-      "indexed_at": "2026-08-21T08:08:17.165415+00:00",
+      "indexed_at": "2026-08-21T09:15:00.935828+00:00",
       "language": "markdown",
       "lines": 93,
-      "mtime_ns": 1787299039361671800,
+      "mtime_ns": 1787302885174765500,
       "size": 5311,
       "symbols": [
         {
@@ -2913,10 +2913,10 @@
     },
     "DISARM_ROUTER.sh": {
       "hash": "2b3b557f5f19",
-      "indexed_at": "2026-08-21T08:08:17.166357+00:00",
+      "indexed_at": "2026-08-21T09:15:00.936777+00:00",
       "language": "shell",
       "lines": 238,
-      "mtime_ns": 1787299039362673400,
+      "mtime_ns": 1787302885174765500,
       "size": 11750,
       "symbols": [
         {
@@ -2940,12 +2940,12 @@
       ]
     },
     "FINDINGS-8.0.1.md": {
-      "hash": "711be59979de",
-      "indexed_at": "2026-08-21T08:07:30.228985+00:00",
+      "hash": "febcf3fa56c7",
+      "indexed_at": "2026-08-21T09:15:00.043461+00:00",
       "language": "markdown",
-      "lines": 678,
-      "mtime_ns": 1787299644743140600,
-      "size": 45295,
+      "lines": 711,
+      "mtime_ns": 1787303699283123400,
+      "size": 46817,
       "symbols": [
         {
           "docstring": "Measured while preparing the release, and it explains a whole class of confusion:",
@@ -3320,6 +3320,15 @@
           ],
           "name": "\u26a0\ufe0f Release blockers still open in the repository",
           "type": "section"
+        },
+        {
+          "docstring": "Two independent sessions launched with `claude -p` from fresh temp directories outside the repository. Not this session, not this transcript.",
+          "lines": [
+            680,
+            712
+          ],
+          "name": "\ud83d\udfe9 Scratchpad proof \u2014 a SEPARATE Claude Code 2.1.238 session",
+          "type": "section"
         }
       ]
     },
@@ -3411,10 +3420,10 @@
     },
     "README.md": {
       "hash": "ea6e8eb95840",
-      "indexed_at": "2026-08-21T08:08:17.168898+00:00",
+      "indexed_at": "2026-08-21T09:15:00.939559+00:00",
       "language": "markdown",
       "lines": 1502,
-      "mtime_ns": 1787299039363695900,
+      "mtime_ns": 1787302885176772600,
       "size": 84480,
       "symbols": [
         {
@@ -3821,10 +3830,10 @@
     },
     "RELEASE.md": {
       "hash": "4dfc583b92c3",
-      "indexed_at": "2026-08-21T08:08:17.169081+00:00",
+      "indexed_at": "2026-08-21T09:15:00.939754+00:00",
       "language": "markdown",
       "lines": 109,
-      "mtime_ns": 1787299039363695900,
+      "mtime_ns": 1787302885176772600,
       "size": 4785,
       "symbols": [
         {
@@ -4094,6 +4103,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T08:08:17.307693+00:00",
+  "generated_at": "2026-08-21T09:15:01.084168+00:00",
   "version": "1.0"
 }
