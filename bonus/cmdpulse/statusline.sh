@@ -21,6 +21,8 @@ fail() {
   exit 0
 }
 
+NOW_S=$(date +%s)          # one clock read for the whole render; rows must agree anyway
+NOW_MS=$(( NOW_S * 1000 ))
 input=$(cat)
 [ -n "$input" ] || fail "empty stdin"
 if [ "${STATUSLINE_DEBUG:-0}" = "1" ]; then
@@ -59,13 +61,14 @@ raw=$(printf '%s' "$input" | "$JQ" -j '
   , (.pr.kind // "")
   , (.worktree.name // .workspace.git_worktree // "")
   , (.agent.name // "")
+  , (.session_id // "")
   , "END"
   ] | map(s | split("\n") | join(" ") | split("\r") | join(" ") | split("\u001f") | join(" ")) | join("\u001f")
 ' 2>/dev/null) || fail "jq parse failed"
 [ -n "$raw" ] || fail "jq produced nothing"
 
 IFS="$US" read -r -a F <<<"$raw"
-[ "${F[20]:-}" = "END" ] || fail "field count mismatch (${#F[@]})"
+[ "${F[21]:-}" = "END" ] || fail "field count mismatch (${#F[@]})"
 
 model="${F[0]}";     sname="${F[1]}";     cwd="${F[2]}"
 ctx_used="${F[3]}";  ctx_size="${F[4]}";  ctx_pct="${F[5]}"
@@ -73,6 +76,7 @@ cost="${F[6]}";      ladd="${F[7]}";      ldel="${F[8]}";      dur_ms="${F[9]}"
 effort="${F[10]}";   thinking="${F[11]}"; fastmode="${F[12]}"; over200k="${F[13]}"
 rl5="${F[14]}";      rl7="${F[15]}"
 pr_num="${F[16]}";   pr_kind="${F[17]}";  wt="${F[18]}";       agent="${F[19]}"
+sess="${F[20]}"
 
 # --- 3. Colors (Violet / Gold / Grey) ---
 RESET=$'\033[0m'; DIM=$'\033[2m'; BOLD=$'\033[1m'
@@ -88,7 +92,7 @@ CYAN=$'\033[38;2;110;220;235m'
 if [ "${STATUSLINE_ASCII:-0}" = "1" ]; then
   G_BRANCH="git"; G_FULL="#"; G_EMPTY="-"; G_THINK="*"; G_FAST=">>"
 else
-  G_BRANCH=$(printf '\356\202\240')   # U+E0A0 Nerd Font branch icon, as UTF-8 octal so this file stays ASCII
+  G_BRANCH=$'\356\202\240'   # U+E0A0 branch icon as octal bytes: no subshell, file stays ASCII
   G_FULL=$'█'; G_EMPTY=$'░'; G_THINK=$'✻'; G_FAST=$'⚡'
 fi
 
@@ -179,10 +183,15 @@ CMD_BAR_W=$(int "${CMDPULSE_BAR_WIDTH:-10}")
 if [ -d "$CP/active" ]; then
   for af in $(ls -t "$CP/active"/*.json 2>/dev/null); do
     if [ -f "$af" ]; then
+    # Every Claude Code window shares ~/.claude/cmdpulse, so without this a second window
+    # shows the first one's in-flight calls — and its own look untracked. Read the owning
+    # session and skip anything that is not ours.
+    a_sess=$("$JQ" -r '.session // ""' "$af" 2>/dev/null | tr -d '\r')
+    if [ -n "${sess:-}" ] && [ -n "$a_sess" ] && [ "$a_sess" != "$sess" ]; then continue; fi
     IFS=$'\037' read -r a_tool a_sig a_sub a_start < <(
       "$JQ" -r '[.tool,.sig,.subject,(.start|tostring)]|join("\u001f")' "$af" 2>/dev/null | tr -d '\r')
     if [ -n "${a_start:-}" ]; then
-      now_ms=$(( $(date +%s) * 1000 ))
+      now_ms=$NOW_MS
       el=$(( now_ms - $(int "$a_start") ))
       [ "$el" -lt 0 ] && el=0
       # An interrupted or denied tool call orphans its active file, so it does need reaping —
@@ -281,8 +290,8 @@ if [ -z "$cmd_lines" ] || [ "${CMDPULSE_ROWS:-3}" -gt 1 ] 2>/dev/null; then
       rbar=""; rk=0
       while [ "$rk" -lt "$CMD_BAR_W" ]; do rbar="${rbar}${rcol}${G_FULL}"; rk=$((rk+1)); done
       cmd_lines="${cmd_lines}${rcol}${rmark}${RESET} ${BOLD}${WHITE}$(printf '%-12s' "${r_tool:0:12}")${RESET} ${rbar}${RESET} $(printf '%6s' "done") ${DIM}$(printf '%7s' "$r_dur")${RESET} ${DIM}@${r_when}${RESET} ${WHITE}$(printf '%s' "${r_sub:0:52}")${RESET}"$'\n'
-    done < <("$JQ" -r --argjson n "$ROWS" '
-        [inputs | select(type == "object")] as $all
+    done < <("$JQ" -r --argjson n "$ROWS" --arg S "${sess:-}" '
+        [inputs | select(type == "object") | select(($S == "") or ((.session // "") == $S))] as $all
         | ($all | length) as $len
         | $all[ (if $len > $n then $len - $n else 0 end) : ]
         | reverse
@@ -312,7 +321,7 @@ if [ -d "$CP/phase" ]; then
       "$JQ" -r '(.kind // "phase"), (.label // ""), ((.t // 0)|tostring), ((.ttl // 0)|tostring)' \
         "$pf" 2>/dev/null | tr -d '\r')
     [ -n "${p_lab:-}" ] || continue
-    p_ms=$(( $(date +%s) * 1000 - $(int "$p_t") ))
+    p_ms=$(( NOW_S * 1000 - $(int "$p_t") ))
     [ "$p_ms" -lt 0 ] && p_ms=0
     # Flash events (Stop, Notification, FileChanged …) are moments, not durations: they carry
     # a ttl and reap themselves once shown. ttl 0 means "runs until its matching stop event".
