@@ -1871,12 +1871,12 @@
       ]
     },
     "voice-contract.sh": {
-      "hash": "144e3c2aff37",
-      "indexed_at": "2026-08-21T02:15:41.449601+00:00",
+      "hash": "5911c5ea1f62",
+      "indexed_at": "2026-08-21T02:53:31.108048+00:00",
       "language": "shell",
-      "lines": 623,
-      "mtime_ns": 1787224588677751200,
-      "size": 37744,
+      "lines": 642,
+      "mtime_ns": 1787280680846109900,
+      "size": 38977,
       "symbols": [
         {
           "docstring": "--- contract readers -------------------------------------------------------- One reader per declaration class. The DTD is the single source; nothing",
@@ -2083,6 +2083,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T02:50:45.233360+00:00",
+  "generated_at": "2026-08-21T02:53:31.108120+00:00",
   "version": "1.0"
 }

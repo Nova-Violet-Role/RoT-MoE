@@ -550,7 +550,26 @@ if grep -q 'rot-route-debug' "$SD/fresh.json"; then
 else
   ok "D15: arm writes no sink pin -- the per-session sink survives arming"
 fi
-printf '{\n  "env": { "ROTMOE_DEBUG_LOG": "%s/rot-moe/rot-route-debug.jsonl" }\n}\n' "$SD" > "$SD/pinned.json"
+# ASK THE CODE FOR THE PATH -- do not reconstruct it in bash. (O2, 8.0.1 audit.)
+#
+# This line used to write "$SD/rot-moe/rot-route-debug.jsonl" using bash's own
+# spelling of $SD. On Windows that is an MSYS path (/tmp/tmp.X) while MSYS hands
+# Windows node.exe the TRANSLATED form (C:/Users/.../Temp/tmp.X), and
+# settings-merge.js:179 compares with ===. Two spellings of one directory never
+# matched, the pin was never retired, and D15 reported the 8.0.1 headline fix as
+# BROKEN on a product that is correct -- measured 2026-08-21. Re-run with both
+# sides in one spelling and the retirement works exactly as the CHANGELOG says.
+#
+# A checker that RECONSTRUCTS a value the code also computes will drift from it.
+# So node is asked, with the same CLAUDE_CONFIG_DIR it will actually see, to
+# say what path it considers ours. No cygpath, no platform branch: whatever
+# spelling node uses is by definition the spelling node will compare against.
+_d15_pin="$(CLAUDE_CONFIG_DIR="$SD" node -e 'process.stdout.write(String(process.env.CLAUDE_CONFIG_DIR) + "/rot-moe/rot-route-debug.jsonl")')"
+if [ -z "$_d15_pin" ]; then
+  bad "D15: node could not report its own default sink path -- the row cannot be judged"
+  _d15_pin="$SD/rot-moe/rot-route-debug.jsonl"
+fi
+printf '{\n  "env": { "ROTMOE_DEBUG_LOG": "%s" }\n}\n' "$_d15_pin" > "$SD/pinned.json"
 CLAUDE_CONFIG_DIR="$SD" node "$ROOT/hooks/settings-merge.js" arm "$SD/pinned.json" "bash /x/rot-router.sh" "UserPromptSubmit" >/dev/null 2>&1
 if grep -q 'rot-route-debug' "$SD/pinned.json"; then
   bad "D15: a pre-8.0.1 pin survives re-arming -- upgrades stay sinkless"
