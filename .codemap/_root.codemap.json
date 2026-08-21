@@ -2969,12 +2969,12 @@
       ]
     },
     "FINDINGS-8.0.1.md": {
-      "hash": "febcf3fa56c7",
-      "indexed_at": "2026-08-21T12:23:25.147089+00:00",
+      "hash": "54a0294ef848",
+      "indexed_at": "2026-08-21T12:48:20.924608+00:00",
       "language": "markdown",
-      "lines": 711,
-      "mtime_ns": 1787313045766872500,
-      "size": 46817,
+      "lines": 757,
+      "mtime_ns": 1787316500022044100,
+      "size": 49704,
       "symbols": [
         {
           "docstring": "Measured while preparing the release, and it explains a whole class of confusion:",
@@ -3354,9 +3354,27 @@
           "docstring": "Two independent sessions launched with `claude -p` from fresh temp directories outside the repository. Not this session, not this transcript.",
           "lines": [
             680,
-            712
+            729
           ],
           "name": "\ud83d\udfe9 Scratchpad proof \u2014 a SEPARATE Claude Code 2.1.238 session",
+          "type": "section"
+        },
+        {
+          "docstring": "Recorded because a wrong probe reads exactly like a defect, and twice it nearly became one in this report:",
+          "lines": [
+            730,
+            747
+          ],
+          "name": "Three probes of mine were wrong before any of this was true",
+          "type": "section"
+        },
+        {
+          "docstring": "The full sweep found exactly one file with error-level `shellcheck` findings, and it was a **false positive**: `grep -q \"[*][*]$hit/$total[*][*]\"` is",
+          "lines": [
+            748,
+            758
+          ],
+          "name": "`bench-router.sh` \u2014 an alarm that cried error on correct code",
           "type": "section"
         }
       ]
@@ -4141,6 +4159,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T12:23:25.283712+00:00",
+  "generated_at": "2026-08-21T12:48:20.924704+00:00",
   "version": "1.0"
 }

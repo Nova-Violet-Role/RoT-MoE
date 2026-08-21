@@ -709,3 +709,49 @@ non-interactive `-p` run never reaches (notification, compaction, subagent,
 permission-decision families) — **not observed, therefore not claimed**. Both
 record kinds appeared (`route` and `gauge`), every record came through the
 **`ps1` arm**, and `ms` was recorded per event (144 ms on SessionEnd).
+
+---
+
+# THE 8 · full audit for 9.0.1 / 9.0.2 / 9.0.3
+
+Every row below is an executed instrument with a control that was seen to fire.
+
+| # | thing | instrument | result |
+|---|---|---|---|
+| 1 | **31 Hooks** | `hooks.json` + `hook-contract.sh` | **31 events · 63 entries · 63/63 commands name a rot hook** · every one executes → **74 passed / 0 failed** |
+| 2 | **Animus** | live queue drive, 5 controls | **consumed + emitted on `ANIMUS=1`**; refused when unset, when `VOICE=0`, on an unknown lens, and on a malformed line |
+| 3 | **Corpus** | `corpus-gauge.txt` + `cross-diff.sh` | 12 rows (7 LIVE / 9 MODEL) → **123 passed, 0 failed, 0 skipped** |
+| 4 | **Router** | `dominance` `profile-bind` `gauge-cross` `router-duplication` | **all exit 0** |
+| 5 | **RoT itself** | `engine/rot-lean.md` | 438 lines, `R/s+` formula present, bound by the gates above |
+| 6 | **9 Lenses** | `voice-contract.sh` | 9 charters · 14 DTD elements · **47 passed / 0 failed**, enforced both directions |
+| 7 | **`*.sh` `*.env`** | `bash -n` · `shellcheck -S error` | **190 files, 0 syntax failures** · error tier **1 → 0** · `rot-env.sh` ignores `PATH`/`LD_PRELOAD`, refuses `ROTMOE_ENV` |
+| 8 | **`*.lean`** | `lake build` · `leanchecker` · 77 suites | exit 0 · **87/87 kernel re-verified** · **797/797 mutants killed** · 1632 theorems · 0 `sorry` |
+
+## Three probes of mine were wrong before any of this was true
+
+Recorded because a wrong probe reads exactly like a defect, and twice it nearly
+became one in this report:
+
+1. **"31 events whose command does not name a rot hook"** — my `.every()` walked
+   the matcher array wrongly. Corrected: **63/63 name one, 0 do not.**
+2. **"0 ELEMENT declarations in the DTD"** while `voice-contract` was green — my
+   `^<!ELEMENT rot:` anchor was wrong. There are **14**.
+3. **"Animus consumed the queue and emitted nothing"** — the queue wire format is
+   `Lens|text` and the emitter BUILDS the stanza. I planted a pre-formed stanza
+   with no pipe, so the guard at `rot-router.sh:1859` refused it. **The organ was
+   correct and my plant was malformed**; that refusal is now control E.
+
+The pattern: every time an instrument disagreed with a green gate, the
+instrument was mine and it was wrong. That is the reason a disagreement gets
+investigated instead of reported.
+
+## `bench-router.sh` — an alarm that cried error on correct code
+
+The full sweep found exactly one file with error-level `shellcheck` findings, and
+it was a **false positive**: `grep -q "[*][*]$hit/$total[*][*]"` is a regex for two
+literal asterisks, read by the linter as an array subscript. Pre-existing on main
+(5 sites), not a 9.0.x regression. Braces silence it; the run was compared
+before and after and is **byte-identical** (`23 passed, 1 failed` both ways).
+
+An error tier that contains a known false positive teaches everyone to ignore
+the error tier.
