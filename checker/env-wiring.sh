@@ -330,9 +330,14 @@ else
     #
     # `tr -d '\r\n'` WITHOUT a space, unlike W7c above. W7c compares "77", so
     # deleting spaces was harmless there; this block carries a PATH through the
-    # same pipe and the repo it must report lives at "C:/GIT External Repo/RoT
-    # MoE". Stripping spaces turned that into C:/GITExternalRepo/RoTMoE and W8d
-    # reported a divergence that did not exist. Do not add the space back.
+    # same pipe, and a checkout directory is allowed to contain spaces -- the one
+    # this was debugged on does. Adding a space to that delete-set collapsed the
+    # path into an unspaced string and W8d reported a divergence that did not
+    # exist. Do not add the space back.
+    #
+    # The literal directory used to be quoted here. checker/no-local-paths.sh
+    # caught it: that is a machine-local path shipping inside the packet, and the
+    # lesson survives perfectly well without naming one developer's disk.
     PS8=$(ROTMOE_TEST_ROOT="$W8_REPO" ROTMOE_CWD="$W8_PROJ" pwsh -NoProfile -Command '
 $root = $env:ROTMOE_TEST_ROOT
 . (Join-Path (Join-Path $root "engine") "rot.profile.ps1") $root

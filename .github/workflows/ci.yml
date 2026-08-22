@@ -1162,6 +1162,15 @@ jobs:
       # defect this suite exists to find.
       - name: env wiring -- the DTD generates the config the activation loads
         run: bash checker/env-wiring.sh
+
+      # bonus/cmdpulse/cmdpulse-bonus.zip is a COMMITTED build artifact, and for
+      # most of this repository's life nothing could regenerate it. That cost a
+      # leaked absolute path that shipped past a green gate, and later a merge
+      # conflict on a binary two branches had each rebuilt by hand. This step
+      # asserts the archive still equals its tracked sources; `--rebuild` on the
+      # same script is how you make it true again.
+      - name: bonus archive -- the shipped zip IS its tracked sources
+        run: bash checker/bonus-archive.sh
       # THE ONE REMAINING SKIP IN THIS WORKFLOW, and it is a boundary rather than
       # an omission. Stated plainly so nobody has to rediscover it:
       #

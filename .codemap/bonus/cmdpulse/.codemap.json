@@ -3,10 +3,10 @@
   "files": {
     "README.md": {
       "hash": "d9bad5b638cc",
-      "indexed_at": "2026-08-21T11:46:33.504539+00:00",
+      "indexed_at": "2026-08-22T08:06:42.154193+00:00",
       "language": "markdown",
       "lines": 229,
-      "mtime_ns": 1787312790694992100,
+      "mtime_ns": 1787385799655316900,
       "size": 9190,
       "symbols": [
         {
@@ -376,12 +376,12 @@
       "symbols": []
     },
     "statusline.sh": {
-      "hash": "114feb670516",
-      "indexed_at": "2026-08-21T12:23:25.177599+00:00",
+      "hash": "03a9942ba365",
+      "indexed_at": "2026-08-22T08:03:44.381699+00:00",
       "language": "shell",
-      "lines": 601,
-      "mtime_ns": 1787313045772062900,
-      "size": 29410,
+      "lines": 605,
+      "mtime_ns": 1787385571435639000,
+      "size": 29746,
       "symbols": [
         {
           "lines": [
@@ -409,8 +409,8 @@
         },
         {
           "lines": [
-            519,
-            524
+            523,
+            528
           ],
           "name": "rl_color",
           "type": "function"
@@ -418,8 +418,8 @@
         {
           "docstring": "Order is by what you must see in the FIRST few columns, because the status line is clipped at the pane width and everything past it is invisible: 1. t",
           "lines": [
-            560,
-            577
+            564,
+            581
           ],
           "name": "build",
           "type": "function"
@@ -427,8 +427,8 @@
         {
           "docstring": "Strips BOTH colour (CSI ... m) and hyperlinks (OSC 8 ... ST). An OSC 8 URL is ~60 invisible characters; counting them as visible would degrade the lin",
           "lines": [
-            580,
-            585
+            584,
+            589
           ],
           "name": "vis_len",
           "type": "function"
@@ -436,6 +436,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T12:23:25.294497+00:00",
+  "generated_at": "2026-08-22T08:06:42.277676+00:00",
   "version": "1.0"
 }

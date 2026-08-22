@@ -171,6 +171,34 @@
         }
       ]
     },
+    "bonus-archive.sh": {
+      "hash": "1386aafd5e9c",
+      "indexed_at": "2026-08-22T08:02:45.748753+00:00",
+      "language": "shell",
+      "lines": 214,
+      "mtime_ns": 1787385765143070300,
+      "size": 9319,
+      "symbols": [
+        {
+          "docstring": "The tracked sources, minus the artifact itself. `sort -u` because git prints one line per stage while a merge is unresolved, and this must not report",
+          "lines": [
+            56,
+            60
+          ],
+          "name": "src_list",
+          "type": "function"
+        },
+        {
+          "docstring": "--- THE BUILDER -------------------------------------------------------------- -X drops uid/gid and platform extras so the output depends on the conte",
+          "lines": [
+            65,
+            215
+          ],
+          "name": "rebuild",
+          "type": "function"
+        }
+      ]
+    },
     "ci-audit-freshness.sh": {
       "hash": "51caff829091",
       "indexed_at": "2026-08-21T12:23:25.184407+00:00",
@@ -606,12 +634,12 @@
       ]
     },
     "env-wiring.sh": {
-      "hash": "24735ea05f7c",
-      "indexed_at": "2026-08-22T07:01:42.900166+00:00",
+      "hash": "ae4cdc1ecdd2",
+      "indexed_at": "2026-08-22T08:05:55.368923+00:00",
       "language": "shell",
-      "lines": 461,
-      "mtime_ns": 1787382102275229900,
-      "size": 23556,
+      "lines": 466,
+      "mtime_ns": 1787385954743212100,
+      "size": 23843,
       "symbols": [
         {
           "docstring": "--- THE GENERATOR ------------------------------------------------------------ Reads every `<!ENTITY ENV.n \"NAME|TYPE|DESCRIPTION\">` out of the DTD an",
@@ -651,18 +679,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "24421f84505d",
-      "indexed_at": "2026-08-22T07:02:37.846428+00:00",
+      "hash": "774ec5a29caa",
+      "indexed_at": "2026-08-22T08:04:04.997564+00:00",
       "language": "shell",
-      "lines": 422,
-      "mtime_ns": 1787382157230834000,
-      "size": 23852,
+      "lines": 423,
+      "mtime_ns": 1787385844361346400,
+      "size": 23983,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            182,
-            197
+            183,
+            198
           ],
           "name": "fires",
           "type": "function"
@@ -1184,12 +1212,12 @@
       ]
     },
     "no-local-paths.sh": {
-      "hash": "3077dd8cdde3",
-      "indexed_at": "2026-08-21T13:58:35.978846+00:00",
+      "hash": "bd4271c94756",
+      "indexed_at": "2026-08-22T08:04:24.196414+00:00",
       "language": "shell",
-      "lines": 298,
-      "mtime_ns": 1787320698731759800,
-      "size": 14658,
+      "lines": 305,
+      "mtime_ns": 1787385863593145000,
+      "size": 15150,
       "symbols": []
     },
     "plugin-install.sh": {
@@ -2155,6 +2183,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T07:02:37.846506+00:00",
+  "generated_at": "2026-08-22T08:05:55.369000+00:00",
   "version": "1.0"
 }

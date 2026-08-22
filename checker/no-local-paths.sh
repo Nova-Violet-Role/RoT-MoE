@@ -245,10 +245,17 @@ allowed=$(printf '%s\n' "$raw" | grep -c 'R2-ALLOW')
 #
 # Measured, not theorised: bonus/cmdpulse/cmdpulse-bonus.zip carried this
 # machine's directory inside a comment while the tree above was clean and this
-# gate was GREEN. The zip is committed as a binary artifact and nothing rebuilds
-# it from source, so a fix to the .sh never reached the thing users download.
-# `-I` treats it as binary and skips it -- the sweep was structurally blind to
-# the one file that actually gets shipped.
+# gate was GREEN. `-I` treats it as binary and skips it -- the sweep was
+# structurally blind to the one file that actually gets shipped.
+#
+# This comment used to end "nothing rebuilds it from source, so a fix to the .sh
+# never reached the thing users download." That was true when it was written and
+# is no longer: checker/bonus-archive.sh is now both the builder (--rebuild) and
+# the assertion that the committed archive still equals its tracked sources. The
+# hole cost twice before it was closed -- once as this leak, once as a merge
+# conflict on a binary that two branches had each rebuilt by hand. The sweep
+# below stays regardless: a rebuilt archive can still carry a leaked path, so
+# these two gates check different properties and neither replaces the other.
 #
 # So: unpack every tracked archive to stdout and sweep the text. No temp dir, no
 # extraction to disk. An archive that cannot be listed is REPORTED, never
