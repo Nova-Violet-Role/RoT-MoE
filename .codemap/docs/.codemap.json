@@ -1,6 +1,133 @@
 {
   "directory": "docs",
   "files": {
+    "COMPENDIUM-instrument-defects.md": {
+      "hash": "d8e48a26e914",
+      "indexed_at": "2026-08-22T20:30:48.425870+00:00",
+      "language": "markdown",
+      "lines": 317,
+      "mtime_ns": 1787430647821117400,
+      "size": 14791,
+      "symbols": [
+        {
+          "docstring": "Twenty-five commits, one law:",
+          "lines": [
+            27,
+            40
+          ],
+          "name": "The single sentence",
+          "type": "section"
+        },
+        {
+          "docstring": "**Shape.** A gate is listed in a table, a manifest, a README, a shell array \u2014 and no runner ever reaches it. The registry is mistaken for the wiring.",
+          "lines": [
+            41,
+            63
+          ],
+          "name": "FAMILY 1 \u2014 Registered in one place, executed in none",
+          "type": "section"
+        },
+        {
+          "docstring": "**Shape.** The harness cannot run the check, takes the fallback path, and the fallback path is indistinguishable from success.",
+          "lines": [
+            64,
+            89
+          ],
+          "name": "FAMILY 2 \u2014 A skip, a no-op, or a missing tool read as a pass",
+          "type": "section"
+        },
+        {
+          "docstring": "**Shape.** Two things are compared, they match, the gate passes. Nobody ever proved the comparison *could* have failed. Two empty strings agree perfec",
+          "lines": [
+            90,
+            113
+          ],
+          "name": "FAMILY 3 \u2014 Agreement asserted without the ability to disagree",
+          "type": "section"
+        },
+        {
+          "docstring": "**Shape.** A bound, a contract, or a fact is written in a comment, a charter, a log line or a README. It reads exactly like a rule. Nothing enforces i",
+          "lines": [
+            114,
+            143
+          ],
+          "name": "FAMILY 4 \u2014 Prose standing in for an assertion",
+          "type": "section"
+        },
+        {
+          "docstring": "**Shape.** A number appears in prose. A checker validates it against the tree. Nothing *writes* it \u2014 so on drift the only recourse is a human editing",
+          "lines": [
+            144,
+            169
+          ],
+          "name": "FAMILY 5 \u2014 A claim with a checker but no author",
+          "type": "section"
+        },
+        {
+          "docstring": "**Shape.** The gate mutates, stages, packages or cleans \u2014 and the act of measuring destroys the evidence, or ships something that was never checked.",
+          "lines": [
+            170,
+            192
+          ],
+          "name": "FAMILY 6 \u2014 The instrument damages what it measures",
+          "type": "section"
+        },
+        {
+          "docstring": "**Shape.** The gate is wired, runs, and fails honestly \u2014 at the wrong artefact. It is right about something nobody asked.",
+          "lines": [
+            193,
+            222
+          ],
+          "name": "FAMILY 7 \u2014 Evidence pointing at the wrong thing",
+          "type": "section"
+        },
+        {
+          "docstring": "For any gate, in order. Each question comes from a defect that actually shipped.",
+          "lines": [
+            223,
+            240
+          ],
+          "name": "The audit checklist",
+          "type": "section"
+        },
+        {
+          "docstring": "Twenty-three catalogued. The ones that recur:",
+          "lines": [
+            241,
+            258
+          ],
+          "name": "Instrument errors in the measuring tools themselves",
+          "type": "section"
+        },
+        {
+          "docstring": "Stated in the order they were learned, each purchased with a real defect:",
+          "lines": [
+            259,
+            279
+          ],
+          "name": "Accumulated laws",
+          "type": "section"
+        },
+        {
+          "docstring": "Honesty is the point of the document, so the debts are part of it.",
+          "lines": [
+            280,
+            305
+          ],
+          "name": "What is still unasserted",
+          "type": "section"
+        },
+        {
+          "docstring": "The seven families collapse into one question, which is the only thing worth carrying away from this document:",
+          "lines": [
+            306,
+            318
+          ],
+          "name": "The generalisation",
+          "type": "section"
+        }
+      ]
+    },
     "COMPENDIUM-the-unwritten-claim.md": {
       "hash": "92b2e83f38b0",
       "indexed_at": "2026-08-22T19:30:17.405141+00:00",
@@ -1100,6 +1227,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T19:30:18.107726+00:00",
+  "generated_at": "2026-08-22T20:30:48.425962+00:00",
   "version": "1.0"
 }
