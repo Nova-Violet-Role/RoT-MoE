@@ -113,6 +113,7 @@ A/B instruction compliance -- exit 3 SKIP without the raw corpus|deep|bench/,CHA
 Lean witness vs shipped weights|fast||bash checker/lean-binds-shell.sh
 release package|fast||bash checker/release-package.sh
 release notes -- one body, three tiers|fast||bash checker/release-notes.sh core > /dev/null && bash checker/release-notes.sh lean > /dev/null && bash checker/release-notes.sh unsealed > /dev/null
+release body -- the three tiers ARE one body (the row above only reads exit 0)|fast|checker/release-notes.sh,checker/release-body.sh|bash checker/release-body.sh
 hook contract|fast||bash checker/hook-contract.sh
 voice contract (the lens roster, held both ways)|fast||bash checker/voice-contract.sh
 env layer (ORGAN 7 -- the rot family and the three loader laws)|fast||sh checker/env-layer.sh

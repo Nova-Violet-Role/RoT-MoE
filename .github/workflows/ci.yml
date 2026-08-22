@@ -1171,6 +1171,14 @@ jobs:
       # same script is how you make it true again.
       - name: bonus archive -- the shipped zip IS its tracked sources
         run: bash checker/bonus-archive.sh
+
+      # The three release bodies are published to three tags cut from one commit,
+      # and each one PROMISES the reader "the table above is the whole
+      # difference". Nothing checked that promise: the gate-all row above runs
+      # the generator into /dev/null and reads exit 0 only, so three unrelated
+      # pages would have passed it green.
+      - name: release body -- three tiers, one body
+        run: bash checker/release-body.sh
       # THE ONE REMAINING SKIP IN THIS WORKFLOW, and it is a boundary rather than
       # an omission. Stated plainly so nobody has to rediscover it:
       #

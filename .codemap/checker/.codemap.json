@@ -679,18 +679,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "774ec5a29caa",
-      "indexed_at": "2026-08-22T08:04:04.997564+00:00",
+      "hash": "2a976751f5f8",
+      "indexed_at": "2026-08-22T08:33:33.374243+00:00",
       "language": "shell",
-      "lines": 423,
-      "mtime_ns": 1787385844361346400,
-      "size": 23983,
+      "lines": 424,
+      "mtime_ns": 1787387612732386100,
+      "size": 24145,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            183,
-            198
+            184,
+            199
           ],
           "name": "fires",
           "type": "function"
@@ -1372,6 +1372,49 @@
             58
           ],
           "name": "bad",
+          "type": "function"
+        }
+      ]
+    },
+    "release-body.sh": {
+      "hash": "af0018b91e8b",
+      "indexed_at": "2026-08-22T08:33:12.301435+00:00",
+      "language": "shell",
+      "lines": 219,
+      "mtime_ns": 1787387591392114500,
+      "size": 9688,
+      "symbols": [
+        {
+          "docstring": "No backslash escapes anywhere in this file: this repository has twice corrupted a generated script because a backslash was eaten in transport. `substr",
+          "lines": [
+            59,
+            62
+          ],
+          "name": "shared_of",
+          "type": "function"
+        },
+        {
+          "lines": [
+            63,
+            65
+          ],
+          "name": "table_of",
+          "type": "function"
+        },
+        {
+          "lines": [
+            66,
+            68
+          ],
+          "name": "key_of",
+          "type": "function"
+        },
+        {
+          "lines": [
+            69,
+            71
+          ],
+          "name": "val_of",
           "type": "function"
         }
       ]
@@ -2183,6 +2226,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T08:26:45.416308+00:00",
+  "generated_at": "2026-08-22T08:33:33.374391+00:00",
   "version": "1.0"
 }
