@@ -1549,15 +1549,47 @@ jobs:
             # refusal fired at a tag that did not exist. It failed closed, but
             # it was aimed at a ghost.
             have=""
-            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$_tag" --jq '.object.sha' > "$RUNNER_TEMP/tag-sha" 2>/dev/null; then
-              have=$(cat "$RUNNER_TEMP/tag-sha")
+            have_type=""
+            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$_tag" --jq '.object.sha + " " + .object.type' > "$RUNNER_TEMP/tag-ref" 2>/dev/null; then
+              have=$(cut -d' ' -f1 < "$RUNNER_TEMP/tag-ref")
+              have_type=$(cut -d' ' -f2 < "$RUNNER_TEMP/tag-ref")
             fi
-            if [ -n "$have" ] && [ "$have" != "$GITHUB_SHA" ]; then
-              echo "FAIL: tag $_tag already points at $have, not at $GITHUB_SHA -- refusing to publish another commit under it"; exit 1
+            # AN ANNOTATED TAG'S REF POINTS AT A TAG OBJECT, NOT AT THE COMMIT.
+            # The comparison below used .object.sha directly, which equals the
+            # commit only for LIGHTWEIGHT tags. The moment tags became annotated
+            # (immediately below) that refusal would have fired on every correct
+            # re-run, reporting "already points at <tag-object-sha>". Dereference
+            # first, then compare commit to commit.
+            _havecommit="$have"
+            if [ "$have_type" = "tag" ] && [ -n "$have" ]; then
+              _havecommit=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$have" --jq '.object.sha' 2>/dev/null)
+            fi
+            if [ -n "$_havecommit" ] && [ "$_havecommit" != "$GITHUB_SHA" ]; then
+              echo "FAIL: tag $_tag already points at $_havecommit, not at $GITHUB_SHA -- refusing to publish another commit under it"; exit 1
             fi
             if [ -z "$have" ]; then
-              gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$_tag" -f sha="$GITHUB_SHA" >/dev/null
-              echo "tag $_tag cut at $GITHUB_SHA -- the commit this very run just proved"
+              # ANNOTATED, NOT LIGHTWEIGHT -- AND THIS LINE IS WHY SIX TAGS ARE.
+              # POSTing to git/refs with a COMMIT sha creates a lightweight tag:
+              # a bare pointer with no tagger, no date and no message. MEASURED
+              # 2026-08-22: all 41 tags through v5.0.2 are annotated, then
+              # v6.0.0, v6.0.1, v6.0.2, v7.0.0, v8.0.0 and v8.0.1 -- every tag
+              # this publisher has ever cut -- are lightweight, and
+              # checker/release-consistency.sh has flagged the newest one ever
+              # since. Create the TAG OBJECT first, then point the ref at it.
+              _tagsha=$(gh api -X POST "repos/$GITHUB_REPOSITORY/git/tags" \
+                  -f tag="$_tag" -f message="$_title" -f object="$GITHUB_SHA" -f type=commit --jq '.sha')
+              if [ -z "$_tagsha" ]; then
+                echo "FAIL: could not create an annotated tag object for $_tag"; exit 1
+              fi
+              gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$_tag" -f sha="$_tagsha" >/dev/null
+              # Read the landed tag back. A POST that returned 201 is not proof
+              # the ref points at a tag object -- that is the assumption which
+              # let six lightweight tags ship unnoticed.
+              _ttype=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$_tag" --jq '.object.type' 2>/dev/null)
+              if [ "$_ttype" != "tag" ]; then
+                echo "FAIL: $_tag landed as '$_ttype', not an annotated tag object"; exit 1
+              fi
+              echo "tag $_tag cut ANNOTATED at $GITHUB_SHA -- the commit this very run just proved"
             else
               echo "tag $_tag already at $GITHUB_SHA -- adopting it"
             fi

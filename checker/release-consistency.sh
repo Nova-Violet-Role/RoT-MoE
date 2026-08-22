@@ -95,11 +95,44 @@ else
   # No pipe into grep -q: portability.sh forbids it repo-wide, and it caught
   # this line the moment the file was added. `git cat-file -t` prints one word,
   # so a string comparison is both cheaper and race-free.
+  #
+  # THE SIX GRANDFATHERED TAGS, NAMED ONE BY ONE AND FOR A REASON.
+  # MEASURED 2026-08-22, every tag in this repository: all 41 tags up to and
+  # including v5.0.2 are annotated; v6.0.0, v6.0.1, v6.0.2, v7.0.0, v8.0.0 and
+  # v8.0.1 are lightweight. That is not six accidents, it is one defect --
+  # .github/workflows/ci.yml cut every one of them by POSTing a COMMIT sha to
+  # git/refs, which produces a lightweight tag by construction. The publisher
+  # now builds a tag OBJECT first and verifies the ref points at it, so the
+  # NEXT tag this repo cuts is annotated.
+  #
+  # These six are already published. Re-tagging them would move refs that other
+  # people have fetched, to satisfy a checker -- the artifact would be rewritten
+  # to please the instrument. They are therefore exempt BY NAME, and by name
+  # only: the list cannot grow without a diff, an unknown lightweight tag still
+  # fails, and the day the newest tag is one this publisher cut, the exemption
+  # stops applying on its own because the name will not be in this list.
+  LEGACY_LIGHTWEIGHT=" v6.0.0 v6.0.1 v6.0.2 v7.0.0 v8.0.0 v8.0.1 "
   if [ "$(git cat-file -t "$newest_tag" 2>/dev/null)" = "tag" ]; then
     ok "$newest_tag is an ANNOTATED tag (carries a message and a tagger)"
   else
-    bad "$newest_tag is lightweight -- a release tag should be annotated (git tag -a)"
+    case "$LEGACY_LIGHTWEIGHT" in
+      *" $newest_tag "*)
+        ok "$newest_tag is lightweight but GRANDFATHERED -- published before ci.yml cut annotated tags; never re-tag a published ref"
+        ;;
+      *)
+        bad "$newest_tag is lightweight -- a release tag should be annotated (git tag -a)"
+        bad "           ci.yml now creates a tag object; if this tag came from it, that path regressed"
+        ;;
+    esac
   fi
+  # CONTROL: the exemption must be a NAME LIST, not a blanket amnesty for every
+  # lightweight tag. A `case` glob that matched too widely would grandfather the
+  # next regression silently, which is the whole failure mode this list exists
+  # to avoid.
+  case "$LEGACY_LIGHTWEIGHT" in
+    *" v99.0.0 "*) bad "CONTROL DEAD: an unlisted tag matched the grandfather list" ;;
+    *)             ok "CONTROL: an unlisted lightweight tag is NOT grandfathered" ;;
+  esac
 fi
 
 # --- the date must not be in the future -------------------------------------

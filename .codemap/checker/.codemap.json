@@ -680,10 +680,10 @@
     },
     "gate-all.sh": {
       "hash": "bad69b006575",
-      "indexed_at": "2026-08-22T09:45:10.644227+00:00",
+      "indexed_at": "2026-08-22T11:52:26.436519+00:00",
       "language": "shell",
       "lines": 424,
-      "mtime_ns": 1787391910029473200,
+      "mtime_ns": 1787392069467636600,
       "size": 23952,
       "symbols": [
         {
@@ -1212,12 +1212,12 @@
       ]
     },
     "no-local-paths.sh": {
-      "hash": "bd4271c94756",
-      "indexed_at": "2026-08-22T08:04:24.196414+00:00",
+      "hash": "c05613a0c73a",
+      "indexed_at": "2026-08-22T11:44:48.624624+00:00",
       "language": "shell",
-      "lines": 305,
-      "mtime_ns": 1787385863593145000,
-      "size": 15150,
+      "lines": 360,
+      "mtime_ns": 1787399087977208700,
+      "size": 18484,
       "symbols": []
     },
     "plugin-install.sh": {
@@ -1420,12 +1420,12 @@
       ]
     },
     "release-consistency.sh": {
-      "hash": "6e711402ed20",
-      "indexed_at": "2026-08-21T07:50:35.570845+00:00",
+      "hash": "9f64498044ce",
+      "indexed_at": "2026-08-22T11:47:04.833629+00:00",
       "language": "shell",
-      "lines": 159,
-      "mtime_ns": 1787209313000000000,
-      "size": 7744,
+      "lines": 192,
+      "mtime_ns": 1787399224213509900,
+      "size": 9667,
       "symbols": []
     },
     "release-install.sh": {
@@ -1455,26 +1455,26 @@
       ]
     },
     "release-local.sh": {
-      "hash": "f167cb580740",
-      "indexed_at": "2026-08-21T07:50:35.572080+00:00",
+      "hash": "abe6c37ecaab",
+      "indexed_at": "2026-08-22T11:39:20.074744+00:00",
       "language": "shell",
-      "lines": 377,
-      "mtime_ns": 1787209313000000000,
-      "size": 19658,
+      "lines": 392,
+      "mtime_ns": 1787398759456981000,
+      "size": 20622,
       "symbols": [
         {
           "docstring": "--- phase 2: build from a PRISTINE export of HEAD, never the working tree ----",
           "lines": [
             185,
-            217
+            232
           ],
           "name": "build_into",
           "type": "function"
         },
         {
           "lines": [
-            273,
-            283
+            288,
+            298
           ],
           "name": "digest_of",
           "type": "function"
@@ -1519,10 +1519,10 @@
     },
     "release-notes.sh": {
       "hash": "157f42326abe",
-      "indexed_at": "2026-08-22T10:24:18.535791+00:00",
+      "indexed_at": "2026-08-22T11:52:26.452835+00:00",
       "language": "shell",
       "lines": 123,
-      "mtime_ns": 1787394257944005500,
+      "mtime_ns": 1787394282379566600,
       "size": 5189,
       "symbols": [
         {
@@ -1536,12 +1536,12 @@
       ]
     },
     "release-package.sh": {
-      "hash": "3c15a4abc024",
-      "indexed_at": "2026-08-22T06:31:17.810228+00:00",
+      "hash": "6fd3ec572ab7",
+      "indexed_at": "2026-08-22T11:38:54.827029+00:00",
       "language": "shell",
-      "lines": 686,
-      "mtime_ns": 1787380277220051900,
-      "size": 34070,
+      "lines": 743,
+      "mtime_ns": 1787398734199136700,
+      "size": 37189,
       "symbols": [
         {
           "lines": [
@@ -1554,8 +1554,8 @@
         {
           "docstring": "Joined with NEWLINE, never with a space -- a space here would re-introduce the very splitting the newline IFS exists to prevent, and it would do so si",
           "lines": [
-            196,
-            202
+            221,
+            227
           ],
           "name": "paths_for",
           "type": "function"
@@ -1563,8 +1563,8 @@
         {
           "docstring": "--- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ---------------------- The property that makes the naming mean something. Checked by set differ",
           "lines": [
-            411,
-            419
+            436,
+            444
           ],
           "name": "superset",
           "type": "function"
@@ -2217,15 +2217,25 @@
       ]
     },
     "workflow-roles.sh": {
-      "hash": "43d514ff63c5",
-      "indexed_at": "2026-08-21T07:50:35.583524+00:00",
+      "hash": "fde8bd03a1bb",
+      "indexed_at": "2026-08-22T12:14:05.915811+00:00",
       "language": "shell",
-      "lines": 312,
-      "mtime_ns": 1787209313000000000,
-      "size": 16294,
-      "symbols": []
+      "lines": 367,
+      "mtime_ns": 1787400814206149100,
+      "size": 20216,
+      "symbols": [
+        {
+          "docstring": "THE TWO STALE-GREEN EXEMPTIONS, CONTROLLED IN THE DIRECTION THAT MATTERS. Both branches added 2026-08-22 EXEMPT, which is the direction that can hide",
+          "lines": [
+            336,
+            342
+          ],
+          "name": "_decide",
+          "type": "function"
+        }
+      ]
     }
   },
-  "generated_at": "2026-08-22T10:24:18.535877+00:00",
+  "generated_at": "2026-08-22T12:14:05.915885+00:00",
   "version": "1.0"
 }

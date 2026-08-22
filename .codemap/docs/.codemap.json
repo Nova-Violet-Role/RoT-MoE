@@ -932,18 +932,18 @@
       ]
     },
     "modules.md": {
-      "hash": "6502580a5410",
-      "indexed_at": "2026-08-21T07:50:35.585740+00:00",
+      "hash": "b6abf042f109",
+      "indexed_at": "2026-08-22T12:22:37.219363+00:00",
       "language": "markdown",
-      "lines": 363,
-      "mtime_ns": 1787209313000000000,
-      "size": 22857,
+      "lines": 384,
+      "mtime_ns": 1787399986930019500,
+      "size": 24189,
       "symbols": [
         {
           "docstring": "Fifteen are described below, out of 79 in the tree. This heading read *\"the ten modules\"* while listing fifteen \u2014 a count frozen when the section was",
           "lines": [
             10,
-            364
+            385
           ],
           "name": "\ud83d\udcd0 The modules that carry an argument",
           "type": "subsection"
@@ -1007,6 +1007,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:50:35.662261+00:00",
+  "generated_at": "2026-08-22T12:22:37.219434+00:00",
   "version": "1.0"
 }

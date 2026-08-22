@@ -208,10 +208,25 @@ build_into () {
   # run of this script reported "build FAILED (see .../build.log)" and there was
   # no such file. Write it outside, copy it in once the directory is final.
   local log; log="$(mktemp "${TMPDIR:-/tmp}/rellocalbuild.XXXXXX")"
-  ( cd "$ex" && ROTMOE_RELEASE_DIR="$dest" bash checker/release-package.sh ) >"$log" 2>&1
+  # THE EXPORT HAS NO .git, SO WE CARRY ITS FILE LIST IN WITH IT.
+  # release-package.sh assertion 7 proves no archive ships a file git does not
+  # track. It cannot run `git ls-files` inside a pristine export, and refusing
+  # there blocked this entire path. The list comes from SRCREF's own tree --
+  # the commit that produced the export -- so the assertion compares the zips
+  # against the exact source they were built from, not against a working index
+  # that may have moved. Measured: `git ls-tree -r --name-only HEAD` and
+  # `git ls-files` agree line-for-line on a clean tree (477/477, empty diff),
+  # and git leaves paths containing spaces unquoted, so no unquoting is needed
+  # for the four tracked paths under `Lean Theorem/`.
+  local tl; tl="$(mktemp "${TMPDIR:-/tmp}/reltracked.XXXXXX")"
+  git ls-tree -r --name-only "$SRCREF" | sort > "$tl"
+  if [ ! -s "$tl" ]; then
+    rm -f "$tl" "$log"; rm -rf "$ex"; return 1
+  fi
+  ( cd "$ex" && ROTMOE_RELEASE_DIR="$dest" bash checker/release-package.sh --tracked-list "$tl" ) >"$log" 2>&1
   local rc=$?
   cp "$log" "$dest/build.log" 2>/dev/null
-  rm -f "$log"
+  rm -f "$log" "$tl"
   rm -rf "$ex"
   return $rc
 }

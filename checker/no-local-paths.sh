@@ -269,7 +269,23 @@ if command -v unzip >/dev/null 2>&1; then
       echo "FAIL: archive present but unreadable, so it was NOT swept: $_z"
       fail=$((fail+1)); continue
     fi
-    _zh=$(unzip -p "$_z" 2>/dev/null | grep -F -f "$PAT" | grep -v 'R2-ALLOW' | head -5)
+    # THE TWO FILES THAT MUST CONTAIN THE NEEDLES ARE EXCLUDED HERE TOO.
+    # MEASURED 2026-08-22: the tree sweep above excludes patterns-forbidden.txt
+    # and no-local-paths.sh BY NAME (see --exclude at the raw_all grep) because
+    # the pattern list IS the needles and this checker's own header quotes them
+    # to explain the `D:\` backslash defect. `unzip -p` emits one nameless byte
+    # stream, so those exclusions had no way to apply, and both files ship in
+    # the Lean tiers -- so the archive sweep matched its own documentation and
+    # went PERMANENTLY red the moment a fresh archive existed to scan. It read
+    # as "the Lean zips leak a machine-local path"; nothing leaked.
+    #
+    # `unzip -p ARCHIVE -x ENTRY...` filters by entry name in the SAME single
+    # pass, so the no-temp-dir design above is preserved and the filename
+    # dimension comes back. This is not a new concession: it is the exact pair
+    # the tree sweep already exempts, applied to the same files inside the zip.
+    # Every OTHER entry is still swept, and the control below proves it.
+    _zh=$(unzip -p "$_z" -x 'checker/patterns-forbidden.txt' 'checker/no-local-paths.sh' 2>/dev/null \
+          | grep -F -f "$PAT" | grep -v 'R2-ALLOW' | head -5)
     if [ -n "$_zh" ]; then
       echo "FAIL: machine-local path INSIDE a shipped archive: $_z"
       printf '%s\n' "$_zh" | sed 's/^/        /'
@@ -278,6 +294,45 @@ if command -v unzip >/dev/null 2>&1; then
   done <<EOF
 $(find "$ROOT" -name '*.zip' -not -path '*/.git/*' -not -path '*/.release/*' -not -path '*/.lake/*' 2>/dev/null)
 EOF
+  # CONTROL -- THE ARCHIVE SWEEP MUST STILL BE ABLE TO SEE A FORBIDDEN PATH.
+  # The -x exclusion above is the kind of change that can silence a sweep
+  # completely: widen one pattern to '*' and every archive comes back clean,
+  # printing the same reassuring line as a genuine pass. So a throwaway zip is
+  # built with a real needle inside it and pushed through the IDENTICAL
+  # pipeline. The needle is read from the pattern file rather than typed, so it
+  # cannot drift from what the sweep actually hunts for, and it is written with
+  # printf '%s' -- no escape interpretation, which is how the `D:\` spelling
+  # survives being written to disk.
+  if command -v zip >/dev/null 2>&1; then
+    _czd="${TMPDIR:-/tmp}/rotmoe-zipctl.$$"
+    rm -rf "$_czd"; mkdir -p "$_czd/checker"
+    _needle=$(head -1 "$PAT")
+    printf '%s\n' "nothing forbidden on this line" > "$_czd/innocent.txt"
+    printf '%s\n' "$_needle" > "$_czd/leaky.txt"
+    # Also plant the needle in an EXCLUDED name, to prove the exclusion is
+    # scoped to those two entries and is not leaking into other files.
+    printf '%s\n' "$_needle" > "$_czd/checker/no-local-paths.sh"
+    ( cd "$_czd" && zip -X -q -r "$_czd/ctl.zip" . ) 2>/dev/null
+    if [ -f "$_czd/ctl.zip" ]; then
+      _ch=$(unzip -p "$_czd/ctl.zip" -x 'checker/patterns-forbidden.txt' 'checker/no-local-paths.sh' 2>/dev/null \
+            | grep -F -f "$PAT" | grep -v 'R2-ALLOW' | head -5)
+      _cn=$(printf '%s\n' "$_ch" | grep -c .)
+      if [ "$_cn" -eq 1 ]; then
+        echo "control OK: the archive sweep catches a planted path, and the two exempt entries stay exempt"
+      else
+        echo "FAIL: CONTROL -- planted 1 visible needle in a zip, the archive sweep reported $_cn."
+        echo "The -x exclusion is either silencing everything or not scoped to the two exempt entries."
+        fail=$((fail+1))
+      fi
+    else
+      echo "FAIL: CONTROL -- could not build the control archive, so the archive sweep is UNVERIFIED"
+      fail=$((fail+1))
+    fi
+    rm -rf "$_czd"
+  else
+    echo "FAIL: zip absent -- the archive sweep could not be control-tested, and an untested sweep is not evidence"
+    fail=$((fail+1))
+  fi
   if [ "$zip_hits" -eq 0 ]; then
     echo "archives swept: no machine-local path inside any shipped .zip"
   fi

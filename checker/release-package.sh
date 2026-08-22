@@ -123,6 +123,31 @@ if [ "${1:-}" = "--print-variants" ]; then
   exit 0
 fi
 
+# `--tracked-list FILE` -- HOW ASSERTION 7 WORKS OUTSIDE A WORK TREE.
+# The local-only driver builds from `git archive HEAD`, a pristine export that
+# by construction has NO .git in it. Assertion 7 used to open with a REFUSE on
+# exactly that condition, which meant the one build path that is provably free
+# of untracked files was the one path the packager would not bless -- a guard
+# that fired on the safe case and nowhere else.
+#
+# The answer is not to drop the assertion but to give it its evidence. A caller
+# that HAS a repository writes the tracked-file list and hands the path in here;
+# the assertion then runs in full inside the export, against the file list of
+# the very commit the export came from. That is STRICTER than deriving it from
+# the local index, because the export is HEAD and the index may not be.
+#
+# A flag, not a ROTMOE_* variable, on purpose: every ROTMOE_ name is declared in
+# hooks/rot-voice.dtd and load-bearing for the env layer, and this is a private
+# argument between two checkers, not part of the user-facing config surface.
+TRACKED_IN=""
+if [ "${1:-}" = "--tracked-list" ]; then
+  TRACKED_IN="${2:-}"
+  if [ -z "$TRACKED_IN" ] || [ ! -f "$TRACKED_IN" ]; then
+    echo "REFUSE: --tracked-list needs a readable file (got '${TRACKED_IN}')"; exit 2
+  fi
+  shift 2
+fi
+
 OUT="${ROTMOE_RELEASE_DIR:-$REPO/.release}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
@@ -572,21 +597,53 @@ fi
 # reported green. Excluding *.bak and .rot-moe removes today's leak; THIS
 # assertion is what makes the class impossible, because the next stray file
 # will not be called .bak.
-if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  echo "REFUSE: not a git work tree -- cannot prove the archives ship only tracked files"; exit 2
+#
+# MEASURED 2026-08-22: this block opened with `git rev-parse --git-dir || REFUSE
+# exit 2`, and that refusal was self-inflicted. The local-only release builds
+# from a `git archive HEAD` export with no .git inside it, so the packager
+# aborted at exit 2 on the ONE input that cannot contain an untracked file --
+# blocking the verification rebuild, and behind it the whole local release.
+# The assertion was right; its way of obtaining the file list was too narrow.
+# It now takes the list from whichever of three sources is available, and says
+# which one it used, so a green line here is never ambiguous about its evidence.
+_tracked_src=""
+if [ -n "$TRACKED_IN" ]; then
+  sort < "$TRACKED_IN" > "$OUT/.tracked"
+  _tracked_src="the caller's list ($TRACKED_IN)"
+elif git rev-parse --git-dir >/dev/null 2>&1; then
+  git ls-files | sort > "$OUT/.tracked"
+  _tracked_src="git ls-files in this work tree"
 fi
-git ls-files | sort > "$OUT/.tracked"
-for vp in $VARIANTS; do
-  _zn=${vp#*:}
-  unzip -Z1 "$OUT/$_zn" | grep -v "/$" | sort > "$OUT/.inzip"
-  _stray=$(comm -23 "$OUT/.inzip" "$OUT/.tracked" | wc -l)
-  if [ "$_stray" -eq 0 ]; then
-    ok "$_zn ships only files git tracks"
+if [ -z "$_tracked_src" ]; then
+  # NOT a refuse, and NOT a silent skip. Shipping files git never saw is the
+  # exact defect this assertion exists to make impossible, so an unprovable
+  # build still fails -- it just fails as a counted assertion with a diagnosis
+  # instead of aborting the run before the summary that would explain it.
+  bad "ASSERTION 7 has no file list: not a work tree and no --tracked-list given"
+  echo "         (run from a checkout, or pass --tracked-list FILE)"
+else
+  note "tracked-file list from: $_tracked_src"
+  for vp in $VARIANTS; do
+    _zn=${vp#*:}
+    unzip -Z1 "$OUT/$_zn" | grep -v "/$" | sort > "$OUT/.inzip"
+    _stray=$(comm -23 "$OUT/.inzip" "$OUT/.tracked" | wc -l)
+    if [ "$_stray" -eq 0 ]; then
+      ok "$_zn ships only files git tracks"
+    else
+      bad "$_zn ships $_stray file(s) git does not track"
+      comm -23 "$OUT/.inzip" "$OUT/.tracked" | sed "s|^|         |"
+    fi
+  done
+  # CONTROL: the comparison must be capable of SEEING a stray file. A tracked
+  # list that accidentally matched everything (an empty comm, a broken sort)
+  # would print the same green line above for an archive full of garbage.
+  printf 'no-such-file-%s-never-tracked\n' "$TREEVER" > "$OUT/.inzip"
+  if [ "$(comm -23 "$OUT/.inzip" "$OUT/.tracked" | wc -l)" -eq 1 ]; then
+    ok "CONTROL: a file absent from the tracked list IS reported as stray"
   else
-    bad "$_zn ships $_stray file(s) git does not track"
-    comm -23 "$OUT/.inzip" "$OUT/.tracked" | sed "s|^|         |"
+    bad "CONTROL DEAD: a known-untracked name did not register as stray"
   fi
-done
+fi
 rm -f "$OUT/.tracked" "$OUT/.inzip"
 
 printf '\n== release package: %d passed, %d failed\n' "$PASS" "$FAIL"

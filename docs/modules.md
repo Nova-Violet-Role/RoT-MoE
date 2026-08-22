@@ -264,6 +264,25 @@ a heading that has to be edited by hand every time the tree grows.
   from being vacuous. Not proved: that git enforces it — the binding is
   procedural, `docs/GIT-WORKFLOW.md` §4.3–§4.4.
 
+* **`lean/Proofs/RotReleaseTier.lean`** (6 theorems) — **the patch digit IS the
+  tier, and the map is a bijection.** `patch_injective` and `patch_surjective`
+  together forbid two tiers sharing a digit or a digit naming no tier;
+  `patch_lt_three` bounds the family at three; `ofPatch_none` keeps the map
+  total by refusing anything outside it. The binding to the real files is
+  `checker/release-package.sh`'s `tier_version()`, which derives `.0/.1/.2`
+  from the manifest rather than hard-coding three version strings.
+
+* **`lean/Proofs/RotEnvWiring.lean`** (10 theorems) — **the three laws the
+  config loader obeys, stated over an arbitrary environment.**
+  `load_declared_only` (a key the DTD never declared is never set),
+  `load_unset_only` (an already-set key is never overwritten) and
+  `load_locator_refused` (the two locator variables can never be assigned from
+  inside a file they would have to be read to find). `load_inert` keeps them
+  from being vacuous by proving a file of comments changes nothing, and
+  `load_reload_stable` proves a second load is a no-op. The binding is
+  `checker/env-wiring.sh`, which generates `engine/rot.env.example` from the
+  DTD and asserts both activations load the same surface.
+
 ---
 
 
@@ -300,6 +319,7 @@ exactly such a module.
 * `lean/Proofs/RotEigenform.lean` (119 theorems)
 * `lean/Proofs/RotEndpoint.lean` (18 theorems)
 * `lean/Proofs/RotEnsemble.lean` (24 theorems)
+* `lean/Proofs/RotEnvWiring.lean` (10 theorems)
 * `lean/Proofs/RotEvent.lean` (16 theorems)
 * `lean/Proofs/RotExperiment.lean` (66 theorems)
 * `lean/Proofs/RotFamily.lean` (69 theorems)
@@ -335,6 +355,7 @@ exactly such a module.
 * `lean/Proofs/RotPushGuard.lean` (12 theorems)
 * `lean/Proofs/RotReadmeTable.lean` (10 theorems)
 * `lean/Proofs/RotRelease.lean` (15 theorems)
+* `lean/Proofs/RotReleaseTier.lean` (6 theorems)
 * `lean/Proofs/RotRemind.lean` (8 theorems)
 * `lean/Proofs/RotRootDecl.lean` (9 theorems)
 * `lean/Proofs/RotRotationCost.lean` (17 theorems)

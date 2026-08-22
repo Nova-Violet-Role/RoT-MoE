@@ -220,24 +220,42 @@ jobs:
           # anything: every row is still recounted from its own file, and a
           # contradiction between two mentions is still caught by that recount
           # (two_mentions_that_disagree_are_still_caught).
+          # THE PER-MODULE TABLE LIVES IN docs/modules.md, NOT IN README.md.
+          # MEASURED 2026-08-22: commit 1f57594 (8.0.1) CREATED docs/modules.md
+          # and moved the per-module roster into it -- README went from 107
+          # `lean/Proofs/*.lean` mentions to 3, docs/modules.md now carries 102
+          # claims over the 89 modules on disk. This harvest still read README,
+          # found zero rows, and correctly refused as vacuous; run 32464558240
+          # (job "copy") has been red on main ever since, and the last green run
+          # bf6495e predates the move by one day. The documentation was right
+          # and this line was pointing at the wrong file.
+          #
+          # Named in a variable so the next move updates ONE place, and the file
+          # is required to exist: a relocated doc must fail loudly here rather
+          # than silently harvesting nothing all over again.
+          MODDOC="docs/modules.md"
+          if [ ! -f "$MODDOC" ]; then
+            echo "::error::$MODDOC is missing -- the per-module roster moved again and this audit cannot see it"
+            fail=1
+          fi
           claims=$(mktemp)
           while IFS= read -r line; do
             f=$(printf '%s' "$line" | sed -n 's|.*`lean/Proofs/\([A-Za-z0-9_]*\.lean\)`.*|\1|p')
             n=$(printf '%s' "$line" | sed -n 's|.*(\([0-9]\{1,\}\) theorems.*|\1|p')
             [ -n "$f" ] && [ -n "$n" ] || continue
             if [ ! -f "lean/Proofs/$f" ]; then
-              echo "::error::README documents lean/Proofs/$f which does not exist"; fail=1; continue
+              echo "::error::$MODDOC documents lean/Proofs/$f which does not exist"; fail=1; continue
             fi
             a=$(bash checker/count-theorems.sh "lean/Proofs/$f" 2>/dev/null || echo ERR)
             if [ "$a" != "$n" ]; then
-              echo "::error::README says lean/Proofs/$f has $n theorems; it has $a"; fail=1
+              echo "::error::$MODDOC says lean/Proofs/$f has $n theorems; it has $a"; fail=1
             fi
             printf '%s %s\n' "$f" "$n" >> "$claims"
-          done < <(grep -nE '`lean/Proofs/[A-Za-z0-9_]*\.lean`.*\([0-9]+ theorems' README.md || true)
+          done < <(grep -nE '`lean/Proofs/[A-Za-z0-9_]*\.lean`.*\([0-9]+ theorems' "$MODDOC" 2>/dev/null || true)
 
           rows=$(wc -l < "$claims")
           if [ "$rows" -eq 0 ]; then
-            echo "::error::no per-module theorem claims found in README -- the audit would be vacuous"
+            echo "::error::no per-module theorem claims found in $MODDOC -- the audit would be vacuous"
             fail=1
           else
             # COVERAGE, BY NAME. Named, so the failure tells you what to write.
@@ -245,7 +263,7 @@ jobs:
             for p in lean/Proofs/*.lean; do
               b=$(basename "$p")
               if ! cut -d' ' -f1 "$claims" | grep -qxF "$b"; then
-                echo "::error::README states no theorem count for lean/Proofs/$b -- every module is documented, and coverage is checked by name rather than inferred from a sum"
+                echo "::error::$MODDOC states no theorem count for lean/Proofs/$b -- every module is documented, and coverage is checked by name rather than inferred from a sum"
                 missing=$((missing + 1)); fail=1
               fi
             done

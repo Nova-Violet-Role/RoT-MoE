@@ -152,15 +152,18 @@ else
     # made green on a side branch, which proves the workflow works but says
     # nothing about the state of `main` -- and a log that hides which one it was
     # invites exactly that confusion.
-    read -r newest green gref <<EOF
+    # A FOURTH FIELD: THE NEWEST RUN'S CONCLUSION. Age alone cannot tell a
+    # workflow that FAILED from one whose run a human CANCELLED, and those are
+    # opposite findings -- see the cancelled branch below.
+    read -r newest green gref nconc <<EOF
 $(printf '%s' "$body" | node -e '
 let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-  let j; try { j = JSON.parse(s); } catch (e) { console.log("ERR ERR ERR"); return; }
+  let j; try { j = JSON.parse(s); } catch (e) { console.log("ERR ERR ERR ERR"); return; }
   const r=j.workflow_runs||[];
-  if(!r.length){ console.log("NONE NONE NONE"); return; }
+  if(!r.length){ console.log("NONE NONE NONE NONE"); return; }
   const age=x=>Math.round((Date.now()-Date.parse(x.created_at))/3600000);
   const g=r.find(x=>x.conclusion==="success");
-  console.log(age(r[0]), g?age(g):"NONE", g?(g.head_branch||"?"):"NONE");
+  console.log(age(r[0]), g?age(g):"NONE", g?(g.head_branch||"?"):"NONE", r[0].conclusion||"in_progress");
 });' 2>/dev/null)
 EOF
     if [ "${newest:-ERR}" = "ERR" ] || [ -z "${newest:-}" ]; then
@@ -265,7 +268,36 @@ $WFDIR/$b
     if [ "$green" -le "$BOUND_HOURS" ]; then
       ok "$b youngest GREEN run is ${green}h old on ${gref} (newest run ${newest}h, bound ${BOUND_HOURS}h)"
     else
-      bad "$b youngest GREEN run is ${green}h old on ${gref}, over the ${BOUND_HOURS}h bound -- its newest run is only ${newest}h old, so 'it ran' would have called this healthy"
+      # THE SAME TWO ARGUMENTS AS THE never-succeeded BRANCH, ONE STEP LATER IN
+      # A WORKFLOW'S LIFE. Both were already written above for a workflow with
+      # NO green run; a workflow with a STALE green run fell straight through to
+      # `bad`, and that is how this gate deadlocked. MEASURED 2026-08-22:
+      # ads-manager.yml was red here at 75h while the local file carried the
+      # repair for the very failure being counted, and the repair could not be
+      # committed because this gate was red -- "spec forbids a correct future",
+      # the third time in this file.
+      #
+      # 1. LOCAL DIFFERS FROM REMOTE. The stale green describes the copy on the
+      #    remote; the file in hand is a different artifact and has no run
+      #    history at all. Judging it by those runs judges the wrong file. SKIP,
+      #    never PASS, and it lapses the instant the file is pushed.
+      _loc_sha2=$(git hash-object "$WFDIR/$b" 2>/dev/null)
+      _rem_sha2=$(git ls-tree -r origin/main -- "$WFDIR/$b" 2>/dev/null | awk '{print $3}')
+      if [ -n "$_loc_sha2" ] && [ -n "$_rem_sha2" ] && [ "$_loc_sha2" != "$_rem_sha2" ]; then
+        skip "$b's youngest GREEN run is ${green}h old, but the local file DIFFERS from origin/main -- that verdict describes the old copy; this is an untested repair, not a healthy workflow"
+      elif [ "${nconc:-}" = "cancelled" ]; then
+        # 2. THE NEWEST RUN WAS CANCELLED. A cancellation is an operator action,
+        #    not a verdict about the code -- it is absence of evidence, and
+        #    reading it as a failure is the exact mirror of the "it ran, so it
+        #    is healthy" error this whole half exists to reject. The honest
+        #    word for it is "not measured". MEASURED 2026-08-22: verify.yml's
+        #    newest run (125h) was cancelled, so main carries a commit with no
+        #    verify verdict at all -- which a FAIL here would have misreported
+        #    as a broken workflow.
+        skip "$b's youngest GREEN run is ${green}h old and its newest run (${newest}h) was CANCELLED -- a cancellation carries no verdict, so this is NOT MEASURED rather than broken"
+      else
+        bad "$b youngest GREEN run is ${green}h old on ${gref}, over the ${BOUND_HOURS}h bound -- its newest run is only ${newest}h old (${nconc:-unknown}), so 'it ran' would have called this healthy"
+      fi
     fi
   done
 fi
@@ -293,6 +325,29 @@ if [ "$_n" -le "$_b" ] && [ "$_g" -gt "$_b" ]; then
   ok "CONTROL: the measured 19h/173h pair is accepted by 'it ran' and refused by 'it succeeded'"
 else
   bad "CONTROL FAILED: the two freshness tests no longer disagree on the pair that motivated them"
+fi
+# THE TWO STALE-GREEN EXEMPTIONS, CONTROLLED IN THE DIRECTION THAT MATTERS.
+# Both branches added 2026-08-22 EXEMPT, which is the direction that can hide a
+# real failure, so the thing to prove is not that they fire -- both fired live
+# on this repo -- but that they DO NOT fire on the plain broken case: a stale
+# green whose file matches the remote and whose newest run genuinely FAILED.
+# The decision is replayed here on fixed inputs, so it is checked even on a run
+# where the API half skipped entirely and no workflow reached that code.
+_decide () {
+  # $1 local sha, $2 remote sha, $3 newest conclusion -> prints the verdict word
+  if [ -n "$1" ] && [ -n "$2" ] && [ "$1" != "$2" ]; then echo skip_differs
+  elif [ "$3" = "cancelled" ]; then echo skip_cancelled
+  else echo bad
+  fi
+}
+_c1=$(_decide aaa bbb failure)      # differs        -> exempt
+_c2=$(_decide aaa aaa cancelled)    # same+cancelled -> exempt
+_c3=$(_decide aaa aaa failure)      # same+failed    -> MUST still fail
+_c4=$(_decide "" "" failure)        # unmeasurable shas -> MUST still fail
+if [ "$_c1" = "skip_differs" ] && [ "$_c2" = "skip_cancelled" ] && [ "$_c3" = "bad" ] && [ "$_c4" = "bad" ]; then
+  ok "CONTROL: the stale-green exemptions cover 'file differs' and 'cancelled' ONLY -- a matching file with a FAILED newest run still fails"
+else
+  bad "CONTROL FAILED: the stale-green exemption logic misclassifies ($_c1/$_c2/$_c3/$_c4) -- it can now excuse a genuinely broken workflow"
 fi
 rm -rf "$CTL"
 
