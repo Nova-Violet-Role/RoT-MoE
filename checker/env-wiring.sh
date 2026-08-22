@@ -277,6 +277,124 @@ else
 fi
 rm -rf "$PROJ"
 
+# --- W8: the two ACTIVATIONS reach the same values ---------------------------
+# W7 proved the two LOADERS agree. W8 is the stronger claim, and the only
+# reason engine/rot.profile.ps1 is allowed to exist: an operator who dot-sources
+# the profile on a bare Windows box must end up with the IDENTICAL configuration
+# an operator who sources rot.bashrc gets on macOS. Two activation files are a
+# liability the moment they disagree, so the disagreement is what gets asserted.
+#
+# Deliberately different values from W7 (41/29, not 77/13). If a stale export
+# from the W7 block ever leaked into this one, the numbers would give it away
+# instead of quietly agreeing for the wrong reason.
+PROFPS="$REPO/engine/rot.profile.ps1"
+if [ ! -f "$PROFPS" ]; then
+  bad "W8 rot.profile.ps1 is not shipped -- a Windows host without bash has no documented activation"
+else
+  # W8a: ASCII only. hooks/rot-voice-gate.ps1 shipped 8.0.1 emitting mojibake
+  # because a PowerShell host whose OutputEncoding is not UTF-8 mangles every
+  # non-ASCII byte -- 23 differing positions in a 1438-char refusal. This file
+  # avoids the entire class rather than guarding against it, and that is only
+  # true for as long as something checks.
+  NONASCII=$(tr -d '\000-\177' < "$PROFPS" | wc -c | tr -d ' ')
+  [ "${NONASCII:-0}" -eq 0 ] \
+    && ok "W8a rot.profile.ps1 is pure ASCII -- no host encoding can mangle it" \
+    || bad "W8a rot.profile.ps1 carries $NONASCII non-ASCII byte(s) -- a non-UTF-8 PowerShell host will mangle them"
+
+  PROJ8=$(mktemp -d); mkdir -p "$PROJ8/.rot-moe"
+  printf 'ROTMOE_PROOF_STALE_MIN=41\nROTMOE_TOKEN_PCT=29\nPATH=/evil\n' > "$PROJ8/.rot-moe/rot.env"
+
+  # POSIX arm: the activation, not the loader. ROTMOE_CWD is how rot_activate is
+  # told which project to apply, so this exercises the real operator path.
+  SH8=$(ROTMOE_CWD="$PROJ8" sh -c '. "$1" "$2" >/dev/null 2>&1; printf "%s|%s|%s" "${ROTMOE_PROOF_STALE_MIN:-unset}" "${ROTMOE_TOKEN_PCT:-unset}" "${PATH}"' _ "$BASHRC" "$REPO" 2>/dev/null)
+  SH8_MIN=$(printf '%s' "$SH8" | cut -d'|' -f1)
+  SH8_PCT=$(printf '%s' "$SH8" | cut -d'|' -f2)
+  SH8_PATH=$(printf '%s' "$SH8" | cut -d'|' -f3)
+  if [ "$SH8_MIN" = "41" ] && [ "$SH8_PCT" = "29" ]; then
+    ok "W8b sourcing rot.bashrc applies the project rot.env (41/29)"
+  else
+    bad "W8b rot.bashrc activation did not apply the project rot.env (got '$SH8_MIN'/'$SH8_PCT')"
+  fi
+
+  if command -v pwsh >/dev/null 2>&1; then
+    # winpath() at the top of the W7 block is scoped INSIDE that block's
+    # then-branch, so it is not in scope here. Same conversion, declared where
+    # it is used: PowerShell resolves /tmp/tmp.XXXX as C:\tmp\tmp.XXXX, finds
+    # nothing, and reports a divergence that does not exist.
+    w8path () { if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi; }
+    W8_REPO=$(w8path "$REPO"); W8_PROJ=$(w8path "$PROJ8")
+
+    # Single-quoted so the shell interpolates NOTHING: every value crosses into
+    # PowerShell through the environment. No backslash escaping, therefore no
+    # escaping bugs -- this checker has already lost a day to one.
+    #
+    # `tr -d '\r\n'` WITHOUT a space, unlike W7c above. W7c compares "77", so
+    # deleting spaces was harmless there; this block carries a PATH through the
+    # same pipe and the repo it must report lives at "C:/GIT External Repo/RoT
+    # MoE". Stripping spaces turned that into C:/GITExternalRepo/RoTMoE and W8d
+    # reported a divergence that did not exist. Do not add the space back.
+    PS8=$(ROTMOE_TEST_ROOT="$W8_REPO" ROTMOE_CWD="$W8_PROJ" pwsh -NoProfile -Command '
+$root = $env:ROTMOE_TEST_ROOT
+. (Join-Path (Join-Path $root "engine") "rot.profile.ps1") $root
+$fns = 0
+foreach ($f in @("Invoke-RotActivate","Invoke-RotReload","Show-RotEnv","Invoke-RotEnvLoad")) {
+  if (Get-Command $f -ErrorAction SilentlyContinue) { $fns = $fns + 1 }
+}
+$m = $env:ROTMOE_PROOF_STALE_MIN; if (-not $m) { $m = "unset" }
+$p = $env:ROTMOE_TOKEN_PCT;       if (-not $p) { $p = "unset" }
+$h = $env:ROTMOE_HOME;            if (-not $h) { $h = "unset" }
+$pathState = "clean"; if ($env:PATH -eq "/evil") { $pathState = "BREACHED" }
+$m + "|" + $p + "|" + $fns + "|" + $pathState + "|" + $h
+' 2>/dev/null | tr -d '\r\n')
+    PS8_MIN=$(printf  '%s' "$PS8" | cut -d'|' -f1)
+    PS8_PCT=$(printf  '%s' "$PS8" | cut -d'|' -f2)
+    PS8_FNS=$(printf  '%s' "$PS8" | cut -d'|' -f3)
+    PS8_PATH=$(printf '%s' "$PS8" | cut -d'|' -f4)
+    PS8_HOME=$(printf '%s' "$PS8" | cut -d'|' -f5)
+
+    # W8c: the profile must define everything it advertises in its own header,
+    # AND bring the ORGAN 7 loader into scope. Three of its own functions plus
+    # Invoke-RotEnvLoad.
+    if [ "$PS8_FNS" = "4" ]; then
+      ok "W8c dot-sourcing rot.profile.ps1 defines all 3 advertised functions and brings Invoke-RotEnvLoad into scope"
+    else
+      bad "W8c rot.profile.ps1 brought only ${PS8_FNS:-0}/4 functions into scope"
+    fi
+
+    # W8d: it must RESOLVE the tree, not merely parse. ROTMOE_HOME is compared
+    # against the native spelling, because the two arms legitimately disagree
+    # about path syntax and only about that.
+    if [ "$PS8_HOME" = "$W8_REPO" ]; then
+      ok "W8d rot.profile.ps1 resolves and exports ROTMOE_HOME"
+    else
+      bad "W8d rot.profile.ps1 did not export ROTMOE_HOME (got '$PS8_HOME', expected '$W8_REPO')"
+    fi
+
+    # W8e: THE PARITY ASSERTION. Everything above is a precondition for this
+    # one line. Same rot.env, two activations, two operating systems: the
+    # values must be indistinguishable.
+    if [ "$PS8_MIN" = "$SH8_MIN" ] && [ "$PS8_PCT" = "$SH8_PCT" ] && [ "$PS8_MIN" = "41" ]; then
+      ok "W8e ACTIVATION PARITY: rot.bashrc and rot.profile.ps1 reach identical values ($SH8_MIN/$SH8_PCT) from one rot.env"
+    else
+      bad "W8e ACTIVATION DIVERGENCE: bashrc read '$SH8_MIN'/'$SH8_PCT', profile.ps1 read '$PS8_MIN'/'$PS8_PCT' from the SAME file"
+    fi
+
+    # W8f: law 2 holds on BOTH arms. An activation that honours an undeclared
+    # key is worse than no activation, and PATH is the key that proves it.
+    if [ "$PS8_PATH" = "clean" ]; then
+      case "$SH8_PATH" in
+        /evil) bad "W8f LAW 2 BREACHED on the POSIX arm -- a rot.env reached PATH through rot.bashrc" ;;
+        *)     ok  "W8f both activations ignored the undeclared PATH key, as law 2 requires" ;;
+      esac
+    else
+      bad "W8f LAW 2 BREACHED on the PowerShell arm -- a rot.env reached PATH through rot.profile.ps1"
+    fi
+  else
+    printf 'SKIP  W8c-W8f no pwsh on this host -- the PowerShell activation could not be compared\n'
+  fi
+  rm -rf "$PROJ8"
+fi
+
 # --- CONTROLS: an alarm nobody has tripped is an untested alarm ---------------
 echo "--- controls ---"
 
@@ -312,6 +430,32 @@ rm -f "$CTL2"
 G=$(emit_env 2>/dev/null | grep -c '^# ROTMOE_')
 [ "$G" -ge 30 ] && ok "C3 control: the generator emits $G key blocks (a silent empty emission would pass W2 against an empty file)" \
                 || bad "C3 CONTROL: the generator emitted only $G key blocks"
+
+# C4: W8e is the assertion that JUSTIFIES shipping two activation files, and it
+# had never once failed. An always-agreeing comparator would pass it forever.
+# Point the PowerShell arm at a DIFFERENT project (42/28) and require the value
+# to follow the file, not the parity run's 41. That proves two things at once:
+# the ps1 arm reads what it is given rather than echoing a constant, and a real
+# divergence would therefore be visible to W8e instead of averaging away.
+if command -v pwsh >/dev/null 2>&1 && [ -f "$REPO/engine/rot.profile.ps1" ]; then
+  c4path () { if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi; }
+  PROJ4=$(mktemp -d); mkdir -p "$PROJ4/.rot-moe"
+  printf 'ROTMOE_PROOF_STALE_MIN=42\nROTMOE_TOKEN_PCT=28\n' > "$PROJ4/.rot-moe/rot.env"
+  C4OUT=$(ROTMOE_TEST_ROOT="$(c4path "$REPO")" ROTMOE_CWD="$(c4path "$PROJ4")" pwsh -NoProfile -Command '
+$root = $env:ROTMOE_TEST_ROOT
+. (Join-Path (Join-Path $root "engine") "rot.profile.ps1") $root
+$m = $env:ROTMOE_PROOF_STALE_MIN; if (-not $m) { $m = "unset" }
+$m
+' 2>/dev/null | tr -d '\r\n')
+  if [ "$C4OUT" = "42" ]; then
+    ok "C4 control: the PowerShell activation tracks the file it is handed (42, not the parity run's 41) -- W8e can see a real divergence"
+  else
+    bad "C4 CONTROL DID NOT FIRE: the activation reported '$C4OUT' for a rot.env declaring 42 -- W8e may be comparing a constant"
+  fi
+  rm -rf "$PROJ4"
+else
+  printf 'SKIP  C4 no pwsh on this host -- the parity comparator could not be falsified\n'
+fi
 
 printf '\n== env wiring: %d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
