@@ -416,25 +416,25 @@
       ]
     },
     "cross-diff.sh": {
-      "hash": "4d9afad44954",
-      "indexed_at": "2026-08-22T17:50:25.326107+00:00",
+      "hash": "42dd83cbb6b1",
+      "indexed_at": "2026-08-22T19:43:54.693165+00:00",
       "language": "shell",
-      "lines": 703,
-      "mtime_ns": 1787420484639730600,
-      "size": 37537,
+      "lines": 740,
+      "mtime_ns": 1787427793955978500,
+      "size": 39837,
       "symbols": [
         {
           "lines": [
-            288,
-            299
+            325,
+            336
           ],
           "name": "_stem_of",
           "type": "function"
         },
         {
           "lines": [
-            300,
-            307
+            337,
+            344
           ],
           "name": "_drive",
           "type": "function"
@@ -442,8 +442,8 @@
         {
           "docstring": "NONE (no gauge record) / ABSENT (no such field) / EMPTY (present but \"\") are reported as three DIFFERENT strings on purpose. Collapsing them is how th",
           "lines": [
-            370,
-            380
+            407,
+            417
           ],
           "name": "_gfield",
           "type": "function"
@@ -451,16 +451,16 @@
         {
           "docstring": "This checker exports ROTMOE_DEBUG_SRC=test, so \"no declaration\" must be expressed with `env -u`. `${x:+...}` leaves the INHERITED value in place -- me",
           "lines": [
-            386,
-            407
+            423,
+            444
           ],
           "name": "_pdrive",
           "type": "function"
         },
         {
           "lines": [
-            469,
-            476
+            506,
+            513
           ],
           "name": "_adrive",
           "type": "function"
@@ -1825,12 +1825,12 @@
       ]
     },
     "spdx-sweep.sh": {
-      "hash": "cd89347a30b3",
-      "indexed_at": "2026-08-22T17:50:25.353338+00:00",
+      "hash": "4d282ce40b34",
+      "indexed_at": "2026-08-22T20:06:20.177540+00:00",
       "language": "shell",
-      "lines": 149,
-      "mtime_ns": 1787420487796625200,
-      "size": 7240,
+      "lines": 230,
+      "mtime_ns": 1787429169086278500,
+      "size": 11186,
       "symbols": [
         {
           "docstring": "Source files that must carry the header. Verbatim licence texts must NOT -- editing them would break the licences themselves. THE TYPE LIST IS THE WHO",
@@ -1839,6 +1839,15 @@
             51
           ],
           "name": "list_sources",
+          "type": "function"
+        },
+        {
+          "docstring": "The census, as a function, so the CONTROL below exercises the code production actually runs rather than a copy of it.",
+          "lines": [
+            98,
+            123
+          ],
+          "name": "census_unknown",
           "type": "function"
         }
       ]
@@ -2085,12 +2094,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "b02d74c3b156",
-      "indexed_at": "2026-08-22T18:52:24.784811+00:00",
+      "hash": "73e490eb62f0",
+      "indexed_at": "2026-08-22T19:38:16.934518+00:00",
       "language": "shell",
-      "lines": 1503,
-      "mtime_ns": 1787424547233313100,
-      "size": 77747,
+      "lines": 1581,
+      "mtime_ns": 1787427442578542500,
+      "size": 81568,
       "symbols": [
         {
           "docstring": "One entry point, so the four call sites cannot drift apart again.",
@@ -2164,10 +2173,19 @@
           "type": "function"
         },
         {
+          "docstring": "--- 2a. the four invocation forms are the ONLY ones, and that is now asserted  DEBT PAID.  wired_in() above recognises exactly four ways a workflow ca",
+          "lines": [
+            540,
+            551
+          ],
+          "name": "mention_class",
+          "type": "function"
+        },
+        {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            548,
-            555
+            626,
+            633
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -2175,16 +2193,16 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            642,
-            651
+            720,
+            729
           ],
           "name": "gate_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            724,
-            728
+            802,
+            806
           ],
           "name": "enum_mods",
           "type": "function"
@@ -2192,24 +2210,24 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            765,
-            769
+            843,
+            847
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            902,
-            926
+            980,
+            1004
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            982,
-            993
+            1060,
+            1071
           ],
           "name": "perms_of",
           "type": "function"
@@ -2217,8 +2235,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            1111,
-            1118
+            1189,
+            1196
           ],
           "name": "probe_r20",
           "type": "function"
@@ -2226,8 +2244,8 @@
         {
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
-            1238,
-            1253
+            1316,
+            1331
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -2235,16 +2253,16 @@
         {
           "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
           "lines": [
-            1449,
-            1451
+            1527,
+            1529
           ],
           "name": "_r23_onblock",
           "type": "function"
         },
         {
           "lines": [
-            1452,
-            1454
+            1530,
+            1532
           ],
           "name": "_r23_count",
           "type": "function"
@@ -2271,6 +2289,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T19:30:18.105675+00:00",
+  "generated_at": "2026-08-22T20:06:20.177654+00:00",
   "version": "1.0"
 }

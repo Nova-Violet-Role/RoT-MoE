@@ -58,7 +58,97 @@ list_sources () {
 SPDX_COVERED='lean sh ps1 yml yaml toml js dtd lua bashrc'
 # EXEMPT, and why: prose and data carry no code; archives and images are opaque;
 # .bak is a working-copy artefact and is git-ignored.
-SPDX_EXEMPT='md gif jsonl txt json zip bak tsv log done count cff 2'
+#
+# 2026-08-19 -- AND THEN THE LIST ITSELF BECAME THE DEFECT.
+#
+# A scheduling tool dropped .claude/scheduled_tasks.lock into the working copy
+# and the WHOLE SUITE went red: "extension(s) ... neither covered nor declared
+# exempt: lock". The file is git-ignored, ships in nothing, and is not this
+# repository's work -- but the census walked it anyway, because the census
+# scope is a hand-written list of directories and .claude/ was not on it.
+#
+# That is precisely what the header above condemns at "an instrument whose
+# scope is written down instead of derived". Every tool that ever drops a
+# file in this tree either turns the suite red or forces an edit HERE, and a
+# gate that goes red for something the repository did not do is the gate
+# someone disables. Excluding '*/.claude/*' would have been the wrong repair
+# twice over: it is another hand-written entry, and .claude/ DOES carry
+# tracked content (.claude/commands/rot-moe-install.md), so the exclusion
+# would blind the census to real shipped files -- a hiding place.
+#
+# The criterion was already written down three paragraphs up, applied by hand
+# to .cocoindex_code/: "it is git-ignored, release-package.sh excludes it by
+# name, and nothing in it ships". Derive it instead. Git-ignored means it does
+# not ship; not shipping means it is out of scope for a licence sweep.
+#
+# MEASURED 2026-08-19: 542 files in the census, 83 of them git-ignored.
+# Dropping the ignored ones removes exactly four extensions -- bak, count,
+# lock, log -- and THREE OF THOSE FOUR WERE ALREADY IN SPDX_EXEMPT. The
+# exempt list had been absorbing transient tool droppings as though they were
+# repository file types.
+#
+# So bak, count and log are removed from the list below, and that is not
+# tidying -- it is the canary. Every one of them exists ONLY as a git-ignored
+# file, so if the derived filter is ever deleted or broken, this gate goes red
+# naming bak/count/log on the very next run. The fix tests itself.
+SPDX_EXEMPT='md gif jsonl txt json zip tsv done cff 2'
+
+# The census, as a function, so the CONTROL below exercises the code
+# production actually runs rather than a copy of it.
+census_unknown () {
+  _c_all=$(find "$ROOT" -type f \
+             -not -path '*/.git/*' -not -path '*/.lake/*' \
+             -not -path '*/LICENSES/*' -not -path '*/.codemap/*' \
+             -not -path '*/.cocoindex_code/*' \
+           | sed "s#^$ROOT/##")
+  # .lake/ and .cocoindex_code/ stay pruned above purely for speed -- both are
+  # git-ignored and the filter below would drop them anyway. They are the last
+  # two entries that may remain hand-written, because they prune the WALK.
+  _c_ign=$(printf '%s\n' "$_c_all" | git -C "$ROOT" check-ignore --stdin || true)
+  # An empty pattern file makes `grep -Fxv -f` match EVERY line and discard the
+  # whole census, reporting a clean tree. Guard it explicitly.
+  if [ -n "$_c_ign" ]; then
+    _c_keep=$(printf '%s\n' "$_c_all" | grep -Fxv -f <(printf '%s\n' "$_c_ign") || true)
+  else
+    _c_keep="$_c_all"
+  fi
+  _c_unknown=''
+  for _ext in $(printf '%s\n' "$_c_keep" | sed -n 's/.*\.\([A-Za-z0-9]\{1,6\}\)$/\1/p' | sort -u); do
+    case " $SPDX_COVERED $SPDX_EXEMPT " in
+      *" $_ext "*) : ;;
+      *) _c_unknown="$_c_unknown $_ext" ;;
+    esac
+  done
+  printf '%s' "$_c_unknown"
+}
+
+# CONTROL: the census must still SEE a new type that genuinely ships, and must
+# NOT see one that cannot. Both probes carry an extension no real file uses.
+# Without the first arm the derived filter could silently discard everything.
+_ctl_live="$ROOT/.spdx-census-probe.zzq"
+: > "$_ctl_live"
+_ctl_saw_live=$(census_unknown)
+rm -f "$_ctl_live"
+_ctl_ign="$ROOT/.lake/.spdx-census-probe.zzr"
+mkdir -p "$ROOT/.lake" 2>/dev/null || true
+: > "$_ctl_ign"
+_ctl_saw_ign=$(census_unknown)
+rm -f "$_ctl_ign"
+case " $_ctl_saw_live " in
+  *" zzq "*) : ;;
+  *) echo "FAIL: control -- the census did NOT see a planted shipping file type."
+     echo "      Every 'no undeclared type' verdict from this gate is vacuous."
+     exit 2 ;;
+esac
+case " $_ctl_saw_ign " in
+  *" zzr "*) echo "FAIL: control -- a git-ignored file type was reported as undeclared."
+     echo "      The derived exclusion is not applied; transient tool files can"
+     echo "      turn this suite red for work the repository never did."
+     exit 2 ;;
+  *) : ;;
+esac
+echo "control OK: census sees a planted shipping type, ignores a git-ignored one"
+
 _unknown=''
 # `.cocoindex_code/` joins `.lake/` for the same reason: it is a local index a
 # tool builds inside the working copy, it is git-ignored, `release-package.sh`
@@ -67,16 +157,7 @@ _unknown=''
 # mathlib-`.py` shape of false positive -- a gate naming a DEPENDENCY's files as
 # the repository's undeclared work. Exempting `db`/`mdb` instead would have been
 # the wrong repair: it would declare types this repository does not ship.
-for _ext in $(find "$ROOT" -type f \
-                -not -path '*/.git/*' -not -path '*/.lake/*' \
-                -not -path '*/LICENSES/*' -not -path '*/.codemap/*' \
-                -not -path '*/.cocoindex_code/*' \
-              | sed -n 's/.*\.\([A-Za-z0-9]\{1,6\}\)$/\1/p' | sort -u); do
-  case " $SPDX_COVERED $SPDX_EXEMPT " in
-    *" $_ext "*) : ;;
-    *) _unknown="$_unknown $_ext" ;;
-  esac
-done
+_unknown=$(census_unknown)
 if [ -n "$_unknown" ]; then
   echo "FAIL: extension(s) in the tree are neither covered nor declared exempt:$_unknown"
   echo "      Add them to SPDX_COVERED (and give them headers) or to SPDX_EXEMPT"

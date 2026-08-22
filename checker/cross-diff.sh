@@ -124,6 +124,43 @@ else
     if [ "$a" = "$b" ]; then ok "arms agree: $note"
     else bad "ARMS DISAGREE: $note"; echo "        sh : $a"; echo "        ps1: $b"; fi
   done < <(grep -vE '^\s*(#|$)' "$CORPUS")
+
+  # CONTROL: this comparison must be able to FAIL, and both arms must actually
+  # speak.  Every OTHER cross-arm phase in this file carries such a control --
+  # profile discrimination, the stem cross-diff, provenance, the planted EMPTY
+  # -- and the phase the header calls "the entire argument for maintaining a
+  # second arm at all" was the one without one.  Sixty-five rows of
+  # [ "$a" = "$b" ] assert nothing until something shows the equality test can
+  # see a difference.
+  #
+  # The empty-vs-empty trap is worth naming because it is nearly closed by
+  # accident rather than by design: phase 1 above compares the POSIX arm to a
+  # PINNED string, so an empty "$a" fails there and can never reach here.  That
+  # makes "$a" = "$b" = "" unreachable TODAY -- but only as a side effect of
+  # phase 1 running first over the same corpus.  Reorder the phases, or let the
+  # corpus and this loop drift apart, and two silent arms read as 65 agreements.
+  # So assert non-emptiness here, in the phase that depends on it, instead of
+  # inheriting it from a neighbour.
+  #
+  # MEASURED 2026-08-19 before this control was written: vector 1,0,... yields
+  # "R/s+ = 0.47 ... lenses=Nova" and vector 0,...,1,0 yields
+  # "R/s+ = 0.45 ... lenses=Eidolon" -- distinguishable in the FORMATTED string,
+  # which is what this file compares.  The same vector through both arms was
+  # byte-identical, so the control discriminates without being a false alarm.
+  _xa=$("$SH" --profile FORGE --vector 1,0,0,0,0,0,0,0,0 --breadth 1 --M 1 --C 1 --T 1)
+  _xb=$("$PWSH" -NoProfile -File "$PS1" -Profile FORGE -Vector 0,0,0,0,0,0,0,1,0 -Breadth 1 -M 1 -C 1 -T 1)
+  _xb=$(printf '%s' "$_xb" | tr -d '\r')
+  if [ -z "$_xa" ] || [ -z "$_xb" ]; then
+    bad "CONTROL DEAD: an arm produced NO OUTPUT (sh '$_xa' ps1 '$_xb') -- an"
+    echo "        empty string compares equal to an empty string, so every"
+    echo "        'arms agree' row above would be vacuous."
+  elif [ "$_xa" != "$_xb" ]; then
+    ok "CONTROL: a genuine arm-vs-arm disagreement IS detected, and both arms speak"
+  else
+    bad "CONTROL DEAD: two DIFFERENT vectors read identically ('$_xa') -- the"
+    echo "        byte-for-byte comparison cannot see a difference, so the rows"
+    echo "        above prove nothing about the second arm."
+  fi
 fi
 
 echo
