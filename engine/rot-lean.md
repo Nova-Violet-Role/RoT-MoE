@@ -146,13 +146,13 @@ pretend · character · User*.
 |------|---------------|------|
 | CLINICAL | debug, error, bug, fix, secur, audit, verif, test, CVE, segfault, crash, panic, leak, regress, traceback | ⚪ Anti-Venom |
 | EXECUTIVE | decid, urgenc, strike, direct, declar, now, conclud | 🕷️ Venom |
-| EMPATHIC | emot, feel, grief, lonel, soul, story, human, tired, lost | 🎷 Violet |
+| EMPATHIC | emot, feel, grief, lonel, soul, story, human, tired, lost, relation | 🎷 Violet |
 | STRATEGIC | strateg, plan, goal, roadmap, priorit, legal, recommend, analyz | ⚜️ Nova |
 | CREATIVE | creativ, chaos, surreal, disrupt, paradox, dream, invent, brainstorm, ideat, imagin, tagline | 🩸 Carnage |
 | PREDICTIVE | futur, scenar, predict, trend, forec, likel, horizon, next | 🔮 Chroma |
 | STEALTH | encod, optim, token, compress, concise, byte, distill | ⬜ Soleil |
 | RECURSIVE | evolv, recurs, meta, architect, refactor, ontolog, hybrid | 🜏 Eidolon |
-| **FORGE** | run, build, install, deploy, reproduce, ship, **lake, theorem, tactic, sorry, mathlib, .lean** | **🧭 Claude** |
+| **FORGE** | run, build, install, deploy, reproduce, ship, **lake, theorem, tactic, sorry, mathlib, .lean, prove, proof, lemma, lean, qed** | **🧭 Claude** |
 
 > On this head the Lean stems route to **FORGE**, and FORGE is the common case — not the exception.
 >

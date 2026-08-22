@@ -605,6 +605,25 @@
         }
       ]
     },
+    "env-wiring.sh": {
+      "hash": "da4d3f97ec57",
+      "indexed_at": "2026-08-22T05:47:08.600745+00:00",
+      "language": "shell",
+      "lines": 317,
+      "mtime_ns": 1787377627994006900,
+      "size": 15448,
+      "symbols": [
+        {
+          "docstring": "--- THE GENERATOR ------------------------------------------------------------ Reads every `<!ENTITY ENV.n \"NAME|TYPE|DESCRIPTION\">` out of the DTD an",
+          "lines": [
+            60,
+            136
+          ],
+          "name": "emit_env",
+          "type": "function"
+        }
+      ]
+    },
     "facts-block.sh": {
       "hash": "cfbb85a307b6",
       "indexed_at": "2026-08-21T12:23:25.192571+00:00",
@@ -632,18 +651,18 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "08297239fa84",
-      "indexed_at": "2026-08-21T18:06:10.618636+00:00",
+      "hash": "cbe200f5e251",
+      "indexed_at": "2026-08-22T05:51:06.410938+00:00",
       "language": "shell",
-      "lines": 421,
-      "mtime_ns": 1787335568756739500,
-      "size": 23650,
+      "lines": 422,
+      "mtime_ns": 1787377774895649700,
+      "size": 23828,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            181,
-            196
+            182,
+            197
           ],
           "name": "fires",
           "type": "function"
@@ -2136,6 +2155,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T04:21:22.506441+00:00",
+  "generated_at": "2026-08-22T05:51:06.411009+00:00",
   "version": "1.0"
 }

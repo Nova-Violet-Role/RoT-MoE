@@ -2,12 +2,12 @@
   "directory": "engine",
   "files": {
     "rot-lean.md": {
-      "hash": "f6dac7e28fb9",
-      "indexed_at": "2026-08-21T07:50:35.587733+00:00",
+      "hash": "e36d6335f32f",
+      "indexed_at": "2026-08-22T05:33:25.278930+00:00",
       "language": "markdown",
       "lines": 438,
-      "mtime_ns": 1787209313000000000,
-      "size": 29610,
+      "mtime_ns": 1787376804685387100,
+      "size": 29652,
       "symbols": [
         {
           "docstring": "**Deliberate inversion, stated so it is never mistaken for drift.** `Nova_Codex_OMEGA.md` BLOCK 10 is titled *\"ROT OUTPUT SCHEMA \u2014 ALWAYS VISIBLE\"*, a",
@@ -100,6 +100,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:50:35.663159+00:00",
+  "generated_at": "2026-08-22T05:33:25.279014+00:00",
   "version": "1.0"
 }

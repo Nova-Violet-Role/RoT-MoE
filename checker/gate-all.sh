@@ -116,6 +116,7 @@ release notes -- one body, three tiers|fast||bash checker/release-notes.sh core 
 hook contract|fast||bash checker/hook-contract.sh
 voice contract (the lens roster, held both ways)|fast||bash checker/voice-contract.sh
 env layer (ORGAN 7 -- the rot family and the three loader laws)|fast||sh checker/env-layer.sh
+env wiring (the DTD generates the config the activation loads)|fast|hooks/rot-voice.dtd,engine/rot.env.example,engine/rot.bashrc,checker/env-wiring.sh|bash checker/env-wiring.sh
 workflow lint + drift|fast||bash checker/workflow-lint.sh
 CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential|deep|.github/workflows/,checker/ci-honesty.sh|bash checker/ci-honesty.sh
 README download links vs the packager|fast||bash checker/readme-variants.sh

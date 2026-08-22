@@ -1154,6 +1154,14 @@ jobs:
       # /bin/sh user would bring to it.
       - name: env layer -- the rot command family and the three loader laws
         run: sh checker/env-layer.sh
+
+      # The configuration spectrum: hooks/rot-voice.dtd generates
+      # engine/rot.env.example, which engine/rot.bashrc loads through ORGAN 7 on
+      # macOS, Linux and git-bash -- and which the PowerShell twin reads to the
+      # same values (W7c). Registered here because a checker nobody runs is the
+      # defect this suite exists to find.
+      - name: env wiring -- the DTD generates the config the activation loads
+        run: bash checker/env-wiring.sh
       # THE ONE REMAINING SKIP IN THIS WORKFLOW, and it is a boundary rather than
       # an omission. Stated plainly so nobody has to rediscover it:
       #
