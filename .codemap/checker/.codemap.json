@@ -1943,12 +1943,12 @@
       ]
     },
     "voice-contract.sh": {
-      "hash": "fca42a65142f",
-      "indexed_at": "2026-08-21T17:40:28.141165+00:00",
+      "hash": "976c281863f6",
+      "indexed_at": "2026-08-22T06:17:47.945630+00:00",
       "language": "shell",
-      "lines": 696,
-      "mtime_ns": 1787333869755255200,
-      "size": 42865,
+      "lines": 771,
+      "mtime_ns": 1787379467336188500,
+      "size": 46744,
       "symbols": [
         {
           "docstring": "--- contract readers -------------------------------------------------------- One reader per declaration class. The DTD is the single source; nothing",
@@ -1979,7 +1979,7 @@
           "docstring": "--- the contract, verified against a root ----------------------------------- Prints findings; returns 0 when every direction holds, 1 otherwise.",
           "lines": [
             59,
-            124
+            772
           ],
           "name": "verify",
           "type": "function"
@@ -2155,6 +2155,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T05:51:06.411009+00:00",
+  "generated_at": "2026-08-22T06:17:47.945717+00:00",
   "version": "1.0"
 }

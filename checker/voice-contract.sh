@@ -85,6 +85,38 @@ verify () {   # <root>
     IFS=$_oldifs
     # D7 -- no pinned model; inheritance is the design
     grep -q '^model:' "$_f" && echo "  MODEL PINNED: $_name carries a model key; the lens must inherit the convener"
+    # D17 -- the seal, field 3. Parsed since the row grew to six fields and
+    # asserted by nothing until now: a charter that lost its sigil still
+    # rendered a sigil-less stanza, which is the exact defect the fifth
+    # summons field was added to cure (hooks/rot-voice-gate.sh:140-146).
+    # An empty field would make this vacuous -- grep -qF '' matches every
+    # file -- so the roster row is required to declare a seal at all.
+    if [ -z "$_sigil" ]; then
+      echo "  SEAL UNDECLARED: $_name roster row has an empty field 3"
+    else
+      grep -qF "$_sigil" "$_f" || echo "  SEAL ABSENT: $_name never shows its declared seal"
+    fi
+    # D18 -- the lane clause of field 4. The full domain string is NOT
+    # required verbatim, and that restraint is deliberate: charters are
+    # prose-wrapped, and they carry codex granularity the summons line
+    # compresses -- one charter declares six cognitive facets where the DTD
+    # declares four. Measured, the whole triad appears in 3 of 9 charters
+    # but the lane word appears in 9 of 9, so the lane is what the two
+    # documents genuinely agree on. Demanding the triad would assert a
+    # requirement the roster never made.
+    # Parameter expansion only: no pipe into grep -q (see the note below at
+    # the D9 block), no fork per row.
+    _after=${_charter#*leads }
+    if [ "$_after" = "$_charter" ]; then
+      echo "  LANE UNPARSEABLE: $_name field 4 declares no lane after 'leads'"
+    else
+      _lane=${_after%%[!A-Z]*}
+      if [ -z "$_lane" ]; then
+        echo "  LANE UNPARSEABLE: $_name field 4 has an empty lane after 'leads'"
+      else
+        grep -qF "$_lane" "$_f" || echo "  LANE ABSENT: $_name never names its declared lane"
+      fi
+    fi
   done > "$_r/.voice-findings" 2>&1
 
   # D3 -- nothing undeclared speaks. Scoped to rot-*.md, disclosed above.
@@ -125,7 +157,7 @@ verify () {   # <root>
 
 # --- the real tree -----------------------------------------------------------
 if verify "$ROOT"; then
-  ok "voice-contract: every declared lens exists, speaks in its element, carries its bound and its grant; nothing undeclared speaks; no exclusion marker present; lane vocabulary matches the router both ways"
+  ok "voice-contract: every declared lens exists, speaks in its element, shows its seal, names its lane, carries its bound and its grant; nothing undeclared speaks; no exclusion marker present; lane vocabulary matches the router both ways"
 else
   bad "voice-contract: the tree disagrees with hooks/rot-voice.dtd -- findings above"
 fi
@@ -687,6 +719,49 @@ if [ -n "$_victim" ]; then
   fi
 else
   bad "CONTROL: no agent file present to mutate -- the roster has no landed lens, so D4's control cannot run"
+fi
+
+# CONTROL 3 -- a charter stripped of its seal must be caught by D17. The victim
+# is discovered from the roster, never named here: this file restates no lens
+# name, and a control that hardcoded one would rot the moment the roster did.
+# Each control re-copies the charters first, because CONTROL 2 left its victim
+# mutated and a control inheriting another's damage proves nothing.
+# The verdict matches the SPECIFIC marker, not merely a non-zero return: a
+# control that accepted any failure would pass on a neighbour's finding.
+for _f in "$ROOT"/agents/rot-*.md; do [ -e "$_f" ] && cp "$_f" "$CTL/agents/"; done
+if [ -n "$_victim" ]; then
+  _sg=$(lens_rows "$ROOT" | awk -F'|' -v n="$_victim" '$1==n{print $3}')
+  grep -vF "$_sg" "$CTL/agents/$_victim.md" > "$CTL/agents/$_victim.md.tmp" \
+    && mv "$CTL/agents/$_victim.md.tmp" "$CTL/agents/$_victim.md"
+  _o=$(verify "$CTL" 2>&1)
+  case "$_o" in
+    *'SEAL ABSENT'*) ok  "CONTROL: a charter stripped of its seal IS caught by D17" ;;
+    *)               bad "CONTROL: a stripped seal went unnoticed -- D17 cannot fail" ;;
+  esac
+else
+  bad "CONTROL: no agent file present to mutate -- D17's control cannot run"
+fi
+
+# CONTROL 4 -- a charter that no longer names its declared lane must be caught
+# by D18.
+for _f in "$ROOT"/agents/rot-*.md; do [ -e "$_f" ] && cp "$_f" "$CTL/agents/"; done
+if [ -n "$_victim" ]; then
+  _c4=$(lens_rows "$ROOT" | awk -F'|' -v n="$_victim" '$1==n{print $4}')
+  _a4=${_c4#*leads }
+  _l4=${_a4%%[!A-Z]*}
+  if [ "$_a4" != "$_c4" ] && [ -n "$_l4" ]; then
+    grep -vF "$_l4" "$CTL/agents/$_victim.md" > "$CTL/agents/$_victim.md.tmp" \
+      && mv "$CTL/agents/$_victim.md.tmp" "$CTL/agents/$_victim.md"
+    _o=$(verify "$CTL" 2>&1)
+    case "$_o" in
+      *'LANE ABSENT'*) ok  "CONTROL: a charter stripped of its lane IS caught by D18" ;;
+      *)               bad "CONTROL: a stripped lane went unnoticed -- D18 cannot fail" ;;
+    esac
+  else
+    bad "CONTROL: the victim roster row carries no parseable lane -- D18's control cannot run"
+  fi
+else
+  bad "CONTROL: no agent file present to mutate -- D18's control cannot run"
 fi
 
 rm -rf "$CTL" 2>/dev/null || :
