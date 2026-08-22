@@ -281,6 +281,62 @@ scan_file_claims () {   # scan_file_claims <file> ; echoes "<file> <claimed>" pe
   [ "$_src" != "$1" ] && rm -f "$_src"
   return 0
 }
+# --- `--write`: REGENERATE THE CLAIMS, so no count is ever typed by hand ------
+# THIS BLOCK EXISTS BECAUSE THE CHECK EXISTED WITHOUT IT. Four files carried a
+# theorem count that this file enforced and nothing produced:
+#
+#   .claude-plugin/marketplace.json   the "description" string
+#   .claude-plugin/plugin.json        the "description" string
+#   CITATION.cff                      inside the abstract block
+#   README.md                         the opening paragraph
+#
+# A checker with no writer does not make a claim maintained; it makes the claim
+# a chore, and a chore is where a human types a number. checker/facts-block.sh
+# and checker/status-verdict.sh both pair their check with a --write. This one
+# did not, so adding a Lean module meant editing four strings by hand -- which
+# is precisely the class of defect this repository exists to refuse.
+#
+# The writer REUSES claim_exempt above rather than re-deriving the exemptions.
+# That is not tidiness. This very file plants 99999 machine-checked theorems as
+# its own control, and a writer carrying its own copy of the exemption list
+# would rewrite those fixtures to the true count and silently destroy the
+# control it depends on -- the failure mode already recorded in fdedabc.
+#
+# CHANGELOG.md is skipped outright: only its newest section is a live claim, and
+# a writer that rewrote the whole file would edit settled history, the one thing
+# a changelog must never do. It carries no live claim today; if one goes stale
+# there the check below still fails and a human fixes that one on purpose.
+DO_WRITE=0
+case "${1:-}" in
+  --write) DO_WRITE=1 ;;
+  "")      : ;;
+  *)       echo "usage: $0 [--write]" >&2; exit 2 ;;
+esac
+
+if [ "$DO_WRITE" = 1 ]; then
+  echo
+  echo "== --write: regenerating every live count claim from source =="
+  _wrote=0
+  while IFS= read -r -d '' wf; do
+    [ -f "$wf" ] || continue
+    claim_exempt "$wf" && continue
+    [ "$wf" = "CHANGELOG.md" ] && continue
+    grep -Iq . "$wf" 2>/dev/null || continue
+    grep -Eq '[0-9]+ machine-checked|**[0-9]+ modules**' "$wf" || continue
+    _b4=$(cksum < "$wf")
+    perl -0777 -pi -e "s/(\d+)((?:\*\*|__)?\s+machine-checked(?:\s+Lean\s+4)?\s+theorems?)/$TH\$2/g" "$wf"
+    perl -0777 -pi -e "s/\*\*\d+ modules\*\*, \*\*\d+ theorems\*\*/**$MODS modules**, **$TH theorems**/g" "$wf"
+    _af=$(cksum < "$wf")
+    if [ "$_b4" != "$_af" ]; then
+      echo "  rewrote $wf"
+      _wrote=$((_wrote+1))
+    fi
+  done < <(git ls-files -z)
+  echo "  regenerated $_wrote file(s) at TH=$TH MODS=$MODS"
+  echo "  the checks below now VERIFY that write -- they are not skipped for it."
+  echo
+fi
+
 while IFS= read -r -d '' f; do
   [ -f "$f" ] || continue
   claim_exempt "$f" && continue
@@ -298,6 +354,37 @@ done < <(git ls-files -z)
 echo "  scanned $scanned tracked text file(s) for count claims"
 [ "$claims" -eq 0 ] && bad "no theorem-count claim found in the prose -- the check is vacuous"
 [ "$claims" -gt 0 ] && [ "$wrong" -eq 0 ] && ok "all $claims theorem-count claim(s) match source ($TH)"
+
+# --- THE INVENTORY ROW -- a claim the sweep above cannot see -----------------
+# MEASURED 2026-08-22: README's inventory row reads
+#
+#   | The corpus is real | **MEASURED** | **90 modules**, **1662 theorems**, ...
+#
+# and the sweep above never touched it, because the pattern it enforces
+# requires the words "machine-checked" and this row omits them. So the most
+# quotable inventory line in the repository could go stale in total silence
+# while the four claims beside it were guarded. A number a reader will quote
+# needs an assertor whether or not it happens to use the guarded phrase.
+_inv=$(tr '\n' ' ' < "$REPO/README.md" | tr -s ' ' \
+       | grep -oE '\*\*[0-9]+ modules\*\*, \*\*[0-9]+ theorems\*\*' | head -1)
+if [ -z "$_inv" ]; then
+  bad "README inventory row not found -- this check would be vacuous"
+else
+  _im=$(printf '%s' "$_inv" | grep -oE '[0-9]+' | sed -n 1p)
+  _it=$(printf '%s' "$_inv" | grep -oE '[0-9]+' | sed -n 2p)
+  if [ "$_im" = "$MODS" ] && [ "$_it" = "$TH" ]; then
+    ok "README inventory row matches source ($MODS modules, $TH theorems)"
+  else
+    bad "README inventory row claims $_im modules / $_it theorems; source has $MODS / $TH"
+  fi
+fi
+# CONTROL: the comparison must be able to reject. Same shape as the test above,
+# fed a pair that is wrong by construction.
+if [ "1" = "$MODS" ] && [ "2" = "$TH" ]; then
+  bad "CONTROL: a wrong inventory pair was ACCEPTED -- this check cannot fail"
+else
+  ok "CONTROL: a wrong inventory pair IS rejected"
+fi
 
 # Per-module counts in the README bullets, e.g. "(34 theorems)".
 if [ -f README.md ]; then

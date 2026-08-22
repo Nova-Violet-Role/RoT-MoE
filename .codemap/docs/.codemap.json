@@ -1,12 +1,94 @@
 {
   "directory": "docs",
   "files": {
+    "COMPENDIUM-the-unwritten-claim.md": {
+      "hash": "98e7edf21765",
+      "indexed_at": "2026-08-22T17:52:43.620992+00:00",
+      "language": "markdown",
+      "lines": 161,
+      "mtime_ns": 1787421163007333100,
+      "size": 7513,
+      "symbols": [
+        {
+          "docstring": "On 2026-08-22 a single Lean module was added. That moved two measurements: modules 89 to 90, theorems 1648 to 1662. The commit was refused by three ga",
+          "lines": [
+            15,
+            39
+          ],
+          "name": "The defect, stated exactly",
+          "type": "section"
+        },
+        {
+          "docstring": "The checker did its job perfectly: it went red, it named all four files, and it refused the commit. That is the whole of what a checker can do. What i",
+          "lines": [
+            40,
+            56
+          ],
+          "name": "Why \"a checker exists\" was not good enough",
+          "type": "section"
+        },
+        {
+          "docstring": "While mapping the four, a fifth turned up. `README.md:1353` reads:",
+          "lines": [
+            57,
+            72
+          ],
+          "name": "The fifth place, which nothing was watching",
+          "type": "section"
+        },
+        {
+          "docstring": "**Every number a reader can quote needs an assertor AND a generator.**",
+          "lines": [
+            73,
+            91
+          ],
+          "name": "The law",
+          "type": "section"
+        },
+        {
+          "docstring": "Both were live in this tree, and either one would have made the fix worse than the defect.",
+          "lines": [
+            92,
+            115
+          ],
+          "name": "Two traps a writer must respect",
+          "type": "section"
+        },
+        {
+          "docstring": "`checker/repo-complete.sh` gained `--write`, and the inventory row gained a guard. Measured, in this order, on a deliberately staled tree:",
+          "lines": [
+            116,
+            132
+          ],
+          "name": "What was built",
+          "type": "section"
+        },
+        {
+          "docstring": "If you write a number into prose that comes from the tree:",
+          "lines": [
+            133,
+            147
+          ],
+          "name": "The rule for anyone adding a claim",
+          "type": "section"
+        },
+        {
+          "docstring": "This is the same shape as the ceiling defect fixed in the same commit, where `checker/gate-all.sh` stated a four-minute pre-commit bound in a comment",
+          "lines": [
+            148,
+            162
+          ],
+          "name": "The generalisation",
+          "type": "section"
+        }
+      ]
+    },
     "GIT-WORKFLOW.md": {
       "hash": "dd1140824700",
-      "indexed_at": "2026-08-21T07:50:35.585028+00:00",
+      "indexed_at": "2026-08-22T17:50:25.362963+00:00",
       "language": "markdown",
       "lines": 375,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420488673390800,
       "size": 16095,
       "symbols": [
         {
@@ -179,10 +261,10 @@
     },
     "SCRUTINY-0.7.md": {
       "hash": "e48bcbe2f9a9",
-      "indexed_at": "2026-08-21T07:50:35.585972+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363927+00:00",
       "language": "markdown",
       "lines": 212,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420488727900300,
       "size": 11301,
       "symbols": [
         {
@@ -292,10 +374,10 @@
     },
     "SCRUTINY-LOG.md": {
       "hash": "094b68fe311b",
-      "indexed_at": "2026-08-21T07:50:35.586258+00:00",
+      "indexed_at": "2026-08-22T17:50:25.364216+00:00",
       "language": "markdown",
       "lines": 299,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420743602034100,
       "size": 16324,
       "symbols": [
         {
@@ -412,10 +494,10 @@
     },
     "STUDY-USAGE-AGENTS.md": {
       "hash": "5e283b236d9c",
-      "indexed_at": "2026-08-21T07:50:35.587043+00:00",
+      "indexed_at": "2026-08-22T17:50:25.365238+00:00",
       "language": "markdown",
       "lines": 813,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420488836674200,
       "size": 47792,
       "symbols": [
         {
@@ -681,10 +763,10 @@
     },
     "easter-egg.md": {
       "hash": "78eff5036215",
-      "indexed_at": "2026-08-21T07:50:35.584712+00:00",
+      "indexed_at": "2026-08-22T17:50:25.362631+00:00",
       "language": "markdown",
       "lines": 421,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420488894531600,
       "size": 22927,
       "symbols": [
         {
@@ -828,10 +910,10 @@
     },
     "lean-and-corpus.md": {
       "hash": "cab1f37a05fd",
-      "indexed_at": "2026-08-21T07:50:35.585274+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363208+00:00",
       "language": "markdown",
       "lines": 195,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420488965060300,
       "size": 10772,
       "symbols": [
         {
@@ -903,10 +985,10 @@
     },
     "lens-bench.md": {
       "hash": "f0a77598c076",
-      "indexed_at": "2026-08-21T07:50:35.585472+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363412+00:00",
       "language": "markdown",
       "lines": 138,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420489020998500,
       "size": 10241,
       "symbols": [
         {
@@ -933,10 +1015,10 @@
     },
     "modules.md": {
       "hash": "b6abf042f109",
-      "indexed_at": "2026-08-22T12:22:37.219363+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363687+00:00",
       "language": "markdown",
       "lines": 384,
-      "mtime_ns": 1787399986930019500,
+      "mtime_ns": 1787420489074291600,
       "size": 24189,
       "symbols": [
         {
@@ -952,10 +1034,10 @@
     },
     "tips.md": {
       "hash": "8438682e1d1f",
-      "indexed_at": "2026-08-21T07:50:35.587253+00:00",
+      "indexed_at": "2026-08-22T17:50:25.365477+00:00",
       "language": "markdown",
       "lines": 156,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420489128181800,
       "size": 8610,
       "symbols": [
         {
@@ -1007,6 +1089,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T12:22:37.219434+00:00",
+  "generated_at": "2026-08-22T17:52:43.621076+00:00",
   "version": "1.0"
 }

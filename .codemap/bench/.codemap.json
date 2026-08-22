@@ -3,10 +3,10 @@
   "files": {
     "CAPABILITY-AUDIT-7.0.0.md": {
       "hash": "59afddd413b0",
-      "indexed_at": "2026-08-21T07:50:35.526591+00:00",
+      "indexed_at": "2026-08-22T17:50:25.298464+00:00",
       "language": "markdown",
       "lines": 185,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420479725289800,
       "size": 9084,
       "symbols": [
         {
@@ -102,10 +102,10 @@
     },
     "P22-ESTABLISHED.md": {
       "hash": "348fbc117512",
-      "indexed_at": "2026-08-21T07:50:35.530149+00:00",
+      "indexed_at": "2026-08-22T17:50:25.302050+00:00",
       "language": "markdown",
       "lines": 92,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420479779187000,
       "size": 4849,
       "symbols": [
         {
@@ -148,10 +148,10 @@
     },
     "P24-PREREGISTRATION.md": {
       "hash": "d4d07fe1620d",
-      "indexed_at": "2026-08-21T07:50:35.531497+00:00",
+      "indexed_at": "2026-08-22T17:50:25.303411+00:00",
       "language": "markdown",
       "lines": 806,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420479832675100,
       "size": 42179,
       "symbols": [
         {
@@ -534,10 +534,10 @@
     },
     "PANEL-PREREGISTRATION.md": {
       "hash": "5f1ca3908e32",
-      "indexed_at": "2026-08-21T07:50:35.532174+00:00",
+      "indexed_at": "2026-08-22T17:50:25.304095+00:00",
       "language": "markdown",
       "lines": 113,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420479888688200,
       "size": 5788,
       "symbols": [
         {
@@ -607,10 +607,10 @@
     },
     "ROT-STUDY-PREREGISTRATION.md": {
       "hash": "615c9b345cd6",
-      "indexed_at": "2026-08-21T07:50:35.534384+00:00",
+      "indexed_at": "2026-08-22T17:50:25.306335+00:00",
       "language": "markdown",
       "lines": 80,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420479943070700,
       "size": 3645,
       "symbols": [
         {
@@ -671,10 +671,10 @@
     },
     "TRAP-PREREGISTRATION.md": {
       "hash": "c48db2fa80e8",
-      "indexed_at": "2026-08-21T07:50:35.535541+00:00",
+      "indexed_at": "2026-08-22T17:50:25.307488+00:00",
       "language": "markdown",
       "lines": 168,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420479995872900,
       "size": 7337,
       "symbols": [
         {
@@ -789,10 +789,10 @@
     },
     "ab-compliance.js": {
       "hash": "bca4bb026589",
-      "indexed_at": "2026-08-21T12:23:25.158729+00:00",
+      "indexed_at": "2026-08-22T17:50:25.294295+00:00",
       "language": "javascript",
       "lines": 104,
-      "mtime_ns": 1787313045768699700,
+      "mtime_ns": 1787420480050576500,
       "size": 4187,
       "symbols": [
         {
@@ -826,10 +826,10 @@
     },
     "ab-grounding.js": {
       "hash": "857abc8f405d",
-      "indexed_at": "2026-08-21T07:50:35.523290+00:00",
+      "indexed_at": "2026-08-22T17:50:25.295093+00:00",
       "language": "javascript",
       "lines": 180,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420480105080000,
       "size": 7538,
       "symbols": [
         {
@@ -881,10 +881,10 @@
     },
     "ab-session.sh": {
       "hash": "004c998dfc68",
-      "indexed_at": "2026-08-21T07:50:35.523894+00:00",
+      "indexed_at": "2026-08-22T17:50:25.295710+00:00",
       "language": "shell",
       "lines": 385,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420480263730700,
       "size": 18196,
       "symbols": [
         {
@@ -916,10 +916,10 @@
     },
     "calib-prompts.js": {
       "hash": "887a4f5e2997",
-      "indexed_at": "2026-08-21T07:50:35.524701+00:00",
+      "indexed_at": "2026-08-22T17:50:25.296535+00:00",
       "language": "javascript",
       "lines": 219,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420480370484200,
       "size": 9668,
       "symbols": [
         {
@@ -990,10 +990,10 @@
     },
     "calib-score.js": {
       "hash": "b0381a1edbd7",
-      "indexed_at": "2026-08-21T07:50:35.525313+00:00",
+      "indexed_at": "2026-08-22T17:50:25.297158+00:00",
       "language": "javascript",
       "lines": 135,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420480479526700,
       "size": 6509,
       "symbols": [
         {
@@ -1020,19 +1020,19 @@
     },
     "calib-select.js": {
       "hash": "1e81c694de06",
-      "indexed_at": "2026-08-21T07:50:35.525782+00:00",
+      "indexed_at": "2026-08-22T17:50:25.297647+00:00",
       "language": "javascript",
       "lines": 125,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420480532148400,
       "size": 6114,
       "symbols": []
     },
     "calib-verdict.js": {
       "hash": "9c6c50ce2439",
-      "indexed_at": "2026-08-21T07:50:35.526337+00:00",
+      "indexed_at": "2026-08-22T17:50:25.298218+00:00",
       "language": "javascript",
       "lines": 119,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420480583697100,
       "size": 6047,
       "symbols": [
         {
@@ -1067,10 +1067,10 @@
     },
     "fact-prompts.js": {
       "hash": "0ea1c51502ec",
-      "indexed_at": "2026-08-21T07:50:35.526971+00:00",
+      "indexed_at": "2026-08-22T17:50:25.298855+00:00",
       "language": "javascript",
       "lines": 105,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420480886011500,
       "size": 4515,
       "symbols": [
         {
@@ -1096,10 +1096,10 @@
     },
     "fact-score.js": {
       "hash": "03cad1e01529",
-      "indexed_at": "2026-08-21T07:50:35.527650+00:00",
+      "indexed_at": "2026-08-22T17:50:25.299553+00:00",
       "language": "javascript",
       "lines": 136,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420481048600200,
       "size": 5992,
       "symbols": [
         {
@@ -1151,10 +1151,10 @@
     },
     "foreground-findings.md": {
       "hash": "6cd7a6b12ba3",
-      "indexed_at": "2026-08-21T07:50:35.527830+00:00",
+      "indexed_at": "2026-08-22T17:50:25.299728+00:00",
       "language": "markdown",
       "lines": 30,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420481106688900,
       "size": 4069,
       "symbols": [
         {
@@ -1188,10 +1188,10 @@
     },
     "foreground-test.md": {
       "hash": "d8b257ee17ac",
-      "indexed_at": "2026-08-21T07:50:35.528760+00:00",
+      "indexed_at": "2026-08-22T17:50:25.300639+00:00",
       "language": "markdown",
       "lines": 885,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420481166698100,
       "size": 54961,
       "symbols": [
         {
@@ -1515,10 +1515,10 @@
     },
     "hard-session-6.0.1.md": {
       "hash": "2c073b74b123",
-      "indexed_at": "2026-08-21T07:50:35.529251+00:00",
+      "indexed_at": "2026-08-22T17:50:25.301143+00:00",
       "language": "markdown",
       "lines": 543,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420481306333600,
       "size": 34048,
       "symbols": [
         {
@@ -1698,10 +1698,10 @@
     },
     "main-score.js": {
       "hash": "b3bd8aa0c53a",
-      "indexed_at": "2026-08-21T12:23:25.166188+00:00",
+      "indexed_at": "2026-08-22T17:50:25.301863+00:00",
       "language": "javascript",
       "lines": 134,
-      "mtime_ns": 1787313045768699700,
+      "mtime_ns": 1787420481359391200,
       "size": 6257,
       "symbols": [
         {
@@ -1755,10 +1755,10 @@
     },
     "p24-aa-control.js": {
       "hash": "66f6b215963b",
-      "indexed_at": "2026-08-21T07:50:35.530635+00:00",
+      "indexed_at": "2026-08-22T17:50:25.302539+00:00",
       "language": "javascript",
       "lines": 142,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420481412093900,
       "size": 5523,
       "symbols": [
         {
@@ -1794,10 +1794,10 @@
     },
     "p24-score.js": {
       "hash": "c709cbd4c765",
-      "indexed_at": "2026-08-21T07:50:35.531973+00:00",
+      "indexed_at": "2026-08-22T17:50:25.303891+00:00",
       "language": "javascript",
       "lines": 108,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420481464540800,
       "size": 4372,
       "symbols": [
         {
@@ -1813,10 +1813,10 @@
     },
     "patch-8.0.1.md": {
       "hash": "631536a207d6",
-      "indexed_at": "2026-08-21T07:50:35.532372+00:00",
+      "indexed_at": "2026-08-22T17:50:25.304282+00:00",
       "language": "markdown",
       "lines": 109,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420481625606000,
       "size": 5906,
       "symbols": [
         {
@@ -1868,10 +1868,10 @@
     },
     "pilot-rescore.js": {
       "hash": "7c494c90cba7",
-      "indexed_at": "2026-08-21T12:23:25.169163+00:00",
+      "indexed_at": "2026-08-22T17:50:25.304855+00:00",
       "language": "javascript",
       "lines": 113,
-      "mtime_ns": 1787313045769640500,
+      "mtime_ns": 1787420481838867400,
       "size": 4869,
       "symbols": [
         {
@@ -1915,10 +1915,10 @@
     },
     "pilot-score.js": {
       "hash": "33dcba8bc63d",
-      "indexed_at": "2026-08-21T12:23:25.169774+00:00",
+      "indexed_at": "2026-08-22T17:50:25.305480+00:00",
       "language": "javascript",
       "lines": 151,
-      "mtime_ns": 1787313045769640500,
+      "mtime_ns": 1787420481890189400,
       "size": 6243,
       "symbols": [
         {
@@ -1954,10 +1954,10 @@
     },
     "real-test-6.0.0-interim.md": {
       "hash": "68a71279d522",
-      "indexed_at": "2026-08-21T07:50:35.533778+00:00",
+      "indexed_at": "2026-08-22T17:50:25.305717+00:00",
       "language": "markdown",
       "lines": 188,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420741118662700,
       "size": 8563,
       "symbols": [
         {
@@ -2034,10 +2034,10 @@
     },
     "real-test-6.0.0.md": {
       "hash": "f2fc94951bec",
-      "indexed_at": "2026-08-21T07:50:35.534210+00:00",
+      "indexed_at": "2026-08-22T17:50:25.306152+00:00",
       "language": "markdown",
       "lines": 524,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420741195179400,
       "size": 27711,
       "symbols": [
         {
@@ -2218,10 +2218,10 @@
     },
     "trap-latency.js": {
       "hash": "ac1796e5e1d6",
-      "indexed_at": "2026-08-21T07:50:35.534937+00:00",
+      "indexed_at": "2026-08-22T17:50:25.306900+00:00",
       "language": "javascript",
       "lines": 117,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420482332881800,
       "size": 5314,
       "symbols": [
         {
@@ -2273,10 +2273,10 @@
     },
     "trap-parse-controls.js": {
       "hash": "22761c05b246",
-      "indexed_at": "2026-08-21T07:50:35.535290+00:00",
+      "indexed_at": "2026-08-22T17:50:25.307260+00:00",
       "language": "javascript",
       "lines": 71,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420482386178300,
       "size": 3932,
       "symbols": [
         {
@@ -2293,10 +2293,10 @@
     },
     "trap-prompts.js": {
       "hash": "7a1e67e2adbd",
-      "indexed_at": "2026-08-21T07:50:35.536100+00:00",
+      "indexed_at": "2026-08-22T17:50:25.308061+00:00",
       "language": "javascript",
       "lines": 146,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420482441885800,
       "size": 6640,
       "symbols": [
         {
@@ -2340,10 +2340,10 @@
     },
     "trap-score-controls.js": {
       "hash": "3a93b8391705",
-      "indexed_at": "2026-08-21T12:23:25.172931+00:00",
+      "indexed_at": "2026-08-22T17:50:25.308653+00:00",
       "language": "javascript",
       "lines": 103,
-      "mtime_ns": 1787313045769640500,
+      "mtime_ns": 1787420482709760100,
       "size": 5541,
       "symbols": [
         {
@@ -2396,10 +2396,10 @@
     },
     "trap-score.js": {
       "hash": "4652f9c3c658",
-      "indexed_at": "2026-08-21T07:50:35.537560+00:00",
+      "indexed_at": "2026-08-22T17:50:25.309513+00:00",
       "language": "javascript",
       "lines": 221,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420482767030600,
       "size": 10018,
       "symbols": [
         {
@@ -2472,28 +2472,28 @@
     },
     "ungap-7.0.0.md": {
       "hash": "a1602ddf5f20",
-      "indexed_at": "2026-08-21T07:50:35.537736+00:00",
+      "indexed_at": "2026-08-22T17:50:25.309666+00:00",
       "language": "markdown",
       "lines": 16,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420482827357000,
       "size": 2310,
       "symbols": []
     },
     "ungap-7.1.md": {
       "hash": "175b4b01f345",
-      "indexed_at": "2026-08-21T07:50:35.537901+00:00",
+      "indexed_at": "2026-08-22T17:50:25.309817+00:00",
       "language": "markdown",
       "lines": 25,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420741504174100,
       "size": 6451,
       "symbols": []
     },
     "work-trace-tasks.js": {
       "hash": "48dbf481dfec",
-      "indexed_at": "2026-08-21T07:50:35.538373+00:00",
+      "indexed_at": "2026-08-22T17:50:25.310290+00:00",
       "language": "javascript",
       "lines": 133,
-      "mtime_ns": 1787209313000000000,
+      "mtime_ns": 1787420482942386700,
       "size": 5467,
       "symbols": [
         {
@@ -2539,10 +2539,10 @@
     },
     "work-trace.js": {
       "hash": "1c38ea72f82b",
-      "indexed_at": "2026-08-21T12:23:25.175710+00:00",
+      "indexed_at": "2026-08-22T17:50:25.311506+00:00",
       "language": "javascript",
       "lines": 345,
-      "mtime_ns": 1787313045769640500,
+      "mtime_ns": 1787420482993724200,
       "size": 16388,
       "symbols": [
         {
@@ -2631,6 +2631,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T12:23:25.292531+00:00",
+  "generated_at": "2026-08-22T17:50:25.437782+00:00",
   "version": "1.0"
 }

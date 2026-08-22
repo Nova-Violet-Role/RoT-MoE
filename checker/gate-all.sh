@@ -32,6 +32,51 @@ set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
+# --- THE WALL-CLOCK CEILING, and why it is REPORTED rather than ENFORCED -----
+# The header above states a four-minute bound in prose. Nothing asserted it. It
+# was measured by hand on 2026-08-01 into a comment, and by 2026-08-22 the fast
+# tier alone had drifted to 359 s -- invisible, because no gate measured the
+# runner itself. This block is that missing assertor.
+#
+# It REPORTS and does not fail the run. A wall-clock gate that exits 1 turns a
+# slow or loaded machine into a red commit, which is a different lie: the suite
+# would then be reporting the machine. That is the defect checker/bench-router.sh
+# normalises away with an interleaved spawn tax, and it is not worth importing
+# here just to make a number look enforced.
+#
+# The bound is READ FROM THE LEAN SOURCE, never duplicated here -- the same
+# lean_const discipline bench-router.sh uses for msBound. Proved in
+# lean/Proofs/RotGateCost.lean:
+#   fast_cost_is_a_floor   every commit pays at least the fast tier
+#   every_commit_breaches  so if the fast tier is over, EVERY commit is over
+# which is why one timed commit is not a defence and this figure is printed
+# on every run rather than sampled when someone remembers to look.
+SUITE_T0=$(date +%s)
+CEIL_LEAN="$REPO/lean/Proofs/RotGateCost.lean"
+ceiling_sec () { sed -n 's/^def ceilingSec : Nat := //p' "$CEIL_LEAN" | head -1; }
+over_ceiling () { [ "$1" -gt "$2" ]; }
+
+CEILING="$(ceiling_sec)"
+case "$CEILING" in
+  ''|*[!0-9]*)
+    echo "REFUSING: cannot read a numeric ceilingSec from $CEIL_LEAN"
+    echo "          -- the wall-clock report would measure nothing."
+    exit 2 ;;
+esac
+
+# CONTROL: the alarm must be able to fire, and to stay quiet. This exercises the
+# SAME function the summary calls, not a copy of it -- a control that tests a
+# duplicate proves nothing about the code that ships. Both directions, because
+# an alarm that always fires is as useless as one that never does.
+if ! over_ceiling $((CEILING + 1)) "$CEILING"; then
+  echo "REFUSING: the ceiling comparison did not fire above the ceiling."
+  exit 2
+fi
+if over_ceiling $((CEILING - 1)) "$CEILING"; then
+  echo "REFUSING: the ceiling comparison fired below the ceiling."
+  exit 2
+fi
+
 # =============================================================================
 # THE TIERS -- and why an unqualified run still executes everything.
 #
@@ -473,6 +518,23 @@ fi
 if [ "$skip3" -gt 0 ]; then
   echo "$skip3 gate(s) SKIPPED (exit 3) -- these verified NOTHING:"
   printf '%s' "$SKIPNAMES" | sed 's/^/               /'
+fi
+
+# What this run cost, against the bound the header states. Printed on every
+# terminating path, green or red, so the figure cannot be lost in a failure.
+SUITE_ELAPSED=$(( $(date +%s) - SUITE_T0 ))
+if [ "$MODE" = fast ] || [ "$MODE" = staged ]; then
+  if over_ceiling "$SUITE_ELAPSED" "$CEILING"; then
+    echo "WALL CLOCK: ${SUITE_ELAPSED}s -- OVER the ${CEILING}s pre-commit ceiling by $((SUITE_ELAPSED - CEILING))s."
+    echo "            The header calls a four-minute hook one people disable."
+    echo "            This is NOT a red: it reports the machine as much as the suite."
+    echo "            lean/Proofs/RotGateCost.lean:every_commit_breaches -- the fast"
+    echo "            tier is a floor, so no commit is cheaper than this."
+  else
+    echo "WALL CLOCK: ${SUITE_ELAPSED}s, under the ${CEILING}s pre-commit ceiling."
+  fi
+else
+  echo "WALL CLOCK: ${SUITE_ELAPSED}s (mode=$MODE -- the ceiling governs the pre-commit path only)."
 fi
 
 if [ "$red" -eq 0 ]; then
