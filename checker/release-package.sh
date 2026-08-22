@@ -262,8 +262,14 @@ for vp in $VARIANTS; do
     if [ -d "$p" ]; then
       # tar is the portable way to copy a tree WITH exclusions applied as it
       # goes; cp has no --exclude on every platform this must run on.
+      # .cocoindex_code is the ccc semantic index: machine-local, binary, and
+      # full of absolute paths. ASSERTION 7 would refuse the zip for carrying an
+      # untracked entry, but the deeper reason is the leak class no-local-paths.sh
+      # is blind to -- grep -rI skips binaries, which is how bonus/cmdpulse
+      # shipped an absolute path under a green gate.
       tar -cf - --exclude='.lake' --exclude='*.olean' --exclude='.git' \
-                --exclude='*.mutbak' --exclude='*.bak' --exclude='.rot-moe' "$p" 2>/dev/null | ( cd "$STAGE" && tar -xf - ) 2>/dev/null
+                --exclude='*.mutbak' --exclude='*.bak' --exclude='.rot-moe' \
+                --exclude='.cocoindex_code' "$p" 2>/dev/null | ( cd "$STAGE" && tar -xf - ) 2>/dev/null
     else
       cp "$p" "$d/" 2>/dev/null
     fi

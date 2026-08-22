@@ -21,3 +21,11 @@ TASKS/
 .release-local-only/
 .release-local-only.count
 
+# cocoindex-code (ccc) semantic index. A machine-local embedding database of THIS
+# checkout: it names absolute paths and is rebuilt from the tree in seconds, so it
+# is worthless to anyone else and is a local-path leak if it ever ships. Binary,
+# which means checker/no-local-paths.sh cannot see inside it (grep -rI skips
+# binaries -- the exact way the bonus/cmdpulse archive leaked). Excluded from the
+# release tarball at checker/release-package.sh as well; ignoring it here is only
+# half the guard.
+.cocoindex_code/

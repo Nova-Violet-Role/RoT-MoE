@@ -20,7 +20,8 @@
       "**/.release/**",
       "**/TASKS/**",
       "**/.release-local-only/**",
-      "**/.release-local-only.count/**"
+      "**/.release-local-only.count/**",
+      "**/.cocoindex_code/**"
     ],
     "include_patterns": [
       "**/*.py",
@@ -119,10 +120,10 @@
     "lean",
     "lean\\mutate"
   ],
-  "generated_at": "2026-08-22T05:48:05.627494+00:00",
+  "generated_at": "2026-08-22T06:55:23.908849+00:00",
   "root": "C:\\GIT External Repo\\RoT MoE",
   "stats": {
-    "last_full_index": "2026-08-22T05:48:05.624216+00:00",
+    "last_full_index": "2026-08-22T06:55:23.891441+00:00",
     "total_files": 268,
     "total_symbols": 1767
   },
