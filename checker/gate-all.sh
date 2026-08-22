@@ -363,6 +363,54 @@ $GATES
 EOF
 
 ran=0; red=0
+
+# MEASURED 2026-08-22, on a tree byte-identical to HEAD and with no mutation in
+# play: `ROTMOE_CONFIG_DIRS=/nonexistent bash checker/gate-all.sh --fast` printed
+#
+#   plugin root consistency ... SKIP (3) -- never a pass
+#   ALL 47 GATES GREEN.                                   (exit 0)
+#
+# The gate that said "never a pass" was one of the 47 counted GREEN. `ran` was
+# incremented before the exit-3 branch, and that branch incremented nothing, so
+# a skip was absorbed into the green total by omission. The line calling it out
+# and the line contradicting it were nine lines apart.
+#
+# That is not cosmetic. THREE shipped gates exit 3 on a machine with no GitHub
+# credential (ci-audit-freshness, ci-honesty, ab-compliance) and a fourth on a
+# machine with no config dir. A CI runner without a token would have published
+# "ALL 71 GATES GREEN" while four of them verified nothing at all.
+skip3=0
+SKIPNAMES=""
+
+# Classify one exit code into exactly one of three classes. Factored out for one
+# reason: the CONTROL below exercises THIS function, the same one the loop calls.
+# A control that tests a copy of the logic proves the copy correct and says
+# nothing about what actually runs.
+# It SETS a variable rather than echoing one, and that is deliberate: an echo has
+# to be read back with a command substitution, which forks a subshell for every
+# gate in the table. On this platform that fork is the most expensive thing in
+# the loop, and it would be paid to answer a question `case` already answered.
+CLS=""
+_classify () {
+  case "$1" in
+    3) CLS=skip ;;
+    0) CLS=green ;;
+    *) CLS=red ;;
+  esac
+}
+
+# CONTROL for the accounting -- it must be able to fail, so trip it on purpose.
+# Three distinct exit codes must produce three distinct classes, and the skip
+# must not collapse onto the green. This is the defect above, expressed as a
+# predicate: if `3` ever classifies as `green` again, the suite refuses to run
+# rather than reporting a total it cannot justify.
+_classify 0; _c0="$CLS"; _classify 1; _c1="$CLS"; _classify 3; _c3="$CLS"
+if [ "$_c0" != green ] || [ "$_c1" != red ] || [ "$_c3" != skip ] || [ "$_c3" = "$_c0" ]; then
+  echo "gate-all: CONTROL FAILED -- the exit-code classifier is broken (0=$_c0 1=$_c1 3=$_c3)."
+  echo "A suite that cannot tell a skip from a pass cannot report a verdict. Refusing to run."
+  exit 1
+fi
+
 LOGDIR="$(mktemp -d "${TMPDIR:-/tmp}/gateall.XXXXXX")"
 printf '%-34s %s\n' "GATE" "EXIT"
 printf '%-34s %s\n' "----------------------------------" "----"
@@ -386,9 +434,15 @@ while IFS='|' read -r name tier trigs cmd; do
   # command's status, which is how a false green gets manufactured.
   sh -c "$cmd" > "$LOGDIR/$ran.log" 2>&1
   rc=$?
-  if [ "$rc" -eq 3 ]; then
+  _classify "$rc"; cls="$CLS"
+  if [ "$cls" = skip ]; then
+    # Counted OUT of the green total, and named again in the summary. Printing
+    # "never a pass" here was already true; the arithmetic below now agrees.
+    skip3=$((skip3+1))
+    SKIPNAMES="$SKIPNAMES$name
+"
     printf '%-34s %s\n' "$name" "SKIP (3) -- never a pass"
-  elif [ "$rc" -ne 0 ]; then
+  elif [ "$cls" = red ]; then
     printf '%-34s %s\n' "$name" "RED ($rc)"
     red=$((red+1))
     echo "      ---- last 12 lines ----"
@@ -414,8 +468,22 @@ if [ "$skipped" -gt 0 ]; then
   echo "             They are not passes. Run 'gate-all.sh' bare for all $(printf '%s' "$GATES" | grep -c '|')."
 fi
 
+# Name every skip in the summary, not just at the moment it happened. A skip
+# scrolls past in a 71-gate run; the verdict line is what gets read and quoted.
+if [ "$skip3" -gt 0 ]; then
+  echo "$skip3 gate(s) SKIPPED (exit 3) -- these verified NOTHING:"
+  printf '%s' "$SKIPNAMES" | sed 's/^/               /'
+fi
+
 if [ "$red" -eq 0 ]; then
-  echo "ALL $ran GATES GREEN."
+  if [ "$skip3" -gt 0 ]; then
+    # Deliberately NOT the words "ALL ... GREEN" -- that phrase is quoted in the
+    # README and in release verdicts, and it must stay reserved for a run where
+    # every gate that ran actually reached a verdict.
+    echo "$((ran - skip3)) of $ran GATES GREEN, $skip3 SKIPPED. This is NOT a clean run."
+  else
+    echo "ALL $ran GATES GREEN."
+  fi
   rm -rf "$LOGDIR"; exit 0
 else
   echo "$red of $ran GATES RED. Logs kept in $LOGDIR"
