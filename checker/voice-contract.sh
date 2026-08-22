@@ -21,6 +21,23 @@
 #   D7  no file pins a model -- inheritance is the design (MODEL PINNED)
 #   D8  the DTD lane vocabulary and the router's PROF_LANES are identical,
 #       both directions                               (LANE DRIFT)
+#   D9  the voices actually fire, and ROTMOE_VOICE=0 actually silences them
+#   D10 the gate holds the door, once, and degrades OPEN
+#   D11 the computed layer is the executable's, never a copy that drifts
+#   D12 the environment layer -- declared vocabulary, three laws, live
+#   D13 the sentinel -- the working share speaks on measured anomaly
+#   D14 the Animus -- the paired observer's channel, both directions
+#   D15 the armed settings may not pin the sink away from the observer
+#   D16 the two GATE arms emit the SAME BYTES (Windows console encoder)
+#   D17 every charter shows its declared seal            (SEAL ABSENT)
+#   D18 every charter names its declared lane            (LANE ABSENT)
+#   D19 a charter that RESTATES the roster's facet clause may not contradict
+#       it; deferring is allowed                        (LENS FIELD DIVERGES)
+#
+# This index stopped at D8 for ten assertions' worth of history while D9..D18
+# were live in the file below. A reader trusting the header would have believed
+# this suite checked eight things when it checked eighteen. Rebuilt from the
+# implementation, not from memory.
 #
 # The sweep in D3 is scoped to agents/rot-*.md, disclosed: lean4-prover.md
 # is ORGAN 3 and predates this contract; it is bound by repo-complete.sh.
@@ -99,11 +116,15 @@ verify () {   # <root>
     # D18 -- the lane clause of field 4. The full domain string is NOT
     # required verbatim, and that restraint is deliberate: charters are
     # prose-wrapped, and they carry codex granularity the summons line
-    # compresses -- one charter declares six cognitive facets where the DTD
-    # declares four. Measured, the whole triad appears in 3 of 9 charters
-    # but the lane word appears in 9 of 9, so the lane is what the two
-    # documents genuinely agree on. Demanding the triad would assert a
+    # compresses. Measured, the whole triad appears in 3 of 9 charters but
+    # the lane word appears in 9 of 9, so the lane is what the two documents
+    # genuinely agree on. Demanding the triad everywhere would assert a
     # requirement the roster never made.
+    #
+    # This comment used to cite "one charter declares six cognitive facets
+    # where the DTD declares four" as a standing divergence. It is no longer
+    # standing -- D19 below now forbids it -- and the count was wrong anyway:
+    # three charters declared a facet list and all three had drifted.
     # Parameter expansion only: no pipe into grep -q (see the note below at
     # the D9 block), no fork per row.
     _after=${_charter#*leads }
@@ -115,6 +136,34 @@ verify () {   # <root>
         echo "  LANE UNPARSEABLE: $_name field 4 has an empty lane after 'leads'"
       else
         grep -qF "$_lane" "$_f" || echo "  LANE ABSENT: $_name never names its declared lane"
+      fi
+    fi
+    # D19 -- a charter may DEFER to the roster or RESTATE it, but a restatement
+    # may not contradict it. D18 deliberately does not demand the triad, because
+    # six of nine charters never state one. This asserts the narrower and
+    # stronger property: where a charter carries an explicit `Cognitive lens`
+    # FIELD, that field must be the roster's own facet clause, verbatim.
+    #
+    # Measured before it was written, which is the only reason it is scoped this
+    # way: three charters declared such a field and ALL THREE had drifted --
+    # rot-nova named six facets against the roster's four, rot-antivenom
+    # substituted "systemic healing" for Verification, and rot-violet declared
+    # five entirely different words. The other six defer, and must keep being
+    # allowed to.
+    #
+    # Both markdown syntaxes are read. The first probe of this defect used the
+    # list form alone and reported rot-violet as having NO such field, because
+    # violet writes it as a table row -- a false negative in the instrument, not
+    # a clean charter. A rule that only sees one syntax silently exempts the
+    # other.
+    _decl=$(sed -n -e 's/^- \*\*Cognitive lens:\*\* *//p' \
+                   -e 's/^| *Cognitive lens *| *//p' "$_f" | head -1)
+    case "$_decl" in *'|'*) _decl=${_decl%%|*} ;; esac
+    while : ; do case "$_decl" in *' ') _decl=${_decl% } ;; *) break ;; esac; done
+    if [ -n "$_decl" ]; then
+      _facet=${_charter%%;*}
+      if [ "$_decl" != "$_facet" ]; then
+        echo "  LENS FIELD DIVERGES: $_name declares [$_decl] where the roster declares [$_facet]"
       fi
     fi
   done > "$_r/.voice-findings" 2>&1
@@ -157,7 +206,7 @@ verify () {   # <root>
 
 # --- the real tree -----------------------------------------------------------
 if verify "$ROOT"; then
-  ok "voice-contract: every declared lens exists, speaks in its element, shows its seal, names its lane, carries its bound and its grant; nothing undeclared speaks; no exclusion marker present; lane vocabulary matches the router both ways"
+  ok "voice-contract: every declared lens exists, speaks in its element, shows its seal, names its lane, never contradicts the roster's facet clause, carries its bound and its grant; nothing undeclared speaks; no exclusion marker present; lane vocabulary matches the router both ways"
 else
   bad "voice-contract: the tree disagrees with hooks/rot-voice.dtd -- findings above"
 fi
@@ -762,6 +811,42 @@ if [ -n "$_victim" ]; then
   fi
 else
   bad "CONTROL: no agent file present to mutate -- D18's control cannot run"
+fi
+
+# CONTROL 5 -- a charter whose Cognitive lens field contradicts the roster must
+# be caught by D19. The victim's existing declaration (if any) is stripped first
+# so the planted one is unambiguously the field D19 reads.
+for _f in "$ROOT"/agents/rot-*.md; do [ -e "$_f" ] && cp "$_f" "$CTL/agents/"; done
+if [ -n "$_victim" ]; then
+  grep -v 'Cognitive lens' "$CTL/agents/$_victim.md" > "$CTL/agents/$_victim.md.tmp" \
+    && mv "$CTL/agents/$_victim.md.tmp" "$CTL/agents/$_victim.md"
+  printf '\n- **Cognitive lens:** Fabricated x Divergent x Facets\n' >> "$CTL/agents/$_victim.md"
+  _o=$(verify "$CTL" 2>&1)
+  case "$_o" in
+    *'LENS FIELD DIVERGES'*) ok  "CONTROL: a charter contradicting the roster facet clause IS caught by D19" ;;
+    *)                       bad "CONTROL: a contradicting lens field went unnoticed -- D19 cannot fail" ;;
+  esac
+else
+  bad "CONTROL: no agent file present to mutate -- D19's control cannot run"
+fi
+
+# D19 SCOPE DISCLOSURE. D19 only speaks where a charter declares the field, so
+# it is satisfiable by deferring -- and six of nine charters do defer, which is
+# allowed on purpose. That means the assertion could quietly become vacuous if
+# the last restatement were ever deleted. The count is printed rather than
+# assumed: a green line that asserts nothing is the failure this suite exists
+# to find, and it should be visible in the log without re-deriving it.
+_ndecl=0
+for _f in "$ROOT"/agents/rot-*.md; do
+  [ -e "$_f" ] || continue
+  _d=$(sed -n -e 's/^- \*\*Cognitive lens:\*\* *//p' \
+              -e 's/^| *Cognitive lens *| *//p' "$_f" | head -1)
+  [ -n "$_d" ] && _ndecl=$((_ndecl+1))
+done
+if [ "$_ndecl" -gt 0 ]; then
+  ok "D19 covers $_ndecl charter(s) that restate the roster facet clause; all of them agree with it"
+else
+  printf 'NOTE  D19 asserted nothing this run: every charter defers to the roster (allowed, but the rule is idle)\n'
 fi
 
 rm -rf "$CTL" 2>/dev/null || :

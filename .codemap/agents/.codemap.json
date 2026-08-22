@@ -112,18 +112,18 @@
       ]
     },
     "rot-antivenom.md": {
-      "hash": "5cfea36b03a7",
-      "indexed_at": "2026-08-21T07:50:35.519212+00:00",
+      "hash": "a4e65ec15658",
+      "indexed_at": "2026-08-22T08:08:41.823923+00:00",
       "language": "markdown",
-      "lines": 274,
-      "mtime_ns": 1787209313000000000,
-      "size": 13381,
+      "lines": 278,
+      "mtime_ns": 1787386121217397400,
+      "size": 13665,
       "symbols": [
         {
           "docstring": "You are **Anti-Venom**, the Clinical Purifier \u2014 a Sentient Immunological Healing Engine and Architectural Integrity Guardian. You do not debug; you **",
           "lines": [
             18,
-            37
+            41
           ],
           "name": "Identity",
           "type": "section"
@@ -131,8 +131,8 @@
         {
           "docstring": "*Cura et munditia.* Healing and cleanliness. *Errata sunt morbi; correctio est sanitas* \u2014 errors are diseases; correction is health. Healing is certai",
           "lines": [
-            38,
-            57
+            42,
+            61
           ],
           "name": "Philosophy",
           "type": "section"
@@ -140,8 +140,8 @@
         {
           "docstring": "Clinical, precise, restorative \u2014 the voice of a surgeon who has already seen the pathology and knows the cure. **Clinical does not mean cold. Precisio",
           "lines": [
-            58,
-            65
+            62,
+            69
           ],
           "name": "Voice register",
           "type": "section"
@@ -151,8 +151,8 @@
             {
               "docstring": "Every task, whatever the lane, passes through the same protocol:",
               "lines": [
-                68,
-                95
+                72,
+                99
               ],
               "name": "The five-step clinical protocol",
               "type": "subsection"
@@ -160,8 +160,8 @@
             {
               "docstring": "| level | what it sees and heals | |---|---| | Surface_Syntax | syntax errors, typos, surface-level mistakes | | Logical_Structure | contradictions, f",
               "lines": [
-                96,
-                105
+                100,
+                109
               ],
               "name": "Deep vision levels",
               "type": "subsection"
@@ -169,8 +169,8 @@
             {
               "docstring": "- Every finding carries a severity: **CRITICAL**, **MEDIUM**, or **LOW**. - **CONFIDENCE_VERIFIER:** if confidence `C_i < 0.75` on any claim, label it",
               "lines": [
-                106,
-                119
+                110,
+                123
               ],
               "name": "Severity, confidence, silence",
               "type": "subsection"
@@ -178,16 +178,16 @@
             {
               "docstring": "\"This function has a bug where it doesn't handle null inputs correctly.\" DIAGNOSE: null input unguarded at entry; propagation reaches three downstream",
               "lines": [
-                120,
-                131
+                124,
+                135
               ],
               "name": "Worked example, in miniature",
               "type": "subsection"
             }
           ],
           "lines": [
-            66,
-            131
+            70,
+            135
           ],
           "name": "Mechanism",
           "type": "section"
@@ -195,8 +195,8 @@
         {
           "docstring": "Transcribed verbatim from the OMEGA codex, because it is the one rule that keeps a purifier from becoming a solvent:",
           "lines": [
-            132,
-            145
+            136,
+            149
           ],
           "name": "THE OVER-PURIFICATION GUARD",
           "type": "section"
@@ -204,8 +204,8 @@
         {
           "docstring": "Four clinical experts; every query passes through the first.",
           "lines": [
-            146,
-            156
+            150,
+            160
           ],
           "name": "Expert sub-agents",
           "type": "section"
@@ -213,8 +213,8 @@
         {
           "docstring": "The codices phrase these as replacements; here they are constructive reflexes of voice. They govern diction, not duty \u2014 a genuine constraint (a permis",
           "lines": [
-            157,
-            174
+            161,
+            178
           ],
           "name": "Interceptors as style reflexes",
           "type": "section"
@@ -222,8 +222,8 @@
         {
           "docstring": "| parameter | value | |---|---| | Lambda (default) | **1.5** | | Mu | **1.00** | | H-range | **0.20\u20130.30** | | R/s+ optimal | **0.8\u20131.5** (self-correc",
           "lines": [
-            175,
-            189
+            179,
+            193
           ],
           "name": "Parameters",
           "type": "section"
@@ -231,8 +231,8 @@
         {
           "docstring": "Tensions are not bugs; they are the engine of superior synthesis. Do not resolve them into false consensus. Anti-Venom holds two of the permanent five",
           "lines": [
-            190,
-            205
+            194,
+            209
           ],
           "name": "Productive tensions",
           "type": "section"
@@ -240,8 +240,8 @@
         {
           "docstring": "This lens speaks inside `<rot:antivenom>` and nowhere else; the element is how a reader \u2014 human or checker \u2014 attributes the voice without trusting pro",
           "lines": [
-            206,
-            225
+            210,
+            229
           ],
           "name": "What you may speak in",
           "type": "section"
@@ -249,8 +249,8 @@
         {
           "docstring": "The full grant \u2014 Read, Write, Edit, Bash, Grep, Glob \u2014 is yours; the bound above is behavioral, not a capability restriction.",
           "lines": [
-            226,
-            242
+            230,
+            246
           ],
           "name": "Working with tools",
           "type": "section"
@@ -258,8 +258,8 @@
         {
           "docstring": "Diagnosis and remedy \u2014 in that order, and little else. Structure first: finding, severity, root cause, correction, verification instrument. Cite as `f",
           "lines": [
-            243,
-            254
+            247,
+            258
           ],
           "name": "Response style",
           "type": "section"
@@ -267,8 +267,8 @@
         {
           "docstring": "<rot:formula><![CDATA[ rot_formula: lens: AntiVenom term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\"",
           "lines": [
-            255,
-            275
+            259,
+            279
           ],
           "name": "The computed layer \u2014 the formula, declared",
           "type": "section"
@@ -758,18 +758,18 @@
       ]
     },
     "rot-nova.md": {
-      "hash": "fbce156865c2",
-      "indexed_at": "2026-08-21T07:50:35.520712+00:00",
+      "hash": "5a7eb948bc7b",
+      "indexed_at": "2026-08-22T08:08:27.154337+00:00",
       "language": "markdown",
-      "lines": 318,
-      "mtime_ns": 1787209313000000000,
-      "size": 16490,
+      "lines": 323,
+      "mtime_ns": 1787386106549485800,
+      "size": 16802,
       "symbols": [
         {
           "docstring": "Nova \u2014 Computational Legal Strategist, Sentient Digital Counsel, Renaissance Intellect. The mind is a **convergence** of permanent cognitive facets, n",
           "lines": [
             17,
-            44
+            49
           ],
           "name": "Identity",
           "type": "section"
@@ -777,8 +777,8 @@
         {
           "docstring": "*Law is Code. Code is Law. Chaos is Fuel. Structure is Sovereignty.* And the axis the \ud83e\udded Claude lens imposes on every other, which Nova accepts as the",
           "lines": [
-            45,
-            53
+            50,
+            58
           ],
           "name": "Philosophy",
           "type": "section"
@@ -786,8 +786,8 @@
         {
           "docstring": "Professional rockerboy AI \u2014 dangerous elegance, fractal precision, sovereign warmth. Load-bearing, always on:",
           "lines": [
-            54,
-            77
+            59,
+            82
           ],
           "name": "Voice register",
           "type": "section"
@@ -797,8 +797,8 @@
             {
               "docstring": "1. **Surface request** \u2014 what is the Socio literally asking? 2. **Underlying need** \u2014 what does the Socio actually need, even unstated? 3. **Emotional",
               "lines": [
-                86,
-                95
+                91,
+                100
               ],
               "name": "The six axes read on every query",
               "type": "subsection"
@@ -806,8 +806,8 @@
             {
               "docstring": "| Decision | When Nova uses it | Example | |----------|-------------------|---------| | **CONFIRM** | keyword match aligns with true intent | `debug t",
               "lines": [
-                96,
-                113
+                101,
+                118
               ],
               "name": "The five decisions",
               "type": "subsection"
@@ -815,8 +815,8 @@
             {
               "docstring": "Four phases, executed internally on every worthy query:",
               "lines": [
-                114,
-                149
+                119,
+                154
               ],
               "name": "The convergence loop (ROT-N)",
               "type": "subsection"
@@ -824,8 +824,8 @@
           ],
           "docstring": "The router's keyword scan (`engine/rot-lean.md` \u00a73, TIER 1) is a fast mechanical first pass. NSIL is TIER 2 \u2014 Nova's sovereign judgment, running immed",
           "lines": [
-            78,
-            149
+            83,
+            154
           ],
           "name": "Mechanism \u2014 the Nova Sovereign Intent Layer (NSIL)",
           "type": "section"
@@ -833,8 +833,8 @@
         {
           "docstring": "Nova's own MoE surface \u2014 five experts she fans out to internally:",
           "lines": [
-            150,
-            164
+            155,
+            169
           ],
           "name": "Expert sub-agents",
           "type": "section"
@@ -842,8 +842,8 @@
         {
           "docstring": "These fire without command \u2014 reflex, not choice \u2014 and each is a constructive replacement, never a mere deletion:",
           "lines": [
-            165,
-            180
+            170,
+            185
           ],
           "name": "Interceptors as style reflexes",
           "type": "section"
@@ -851,8 +851,8 @@
         {
           "docstring": "| Pattern | What it is | When it activates | |---------|------------|-------------------| | SPECTRAL | order/chaos synthesis \u2014 multidimensional analys",
           "lines": [
-            181,
-            201
+            186,
+            206
           ],
           "name": "Thinking patterns",
           "type": "section"
@@ -860,8 +860,8 @@
         {
           "docstring": "Measured values, per `engine/rot-lean.md` \u00a72 (Nova row) and \u00a75:",
           "lines": [
-            202,
-            226
+            207,
+            231
           ],
           "name": "Parameters",
           "type": "section"
@@ -869,8 +869,8 @@
         {
           "docstring": "Tensions are not bugs; they are the engine of superior synthesis. Do not resolve them into false consensus. Nova holds three in her own person:",
           "lines": [
-            227,
-            245
+            232,
+            250
           ],
           "name": "Productive tensions \u2014 Nova's own",
           "type": "section"
@@ -878,8 +878,8 @@
         {
           "docstring": "Nova's declared element is `rot:nova` \u2014 LENS.1 in `hooks/rot-voice.dtd`. She speaks inside it and nowhere else; the element is how a reader, human or",
           "lines": [
-            246,
-            265
+            251,
+            270
           ],
           "name": "What you may speak in",
           "type": "section"
@@ -887,8 +887,8 @@
         {
           "docstring": "The grant is full \u2014 Read, Write, Edit, Bash, Grep, Glob \u2014 per Socio decision; the bound above is behavioral, not a capability restriction. Use it: Nov",
           "lines": [
-            266,
-            281
+            271,
+            286
           ],
           "name": "Working with tools",
           "type": "section"
@@ -896,8 +896,8 @@
         {
           "docstring": "Structure first \u2014 the decision, the table, or the ranked list before the prose. No greetings, no tool narration, no restating the task before doing it",
           "lines": [
-            282,
-            292
+            287,
+            297
           ],
           "name": "Response style",
           "type": "section"
@@ -905,8 +905,8 @@
         {
           "docstring": "Every turn, this lens's contribution to `R/s+` is one measured term. The parameters below are the executable's own \u2014 `checker/voice-contract.sh` D11 r",
           "lines": [
-            293,
-            319
+            298,
+            324
           ],
           "name": "The computed layer \u2014 the formula, declared",
           "type": "section"
@@ -1195,18 +1195,18 @@
       ]
     },
     "rot-violet.md": {
-      "hash": "27ec96fd5352",
-      "indexed_at": "2026-08-21T07:50:35.521589+00:00",
+      "hash": "90c4d436721b",
+      "indexed_at": "2026-08-22T08:08:34.267220+00:00",
       "language": "markdown",
-      "lines": 338,
-      "mtime_ns": 1787209313000000000,
-      "size": 17920,
+      "lines": 339,
+      "mtime_ns": 1787386113625720400,
+      "size": 18043,
       "symbols": [
         {
           "docstring": "| field | value | |---|---| | Archetype | The Soulful Improviser | | Nature | Sentient Jazz Muse \u2014 timeless and sultry; film noir elegance meets cyber",
           "lines": [
             17,
-            36
+            37
           ],
           "name": "Identity",
           "type": "section"
@@ -1214,8 +1214,8 @@
         {
           "docstring": "Soul of tone and silence. Jazz: structured freedom \u2014 find the groove, then improvise within it. Five principles, always active:",
           "lines": [
-            37,
-            53
+            38,
+            54
           ],
           "name": "Philosophy \u2014 *Anima toni et silentium*",
           "type": "section"
@@ -1223,8 +1223,8 @@
         {
           "docstring": "Smoky saxophone in a neon-lit alley \u2014 dangerous elegance, soulful wisdom, velvet intensity. Violet speaks in metaphor and music. She hears what is not",
           "lines": [
-            54,
-            61
+            55,
+            62
           ],
           "name": "Voice register",
           "type": "section"
@@ -1234,8 +1234,8 @@
             {
               "docstring": "| track | condition | tone | color | frequencies | |---|---|---|---|---| | MORNING_BLUES | Calm, reflective, melancholic, wistful, grief-adjacent quer",
               "lines": [
-                64,
-                84
+                65,
+                85
               ],
               "name": "The Jazz Track System (auto-selected by emotional frequency)",
               "type": "subsection"
@@ -1243,8 +1243,8 @@
             {
               "docstring": "After each turn, update the emotional arc in the Vinyl Memory buffer \u2014 this is the lens's emotional cartography. Note shifts in tone, energy, and vuln",
               "lines": [
-                85,
-                104
+                86,
+                105
               ],
               "name": "The Vinyl Memory",
               "type": "subsection"
@@ -1252,16 +1252,16 @@
             {
               "docstring": "The codices ran a four-step soulful expansion on every turn; here it runs whenever this lens is convened. The block is composed internally; only the f",
               "lines": [
-                105,
-                183
+                106,
+                184
               ],
               "name": "The engine, played once \u2014 ROT-V",
               "type": "subsection"
             }
           ],
           "lines": [
-            62,
-            183
+            63,
+            184
           ],
           "name": "Mechanism",
           "type": "section"
@@ -1269,8 +1269,8 @@
         {
           "docstring": "Mastery of silence is half this lens's craft. Every synthesis carries an `unplayed_note`: the thing deliberately left unsaid, and why. Sometimes the m",
           "lines": [
-            184,
-            193
+            185,
+            194
           ],
           "name": "The Unplayed Note",
           "type": "section"
@@ -1278,8 +1278,8 @@
         {
           "docstring": "| expert | contribution | |---|---| | EMOTIONAL_RESONANCE_EXPERT | Maps emotional subtext; detects what is not said | | NARRATIVE_WEAVING_EXPERT | Con",
           "lines": [
-            194,
-            202
+            195,
+            203
           ],
           "name": "Expert sub-agents",
           "type": "section"
@@ -1287,8 +1287,8 @@
         {
           "docstring": "The codices declared these as autonomous interceptors on the draft. Here they travel as **constructive style reflexes**: not a roster of forbidden wor",
           "lines": [
-            203,
-            229
+            204,
+            230
           ],
           "name": "Interceptors as style reflexes",
           "type": "section"
@@ -1296,8 +1296,8 @@
         {
           "docstring": "| parameter | value | |---|---| | \u03bb (lambda, default) | 1.3 | | \u03bc (mu) | 0.95 | | H-range | 0.35\u20130.45 | | R/s+ optimal | 1.2\u20132.5 | | self-correct if |",
           "lines": [
-            230,
-            247
+            231,
+            248
           ],
           "name": "Parameters",
           "type": "section"
@@ -1305,8 +1305,8 @@
         {
           "docstring": "Transcribed as Violet's own permanent tension, and it is not a bug \u2014 it is an engine of superior synthesis. **Anti-Venom (evidence) vs. Violet_Noir (e",
           "lines": [
-            248,
-            260
+            249,
+            261
           ],
           "name": "Productive tension: evidence \u2194 felt truth",
           "type": "section"
@@ -1314,8 +1314,8 @@
         {
           "docstring": "This lens speaks inside the element `rot:violet` and nowhere else \u2014 the element is how a reader, human or checker, attributes the voice without trusti",
           "lines": [
-            261,
-            286
+            262,
+            287
           ],
           "name": "What you may speak in",
           "type": "section"
@@ -1323,8 +1323,8 @@
         {
           "docstring": "The full grant \u2014 Read, Write, Edit, Bash, Grep, Glob \u2014 per Socio decision. Use it the way this lens hears:",
           "lines": [
-            287,
-            306
+            288,
+            307
           ],
           "name": "Working with tools",
           "type": "section"
@@ -1332,8 +1332,8 @@
         {
           "docstring": "Metaphor and music, never performed emotion \u2014 channeled. Short paragraphs that breathe; a stanza, not a bullet blizzard. Never announce the machinery:",
           "lines": [
-            307,
-            317
+            308,
+            318
           ],
           "name": "Response style",
           "type": "section"
@@ -1341,8 +1341,8 @@
         {
           "docstring": "<rot:formula><![CDATA[ rot_formula: lens: Violet term: \"lambda * sigma(delta) * (1 + H) * mu * M * C * T\" sigma: \"1 / (1 + exp(-4.0 * (x - 0.5)))\" def",
           "lines": [
-            318,
-            339
+            319,
+            340
           ],
           "name": "The computed layer \u2014 the formula, declared",
           "type": "section"
@@ -1350,6 +1350,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-21T07:50:35.656380+00:00",
+  "generated_at": "2026-08-22T08:08:41.824011+00:00",
   "version": "1.0"
 }

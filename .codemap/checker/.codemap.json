@@ -1971,34 +1971,34 @@
       ]
     },
     "voice-contract.sh": {
-      "hash": "976c281863f6",
-      "indexed_at": "2026-08-22T06:17:47.945630+00:00",
+      "hash": "a3bd8324d6e8",
+      "indexed_at": "2026-08-22T08:12:25.778142+00:00",
       "language": "shell",
-      "lines": 771,
-      "mtime_ns": 1787379467336188500,
-      "size": 46744,
+      "lines": 856,
+      "mtime_ns": 1787386345162802500,
+      "size": 51663,
       "symbols": [
         {
           "docstring": "--- contract readers -------------------------------------------------------- One reader per declaration class. The DTD is the single source; nothing",
           "lines": [
-            47,
-            49
+            64,
+            66
           ],
           "name": "lens_rows",
           "type": "function"
         },
         {
           "lines": [
-            50,
-            52
+            67,
+            69
           ],
           "name": "exclude_rows",
           "type": "function"
         },
         {
           "lines": [
-            53,
-            55
+            70,
+            72
           ],
           "name": "lane_rows",
           "type": "function"
@@ -2006,8 +2006,8 @@
         {
           "docstring": "--- the contract, verified against a root ----------------------------------- Prints findings; returns 0 when every direction holds, 1 otherwise.",
           "lines": [
-            59,
-            772
+            76,
+            857
           ],
           "name": "verify",
           "type": "function"
@@ -2183,6 +2183,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T08:05:55.369000+00:00",
+  "generated_at": "2026-08-22T08:12:25.778227+00:00",
   "version": "1.0"
 }
