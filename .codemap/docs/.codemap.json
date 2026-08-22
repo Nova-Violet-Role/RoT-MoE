@@ -130,10 +130,10 @@
     },
     "COMPENDIUM-the-unwritten-claim.md": {
       "hash": "92b2e83f38b0",
-      "indexed_at": "2026-08-22T21:25:12.302471+00:00",
+      "indexed_at": "2026-08-22T22:27:06.359942+00:00",
       "language": "markdown",
       "lines": 198,
-      "mtime_ns": 1787431737432234200,
+      "mtime_ns": 1787434342720975400,
       "size": 9569,
       "symbols": [
         {
@@ -479,6 +479,97 @@
         }
       ]
     },
+    "PAPER-the-cost-of-a-verdict.md": {
+      "hash": "01164d86e14e",
+      "indexed_at": "2026-08-22T22:05:03.116582+00:00",
+      "language": "markdown",
+      "lines": 266,
+      "mtime_ns": 1787436302491140900,
+      "size": 15921,
+      "symbols": [
+        {
+          "docstring": "A test suite reports a colour. This paper asks what that colour is worth, and answers it as a counting problem rather than a matter of engineering tas",
+          "lines": [
+            14,
+            36
+          ],
+          "name": "Abstract",
+          "type": "section"
+        },
+        {
+          "docstring": "The predecessor essay, `docs/ESSAY-what-a-green-gate-is-worth.md`, argued that a green banner reports a property of the suite and not of the repositor",
+          "lines": [
+            37,
+            56
+          ],
+          "name": "1. The question, stated so it has an answer",
+          "type": "section"
+        },
+        {
+          "docstring": "Fix any state `e` and any verdict `v`. Consider two gates. The first answers `v` no matter what; call it flat. The second answers `v` in state `e` and",
+          "lines": [
+            57,
+            74
+          ],
+          "name": "2. The lower bound: one observation is worth nothing",
+          "type": "section"
+        },
+        {
+          "docstring": "The complementary result is that the two endpoint observations settle the matter completely. A gate is vacuous exactly when its verdict in the holding",
+          "lines": [
+            75,
+            92
+          ],
+          "name": "3. The upper bound: two observations are worth everything",
+          "type": "section"
+        },
+        {
+          "docstring": "The predecessor established that a suite of vacuous gates is vacuous \u2014 that stacking useless checks produces a useless suite, and that a green banner",
+          "lines": [
+            93,
+            120
+          ],
+          "name": "4. Composition, and the surprise",
+          "type": "section"
+        },
+        {
+          "docstring": "The central result, stated formally as it appears in the source:",
+          "lines": [
+            121,
+            157
+          ],
+          "name": "5. The theorem",
+          "type": "section"
+        },
+        {
+          "docstring": "> **A verdict is worth exactly the number of distinct world-states in which its instrument was > actually observed. That number is one less than peopl",
+          "lines": [
+            158,
+            186
+          ],
+          "name": "6. Thesis",
+          "type": "section"
+        },
+        {
+          "docstring": "Stated plainly, because the alternative is to write a paper about vacuity that is itself an unfalsified claim.",
+          "lines": [
+            187,
+            214
+          ],
+          "name": "7. What this paper does not establish",
+          "type": "section"
+        },
+        {
+          "docstring": "**Toolchain.** `lean/lean-toolchain` pins `leanprover/lean4:v4.33.0-rc1`; the shared proof tree on the authoring machine pins the same version. Both b",
+          "lines": [
+            215,
+            267
+          ],
+          "name": "Citations",
+          "type": "section"
+        }
+      ]
+    },
     "SCRUTINY-0.7.md": {
       "hash": "e48bcbe2f9a9",
       "indexed_at": "2026-08-22T17:50:25.363927+00:00",
@@ -594,10 +685,10 @@
     },
     "SCRUTINY-LOG.md": {
       "hash": "094b68fe311b",
-      "indexed_at": "2026-08-22T21:25:12.304737+00:00",
+      "indexed_at": "2026-08-22T22:27:06.362634+00:00",
       "language": "markdown",
       "lines": 299,
-      "mtime_ns": 1787431737527853900,
+      "mtime_ns": 1787434342818812800,
       "size": 16324,
       "symbols": [
         {
@@ -1309,6 +1400,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T21:25:12.381374+00:00",
+  "generated_at": "2026-08-22T22:27:06.439616+00:00",
   "version": "1.0"
 }
