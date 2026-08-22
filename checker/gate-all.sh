@@ -113,12 +113,12 @@ A/B instruction compliance -- exit 3 SKIP without the raw corpus|deep|bench/,CHA
 Lean witness vs shipped weights|fast||bash checker/lean-binds-shell.sh
 release package|fast||bash checker/release-package.sh
 release notes -- one body, three tiers|fast||bash checker/release-notes.sh core > /dev/null && bash checker/release-notes.sh lean > /dev/null && bash checker/release-notes.sh unsealed > /dev/null
-release body -- the three tiers ARE one body (the row above only reads exit 0)|fast|checker/release-notes.sh,checker/release-body.sh|bash checker/release-body.sh
+release body -- the three tiers ARE one body (the row above only reads exit 0)|fast||bash checker/release-body.sh
 hook contract|fast||bash checker/hook-contract.sh
 voice contract (the lens roster, held both ways)|fast||bash checker/voice-contract.sh
 env layer (ORGAN 7 -- the rot family and the three loader laws)|fast||sh checker/env-layer.sh
-env wiring (the DTD generates the config BOTH activations load)|fast|hooks/rot-voice.dtd,engine/rot.env.example,engine/rot.bashrc,engine/rot.profile.ps1,checker/env-wiring.sh|bash checker/env-wiring.sh
-bonus archive (the shipped zip IS its tracked sources)|fast|bonus/cmdpulse/,checker/bonus-archive.sh|bash checker/bonus-archive.sh
+env wiring (the DTD generates the config BOTH activations load)|fast||bash checker/env-wiring.sh
+bonus archive (the shipped zip IS its tracked sources)|fast||bash checker/bonus-archive.sh
 workflow lint + drift|fast||bash checker/workflow-lint.sh
 CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential|deep|.github/workflows/,checker/ci-honesty.sh|bash checker/ci-honesty.sh
 README download links vs the packager|fast||bash checker/readme-variants.sh

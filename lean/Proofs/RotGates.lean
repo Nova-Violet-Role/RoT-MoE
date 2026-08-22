@@ -258,6 +258,22 @@ def shipped : List Gate :=
     -- version-bearing surfaces and by the packager itself: those are the commits
     -- after which a local zip silently stops matching the tree it claims.
   , d "local-only release regenerates from HEAD and cannot be published" [".claude-plugin/", "CITATION.cff", "RELEASE.md", "checker/release"]
+    -- The five gates added during the 9.0.x sweep. All FAST and all
+    -- unconditional, and the missing trigger lists are deliberate rather than
+    -- unfinished: three of them were first registered WITH triggers, which
+    -- `dead_config` correctly refused, because a trigger on a fast gate never
+    -- decides anything -- the row runs on every commit either way. Promoting
+    -- them to deep was the other way to satisfy the refusal and was rejected on
+    -- measurement: two of the three lists were incomplete. "release body"
+    -- asserts the title version against `.claude-plugin/plugin.json`, which its
+    -- list never named, and "env wiring" breaks on `hooks/rot-env.sh`, likewise
+    -- absent. A deep gate with an incomplete trigger list is silently blind on
+    -- exactly the commits that break it; a fast gate cannot be.
+  , f "release notes -- one body, three tiers"
+  , f "release body -- the three tiers ARE one body (the row above only reads exit 0)"
+  , f "bonus archive (the shipped zip IS its tracked sources)"
+  , f "env layer (ORGAN 7 -- the rot family and the three loader laws)"
+  , f "env wiring (the DTD generates the config BOTH activations load)"
     -- DEEP, and the trigger list is the point: this can only be wrong after a
     -- commit that changes what CI runs or what the hooks do. It answers "does
     -- the run I am reading contain the fix I am claiming", which is the check
@@ -480,7 +496,7 @@ def shipped : List Gate :=
 -- had started to read like a design. The gate asks the general question rather
 -- than naming those two modules, so it still works on modules written after it,
 -- and it found a second collision (`RotMoE.Run`) on its first run.
-#guard shipped.length = 66
+#guard shipped.length = 71
 
 -- FORTY run on every commit (38 until `README FACTS block` and `workflow exit
 -- reads` were added on 2026-08-12; 37 until `name collision`, added the same
@@ -488,7 +504,7 @@ def shipped : List Gate :=
 -- 2026-08-12). The comment here read "Twenty-eight" while
 -- the guard beneath it said 37: the number was updated, the prose was not, and
 -- prose is what a reader believes. Both are recounted together from now on.
-#guard (fastSet shipped).length = 42
+#guard (fastSet shipped).length = 47
 
 -- TWENTY-THREE are escalated by path (`CI honesty` joined 2026-08-05, `A/B
 -- instruction compliance` 2026-08-08, `mutation harness integrity` 2026-08-10,
@@ -516,7 +532,7 @@ def shipped : List Gate :=
 -- the trigger table, not an independent claim, so it is expected to follow the
 -- table -- what would be wrong is editing it to keep a red build quiet while the
 -- table said something else.
-#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 47
+#guard (stagedRun shipped ["lean/Proofs/RotGauge.lean".toList]).length = 52
 
 -- A commit that touches nothing runs exactly the fast set.
 --
@@ -526,17 +542,17 @@ def shipped : List Gate :=
 -- together -- and if they had NOT all moved together, that would be the
 -- interesting result, because it would mean the new gate is not actually
 -- unconditional. They follow the table; they never lead it.
-#guard (stagedRun shipped []).length = 42
+#guard (stagedRun shipped []).length = 47
 
 -- Touching the router escalates the gates that cross-check it. 44 since the
 -- `P2.4 corpus` gate joined: it names `hooks/rot-router.sh` as a trigger because
 -- every task's declared lane is a claim about THAT file, and a stem list edited
 -- without re-checking the corpus would silently invalidate forty lane bindings.
-#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 49
+#guard (stagedRun shipped ["hooks/rot-router.sh".toList]).length = 54
 
 -- A documentation-only commit still gets the completeness gate, because
 -- `README.md` is one of its triggers.
-#guard (stagedRun shipped ["README.md".toList]).length = 43
+#guard (stagedRun shipped ["README.md".toList]).length = 48
 
 -- Every gate is reachable: some staged path escalates it. A gate no commit can
 -- reach is the silent hole this file exists to prevent.

@@ -125,9 +125,15 @@ fi
 # prints "all gates green" after a narrowed run teaches the reader that a commit
 # is fully verified when it is not -- which is the FULL=1 defect all over again,
 # this time delivered by the hook itself.
+# The total is COUNTED from the table, never typed. It read "all 28" while the
+# table held 71 rows -- the hook understated the sweep it was telling the reader
+# to run, which is the same drift the gates keep catching in the prose, arriving
+# this time in the hook that reports the verdict. A number a human maintains by
+# hand is a number that is wrong between the edit and the next reader.
+_ngates=$(awk '/^GATES="$/{inb=1;next} inb&&/^"$/{exit} inb&&/\|/{n++} END{print n+0}' checker/gate-all.sh)
 echo "pre-commit: the gates for this commit are green."
-echo "            This was the STAGED set, not all 28. Before pushing:"
-echo "              bash checker/gate-all.sh          # all 28"
+echo "            This was the STAGED set, not all $_ngates. Before pushing:"
+echo "              bash checker/gate-all.sh          # all $_ngates"
 echo "              bash checker/gate-all.sh --full   # + the session gates"
 
 # --- delegates: everything that is not the gate -----------------------------

@@ -679,12 +679,12 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "2a976751f5f8",
-      "indexed_at": "2026-08-22T08:33:33.374243+00:00",
+      "hash": "bad69b006575",
+      "indexed_at": "2026-08-22T09:45:10.644227+00:00",
       "language": "shell",
       "lines": 424,
-      "mtime_ns": 1787387612732386100,
-      "size": 24145,
+      "mtime_ns": 1787391910029473200,
+      "size": 23952,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
@@ -1518,17 +1518,17 @@
       ]
     },
     "release-notes.sh": {
-      "hash": "461e8750e89c",
-      "indexed_at": "2026-08-21T16:04:32.480154+00:00",
+      "hash": "157f42326abe",
+      "indexed_at": "2026-08-22T10:24:18.535791+00:00",
       "language": "shell",
-      "lines": 121,
-      "mtime_ns": 1787328254287752900,
-      "size": 5035,
+      "lines": 123,
+      "mtime_ns": 1787394257944005500,
+      "size": 5189,
       "symbols": [
         {
           "lines": [
-            86,
-            114
+            88,
+            116
           ],
           "name": "compose",
           "type": "function"
@@ -1817,18 +1817,18 @@
       ]
     },
     "spdx-sweep.sh": {
-      "hash": "e3df6a253a65",
-      "indexed_at": "2026-08-21T12:23:25.212574+00:00",
+      "hash": "cd89347a30b3",
+      "indexed_at": "2026-08-22T10:23:12.893637+00:00",
       "language": "shell",
-      "lines": 139,
-      "mtime_ns": 1787313045774545800,
-      "size": 6567,
+      "lines": 149,
+      "mtime_ns": 1787394192277122700,
+      "size": 7240,
       "symbols": [
         {
           "docstring": "Source files that must carry the header. Verbatim licence texts must NOT -- editing them would break the licences themselves. THE TYPE LIST IS THE WHO",
           "lines": [
             44,
-            49
+            51
           ],
           "name": "list_sources",
           "type": "function"
@@ -2226,6 +2226,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T08:46:29.105489+00:00",
+  "generated_at": "2026-08-22T10:24:18.535877+00:00",
   "version": "1.0"
 }

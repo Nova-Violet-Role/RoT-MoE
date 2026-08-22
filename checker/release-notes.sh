@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
 #
 # release-notes.sh -- compose the release note for ONE tier.
 #
@@ -109,7 +111,7 @@ cat <<'TAILEOF'
 
 ---
 
-Verify any download against its published checksum: `sha256sum -c SHA256SUMS.txt`
+Verify any download against its published checksum: `sha256sum -c SHA256SUMS.txt`, or on macOS, where that tool does not exist: `shasum -a 256 -c SHA256SUMS.txt`
 TAILEOF
 }
 

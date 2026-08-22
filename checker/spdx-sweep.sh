@@ -44,8 +44,10 @@ rc=0
 list_sources () {
   find "$ROOT" -type f \
     \( -name '*.lean' -o -name '*.sh' -o -name '*.ps1' -o -name '*.yml' \
-       -o -name '*.yaml' -o -name '*.toml' -o -name '*.js' -o -name '*.dtd' -o -name '*.lua' \) \
-    -not -path '*/.git/*' -not -path '*/.lake/*' -not -path '*/LICENSES/*'
+       -o -name '*.yaml' -o -name '*.toml' -o -name '*.js' -o -name '*.dtd' -o -name '*.lua' \
+       -o -name '*.bashrc' \) \
+    -not -path '*/.git/*' -not -path '*/.lake/*' -not -path '*/LICENSES/*' \
+    -not -path '*/.cocoindex_code/*'
 }
 
 # --- NO EXTENSION MAY ESCAPE UNDECLARED --------------------------------------
@@ -53,14 +55,22 @@ list_sources () {
 # EXEMPT (declared here, with the reason). Anything else REFUSES and is named,
 # so the next file type that lands forces a decision instead of slipping past.
 # A list nobody can add to silently is the only kind that stays honest.
-SPDX_COVERED='lean sh ps1 yml yaml toml js dtd lua'
+SPDX_COVERED='lean sh ps1 yml yaml toml js dtd lua bashrc'
 # EXEMPT, and why: prose and data carry no code; archives and images are opaque;
 # .bak is a working-copy artefact and is git-ignored.
 SPDX_EXEMPT='md gif jsonl txt json zip bak tsv log done count cff 2'
 _unknown=''
+# `.cocoindex_code/` joins `.lake/` for the same reason: it is a local index a
+# tool builds inside the working copy, it is git-ignored, `release-package.sh`
+# excludes it by name, and nothing in it ships. Its `data.mdb`/`lock.mdb` and
+# `.db` files were reported as three undeclared source types, which is the
+# mathlib-`.py` shape of false positive -- a gate naming a DEPENDENCY's files as
+# the repository's undeclared work. Exempting `db`/`mdb` instead would have been
+# the wrong repair: it would declare types this repository does not ship.
 for _ext in $(find "$ROOT" -type f \
                 -not -path '*/.git/*' -not -path '*/.lake/*' \
                 -not -path '*/LICENSES/*' -not -path '*/.codemap/*' \
+                -not -path '*/.cocoindex_code/*' \
               | sed -n 's/.*\.\([A-Za-z0-9]\{1,6\}\)$/\1/p' | sort -u); do
   case " $SPDX_COVERED $SPDX_EXEMPT " in
     *" $_ext "*) : ;;
