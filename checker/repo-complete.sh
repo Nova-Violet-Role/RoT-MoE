@@ -217,6 +217,22 @@ claim_exempt () {   # 0 = exempt (carries the pattern by construction)
     # was reasoned about once and then thrown away. A dead arm with a note is
     # cheaper than rediscovering the argument.
     TASKS/*)                   return 0 ;;
+    # FINDINGS-<version>.md are DATED AUDIT REPORTS -- the fourth time this file
+    # has had to make the same argument, and the first time the rule was not just
+    # anachronistic but measuring the wrong quantity outright.
+    #
+    # FINDINGS-8.0.1.md G4 reads "50 applied, 50 killed" and names its own scope
+    # on the same line: rotgauge 12 + rotroute 11 + rotinstall 16 + rotpath 5 +
+    # rotvacuity 6 = 50, the FIVE CORE suites. This scan compared that against the
+    # 797 mutants declared across ALL suites and called it a false claim. It was
+    # never a claim about all of them -- so the failure was not staleness that a
+    # rewrite could fix. Editing the 50 to 797 would have replaced a true,
+    # measured, scoped sentence with a false one, and the checker would have gone
+    # green on the lie.
+    #
+    # Same exemption for HISTORY, same limit: every live surface is still scanned,
+    # and the controls below still prove the rule can fire.
+    FINDINGS-*.md)             return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -456,12 +472,27 @@ fi
 
 # Untracked ones matter too: they are what a build script would reach for, and
 # they are invisible to `git ls-files` right up until someone commits them.
-py_loose=$(find . -name '*.py' -o -name '*.pyw' 2>/dev/null | grep -v '^\./\.git/' | grep -c . || true)
+#
+# `.lake/` is EXCLUDED, and that is a correction, not a loophole. Measured:
+# lean/.lake/packages/mathlib/scripts/ carries 29 .py files of mathlib's own
+# tooling. They arrive with `lake exe cache get`, they are gitignored, and
+# checker/release-package.sh already excludes .lake from every archive -- so
+# they are not in the packet by any definition this suite uses. Flagging them
+# printed "delete them or move them outside" 29 times about a dependency's
+# source, which is advice that breaks the build, and it buried any genuine
+# stray .py underneath a wall of false positives. A checker that cries wolf
+# about files the operator must not touch trains the operator to ignore it.
+#
+# The count of what was skipped is PRINTED rather than silently dropped: an
+# exclusion nobody can see is how a scan quietly stops covering anything.
+py_all=$(find . -name '*.py' -o -name '*.pyw' 2>/dev/null | grep -v '^\./\.git/' | grep -c . || true)
+py_loose=$(find . -name '*.py' -o -name '*.pyw' 2>/dev/null | grep -v '^\./\.git/' | grep -v '/\.lake/' | grep -c . || true)
+py_dep=$((py_all - py_loose))
 if [ "$py_loose" -eq 0 ]; then
-  ok "no untracked Python file is sitting in the working tree either"
+  ok "no untracked Python file is sitting in the working tree either ($py_dep skipped inside .lake/, a dependency checkout)"
 else
   bad "$py_loose untracked Python file(s) in the tree -- delete them or move them outside"
-  find . -name '*.py' -o -name '*.pyw' 2>/dev/null | grep -v '^\./\.git/' | sed 's/^/        /' | head -10
+  find . -name '*.py' -o -name '*.pyw' 2>/dev/null | grep -v '^\./\.git/' | grep -v '/\.lake/' | sed 's/^/        /' | head -10
 fi
 
 # No shipped script may INVOKE python either. A repository with no .py that

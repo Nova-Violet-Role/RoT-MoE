@@ -2,12 +2,12 @@
   "directory": "engine",
   "files": {
     "rot-lean.md": {
-      "hash": "e36d6335f32f",
-      "indexed_at": "2026-08-22T05:33:25.278930+00:00",
+      "hash": "0f8f5f7bcaf6",
+      "indexed_at": "2026-08-22T08:29:03.145472+00:00",
       "language": "markdown",
-      "lines": 438,
-      "mtime_ns": 1787376804685387100,
-      "size": 29652,
+      "lines": 483,
+      "mtime_ns": 1787386705276380800,
+      "size": 33030,
       "symbols": [
         {
           "docstring": "**Deliberate inversion, stated so it is never mistaken for drift.** `Nova_Codex_OMEGA.md` BLOCK 10 is titled *\"ROT OUTPUT SCHEMA \u2014 ALWAYS VISIBLE\"*, a",
@@ -80,10 +80,21 @@
           "type": "section"
         },
         {
+          "children": [
+            {
+              "docstring": "The table above is not a special case for Lean; it is three rows of a declared vocabulary of **34 variables**. This section used to name exactly one o",
+              "lines": [
+                384,
+                464
+              ],
+              "name": "\u00a78.1 \u2014 THE CONFIGURATION SURFACE (ORGAN 7)",
+              "type": "subsection"
+            }
+          ],
           "docstring": "The lenses do not soften the prover's discipline; they feed it. Non-negotiable on this head:",
           "lines": [
             355,
-            419
+            464
           ],
           "name": "\u00a78 \u2014 THE LEAN BINDING (where this engine meets the compiler)",
           "type": "section"
@@ -91,8 +102,8 @@
         {
           "docstring": "**Allowed:** the answer. The proof. The measured command and its real output. The exact exit code. A ranked list of findings. The next two moves. `[UN",
           "lines": [
-            420,
-            439
+            465,
+            484
           ],
           "name": "\u00a79 \u2014 OUTPUT CONTRACT (what actually reaches the chat)",
           "type": "section"
@@ -100,6 +111,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T05:33:25.279014+00:00",
+  "generated_at": "2026-08-22T08:29:03.145551+00:00",
   "version": "1.0"
 }

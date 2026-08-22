@@ -634,12 +634,12 @@
       ]
     },
     "env-wiring.sh": {
-      "hash": "ae4cdc1ecdd2",
-      "indexed_at": "2026-08-22T08:05:55.368923+00:00",
+      "hash": "799a229d0b17",
+      "indexed_at": "2026-08-22T08:17:58.134462+00:00",
       "language": "shell",
-      "lines": 466,
-      "mtime_ns": 1787385954743212100,
-      "size": 23843,
+      "lines": 524,
+      "mtime_ns": 1787386677484418200,
+      "size": 26824,
       "symbols": [
         {
           "docstring": "--- THE GENERATOR ------------------------------------------------------------ Reads every `<!ENTITY ENV.n \"NAME|TYPE|DESCRIPTION\">` out of the DTD an",
@@ -1599,12 +1599,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "b82b1a3d1cd9",
-      "indexed_at": "2026-08-21T07:50:35.575345+00:00",
+      "hash": "fc88ac9360de",
+      "indexed_at": "2026-08-22T08:26:45.416220+00:00",
       "language": "shell",
-      "lines": 825,
-      "mtime_ns": 1787209313000000000,
-      "size": 43179,
+      "lines": 856,
+      "mtime_ns": 1787387204772771100,
+      "size": 45258,
       "symbols": [
         {
           "lines": [
@@ -1618,39 +1618,39 @@
           "docstring": "Every \"<n> theorems\" / \"<n> machine-checked\" claim must equal TH -- ANYWHERE IN THE TREE, not in three files chosen by hand.  MEASURED DEFECT, 2026-07",
           "lines": [
             184,
-            222
+            238
           ],
           "name": "claim_exempt",
           "type": "function"
         },
         {
           "lines": [
-            224,
-            267
+            240,
+            283
           ],
           "name": "scan_file_claims",
           "type": "function"
         },
         {
           "lines": [
-            519,
-            526
+            550,
+            557
           ],
           "name": "detects",
           "type": "function"
         },
         {
           "lines": [
-            577,
-            586
+            608,
+            617
           ],
           "name": "strip_lean_comments",
           "type": "function"
         },
         {
           "lines": [
-            747,
-            817
+            778,
+            848
           ],
           "name": "inv_check",
           "type": "function"
@@ -2183,6 +2183,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T08:12:25.778227+00:00",
+  "generated_at": "2026-08-22T08:26:45.416308+00:00",
   "version": "1.0"
 }

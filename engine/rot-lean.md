@@ -376,10 +376,55 @@ these defaults:
 |---|---|---|
 | the Lean workspace to prove in | `ROTMOE_LEAN_WORKSPACE` | `<plugin root>/lean` — the packet's own `lakefile.toml`, mathlib pinned in `lean-toolchain` |
 | the elan root (toolchains + the extras below) | `ELAN_HOME` | `~/.elan` (POSIX) · `%USERPROFILE%\.elan` (Windows) — elan's own variable, not one invented here |
-| the shell | — | measure it; both a POSIX shell and PowerShell are supported by this packet's hooks |
+| the shell | — | **both arms ship and both are authoritative.** POSIX (`hooks/*.sh`) and PowerShell (`hooks/*.ps1`) are two hand-written implementations, not a file and its copy — 2215 vs 1457 lines. `checker/cross-diff.sh` runs BOTH over one corpus and requires their **output** to agree byte-for-byte on every row. A Windows host with no bash runs the `.ps1` arm and is served the same contract. Do not "measure the shell" to decide which is real — run the one your host has |
 
 Everything else in this section is a *rule*, and rules travel. The one fact worth stating unconditionally:
 **`lake exe cache get`, never a mathlib build from source**, and never a second cache in a second workspace.
+
+### §8.1 — THE CONFIGURATION SURFACE (ORGAN 7)
+
+The table above is not a special case for Lean; it is three rows of a declared vocabulary of **34 variables**.
+This section used to name exactly one of them and mention the loader, its file, its search path and its two
+activations **zero times** — so the spec described a packet configured by a single variable that materialises from
+nowhere.
+
+**The vocabulary is declared once, in `hooks/rot-voice.dtd`**, as `<!ENTITY ENV.1 … ENV.34>`. `ROTMOE_LEAN_WORKSPACE`
+above is `ENV.10`. `ELAN_HOME` is deliberately *not* in that list: it is elan's own variable and this packet does not
+get to redefine it.
+
+**The names are NOT reproduced here, and that is the design.** A transcribed list drifts — this specification
+already proved it by disagreeing with the router on six routing stems, silently, because the two lists were copied
+rather than derived. The shipped `engine/rot.env.example` is *generated* from the DTD by
+`bash checker/env-wiring.sh --emit`, and W2 asserts the tracked file is byte-identical to a fresh emission. Read
+the vocabulary there, or read the DTD. Anything typed into this file is a fourth copy waiting to go stale.
+
+| | |
+|---|---|
+| **Declared vocabulary** | `hooks/rot-voice.dtd` — `ENV.1` … `ENV.34` |
+| **Shipped config file** | `engine/rot.env.example` — generated, never authored |
+| **Loader** | `hooks/rot-env.sh` (POSIX) · `hooks/rot-env.ps1` (PowerShell) |
+| **Activation** | `engine/rot.bashrc` (macOS / Linux / git-bash) · `engine/rot.profile.ps1` (Windows `$PROFILE`) |
+| **Gate** | `checker/env-layer.sh` proves the laws · `checker/env-wiring.sh` proves the chain |
+
+**Load order**, first hit wins, and nothing later overwrites what is already set:
+
+1. `$ROTMOE_ENV` — an explicit file path
+2. `<project>/.rot-moe/rot.env` — per-project, beside the tree being worked on
+3. `$XDG_CONFIG_HOME/rot-moe/rot.env` — per-user; when `XDG_CONFIG_HOME` is unset the loader falls back to
+   `$HOME/.config` (`hooks/rot-env.sh:62`), so this path exists on a machine that has never heard of XDG
+
+**The three laws the loader obeys**, and they are what make a config file safe to ship:
+
+- **NO EXPANSION** — a value is taken as literal text. `$(…)`, backticks and `${…}` are not evaluated, so a
+  config file cannot execute anything.
+- **DECLARED-ONLY** — a key absent from the DTD is refused. A `rot.env` cannot set `PATH`, and cannot invent a
+  `ROTMOE_*` name the packet does not implement.
+- **UNSET-ONLY** — a variable already present in the environment is never overwritten. The shell always wins over
+  the file, which is why `ROTMOE_ENV` and `ROTMOE_HOME` are refused *from* a file: they select the file, so letting
+  the file set them would be circular.
+
+Those three are not prose. `lean/Proofs/RotEnvWiring.lean` proves them as `load_declared_only`, `load_unset_only`,
+`load_locator_refused` and `load_inert`, kernel-rechecked by `leanchecker`, with the guard-deletion mutants killed.
 
 **The ELAN toolchain — the elan root is the whole arsenal (`$ELAN_HOME`, default `~/.elan`).** Two layers, and the
 distinction is the point: `\bin` holds **shims** that dispatch to whichever toolchain `lean-toolchain` selects,

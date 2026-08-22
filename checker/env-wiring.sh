@@ -462,5 +462,63 @@ else
   printf 'SKIP  C4 no pwsh on this host -- the parity comparator could not be falsified\n'
 fi
 
+# --- W9: the SPECIFICATION may not invent a variable -------------------------
+# ORGAN 1 (engine/rot-lean.md) is where an operator reads what to configure. Any
+# ROTMOE_* it names must exist in the declared vocabulary, or the spec documents
+# a knob that the loader's DECLARED-ONLY law will silently refuse from a file --
+# the worst kind of wrong, because it looks configurable and is not.
+#
+# This is the same disease the routing stems had: two lists, one copied from the
+# other, drifting in silence. W2 solves it for the config file by GENERATING it.
+# A prose specification cannot be generated, so it is CONSTRAINED instead: the
+# spec may name any subset of the vocabulary, but never a name outside it.
+SPEC="$REPO/engine/rot-lean.md"
+if [ ! -f "$SPEC" ]; then
+  bad "W9 engine/rot-lean.md is missing -- ORGAN 1 is the specification this packet implements"
+else
+  W9D=$(mktemp -d)
+  grep -oE 'ROTMOE_[A-Z_]+' "$DTD"  | sort -u > "$W9D/declared"
+  grep -oE 'ROTMOE_[A-Z_]+' "$SPEC" | sort -u > "$W9D/named"
+  W9N=$(grep -c . "$W9D/named")
+  W9BAD=$(grep -vxF -f "$W9D/declared" "$W9D/named" | grep -c .)
+  if [ "${W9N:-0}" -eq 0 ]; then
+    bad "W9 the specification names no ROTMOE_* at all -- ORGAN 1 documents a packet with no configuration surface"
+  elif [ "${W9BAD:-0}" -eq 0 ]; then
+    ok "W9 all $W9N ROTMOE_* named in the specification are declared in the DTD -- the spec invents nothing"
+  else
+    bad "W9 the specification names $W9BAD ROTMOE_* variable(s) the DTD never declares:"
+    grep -vxF -f "$W9D/declared" "$W9D/named" | sed 's/^/      undeclared: /'
+  fi
+  rm -rf "$W9D"
+
+  # W9b -- the spec must actually DESCRIBE the surface, not merely avoid lying
+  # about it. Before this was written it named one variable out of thirty-four
+  # and mentioned the loader, its search path and both activations zero times.
+  # Passing W9 while saying nothing is not a specification.
+  W9MISS=''
+  for _t in 'rot.env' 'rot.bashrc' 'rot.profile.ps1' '.rot-moe' 'XDG_CONFIG_HOME' 'rot-env.sh'; do
+    grep -qF "$_t" "$SPEC" || W9MISS="$W9MISS $_t"
+  done
+  if [ -z "$W9MISS" ]; then
+    ok "W9b the specification names the config file, both activations, the project dir, the XDG path and the loader"
+  else
+    bad "W9b the specification never mentions:$W9MISS -- ORGAN 7 is undocumented in ORGAN 1"
+  fi
+fi
+
+# C5 -- W9 must be able to see an undeclared name. Planting one in the real spec
+# would be vandalism, so the comparison runs against a copy carrying a name that
+# is deliberately not in the vocabulary.
+C5D=$(mktemp -d)
+grep -oE 'ROTMOE_[A-Z_]+' "$DTD" | sort -u > "$C5D/declared"
+printf 'ROTMOE_VOICE\nROTMOE_FABRICATED_KNOB\n' > "$C5D/named"
+C5N=$(grep -vxF -f "$C5D/declared" "$C5D/named" | grep -c .)
+rm -rf "$C5D"
+if [ "${C5N:-0}" -eq 1 ]; then
+  ok "C5 control: W9's comparison detects a ROTMOE_* name absent from the declared vocabulary"
+else
+  bad "C5 CONTROL DID NOT FIRE: the comparison reported ${C5N:-0} undeclared where exactly 1 was planted"
+fi
+
 printf '\n== env wiring: %d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
