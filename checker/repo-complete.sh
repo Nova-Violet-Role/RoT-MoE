@@ -739,14 +739,46 @@ for f in lean/Proofs/*.lean; do strip_lean_comments "$f"; done \
 # theorems as they stood at the time, and binding them would demand the log be
 # rewritten, the one thing a log must never do (module-claims.sh states the
 # same scope rule for counts).
-CIT_SURFACE="README.md docs/lean-and-corpus.md docs/modules.md docs/tips.md docs/lens-bench.md docs/easter-egg.md"
+# THE DEFAULT IS INVERTED (9.0.x). Until now this was a hand-written list of six
+# files. A hand-written surface means every document added AFTERWARDS is exempt
+# by default and nothing ever says so -- the same shape as a gate registered in
+# one place and executed in none. MEASURED the day it was found:
+# docs/ESSAY-what-a-green-gate-is-worth.md cited eight theorem names, was added
+# to the tree, and the extractor's count did not move off 143. An essay arguing
+# that unasserted claims are the defect had unasserted claims, because its
+# validator's scope was a list somebody wrote before the essay existed.
+#
+# The surface is now README plus EVERY docs/*.md, minus history. A new document
+# is covered the moment it exists; exempting one is a deliberate, visible act.
+#
+# History stays out, for the reason the 7.0.0 note gave and which still holds:
+# SCRUTINY-* files cite theorems as they stood at the time, and binding them
+# would demand the log be rewritten, the one thing a log must never do
+# (module-claims.sh states the same scope rule for counts).
+cit_surface () {
+  printf '%s\n' README.md
+  for _f in docs/*.md; do
+    [ -f "$_f" ] || continue
+    case "$_f" in
+      docs/SCRUTINY-*) continue ;;
+    esac
+    printf '%s\n' "$_f"
+  done
+}
 : > "$RCTMP/cited.raw"
-for _cf in $CIT_SURFACE; do
+for _cf in $(cit_surface); do
   [ -f "$_cf" ] && grep -oE '`[a-z][a-z0-9]*(_[a-z0-9]+)+`' "$_cf" >> "$RCTMP/cited.raw"
 done
 tr -d '`' < "$RCTMP/cited.raw" | sort -u > "$RCTMP/cited.txt"
-# Words that are legitimately snake_case and are NOT theorems.
-NOT_THEOREMS='native_decide|lake_build|lean_lib|rot_moe|claude_config_dir'
+# Words that are legitimately snake_case and are NOT theorems. Widening the
+# surface widened this too: the extractor's heuristic is "backticked snake_case",
+# which also matches shell functions (claim_exempt, gf_quarantine), YAML keys
+# (workflow_dispatch) and JSON fields (hook_event_name, session_id). Those were
+# never theorem citations; the old narrow surface hid them rather than naming
+# them. Naming them is the honest form -- each one here is a claim that this
+# identifier is not a theorem, and a real theorem taking one of these names
+# would be caught by the corpus check, not silenced by this line.
+NOT_THEOREMS='native_decide|lake_build|lean_lib|rot_moe|claude_config_dir|claim_exempt|gf_quarantine|workflow_dispatch|hook_event_name|session_id|test_the_contract_binds_the_engine'
 grep -vE "^($NOT_THEOREMS)$" "$RCTMP/cited.txt" > "$RCTMP/cited2.txt" || true
 
 ghosts=0
@@ -764,6 +796,35 @@ if [ "$ncit" -ge 40 ]; then
   ok "the citation extractor found $ncit names (a scan that matched nothing would pass vacuously)"
 else
   bad "only $ncit citations extracted from the citation surface -- the extractor has gone blind, not the pages clean"
+fi
+
+# The surface rule itself gets two controls, and they call cit_surface() -- the
+# same function production uses -- so a refactor that narrows the scope trips
+# them instead of silently exempting the next document somebody writes.
+#
+# `wc -l` rather than `grep -c`: grep exits 1 on zero matches, and a non-zero
+# exit inside a command substitution is exactly the kind of silent swallow this
+# file exists to catch. wc always exits 0, so the assertion below decides.
+cit_probe () { for _cf in $(cit_surface); do [ -f "$_cf" ] && grep -oE '`[a-z][a-z0-9]*(_[a-z0-9]+)+`' "$_cf"; done | tr -d '`' | grep -x "$1" | wc -l | tr -d ' '; }
+
+_ctl_new="docs/zzz-citation-scope-control.md"
+printf 'control: cites `no_such_theorem_scope_2651`\n' > "$_ctl_new"
+_ctl_new_hits=$(cit_probe 'no_such_theorem_scope_2651')
+rm -f "$_ctl_new"
+if [ "$_ctl_new_hits" -ge 1 ]; then
+  ok "SCOPE CONTROL: a newly added docs/ file IS inside the citation surface (the class that exempted the essay)"
+else
+  bad "SCOPE CONTROL FAILED: a new docs/ file is invisible to the citation scan -- the surface is an allowlist again"
+fi
+
+_ctl_hist="docs/SCRUTINY-zzz-control.md"
+printf 'control: cites `no_such_theorem_hist_2651`\n' > "$_ctl_hist"
+_ctl_hist_hits=$(cit_probe 'no_such_theorem_hist_2651')
+rm -f "$_ctl_hist"
+if [ "$_ctl_hist_hits" -eq 0 ]; then
+  ok "HISTORY CONTROL: docs/SCRUTINY-* stays outside the surface -- a log records what was true, it is never rewritten"
+else
+  bad "HISTORY CONTROL FAILED: a SCRUTINY log was pulled into the citation surface -- history would have to be edited to stay green"
 fi
 
 # CONTROL: a cited name that does not exist MUST be reported. The needle is

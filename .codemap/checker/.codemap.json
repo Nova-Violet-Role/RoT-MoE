@@ -954,10 +954,10 @@
     },
     "lean-module-case.sh": {
       "hash": "e8ba022144b4",
-      "indexed_at": "2026-08-22T19:30:18.002619+00:00",
+      "indexed_at": "2026-08-22T21:25:12.276201+00:00",
       "language": "shell",
       "lines": 119,
-      "mtime_ns": 1787425666004344000,
+      "mtime_ns": 1787431736440108600,
       "size": 5245,
       "symbols": []
     },
@@ -1202,10 +1202,10 @@
     },
     "name-collision.sh": {
       "hash": "ba51669169eb",
-      "indexed_at": "2026-08-22T19:30:18.008145+00:00",
+      "indexed_at": "2026-08-22T21:25:12.281937+00:00",
       "language": "shell",
       "lines": 197,
-      "mtime_ns": 1787425666240614300,
+      "mtime_ns": 1787431736675507000,
       "size": 8548,
       "symbols": [
         {
@@ -1545,10 +1545,10 @@
     },
     "release-package.sh": {
       "hash": "4f73a2ab53b2",
-      "indexed_at": "2026-08-22T19:30:18.015273+00:00",
+      "indexed_at": "2026-08-22T21:25:12.289061+00:00",
       "language": "shell",
       "lines": 812,
-      "mtime_ns": 1787425666557011400,
+      "mtime_ns": 1787431736973308100,
       "size": 40460,
       "symbols": [
         {
@@ -1650,12 +1650,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "15fdcf67b67b",
-      "indexed_at": "2026-08-22T19:00:44.729086+00:00",
+      "hash": "60339775d924",
+      "indexed_at": "2026-08-22T21:25:11.603722+00:00",
       "language": "shell",
-      "lines": 963,
-      "mtime_ns": 1787425244029738300,
-      "size": 50514,
+      "lines": 1024,
+      "mtime_ns": 1787432450762316000,
+      "size": 53896,
       "symbols": [
         {
           "lines": [
@@ -1699,9 +1699,18 @@
           "type": "function"
         },
         {
+          "docstring": "A citation is a backticked snake_case identifier: at least one underscore and no dot or slash, which excludes file names, flags and module paths.  THE",
           "lines": [
-            885,
-            955
+            758,
+            767
+          ],
+          "name": "cit_surface",
+          "type": "function"
+        },
+        {
+          "lines": [
+            946,
+            1016
           ],
           "name": "inv_check",
           "type": "function"
@@ -1944,10 +1953,10 @@
     },
     "verdict-fresh.sh": {
       "hash": "a2271c0b7624",
-      "indexed_at": "2026-08-22T19:30:18.020812+00:00",
+      "indexed_at": "2026-08-22T21:25:12.294783+00:00",
       "language": "shell",
       "lines": 75,
-      "mtime_ns": 1787425666778081900,
+      "mtime_ns": 1787431737190224300,
       "size": 3857,
       "symbols": []
     },
@@ -2289,6 +2298,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T20:06:20.177654+00:00",
+  "generated_at": "2026-08-22T21:25:12.379394+00:00",
   "version": "1.0"
 }
