@@ -1536,12 +1536,12 @@
       ]
     },
     "release-package.sh": {
-      "hash": "6fd3ec572ab7",
-      "indexed_at": "2026-08-22T11:38:54.827029+00:00",
+      "hash": "4f73a2ab53b2",
+      "indexed_at": "2026-08-22T13:41:44.895179+00:00",
       "language": "shell",
-      "lines": 743,
-      "mtime_ns": 1787398734199136700,
-      "size": 37189,
+      "lines": 812,
+      "mtime_ns": 1787406099724925700,
+      "size": 40460,
       "symbols": [
         {
           "lines": [
@@ -1563,8 +1563,8 @@
         {
           "docstring": "--- 4. EACH TIER IS A STRICT SUPERSET OF THE ONE BELOW ---------------------- The property that makes the naming mean something. Checked by set differ",
           "lines": [
-            436,
-            444
+            505,
+            513
           ],
           "name": "superset",
           "type": "function"
@@ -2236,6 +2236,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T12:14:05.915885+00:00",
+  "generated_at": "2026-08-22T13:41:44.895260+00:00",
   "version": "1.0"
 }

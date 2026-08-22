@@ -280,6 +280,20 @@ for vp in $VARIANTS; do
   # draft and it was three chances to get it wrong for no benefit.
   _OLDIFS=$IFS; IFS='
 '
+  # MEASURED 2026-08-22: both copy branches below ended in `2>/dev/null` and
+  # NOTHING read their exit status. A staging copy could fail -- MAX_PATH on
+  # Windows is the live risk on the machine this is written for, where a deep
+  # lean/Proofs path staged under $OUT can cross 260 characters -- and the run
+  # would continue, zip whatever landed, and report green. The pre-copy check
+  # above proves a declared path exists ON DISK; assertion 7 below proves
+  # nothing EXTRA ships; the organ checks prove a NAMED subset arrived. No
+  # assertion closed the gap between them: a declared path that exists, fails
+  # to copy, and is not on an organ list shipped MISSING under a green gate.
+  # stderr now goes to a file rather than to /dev/null, so a failure has
+  # evidence, and the status is read per path.
+  _copyfail=0
+  _copyerr="$OUT/.copyerr-$v"
+  : > "$_copyerr"
   for p in $(paths_for "$v"); do
     [ -n "$p" ] || continue
     [ -e "$p" ] || continue
@@ -294,11 +308,66 @@ for vp in $VARIANTS; do
       # shipped an absolute path under a green gate.
       tar -cf - --exclude='.lake' --exclude='*.olean' --exclude='.git' \
                 --exclude='*.mutbak' --exclude='*.bak' --exclude='.rot-moe' \
-                --exclude='.cocoindex_code' "$p" 2>/dev/null | ( cd "$STAGE" && tar -xf - ) 2>/dev/null
+                --exclude='.cocoindex_code' "$p" 2>>"$_copyerr" | ( cd "$STAGE" && tar -xf - ) 2>>"$_copyerr"
     else
-      cp "$p" "$d/" 2>/dev/null
+      cp "$p" "$d/" 2>>"$_copyerr"
+    fi
+    # `if ... fi` carries the status of whichever branch ran, and pipefail (set
+    # at the top) makes the tar pipeline report a failure in EITHER half rather
+    # than only in the extracting end.
+    _crc=$?
+    if [ "$_crc" -ne 0 ]; then
+      _copyfail=$((_copyfail+1))
+      printf 'copy failed (exit %s): %s\n' "$_crc" "$p" >> "$_copyerr"
     fi
   done
+
+  # ASSERTION 8 -- every declared path actually LANDED in the stage.
+  # Two independent readings, because they fail differently: a non-zero copy
+  # status is the tool saying it failed, and an absent staged path is the tree
+  # saying so whether or not the tool admitted it. A copy that "succeeds" while
+  # writing nothing is exactly the shape the second reading exists to catch.
+  if [ "$_copyfail" -eq 0 ]; then
+    ok "$v: every declared path copied with exit 0"
+  else
+    bad "$v: $_copyfail declared path(s) FAILED to copy -- this archive is SHORT"
+    sed 's|^|         |' "$_copyerr"
+  fi
+
+  _absent=0
+  for p in $(paths_for "$v"); do
+    [ -n "$p" ] || continue
+    [ -e "$p" ] || continue
+    if [ -d "$p" ]; then
+      [ -d "$STAGE/$p" ] || { bad "$v: declared directory never reached the stage: $p"; _absent=$((_absent+1)); }
+    else
+      [ -f "$STAGE/$p" ] || { bad "$v: declared file never reached the stage: $p"; _absent=$((_absent+1)); }
+    fi
+  done
+  [ "$_absent" -eq 0 ] && ok "$v: every declared path is present in the stage"
+
+  # CONTROL for assertion 8. A presence test that cannot see an absence would
+  # print the green line above for an empty stage. Remove one staged file, ask
+  # the same question, put it back -- and refuse to continue if the restore
+  # did not take, because a control that damages the tree it audits is worse
+  # than no control at all.
+  _ctlp=""
+  for p in $(paths_for "$v"); do
+    [ -n "$p" ] || continue
+    if [ -f "$p" ] && [ -f "$STAGE/$p" ]; then _ctlp="$p"; break; fi
+  done
+  if [ -n "$_ctlp" ]; then
+    mv "$STAGE/$_ctlp" "$OUT/.presencectl"
+    if [ -f "$STAGE/$_ctlp" ]; then
+      bad "CONTROL DEAD ($v): a removed staged file still reads as present"
+    else
+      ok "CONTROL ($v): an absent staged file IS detectable"
+    fi
+    mv "$OUT/.presencectl" "$STAGE/$_ctlp"
+    [ -f "$STAGE/$_ctlp" ] || { echo "   FAIL: presence control did not restore $_ctlp"; exit 1; }
+  else
+    bad "CONTROL ($v): no staged regular file to test the presence check against"
+  fi
   IFS=$_OLDIFS
 
   # STAMP THE STAGED MANIFEST WITH THIS TIER'S VERSION. Not a no-op sed: for two
