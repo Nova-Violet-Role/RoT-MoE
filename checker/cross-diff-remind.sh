@@ -163,6 +163,77 @@ fi
 [ "$silent" -gt 0 ] && ok "$silent row(s) are SILENT (the healthy state is exercised)" \
   || bad "NO row is silent -- an arm that always speaks would pass this suite"
 
+# --- A8/A9: the ASCII-ONLY payload contract, on the REAL hook path -----------
+# WHY THIS BLOCK EXISTS, and why it is not a second copy of everything above.
+# Every assertion so far drives `--decide`, and the header states that boundary
+# honestly: the hook path measures the machine, so cross-arm EQUALITY is not
+# testable there. ASCII-ness is a different KIND of claim -- it does not depend
+# on the machine at all -- so the contract hooks/prover-remind.sh states in its
+# own header ("ASCII ONLY in the emitted payload ... a non-ASCII byte under a
+# legacy code page can close the JSON string early and silently kill the
+# injection -- measured on the private original this is ported from") IS
+# testable on the real path. Until 2026-08-22 NOTHING asserted it. The contract
+# was documented and the two guards existed, but no gate would have noticed
+# either guard being deleted -- the same shape as the rot-voice-gate.ps1
+# encoding defect, which also passed a green suite while destroying a field.
+#
+# THE GUARDS BEING EXERCISED: hooks/prover-remind.sh:258 (tr -c) and
+# hooks/prover-remind.ps1:382 (-replace), each at the single point every path
+# leaves through.
+#
+# NON-VACUOUS BY CONSTRUCTION, which is the whole design of the fixture. The
+# workspace below holds a .lean file whose NAME carries non-ASCII bytes and
+# whose mtime is old, so the stale-proof branch quotes that name in the "last:"
+# field. The bytes REACH the guard; delete the guard and they reach the payload.
+# Measured while writing this: "last: Caf    Name", the non-ASCII replaced by
+# spaces, 0 non-ASCII bytes in a 766-byte payload.
+_ad=${TMPDIR:-/tmp}/rot-remind-ascii.$$
+rm -rf "$_ad" 2>/dev/null
+mkdir -p "$_ad/ws/Proofs" "$_ad/s1" "$_ad/s2" 2>/dev/null
+# A Windows-shaped path for the pwsh arm: git-bash passes env vars VERBATIM, so
+# a POSIX /tmp path resolves DRIVE-RELATIVE in PowerShell, the directory is not
+# found, and that arm degrades quietly -- a silent skip wearing a pass's
+# clothes. Cost a false finding once already; both arms get the mixed form.
+_aw="$_ad"
+command -v cygpath >/dev/null 2>&1 && _aw=$(cygpath -m "$_ad")
+# Built with awk rather than a literal: this file stays pure ASCII itself, and
+# a printf escape would not survive every transport it is edited through.
+_anm=$(awk 'BEGIN{printf "Caf%c%cName", 195, 169}')
+: > "$_ad/ws/Proofs/$_anm.lean"
+touch -t 202601010000 "$_ad/ws/Proofs/$_anm.lean" 2>/dev/null
+_apay='{"session_id":"ascii","cwd":"'"$_aw"'","hook_event_name":"UserPromptSubmit","prompt":"x"}'
+
+_ascii_arm () {
+  _al=$1; _as=$2; shift 2
+  printf '%s' "$_apay" | ROTMOE_LEAN_WORKSPACE="$_aw/ws" ROTMOE_STATE_DIR="$_as" \
+    CLAUDE_PLUGIN_ROOT="$REPO" "$@" > "$_ad/$_al.out" 2>"$_ad/$_al.err"
+  _arc=$?
+  if [ "$_arc" -ne 0 ]; then
+    bad "$_al arm exited $_arc on the real hook path -- the contract is ALWAYS exit 0; a reminder must never break a build"
+    return 0
+  fi
+  # `grep -c` prints 0 AND exits 1 when it matches nothing, so the `|| true` is
+  # load-bearing and the result is validated as a number before arithmetic.
+  _an=$(LC_ALL=C grep -c '[^ -~]' "$_ad/$_al.out" 2>/dev/null || true)
+  case "$_an" in ''|*[!0-9]*) _an=0 ;; esac
+  _ab=$(wc -c < "$_ad/$_al.out" | tr -d ' ')
+  if [ "$_ab" -eq 0 ]; then
+    bad "$_al arm emitted NOTHING where the fixture forces speech -- a silent arm cannot demonstrate an ASCII guard"
+  elif [ "$_an" -eq 0 ]; then
+    ok "$_al arm ASCII guard holds: $_ab byte payload, 0 non-ASCII, built from a module name that CARRIES non-ASCII"
+  else
+    bad "$_al arm: $_an line(s) carry non-ASCII -- the single-exit guard is gone; under a legacy code page this closes the JSON string early and the injection dies in silence"
+  fi
+}
+
+_ascii_arm sh "$_aw/s1" sh "$SH"
+if [ -n "$PWSH" ]; then
+  _ascii_arm ps1 "$_aw/s2" "$PWSH" -NoProfile -File "$PS1"
+else
+  echo "  SKIP  no PowerShell -- the ps1 ASCII guard was NOT exercised."
+fi
+rm -rf "$_ad" 2>/dev/null
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed, $skip skipped"

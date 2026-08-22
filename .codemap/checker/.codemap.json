@@ -361,12 +361,12 @@
       ]
     },
     "cross-diff-remind.sh": {
-      "hash": "72e43512e274",
-      "indexed_at": "2026-08-21T07:50:35.552392+00:00",
+      "hash": "a9890ce4a69e",
+      "indexed_at": "2026-08-22T04:21:22.506367+00:00",
       "language": "shell",
-      "lines": 188,
-      "mtime_ns": 1787209313000000000,
-      "size": 8515,
+      "lines": 259,
+      "mtime_ns": 1787372332710645100,
+      "size": 12438,
       "symbols": [
         {
           "docstring": "U1 (7.0.0): THE GOLDEN. Arm-vs-arm agreement cannot kill a SINGLE-ARM mutation on a machine with one arm: move a boundary in the POSIX arm on a pwsh-l",
@@ -375,6 +375,14 @@
             55
           ],
           "name": "_sha",
+          "type": "function"
+        },
+        {
+          "lines": [
+            206,
+            227
+          ],
+          "name": "_ascii_arm",
           "type": "function"
         }
       ]
@@ -2128,6 +2136,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-21T18:13:45.881785+00:00",
+  "generated_at": "2026-08-22T04:21:22.506441+00:00",
   "version": "1.0"
 }
