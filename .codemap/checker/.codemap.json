@@ -614,6 +614,60 @@
         }
       ]
     },
+    "encyclopedia.sh": {
+      "hash": "9acadb9a61ff",
+      "indexed_at": "2026-08-22T23:15:07.650176+00:00",
+      "language": "shell",
+      "lines": 340,
+      "mtime_ns": 1787440507042897900,
+      "size": 14694,
+      "symbols": [
+        {
+          "docstring": "Rows in the DEFAULT block: between `GATES=\"` and its closing lone quote.  THIS IS THE AUTHORITATIVE EXTRACTION, and it is copied deliberately from che",
+          "lines": [
+            61,
+            63
+          ],
+          "name": "registry_rows",
+          "type": "function"
+        },
+        {
+          "docstring": "Rows appended only when MODE is full. These do NOT run in a bare sweep and do NOT run pre-commit. A reference that hides them is worse than no referen",
+          "lines": [
+            67,
+            69
+          ],
+          "name": "full_rows",
+          "type": "function"
+        },
+        {
+          "docstring": "CODE / COMMENT / NONE for one script. Case-insensitive on purpose: this corpus prints control verdicts in three different casings.",
+          "lines": [
+            73,
+            80
+          ],
+          "name": "control_class",
+          "type": "function"
+        },
+        {
+          "docstring": "The instrument a row runs, or the literal command when it is not a checker.",
+          "lines": [
+            83,
+            85
+          ],
+          "name": "row_instrument",
+          "type": "function"
+        },
+        {
+          "lines": [
+            155,
+            263
+          ],
+          "name": "render_region",
+          "type": "function"
+        }
+      ]
+    },
     "env-layer.sh": {
       "hash": "c83ae9703182",
       "indexed_at": "2026-08-22T17:50:25.329946+00:00",
@@ -679,26 +733,26 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "e1ba3b54061d",
-      "indexed_at": "2026-08-22T17:50:25.331818+00:00",
+      "hash": "52f1ab94c7c1",
+      "indexed_at": "2026-08-22T22:39:11.768887+00:00",
       "language": "shell",
-      "lines": 554,
-      "mtime_ns": 1787420485180601200,
-      "size": 30346,
+      "lines": 555,
+      "mtime_ns": 1787438351167585200,
+      "size": 30487,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            229,
-            244
+            230,
+            245
           ],
           "name": "fires",
           "type": "function"
         },
         {
           "lines": [
-            439,
-            445
+            440,
+            446
           ],
           "name": "_classify",
           "type": "function"
@@ -954,10 +1008,10 @@
     },
     "lean-module-case.sh": {
       "hash": "e8ba022144b4",
-      "indexed_at": "2026-08-22T22:27:06.332643+00:00",
+      "indexed_at": "2026-08-22T23:40:49.689587+00:00",
       "language": "shell",
       "lines": 119,
-      "mtime_ns": 1787434341752782800,
+      "mtime_ns": 1787438434368949700,
       "size": 5245,
       "symbols": []
     },
@@ -1202,10 +1256,10 @@
     },
     "name-collision.sh": {
       "hash": "ba51669169eb",
-      "indexed_at": "2026-08-22T22:27:06.339274+00:00",
+      "indexed_at": "2026-08-22T23:40:49.695150+00:00",
       "language": "shell",
       "lines": 197,
-      "mtime_ns": 1787434341983161600,
+      "mtime_ns": 1787438434596368000,
       "size": 8548,
       "symbols": [
         {
@@ -1545,10 +1599,10 @@
     },
     "release-package.sh": {
       "hash": "4f73a2ab53b2",
-      "indexed_at": "2026-08-22T22:27:06.346428+00:00",
+      "indexed_at": "2026-08-22T23:40:49.702308+00:00",
       "language": "shell",
       "lines": 812,
-      "mtime_ns": 1787434342275321300,
+      "mtime_ns": 1787438434891592700,
       "size": 40460,
       "symbols": [
         {
@@ -1650,12 +1704,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "60339775d924",
-      "indexed_at": "2026-08-22T21:25:11.603722+00:00",
+      "hash": "2f4896fe4ba9",
+      "indexed_at": "2026-08-22T22:44:30.716787+00:00",
       "language": "shell",
-      "lines": 1024,
-      "mtime_ns": 1787432450762316000,
-      "size": 53896,
+      "lines": 1054,
+      "mtime_ns": 1787438670115916900,
+      "size": 55985,
       "symbols": [
         {
           "lines": [
@@ -1668,32 +1722,32 @@
         {
           "docstring": "Every \"<n> theorems\" / \"<n> machine-checked\" claim must equal TH -- ANYWHERE IN THE TREE, not in three files chosen by hand.  MEASURED DEFECT, 2026-07",
           "lines": [
-            184,
-            238
+            200,
+            254
           ],
           "name": "claim_exempt",
           "type": "function"
         },
         {
           "lines": [
-            240,
-            283
+            256,
+            299
           ],
           "name": "scan_file_claims",
           "type": "function"
         },
         {
           "lines": [
-            657,
-            664
+            685,
+            692
           ],
           "name": "detects",
           "type": "function"
         },
         {
           "lines": [
-            715,
-            724
+            743,
+            752
           ],
           "name": "strip_lean_comments",
           "type": "function"
@@ -1701,16 +1755,16 @@
         {
           "docstring": "A citation is a backticked snake_case identifier: at least one underscore and no dot or slash, which excludes file names, flags and module paths.  THE",
           "lines": [
-            758,
-            767
+            786,
+            795
           ],
           "name": "cit_surface",
           "type": "function"
         },
         {
           "lines": [
-            946,
-            1016
+            976,
+            1046
           ],
           "name": "inv_check",
           "type": "function"
@@ -1953,10 +2007,10 @@
     },
     "verdict-fresh.sh": {
       "hash": "a2271c0b7624",
-      "indexed_at": "2026-08-22T22:27:06.352195+00:00",
+      "indexed_at": "2026-08-22T23:40:49.708090+00:00",
       "language": "shell",
       "lines": 75,
-      "mtime_ns": 1787434342486916800,
+      "mtime_ns": 1787438435107923800,
       "size": 3857,
       "symbols": []
     },
@@ -2298,6 +2352,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T22:27:06.437591+00:00",
+  "generated_at": "2026-08-22T23:40:49.793108+00:00",
   "version": "1.0"
 }

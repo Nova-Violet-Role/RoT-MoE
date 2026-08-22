@@ -160,6 +160,16 @@ jobs:
         shell: bash
         run: sh checker/module-claims.sh
 
+      # Registered in the same commit that introduced the gate, because three
+      # separate gates refused that commit until it was: workflow-lint (not run
+      # by any workflow), gate-split (shell table vs Lean witness disagreed),
+      # and the executable-bit sweep. An instrument nobody runs is the exact
+      # defect this one reports, so shipping it unwired would have been the
+      # reference indicting itself in its own first table -- which it did.
+      - name: instrument encyclopedia (the gate reference vs the registry)
+        shell: bash
+        run: sh checker/encyclopedia.sh
+
       # Registered late: workflow-lint found this gate was in the shell table
       # and the Lean witness but in NO workflow, so CI had never run it once.
       # Exits 3 (SKIP) when no config dir is present, which is not a pass.

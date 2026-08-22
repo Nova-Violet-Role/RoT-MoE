@@ -114,7 +114,23 @@ bash "$REPO/checker/count-theorems.sh" --selftest >/dev/null 2>&1 \
 TH=$(bash "$REPO/checker/count-theorems.sh" lean/Proofs/*.lean)
 MODS=$(ls lean/Proofs/*.lean 2>/dev/null | wc -l | tr -d ' ')
 SUITES=$(ls lean/mutate/mutate_*.sh 2>/dev/null | wc -l | tr -d ' ')
-echo "  measured: $TH theorems, $MODS modules, $SUITES mutation suites"
+# MEASURED HERE, not at the inventory block further down, and the move is the
+# fix for a real defect rather than tidying.
+#
+# MEASURED 2026-08-23: `CHKS` was computed immediately above `inv_check`, which
+# is roughly six hundred lines BELOW the --write block. So the writer could not
+# rewrite a checker-count claim even in principle -- the number did not exist
+# yet when the write ran. The inventory check validated `(N checkers)` and the
+# writer could not regenerate it, which is precisely the "checker but no
+# generator" shape this repository calls an assertion with no author.
+#
+# It was not theoretical. Adding checker/encyclopedia.sh moved the count from
+# 82 to 83, `--write` reported success, and the very next check refused with
+# "README.md claims 82 checkers; the tree has 83". One measurement, read by
+# both the writer and the checker, is the only arrangement where that cannot
+# recur.
+CHKS=$(ls "$REPO"/checker/*.sh 2>/dev/null | wc -l | tr -d ' ')
+echo "  measured: $TH theorems, $MODS modules, $SUITES mutation suites, $CHKS checkers"
 
 # --- THE SHARED CORPUS MUST BE PRESENT AND NON-EMPTY -------------------------
 # `Lean Theorem/` is the contributed proof base. It is not decoration: the LEAN
@@ -322,7 +338,12 @@ if [ "$DO_WRITE" = 1 ]; then
     claim_exempt "$wf" && continue
     [ "$wf" = "CHANGELOG.md" ] && continue
     grep -Iq . "$wf" 2>/dev/null || continue
-    grep -Eq '[0-9]+ machine-checked|**[0-9]+ modules**' "$wf" || continue
+    # The filter must admit every pattern the checks below enforce. It once
+    # admitted only the theorem patterns, so a file whose ONLY claim was a
+    # checker or suite count was skipped by the writer and then failed the
+    # check -- the writer and the checker disagreeing about which files carry
+    # claims. Each alternative here pairs with an inv_check or a claim sweep.
+    grep -Eq '[0-9]+ machine-checked|\*\*[0-9]+ modules\*\*|\([0-9]+ checkers\)|[0-9]+ mutation suites' "$wf" || continue
     _b4=$(cksum < "$wf")
     perl -0777 -pi -e "s/(\d+)((?:\*\*|__)?\s+machine-checked(?:\s+Lean\s+4)?\s+theorems?)/$TH\$2/g" "$wf"
     # THE INVENTORY ROW IS README's ALONE -- a writer must never reach past the
@@ -346,6 +367,13 @@ if [ "$DO_WRITE" = 1 ]; then
     if [ "$wf" = "README.md" ]; then
       perl -0777 -pi -e "s/\*\*\d+ modules\*\*, \*\*\d+ theorems\*\*/**$MODS modules**, **$TH theorems**/g" "$wf"
     fi
+    # The inventory counts are NOT README-only: inv_check reads every tracked,
+    # non-exempt file except CHANGELOG.md, so the write has that same domain.
+    # It is safe precisely because it is the same domain -- a file the check
+    # refuses to read is a file this loop has already skipped, so the quotation
+    # hazard that once corrupted the compendium cannot reach these two.
+    perl -0777 -pi -e "s/\(\d+ checkers\)/($CHKS checkers)/g" "$wf"
+    perl -0777 -pi -e "s/\d+ mutation suites/$SUITES mutation suites/g" "$wf"
     _af=$(cksum < "$wf")
     if [ "$_b4" != "$_af" ]; then
       echo "  rewrote $wf"
@@ -940,7 +968,9 @@ echo "== INVENTORY CLAIMS: modules, suites and CHECKERS, not just theorems =="
 #
 # Same sweep discipline as the theorem loop: every tracked file, the existing
 # exemption list, no hand-maintained roster of files-that-may-carry-a-claim.
-CHKS=$(ls "$REPO"/checker/*.sh 2>/dev/null | wc -l | tr -d ' ')
+# CHKS and SUITES are measured ONCE, next to TH and MODS at the top of this
+# file, so the --write block and the checks below read the same number. See the
+# note there for the defect that arrangement fixes.
 echo "  measured: $MODS modules, $SUITES mutation suites, $CHKS checkers"
 
 inv_check () {   # <regex with one capture> <expected> <label>

@@ -130,10 +130,10 @@
     },
     "COMPENDIUM-the-unwritten-claim.md": {
       "hash": "92b2e83f38b0",
-      "indexed_at": "2026-08-22T22:27:06.359942+00:00",
+      "indexed_at": "2026-08-22T23:40:49.715806+00:00",
       "language": "markdown",
       "lines": 198,
-      "mtime_ns": 1787434342720975400,
+      "mtime_ns": 1787440560160764500,
       "size": 9569,
       "symbols": [
         {
@@ -217,6 +217,99 @@
             199
           ],
           "name": "The generalisation",
+          "type": "section"
+        }
+      ]
+    },
+    "ENCYCLOPEDIA-instruments.md": {
+      "hash": "50a27ac796fb",
+      "indexed_at": "2026-08-22T23:15:44.265574+00:00",
+      "language": "markdown",
+      "lines": 248,
+      "mtime_ns": 1787440543662629200,
+      "size": 17367,
+      "symbols": [
+        {
+          "docstring": "The column reports **static evidence**: whether the word *control* appears in the script's executable text, only in its comments, or not at all. That",
+          "lines": [
+            18,
+            53
+          ],
+          "name": "How to read the control column, and how not to",
+          "type": "section"
+        },
+        {
+          "docstring": "The digest reports the default table and the FULL-only tier separately. The first version of this generator reported a single figure of 82 gates. The",
+          "lines": [
+            54,
+            77
+          ],
+          "name": "Two tables, not one, and why the first count was wrong",
+          "type": "section"
+        },
+        {
+          "docstring": "This document lists every gate. It is tempting to read a full inventory as full assurance, and that reading is wrong in a way that is provable rather",
+          "lines": [
+            78,
+            99
+          ],
+          "name": "What a complete table does and does not buy",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "These 10 gates are appended to the table only when the runner is in full mode. A bare sweep does not run them and no commit ever triggers them. They a",
+              "lines": [
+                122,
+                141
+              ],
+              "name": "The FULL-only tier",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- `checker/gate-all.sh` - `checker/preflight.sh` - `checker/status-verdict.sh`",
+              "lines": [
+                142,
+                147
+              ],
+              "name": "Scripts no registry row runs",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- `checker/ci-audit-freshness.sh` -- no control text - `checker/count-theorems.sh` -- COMMENT only - `checker/ctt-session.sh` -- COMMENT only - `check",
+              "lines": [
+                148,
+                156
+              ],
+              "name": "Scripts whose control text is only in comments, or absent",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Regenerate with `sh checker/encyclopedia.sh --write`. A bare run compares this section against the tree and exits 1 when they have drifted apart.",
+          "lines": [
+            100,
+            156
+          ],
+          "name": "Digest",
+          "type": "section"
+        },
+        {
+          "docstring": "| # | Gate | Tier | Runs when | Instrument | Control text | |---|---|---|---|---|---| | 1 | count-theorems selftest | fast | always | `checker/count-t",
+          "lines": [
+            157,
+            237
+          ],
+          "name": "A. The gates, in registry order",
+          "type": "section"
+        },
+        {
+          "docstring": "The theorems named above are in `lean/Proofs/RotCoverage.lean`, built at exit 0, kernel-rechecked with `leanchecker`, and mutated three times with eve",
+          "lines": [
+            238,
+            249
+          ],
+          "name": "Citations",
           "type": "section"
         }
       ]
@@ -481,10 +574,10 @@
     },
     "PAPER-the-cost-of-a-verdict.md": {
       "hash": "01164d86e14e",
-      "indexed_at": "2026-08-22T22:05:03.116582+00:00",
+      "indexed_at": "2026-08-22T23:40:49.718109+00:00",
       "language": "markdown",
       "lines": 266,
-      "mtime_ns": 1787436302491140900,
+      "mtime_ns": 1787438435422093500,
       "size": 15921,
       "symbols": [
         {
@@ -685,10 +778,10 @@
     },
     "SCRUTINY-LOG.md": {
       "hash": "094b68fe311b",
-      "indexed_at": "2026-08-22T22:27:06.362634+00:00",
+      "indexed_at": "2026-08-22T23:40:49.718633+00:00",
       "language": "markdown",
       "lines": 299,
-      "mtime_ns": 1787434342818812800,
+      "mtime_ns": 1787438435487250000,
       "size": 16324,
       "symbols": [
         {
@@ -1400,6 +1493,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T22:27:06.439616+00:00",
+  "generated_at": "2026-08-22T23:40:49.795050+00:00",
   "version": "1.0"
 }
