@@ -113,6 +113,43 @@ newest section is treated as a live claim by the checker.
 Stated as one rule: **a generator's blast radius must be exactly the set of
 live claims — never the set of textual matches.**
 
+### Trap 2 fired, on this document, the next day
+
+Writing the rule down did not enforce it. On 2026-08-19 a module was added, the
+counts moved 90 → 91 and 1662 → 1679, and `--write` was run for the first time
+on a tree that had genuinely changed. It rewrote five files. One of them was
+this one.
+
+The paragraph above under *The fifth place* quotes what `README.md:1353` said on
+the day the unguarded claim was found. The writer read that quotation as a live
+claim and updated it, so the document began reporting that the fifth defect had
+been discovered by reading today's numbers. It had not. The evidence stopped
+being evidence, in the file whose entire subject is this class of mistake.
+
+The cause was not carelessness about history — trap 2 was already written down.
+It was a **scope asymmetry nobody had asserted**: the inventory-row *check*
+reads `README.md` and nothing else, while the inventory-row *write* ran over
+every scanned file. Write-domain strictly contained check-domain, so the writer
+was editing text no checker would ever look at, which is the definition of an
+unvalidated rewrite.
+
+The fix is not an exemption for this file. An exemption list is the hiding place
+trap 1 already warns about, and the next document to quote a README row would
+walk into it again. The fix is to give the write the *same* domain as the check
+— `checker/repo-complete.sh` now performs the inventory rewrite only for
+`README.md`, with a comment tying it to the check below it, so widening the
+check widens the write.
+
+Measured after the fix, both directions: a README staled to `**3 modules**,
+**3 theorems**` is detected (exit 1), repaired by `--write`, and restored
+byte-identical to its correct content — while this document is byte-identical
+across that same `--write`.
+
+So the rule gains a second half. **A generator's domain must equal the domain of
+the checker that validates it** — larger and it edits unwatched text, smaller
+and it leaves claims nothing can repair. And: **a number inside a quotation is
+not a claim, it is evidence.**
+
 ## What was built
 
 `checker/repo-complete.sh` gained `--write`, and the inventory row gained a

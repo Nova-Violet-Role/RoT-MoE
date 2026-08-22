@@ -954,10 +954,10 @@
     },
     "lean-module-case.sh": {
       "hash": "e8ba022144b4",
-      "indexed_at": "2026-08-22T17:50:25.336000+00:00",
+      "indexed_at": "2026-08-22T19:30:18.002619+00:00",
       "language": "shell",
       "lines": 119,
-      "mtime_ns": 1787420742549170500,
+      "mtime_ns": 1787425666004344000,
       "size": 5245,
       "symbols": []
     },
@@ -1202,10 +1202,10 @@
     },
     "name-collision.sh": {
       "hash": "ba51669169eb",
-      "indexed_at": "2026-08-22T17:50:25.341854+00:00",
+      "indexed_at": "2026-08-22T19:30:18.008145+00:00",
       "language": "shell",
       "lines": 197,
-      "mtime_ns": 1787420742816755200,
+      "mtime_ns": 1787425666240614300,
       "size": 8548,
       "symbols": [
         {
@@ -1545,10 +1545,10 @@
     },
     "release-package.sh": {
       "hash": "4f73a2ab53b2",
-      "indexed_at": "2026-08-22T17:50:25.349280+00:00",
+      "indexed_at": "2026-08-22T19:30:18.015273+00:00",
       "language": "shell",
       "lines": 812,
-      "mtime_ns": 1787420743122421100,
+      "mtime_ns": 1787425666557011400,
       "size": 40460,
       "symbols": [
         {
@@ -1650,12 +1650,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "7adf1a2e8922",
-      "indexed_at": "2026-08-22T17:43:39.880682+00:00",
+      "hash": "15fdcf67b67b",
+      "indexed_at": "2026-08-22T19:00:44.729086+00:00",
       "language": "shell",
-      "lines": 943,
-      "mtime_ns": 1787420619218292700,
-      "size": 49363,
+      "lines": 963,
+      "mtime_ns": 1787425244029738300,
+      "size": 50514,
       "symbols": [
         {
           "lines": [
@@ -1684,24 +1684,24 @@
         },
         {
           "lines": [
-            637,
-            644
+            657,
+            664
           ],
           "name": "detects",
           "type": "function"
         },
         {
           "lines": [
-            695,
-            704
+            715,
+            724
           ],
           "name": "strip_lean_comments",
           "type": "function"
         },
         {
           "lines": [
-            865,
-            935
+            885,
+            955
           ],
           "name": "inv_check",
           "type": "function"
@@ -1935,10 +1935,10 @@
     },
     "verdict-fresh.sh": {
       "hash": "a2271c0b7624",
-      "indexed_at": "2026-08-22T17:50:25.354968+00:00",
+      "indexed_at": "2026-08-22T19:30:18.020812+00:00",
       "language": "shell",
       "lines": 75,
-      "mtime_ns": 1787420743343549500,
+      "mtime_ns": 1787425666778081900,
       "size": 3857,
       "symbols": []
     },
@@ -2085,12 +2085,12 @@
       ]
     },
     "workflow-lint.sh": {
-      "hash": "e074208f087b",
-      "indexed_at": "2026-08-22T17:50:25.360688+00:00",
+      "hash": "b02d74c3b156",
+      "indexed_at": "2026-08-22T18:52:24.784811+00:00",
       "language": "shell",
-      "lines": 1359,
-      "mtime_ns": 1787420488349144000,
-      "size": 70580,
+      "lines": 1503,
+      "mtime_ns": 1787424547233313100,
+      "size": 77747,
       "symbols": [
         {
           "docstring": "One entry point, so the four call sites cannot drift apart again.",
@@ -2111,10 +2111,28 @@
           "type": "function"
         },
         {
+          "docstring": "WHAT KIND OF EXEMPTION IS THIS -- stated as a fact, because prose cannot be tested.  The reasons above are honest, and they are for humans. They are a",
+          "lines": [
+            277,
+            284
+          ],
+          "name": "exempt_kind",
+          "type": "function"
+        },
+        {
+          "docstring": "THE VERDICT IS A PURE FUNCTION OF TWO FACTS: does a workflow invoke it, and how is it classified. Pure, so it can be controlled -- the loop prints, th",
+          "lines": [
+            310,
+            320
+          ],
+          "name": "wiring_verdict",
+          "type": "function"
+        },
+        {
           "docstring": "AN EXEMPTION MUST NOT BE A HIDING PLACE.  The reason above is honest, but \"not run by CI\" and \"not run at all\" look identical from here, and the secon",
           "lines": [
-            269,
-            274
+            343,
+            348
           ],
           "name": "exempt_must_be_reachable",
           "type": "function"
@@ -2122,25 +2140,34 @@
         {
           "docstring": "NEVER PIPE A LARGE STRING INTO AN EARLY-EXITING CONSUMER.  MEASURED ON ubuntu-latest, 2026-08-01. Three sites in this file piped a string into `grep -",
           "lines": [
-            295,
-            300
+            369,
+            374
           ],
           "name": "contains",
           "type": "function"
         },
         {
           "lines": [
-            301,
-            310
+            375,
+            384
           ],
           "name": "contains_line",
           "type": "function"
         },
         {
+          "docstring": "A MENTION IN PROSE IS NOT A WIRING EITHER -- not even inside a `run:` block.  The strip above learned that a name inside a YAML `#` comment must not r",
+          "lines": [
+            457,
+            463
+          ],
+          "name": "wired_in",
+          "type": "function"
+        },
+        {
           "docstring": "The hook that CALLS it must exist, be executable, and actually call it.  THIS PHASE HAS ALREADY FIRED ON A REAL REGRESSION, which is the only reason i",
           "lines": [
-            404,
-            411
+            548,
+            555
           ],
           "name": "hook_verdict",
           "type": "function"
@@ -2148,16 +2175,16 @@
         {
           "docstring": "--- 2c. THE LOCAL GATE MUST NOT BE WEAKER THAN CI ------------------------  Phase 2 asserts every checker is run by SOME workflow. Phase 2b asserts ga",
           "lines": [
-            498,
-            507
+            642,
+            651
           ],
           "name": "gate_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            580,
-            584
+            724,
+            728
           ],
           "name": "enum_mods",
           "type": "function"
@@ -2165,24 +2192,24 @@
         {
           "docstring": "EVERY script under lean/mutate must be in CI, not only the mutate_* ones. The generalization probe and the isolation artifact live here too, and a rul",
           "lines": [
-            621,
-            625
+            765,
+            769
           ],
           "name": "mut_except_reason",
           "type": "function"
         },
         {
           "lines": [
-            758,
-            782
+            902,
+            926
           ],
           "name": "setup_verdict",
           "type": "function"
         },
         {
           "lines": [
-            838,
-            849
+            982,
+            993
           ],
           "name": "perms_of",
           "type": "function"
@@ -2190,8 +2217,8 @@
         {
           "docstring": "CONTROL: both directions, on planted text.",
           "lines": [
-            967,
-            974
+            1111,
+            1118
           ],
           "name": "probe_r20",
           "type": "function"
@@ -2199,8 +2226,8 @@
         {
           "docstring": "--- 6. nobody may re-derive the release map by reading the packager's TEXT ---  MEASURED 2026-08-05. checker/release-package.sh once defined  VARIANTS",
           "lines": [
-            1094,
-            1109
+            1238,
+            1253
           ],
           "name": "_reads_packager_text",
           "type": "function"
@@ -2208,16 +2235,16 @@
         {
           "docstring": "NOT `printf ... | grep -q`. checker/portability.sh refuses that shape, and it is right to: with `pipefail` set, grep -q exits at its first match and t",
           "lines": [
-            1305,
-            1307
+            1449,
+            1451
           ],
           "name": "_r23_onblock",
           "type": "function"
         },
         {
           "lines": [
-            1308,
-            1310
+            1452,
+            1454
           ],
           "name": "_r23_count",
           "type": "function"
@@ -2244,6 +2271,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T17:50:25.441058+00:00",
+  "generated_at": "2026-08-22T19:30:18.105675+00:00",
   "version": "1.0"
 }

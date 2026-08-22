@@ -259,6 +259,80 @@ except_reason () {   # except_reason <basename> -> prints reason, or nothing
   esac
 }
 
+# WHAT KIND OF EXEMPTION IS THIS -- stated as a fact, because prose cannot be tested.
+#
+# The reasons above are honest, and they are for humans. They are also not all the
+# same CLAIM. Eight say the checker does not run in CI at all. Two say the opposite:
+# preflight runs as the first CI step, and this file runs as a step of its own. Both
+# kinds sat under one word, exempt, and nothing could tell them apart without reading
+# English.
+#
+# That mattered the moment the wiring test got strict (2026-08-19). A rule treating
+# every exemption as must-not-appear-in-CI reports preflight and workflow-lint as
+# contradictions -- two loud false alarms. A rule treating every exemption as
+# may-appear-in-CI is what let gate-all.sh be blessed by a sentence in a log message
+# in the first place. Neither is right, because one field was answering two questions.
+#
+# So the classification is a fact here, and it is tested. The sentences stay for humans.
+exempt_kind () {   # <basename> -> ci-step | not-in-ci | empty when not exempt
+  case "$1" in
+    preflight.sh|workflow-lint.sh)
+        printf '%s' "ci-step" ;;
+    gate-all.sh|ci-audit-freshness.sh|release-local.sh|ci-dryrun.sh|ci-honesty.sh|ci-log-skips.sh|release-longsession.sh|release-session.sh)
+        printf '%s' "not-in-ci" ;;
+  esac
+}
+
+# TWO TABLES MUST NAME ONE SET. Splitting a fact out of prose creates a second list,
+# and a second list is a second place to forget a name. A checker with a reason and no
+# kind falls through every classification below; a kind with no reason excuses a
+# checker no human ever justified. Neither may pass in silence.
+kindsync=0
+for c in checker/*.sh; do
+  b="${c##*/}"
+  r="$(except_reason "$b")"
+  k="$(exempt_kind "$b")"
+  if [ -n "$r" ] && [ -z "$k" ]; then
+    bad "EXEMPTION WITHOUT A KIND: $b has a written reason but no classification"
+    kindsync=1
+  fi
+  if [ -z "$r" ] && [ -n "$k" ]; then
+    bad "KIND WITHOUT A REASON: $b is classified $k but no reason was ever written"
+    kindsync=1
+  fi
+done
+[ "$kindsync" -eq 0 ] && ok "every exemption carries both a reason and a kind"
+
+# THE VERDICT IS A PURE FUNCTION OF TWO FACTS: does a workflow invoke it, and how is
+# it classified. Pure, so it can be controlled -- the loop prints, this decides. Six
+# states, all named. R22 in this same file demands an exhaustive dispatch that says
+# which branch ran; this obeys its own rule.
+wiring_verdict () {   # <invoked:0|1> <kind> -> exactly one token, never empty
+  case "$1:$2" in
+    1:)          printf '%s' "OK-WIRED" ;;
+    1:ci-step)   printf '%s' "OK-DOCUMENTED-CI-STEP" ;;
+    1:not-in-ci) printf '%s' "CONTRADICTION-INVOKED-BUT-EXEMPT" ;;
+    0:)          printf '%s' "NOT-RUN-ANYWHERE" ;;
+    0:ci-step)   printf '%s' "CONTRADICTION-CLAIMS-CI-STEP-BUT-ABSENT" ;;
+    0:not-in-ci) printf '%s' "OK-EXEMPT" ;;
+    *)           printf '%s' "IMPOSSIBLE" ;;
+  esac
+}
+
+# CONTROL: all six states, against the same function the loop calls. A truth table
+# with an unexercised row is a truth table with a hole in it.
+vctl=0
+for probe in "1: OK-WIRED" "1:ci-step OK-DOCUMENTED-CI-STEP" "1:not-in-ci CONTRADICTION-INVOKED-BUT-EXEMPT" "0: NOT-RUN-ANYWHERE" "0:ci-step CONTRADICTION-CLAIMS-CI-STEP-BUT-ABSENT" "0:not-in-ci OK-EXEMPT"; do
+  key="${probe%% *}"; want="${probe##* }"
+  got="$(wiring_verdict "${key%%:*}" "${key#*:}")"
+  if [ "$got" = "$want" ]; then
+    vctl=$((vctl+1))
+  else
+    bad "CONTROL: wiring_verdict on $key returned $got, expected $want"
+  fi
+done
+[ "$vctl" -eq 6 ] && ok "CONTROL: all six wiring verdicts are reachable and correct"
+
 # AN EXEMPTION MUST NOT BE A HIDING PLACE.
 #
 # The reason above is honest, but "not run by CI" and "not run at all" look
@@ -352,23 +426,93 @@ $ctl_txt
 esac
 rm -f "$ctl_yml"
 [ "$strip_ok" -eq 2 ] && ok "CONTROL: a comment mention is not a wiring, and a run: line still is"
+# A MENTION IN PROSE IS NOT A WIRING EITHER -- not even inside a `run:` block.
+#
+# The strip above learned that a name inside a YAML `#` comment must not read as
+# a wiring. It did not learn the GENERAL form, and the general form is what bites:
+# any prose containing the name blesses the checker, and a shell string is prose.
+#
+# MEASURED 2026-08-19. ci.yml:1329 carries
+#
+#     3) echo "::notice::workflow-roles SKIPPED its API half (exit 3) -- not a
+#        pass, measured from gate-all.sh instead" ;;
+#
+# and the substring test read `gate-all.sh` out of that sentence and printed
+#
+#     PASS  wired into a workflow: gate-all.sh
+#
+# about the ONE checker whose exemption above argues at length that CI must NOT
+# run it. The exemption -- its reason, and the reachability assertion guarding it
+# -- was dead code, jumped over by a name inside a log message. The gate was
+# asserting a false fact in the PASS direction, which is this repo`s worst class.
+#
+# So the question is no longer "is the name present" but "is the file INVOKED".
+# A name must sit behind a command word to count.
+#
+# This also retires a latent hazard measured the same day: under a bare-basename
+# test, a checker whose name is a substring of another checker`s name inherits
+# that one`s wiring for free. Putting `checker/` in front makes it impossible.
+# Collisions among the 82 names today: 0 -- but the rule no longer rests on that
+# luck, and the next contributor is not required to preserve it.
+wired_in () {   # wired_in <haystack> <basename> -> 0 if the haystack INVOKES it
+  contains "$1" "bash checker/$2"   && return 0
+  contains "$1" "sh checker/$2"     && return 0
+  contains "$1" "./checker/$2"      && return 0
+  contains "$1" "source checker/$2" && return 0
+  return 1
+}
+wired () { wired_in "$WF_TEXT" "$1"; }
+
+# CONTROL, both directions, against the SAME function production calls. The first
+# arm is the false green measured above. The second is the failure that tightening
+# a rule normally introduces -- a real invocation no longer recognised, which would
+# have this gate invent 74 failures and get itself switched off.
+ctl_hay='      - run: |
+          echo "::notice::something SKIPPED -- measured from ctl-prose-only.sh instead"
+          bash checker/ctl-really-invoked.sh --flag'
+wctl=0
+if wired_in "$ctl_hay" "ctl-prose-only.sh"; then
+  bad "CONTROL: a checker named only inside a log message still reads as WIRED -- the invocation test is dead"
+else
+  wctl=$((wctl+1))
+fi
+if wired_in "$ctl_hay" "ctl-really-invoked.sh"; then
+  wctl=$((wctl+1))
+else
+  bad "CONTROL: a checker on a real 'bash checker/...' line reads as NOT wired -- this gate would invent failures"
+fi
+[ "$wctl" -eq 2 ] && ok "CONTROL: a name in prose is not a wiring; a real invocation still is"
 for c in checker/*.sh; do
   base="${c##*/}"
-  if contains "$WF_TEXT" "$base"; then
-    ok "wired into a workflow: $base"
-  elif [ -n "$(except_reason "$base")" ]; then
-    if exempt_must_be_reachable "$base"; then
-      echo "  NOTE  exempt: $base -- $(except_reason "$base")"
-    else
-      bad "EXEMPT BUT UNREACHABLE: $base is excused from CI and is not in gate-all.sh either"
-      echo "        An exemption is a statement about WHERE it runs, never that it"
-      echo "        stopped running. This one runs nowhere."
-    fi
-  else
-    bad "NOT RUN BY ANY WORKFLOW: $base"
-    echo "        The repo looks more verified than it is. Wire it up, or add it"
-    echo "        to EXCEPT in this file WITH a reason."
-  fi
+  if wired "$base"; then iv=1; else iv=0; fi
+  case "$(wiring_verdict "$iv" "$(exempt_kind "$base")")" in
+    OK-WIRED)
+      ok "wired into a workflow: $base" ;;
+    OK-DOCUMENTED-CI-STEP)
+      ok "wired into a workflow as a documented CI step: $base" ;;
+    OK-EXEMPT)
+      if exempt_must_be_reachable "$base"; then
+        echo "  NOTE  exempt: $base -- $(except_reason "$base")"
+      else
+        bad "EXEMPT BUT UNREACHABLE: $base is excused from CI and is not in gate-all.sh either"
+        echo "        An exemption is a statement about WHERE it runs, never that it"
+        echo "        stopped running. This one runs nowhere."
+      fi ;;
+    CONTRADICTION-INVOKED-BUT-EXEMPT)
+      bad "EXEMPT AS not-in-ci AND YET INVOKED BY A WORKFLOW: $base"
+      echo "        The table says CI must not run this; a workflow runs it. One of"
+      echo "        the two is stale, and until they agree nobody knows which." ;;
+    CONTRADICTION-CLAIMS-CI-STEP-BUT-ABSENT)
+      bad "CLASSIFIED ci-step BUT NO WORKFLOW INVOKES IT: $base"
+      echo "        Its exemption is excused on the grounds that CI runs it directly."
+      echo "        CI does not. That excuse is now covering nothing." ;;
+    NOT-RUN-ANYWHERE)
+      bad "NOT RUN BY ANY WORKFLOW: $base"
+      echo "        The repo looks more verified than it is. Wire it up, or add it"
+      echo "        to EXCEPT in this file WITH a reason." ;;
+    *)
+      bad "INTERNAL: wiring_verdict returned no verdict for $base -- the dispatch is not exhaustive" ;;
+  esac
 done
 
 # --- 2b. the aggregator must not rot ----------------------------------------

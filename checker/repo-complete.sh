@@ -325,7 +325,27 @@ if [ "$DO_WRITE" = 1 ]; then
     grep -Eq '[0-9]+ machine-checked|**[0-9]+ modules**' "$wf" || continue
     _b4=$(cksum < "$wf")
     perl -0777 -pi -e "s/(\d+)((?:\*\*|__)?\s+machine-checked(?:\s+Lean\s+4)?\s+theorems?)/$TH\$2/g" "$wf"
-    perl -0777 -pi -e "s/\*\*\d+ modules\*\*, \*\*\d+ theorems\*\*/**$MODS modules**, **$TH theorems**/g" "$wf"
+    # THE INVENTORY ROW IS README's ALONE -- a writer must never reach past the
+    # checker that validates it.
+    #
+    # MEASURED 2026-08-19, on this generator's first real run after the module
+    # count moved. The row pattern also occurs in
+    # docs/COMPENDIUM-the-unwritten-claim.md, where it is a QUOTATION of what
+    # README said on the day the fifth unguarded claim was found. The writer
+    # rewrote the quotation, and the document began reporting that the defect
+    # had been discovered by reading today's numbers. It was not. Evidence
+    # stopped being evidence, in the one file whose whole subject is this class
+    # of mistake.
+    #
+    # The rule broken is the one that document states: a generator's blast
+    # radius must be the set of LIVE CLAIMS, never the set of textual matches.
+    # The check below (README inventory row) reads README.md and nothing else,
+    # so the write now has the same scope -- not through an exemption list,
+    # which is a hiding place, but because write-domain and check-domain are
+    # one domain. Widen the check and this widens with it.
+    if [ "$wf" = "README.md" ]; then
+      perl -0777 -pi -e "s/\*\*\d+ modules\*\*, \*\*\d+ theorems\*\*/**$MODS modules**, **$TH theorems**/g" "$wf"
+    fi
     _af=$(cksum < "$wf")
     if [ "$_b4" != "$_af" ]; then
       echo "  rewrote $wf"

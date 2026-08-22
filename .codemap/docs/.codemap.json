@@ -2,12 +2,12 @@
   "directory": "docs",
   "files": {
     "COMPENDIUM-the-unwritten-claim.md": {
-      "hash": "98e7edf21765",
-      "indexed_at": "2026-08-22T17:52:43.620992+00:00",
+      "hash": "92b2e83f38b0",
+      "indexed_at": "2026-08-22T19:30:17.405141+00:00",
       "language": "markdown",
-      "lines": 161,
-      "mtime_ns": 1787421163007333100,
-      "size": 7513,
+      "lines": 198,
+      "mtime_ns": 1787425667006486100,
+      "size": 9569,
       "symbols": [
         {
           "docstring": "On 2026-08-22 a single Lean module was added. That moved two measurements: modules 89 to 90, theorems 1648 to 1662. The commit was refused by three ga",
@@ -46,10 +46,21 @@
           "type": "section"
         },
         {
+          "children": [
+            {
+              "docstring": "Writing the rule down did not enforce it. On 2026-08-19 a module was added, the counts moved 90 \u2192 91 and 1662 \u2192 1679, and `--write` was run for the fi",
+              "lines": [
+                116,
+                152
+              ],
+              "name": "Trap 2 fired, on this document, the next day",
+              "type": "subsection"
+            }
+          ],
           "docstring": "Both were live in this tree, and either one would have made the fix worse than the defect.",
           "lines": [
             92,
-            115
+            152
           ],
           "name": "Two traps a writer must respect",
           "type": "section"
@@ -57,8 +68,8 @@
         {
           "docstring": "`checker/repo-complete.sh` gained `--write`, and the inventory row gained a guard. Measured, in this order, on a deliberately staled tree:",
           "lines": [
-            116,
-            132
+            153,
+            169
           ],
           "name": "What was built",
           "type": "section"
@@ -66,8 +77,8 @@
         {
           "docstring": "If you write a number into prose that comes from the tree:",
           "lines": [
-            133,
-            147
+            170,
+            184
           ],
           "name": "The rule for anyone adding a claim",
           "type": "section"
@@ -75,8 +86,8 @@
         {
           "docstring": "This is the same shape as the ceiling defect fixed in the same commit, where `checker/gate-all.sh` stated a four-minute pre-commit bound in a comment",
           "lines": [
-            148,
-            162
+            185,
+            199
           ],
           "name": "The generalisation",
           "type": "section"
@@ -374,10 +385,10 @@
     },
     "SCRUTINY-LOG.md": {
       "hash": "094b68fe311b",
-      "indexed_at": "2026-08-22T17:50:25.364216+00:00",
+      "indexed_at": "2026-08-22T19:30:18.030197+00:00",
       "language": "markdown",
       "lines": 299,
-      "mtime_ns": 1787420743602034100,
+      "mtime_ns": 1787425667091289300,
       "size": 16324,
       "symbols": [
         {
@@ -1089,6 +1100,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T17:52:43.621076+00:00",
+  "generated_at": "2026-08-22T19:30:18.107726+00:00",
   "version": "1.0"
 }
