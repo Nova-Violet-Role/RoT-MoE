@@ -108,6 +108,10 @@ if [ -z "$PWSH" ]; then
 fi
 
 spoke=0; silent=0; rows=0
+# Counted so the controls at the bottom can prove the two comparators were
+# exercised on REAL CONTENT and not only on pairs of empty strings. `"" = ""`
+# is a passing comparison that has compared nothing.
+gold_spoke=0; agree_spoke=0
 while read -r ev mins last debt kred ksorry alarms; do
   case "$ev" in ''|\#*) continue ;; esac
   rows=$((rows+1))
@@ -126,6 +130,7 @@ while read -r ev mins last debt kred ksorry alarms; do
     if [ -z "$want" ]; then
       bad "row $rows has NO golden line -- the corpus grew past the golden; regenerate deliberately (--make-golden)"
     elif [ "$got" = "$want" ]; then
+      [ -n "$a" ] && gold_spoke=$((gold_spoke+1))
       ok "row $rows matches the golden ($( [ -n "$a" ] && echo "speaks ${#a} chars" || echo 'SILENT' ))"
     else
       bad "row $rows DIVERGES from the recorded golden: $ev $mins $last $debt $kred $ksorry $alarms"
@@ -141,6 +146,7 @@ while read -r ev mins last debt kred ksorry alarms; do
       continue
     fi
     if [ "$a" = "$b" ]; then
+      [ -n "$a" ] && agree_spoke=$((agree_spoke+1))
       ok "row $rows agrees ($ev mins=$mins debt=$debt kred=$kred): $( [ -n "$a" ] && echo "speaks ${#a} chars" || echo 'SILENT' )"
     else
       bad "row $rows DISAGREES: $ev $mins $last $debt $kred $ksorry $alarms"
@@ -226,6 +232,35 @@ _ascii_arm () {
   fi
 }
 
+# A10 -- THE FIXTURE MUST HAVE TEETH, and until now nothing checked that it did.
+# A8/A9 print "built from a module name that CARRIES non-ASCII" as part of their
+# PASS text. That sentence was never asserted: it described what the code above
+# INTENDS, and the two assertions would print it just as happily if the name had
+# arrived pure ASCII. In that case the payload contains 0 non-ASCII bytes because
+# none ever entered -- not because a guard removed them -- and A8/A9 go green
+# while testing nothing. Deleting both guards would not have moved them.
+#
+# MEASURED, not argued: forcing the name to a pure-ASCII literal leaves A8 and A9
+# GREEN and turns only A10 red. That is the whole case for this assertion.
+#
+# The name is built by awk from bytes 195,169 and then handed to the filesystem,
+# so its survival depends on the runner's locale and on filename normalisation --
+# neither of which this repo controls. Measured here 2026-08-21: it survives, and
+# arrives as the four bytes 303 203 302 251 (the shell re-encodes each of awk's
+# two bytes), which is non-ASCII by any reading and is what matters. On a host
+# where it does NOT survive, this assertion turns the silent vacuity into a
+# visible failure.
+#
+# Read from the DIRECTORY ENTRY, not from `$_anm`: the question is what reached
+# the disk the hook will read, not what the shell believes it wrote.
+_anon=$(ls "$_ad/ws/Proofs" 2>/dev/null | LC_ALL=C grep -c '[^ -~]' || true)
+case "$_anon" in ''|*[!0-9]*) _anon=0 ;; esac
+if [ "$_anon" -gt 0 ]; then
+  ok "A10 the fixture has teeth: the .lean name ON DISK carries non-ASCII, so A8/A9 exercise the guards instead of describing them"
+else
+  bad "A10 the fixture is TOOTHLESS: the .lean name reached disk as pure ASCII, so A8/A9 below would report 0 non-ASCII bytes with no guard involved -- they prove nothing on this host"
+fi
+
 _ascii_arm sh "$_aw/s1" sh "$SH"
 if [ -n "$PWSH" ]; then
   _ascii_arm ps1 "$_aw/s2" "$PWSH" -NoProfile -File "$PS1"
@@ -233,6 +268,47 @@ else
   echo "  SKIP  no PowerShell -- the ps1 ASCII guard was NOT exercised."
 fi
 rm -rf "$_ad" 2>/dev/null
+
+# --- CONTROLS ----------------------------------------------------------------
+# This suite asserted non-vacuity of the CORPUS (rows exist, some speak, some are
+# silent) but never of its two COMPARATORS. Both are equality tests, and the
+# failure mode of an equality test is not a false alarm -- it is agreeing about
+# nothing. `[ "$a" = "$b" ]` passes when both arms produced empty output, and
+# `$got = $want` passes when both hashes are hashes of nothing.
+#
+# The corpus assertions above make TOTAL collapse visible (spoke=0 fails), but
+# they cannot see a partial one: an arm that went silent on exactly the rows the
+# other went silent on would keep spoke>0 from other rows while the comparisons
+# on those rows compared two blanks. The counters below close that by requiring
+# each comparator to have agreed at least once on NON-EMPTY output.
+echo
+echo "-- controls --"
+
+# C1 -- the golden comparator ran on real content. Without this, a golden full of
+# hashes-of-empty and an arm that never speaks agree perfectly.
+if [ -n "$GOLDEN_OK" ]; then
+  [ "$gold_spoke" -gt 0 ] \
+    && ok "CONTROL: the golden matched on $gold_spoke NON-EMPTY row(s) -- it compared content, not two absences" \
+    || bad "CONTROL: every golden match was on a SILENT row -- the golden agreed about nothing"
+fi
+
+# C2 -- the arm-vs-arm comparator ran on real content, same argument.
+if [ -n "$PWSH" ]; then
+  [ "$agree_spoke" -gt 0 ] \
+    && ok "CONTROL: the arms agreed on $agree_spoke NON-EMPTY row(s) -- the equality was on bytes both arms actually produced" \
+    || bad "CONTROL: every arm agreement was on a SILENT row -- two arms that both print nothing agree perfectly and prove nothing"
+fi
+
+# C3 -- the hash used by the golden distinguishes a one-byte change. If _sha ever
+# degraded to a constant (a missing sha256sum falling through to a broken
+# shasum, say) every golden row would match forever.
+_c3a=$(printf '%s' 'rot-moe-control' | _sha)
+_c3b=$(printf '%s' 'rot-moe-controlX' | _sha)
+if [ -n "$_c3a" ] && [ "$_c3a" != "$_c3b" ]; then
+  ok "CONTROL: the golden's hash separates inputs one byte apart, so a drifted arm cannot hash back into agreement"
+else
+  bad "CONTROL: the hash function returned '$_c3a' for two different inputs -- every golden comparison above is vacuous"
+fi
 
 echo
 echo "== RESULT =="

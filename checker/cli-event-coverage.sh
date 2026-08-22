@@ -52,8 +52,17 @@ WANT="$(grep -v '^#' "$FIXTURE" | grep -v '^[[:space:]]*$')"
 WANT_CSV="$(printf '%s' "$WANT" | tr '\n' ',' | sed 's/,$//')"
 WANT_N="$(printf '%s\n' "$WANT" | wc -l | tr -d ' ')"
 
+# The version label is READ OUT OF THE FIXTURE, never typed here. It used to be
+# the literal "(CLI 2.1.226)" in the PASS line below, which meant this checker
+# printed a CLI version it had not measured: on a host running 2.1.239 it still
+# announced 2.1.226, and a reader had no way to tell the difference between "the
+# fixture was recorded from that version" and "that version is what you are
+# running". Phase B verifies the ARRAY, never the version string.
+FIX_VER="$(sed -n 's/^# CLI version *: *//p' "$FIXTURE" | head -1)"
+[ -n "$FIX_VER" ] || FIX_VER="(unrecorded)"
+
 [ "$WANT_N" -ge 31 ] || bad "fixture shrank to $WANT_N events -- a fixture that loses entries hides missing coverage"
-[ "$WANT_N" -ge 31 ] && ok "fixture declares $WANT_N events (CLI 2.1.226)"
+[ "$WANT_N" -ge 31 ] && ok "fixture declares $WANT_N events (recorded from CLI $FIX_VER)"
 
 # --- Phase A.1: the plugin manifest --------------------------------------
 MAN_CSV="$(node -e '
@@ -99,13 +108,32 @@ fi
 
 # --- Phase B: re-extract from the installed CLI --------------------------
 printf '\n  -- phase B: the installed CLI itself\n'
+# RESOLUTION ORDER, and the first entry is a correction. This list used to hold
+# npm-layout paths only, and took the first that existed. Measured on the
+# development machine: that resolved to a STALE npm copy reporting 2.1.227 while
+# the CLI actually running was a 337 MB NATIVE binary on PATH reporting 2.1.239.
+# Phase B announced "the installed CLI itself" and interrogated neither the
+# running one nor the newest one -- it interrogated whichever install happened to
+# sit earliest in a hand-written list.
+#
+# A check that re-derives a fixture from the wrong binary is worse than one that
+# declares itself inapplicable: it reports agreement with a version nobody runs,
+# which is exactly the "snapshot that slowly becomes a lie" this file's own
+# header warns about.
+#
+# `command -v` first, because the CLI on PATH is the one whose hooks fire. The
+# npm paths stay as fallbacks for hosts where claude is not on PATH.
 CLI_BIN=""
-for c in \
-  "$HOME/scoop/persist/nodejs-lts/bin/node_modules/@anthropic-ai/claude-code/bin/claude.exe" \
-  "$HOME/.claude/local/node_modules/@anthropic-ai/claude-code/bin/claude" \
-  "$HOME/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude" ; do
-  [ -f "$c" ] && { CLI_BIN="$c"; break; }
-done
+_onpath="$(command -v claude 2>/dev/null || true)"
+[ -n "$_onpath" ] && [ -f "$_onpath" ] && CLI_BIN="$_onpath"
+if [ -z "$CLI_BIN" ]; then
+  for c in \
+    "$HOME/scoop/persist/nodejs-lts/bin/node_modules/@anthropic-ai/claude-code/bin/claude.exe" \
+    "$HOME/.claude/local/node_modules/@anthropic-ai/claude-code/bin/claude" \
+    "$HOME/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude" ; do
+    [ -f "$c" ] && { CLI_BIN="$c"; break; }
+  done
+fi
 
 if [ -z "$CLI_BIN" ]; then
   # NOT a skip and NOT a pass-by-default: it is an explicit statement that this
@@ -121,6 +149,18 @@ else
   else
     if [ "$EXTRACT" = "$WANT_CSV" ]; then
       ok "the installed CLI's own event array matches the fixture exactly"
+      # Say WHICH CLI answered. A green Phase B on an unnamed binary is a weaker
+      # claim than it looks, and when the running version has moved past the one
+      # the fixture records, that the array is UNCHANGED across the gap is the
+      # interesting fact -- not something to hide behind a matching checksum.
+      CLI_VER="$("$CLI_BIN" --version 2>/dev/null | head -1 | tr -d '\r')"
+      [ -n "$CLI_VER" ] || CLI_VER="(version unreadable)"
+      printf '  ----  re-derived from CLI %s\n' "$CLI_VER"
+      case "$CLI_VER" in
+        "$FIX_VER"*) : ;;
+        *) printf '        the fixture was recorded from CLI %s; the event array is\n' "$FIX_VER"
+           printf '        UNCHANGED between that version and this one, re-derived above.\n' ;;
+      esac
     else
       bad "THE CLI HAS CHANGED -- its event array no longer matches the fixture"
       printf '        cli     : %s\n' "$(printf '%s' "$EXTRACT"  | cut -c1-140)"
@@ -130,6 +170,47 @@ else
       printf '        list, and re-run. Do not edit the fixture alone to go green.\n'
     fi
   fi
+fi
+
+# --- CONTROLS ----------------------------------------------------------------
+# This checker had NONE. Every comparison above is `extracted = fixture`, and the
+# failure mode of a string comparison is not that it reports a false difference
+# -- it is that BOTH SIDES GO EMPTY and `"" = ""` passes. Four extractors here
+# depend on a sed pattern or a node regex holding, and a pattern that ages
+# returns nothing rather than complaining.
+#
+# The WANT_N >= 31 floor already stops the fixture side from collapsing, so a
+# blank extractor currently fails loudly rather than passing. That is a real
+# safeguard and it is why nothing was broken. It is also invisible: nothing said
+# so, and nothing proved the extractors return anything at all.
+printf '\n  -- controls\n'
+
+# C1 -- the comparator must be able to see a difference. If this ever passes
+# while the arrays differ, every PASS above is decoration.
+_c1="$(printf '%s' "$WANT_CSV" | sed 's/^PreToolUse/PreToolUseX/')"
+if [ "$_c1" = "$WANT_CSV" ]; then
+  bad "CONTROL: a deliberately altered event list compared EQUAL to the fixture -- the comparison cannot fail"
+else
+  ok "CONTROL: an altered event list is detected as different, so the comparisons above can fail"
+fi
+
+# C2 -- every extractor returned something. This is the vacuity check: it makes
+# each PASS above mean "these two agree", not "neither produced output".
+_c2bad=0
+for _pair in "hooks.json:$MAN_CSV" "ARM_ROUTER.sh:$SH_CSV" "ARM_ROUTER.ps1:$PS_CSV" "RotEvent.lean:${LEAN_CSV:-}"; do
+  _src="${_pair%%:*}"; _val="${_pair#*:}"
+  [ -n "$_val" ] || { bad "CONTROL: the extractor for $_src returned NOTHING -- its comparison above was vacuous"; _c2bad=1; }
+done
+[ "$_c2bad" -eq 0 ] && ok "CONTROL: all four extractors returned a non-empty list, so their agreement is a real match"
+
+# C3 -- the fixture is internally consistent: as many CSV fields as lines. A
+# fixture with a stray comma would compare against a differently-shaped list
+# forever and nobody would see why.
+_c3n="$(printf '%s' "$WANT_CSV" | tr ',' '\n' | grep -c .)"
+if [ "$_c3n" -eq "$WANT_N" ]; then
+  ok "CONTROL: the fixture's $WANT_N lines yield exactly $_c3n CSV fields -- no stray or missing separator"
+else
+  bad "CONTROL: the fixture has $WANT_N lines but yields $_c3n CSV fields -- a separator is wrong"
 fi
 
 printf '\n== cli event coverage: %d passed, %d failed\n' "$pass" "$fail"

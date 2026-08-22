@@ -327,12 +327,12 @@
       ]
     },
     "cli-event-coverage.sh": {
-      "hash": "d23ee80c8b08",
-      "indexed_at": "2026-08-21T07:50:35.551199+00:00",
+      "hash": "daf0b73afe86",
+      "indexed_at": "2026-08-22T08:41:08.500920+00:00",
       "language": "shell",
-      "lines": 137,
-      "mtime_ns": 1787209313000000000,
-      "size": 7003,
+      "lines": 218,
+      "mtime_ns": 1787388067857723000,
+      "size": 11739,
       "symbols": []
     },
     "context-gate.sh": {
@@ -389,12 +389,12 @@
       ]
     },
     "cross-diff-remind.sh": {
-      "hash": "a9890ce4a69e",
-      "indexed_at": "2026-08-22T04:21:22.506367+00:00",
+      "hash": "3ff572dac5e9",
+      "indexed_at": "2026-08-22T08:46:29.105393+00:00",
       "language": "shell",
-      "lines": 259,
-      "mtime_ns": 1787372332710645100,
-      "size": 12438,
+      "lines": 335,
+      "mtime_ns": 1787388388504001500,
+      "size": 16899,
       "symbols": [
         {
           "docstring": "U1 (7.0.0): THE GOLDEN. Arm-vs-arm agreement cannot kill a SINGLE-ARM mutation on a machine with one arm: move a boundary in the POSIX arm on a pwsh-l",
@@ -407,8 +407,8 @@
         },
         {
           "lines": [
-            206,
-            227
+            212,
+            233
           ],
           "name": "_ascii_arm",
           "type": "function"
@@ -2226,6 +2226,6 @@
       "symbols": []
     }
   },
-  "generated_at": "2026-08-22T08:33:33.374391+00:00",
+  "generated_at": "2026-08-22T08:46:29.105489+00:00",
   "version": "1.0"
 }
