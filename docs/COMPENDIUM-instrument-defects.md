@@ -220,6 +220,43 @@ to `grep -Fxv -f` matches everything and silently discards the entire census.
 
 ---
 
+### FAMILY 7, second axis — the subject can change without the clock moving
+
+**Measured 2026-08-19.** Four gates on branch `9.0.0` are blocked by one external record.
+`checker/deferred-closure.sh` refuses to close any deferred step because *"the newest
+completed CI run (`67d8791`) concluded 'failure'"*, and three CI-reading gates skip for
+want of a readable run.
+
+The run is real and it is red. Its two failing steps — `SPDX + copyright sweep` on all
+three OSes, and `portability — exec bits in the index` in the lean job — name the **same
+five files**, all under `bonus/cmdpulse/`. On `origin/main` those five are mode `100644`
+with no SPDX header. **On this branch they are `100755` and all five carry the header.**
+Both defects are already repaired here; the branch has simply never been pushed.
+
+So the blocking record is not stale in *time* — it is the newest one in existence. It is
+stale in **subject**. Family 7 was originally stated over the clock (*age is a change of
+subject, not a degradation of quality*). This measurement shows time was never the
+operative variable: a record can be maximally fresh and still be about a different tree.
+
+**This is deliberately NOT a tenth family.** It is the same defect on a second axis, and
+inflating the taxonomy to score a finding is precisely the over-purification this
+document warns against elsewhere. Nine families stands.
+
+**The tell.** The gate ranks candidate records by recency and never checks what each one
+*describes*. A branch with zero pushes is the sharp case: every available record is
+foreign, so the gate can only ever read red, and re-running CI on the other tree cannot
+change that.
+
+**The assertion that closes it.** Filter by subject *before* ranking by recency, and read
+an absent record as RED rather than deferring to the nearest available one. Proved in
+`lean/Proofs/RotSubjectIdentity.lean`: `no_stamp_repairs_a_foreign_record` (recency is
+orthogonal to readability, quantified over every stamp),
+`recency_passes_a_gate_the_target_never_earned` (a recency reader returns **green** from
+a foreign record), and `recency_is_sound_only_once_the_subject_is_fixed` (freshness is
+valid exactly on the ground where subject identity already holds).
+
+---
+
 ## FAMILY 8 — The verdict is computed from the survivors
 
 **Shape.** The suite does not fail. It *shrinks*. Some gates never reach the runner, and
@@ -398,6 +435,9 @@ Stated in the order they were learned, each purchased with a real defect:
 11. Correctness borrowed from a neighbour is correctness with no owner.
 12. A probe reads a channel, never a subject. Whoever writes that channel last is what
     the verdict is about.
+13. Recency is not relevance. A record gates a tree only when its subject IS that tree;
+    filter by subject before ranking by time, and read the absence of any matching
+    record as RED rather than deferring to the nearest one available.
 
 ---
 

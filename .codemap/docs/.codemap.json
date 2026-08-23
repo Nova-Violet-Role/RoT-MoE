@@ -2,12 +2,12 @@
   "directory": "docs",
   "files": {
     "COMPENDIUM-instrument-defects.md": {
-      "hash": "6737b87bbd6c",
-      "indexed_at": "2026-08-23T04:07:19.904443+00:00",
+      "hash": "759520d121f5",
+      "indexed_at": "2026-08-23T05:08:55.436689+00:00",
       "language": "markdown",
-      "lines": 441,
-      "mtime_ns": 1787458039233888900,
-      "size": 22324,
+      "lines": 481,
+      "mtime_ns": 1787461734796207300,
+      "size": 24800,
       "symbols": [
         {
           "docstring": "Twenty-five commits, one law:",
@@ -73,10 +73,21 @@
           "type": "section"
         },
         {
+          "children": [
+            {
+              "docstring": "**Measured 2026-08-19.** Four gates on branch `9.0.0` are blocked by one external record. `checker/deferred-closure.sh` refuses to close any deferred",
+              "lines": [
+                223,
+                259
+              ],
+              "name": "FAMILY 7, second axis \u2014 the subject can change without the clock moving",
+              "type": "subsection"
+            }
+          ],
           "docstring": "**Shape.** The gate is wired, runs, and fails honestly \u2014 at the wrong artefact. It is right about something nobody asked.",
           "lines": [
             193,
-            222
+            259
           ],
           "name": "FAMILY 7 \u2014 Evidence pointing at the wrong thing",
           "type": "section"
@@ -84,8 +95,8 @@
         {
           "docstring": "**Shape.** The suite does not fail. It *shrinks*. Some gates never reach the runner, and the verdict is a fraction whose denominator was counted from",
           "lines": [
-            223,
-            271
+            260,
+            308
           ],
           "name": "FAMILY 8 \u2014 The verdict is computed from the survivors",
           "type": "section"
@@ -93,8 +104,8 @@
         {
           "docstring": "**Shape.** The probe asks the subject a question and reads the subject's reply. Between the reply and the reader stands a third component \u2014 not the ga",
           "lines": [
-            272,
-            336
+            309,
+            373
           ],
           "name": "FAMILY 9 \u2014 The subject cannot answer in its own voice",
           "type": "section"
@@ -102,8 +113,8 @@
         {
           "docstring": "For any gate, in order. Each question comes from a defect that actually shipped.",
           "lines": [
-            337,
-            362
+            374,
+            399
           ],
           "name": "The audit checklist",
           "type": "section"
@@ -111,8 +122,8 @@
         {
           "docstring": "Twenty-three catalogued. The ones that recur:",
           "lines": [
-            363,
-            380
+            400,
+            417
           ],
           "name": "Instrument errors in the measuring tools themselves",
           "type": "section"
@@ -120,8 +131,8 @@
         {
           "docstring": "Stated in the order they were learned, each purchased with a real defect:",
           "lines": [
-            381,
-            403
+            418,
+            443
           ],
           "name": "Accumulated laws",
           "type": "section"
@@ -129,8 +140,8 @@
         {
           "docstring": "Honesty is the point of the document, so the debts are part of it.",
           "lines": [
-            404,
-            429
+            444,
+            469
           ],
           "name": "What is still unasserted",
           "type": "section"
@@ -138,8 +149,8 @@
         {
           "docstring": "The nine families collapse into one question, which is the only thing worth carrying away from this document:",
           "lines": [
-            430,
-            442
+            470,
+            482
           ],
           "name": "The generalisation",
           "type": "section"
@@ -148,10 +159,10 @@
     },
     "COMPENDIUM-the-unwritten-claim.md": {
       "hash": "92b2e83f38b0",
-      "indexed_at": "2026-08-23T04:58:33.939625+00:00",
+      "indexed_at": "2026-08-23T05:34:04.075180+00:00",
       "language": "markdown",
       "lines": 198,
-      "mtime_ns": 1787458200939245200,
+      "mtime_ns": 1787461760399263400,
       "size": 9569,
       "symbols": [
         {
@@ -314,10 +325,10 @@
     },
     "ENCYCLOPEDIA-instruments.md": {
       "hash": "a8750e0d7b68",
-      "indexed_at": "2026-08-23T04:58:33.940522+00:00",
+      "indexed_at": "2026-08-23T05:34:04.076066+00:00",
       "language": "markdown",
       "lines": 302,
-      "mtime_ns": 1787458316604865800,
+      "mtime_ns": 1787461876566278800,
       "size": 20860,
       "symbols": [
         {
@@ -1666,6 +1677,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-23T04:58:34.020056+00:00",
+  "generated_at": "2026-08-23T05:34:04.154857+00:00",
   "version": "1.0"
 }
