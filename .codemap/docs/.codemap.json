@@ -130,10 +130,10 @@
     },
     "COMPENDIUM-the-unwritten-claim.md": {
       "hash": "92b2e83f38b0",
-      "indexed_at": "2026-08-23T00:43:08.114174+00:00",
+      "indexed_at": "2026-08-23T01:13:14.469099+00:00",
       "language": "markdown",
       "lines": 198,
-      "mtime_ns": 1787442800987458800,
+      "mtime_ns": 1787446148553332300,
       "size": 9569,
       "symbols": [
         {
@@ -223,10 +223,10 @@
     },
     "ENCYCLOPEDIA-instruments.md": {
       "hash": "a8750e0d7b68",
-      "indexed_at": "2026-08-23T00:22:38.921403+00:00",
+      "indexed_at": "2026-08-23T01:13:14.469776+00:00",
       "language": "markdown",
       "lines": 302,
-      "mtime_ns": 1787444443911145900,
+      "mtime_ns": 1787446261660346500,
       "size": 20860,
       "symbols": [
         {
@@ -1502,6 +1502,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-23T00:43:08.194195+00:00",
+  "generated_at": "2026-08-23T01:13:14.548477+00:00",
   "version": "1.0"
 }

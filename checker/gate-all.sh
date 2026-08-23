@@ -428,6 +428,7 @@ ran=0; red=0
 # "ALL 71 GATES GREEN" while four of them verified nothing at all.
 skip3=0
 SKIPNAMES=""
+REDNAMES=""
 
 # Classify one exit code into exactly one of three classes. Factored out for one
 # reason: the CONTROL below exercises THIS function, the same one the loop calls.
@@ -492,6 +493,8 @@ while IFS='|' read -r name tier trigs cmd; do
   elif [ "$cls" = red ]; then
     printf '%-34s %s\n' "$name" "RED ($rc)"
     red=$((red+1))
+    REDNAMES="$REDNAMES$name
+"
     echo "      ---- last 12 lines ----"
     tail -12 "$LOGDIR/$ran.log" | sed 's/^/      /'
   else
@@ -539,6 +542,37 @@ else
   echo "WALL CLOCK: ${SUITE_ELAPSED}s (mode=$MODE -- the ceiling governs the pre-commit path only)."
 fi
 
+# THE STAMP, and why it cannot ask the whole suite for permission.
+#
+# The freshness gate reports on the RECORD -- did a full run happen, and when.
+# Every other gate reports on the TREE. Making a question about the record a
+# precondition for WRITING the record is circular: with no receipt the gate is
+# red, so the suite is not all-green, so nothing is written, so the next run is
+# red for the same reason. That is not a bug you find by running it; a full
+# sweep is a twenty-minute experiment that would have printed an ordinary red.
+# It was found by asking what the rule does on the empty record, and it is
+# proved unescapable for EVERY possible verdict of the other gates:
+#   lean/Proofs/RotFreshness.lean:no_run_however_green_can_stamp
+#   lean/Proofs/RotFreshness.lean:the_empty_record_is_a_fixed_point
+# The repair removes that ONE self-reference and weakens nothing else:
+#   lean/Proofs/RotFreshness.lean:excluding_the_record_gate_escapes
+#   lean/Proofs/RotFreshness.lean:the_repair_still_demands_every_other_gate
+#   lean/Proofs/RotFreshness.lean:the_rules_agree_once_a_receipt_exists
+FRESH_GATE="FULL-only tier freshness"
+others_red=0
+if [ -n "$REDNAMES" ]; then
+  others_red=$(printf '%s' "$REDNAMES" | grep -v "^$FRESH_GATE" | grep -c . || [ $? -eq 1 ])
+fi
+if [ "$MODE" = full ] && [ "$skip3" -eq 0 ] && [ "$others_red" -eq 0 ]; then
+  if [ "$red" -gt 0 ]; then
+    echo "NOTE: the freshness gate was RED when it ran, and it was right -- no receipt"
+    echo "      existed yet. Every gate about the TREE was green, so this run is"
+    echo "      entitled to write the record now. This run still exits RED. The NEXT"
+    echo "      full run is the first one that can honestly be called clean."
+  fi
+  FULL_RUN_COMPLETED=1 sh checker/full-freshness.sh --stamp
+fi
+
 if [ "$red" -eq 0 ]; then
   if [ "$skip3" -gt 0 ]; then
     # Deliberately NOT the words "ALL ... GREEN" -- that phrase is quoted in the
@@ -547,13 +581,6 @@ if [ "$red" -eq 0 ]; then
     echo "$((ran - skip3)) of $ran GATES GREEN, $skip3 SKIPPED. This is NOT a clean run."
   else
     echo "ALL $ran GATES GREEN."
-  fi
-  # A full run that reached here with zero red is the ONLY thing entitled to
-  # write the freshness receipt. Not a skipped run, not a red one, and never a
-  # hand-written file: checker/full-freshness.sh refuses without this variable,
-  # and refuses again if the tree is dirty. See lean/Proofs/RotFreshness.lean.
-  if [ "$MODE" = full ] && [ "$skip3" -eq 0 ]; then
-    FULL_RUN_COMPLETED=1 sh checker/full-freshness.sh --stamp
   fi
   rm -rf "$LOGDIR"; exit 0
 else

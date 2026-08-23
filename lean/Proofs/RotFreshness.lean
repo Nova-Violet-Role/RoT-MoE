@@ -154,4 +154,73 @@ theorem believing_nothing_is_also_unsound :
     ∃ (truth : Nat → Verdict) (now : Nat), believe none = green ∧ truth now = red :=
   ⟨(fun _ => red), 0, rfl, rfl⟩
 
+/-! ## The circular precondition, and why the first wiring could never have worked
+
+The gate above was wired into `checker/gate-all.sh` so that a full run stamps the
+receipt when it finishes with zero red gates. The freshness gate is IN that run.
+With no receipt it is red, so the run is not all-green, so no receipt is written,
+so the next run is red for the same reason. The rule cannot fire from the state
+it was written to escape.
+
+This was not found by running it -- a full sweep is a twenty-minute experiment
+and it would have reported a plain red with no hint that the red was structural.
+It was found by asking what the stamp rule does on the empty record, which is a
+question about a fixed point rather than about a tree.
+
+`stampStep` is the rule as first written. `no_run_however_green_can_stamp`
+quantifies over every possible verdict of the other gates: there is no state of
+the repository, however perfect, in which that rule writes a receipt.
+
+The repair is to notice what the freshness gate actually measures. Every other
+gate answers a question about the TREE. This one answers a question about the
+RECORD -- whether a run happened and when. A question about the record cannot be
+a precondition for writing the record without becoming circular, so the stamp
+condition excludes it. `excluding_the_record_gate_escapes` shows the repair fires,
+and `the_repair_still_demands_every_other_gate` shows it is not a swallow: one red
+anywhere else and nothing is written.
+-/
+
+/-- The stamp rule as first written: fires when the whole suite is green, and the
+whole suite includes the freshness gate itself. -/
+def stampStep (others : Verdict) (r : Option Receipt) (now : Nat) : Option Receipt :=
+  match others, check r now with
+  | green, green => some ⟨now, green⟩
+  | _, _ => r
+
+/-- THE DEADLOCK. From no receipt, the naive rule leaves no receipt -- for EVERY
+possible verdict of the other gates. No amount of correctness elsewhere escapes. -/
+theorem no_run_however_green_can_stamp (others : Verdict) (now : Nat) :
+    stampStep others none now = none := by
+  cases others <;> rfl
+
+/-- Stated as the fixed point it is: the empty record is absorbing. -/
+theorem the_empty_record_is_a_fixed_point :
+    ∀ (others : Verdict) (now : Nat), stampStep others none now = none :=
+  no_run_however_green_can_stamp
+
+/-- The repair: the record gate is excluded from its own precondition. -/
+def stampStepFixed (others : Verdict) (r : Option Receipt) (now : Nat) : Option Receipt :=
+  match others with
+  | green => some ⟨now, green⟩
+  | red   => r
+
+/-- The repair escapes the fixed point: a clean tree writes a receipt. -/
+theorem excluding_the_record_gate_escapes (now : Nat) :
+    stampStepFixed green none now = some ⟨now, green⟩ := rfl
+
+/-- And it is not a swallow. One red anywhere else and the record is untouched,
+so the receipt still means every gate about the TREE was green. -/
+theorem the_repair_still_demands_every_other_gate (r : Option Receipt) (now : Nat) :
+    stampStepFixed red r now = r := rfl
+
+/-- The two rules differ ONLY where the naive one is stuck: given a receipt that
+is already fresh, they agree. The repair is not a weakening, it is the removal of
+a self-reference. -/
+theorem the_rules_agree_once_a_receipt_exists (now : Nat) :
+    stampStep green (some ⟨now, green⟩) now = stampStepFixed green (some ⟨now, green⟩) now := by
+  have h : check (some (⟨now, green⟩ : Receipt)) now = green := by
+    show (if now = now then green else red) = green
+    rw [if_pos (rfl : now = now)]
+  simp [stampStep, stampStepFixed, h]
+
 end RotMoE.Freshness
