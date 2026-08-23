@@ -2,12 +2,12 @@
   "directory": "docs",
   "files": {
     "COMPENDIUM-instrument-defects.md": {
-      "hash": "737877c69019",
-      "indexed_at": "2026-08-23T02:28:42.014089+00:00",
+      "hash": "6737b87bbd6c",
+      "indexed_at": "2026-08-23T04:07:19.904443+00:00",
       "language": "markdown",
-      "lines": 370,
-      "mtime_ns": 1787452121365376600,
-      "size": 18063,
+      "lines": 441,
+      "mtime_ns": 1787458039233888900,
+      "size": 22324,
       "symbols": [
         {
           "docstring": "Twenty-five commits, one law:",
@@ -91,10 +91,19 @@
           "type": "section"
         },
         {
-          "docstring": "For any gate, in order. Each question comes from a defect that actually shipped.",
+          "docstring": "**Shape.** The probe asks the subject a question and reads the subject's reply. Between the reply and the reader stands a third component \u2014 not the ga",
           "lines": [
             272,
-            293
+            336
+          ],
+          "name": "FAMILY 9 \u2014 The subject cannot answer in its own voice",
+          "type": "section"
+        },
+        {
+          "docstring": "For any gate, in order. Each question comes from a defect that actually shipped.",
+          "lines": [
+            337,
+            362
           ],
           "name": "The audit checklist",
           "type": "section"
@@ -102,8 +111,8 @@
         {
           "docstring": "Twenty-three catalogued. The ones that recur:",
           "lines": [
-            294,
-            311
+            363,
+            380
           ],
           "name": "Instrument errors in the measuring tools themselves",
           "type": "section"
@@ -111,8 +120,8 @@
         {
           "docstring": "Stated in the order they were learned, each purchased with a real defect:",
           "lines": [
-            312,
-            332
+            381,
+            403
           ],
           "name": "Accumulated laws",
           "type": "section"
@@ -120,17 +129,17 @@
         {
           "docstring": "Honesty is the point of the document, so the debts are part of it.",
           "lines": [
-            333,
-            358
+            404,
+            429
           ],
           "name": "What is still unasserted",
           "type": "section"
         },
         {
-          "docstring": "The eight families collapse into one question, which is the only thing worth carrying away from this document:",
+          "docstring": "The nine families collapse into one question, which is the only thing worth carrying away from this document:",
           "lines": [
-            359,
-            371
+            430,
+            442
           ],
           "name": "The generalisation",
           "type": "section"
@@ -139,10 +148,10 @@
     },
     "COMPENDIUM-the-unwritten-claim.md": {
       "hash": "92b2e83f38b0",
-      "indexed_at": "2026-08-23T03:24:02.462105+00:00",
+      "indexed_at": "2026-08-23T04:58:33.939625+00:00",
       "language": "markdown",
       "lines": 198,
-      "mtime_ns": 1787452621959742000,
+      "mtime_ns": 1787458200939245200,
       "size": 9569,
       "symbols": [
         {
@@ -230,12 +239,85 @@
         }
       ]
     },
+    "DIGEST-the-six-unrun-gates.md": {
+      "hash": "4b4a27f018c5",
+      "indexed_at": "2026-08-23T04:34:44.546029+00:00",
+      "language": "markdown",
+      "lines": 147,
+      "mtime_ns": 1787459683916888500,
+      "size": 7820,
+      "symbols": [
+        {
+          "docstring": "The previous turn established, and proved, that `checker/gate-all.sh` executed 77 of 83 registered gates and reported a verdict anyway. The cause was",
+          "lines": [
+            14,
+            39
+          ],
+          "name": "1. Why these six existed unmeasured",
+          "type": "section"
+        },
+        {
+          "docstring": "| Gate | Exit | Verdict | Detail | |---|---|---|---| | marketplace session | 0 | **GREEN** | 10 passed / 0 failed. Controls confirm the lane varies ac",
+          "lines": [
+            40,
+            53
+          ],
+          "name": "2. Results",
+          "type": "section"
+        },
+        {
+          "docstring": "**The sustained-session verdict is void as a measurement.** Exit 124 means *this audit's* `timeout 600` killed it. The 6 failures are real observation",
+          "lines": [
+            54,
+            68
+          ],
+          "name": "3. The honest caveats",
+          "type": "section"
+        },
+        {
+          "docstring": "`live-session-smoke.sh` phase 3 asks the model to echo the router banner verbatim and counts occurrences in the model's own stdout, with a disarmed ne",
+          "lines": [
+            69,
+            91
+          ],
+          "name": "4. The finding: Family 9",
+          "type": "section"
+        },
+        {
+          "docstring": "**FAMILY 9 \u2014 The subject cannot answer in its own voice.** *Shape:* a third component, installed by the project itself, rewrites the subject's output",
+          "lines": [
+            92,
+            109
+          ],
+          "name": "5. Encyclopedia entries added",
+          "type": "section"
+        },
+        {
+          "docstring": "The family-count assertor built last turn fired correctly on real drift for the first time, catching 8 stale sites across 4 files including a Lean sou",
+          "lines": [
+            110,
+            125
+          ],
+          "name": "6. A gap found in this audit's own assertor",
+          "type": "section"
+        },
+        {
+          "docstring": "| Quantity | Value | |---|---| | Lean modules (repo) | 97 | | shared Lean tree (machine-local, not shipped) | 99 | | defect families | 9 | | checklist",
+          "lines": [
+            126,
+            148
+          ],
+          "name": "7. State after this turn",
+          "type": "section"
+        }
+      ]
+    },
     "ENCYCLOPEDIA-instruments.md": {
       "hash": "a8750e0d7b68",
-      "indexed_at": "2026-08-23T03:24:02.462807+00:00",
+      "indexed_at": "2026-08-23T04:58:33.940522+00:00",
       "language": "markdown",
       "lines": 302,
-      "mtime_ns": 1787452747771630800,
+      "mtime_ns": 1787458316604865800,
       "size": 20860,
       "symbols": [
         {
@@ -333,12 +415,12 @@
       ]
     },
     "ESSAY-what-a-green-gate-is-worth.md": {
-      "hash": "89af6ddbb262",
-      "indexed_at": "2026-08-23T02:28:42.014407+00:00",
+      "hash": "f98c00ae0a5b",
+      "indexed_at": "2026-08-23T04:07:30.553767+00:00",
       "language": "markdown",
-      "lines": 193,
-      "mtime_ns": 1787452121365376600,
-      "size": 10499,
+      "lines": 195,
+      "mtime_ns": 1787458049899917000,
+      "size": 10632,
       "symbols": [
         {
           "docstring": "Every commit on this branch ends the same way. The pre-commit hook runs the suite, the suite prints a line, and the line says something like `ALL 47 G",
@@ -350,10 +432,10 @@
           "type": "section"
         },
         {
-          "docstring": "`COMPENDIUM-instrument-defects.md` sorts the findings into eight families: a gate registered in one place and executed in none; a skip or a missing to",
+          "docstring": "`COMPENDIUM-instrument-defects.md` sorts the findings into nine families: a gate registered in one place and executed in none; a skip or a missing too",
           "lines": [
             24,
-            52
+            54
           ],
           "name": "II. Twenty-five findings, one shape",
           "type": "section"
@@ -361,8 +443,8 @@
         {
           "docstring": "The received wisdom is right as far as it goes: to trust an alarm, make it fire. Plant a bad file, watch the gate go red, remove it, commit. This bran",
           "lines": [
-            53,
-            79
+            55,
+            81
           ],
           "name": "III. Breaking it on purpose is half a test",
           "type": "section"
@@ -370,8 +452,8 @@
         {
           "docstring": "The instinct when a suite is untrustworthy is to add gates. It feels like insurance: any one of them might be blind, but surely not all of them, and t",
           "lines": [
-            80,
-            110
+            82,
+            112
           ],
           "name": "IV. Why forty-seven of them is not better than one",
           "type": "section"
@@ -379,8 +461,8 @@
         {
           "docstring": "The uncomfortable part of the record is how the findings were actually made.",
           "lines": [
-            111,
-            131
+            113,
+            133
           ],
           "name": "V. What it cost to learn",
           "type": "section"
@@ -388,8 +470,8 @@
         {
           "docstring": "The audit checklist in the compendium is eleven questions long, and every one of them descends from a defect that shipped. But they compress to a sing",
           "lines": [
-            132,
-            146
+            134,
+            148
           ],
           "name": "VI. The question, in practice",
           "type": "section"
@@ -397,8 +479,8 @@
         {
           "docstring": "This essay would be a poor citizen of its own argument if it did not answer its own question. It failed that test once already, during its own draftin",
           "lines": [
-            147,
-            185
+            149,
+            187
           ],
           "name": "VII. What is still prose",
           "type": "section"
@@ -406,8 +488,8 @@
         {
           "docstring": "Every theorem named above lives in `lean/Proofs/RotVacuousGate.lean`, built under `leanprover/lean4:v4.33.0-rc1`, kernel-rechecked with `leanchecker`,",
           "lines": [
-            186,
-            194
+            188,
+            196
           ],
           "name": "Citations",
           "type": "section"
@@ -591,12 +673,12 @@
       ]
     },
     "PAPER-the-cost-of-a-verdict.md": {
-      "hash": "7c6d01425c7e",
-      "indexed_at": "2026-08-23T02:27:49.170052+00:00",
+      "hash": "fd83ee1a10ed",
+      "indexed_at": "2026-08-23T04:06:27.566507+00:00",
       "language": "markdown",
       "lines": 266,
-      "mtime_ns": 1787452067687983100,
-      "size": 15921,
+      "mtime_ns": 1787457959535423700,
+      "size": 15919,
       "symbols": [
         {
           "docstring": "A test suite reports a colour. This paper asks what that colour is worth, and answers it as a counting problem rather than a matter of engineering tas",
@@ -677,6 +759,79 @@
             267
           ],
           "name": "Citations",
+          "type": "section"
+        }
+      ]
+    },
+    "PAPER-the-observer-effect.md": {
+      "hash": "a7f2eada49cd",
+      "indexed_at": "2026-08-23T04:08:28.841886+00:00",
+      "language": "markdown",
+      "lines": 222,
+      "mtime_ns": 1787458107880021400,
+      "size": 10206,
+      "symbols": [
+        {
+          "docstring": "A verification suite that audits an interactive system must eventually ask whether the system's output reaches its consumer. The natural instrument is",
+          "lines": [
+            13,
+            36
+          ],
+          "name": "Abstract",
+          "type": "section"
+        },
+        {
+          "docstring": "Branch `9.0.0`, 2026-08-19. `checker/live-session-smoke.sh` phase 3 is the only instrument in this repository that attempts to establish *delivery to",
+          "lines": [
+            37,
+            66
+          ],
+          "name": "1. The measurement",
+          "type": "section"
+        },
+        {
+          "docstring": "The subject's reply is self-refuting in a way that settles the question. Two stanzas assert an emission that is absent from the file on disk:",
+          "lines": [
+            67,
+            87
+          ],
+          "name": "2. Why the delivery nevertheless succeeded",
+          "type": "section"
+        },
+        {
+          "docstring": "The catalogue in `COMPENDIUM-instrument-defects.md` already contains a family named *the instrument damages what it measures* (Family 6). This is not",
+          "lines": [
+            88,
+            107
+          ],
+          "name": "3. Core content: what class of defect this is",
+          "type": "section"
+        },
+        {
+          "docstring": "`lean/Proofs/RotObserverEffect.lean`. Ten theorems, `lake build` exit 0, `#print axioms` reports all ten depend on no axioms, `leanchecker` exit 0, th",
+          "lines": [
+            108,
+            175
+          ],
+          "name": "4. The theorem",
+          "type": "section"
+        },
+        {
+          "docstring": "`honest_refusal_on_a_symmetric_control` was written to credit the gate for refusing rather than guessing. The Lean linter then reported that its symme",
+          "lines": [
+            176,
+            189
+          ],
+          "name": "5. The uncomfortable corollary",
+          "type": "section"
+        },
+        {
+          "docstring": "> **A probe reads a channel, never a subject. Whoever writes that channel last is what the > verdict is about.**",
+          "lines": [
+            190,
+            223
+          ],
+          "name": "6. Thesis",
           "type": "section"
         }
       ]
@@ -1511,6 +1666,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-23T03:24:02.542304+00:00",
+  "generated_at": "2026-08-23T04:58:34.020056+00:00",
   "version": "1.0"
 }

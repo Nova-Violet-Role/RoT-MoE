@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 Copyright 2026 Saimonokuma.
 -->
 
-# Compendium: the eight ways an instrument reports green over nothing
+# Compendium: the nine ways an instrument reports green over nothing
 
 > A gate that cannot fail is not a gate. It is a decoration with an exit code.
 
@@ -269,6 +269,71 @@ arithmetic, and absence must read red or it reads green.
 
 ---
 
+## FAMILY 9 — The subject cannot answer in its own voice
+
+**Shape.** The probe asks the subject a question and reads the subject's reply. Between
+the reply and the reader stands a third component — not the gate, not the subject — that
+rewrites the channel unconditionally. The gate reads exactly the bytes that exist, and
+those bytes are the rewriter's, not the subject's. Every arm of the control reads the
+same value, so the control cannot separate anything, and the verdict describes the
+rewriter.
+
+**Not FAMILY 6, and the difference is the whole point.** In Family 6 the *gate* is the
+actor: it stages, packages or cleans, and its own writing destroys the evidence. Here
+the gate writes nothing at all and its reader is correct. The damage is done upstream of
+reading, by a component the gate does not model and did not invoke. Family 6 is repaired
+by making the gate stop writing; Family 9 is repaired by changing which channel the gate
+reads, because the gate was never the problem.
+
+**Instances.**
+
+| Commit | The defect |
+|---|---|
+| *this commit* | `live-session-smoke.sh` phase 3 asks the model to echo the router banner and greps the model's stdout. The project's own Stop hook replaces that stdout with nine `<rot:*>` stanzas. Armed reads 0, disarmed reads 0, and the gate reports the wiring broken while the wiring works. |
+
+**The worked example.** Measured on branch `9.0.0`. The hook fired 6 times into the armed
+context. The model produced 1758 bytes across 17 lines. Marker count: 0 armed, 0
+disarmed. The gate returned FAIL twice. The model had in fact received the banner — its
+reply names *both* competing banners and their distinct gauge values, 0.17 and 0.19,
+which is not derivable without having read them. Two of its own stanzas assert an
+emission that is absent from the stream on disk:
+
+> `<rot:soleil>` "Emitted the R/s+ 0.19 line. One line, no commentary."
+> `<rot:antivenom>` "the emitted string matches the UserPromptSubmit hook line character
+> for character."
+
+A third, written by the probe's own subject and unprompted, is correct:
+
+> `<rot:carnage>` "the instrument contaminates its own sample."
+
+**The tell.** A negative control whose two arms read the *same* number — especially the
+same *zero*. Zero-versus-zero is not a weak signal, it is the absence of a channel. Ask
+what stands between the subject's output and your reader, and whether that thing is
+yours. If your project post-processes model output anywhere, every exact-output probe in
+it is suspect.
+
+**The assertion that closes it.** Read a channel the rewriter does not touch — here the
+hook's own log — and keep it as a *second* channel rather than a replacement, so the
+weaker claim (the banner was delivered) is never banked as the stronger one (the model
+read it). Then assert that the two arms of the control differ; if they cannot differ, the
+gate must say so rather than pick a side.
+
+**The theorem.** `lean/Proofs/RotObserverEffect.lean`, ten theorems, axiom-free, three
+mutants killed. `the_control_is_symmetric` proves the two arms are equal *by
+construction* for every pair of sessions. `an_input_independent_reader_flattens_every_control`
+generalises it to an arbitrary reader with no mention of this repository.
+`a_control_that_fires_proves_the_channel_is_live` is the contrapositive and the one worth
+memorising: if a control ever fires, the channel was not overwritten.
+
+**The uncomfortable corollary.** `honest_refusal_on_a_symmetric_control` was written to
+show the gate behaved correctly by refusing. The linter observed that its hypothesis is
+never used — the refusal is *unconditional*, because this reader returns red on every
+input. The gate was right for a reason it does not possess. An instrument that cannot
+return green is not discerning, and its correctness here is the same blindness seen from
+the other side.
+
+---
+
 ## The audit checklist
 
 For any gate, in order. Each question comes from a defect that actually shipped.
@@ -288,6 +353,10 @@ For any gate, in order. Each question comes from a defect that actually shipped.
     A total accumulated while walking cannot report what the walk never reached.
 11. **Can this gate ever be satisfied?** Trace the rule on the empty state. A gate that is
     its own precondition is red forever, and a twenty-minute sweep will not tell you why.
+12. **Did both arms of the control read the same number?** Equal arms — above all equal
+    zeros — mean the channel is absent, not that the subject failed. Name every component
+    that touches the subject's output before your reader sees it, and check whether one of
+    them is yours.
 
 ---
 
@@ -327,6 +396,8 @@ Stated in the order they were learned, each purchased with a real defect:
 10. A mutation that kills for a reason other than the stated one proves nothing about
     the statement.
 11. Correctness borrowed from a neighbour is correctness with no owner.
+12. A probe reads a channel, never a subject. Whoever writes that channel last is what
+    the verdict is about.
 
 ---
 
@@ -358,7 +429,7 @@ Honesty is the point of the document, so the debts are part of it.
 
 ## The generalisation
 
-The eight families collapse into one question, which is the only thing worth carrying
+The nine families collapse into one question, which is the only thing worth carrying
 away from this document:
 
 > **What would this instrument do if the thing it checks were absent?**
@@ -367,4 +438,4 @@ Family 1 finds nothing to run. Family 2 takes the fallback. Family 3 compares tw
 Family 4 reads a comment. Family 5 has nobody to write the answer. Family 6 measures its
 own leftovers. Family 7 looks somewhere else entirely.
 
-In all eight the answer is the same, and it is always green.
+In all nine the answer is the same, and it is always green.

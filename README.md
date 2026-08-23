@@ -60,7 +60,7 @@ that does not exist, so the instructions cannot rot while you are not looking.
 
 **RoT MoE is a mixture-of-experts router, and its arithmetic is proved.** The
 router measures nine lens activities off disk, computes an `R/s+` gauge from
-them, and **1737 machine-checked theorems in Lean 4** state what that gauge must
+them, and **1747 machine-checked theorems in Lean 4** state what that gauge must
 satisfy — that it is positive, that it is bounded below, that it is *not
 constant*, that it divides by the number of lenses it actually summed. Two
 independent implementations compute it and are diffed byte for byte across all
@@ -249,8 +249,8 @@ without sharing your code.
 
 | what | how many | recomputed by |
 |---|---|---|
-| Lean modules in `lean/Proofs/` | **96** | `ls lean/Proofs/*.lean \| wc -l` |
-| theorems and lemmas proved | **1737** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
+| Lean modules in `lean/Proofs/` | **97** | `ls lean/Proofs/*.lean \| wc -l` |
+| theorems and lemmas proved | **1747** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
 | mutation suites | **77** | `ls lean/mutate/mutate_*.sh \| wc -l` |
 | checkers | **84** | `ls checker/*.sh \| wc -l` |
 | hook events wired by the plugin | **31** | keys of `hooks/hooks.json` |
@@ -1350,7 +1350,7 @@ Each line below names what decides it. Nothing here is aspirational.
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | **96 modules**, **1737 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
+| The corpus is real | **MEASURED** | **97 modules**, **1747 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **87** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
 | The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, the gate's cleanup and the result sentinel replay their own scenarios, and controls prove each direction can fail |

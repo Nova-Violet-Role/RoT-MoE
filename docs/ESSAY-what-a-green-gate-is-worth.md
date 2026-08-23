@@ -23,21 +23,23 @@ was false somewhere in the tree at all times.
 
 ## II. Twenty-five findings, one shape
 
-`COMPENDIUM-instrument-defects.md` sorts the findings into eight families:
+`COMPENDIUM-instrument-defects.md` sorts the findings into nine families:
 a gate registered in one place and executed in none; a skip or a missing tool
 read as a pass; agreement asserted between two things that had no way to
 disagree; prose standing in for an assertion; a claim with a checker but no
 author; an instrument that damages the thing it measures; evidence pointing
-at the wrong object; and a verdict computed from the gates that happened to run,
-in a suite that never checked those were the gates it registered.
+at the wrong object; a verdict computed from the gates that happened to run,
+in a suite that never checked those were the gates it registered; and a probe
+whose subject was never able to answer in its own voice, because something the
+project itself installed rewrote the channel first.
 
-Eight families is a useful filing system and a poor explanation. The families
-are not eight mechanisms. They are eight places where the same question was
+Nine families is a useful filing system and a poor explanation. The families
+are not nine mechanisms. They are nine places where the same question was
 never asked:
 
 > What would this instrument do if the thing it checks were absent?
 
-In all eight, the answer is green. The gate registered in no workflow is green
+In all nine, the answer is green. The gate registered in no workflow is green
 because it never ran. The skipped gate is green because a skip and a pass left
 the same trace. The comparison between two arms is green because both arms came
 from the same source. The prose bound is green because prose does not execute.
@@ -168,7 +170,7 @@ had to be named as non-theorems rather than hidden behind a narrow scope.
 
 With that fixed, what remains unasserted:
 
-The claim that all eight families reduce to the vacuity question is an argument,
+The claim that all nine families reduce to the vacuity question is an argument,
 not a theorem — the model proves what follows *if* a gate is vacuous, and proves
 that composition preserves it, but the mapping from each real defect onto that
 model was done by hand and is checked by nobody. The measured statement that

@@ -6,11 +6,11 @@ Copyright 2026 Saimonokuma.
 # What a green gate is worth, and when the answer is nothing
 
 `docs/COMPENDIUM-instrument-defects.md` catalogues twenty-five audit findings on
-this branch as eight families, and argues they collapse into one question:
+this branch as nine families, and argues they collapse into one question:
 
 > What would this instrument do if the thing it checks were absent?
 
-The compendium answers it in prose -- in all eight families, green. Prose is
+The compendium answers it in prose -- in all nine families, green. Prose is
 where this repository keeps finding its defects (Family 4: a bound written as
 prose is an assertion with no assertor), so the claim is stated here instead,
 about the two predicates rather than about any one gate.
