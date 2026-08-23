@@ -170,6 +170,16 @@ jobs:
         shell: bash
         run: sh checker/encyclopedia.sh
 
+      # R22. Ten gates run only under --full, which no commit and no push
+      # triggers, so nothing recorded when they last ran. This step reads the
+      # receipt a green full run leaves behind and refuses when it is missing or
+      # describes a different tree. It is EXPECTED RED until the first real full
+      # run stamps one -- that red is the finding, not a broken step, and the
+      # four controls inside the gate prove it can also go green.
+      - name: FULL-only tier freshness (lean/Proofs/RotFreshness.lean)
+        shell: bash
+        run: sh checker/full-freshness.sh
+
       # Registered late: workflow-lint found this gate was in the shell table
       # and the Lean witness but in NO workflow, so CI had never run it once.
       # Exits 3 (SKIP) when no config dir is present, which is not a pass.

@@ -732,27 +732,46 @@
         }
       ]
     },
-    "gate-all.sh": {
-      "hash": "52f1ab94c7c1",
-      "indexed_at": "2026-08-22T22:39:11.768887+00:00",
+    "full-freshness.sh": {
+      "hash": "b2abdb7986a0",
+      "indexed_at": "2026-08-22T23:50:34.930272+00:00",
       "language": "shell",
-      "lines": 555,
-      "mtime_ns": 1787438351167585200,
-      "size": 30487,
+      "lines": 211,
+      "mtime_ns": 1787442634329962400,
+      "size": 7982,
+      "symbols": [
+        {
+          "docstring": "--- the one function every verdict comes from ------------------------------- Production and all four controls call THIS. A control that exercised a r",
+          "lines": [
+            48,
+            79
+          ],
+          "name": "receipt_verdict",
+          "type": "function"
+        }
+      ]
+    },
+    "gate-all.sh": {
+      "hash": "533e0d109405",
+      "indexed_at": "2026-08-23T00:20:25.076878+00:00",
+      "language": "shell",
+      "lines": 563,
+      "mtime_ns": 1787444412904549100,
+      "size": 31051,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
           "lines": [
-            230,
-            245
+            231,
+            246
           ],
           "name": "fires",
           "type": "function"
         },
         {
           "lines": [
-            440,
-            446
+            441,
+            447
           ],
           "name": "_classify",
           "type": "function"
@@ -2352,6 +2371,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T23:40:49.793108+00:00",
+  "generated_at": "2026-08-23T00:20:25.076963+00:00",
   "version": "1.0"
 }

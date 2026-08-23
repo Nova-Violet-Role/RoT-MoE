@@ -457,6 +457,39 @@ def shipped : List Gate :=
   , f "session log"
   , d "release install" ["checker/release", ".claude-plugin/"]
   , d "CI honesty (no skip, no fake green) -- exit 3 SKIP without a credential" [".github/workflows/", "checker/ci-honesty.sh"]
+  -- R22, deep. Ten gates run only under `--full`, which no commit triggers, so
+  -- the newest statement about them can be arbitrarily old while the banner
+  -- beside it is current. This gate reads the receipt a green full run leaves
+  -- and refuses when it is absent or describes another tree. Proved in
+  -- `Proofs.RotFreshness`: absence must not read as success, and a receipt from
+  -- another snapshot cannot pass.
+  --
+  -- The trigger list was chosen twice, and the first choice was wrong in a way
+  -- worth recording. It named the publish SURFACE -- `.claude-plugin/`,
+  -- `CITATION.cff`, `STATUS.md` -- on the reasoning that touching what ships
+  -- should force the question. But `checker/repo-complete.sh --write`
+  -- regenerates those files on any change to a theorem count, so that list
+  -- fired on nearly every substantive commit, against a gate that is red until
+  -- a full run exists. The result would not have been a stricter repository; it
+  -- would have been a hook people switch off, which is how the four-minute
+  -- ceiling in `RotGateCost` already threatens this suite.
+  --
+  -- It also self-triggered, and that was wrong for a separate reason. A gate
+  -- whose verdict is a function of its OWN source should self-trigger -- that is
+  -- the `ciHonesty` repair recorded below. This gate's verdict is a function of
+  -- EXTERNAL state: a receipt on disk. Editing the script cannot change whether
+  -- the full tier is stale, so a self-trigger buys no coverage, and it deadlocks
+  -- the gate's own maintenance -- red until a full run, and no way to commit the
+  -- repair that would allow one. Its four internal controls, which do read its
+  -- source, are what guard the script itself.
+  --
+  -- So the triggers are the ACT of releasing, not the files a generator rewrites
+  -- in passing.
+  -- ONE LINE. checker/gate-split.sh extracts this witness a line at a time; a
+  -- row wrapped across two lines parses as a gate with NO triggers, and the
+  -- first draft of this row was wrapped. Lean read it correctly, gate-split did
+  -- not, and the disagreement is what surfaced it.
+  , d "FULL-only tier freshness -- is the newest word on it about THIS tree" ["checker/release", "RELEASE.md"]
   ]
 
 -- Thirty-six gates: `profile binding` joined on 2026-08-03, deep tier; the
@@ -497,7 +530,7 @@ def shipped : List Gate :=
 -- had started to read like a design. The gate asks the general question rather
 -- than naming those two modules, so it still works on modules written after it,
 -- and it found a second collision (`RotMoE.Run`) on its first run.
-#guard shipped.length = 72
+#guard shipped.length = 73
 
 -- FORTY run on every commit (38 until `README FACTS block` and `workflow exit
 -- reads` were added on 2026-08-12; 37 until `name collision`, added the same
@@ -512,7 +545,7 @@ def shipped : List Gate :=
 -- `workflow roles` 2026-08-11, `push guard` 2026-08-11, `P2.4 corpus` 2026-08-11,
 -- `session manifest` 2026-08-12).
 -- This comment read "Sixteen" against a guard of 19 for the same reason.
-#guard (deepSet shipped).length = 24
+#guard (deepSet shipped).length = 25
 
 -- The partition is total on the shipped table too, not just in principle.
 #guard (fastSet shipped).length + (deepSet shipped).length = shipped.length

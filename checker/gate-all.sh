@@ -193,6 +193,7 @@ cli event coverage|fast||bash checker/cli-event-coverage.sh
 context gate|fast||bash checker/context-gate.sh
 session log|fast||bash checker/session-log.sh
 release install|deep|checker/release,.claude-plugin/|bash checker/release-install.sh
+FULL-only tier freshness -- is the newest word on it about THIS tree|deep|checker/release,RELEASE.md|sh checker/full-freshness.sh
 "
 
 if [ "$MODE" = full ]; then
@@ -546,6 +547,13 @@ if [ "$red" -eq 0 ]; then
     echo "$((ran - skip3)) of $ran GATES GREEN, $skip3 SKIPPED. This is NOT a clean run."
   else
     echo "ALL $ran GATES GREEN."
+  fi
+  # A full run that reached here with zero red is the ONLY thing entitled to
+  # write the freshness receipt. Not a skipped run, not a red one, and never a
+  # hand-written file: checker/full-freshness.sh refuses without this variable,
+  # and refuses again if the tree is dirty. See lean/Proofs/RotFreshness.lean.
+  if [ "$MODE" = full ] && [ "$skip3" -eq 0 ]; then
+    FULL_RUN_COMPLETED=1 sh checker/full-freshness.sh --stamp
   fi
   rm -rf "$LOGDIR"; exit 0
 else
