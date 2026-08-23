@@ -480,7 +480,11 @@ while IFS='|' read -r name tier trigs cmd; do
   ran=$((ran+1))
   # Exit code read DIRECTLY. Never through a pipe -- a pipe reports the LAST
   # command's status, which is how a false green gets manufactured.
-  sh -c "$cmd" > "$LOGDIR/$ran.log" 2>&1
+  # stdin is closed per gate. This loop is fed by a heredoc, so a gate whose
+  # command reads stdin consumes the REMAINING GATE ROWS and the run ends early
+  # with no error -- measured 2026-08-19: 83 registered, 77 executed, six gates
+  # silently gone. See lean/Proofs/RotGateRoster.lean.
+  sh -c "$cmd" > "$LOGDIR/$ran.log" 2>&1 < /dev/null
   rc=$?
   _classify "$rc"; cls="$CLS"
   if [ "$cls" = skip ]; then
@@ -505,6 +509,30 @@ $GATES
 EOF
 
 echo
+# THE ROSTER IS A BOUND, NOT A LIST.
+#
+# Closing stdin above fixes the cause that was measured. It does not fix the
+# class: any future gate that consumes the list, any parse that drops a row,
+# any early break, truncates the run again -- and is again invisible, because
+# the verdict is computed from the gates that ARRIVED. The denominator cannot
+# report what never reached it.
+#
+# So the registered rows are counted independently of the walk, and the run must
+# account for every one of them: executed, or declared skipped. There is no
+# third bucket. lean/Proofs/RotGateRoster.lean:an_unaccounted_run_is_always_red
+REGISTERED=$(printf '%s
+' "$GATES" | grep -c '|' || [ $? -eq 1 ])
+ACCOUNTED=$((ran + skipped))
+if [ "$ACCOUNTED" -ne "$REGISTERED" ]; then
+  echo "ROSTER MISMATCH -- $REGISTERED gate(s) registered, $ACCOUNTED accounted for"
+  echo "                  ($ran ran + $skipped not selected for this mode)."
+  echo "                  $((REGISTERED - ACCOUNTED)) gate(s) never reached the runner and"
+  echo "                  are NOT in any count above. This is not a pass and not a"
+  echo "                  skip -- it is a truncated run reporting on the survivors."
+  echo "                  lean/Proofs/RotGateRoster.lean:a_truncated_run_can_report_green"
+  rm -rf "$LOGDIR"; exit 1
+fi
+
 if [ "$ran" -eq 0 ]; then
   echo "NOTHING RAN -- the gate list did not parse. This is a bug, not a pass."
   rm -rf "$LOGDIR"; exit 3

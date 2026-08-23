@@ -180,7 +180,7 @@ apart completely.
 from a working one at any single observation — that is precisely the lower bound. It follows
 that vacuity cannot be noticed by watching the suite behave normally, no matter how long you
 watch. It can only be found by an experiment designed to find it. This is why an alarm nobody
-has deliberately tripped is not an alarm, and why the seven-family taxonomy in
+has deliberately tripped is not an alarm, and why the eight-family taxonomy in
 `docs/COMPENDIUM-instrument-defects.md` keeps producing the same shape of finding: each family
 is a place where one direction of one experiment was never run.
 
@@ -261,6 +261,6 @@ measured, not fixed: changing gate order is a separate change and would need its
 68 commits on branch 9.0.0. The 15 new theorems account exactly for the movement from 1695.
 
 **Predecessors.** `docs/ESSAY-what-a-green-gate-is-worth.md` for the argument this paper
-formalises; `docs/COMPENDIUM-instrument-defects.md` for the seven-family taxonomy of real
+formalises; `docs/COMPENDIUM-instrument-defects.md` for the eight-family taxonomy of real
 findings; `lean/Proofs/RotVacuousGate.lean` for the model and the composition result this one
 extends.

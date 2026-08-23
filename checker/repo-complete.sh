@@ -1048,6 +1048,77 @@ inv_check () {   # <regex with one capture> <expected> <label>
 inv_check '\([0-9]+ checkers\)'   "$CHKS"   "checkers"
 inv_check '[0-9]+ mutation suites' "$SUITES" "mutation suites"
 
+# --- the taxonomy's own family count has an author --------------------------
+# The compendium sorts instrument defects into families, and four documents
+# state how many there are IN WORDS. That count was hand-written in every one of
+# them. Adding an eighth family meant editing seven sites, and the first sweep
+# missed three because the grep was case-sensitive and phrase-shaped: the
+# pattern "seven famil" does not match "Seven families".
+#
+# So the number gets an assertor. The headings in the compendium are the source
+# of truth, and every spelled-out family count in the prose must agree with them.
+# A claim whose only author is a person remembering to edit four files is the
+# same defect as a claim with no author at all -- that is Family 5.
+FAM_DOCS="docs/COMPENDIUM-instrument-defects.md
+docs/ESSAY-what-a-green-gate-is-worth.md
+docs/PAPER-the-cost-of-a-verdict.md
+lean/Proofs/RotVacuousGate.lean"
+
+fam_word() {
+  case "$1" in
+    1) echo one ;; 2) echo two ;; 3) echo three ;; 4) echo four ;; 5) echo five ;;
+    6) echo six ;; 7) echo seven ;; 8) echo eight ;; 9) echo nine ;; 10) echo ten ;;
+    *) echo UNMAPPED ;;
+  esac
+}
+
+# Prints one line per DISAGREEING claim. The real check and the control below
+# both call THIS function, so the control exercises what production runs.
+#
+# The pattern matches a count FORM, not any adjacency of a number and the word.
+# Its first run flagged "treats one family in depth" -- ordinary prose, singular,
+# space-separated. A taxonomy-size claim is either plural ("eight families") or a
+# hyphenated compound ("eight-family taxonomy"); "<n> family" with a space is not
+# one. Narrowing here rather than exempting that line keeps the scope derived.
+fam_scan() {
+  _want="$1"
+  echo "$FAM_DOCS" | while IFS= read -r f; do
+    [ -n "$f" ] && [ -f "$f" ] || continue
+    grep -nEio '(one|two|three|four|five|six|seven|eight|nine|ten)([ -]families|-family)' "$f" |
+      while IFS= read -r hit; do
+        w=$(printf '%s' "$hit" | cut -d: -f2- | tr 'A-Z' 'a-z' | tr '-' ' ' | cut -d' ' -f1)
+        [ "$w" = "$_want" ] || echo "$f:$hit"
+      done
+  done
+}
+
+FAMS=$(grep -c '^## FAMILY ' docs/COMPENDIUM-instrument-defects.md || [ $? -eq 1 ])
+FAM_WANT=$(fam_word "$FAMS")
+FAM_SEEN=$(fam_scan '' | grep -c . || [ $? -eq 1 ])
+
+if [ "$FAM_WANT" = UNMAPPED ]; then
+  bad "family count $FAMS has no word form -- extend fam_word()"
+elif [ "$FAM_SEEN" -eq 0 ]; then
+  # Zero claims is not a pass. It means the prose stopped stating the count, and
+  # this check now asserts nothing -- the vacuity it exists to prevent.
+  bad "no spelled-out family count in any taxonomy document -- this check is vacuous"
+else
+  FAM_BAD=$(fam_scan "$FAM_WANT")
+  if [ -n "$FAM_BAD" ]; then
+    echo "$FAM_BAD" | sed 's/^/        /'
+    bad "family count drift: $FAMS families in the compendium, prose disagrees above"
+  else
+    ok "$FAM_SEEN spelled family count(s) agree with the $FAMS compendium headings"
+  fi
+fi
+
+# CONTROL, the other direction: the same scan must FIND a wrong count.
+if [ -n "$(fam_scan three)" ]; then
+  ok "CONTROL: a wrong family count IS detected by the same scan"
+else
+  bad "CONTROL: the family scan found nothing to disagree with -- it cannot fail"
+fi
+
 echo
 echo "== RESULT =="
 echo "  $pass passed, $fail failed"

@@ -752,12 +752,12 @@
       ]
     },
     "gate-all.sh": {
-      "hash": "2cffbb16a57e",
-      "indexed_at": "2026-08-23T00:48:07.640155+00:00",
+      "hash": "391aa8f4aa38",
+      "indexed_at": "2026-08-23T02:25:45.921843+00:00",
       "language": "shell",
-      "lines": 590,
-      "mtime_ns": 1787446086949303500,
-      "size": 32445,
+      "lines": 618,
+      "mtime_ns": 1787451945206331600,
+      "size": 34053,
       "symbols": [
         {
           "docstring": "Does any staged path start with any of this gate's triggers? Prefix matching, mirroring RotGates.hits: `lean/` fires on `lean/Proofs/X.lean`.",
@@ -1723,12 +1723,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "2f4896fe4ba9",
-      "indexed_at": "2026-08-22T22:44:30.716787+00:00",
+      "hash": "f308f47a321e",
+      "indexed_at": "2026-08-23T02:36:44.447646+00:00",
       "language": "shell",
-      "lines": 1054,
-      "mtime_ns": 1787438670115916900,
-      "size": 55985,
+      "lines": 1125,
+      "mtime_ns": 1787452494841164800,
+      "size": 59193,
       "symbols": [
         {
           "lines": [
@@ -1786,6 +1786,23 @@
             1046
           ],
           "name": "inv_check",
+          "type": "function"
+        },
+        {
+          "lines": [
+            1067,
+            1073
+          ],
+          "name": "fam_word",
+          "type": "function"
+        },
+        {
+          "docstring": "Prints one line per DISAGREEING claim. The real check and the control below both call THIS function, so the control exercises what production runs.  T",
+          "lines": [
+            1083,
+            1093
+          ],
+          "name": "fam_scan",
           "type": "function"
         }
       ]
@@ -2371,6 +2388,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-23T00:48:07.640236+00:00",
+  "generated_at": "2026-08-23T02:36:44.447732+00:00",
   "version": "1.0"
 }

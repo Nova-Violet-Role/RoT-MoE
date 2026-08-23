@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 Copyright 2026 Saimonokuma.
 -->
 
-# Compendium: the seven ways an instrument reports green over nothing
+# Compendium: the eight ways an instrument reports green over nothing
 
 > A gate that cannot fail is not a gate. It is a decoration with an exit code.
 
@@ -220,6 +220,55 @@ to `grep -Fxv -f` matches everything and silently discards the entire census.
 
 ---
 
+## FAMILY 8 — The verdict is computed from the survivors
+
+**Shape.** The suite does not fail. It *shrinks*. Some gates never reach the runner, and
+the verdict is a fraction whose denominator was counted from the gates that arrived — so
+the missing ones cannot appear as missing. Every earlier family is about a gate that
+answers badly. This one is about a gate that is never asked, in a report that looks
+complete because it never mentions it.
+
+**Instances.**
+
+| Commit | The defect |
+|---|---|
+| `2f06b7c` | The freshness gate was its own precondition: red until a full run stamped, and the stamp required a run with no reds. Unsatisfiable from the state it existed to escape. |
+| this one | 83 gates registered, 77 executed, and the runner printed `2 of 77 GATES RED`. Six gates vanished with no error. |
+
+**The worked example.** The first full sweep ever run on this branch took 67 minutes and
+reported `2 of 77 GATES RED`. The registry holds 83 rows — 73 in the default block, 10
+more under `--full`. The six that disappeared were the last six rows of the `--full` block,
+cut at a clean row boundary.
+
+The cause is mechanical. The runner walks its gate list with a `while read` loop fed by a
+heredoc, and executes each gate as `sh -c "$cmd" > log 2>&1` — stdout redirected, stderr
+redirected, **stdin left attached to the gate list**. A gate whose command reads stdin
+eats the remaining rows. Four rows, one of them a `cat`, reproduce it exactly: two run,
+two vanish, exit 0, nothing printed.
+
+What makes it Family 8 rather than a plain bug is the reporting. `ran` was incremented per
+gate reached, and the summary divided by `ran`. The suite computed its own denominator from
+its own truncated walk, so a run missing six gates and a run missing none are the same
+sentence. The red verdict that day was an accident: two gates happened to fail. Had those
+two been green, the sweep would have printed `ALL 77 GATES GREEN` while six gates had never
+executed — proved as `the_measured_gap_would_have_reported_green`.
+
+**The tell.** The report's total is a running count rather than a figure derived from the
+roster. Anywhere a suite says "N of M" and M was accumulated during the walk, M is evidence
+about the walk, not about the registry.
+
+**The assertion that closes it.** Count the registered rows independently of the walk, and
+require every one to be accounted for as executed or as declared-skipped — no third bucket.
+`< /dev/null` per gate fixes the cause that was measured; the roster assertion fixes the
+class, because the next truncation will have a different cause and the same silence.
+`lean/Proofs/RotGateRoster.lean:an_unaccounted_run_is_always_red`.
+
+**The distinction that makes it work.** A skipped gate is *declared*: the runner knows it
+exists, names it, counts it out. A truncated gate is not a skip. It is absent from the
+arithmetic, and absence must read red or it reads green.
+
+---
+
 ## The audit checklist
 
 For any gate, in order. Each question comes from a defect that actually shipped.
@@ -235,6 +284,10 @@ For any gate, in order. Each question comes from a defect that actually shipped.
 7. **Who writes the numbers it checks?** No generator means no author.
 8. **Does it write anything?** Then assert the artefact, not the exit code.
 9. **Does its control still fire after the refactor?** Re-trip it. Every time.
+10. **Did every registered gate actually run?** Count the roster independently of the walk.
+    A total accumulated while walking cannot report what the walk never reached.
+11. **Can this gate ever be satisfied?** Trace the rule on the empty state. A gate that is
+    its own precondition is red forever, and a twenty-minute sweep will not tell you why.
 
 ---
 
@@ -305,7 +358,7 @@ Honesty is the point of the document, so the debts are part of it.
 
 ## The generalisation
 
-The seven families collapse into one question, which is the only thing worth carrying
+The eight families collapse into one question, which is the only thing worth carrying
 away from this document:
 
 > **What would this instrument do if the thing it checks were absent?**
@@ -314,4 +367,4 @@ Family 1 finds nothing to run. Family 2 takes the fallback. Family 3 compares tw
 Family 4 reads a comment. Family 5 has nobody to write the answer. Family 6 measures its
 own leftovers. Family 7 looks somewhere else entirely.
 
-In all seven the answer is the same, and it is always green.
+In all eight the answer is the same, and it is always green.
