@@ -1449,8 +1449,9 @@ jobs:
       - name: forbid native_decide
         working-directory: lean
         run: |
-          if grep -rn 'native_decide' Proofs/*.lean; then
-            echo "FAIL: native_decide trusts the compiler binary, not the kernel"; exit 1
+          n=$(bash ../checker/status-verdict.sh --count native_decide)
+          if [ "$n" -ne 0 ]; then
+            echo "FAIL: $n file(s) contain native_decide -- trusts the compiler binary, not the kernel"; exit 1
           fi
           echo "PASS: no native_decide"
 
