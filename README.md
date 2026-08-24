@@ -354,6 +354,12 @@ yours is edited** — the hooks live inside the plugin, not in your
 `/plugin` lists it · `/plugin disable rot-moe` turns it off for a session ·
 `/plugin uninstall rot-moe` removes it, hooks and all.
 
+The marketplace follows `main` — `/plugin install` delivers whatever the
+default branch points at when you add it. Release tags (`v9.0.0`,
+`v9.0.1`, `v9.0.2`) mark the GitHub Release points for the downloadable
+archives below; they do not pin the marketplace install. The version you
+see after install is the one `plugin.json` declares.
+
 ### 📦 Three archives, one version — and why the patch digit retired
 
 Through `5.x` the patch digit WAS the tier: `x.y.0` core, `x.y.1` +Lean,
