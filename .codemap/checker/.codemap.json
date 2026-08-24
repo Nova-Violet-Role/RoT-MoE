@@ -416,25 +416,25 @@
       ]
     },
     "cross-diff.sh": {
-      "hash": "42dd83cbb6b1",
-      "indexed_at": "2026-08-22T19:43:54.693165+00:00",
+      "hash": "ef984d35f09e",
+      "indexed_at": "2026-08-23T12:39:08.464926+00:00",
       "language": "shell",
-      "lines": 740,
-      "mtime_ns": 1787427793955978500,
-      "size": 39837,
+      "lines": 788,
+      "mtime_ns": 1787488747855722000,
+      "size": 43541,
       "symbols": [
         {
           "lines": [
-            325,
-            336
+            345,
+            356
           ],
           "name": "_stem_of",
           "type": "function"
         },
         {
           "lines": [
-            337,
-            344
+            357,
+            364
           ],
           "name": "_drive",
           "type": "function"
@@ -442,8 +442,8 @@
         {
           "docstring": "NONE (no gauge record) / ABSENT (no such field) / EMPTY (present but \"\") are reported as three DIFFERENT strings on purpose. Collapsing them is how th",
           "lines": [
-            407,
-            417
+            427,
+            437
           ],
           "name": "_gfield",
           "type": "function"
@@ -451,16 +451,16 @@
         {
           "docstring": "This checker exports ROTMOE_DEBUG_SRC=test, so \"no declaration\" must be expressed with `env -u`. `${x:+...}` leaves the INHERITED value in place -- me",
           "lines": [
-            423,
-            444
+            443,
+            464
           ],
           "name": "_pdrive",
           "type": "function"
         },
         {
           "lines": [
-            506,
-            513
+            526,
+            533
           ],
           "name": "_adrive",
           "type": "function"
@@ -733,12 +733,12 @@
       ]
     },
     "full-freshness.sh": {
-      "hash": "b2abdb7986a0",
-      "indexed_at": "2026-08-22T23:50:34.930272+00:00",
+      "hash": "8ebbb985e853",
+      "indexed_at": "2026-08-23T13:40:04.406079+00:00",
       "language": "shell",
-      "lines": 211,
-      "mtime_ns": 1787442634329962400,
-      "size": 7982,
+      "lines": 235,
+      "mtime_ns": 1787492403748505100,
+      "size": 9821,
       "symbols": [
         {
           "docstring": "--- the one function every verdict comes from ------------------------------- Production and all four controls call THIS. A control that exercised a r",
@@ -871,12 +871,12 @@
       ]
     },
     "hook-footprint.sh": {
-      "hash": "a3b52e9be28d",
-      "indexed_at": "2026-08-22T17:50:25.333740+00:00",
+      "hash": "e2028712c2f1",
+      "indexed_at": "2026-08-23T13:29:24.313287+00:00",
       "language": "shell",
-      "lines": 337,
-      "mtime_ns": 1787420485623145200,
-      "size": 17308,
+      "lines": 355,
+      "mtime_ns": 1787491763638949500,
+      "size": 18752,
       "symbols": [
         {
           "lines": [
@@ -906,8 +906,8 @@
         },
         {
           "lines": [
-            119,
-            123
+            137,
+            141
           ],
           "name": "strip_of",
           "type": "function"
@@ -924,12 +924,12 @@
       "symbols": []
     },
     "install-parity.sh": {
-      "hash": "5687137eebe3",
-      "indexed_at": "2026-08-22T17:50:25.334323+00:00",
+      "hash": "3015a7c0202e",
+      "indexed_at": "2026-08-23T13:34:11.822896+00:00",
       "language": "shell",
-      "lines": 182,
-      "mtime_ns": 1787420485728684000,
-      "size": 8178,
+      "lines": 204,
+      "mtime_ns": 1787492051141420600,
+      "size": 9758,
       "symbols": [
         {
           "docstring": "`::error::` becomes a check-run annotation, and annotations are PUBLIC on a public repository while `actions/runs/<id>/logs` answers 403 without admin",
@@ -1044,12 +1044,12 @@
       "symbols": []
     },
     "live-session-smoke.sh": {
-      "hash": "3ab14e48816e",
-      "indexed_at": "2026-08-22T17:50:25.337091+00:00",
+      "hash": "485461d383e2",
+      "indexed_at": "2026-08-23T13:23:53.707076+00:00",
       "language": "shell",
-      "lines": 596,
-      "mtime_ns": 1787420486050900900,
-      "size": 31007,
+      "lines": 614,
+      "mtime_ns": 1787491433041166700,
+      "size": 32353,
       "symbols": [
         {
           "lines": [
@@ -1086,8 +1086,8 @@
         },
         {
           "lines": [
-            465,
-            484
+            483,
+            502
           ],
           "name": "deliver_session",
           "type": "function"
@@ -1095,8 +1095,8 @@
         {
           "docstring": "`grep -c` PRINTS 0 AND EXITS 1 ON NO MATCH. `grep -c ... || echo 0` emits TWO lines and poisons the arithmetic that reads it -- that bug cost a real d",
           "lines": [
-            489,
-            493
+            507,
+            511
           ],
           "name": "count_marker",
           "type": "function"
@@ -1265,12 +1265,12 @@
       ]
     },
     "mutate-harness.sh": {
-      "hash": "c5be7752f61b",
-      "indexed_at": "2026-08-22T17:50:25.341511+00:00",
+      "hash": "d9a9d2494c92",
+      "indexed_at": "2026-08-23T13:39:04.428655+00:00",
       "language": "shell",
-      "lines": 225,
-      "mtime_ns": 1787420486534797000,
-      "size": 10332,
+      "lines": 253,
+      "mtime_ns": 1787492343814480700,
+      "size": 12587,
       "symbols": []
     },
     "name-collision.sh": {
@@ -1293,12 +1293,12 @@
       ]
     },
     "no-local-paths.sh": {
-      "hash": "c05613a0c73a",
-      "indexed_at": "2026-08-22T17:50:25.342288+00:00",
+      "hash": "9f8f8ab89973",
+      "indexed_at": "2026-08-24T02:19:00.069210+00:00",
       "language": "shell",
-      "lines": 360,
-      "mtime_ns": 1787420486640277100,
-      "size": 18484,
+      "lines": 371,
+      "mtime_ns": 1787537939444510400,
+      "size": 19342,
       "symbols": []
     },
     "plugin-install.sh": {
@@ -1330,12 +1330,12 @@
       ]
     },
     "portability.sh": {
-      "hash": "ea6cdfe01ada",
-      "indexed_at": "2026-08-22T17:50:25.343788+00:00",
+      "hash": "74b12417e3ea",
+      "indexed_at": "2026-08-23T12:26:35.634243+00:00",
       "language": "shell",
-      "lines": 699,
-      "mtime_ns": 1787420486848776800,
-      "size": 37260,
+      "lines": 716,
+      "mtime_ns": 1787487995018073800,
+      "size": 38289,
       "symbols": [
         {
           "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
@@ -1563,17 +1563,17 @@
       ]
     },
     "release-longsession.sh": {
-      "hash": "3d0f38e1610c",
-      "indexed_at": "2026-08-22T17:50:25.348023+00:00",
+      "hash": "cb716e869c1b",
+      "indexed_at": "2026-08-23T13:14:37.579800+00:00",
       "language": "shell",
-      "lines": 320,
-      "mtime_ns": 1787420487364485100,
-      "size": 17040,
+      "lines": 421,
+      "mtime_ns": 1787490876912080200,
+      "size": 23964,
       "symbols": [
         {
           "lines": [
-            132,
-            143
+            144,
+            155
           ],
           "name": "archive_of",
           "type": "function"
@@ -1581,8 +1581,8 @@
         {
           "docstring": "--- the conversation --------------------------------------------------------- A working session, not a lane drill: the turns build on each other, and",
           "lines": [
-            150,
-            173
+            162,
+            185
           ],
           "name": "turn_text",
           "type": "function"
@@ -1590,8 +1590,8 @@
         {
           "docstring": "--- INSTALL, the plugin way: the CLI loads it straight from the zip ------- `--plugin-dir` accepts a directory OR a .zip (measured: claude --help). Th",
           "lines": [
-            220,
-            228
+            232,
+            240
           ],
           "name": "run_turn",
           "type": "function"
@@ -1723,12 +1723,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "f308f47a321e",
-      "indexed_at": "2026-08-23T02:36:44.447646+00:00",
+      "hash": "26e1655ddcbf",
+      "indexed_at": "2026-08-23T12:34:50.590458+00:00",
       "language": "shell",
-      "lines": 1125,
-      "mtime_ns": 1787452494841164800,
-      "size": 59193,
+      "lines": 1135,
+      "mtime_ns": 1787488489943823000,
+      "size": 59829,
       "symbols": [
         {
           "lines": [
@@ -1782,16 +1782,16 @@
         },
         {
           "lines": [
-            976,
-            1046
+            986,
+            1056
           ],
           "name": "inv_check",
           "type": "function"
         },
         {
           "lines": [
-            1067,
-            1073
+            1077,
+            1083
           ],
           "name": "fam_word",
           "type": "function"
@@ -1799,8 +1799,8 @@
         {
           "docstring": "Prints one line per DISAGREEING claim. The real check and the control below both call THIS function, so the control exercises what production runs.  T",
           "lines": [
-            1083,
-            1093
+            1093,
+            1103
           ],
           "name": "fam_scan",
           "type": "function"
@@ -1853,33 +1853,33 @@
       ]
     },
     "session-log.sh": {
-      "hash": "a40a72035c99",
-      "indexed_at": "2026-08-22T17:50:25.352700+00:00",
+      "hash": "db133e2c76c9",
+      "indexed_at": "2026-08-23T12:19:16.404715+00:00",
       "language": "shell",
-      "lines": 481,
-      "mtime_ns": 1787420487691260500,
-      "size": 19227,
+      "lines": 502,
+      "mtime_ns": 1787487555749160100,
+      "size": 20488,
       "symbols": [
         {
           "lines": [
             131,
-            143
+            164
           ],
           "name": "run_arm",
           "type": "function"
         },
         {
           "lines": [
-            184,
-            200
+            205,
+            221
           ],
           "name": "src_of",
           "type": "function"
         },
         {
           "lines": [
-            287,
-            295
+            308,
+            316
           ],
           "name": "marker_of",
           "type": "function"
@@ -1887,8 +1887,8 @@
         {
           "docstring": "Read the src of the FIRST record written, or the literal <none> if no record was produced at all. An empty src must be reported as EMPTY, never as abs",
           "lines": [
-            398,
-            406
+            419,
+            427
           ],
           "name": "g_src",
           "type": "function"
@@ -1896,8 +1896,8 @@
         {
           "docstring": "NOTE ON THE ENVIRONMENT, and it is load-bearing: this checker is itself one of the nine that export ROTMOE_DEBUG_SRC=test, so \"no declaration\" cannot",
           "lines": [
-            414,
-            446
+            435,
+            467
           ],
           "name": "g_cell",
           "type": "function"
@@ -2388,6 +2388,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-23T02:36:44.447732+00:00",
+  "generated_at": "2026-08-24T02:19:00.069299+00:00",
   "version": "1.0"
 }

@@ -3426,6 +3426,90 @@
         }
       ]
     },
+    "FINDINGS-9.0.1.md": {
+      "hash": "2d27fbf3fb74",
+      "indexed_at": "2026-08-24T07:34:32.246794+00:00",
+      "language": "markdown",
+      "lines": 444,
+      "mtime_ns": 1787556871621628600,
+      "size": 33451,
+      "symbols": [
+        {
+          "docstring": "none recorded",
+          "lines": [
+            16,
+            19
+          ],
+          "name": "CRITICAL",
+          "type": "section"
+        },
+        {
+          "docstring": "none recorded",
+          "lines": [
+            20,
+            23
+          ],
+          "name": "BUGS",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "`lean/Proofs/RotVacuity.lean:39-41` says a green `lake build Proofs.RotVacuity` means **every guarded theorem in this packet has at least one real cas",
+              "lines": [
+                222,
+                278
+              ],
+              "name": "W8 \ud83d\udfe1 the vacuity audit states a universal and cannot notice a theorem it never covered",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "| id | what happened | evidence | repro | |---|---|---|---| | W2b | The 6.0.1 duplicate-injection warning was fixed for the pair it named and survives",
+          "lines": [
+            24,
+            278
+          ],
+          "name": "WARNINGS",
+          "type": "section"
+        },
+        {
+          "docstring": "| id | what happened | evidence | repro | |---|---|---|---| | S1 | The P2.4 preregistration seal pins five git objects; the governing-text pin does no",
+          "lines": [
+            279,
+            296
+          ],
+          "name": "SEAL",
+          "type": "section"
+        },
+        {
+          "docstring": "An audit that records only defects cannot be told apart from one that never opened the file. Each entry below names the line that makes it sound, so t",
+          "lines": [
+            297,
+            373
+          ],
+          "name": "CLEARED \u2014 opened, measured, and found sound",
+          "type": "section"
+        },
+        {
+          "docstring": "Recorded so a later reader does not re-raise them. Four of five findings this audit did not survive verification; the pattern in every case was readin",
+          "lines": [
+            374,
+            386
+          ],
+          "name": "RETRACTED \u2014 raised during this audit and killed by their own controls",
+          "type": "section"
+        },
+        {
+          "docstring": "Findings are gated on a record-first check before any directory is reviewed: every basename in the target directory is grepped against the 50 record d",
+          "lines": [
+            387,
+            445
+          ],
+          "name": "METHOD",
+          "type": "section"
+        }
+      ]
+    },
     "NEXT-STEPS-9.0.x.md": {
       "hash": "496bafcd54d2",
       "indexed_at": "2026-08-22T17:50:25.282043+00:00",
@@ -3568,11 +3652,11 @@
       ]
     },
     "README.md": {
-      "hash": "f8fd7570a23c",
-      "indexed_at": "2026-08-23T05:13:15.994020+00:00",
+      "hash": "d55cb290d904",
+      "indexed_at": "2026-08-23T06:13:28.627575+00:00",
       "language": "markdown",
       "lines": 1502,
-      "mtime_ns": 1787461757099097600,
+      "mtime_ns": 1787465364911143600,
       "size": 84480,
       "symbols": [
         {
@@ -4188,11 +4272,11 @@
       ]
     },
     "STATUS.md": {
-      "hash": "f085b65f00ea",
-      "indexed_at": "2026-08-23T05:13:15.994357+00:00",
+      "hash": "032dbcfa5fc4",
+      "indexed_at": "2026-08-23T06:13:28.627952+00:00",
       "language": "markdown",
       "lines": 28,
-      "mtime_ns": 1787461751996281900,
+      "mtime_ns": 1787465359480528400,
       "size": 1011,
       "symbols": []
     },
@@ -4261,6 +4345,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-23T05:13:15.994428+00:00",
+  "generated_at": "2026-08-24T07:34:32.246883+00:00",
   "version": "1.0"
 }

@@ -120,7 +120,19 @@ SCRATCH_ROOT="${ROTMOE_SCRATCHPAD:-D:/Temp/claude/rotmoe-longsession}"
 mkdir -p "$SCRATCH_ROOT" 2>/dev/null || SCRATCH_ROOT="${TMPDIR:-/tmp}"
 WORK="$(mktemp -d "$SCRATCH_ROOT/run.XXXXXX")"
 # The clone carries a real credential. Remove it on EVERY exit path.
-trap 'rm -rf "$WORK"' EXIT INT TERM
+#
+# EXIT and INT/TERM are DELIBERATELY SEPARATE traps. A POSIX sh signal handler
+# that does not itself exit RESUMES the shell at the point the signal
+# interrupted it -- so the single combined `trap ... EXIT INT TERM` deleted
+# $WORK and then let the turn loop keep running inside a directory that no
+# longer existed. Measured: under an external `timeout 300`, the redirect at
+# run_turn's `> "$VW/$_tag.json"` threw "No such file or directory" for turns
+# 570-572, every reader rendered <SILENT>, and each dead turn was scored
+# MISMATCH -- which is where the FAIL "553 of 572 turns ROUTED to a different
+# lane" came from. Not a router regression: turns that never ran, counted.
+# Killing this gate must END it, not make it hallucinate a verdict.
+trap 'rm -rf "$WORK"' EXIT
+trap 'rm -rf "$WORK"; printf "\n  ---- KILLED by signal: run INCOMPLETE. Every count above is partial and NO summary was reached.\n"; exit 143' INT TERM
 
 echo "== sustained session :: cloned auth, plugin installed, real conversation =="
 note "claude $(claude --version 2>&1 | head -1)"
@@ -229,11 +241,42 @@ for v in $WANT; do
   sid_of  () { node -e 'try{console.log(require(process.argv[1]).session_id||"")}catch(e){console.log("")}' "$1" 2>/dev/null; }
   real_of () { node -e 'try{const j=require(process.argv[1]);console.log(j.is_error?"no":"yes")}catch(e){console.log("no")}' "$1" 2>/dev/null; }
   # THE ORACLE: the artifact's own router, on the same text.
+  #
+  # CLAUDE_CONFIG_DIR IS NOT OPTIONAL HERE. The rendered router line carries two
+  # things: the routing decision, which comes from the prompt, and a model tag,
+  # which does not -- hooks/rot-router.sh:167 says "There is NO `model` key in
+  # the payload. So it is read from the settings file". run_turn (below) runs
+  # under CLAUDE_CONFIG_DIR="$CFG", whose settings.json is pinned to sonnet at
+  # :200. The first draft of this oracle exported nothing, so it read the HOST
+  # machine's settings instead and rendered `opus[1m]`. The two sides therefore
+  # disagreed whenever the rendered line carried a model tag at all. The uncapped
+  # run of 2026-08-21 reported 138 of 138 MISMATCH, and nine of those rows had
+  # the SAME lane and the SAME gauge (CONVERGENT ... 0.17 against
+  # CONVERGENT ... 0.17) and were still counted as routing disagreements.
+  #
+  # THE TAG ONLY RENDERS ON ONE LANE. The second field is the LENS name on every
+  # lane except CONVERGENT, where it is the model. Measured, by running the
+  # router twice on the same text with only the config changed:
+  #   debug this failing test  ->  CLINICAL AntiVenom | R/s+ 0.72   (both configs, IDENTICAL)
+  #   hello there              ->  CONVERGENT opus[1m] | R/s+ 0.17  (host settings)
+  #   hello there              ->  CONVERGENT sonnet   | R/s+ 0.17  (sandbox settings)
+  # So this defect could only ever decide a turn on which BOTH sides said
+  # CONVERGENT -- which is to say, precisely the turns that would otherwise have
+  # PASSED. It did not break every turn; it broke exactly the passing ones, and
+  # that is why the run showed 0 matches instead of 9.
+  #
+  # A gate that cannot return green is not measuring its subject, it is
+  # reporting its own construction -- the same defect as a gate that cannot
+  # return red, with the sign flipped. Proved in
+  # lean/Proofs/RotComparatorConfig.lean: `differing_config_forces_red`,
+  # `no_mode_makes_it_green`, and `the_verdict_ignores_the_mode`, which shows the
+  # verdict is invariant under exchanging BOTH routing decisions.
   oracle  () { printf '{"prompt":%s}' "$(node -e 'console.log(JSON.stringify(process.argv[1]))' "$1")" \
-                 | bash "$PLUG/hooks/rot-router.sh" 2>/dev/null | sed -n 's/.*-> //p' | head -1; }
+                 | CLAUDE_CONFIG_DIR="$CFG" bash "$PLUG/hooks/rot-router.sh" 2>/dev/null \
+                 | sed -n 's/.*-> //p' | head -1; }
 
   echo "-- a real conversation, resumed turn after turn, budget ${BUDGET}s --"
-  START=$(date +%s); n=0; SID=""; fired=0; realturns=0; matched=0
+  START=$(date +%s); n=0; SID=""; fired=0; realturns=0; matched=0; lanematched=0
   while :; do
     now=$(date +%s); [ $((now-START)) -ge "$BUDGET" ] && break
     n=$((n+1))
@@ -252,11 +295,61 @@ for v in $WANT; do
     # turns reported MISMATCH against a router that was correct every time.
     # A comparator that mangles its input fails LOUDLY here, which is lucky; the
     # same class of bug in the other direction reports a clean match forever.
-    live="$(grep -hF "$MARKER" "$VW/t$n.debug" 2>/dev/null | sed -n 's/.*-> //p' | head -1 \
-            | sed 's/\\[rn]//g; s/"[[:space:]]*$//; s/[[:space:]]*$//')"
+    # THE EVENT IS PART OF THE SELECTOR, NOT JUST THE MARKER. hooks/hooks.json
+    # binds rot-router.sh to THIRTY-ONE events. Exactly two of them carry a
+    # `prompt` key: UserPromptSubmit and UserPromptExpansion. Every other event
+    # -- SessionStart, Setup, InstructionsLoaded, CwdChanged, PreToolUse -- runs
+    # the router with no text to route, so it correctly renders its no-signal
+    # default, which is CONVERGENT <model> | R/s+ 0.17 on every single one.
+    #
+    # The first draft selected on "$MARKER" alone and took `head -1`. SessionStart
+    # fires BEFORE UserPromptSubmit, so `head -1` returned the promptless line
+    # and this gate compared it against an oracle fed the real prompt. MEASURED
+    # 2026-08-23, one real `claude -p` turn, --debug hooks, FORGE-shaped prompt:
+    #
+    #   debug line 202  Hook SessionStart:startup ... -> CONVERGENT opus[1m] | R/s+ 0.17
+    #   debug line 963  Hook UserPromptSubmit      ... -> FORGE Claude ...   | R/s+ 0.73
+    #
+    # head -1 took line 202. The full run of 2026-08-23 reported core 41/44,
+    # lean 45/48, unsealed 46/49 MISMATCH -- and the handful that "agreed" were
+    # simply the corpus prompts that genuinely route CONVERGENT. The router was
+    # correct on all 141 turns; this comparator was reading a different event.
+    #
+    # This also repairs a VACUOUS PASS sitting directly above the failure. The
+    # `fired` counter below increments whenever ANY marker line exists, so
+    # "the router fired on EVERY turn (44/44)" passed while the comparison was
+    # looking at SessionStart. Filtered to the prompt-bearing event, `fired`
+    # now measures what its own message claims and CAN fail.
+    live="$(grep -hF "$MARKER" "$VW/t$n.debug" 2>/dev/null \
+            | grep -F 'Hook UserPromptSubmit' \
+            | sed -n 's/.*-> //p' | head -1 \
+            | sed 's/\\[rn].*//; s/"[[:space:]]*$//; s/[[:space:]]*$//')"
+    # TRUNCATE AT THE FIRST ESCAPE, DO NOT DELETE EVERY ESCAPE. The oracle above
+    # ends in `head -1`, which keeps the router's FIRST LINE and drops the frame
+    # and the per-lens stanzas. In the debug file those same lines are not lines
+    # at all: Claude Code writes the hook's whole stdout as ONE JSON-escaped
+    # record, so `head -1` cannot cut it and the two sides were being compared at
+    # different widths. The old `s/\\[rn]//g` deleted the escapes and glued the
+    # frame onto the router line:
+    #   FORGE Claude [NSIL BOOST Claude] | R/s+ 0.73<rot:frame>RoT MoE voices ...
+    # `s/\\[rn].*//` cuts at the first escape instead, which is exactly what
+    # `head -1` does on the oracle side. Both sides now carry one rendered line.
+    #
+    # This matters only for the LINE comparison. The gauge and any NSIL tag are
+    # computed from lens signals read at invocation time, so the live turn and
+    # the oracle can legitimately render 0.73 against 0.66 with no defect
+    # anywhere -- which is why `lanematched` is tracked separately and is the
+    # assertion that actually speaks to routing.
     if [ -n "$live" ]; then fired=$((fired+1)); TOTAL_FIRED=$((TOTAL_FIRED+1)); fi
     want="$(oracle "$p" | sed 's/[[:space:]]*$//')"
+    # THE LANE IS THE FIRST WORD. Everything after it -- the model tag, the
+    # gauge -- is rendering, not a routing decision. Counting them separately is
+    # what stops a tag divergence from being reported as "disagreed with the
+    # artifact's own router", which is a claim about routing and was false for
+    # nine of the 138 rows in the 2026-08-21 run.
+    livelane="${live%% *}"; wantlane="${want%% *}"
     if [ -n "$live" ] && [ "$live" = "$want" ]; then matched=$((matched+1)); fi
+    if [ -n "$live" ] && [ "$livelane" = "$wantlane" ]; then lanematched=$((lanematched+1)); fi
     printf '    turn %-2s  router=%-18s oracle=%-18s %s\n' "$n" "${live:-<SILENT>}" "${want:-?}" \
       "$([ -n "$live" ] && [ "$live" = "$want" ] && echo match || echo MISMATCH)"
   done
@@ -276,10 +369,18 @@ for v in $WANT; do
   else
     bad "$v: the router fired on only $fired of $n turns"
   fi
-  if [ "$matched" -eq "$n" ] && [ "$n" -gt 0 ]; then
+  # TWO CLAIMS, NOT ONE. The first is about routing and is the one this gate
+  # exists to make. The second is about rendering -- model tag and gauge -- and
+  # is reported in its own words so it can never be mistaken for the first.
+  if [ "$lanematched" -eq "$n" ] && [ "$n" -gt 0 ]; then
     ok "$v: the live lane agreed with the shipped router on all $n turns"
   else
-    bad "$v: $((n-matched)) of $n turns disagreed with the artifact's own router"
+    bad "$v: $((n-lanematched)) of $n turns ROUTED to a different lane than the shipped router"
+  fi
+  if [ "$matched" -eq "$n" ] && [ "$n" -gt 0 ]; then
+    ok "$v: the whole rendered line matched on all $n turns (lane, model tag and gauge)"
+  else
+    bad "$v: $((n-matched)) of $n turns rendered a different line -- model tag or gauge diverged, see the lane result above"
   fi
   [ -n "$SID" ] && ok "$v: session continuity held (id ${SID%%-*}...)" \
                 || bad "$v: no session id -- the turns were not one conversation"
