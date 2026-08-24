@@ -298,7 +298,12 @@ _ncommitted=$(grep -c . "$_tmp/committed.txt") || [ $? -eq 1 ]
 # reported itself DEAD. It was right to. A control anchored on a string that
 # the thing it guards is free to change is a control with an expiry date
 # nobody wrote down.
-sed '0,/| [0-9][0-9]* |/s/| [0-9][0-9]* |/| 9999 |/' "$_tmp/fresh.txt" > "$_tmp/tampered.txt"
+#
+# PORTABILITY: the original `sed '0,/pattern/s/.../.../'` uses a GNU-only
+# address (line 0). BSD sed on macOS does not recognise line 0, so the
+# substitution never fired, the tampered copy equalled the fresh copy, and
+# the control was DEAD on macOS while passing on Linux. Awk is portable.
+awk '!d && /\| [0-9][0-9]* \|/ {sub(/\| [0-9][0-9]* \|/, "| 9999 |"); d=1} {print}' "$_tmp/fresh.txt" > "$_tmp/tampered.txt"
 if diff -q "$_tmp/fresh.txt" "$_tmp/tampered.txt" >/dev/null 2>&1; then
   bad "CONTROL 3 DEAD: a tampered region compared EQUAL to the true one."
   echo "      This comparison cannot refuse anything, so its green means nothing."

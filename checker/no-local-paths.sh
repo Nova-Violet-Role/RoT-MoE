@@ -37,6 +37,7 @@ ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 PAT="$(dirname "$0")/patterns-forbidden.txt"
 TMP="${TMPDIR:-/tmp}/rotmoe-r2.$$"
 rc=0
+fail=0
 
 [ -f "$PAT" ] || { echo "FAIL: pattern file missing: $PAT"; exit 2; }
 
@@ -352,6 +353,9 @@ elif [ "${zip_hits:-0}" -ne 0 ]; then
   # download. It must move the EXIT CODE, not merely print. Measured the hard
   # way: the first version of this block printed FAIL and still exited 0.
   echo "FAIL: the tree is clean but a shipped archive carries a machine-local path"
+  rc=1
+elif [ "$fail" -gt 0 ]; then
+  echo "FAIL: $fail control assertion(s) failed -- an untested sweep is not evidence"
   rc=1
 else
   echo "PASS: no machine-local path in the packet, archives included"

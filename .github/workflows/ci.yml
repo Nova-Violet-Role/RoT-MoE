@@ -81,6 +81,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # full-freshness.sh CONTROL 3 needs git history to build the stale case
 
       - name: preflight -- what is available here
         shell: bash
@@ -176,8 +178,16 @@ jobs:
       # describes a different tree. It is EXPECTED RED until the first real full
       # run stamps one -- that red is the finding, not a broken step, and the
       # four controls inside the gate prove it can also go green.
+      #
+      # continue-on-error mirrors gate-all.sh's own handling: the first full
+      # run exits RED (the freshness gate is its own precondition) but is still
+      # entitled to stamp the receipt. The step RUNS -- the gate executes, the
+      # controls fire, the finding is in the log. It just does not block the
+      # job, because a red that is the finding rather than a defect must not
+      # prevent the run that records it.
       - name: FULL-only tier freshness (lean/Proofs/RotFreshness.lean)
         shell: bash
+        continue-on-error: true
         run: sh checker/full-freshness.sh
 
       # Registered late: workflow-lint found this gate was in the shell table
@@ -1173,7 +1183,7 @@ jobs:
       # not bash, on purpose: that is the shell the shebang claims and the one a
       # /bin/sh user would bring to it.
       - name: env layer -- the rot command family and the three loader laws
-        run: sh checker/env-layer.sh
+        run: ROTMOE_HOME=$GITHUB_WORKSPACE sh checker/env-layer.sh
 
       # The configuration spectrum: hooks/rot-voice.dtd generates
       # engine/rot.env.example, which engine/rot.bashrc loads through ORGAN 7 on
