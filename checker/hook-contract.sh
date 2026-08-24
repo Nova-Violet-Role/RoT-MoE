@@ -244,7 +244,13 @@ if command -v pwsh >/dev/null 2>&1; then
     *PS1-SPOKE*SH-SPOKE*) ok "CONTROL: the old '&& ||' shape DOES double-run here -- this phase can fail" ;;
     *) bad "CONTROL DEAD: the old shape did not double-run -- the O6 phase proves nothing" ;;
   esac
-  _o6fb=$(PATH=/usr/bin:/bin; if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File "$_O6D/a.ps1"; else bash "$_O6D/a.sh"; fi 2>&1)
+  # Simulate pwsh absence: set PATH to empty so `command -v pwsh` fails, but
+  # invoke bash by its full path (captured before PATH was cleared). On
+  # ubuntu-latest pwsh lives at /usr/bin/pwsh, so PATH=/usr/bin:/bin still
+  # found it -- the fallback test measured nothing. An empty PATH makes
+  # command -v fail for pwsh while the full path to bash still resolves.
+  _O6BASH=$(command -v bash)
+  _o6fb=$(PATH=/dev/null; if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File "$_O6D/a.ps1"; else "$_O6BASH" "$_O6D/a.sh"; fi 2>&1)
   case "$_o6fb" in
     *SH-SPOKE*) ok  "O6: with pwsh absent the sh arm still runs -- the fallback is intact" ;;
     *)          bad "O6: with pwsh absent NOTHING ran -- the fallback was lost -- '$_o6fb'" ;;

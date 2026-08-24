@@ -108,7 +108,9 @@ census_unknown () {
   # An empty pattern file makes `grep -Fxv -f` match EVERY line and discard the
   # whole census, reporting a clean tree. Guard it explicitly.
   if [ -n "$_c_ign" ]; then
-    _c_keep=$(printf '%s\n' "$_c_all" | grep -Fxv -f <(printf '%s\n' "$_c_ign") || true)
+    _c_ignf=$(mktemp); printf '%s\n' "$_c_ign" > "$_c_ignf"
+    _c_keep=$(printf '%s\n' "$_c_all" | grep -Fxv -f "$_c_ignf" || true)
+    rm -f "$_c_ignf"
   else
     _c_keep="$_c_all"
   fi
