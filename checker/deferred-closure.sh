@@ -335,10 +335,24 @@ ERRPAT="^[^ ]*Z +${HASH}\[error\]"
 WARNPAT="^[^ ]*Z +${HASH}\[warning\]"
 # A step with continue-on-error: true that exits non-zero still gets an
 # ::error:: annotation from the runner. The full-freshness step is
-# EXPECTED RED by design (it is its own precondition). Exclude its log
-# from the error count so the finding it records does not read as a real
-# failure in the next run's deferred-closure.
-nerr=$(grep -rlE "$ERRPAT" "$WORK/x" 2>/dev/null | grep -v -i 'freshness' | grep -c . || true)
+# EXPECTED RED by design (it is its own precondition). The log archive
+# stores per-JOB logs (not per-step), so the filename filter cannot
+# isolate the freshness step's ::error:: from real failures in the same
+# job. Instead, check the CONTENT: the runner's ##[error] line for the
+# freshness step is immediately preceded by a line mentioning
+# RotFreshness.lean. Count only ::error:: lines whose preceding context
+# does NOT mention freshness.
+nerr=0
+while IFS= read -r -d '' _ef; do
+  _real=0
+  while IFS= read -r _ctx; do
+    case "$_ctx" in
+      *RotFreshness*|*full-freshness*|*freshness*|*'##[error]'*) ;;
+      *) _real=$((_real + 1)) ;;
+    esac
+  done < <(grep -B1 -E "$ERRPAT" "$_ef" 2>/dev/null | grep -v '^--$')
+  [ "$_real" -gt 0 ] && nerr=$((nerr + 1))
+done < <(grep -rlE "$ERRPAT" "$WORK/x" 2>/dev/null -z)
 nwarn=$(grep -rlE "$WARNPAT" "$WORK/x" 2>/dev/null | grep -c . || true)
 [ "${nerr:-1}" -eq 0 ]  && ok "zero error annotations across the whole run"   || bad "$nerr log(s) carry an error annotation"
 [ "${nwarn:-1}" -eq 0 ] && ok "zero warning annotations across the whole run" || bad "$nwarn log(s) carry a warning annotation (a deprecated action or a runner notice)"
