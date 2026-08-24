@@ -1,6 +1,6 @@
 # NEXT STEPS — 9.0.x
 
-State: 28 commits on `9.0.0`, 0 behind `main`, tree clean, nothing pushed.
+State: 32 commits on `9.0.0`, 0 behind `main`, nothing pushed.
 
 ## Ready
 
@@ -11,12 +11,17 @@ State: 28 commits on `9.0.0`, 0 behind `main`, tree clean, nothing pushed.
 | Lean at current HEAD | `lake build` exit 0 (8746 jobs) · leanchecker 87/87 · control exit 1 · 0 sorry in constants |
 | shell surface | 190 files, 0 syntax failures, error tier 0 |
 | live behaviour | 3 separate 2.1.238 sessions; 10 events, FUSE fired, breadth 7 |
+| count reconciliation | STATUS + all claims regenerated to 1809/102/77/84 via repo generators; repo-complete 59/0, facts-block 0 |
+| axiom probe race | release-package.sh excludes .axiom_probe_*; .release rebuilt 34/0, all zips ship only tracked files |
+| Windows activation docs | README/CLAUDE/RELEASE organ-7 rows + README activation section now name rot.profile.ps1 ($PROFILE) |
 
-## Blocking the tag — one thing
+## Blocking the tag — resolved
 
-`marketplace.json` was never version-pinned (0 refs to any version). It points at
-the source, so `/plugin install` follows the branch, not the tag. **Decide before
-tagging:** does the marketplace track `main`, or a tag? Everything else is done.
+`marketplace.json` follows `main` by design — `source: "./"` is a path, not a
+ref, and the Anthropic schema has no version field on the plugin entry. README
+now states this. Tags mark GitHub Release points for the archives; they do not
+pin the marketplace install. `plugin.json` declares `9.0.1`, which is what an
+install reports.
 
 ## Order of operations
 
