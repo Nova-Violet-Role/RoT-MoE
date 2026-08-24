@@ -308,7 +308,7 @@ for vp in $VARIANTS; do
       # shipped an absolute path under a green gate.
       tar -cf - --exclude='.lake' --exclude='*.olean' --exclude='.git' \
                 --exclude='*.mutbak' --exclude='*.bak' --exclude='.rot-moe' \
-                --exclude='.cocoindex_code' "$p" 2>>"$_copyerr" | ( cd "$STAGE" && tar -xf - ) 2>>"$_copyerr"
+                --exclude='.cocoindex_code' --exclude='.axiom_probe_*' "$p" 2>>"$_copyerr" | ( cd "$STAGE" && tar -xf - ) 2>>"$_copyerr"
     else
       cp "$p" "$d/" 2>>"$_copyerr"
     fi
