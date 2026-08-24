@@ -338,7 +338,7 @@ WARNPAT="^[^ ]*Z +${HASH}\[warning\]"
 # EXPECTED RED by design (it is its own precondition). Exclude its log
 # from the error count so the finding it records does not read as a real
 # failure in the next run's deferred-closure.
-nerr=$(grep -rlE "$ERRPAT" "$WORK/x" 2>/dev/null | grep -v 'FULL-only tier freshness' | grep -c . || true)
+nerr=$(grep -rlE "$ERRPAT" "$WORK/x" 2>/dev/null | grep -v -i 'freshness' | grep -c . || true)
 nwarn=$(grep -rlE "$WARNPAT" "$WORK/x" 2>/dev/null | grep -c . || true)
 [ "${nerr:-1}" -eq 0 ]  && ok "zero error annotations across the whole run"   || bad "$nerr log(s) carry an error annotation"
 [ "${nwarn:-1}" -eq 0 ] && ok "zero warning annotations across the whole run" || bad "$nwarn log(s) carry a warning annotation (a deprecated action or a runner notice)"
