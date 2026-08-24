@@ -103,7 +103,7 @@ same run, on the same commit the tag lands on.
 | 4 · reminder | `hooks/prover-remind.sh` · `.ps1` — speaks only on measured debt |
 | 5 · voices | `hooks/rot-voice.dtd` + `agents/rot-nova.md` … `agents/rot-claude.md` — the contract and the nine charters |
 | 6 · gate | `hooks/rot-voice-gate.sh` · `.ps1` — one refusal per unspoken summons |
-| 7 · environment | `hooks/rot-env.sh` · `.ps1` + `hooks/rot-profile.sh` — `rot.env` under the declared vocabulary, and the `rot` command family |
+| 7 · environment | `hooks/rot-env.sh` · `.ps1` + `engine/rot.bashrc` · `rot.profile.ps1` + `hooks/rot-profile.sh` — `rot.env` under the declared vocabulary, the `rot` command family, and both shell activations that apply it |
 | 8 · animus | `hooks/animus-observe.sh` + `commands/animus.md` — the paired observer: measured triggers, lens remarks injected mid-run through the router arms' worker-side ear |
 
 `RoT-MoE-Router-Lean.zip` adds the verification surface: `lean/` (the

@@ -49,7 +49,7 @@ Eight organs ship. Organs 1–4 are checked to exist by
 | 4 | `hooks/prover-remind.sh` / `.ps1` | the proof-debt reminder |
 | 5 | `hooks/rot-voice.dtd` + nine lens agents, `agents/rot-nova.md` through `agents/rot-claude.md` | the voice contract and the roster it declares |
 | 6 | `hooks/rot-voice-gate.sh` / `.ps1` | the voice gate: one refusal per unspoken summons on Stop, degrades open |
-| 7 | `hooks/rot-env.sh` / `.ps1` + `hooks/rot-profile.sh` | the environment layer: rot.env parsed under the DTD's declared vocabulary, and the sourceable `rot` command family |
+| 7 | `hooks/rot-env.sh` / `.ps1` + `engine/rot.bashrc` / `rot.profile.ps1` + `hooks/rot-profile.sh` | the environment layer: rot.env parsed under the DTD's declared vocabulary, the sourceable `rot` command family, and both shell activations that apply it |
 | 8 | `hooks/animus-observe.sh` + `commands/animus.md` | the Animus: a paired observer process that watches a worker session's measured event stream and injects lens remarks mid-run through the router arms' worker-side ear (`ROTMOE_ANIMUS=1`); deterministic, thresholds declared in the DTD |
 
 ---

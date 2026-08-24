@@ -60,7 +60,7 @@ that does not exist, so the instructions cannot rot while you are not looking.
 
 **RoT MoE is a mixture-of-experts router, and its arithmetic is proved.** The
 router measures nine lens activities off disk, computes an `R/s+` gauge from
-them, and **1758 machine-checked theorems in Lean 4** state what that gauge must
+them, and **1770 machine-checked theorems in Lean 4** state what that gauge must
 satisfy — that it is positive, that it is bounded below, that it is *not
 constant*, that it divides by the number of lenses it actually summed. Two
 independent implementations compute it and are diffed byte for byte across all
@@ -249,8 +249,8 @@ without sharing your code.
 
 | what | how many | recomputed by |
 |---|---|---|
-| Lean modules in `lean/Proofs/` | **98** | `ls lean/Proofs/*.lean \| wc -l` |
-| theorems and lemmas proved | **1758** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
+| Lean modules in `lean/Proofs/` | **99** | `ls lean/Proofs/*.lean \| wc -l` |
+| theorems and lemmas proved | **1770** | `bash checker/count-theorems.sh lean/Proofs/*.lean` |
 | mutation suites | **77** | `ls lean/mutate/mutate_*.sh \| wc -l` |
 | checkers | **84** | `ls checker/*.sh \| wc -l` |
 | hook events wired by the plugin | **31** | keys of `hooks/hooks.json` |
@@ -311,7 +311,7 @@ source by `checker/module-claims.sh`, in docs exactly as it was here.
 | 4 · reminder | `hooks/prover-remind.sh` · `.ps1` | names your actual proof debt, and stays **silent** when there is none |
 | 5 · voices | `hooks/rot-voice.dtd` + `agents/rot-*.md` | the voice contract and the nine living lenses: each declared as an element with a charter, a tool grant and a bound, held both ways by `checker/voice-contract.sh` |
 | 6 · gate | `hooks/rot-voice-gate.sh` · `.ps1` | on Stop, holds the door **once** for lenses a FUSE/ELEVATE turn summoned and left unspoken — the refusal carries each missing charter, and the gate degrades open everywhere it cannot measure |
-| 7 · environment | `hooks/rot-env.sh` · `.ps1` + `hooks/rot-profile.sh` | the environment layer: `rot.env` **parsed, never sourced**, under the vocabulary the DTD declares — plus the sourceable `rot` command family, the write direction of the same law |
+| 7 · environment | `hooks/rot-env.sh` · `.ps1` + `engine/rot.bashrc` · `rot.profile.ps1` + `hooks/rot-profile.sh` | the environment layer: `rot.env` **parsed, never sourced**, under the vocabulary the DTD declares — plus the sourceable `rot` command family, the write direction of the same law, and both shell activations that apply it |
 | 8 · animus | `hooks/animus-observe.sh` + `commands/animus.md` | the paired observer: a second process watching the worker's **measured event stream** — never its prose — that injects the forgotten lens's remark mid-run through the worker-side ear in both router arms, and distils every firing into memory the next run loads |
 
 Organs 2 and 4 ship as **two arms each**, and `checker/cross-diff.sh` and
@@ -576,7 +576,19 @@ And the `.bashrc` role of the trio — shipped functions, sourced once:
 . /path/to/RoT-MoE/hooks/rot-profile.sh
 ```
 
-gives every terminal the `rot` command family: `rot route "text"`,
+On Windows, the same activation ships as `engine/rot.profile.ps1` — the
+PowerShell twin of `rot.bashrc`, decision for decision. One line in your
+`$PROFILE`:
+
+```powershell
+. "C:/path/to/RoT-MoE/engine/rot.profile.ps1"
+```
+
+`checker/env-wiring.sh` W8 asserts the two reach **identical values** from
+the same `rot.env` — a Windows box without bash gets the configuration a mac
+gets, or the packet has silently forked.
+
+Either activation gives every terminal the `rot` command family: `rot route "text"`,
 `rot gauge`, `rot voice on|off`, `rot gate on|off`, `rot env
 list|get|set` (the **write** direction of declared-only — a key the DTD
 does not declare is refused with the vocabulary printed), `rot summons`,
@@ -1350,7 +1362,7 @@ Each line below names what decides it. Nothing here is aspirational.
 | The gauge divides by the roster it actually summed | **PROVED** | `gauge_divisor_eq_card`, `the_gauge_converges`, `sigma_fixed_point` at ½ |
 | No lens is dead weight | **PROVED** | `every_lens_is_load_bearing` |
 | Per-turn cost is bounded, and the bound is a theorem not a habit | **PROVED + GATED** | `RotDominance.msBound = 500`, D7/D7c enforced on ubuntu, windows and macos |
-| The corpus is real | **MEASURED** | **98 modules**, **1758 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
+| The corpus is real | **MEASURED** | **99 modules**, **1770 theorems**, 77 mutation suites, **797 mutants applied, 797 killed, 0 survived, 0 discarded** |
 | Every proof is kernel-re-checked, not merely elaborated | **VERIFIED** | `lake env leanchecker` over all **87** modules, exit 0; a module with no oleans exits 1 as the control |
 | Nothing rests on an admission | **VERIFIED** | zero `sorry`; axioms are `propext` / `Quot.sound` / `Classical.choice` only, with a planted-`sorry` control proving the audit fires |
 | The nine voices are a contract, not a vibe | **MEASURED** | `checker/voice-contract.sh` — both directions: every declared lens exists and speaks in its element, carries its bound verbatim and its full grant, nothing undeclared speaks, no exclusion marker survives, the gate's cleanup and the result sentinel replay their own scenarios, and controls prove each direction can fail |
