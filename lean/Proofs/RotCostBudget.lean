@@ -85,6 +85,51 @@ def spawnBudget : Nat := msBound / perSpawnMs
 /-- The budget follows from the bound and the spawn tax; it is not asserted. -/
 theorem the_budget_is_derived_from_the_bound : spawnBudget = 41 := by decide
 
+/-! ## The wall-clock ceiling, and why it is a different number
+
+`msBound` is a claim about the ROUTER: what the code costs, priced in spawns.
+A wall-clock reading is not that claim. It also contains the interpreter's own
+startup — `bash` on Windows, `pwsh`, whatever the host uses to reach the first
+line of the router — and that term belongs to the machine, not to this code.
+
+Measured 2026-08-28: the same unchanged router read 509-528 ms wall on the
+shell arm across five runs of three tight batches, while its own logic measured
+117-146 ms in-script and its spawn count did not move. The gap is startup. A
+host that starts an interpreter slowly is not a router that got slower, and
+different hardware pays a different price for that startup — so a wall-clock
+gate set at the code's own budget reports the host and blocks the build.
+
+So the wall reading gets its OWN ceiling, deliberately generous, and it is
+stated as what it is: a ceiling on the user's felt latency, not a measurement
+of this code. The theorems below fix what it may and may not be used for. -/
+def wallBoundMs : Nat := 1000
+
+/-- The ceiling is looser than the code claim — that is the whole point of it
+being a separate number, and it is written down so it cannot quietly become the
+same number again. -/
+theorem the_wall_ceiling_is_looser_than_the_code_claim : msBound < wallBoundMs := by
+  decide
+
+/-- **The ceiling cannot do the spawn check's job, and does not pretend to.** A
+router that DOUBLED its subprocess count still slips under the wall ceiling —
+and is caught by the spawn budget, which does not move with the host. This is
+the division of labour stated as an obligation: loosening the wall figure buys
+no licence to weaken the deterministic check. -/
+theorem the_wall_ceiling_cannot_replace_the_spawn_check :
+    estimatedMs (2 * measuredSpawns) < wallBoundMs
+      ∧ ¬ (2 * measuredSpawns ≤ spawnBudget) := by decide
+
+/-- **The ceiling still bites.** It is generous, not absent: a router seven
+times its measured weight breaches it on any host. A bound nothing can violate
+is decoration. -/
+theorem the_wall_ceiling_still_bites :
+    ¬ (estimatedMs (7 * measuredSpawns) < wallBoundMs) := by decide
+
+/-- The ceiling leaves the code claim untouched: the budget the spawn check
+enforces is still derived from `msBound`, not from the wall figure. -/
+theorem the_wall_ceiling_does_not_move_the_spawn_budget :
+    spawnBudget = msBound / perSpawnMs ∧ spawnBudget = 41 := by decide
+
 /-- The router as measured is inside the budget, with room. -/
 theorem the_measured_router_is_within_budget :
     measuredSpawns ≤ spawnBudget := by decide

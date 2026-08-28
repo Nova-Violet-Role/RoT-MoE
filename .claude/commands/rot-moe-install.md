@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
 Copyright 2026 Saimonokuma.
 
 The user types `/rot-moe-install` and this becomes the prompt. It is deliberately
-SHORT and delegates the detail to CLAUDE.md at the repository root: two copies of
+SHORT and delegates the detail to AGENT_SETUP.md at the repository root: two copies of
 an install procedure drift, and only one of them gets corrected.
 
 `checker/claude-md-lint.sh` asserts that every command named in either file
@@ -16,7 +16,7 @@ install document that has gone stale is worse than none: it sends an agent to
 run something that is not there.
 -->
 
-Install RoT MoE from this clone. Read `CLAUDE.md` at the repository root first
+Install RoT MoE from this clone. Read `AGENT_SETUP.md` at the repository root first
 and follow it exactly, in order.
 
 The short form, so you can check yourself against it:
@@ -36,7 +36,7 @@ Three limits, and they hold for the whole task:
 * **Never elevate.** No `sudo`, no admin shell, no package manager. Nothing here
   needs it.
 * **Never download without asking in this conversation.** The plugin installs
-  offline. The Lean toolchain in step 3 of `CLAUDE.md` is **several gigabytes**
+  offline. The Lean toolchain in step 3 of `AGENT_SETUP.md` is **several gigabytes**
   and is entirely optional — it only lets the user re-verify the proofs that CI
   already verifies on every commit.
 * **Report real output.** Exact error text, exact exit code. Never "there was an

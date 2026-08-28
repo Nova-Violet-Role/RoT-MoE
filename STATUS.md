@@ -10,7 +10,7 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-BEGIN -->
 | field | value |
 |---|---|
-| theorems | 1809 |
+| theorems | 1813 |
 | modules | 102 |
 | mutation suites | 77 |
 | checkers | 84 |
@@ -20,7 +20,7 @@ that script on the run that produced it -- none is a description.
 <!-- VERDICT-END -->
 
 Regenerated locally by `bash checker/status-verdict.sh --write` on top
-of commit `83418017a7f2d132b3dc81275c3cd4e621525a34`. That line is PROVENANCE and is excluded from the
+of commit `19e628459e7a90d3269b1bdb8877bc8b504fc0f4`. That line is PROVENANCE and is excluded from the
 comparison that decides whether the verdict changed: it records WHERE the
 numbers were counted, and claims nothing about gates having passed.
 

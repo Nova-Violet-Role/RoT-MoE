@@ -180,7 +180,7 @@ SECURITY.md
 CONTRIBUTING.md
 CODE_OF_CONDUCT.md
 CITATION.cff
-CLAUDE.md
+AGENT_SETUP.md
 commands
 "
 # LEAN adds what makes re-verification -- and your own proving -- possible.

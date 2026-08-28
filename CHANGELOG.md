@@ -43,6 +43,80 @@ Not a version of the router. A standalone tool shipped alongside it, in
 
 ---
 
+## [10.0.0] — 2026-08-27
+
+**Major: the observer is driven by the measured gauge, not by seven fixed
+integers.** `10.0.0` core · `10.0.1` lean · `10.0.2` unsealed, published
+separately, cut from this one commit and differing by archive content only.
+
+The router was already writing a `"kind":"gauge"` record beside every route
+line — K, mean, breadth, M/C/T, sum, R/s+, active, and each of the nine lenses
+with lambda, mu, a, delta, sigma, H and term. The observer read none of it and
+decided when a lens should speak from lens names painted on if-statements:
+out-of-band and behavioural, but not RoT MoE. This release closes that gap,
+which is a behavioural change to the speaking condition — hence the major.
+
+### Changed — the seven integers became bases
+
+- `hooks/animus-observe.sh` decided when a lens should speak from seven
+  hardcoded integers (`AN_N=2` `COST_N=3` `DITHER_N=3` `BLOAT_N=3` `LOOP_N=4`
+  `TEXT_N=6` `STALL_S=120`). Each is now a BASE, divided by the electing lens's
+  measured share of its gauge line: a starved lens earns one remark, a lens
+  carrying the session earns up to six.
+- `STALL_S` is scaled the same way but **floored at 45 s**, because a false
+  stall is a lie told in a lens's own voice.
+- On Stop, and only on Stop, the turn is read backwards: nine candidate
+  findings, each scored by the weight the gauge actually gave the lens that
+  would speak it, at most two spoken and the remainder written to the
+  distillate.
+
+### Added — the Nushell lane ships, first in dispatch
+
+- Five hooks in Nushell (`prover-remind.nu`, `rot-env.nu`, `rot-profile.nu`,
+  `rot-router.nu`, `rot-voice-gate.nu`, +2431 lines) are now tracked and
+  SPDX-covered. `hooks/hooks.json` dispatch order is now `nu` → `pwsh` → `bash`;
+  hosts without the `nu` binary fall through unchanged.
+- `lean/Proofs/RotCostBudget.lean` grew `wallBoundMs` and its separation
+  theorems. Theorem count 1809 → 1813, measured by `checker/count-theorems.sh`;
+  `plugin.json` and `marketplace.json` restate the measured number.
+
+### Fixed — fused lenses were credited with zero elections
+
+- `active` is a comma-joined set during NSIL FUSE. Membership was tested
+  against single names only, so every fused lens was credited with zero
+  elections and then accused of starving. Split on commas, credit each name.
+- `checker/bench-router.sh` phase 2 gated wall clock against `msBound`, the
+  router's spawn budget. Wall contains the host's interpreter startup: measured
+  2026-08-28, 509–528 ms wall against 117–146 ms in-script with an unmoved
+  spawn count. Wall now gates against `wallBoundMs`; the code claim is printed,
+  not enforced; the spawn check judges the code. Proved in RotCostBudget
+  (`the_wall_ceiling_cannot_replace_the_spawn_check` and three siblings).
+- `checker/ci-dryrun.sh` split `git ls-files -s` output on whitespace, so four
+  executable paths containing a space were truncated and the mode assertion
+  went red by exactly four. The path is now taken from the TAB-delimited field.
+
+### Measured — a 4781-record replay of a live session sink
+
+- 2390 gauge records parsed; 170 remarks over 52 turns, never 3 in one turn.
+- 189 verdicts written; 8 of 9 lenses fired unforced. Carnage's condition (one
+  lens elected on ≥80% of ≥5 readings) was forced on a fixture and observed
+  firing, so all 9 are reachable.
+- Starved-lens claims re-derived by an independent JSON parser: 93 of 93 true.
+- A gauge-blinded mutation control differs from this build by 237 remark lines,
+  which is what makes the wiring load-bearing rather than asserted.
+
+### Notes
+
+- `hooks/rot-voice.dtd` ENV.26-32 now describe the bases as scaled by measured
+  share rather than as constants, and `engine/rot.env.example` was regenerated
+  from the DTD through `checker/env-wiring.sh --emit` — no env var added or
+  removed.
+- The `.nu` files require the `nu` binary; PowerShell 7 cannot parse them.
+  Dispatch probes for `nu` and falls back, so no host that could run 9.0.1 is
+  worse off.
+
+---
+
 ## [9.0.1] — 2026-08-21
 
 **The tier is the patch digit again — and the audit that earned the release.**

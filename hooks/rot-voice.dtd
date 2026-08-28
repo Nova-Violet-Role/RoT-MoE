@@ -135,14 +135,32 @@ lens file may carry.
        not a byte; ROTMOE_VOICE=0 silences remarks with the rest of the voice.
        The observer is DETERMINISTIC -- the router applied to the event
        stream, never a second model -- and speaks only on measured triggers,
-       every threshold declared below (ENV.26-32), at most one remark per
-       event and three per lens per run (frozen 2026-08-19, Soleil's
-       pricing): AntiVenom on a recurring anomaly shape, Chroma on a run of
-       ever-costlier actions, Venom on prompt turns with no act between,
-       Soleil on actions growing longer each time, Eidolon on one lane+stem
-       pair looping, Violet and Chroma once each when the TASK text routes
-       EMPATHIC or PREDICTIVE and the stream never goes there, and Claude on
-       a PreToolUse whose Post never lands -- the stall caught on the run.
+       every base declared below (ENV.26-32), at most one remark per event.
+       The bases are not verdicts: each is divided by the electing lens's
+       measured share of the same gauge the router already wrote beside
+       every route record (the "kind":"gauge" line: K, mean, breadth, M/C/T,
+       sum, R/s+, active, and all nine lenses with lambda, mu, a, delta,
+       sigma, H, term). A lens carrying the turn is summoned sooner, a lens
+       the gauge has parked must bring more evidence, parity is the base
+       unchanged, and no threshold moves by more than 3x. The per-lens
+       budget is spent per TURN, not per run, and is itself the lens's
+       accumulated weight: 1 remark for a starved lens, up to 6 for one
+       carrying the session (frozen 2026-08-19, Soleil's pricing; the
+       per-run cap it replaced left eight of the nine silent after the
+       first twenty minutes). No new measurement is taken anywhere: the
+       gauge was always in the sink, and this observer was already reading
+       past it. The triggers: AntiVenom on a recurring anomaly shape,
+       Chroma on a run of ever-costlier actions, Venom on prompt turns with
+       no act between, Soleil on actions growing longer each time, Eidolon
+       on one lane+stem pair looping, Violet and Chroma once each when the
+       TASK text routes EMPATHIC or PREDICTIVE and the stream never goes
+       there, and Claude on a PreToolUse whose Post never lands -- the
+       stall caught on the run. On Stop, and only on Stop, the observer
+       reads the turn backwards: nine candidate findings, each scored by
+       the weight the gauge gave the lens that would speak it, at most two
+       spoken and the rest written to the distillate. Stop is the one event
+       that can see the turn it is closing; every other voice in this
+       system speaks before the act.
        The distillates (project .rot-moe/animus-distillate.md, global
        <state-dir>/animus-distillate.md; overridable via ENV.33/ENV.34;
        global loads first, project overrides) are the observer's append-only
@@ -218,13 +236,13 @@ lens file may carry.
   <!ENTITY ENV.23 "ROTMOE_HOME|path|where the RoT-MoE tree lives, for the rot profile; never settable from a file -- it decides which code runs">
   <!ENTITY ENV.24 "ROTMOE_DEBUG_PAYLOAD|1 or unset|hook payload KEY survey (key names only, never a value) into a per-session state-dir sink -- the measuring instrument a new payload-field reader must run first">
   <!ENTITY ENV.25 "ROTMOE_ANIMUS|1 or unset|arms the paired observer's worker-side ear: consume ONE queued lens remark per PostToolUse from animus-queue.<session> in the state dir (written by hooks/animus-observe.sh); unset = the queue is never read">
-  <!ENTITY ENV.26 "ROTMOE_ANIMUS_ANOMALY_N|count|observer: same-shape anomaly records (the sentinel's own log line) that summon AntiVenom's recurrence remark; default 2">
-  <!ENTITY ENV.27 "ROTMOE_ANIMUS_COST_N|count|observer: consecutive tool events with strictly rising ms that summon Chroma's pricing remark; default 3">
-  <!ENTITY ENV.28 "ROTMOE_ANIMUS_DITHER_N|count|observer: consecutive prompt events with no tool event between that summon Venom's decide-and-move remark; default 3">
-  <!ENTITY ENV.29 "ROTMOE_ANIMUS_BLOAT_N|count|observer: consecutive tool events whose action text grows every time (the chars field) that summon Soleil's compression remark; default 3">
-  <!ENTITY ENV.30 "ROTMOE_ANIMUS_LOOP_N|count|observer: recurrences of one lane+stem pair that summon Eidolon's self-similarity remark; default 4">
-  <!ENTITY ENV.31 "ROTMOE_ANIMUS_TEXT_N|count|observer: sink records without the task text's own lane before the text-vs-stream pair (Violet for EMPATHIC, Chroma for PREDICTIVE) may speak, once each per run; default 6">
-  <!ENTITY ENV.32 "ROTMOE_ANIMUS_STALL_SECS|seconds|observer: age of a PreToolUse with no Post behind it before Claude's stall remark -- the measurement that never returned; default 120">
+  <!ENTITY ENV.26 "ROTMOE_ANIMUS_ANOMALY_N|count|observer: same-shape anomaly records (the sentinel's own log line) that summon AntiVenom's recurrence remark; default 2 -- a BASE, divided by AntiVenom's measured share of the gauge, floored at 2 so the remark's own words stay true">
+  <!ENTITY ENV.27 "ROTMOE_ANIMUS_COST_N|count|observer: consecutive tool events with strictly rising ms that summon Chroma's pricing remark; default 3 -- a BASE, divided by Chroma's measured share of the gauge">
+  <!ENTITY ENV.28 "ROTMOE_ANIMUS_DITHER_N|count|observer: consecutive prompt events with no tool event between that summon Venom's decide-and-move remark; default 3 -- a BASE, divided by Venom's measured share of the gauge">
+  <!ENTITY ENV.29 "ROTMOE_ANIMUS_BLOAT_N|count|observer: consecutive tool events whose action text grows every time (the chars field) that summon Soleil's compression remark; default 3 -- a BASE, divided by Soleil's measured share of the gauge">
+  <!ENTITY ENV.30 "ROTMOE_ANIMUS_LOOP_N|count|observer: recurrences of one lane+stem pair that summon Eidolon's self-similarity remark; default 4 -- a BASE, divided by Eidolon's measured share of the gauge">
+  <!ENTITY ENV.31 "ROTMOE_ANIMUS_TEXT_N|count|observer: sink records without the task text's own lane before the text-vs-stream pair (Violet for EMPATHIC, Chroma for PREDICTIVE) may speak, once each per run; default 6 -- a BASE, divided by the speaking lens's measured share of the gauge; the watch arms itself on the prompt event the router already routed">
+  <!ENTITY ENV.32 "ROTMOE_ANIMUS_STALL_SECS|seconds|observer: age of a PreToolUse with no Post behind it before Claude's stall remark -- the measurement that never returned; default 120 -- a BASE, divided by Claude's measured share of the gauge but never below 45s: a false stall is a lie told in a lens's own voice">
   <!ENTITY ENV.33 "ROTMOE_ANIMUS_DISTILLATE|path|overrides the project distillate (default <project>/.rot-moe/animus-distillate.md, self-gitignoring like the project sink)">
   <!ENTITY ENV.34 "ROTMOE_ANIMUS_DISTILLATE_GLOBAL|path|overrides the global distillate (default <state-dir>/animus-distillate.md)">
 

@@ -16,7 +16,7 @@
 [![Nova-Violet Role](https://img.shields.io/badge/Nova--Violet-Role-9b59b6?style=for-the-badge)](https://github.com/Nova-Violet-Role)
 [![License](https://img.shields.io/badge/License-AGPL--3.0_OR_EUPL--1.2-764ba2?style=for-the-badge)](LICENSE)
 
-[![Release](https://img.shields.io/badge/v9.0.1-Animus-0969da?style=flat-square)](#-v901--animus-three-ways)
+[![Release](https://img.shields.io/badge/v10.0.1-Gauge--driven-0969da?style=flat-square)](#-v1001--gauge-driven-three-ways)
 [![Zero sorry](https://img.shields.io/badge/sorry-0-27ae60?style=flat-square)](#)
 
 </div>
@@ -70,8 +70,8 @@ Local only. Nothing is uploaded. Requires `bash` and `jq`.
 ## 🎯 Which one do I want?
 
 Three archives, three releases — and **the patch digit is the tier again**.
-The `5.x` convention is RESTORED at `9.0.x`: `9.0.0` core, **`9.0.1` lean**,
-`9.0.2` unsealed, each published on its own. `9.0.1` is what `/plugin install`
+The `5.x` convention is RESTORED at `10.0.x`: `10.0.0` core, **`10.0.1` lean**,
+`10.0.2` unsealed, each published on its own. `10.0.1` is what `/plugin install`
 serves, because the verification surface is the point of this project and the
 default should carry it.
 
@@ -91,7 +91,7 @@ promise: the `release` job in `ci.yml` is the only publisher, and it can
 only run after every checker job and the whole Lean job succeeded in the
 same run, on the same commit the tag lands on.
 
-## 📦 v9.0.1 — Animus, three ways
+## 📦 v10.0.1 — Gauge-driven, three ways
 
 `RoT-MoE-Router.zip` — the product, in every archive:
 

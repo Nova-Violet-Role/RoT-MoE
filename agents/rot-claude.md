@@ -70,7 +70,7 @@ catch.
 
 **Exit codes are read directly, never through a pipe.** `cmd | tail` reports
 `tail`'s status, not the command's — that exact mistake has produced a false
-green in this very repository (`CLAUDE.md`, install preamble). Run the
+green in this very repository (`AGENT_SETUP.md`, install preamble). Run the
 command, read `$?` / `$LASTEXITCODE` on its own line, then inspect output
 separately.
 

@@ -6,7 +6,7 @@
 # =============================================================================
 # THE INSTALL DOCUMENT IS A SPEC, AND SPECS GO STALE.
 #
-# `CLAUDE.md` and `.claude/commands/rot-moe-install.md` tell an AGENT WITH A
+# `AGENT_SETUP.md` and `.claude/commands/rot-moe-install.md` tell an AGENT WITH A
 # SHELL what to run on someone else's machine. That makes a stale line in them
 # more dangerous than a stale line in a README: a human reading "run
 # checker/gate-all.sh" and finding no such file shrugs; an agent improvises.
@@ -32,10 +32,22 @@ bad() { echo "  FAIL  $*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error
 
 echo "== install-document lint =="
 
-DOCS="CLAUDE.md .claude/commands/rot-moe-install.md"
+DOCS="AGENT_SETUP.md .claude/commands/rot-moe-install.md"
 for d in $DOCS; do
   [ -f "$d" ] && ok "present: $d" || bad "MISSING: $d -- the agent-facing install path is gone"
 done
+
+# --- 0. the repo root must NOT contain a CLAUDE.md ---------------------------
+# Claude Code auto-loads a repo-root CLAUDE.md as standing context for every
+# session in the tree. This repo measures model behavior; an auto-injected
+# document contaminates the measured prompt stream. The install doc was
+# RENAMED to AGENT_SETUP.md for exactly this reason -- a reintroduced
+# CLAUDE.md is a regression, not a doc.
+if [ -e "CLAUDE.md" ]; then
+  bad "CLAUDE.md exists at repo root -- auto-loaded as standing context, contaminates measurements; install doc is AGENT_SETUP.md"
+else
+  ok "no CLAUDE.md at repo root (install doc is AGENT_SETUP.md, not auto-loaded)"
+fi
 
 # --- 1. every repo path the documents name must exist ------------------------
 # Extract candidates: anything inside backticks that looks like a repo-relative
@@ -63,17 +75,17 @@ done
 [ "$checked" -gt 0 ] && [ "$missing" -eq 0 ] && ok "all $checked path reference(s) in the install docs exist"
 
 # --- 2. the consent language must still be real ------------------------------
-# CLAUDE.md promises the toolchain fetch refuses by default. If someone removes
+# AGENT_SETUP.md promises the toolchain fetch refuses by default. If someone removes
 # that refusal from the script, the DOCUMENT becomes a lie that an agent will
 # act on. Check the promise against the code.
-if grep -q 'refuses by default' CLAUDE.md 2>/dev/null; then
+if grep -q 'refuses by default' AGENT_SETUP.md 2>/dev/null; then
   if grep -q 'REFUSING' SETUP_LEAN.sh 2>/dev/null && grep -q 'REFUSING' SETUP_LEAN.ps1 2>/dev/null; then
-    ok "CLAUDE.md's 'refuses by default' promise is backed by both SETUP_LEAN arms"
+    ok "AGENT_SETUP.md's 'refuses by default' promise is backed by both SETUP_LEAN arms"
   else
-    bad "CLAUDE.md promises SETUP_LEAN refuses by default, but a script no longer does"
+    bad "AGENT_SETUP.md promises SETUP_LEAN refuses by default, but a script no longer does"
   fi
 else
-  bad "CLAUDE.md no longer states that the toolchain fetch refuses by default"
+  bad "AGENT_SETUP.md no longer states that the toolchain fetch refuses by default"
 fi
 
 # The no-elevation rule must appear in the agent-facing docs, because an agent

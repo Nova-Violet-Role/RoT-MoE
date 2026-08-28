@@ -1,9 +1,28 @@
 {
   "directory": ".github",
   "files": {
+    "FUNDING.yml": {
+      "hash": "2b36b7fde573",
+      "indexed_at": "2026-08-25T11:35:02.598989+00:00",
+      "language": "yaml",
+      "lines": 3,
+      "mtime_ns": 1787585783950784600,
+      "size": 106,
+      "symbols": [
+        {
+          "docstring": "saimonokuma",
+          "lines": [
+            3,
+            4
+          ],
+          "name": "ko_fi",
+          "type": "key"
+        }
+      ]
+    },
     "dependabot.yml": {
       "hash": "9d6b4df80b51",
-      "indexed_at": "2026-08-22T17:50:25.286771+00:00",
+      "indexed_at": "2026-08-25T11:35:02.598389+00:00",
       "language": "yaml",
       "lines": 48,
       "mtime_ns": 1787420476718699900,
@@ -105,7 +124,7 @@
     },
     "topics.md": {
       "hash": "391632892595",
-      "indexed_at": "2026-08-22T17:50:25.286987+00:00",
+      "indexed_at": "2026-08-25T11:35:02.599325+00:00",
       "language": "markdown",
       "lines": 142,
       "mtime_ns": 1787420476831787700,
@@ -168,6 +187,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T17:50:25.432419+00:00",
+  "generated_at": "2026-08-25T11:35:04.222082+00:00",
   "version": "1.0"
 }

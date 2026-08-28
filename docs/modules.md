@@ -307,7 +307,7 @@ exactly such a module.
 * `lean/Proofs/RotCiSkip.lean` (10 theorems)
 * `lean/Proofs/RotCite.lean` (10 theorems)
 * `lean/Proofs/RotCorpus.lean` (11 theorems)
-* `lean/Proofs/RotCostBudget.lean` (31 theorems)
+* `lean/Proofs/RotCostBudget.lean` (35 theorems)
 * `lean/Proofs/RotCounter.lean` (9 theorems)
 * `lean/Proofs/RotDebugLog.lean` (18 theorems)
 * `lean/Proofs/RotDelivery.lean` (35 theorems)

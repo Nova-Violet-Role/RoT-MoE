@@ -677,7 +677,7 @@ jobs:
         shell: bash
         run: bash checker/log-replay.sh
 
-      # CLAUDE.md and /rot-moe-install are instructions to an AGENT WITH A
+      # AGENT_SETUP.md and /rot-moe-install are instructions to an AGENT WITH A
       # SHELL. A stale path in them is not a documentation nit -- it is an
       # agent improvising on someone else's machine.
       - name: install-document lint -- the agent-facing docs cannot go stale

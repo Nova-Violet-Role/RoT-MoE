@@ -531,7 +531,10 @@ fi
 # happens to be right today. Prose describing the OLD claim as history is allowed --
 # it must appear inside a blockquote, which is how the correction is written.
 _snap=0
-for _f in README.md engine/rot-lean.md; do
+# Scope amended 2026-08-28: docs/tips.md states in prose that D7b guards it, and
+# docs/lens-bench.md quotes the same cost. That claim was false while this list
+# named two files -- the page asserting the guard was the one page not scanned.
+for _f in README.md engine/rot-lean.md docs/tips.md docs/lens-bench.md; do
   [ -f "$REPO/$_f" ] || continue
   # Strip blockquote lines (historical explanation) before looking for claims.
   _hits=$(grep -vE '^\s*>' "$REPO/$_f" 2>/dev/null \

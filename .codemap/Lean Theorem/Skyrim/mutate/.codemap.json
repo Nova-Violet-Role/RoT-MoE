@@ -3,7 +3,7 @@
   "files": {
     "mutate-automovespeed.sh": {
       "hash": "8a63811dce2f",
-      "indexed_at": "2026-08-22T17:50:25.427713+00:00",
+      "indexed_at": "2026-08-25T11:35:03.048951+00:00",
       "language": "shell",
       "lines": 131,
       "mtime_ns": 1787420478121792400,
@@ -21,7 +21,7 @@
     },
     "mutate-automoveunstuck.sh": {
       "hash": "e57292dce49e",
-      "indexed_at": "2026-08-22T17:50:25.428026+00:00",
+      "indexed_at": "2026-08-25T11:35:03.051187+00:00",
       "language": "shell",
       "lines": 93,
       "mtime_ns": 1787420478174815500,
@@ -39,7 +39,7 @@
     },
     "mutate-builddetection.sh": {
       "hash": "f336034d35c2",
-      "indexed_at": "2026-08-22T17:50:25.428341+00:00",
+      "indexed_at": "2026-08-25T11:35:03.051733+00:00",
       "language": "shell",
       "lines": 114,
       "mtime_ns": 1787420478226062200,
@@ -57,7 +57,7 @@
     },
     "mutate-pluginpath.sh": {
       "hash": "41d3d8f66deb",
-      "indexed_at": "2026-08-22T17:50:25.428659+00:00",
+      "indexed_at": "2026-08-25T11:35:03.052238+00:00",
       "language": "shell",
       "lines": 122,
       "mtime_ns": 1787420478277698500,
@@ -74,6 +74,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-22T17:50:25.436274+00:00",
+  "generated_at": "2026-08-25T11:35:03.059654+00:00",
   "version": "1.0"
 }

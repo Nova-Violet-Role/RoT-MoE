@@ -3,7 +3,7 @@
   "files": {
     "ab-analyze.sh": {
       "hash": "9b76c05c9277",
-      "indexed_at": "2026-08-22T17:50:25.316334+00:00",
+      "indexed_at": "2026-08-25T11:35:02.651548+00:00",
       "language": "shell",
       "lines": 383,
       "mtime_ns": 1787420483586918100,
@@ -12,7 +12,7 @@
     },
     "ab-compliance.sh": {
       "hash": "eb860c4a4a3c",
-      "indexed_at": "2026-08-22T17:50:25.316588+00:00",
+      "indexed_at": "2026-08-25T11:35:02.651979+00:00",
       "language": "shell",
       "lines": 120,
       "mtime_ns": 1787420483643647500,
@@ -21,7 +21,7 @@
     },
     "ab-lanes.js": {
       "hash": "75d30606311b",
-      "indexed_at": "2026-08-22T17:50:25.317189+00:00",
+      "indexed_at": "2026-08-25T11:35:02.652943+00:00",
       "language": "javascript",
       "lines": 121,
       "mtime_ns": 1787420483702550100,
@@ -50,7 +50,7 @@
     },
     "axiom-audit.sh": {
       "hash": "ab4b68a7013c",
-      "indexed_at": "2026-08-22T17:50:25.318223+00:00",
+      "indexed_at": "2026-08-25T11:35:02.654672+00:00",
       "language": "shell",
       "lines": 422,
       "mtime_ns": 1787420483762513900,
@@ -103,7 +103,7 @@
     },
     "axiom-class.sh": {
       "hash": "e631e43f03cb",
-      "indexed_at": "2026-08-22T17:50:25.319024+00:00",
+      "indexed_at": "2026-08-25T11:35:02.655934+00:00",
       "language": "shell",
       "lines": 374,
       "mtime_ns": 1787420483819009400,
@@ -138,10 +138,10 @@
     },
     "bench-router.sh": {
       "hash": "41ce9b43cf40",
-      "indexed_at": "2026-08-22T17:50:25.320159+00:00",
+      "indexed_at": "2026-08-25T11:35:02.657723+00:00",
       "language": "shell",
       "lines": 850,
-      "mtime_ns": 1787420483871727400,
+      "mtime_ns": 1787584902560463600,
       "size": 45646,
       "symbols": [
         {
@@ -173,10 +173,10 @@
     },
     "bonus-archive.sh": {
       "hash": "1386aafd5e9c",
-      "indexed_at": "2026-08-22T17:50:25.320692+00:00",
+      "indexed_at": "2026-08-25T11:35:02.658568+00:00",
       "language": "shell",
       "lines": 214,
-      "mtime_ns": 1787420483924696400,
+      "mtime_ns": 1787584902560966800,
       "size": 9319,
       "symbols": [
         {
@@ -201,19 +201,19 @@
     },
     "ci-audit-freshness.sh": {
       "hash": "51caff829091",
-      "indexed_at": "2026-08-22T17:50:25.321048+00:00",
+      "indexed_at": "2026-08-25T11:35:02.659160+00:00",
       "language": "shell",
       "lines": 222,
-      "mtime_ns": 1787420483977163600,
+      "mtime_ns": 1787584902560966800,
       "size": 10798,
       "symbols": []
     },
     "ci-dryrun.sh": {
       "hash": "357a09e72bd5",
-      "indexed_at": "2026-08-22T17:50:25.321787+00:00",
+      "indexed_at": "2026-08-25T11:35:02.660388+00:00",
       "language": "shell",
       "lines": 524,
-      "mtime_ns": 1787420484029983900,
+      "mtime_ns": 1787584902560966800,
       "size": 28212,
       "symbols": [
         {
@@ -254,10 +254,10 @@
     },
     "ci-honesty.sh": {
       "hash": "efa2a5bbc73f",
-      "indexed_at": "2026-08-22T17:50:25.322362+00:00",
+      "indexed_at": "2026-08-25T11:35:02.661359+00:00",
       "language": "shell",
       "lines": 443,
-      "mtime_ns": 1787420484084640000,
+      "mtime_ns": 1787584902560966800,
       "size": 22296,
       "symbols": [
         {
@@ -273,7 +273,7 @@
     },
     "ci-log-skips.sh": {
       "hash": "9c5e81ecc154",
-      "indexed_at": "2026-08-22T17:50:25.323027+00:00",
+      "indexed_at": "2026-08-25T11:35:02.662490+00:00",
       "language": "shell",
       "lines": 343,
       "mtime_ns": 1787420484141035500,
@@ -309,7 +309,7 @@
     },
     "claude-md-lint.sh": {
       "hash": "eaf513f5d8a4",
-      "indexed_at": "2026-08-22T17:50:25.323276+00:00",
+      "indexed_at": "2026-08-25T11:35:02.662893+00:00",
       "language": "shell",
       "lines": 120,
       "mtime_ns": 1787420484196668300,
@@ -328,16 +328,16 @@
     },
     "cli-event-coverage.sh": {
       "hash": "daf0b73afe86",
-      "indexed_at": "2026-08-22T17:50:25.323639+00:00",
+      "indexed_at": "2026-08-25T11:35:02.663504+00:00",
       "language": "shell",
       "lines": 218,
-      "mtime_ns": 1787420484250115600,
+      "mtime_ns": 1787584902561966500,
       "size": 11739,
       "symbols": []
     },
     "context-gate.sh": {
       "hash": "555b3c254fa3",
-      "indexed_at": "2026-08-22T17:50:25.323930+00:00",
+      "indexed_at": "2026-08-25T11:35:02.663990+00:00",
       "language": "shell",
       "lines": 172,
       "mtime_ns": 1787420484354318500,
@@ -355,7 +355,7 @@
     },
     "corpus-verify.sh": {
       "hash": "a10d11bbfc99",
-      "indexed_at": "2026-08-22T17:50:25.324244+00:00",
+      "indexed_at": "2026-08-25T11:35:02.664521+00:00",
       "language": "shell",
       "lines": 184,
       "mtime_ns": 1787420484520514700,
@@ -364,7 +364,7 @@
     },
     "count-theorems.sh": {
       "hash": "ce5fa5671603",
-      "indexed_at": "2026-08-21T07:50:35.552069+00:00",
+      "indexed_at": "2026-08-25T11:35:02.664996+00:00",
       "language": "shell",
       "lines": 154,
       "mtime_ns": 1787209313000000000,
@@ -390,10 +390,10 @@
     },
     "cross-diff-remind.sh": {
       "hash": "3ff572dac5e9",
-      "indexed_at": "2026-08-22T17:50:25.325079+00:00",
+      "indexed_at": "2026-08-25T11:35:02.665989+00:00",
       "language": "shell",
       "lines": 335,
-      "mtime_ns": 1787420484579710900,
+      "mtime_ns": 1787584902561966500,
       "size": 16899,
       "symbols": [
         {
@@ -416,25 +416,25 @@
       ]
     },
     "cross-diff.sh": {
-      "hash": "ef984d35f09e",
-      "indexed_at": "2026-08-23T12:39:08.464926+00:00",
+      "hash": "42dd83cbb6b1",
+      "indexed_at": "2026-08-25T11:35:02.667720+00:00",
       "language": "shell",
-      "lines": 788,
-      "mtime_ns": 1787488747855722000,
-      "size": 43541,
+      "lines": 740,
+      "mtime_ns": 1787586161490404300,
+      "size": 39837,
       "symbols": [
         {
           "lines": [
-            345,
-            356
+            325,
+            336
           ],
           "name": "_stem_of",
           "type": "function"
         },
         {
           "lines": [
-            357,
-            364
+            337,
+            344
           ],
           "name": "_drive",
           "type": "function"
@@ -442,8 +442,8 @@
         {
           "docstring": "NONE (no gauge record) / ABSENT (no such field) / EMPTY (present but \"\") are reported as three DIFFERENT strings on purpose. Collapsing them is how th",
           "lines": [
-            427,
-            437
+            407,
+            417
           ],
           "name": "_gfield",
           "type": "function"
@@ -451,16 +451,16 @@
         {
           "docstring": "This checker exports ROTMOE_DEBUG_SRC=test, so \"no declaration\" must be expressed with `env -u`. `${x:+...}` leaves the INHERITED value in place -- me",
           "lines": [
-            443,
-            464
+            423,
+            444
           ],
           "name": "_pdrive",
           "type": "function"
         },
         {
           "lines": [
-            526,
-            533
+            506,
+            513
           ],
           "name": "_adrive",
           "type": "function"
@@ -469,7 +469,7 @@
     },
     "ctt-session.sh": {
       "hash": "4996eb919033",
-      "indexed_at": "2026-08-22T17:50:25.326862+00:00",
+      "indexed_at": "2026-08-25T11:35:02.668995+00:00",
       "language": "shell",
       "lines": 510,
       "mtime_ns": 1787420484699438200,
@@ -488,7 +488,7 @@
     },
     "debug-channel.sh": {
       "hash": "3252b34ce674",
-      "indexed_at": "2026-08-22T17:50:25.327274+00:00",
+      "indexed_at": "2026-08-25T11:35:02.669734+00:00",
       "language": "shell",
       "lines": 278,
       "mtime_ns": 1787420484756441000,
@@ -506,17 +506,17 @@
       ]
     },
     "deferred-closure.sh": {
-      "hash": "bb215267ea88",
-      "indexed_at": "2026-08-22T17:50:25.327826+00:00",
+      "hash": "abd567e3f6ed",
+      "indexed_at": "2026-08-25T11:35:02.671161+00:00",
       "language": "shell",
-      "lines": 408,
-      "mtime_ns": 1787420484810130800,
-      "size": 23029,
+      "lines": 427,
+      "mtime_ns": 1787599650833086400,
+      "size": 23921,
       "symbols": []
     },
     "disarm-safety.sh": {
       "hash": "034452f45dff",
-      "indexed_at": "2026-08-22T17:50:25.328174+00:00",
+      "indexed_at": "2026-08-25T11:35:02.672041+00:00",
       "language": "shell",
       "lines": 189,
       "mtime_ns": 1787420484862971600,
@@ -535,7 +535,7 @@
     },
     "dominance.sh": {
       "hash": "c38bf9f84fc7",
-      "indexed_at": "2026-08-22T17:50:25.329025+00:00",
+      "indexed_at": "2026-08-25T11:35:02.673866+00:00",
       "language": "shell",
       "lines": 587,
       "mtime_ns": 1787420484915045700,
@@ -571,7 +571,7 @@
     },
     "dorks.sh": {
       "hash": "c6865ca0cf92",
-      "indexed_at": "2026-08-22T17:50:25.329461+00:00",
+      "indexed_at": "2026-08-25T11:35:02.674721+00:00",
       "language": "shell",
       "lines": 240,
       "mtime_ns": 1787420484967098100,
@@ -615,12 +615,12 @@
       ]
     },
     "encyclopedia.sh": {
-      "hash": "9acadb9a61ff",
-      "indexed_at": "2026-08-22T23:15:07.650176+00:00",
+      "hash": "9f357127f8fb",
+      "indexed_at": "2026-08-25T11:35:02.676400+00:00",
       "language": "shell",
-      "lines": 340,
-      "mtime_ns": 1787440507042897900,
-      "size": 14694,
+      "lines": 345,
+      "mtime_ns": 1787586245761400800,
+      "size": 15020,
       "symbols": [
         {
           "docstring": "Rows in the DEFAULT block: between `GATES=\"` and its closing lone quote.  THIS IS THE AUTHORITATIVE EXTRACTION, and it is copied deliberately from che",
@@ -670,10 +670,10 @@
     },
     "env-layer.sh": {
       "hash": "c83ae9703182",
-      "indexed_at": "2026-08-22T17:50:25.329946+00:00",
+      "indexed_at": "2026-08-25T11:35:02.677740+00:00",
       "language": "shell",
       "lines": 306,
-      "mtime_ns": 1787420485019103000,
+      "mtime_ns": 1787584902562469800,
       "size": 16858,
       "symbols": [
         {
@@ -689,10 +689,10 @@
     },
     "env-wiring.sh": {
       "hash": "799a229d0b17",
-      "indexed_at": "2026-08-22T17:50:25.330764+00:00",
+      "indexed_at": "2026-08-25T11:35:02.679909+00:00",
       "language": "shell",
       "lines": 524,
-      "mtime_ns": 1787420485071768200,
+      "mtime_ns": 1787584902562469800,
       "size": 26824,
       "symbols": [
         {
@@ -708,10 +708,10 @@
     },
     "facts-block.sh": {
       "hash": "cfbb85a307b6",
-      "indexed_at": "2026-08-22T17:50:25.331171+00:00",
+      "indexed_at": "2026-08-25T11:35:02.680738+00:00",
       "language": "shell",
       "lines": 225,
-      "mtime_ns": 1787420485127911300,
+      "mtime_ns": 1787584902562469800,
       "size": 11595,
       "symbols": [
         {
@@ -733,12 +733,12 @@
       ]
     },
     "full-freshness.sh": {
-      "hash": "8ebbb985e853",
-      "indexed_at": "2026-08-23T13:40:04.406079+00:00",
+      "hash": "b2abdb7986a0",
+      "indexed_at": "2026-08-25T11:35:02.681417+00:00",
       "language": "shell",
-      "lines": 235,
-      "mtime_ns": 1787492403748505100,
-      "size": 9821,
+      "lines": 211,
+      "mtime_ns": 1787586161491404600,
+      "size": 7982,
       "symbols": [
         {
           "docstring": "--- the one function every verdict comes from ------------------------------- Production and all four controls call THIS. A control that exercised a r",
@@ -753,10 +753,10 @@
     },
     "gate-all.sh": {
       "hash": "391aa8f4aa38",
-      "indexed_at": "2026-08-23T02:25:45.921843+00:00",
+      "indexed_at": "2026-08-25T11:35:02.682684+00:00",
       "language": "shell",
       "lines": 618,
-      "mtime_ns": 1787451945206331600,
+      "mtime_ns": 1787584902563469400,
       "size": 34053,
       "symbols": [
         {
@@ -780,7 +780,7 @@
     },
     "gate-split.sh": {
       "hash": "dd2c4ea063a6",
-      "indexed_at": "2026-08-22T17:50:25.332217+00:00",
+      "indexed_at": "2026-08-25T11:35:02.683383+00:00",
       "language": "shell",
       "lines": 246,
       "mtime_ns": 1787420485232988700,
@@ -808,7 +808,7 @@
     },
     "gauge-cross.sh": {
       "hash": "14735d72bb46",
-      "indexed_at": "2026-08-22T17:50:25.332534+00:00",
+      "indexed_at": "2026-08-25T11:35:02.683982+00:00",
       "language": "shell",
       "lines": 201,
       "mtime_ns": 1787420485343886100,
@@ -826,7 +826,7 @@
     },
     "gauge-hook-corpus.sh": {
       "hash": "33e9295f2869",
-      "indexed_at": "2026-08-22T17:50:25.332830+00:00",
+      "indexed_at": "2026-08-25T11:35:02.684515+00:00",
       "language": "shell",
       "lines": 157,
       "mtime_ns": 1787420485403111300,
@@ -853,12 +853,12 @@
       ]
     },
     "hook-contract.sh": {
-      "hash": "eaecb146d013",
-      "indexed_at": "2026-08-22T17:50:25.333240+00:00",
+      "hash": "24a00b96e100",
+      "indexed_at": "2026-08-25T11:35:02.685247+00:00",
       "language": "shell",
-      "lines": 259,
-      "mtime_ns": 1787420485570413000,
-      "size": 14330,
+      "lines": 265,
+      "mtime_ns": 1787585783951784900,
+      "size": 14730,
       "symbols": [
         {
           "lines": [
@@ -871,12 +871,12 @@
       ]
     },
     "hook-footprint.sh": {
-      "hash": "e2028712c2f1",
-      "indexed_at": "2026-08-23T13:29:24.313287+00:00",
+      "hash": "a3b52e9be28d",
+      "indexed_at": "2026-08-25T11:35:02.686137+00:00",
       "language": "shell",
-      "lines": 355,
-      "mtime_ns": 1787491763638949500,
-      "size": 18752,
+      "lines": 337,
+      "mtime_ns": 1787586161491908900,
+      "size": 17308,
       "symbols": [
         {
           "lines": [
@@ -906,8 +906,8 @@
         },
         {
           "lines": [
-            137,
-            141
+            119,
+            123
           ],
           "name": "strip_of",
           "type": "function"
@@ -916,7 +916,7 @@
     },
     "hook-timeout.sh": {
       "hash": "398ff27ff640",
-      "indexed_at": "2026-08-22T17:50:25.334024+00:00",
+      "indexed_at": "2026-08-25T11:35:02.686681+00:00",
       "language": "shell",
       "lines": 165,
       "mtime_ns": 1787420485675389500,
@@ -924,12 +924,12 @@
       "symbols": []
     },
     "install-parity.sh": {
-      "hash": "3015a7c0202e",
-      "indexed_at": "2026-08-23T13:34:11.822896+00:00",
+      "hash": "5687137eebe3",
+      "indexed_at": "2026-08-25T11:35:02.687251+00:00",
       "language": "shell",
-      "lines": 204,
-      "mtime_ns": 1787492051141420600,
-      "size": 9758,
+      "lines": 182,
+      "mtime_ns": 1787586161491908900,
+      "size": 8178,
       "symbols": [
         {
           "docstring": "`::error::` becomes a check-run annotation, and annotations are PUBLIC on a public repository while `actions/runs/<id>/logs` answers 403 without admin",
@@ -944,7 +944,7 @@
     },
     "install-roundtrip.sh": {
       "hash": "52e73f08fc01",
-      "indexed_at": "2026-08-22T17:50:25.334973+00:00",
+      "indexed_at": "2026-08-25T11:35:02.688395+00:00",
       "language": "shell",
       "lines": 447,
       "mtime_ns": 1787420485782592600,
@@ -963,7 +963,7 @@
     },
     "kernel-verdict-class.sh": {
       "hash": "c5724743aacf",
-      "indexed_at": "2026-08-22T17:50:25.335311+00:00",
+      "indexed_at": "2026-08-25T11:35:02.689033+00:00",
       "language": "shell",
       "lines": 169,
       "mtime_ns": 1787420485835165200,
@@ -990,7 +990,7 @@
     },
     "lean-binds-shell.sh": {
       "hash": "3f6e2360df53",
-      "indexed_at": "2026-08-22T17:50:25.335767+00:00",
+      "indexed_at": "2026-08-25T11:35:02.689853+00:00",
       "language": "shell",
       "lines": 311,
       "mtime_ns": 1787420485890014000,
@@ -1027,7 +1027,7 @@
     },
     "lean-module-case.sh": {
       "hash": "e8ba022144b4",
-      "indexed_at": "2026-08-22T23:40:49.689587+00:00",
+      "indexed_at": "2026-08-25T11:35:02.690320+00:00",
       "language": "shell",
       "lines": 119,
       "mtime_ns": 1787438434368949700,
@@ -1036,7 +1036,7 @@
     },
     "license-bridge.sh": {
       "hash": "97fdf6333615",
-      "indexed_at": "2026-08-22T17:50:25.336276+00:00",
+      "indexed_at": "2026-08-25T11:35:02.690851+00:00",
       "language": "shell",
       "lines": 160,
       "mtime_ns": 1787420485998480200,
@@ -1044,12 +1044,12 @@
       "symbols": []
     },
     "live-session-smoke.sh": {
-      "hash": "485461d383e2",
-      "indexed_at": "2026-08-23T13:23:53.707076+00:00",
+      "hash": "3ab14e48816e",
+      "indexed_at": "2026-08-25T11:35:02.692324+00:00",
       "language": "shell",
-      "lines": 614,
-      "mtime_ns": 1787491433041166700,
-      "size": 32353,
+      "lines": 596,
+      "mtime_ns": 1787586161491908900,
+      "size": 31007,
       "symbols": [
         {
           "lines": [
@@ -1086,8 +1086,8 @@
         },
         {
           "lines": [
-            483,
-            502
+            465,
+            484
           ],
           "name": "deliver_session",
           "type": "function"
@@ -1095,8 +1095,8 @@
         {
           "docstring": "`grep -c` PRINTS 0 AND EXITS 1 ON NO MATCH. `grep -c ... || echo 0` emits TWO lines and poisons the arithmetic that reads it -- that bug cost a real d",
           "lines": [
-            507,
-            511
+            489,
+            493
           ],
           "name": "count_marker",
           "type": "function"
@@ -1105,7 +1105,7 @@
     },
     "log-integrity.sh": {
       "hash": "0f5d6370b239",
-      "indexed_at": "2026-08-22T17:50:25.337607+00:00",
+      "indexed_at": "2026-08-25T11:35:02.693125+00:00",
       "language": "shell",
       "lines": 325,
       "mtime_ns": 1787420486105239400,
@@ -1114,7 +1114,7 @@
     },
     "log-replay.sh": {
       "hash": "36af513e8748",
-      "indexed_at": "2026-08-22T17:50:25.338355+00:00",
+      "indexed_at": "2026-08-25T11:35:02.694421+00:00",
       "language": "shell",
       "lines": 563,
       "mtime_ns": 1787420486159821300,
@@ -1142,7 +1142,7 @@
     },
     "log-scan.js": {
       "hash": "c0da59edc8d0",
-      "indexed_at": "2026-08-22T17:50:25.338644+00:00",
+      "indexed_at": "2026-08-25T11:35:02.694970+00:00",
       "language": "javascript",
       "lines": 51,
       "mtime_ns": 1787420486211582700,
@@ -1151,7 +1151,7 @@
     },
     "marketplace-session.sh": {
       "hash": "da4a8747b1a6",
-      "indexed_at": "2026-08-22T17:50:25.339145+00:00",
+      "indexed_at": "2026-08-25T11:35:02.695864+00:00",
       "language": "shell",
       "lines": 270,
       "mtime_ns": 1787420486266771900,
@@ -1170,7 +1170,7 @@
     },
     "module-claims.sh": {
       "hash": "a334f4d1902c",
-      "indexed_at": "2026-08-22T17:50:25.339518+00:00",
+      "indexed_at": "2026-08-25T11:35:02.696532+00:00",
       "language": "shell",
       "lines": 210,
       "mtime_ns": 1787420486320801600,
@@ -1205,7 +1205,7 @@
     },
     "mutant-discipline.sh": {
       "hash": "e2307dd2d2e4",
-      "indexed_at": "2026-08-22T17:50:25.339944+00:00",
+      "indexed_at": "2026-08-25T11:35:02.697615+00:00",
       "language": "shell",
       "lines": 316,
       "mtime_ns": 1787420486373397200,
@@ -1214,7 +1214,7 @@
     },
     "mutant-needles.sh": {
       "hash": "c125e5b7f0e7",
-      "indexed_at": "2026-08-22T17:50:25.340382+00:00",
+      "indexed_at": "2026-08-25T11:35:02.698692+00:00",
       "language": "shell",
       "lines": 324,
       "mtime_ns": 1787420486426708200,
@@ -1232,7 +1232,7 @@
     },
     "mutate-checker.sh": {
       "hash": "cdbe8632680d",
-      "indexed_at": "2026-08-22T17:50:25.341175+00:00",
+      "indexed_at": "2026-08-25T11:35:02.700201+00:00",
       "language": "shell",
       "lines": 581,
       "mtime_ns": 1787420486479848400,
@@ -1265,17 +1265,17 @@
       ]
     },
     "mutate-harness.sh": {
-      "hash": "d9a9d2494c92",
-      "indexed_at": "2026-08-23T13:39:04.428655+00:00",
+      "hash": "c5be7752f61b",
+      "indexed_at": "2026-08-25T11:35:02.700867+00:00",
       "language": "shell",
-      "lines": 253,
-      "mtime_ns": 1787492343814480700,
-      "size": 12587,
+      "lines": 225,
+      "mtime_ns": 1787586161491908900,
+      "size": 10332,
       "symbols": []
     },
     "name-collision.sh": {
       "hash": "ba51669169eb",
-      "indexed_at": "2026-08-22T23:40:49.695150+00:00",
+      "indexed_at": "2026-08-25T11:35:02.701518+00:00",
       "language": "shell",
       "lines": 197,
       "mtime_ns": 1787438434596368000,
@@ -1293,17 +1293,17 @@
       ]
     },
     "no-local-paths.sh": {
-      "hash": "9f8f8ab89973",
-      "indexed_at": "2026-08-24T02:19:00.069210+00:00",
+      "hash": "6fc0b758bf71",
+      "indexed_at": "2026-08-25T11:35:02.702327+00:00",
       "language": "shell",
-      "lines": 371,
-      "mtime_ns": 1787537939444510400,
-      "size": 19342,
+      "lines": 363,
+      "mtime_ns": 1787587573171504600,
+      "size": 18585,
       "symbols": []
     },
     "plugin-install.sh": {
       "hash": "4c431fddc9b4",
-      "indexed_at": "2026-08-22T17:50:25.342575+00:00",
+      "indexed_at": "2026-08-25T11:35:02.702985+00:00",
       "language": "shell",
       "lines": 148,
       "mtime_ns": 1787420486743515900,
@@ -1312,7 +1312,7 @@
     },
     "plugin-root-consistency.sh": {
       "hash": "ebc2cdbfc7e8",
-      "indexed_at": "2026-08-22T17:50:25.342923+00:00",
+      "indexed_at": "2026-08-25T11:35:02.703640+00:00",
       "language": "shell",
       "lines": 214,
       "mtime_ns": 1787420486796048000,
@@ -1330,12 +1330,12 @@
       ]
     },
     "portability.sh": {
-      "hash": "74b12417e3ea",
-      "indexed_at": "2026-08-23T12:26:35.634243+00:00",
+      "hash": "ea6cdfe01ada",
+      "indexed_at": "2026-08-25T11:35:02.705166+00:00",
       "language": "shell",
-      "lines": 716,
-      "mtime_ns": 1787487995018073800,
-      "size": 38289,
+      "lines": 699,
+      "mtime_ns": 1787586161492914400,
+      "size": 37260,
       "symbols": [
         {
           "docstring": "--- controls for phase 6 ---------------------------------------------------- The scan must FIRE on the exact form that broke macOS, and must NOT fire",
@@ -1350,7 +1350,7 @@
     },
     "preflight.sh": {
       "hash": "4883f9ba4d77",
-      "indexed_at": "2026-08-22T17:50:25.344089+00:00",
+      "indexed_at": "2026-08-25T11:35:02.705655+00:00",
       "language": "shell",
       "lines": 131,
       "mtime_ns": 1787420486900767800,
@@ -1368,7 +1368,7 @@
     },
     "profile-bind.sh": {
       "hash": "732aea35da15",
-      "indexed_at": "2026-08-22T17:50:25.344583+00:00",
+      "indexed_at": "2026-08-25T11:35:02.706497+00:00",
       "language": "shell",
       "lines": 257,
       "mtime_ns": 1787420486957049700,
@@ -1413,7 +1413,7 @@
     },
     "push-guard.sh": {
       "hash": "4cd00c843116",
-      "indexed_at": "2026-08-22T17:50:25.345102+00:00",
+      "indexed_at": "2026-08-25T11:35:02.707381+00:00",
       "language": "shell",
       "lines": 397,
       "mtime_ns": 1787420487014668200,
@@ -1440,7 +1440,7 @@
     },
     "readme-variants.sh": {
       "hash": "4c2f6710aad0",
-      "indexed_at": "2026-08-22T17:50:25.345398+00:00",
+      "indexed_at": "2026-08-25T11:35:02.707865+00:00",
       "language": "shell",
       "lines": 181,
       "mtime_ns": 1787420487071469300,
@@ -1459,10 +1459,10 @@
     },
     "release-body.sh": {
       "hash": "af0018b91e8b",
-      "indexed_at": "2026-08-22T17:50:25.345821+00:00",
+      "indexed_at": "2026-08-25T11:35:02.708469+00:00",
       "language": "shell",
       "lines": 219,
-      "mtime_ns": 1787420487138386200,
+      "mtime_ns": 1787584902564473000,
       "size": 9688,
       "symbols": [
         {
@@ -1502,16 +1502,16 @@
     },
     "release-consistency.sh": {
       "hash": "9f64498044ce",
-      "indexed_at": "2026-08-22T17:50:25.346148+00:00",
+      "indexed_at": "2026-08-25T11:35:02.708997+00:00",
       "language": "shell",
       "lines": 192,
-      "mtime_ns": 1787420487195868000,
+      "mtime_ns": 1787584902564473000,
       "size": 9667,
       "symbols": []
     },
     "release-install.sh": {
       "hash": "8bc1bbed6f11",
-      "indexed_at": "2026-08-22T17:50:25.346842+00:00",
+      "indexed_at": "2026-08-25T11:35:02.710209+00:00",
       "language": "shell",
       "lines": 528,
       "mtime_ns": 1787420487255110500,
@@ -1537,10 +1537,10 @@
     },
     "release-local.sh": {
       "hash": "abe6c37ecaab",
-      "indexed_at": "2026-08-22T17:50:25.347411+00:00",
+      "indexed_at": "2026-08-25T11:35:02.712361+00:00",
       "language": "shell",
       "lines": 392,
-      "mtime_ns": 1787420487311607400,
+      "mtime_ns": 1787584902564473000,
       "size": 20622,
       "symbols": [
         {
@@ -1564,10 +1564,10 @@
     },
     "release-longsession.sh": {
       "hash": "cb716e869c1b",
-      "indexed_at": "2026-08-23T13:14:37.579800+00:00",
+      "indexed_at": "2026-08-25T11:35:02.713433+00:00",
       "language": "shell",
       "lines": 421,
-      "mtime_ns": 1787490876912080200,
+      "mtime_ns": 1787584902565476500,
       "size": 23964,
       "symbols": [
         {
@@ -1600,10 +1600,10 @@
     },
     "release-notes.sh": {
       "hash": "157f42326abe",
-      "indexed_at": "2026-08-22T17:50:25.348295+00:00",
+      "indexed_at": "2026-08-25T11:35:02.713849+00:00",
       "language": "shell",
       "lines": 123,
-      "mtime_ns": 1787420487420180500,
+      "mtime_ns": 1787584902565476500,
       "size": 5189,
       "symbols": [
         {
@@ -1617,12 +1617,12 @@
       ]
     },
     "release-package.sh": {
-      "hash": "4f73a2ab53b2",
-      "indexed_at": "2026-08-22T23:40:49.702308+00:00",
+      "hash": "3f9f50cefdbd",
+      "indexed_at": "2026-08-25T11:35:02.715497+00:00",
       "language": "shell",
       "lines": 812,
-      "mtime_ns": 1787438434891592700,
-      "size": 40460,
+      "mtime_ns": 1787584902565476500,
+      "size": 40487,
       "symbols": [
         {
           "lines": [
@@ -1654,7 +1654,7 @@
     },
     "release-session.sh": {
       "hash": "82790a0342bc",
-      "indexed_at": "2026-08-22T17:50:25.349846+00:00",
+      "indexed_at": "2026-08-25T11:35:02.716385+00:00",
       "language": "shell",
       "lines": 327,
       "mtime_ns": 1787420487529579800,
@@ -1705,7 +1705,7 @@
     },
     "remind-measure.sh": {
       "hash": "c19d52f7b50e",
-      "indexed_at": "2026-08-22T17:50:25.350211+00:00",
+      "indexed_at": "2026-08-25T11:35:02.717086+00:00",
       "language": "shell",
       "lines": 203,
       "mtime_ns": 1787420487581412600,
@@ -1723,12 +1723,12 @@
       ]
     },
     "repo-complete.sh": {
-      "hash": "26e1655ddcbf",
-      "indexed_at": "2026-08-23T12:34:50.590458+00:00",
+      "hash": "f308f47a321e",
+      "indexed_at": "2026-08-25T11:35:02.719681+00:00",
       "language": "shell",
-      "lines": 1135,
-      "mtime_ns": 1787488489943823000,
-      "size": 59829,
+      "lines": 1125,
+      "mtime_ns": 1787586161492914400,
+      "size": 59193,
       "symbols": [
         {
           "lines": [
@@ -1782,16 +1782,16 @@
         },
         {
           "lines": [
-            986,
-            1056
+            976,
+            1046
           ],
           "name": "inv_check",
           "type": "function"
         },
         {
           "lines": [
-            1077,
-            1083
+            1067,
+            1073
           ],
           "name": "fam_word",
           "type": "function"
@@ -1799,8 +1799,8 @@
         {
           "docstring": "Prints one line per DISAGREEING claim. The real check and the control below both call THIS function, so the control exercises what production runs.  T",
           "lines": [
-            1093,
-            1103
+            1083,
+            1093
           ],
           "name": "fam_scan",
           "type": "function"
@@ -1809,7 +1809,7 @@
     },
     "router-duplication.sh": {
       "hash": "67b7ae58c266",
-      "indexed_at": "2026-08-22T17:50:25.351996+00:00",
+      "indexed_at": "2026-08-25T11:35:02.720530+00:00",
       "language": "shell",
       "lines": 267,
       "mtime_ns": 1787420487637827100,
@@ -1853,33 +1853,33 @@
       ]
     },
     "session-log.sh": {
-      "hash": "db133e2c76c9",
-      "indexed_at": "2026-08-23T12:19:16.404715+00:00",
+      "hash": "a40a72035c99",
+      "indexed_at": "2026-08-25T11:35:02.721698+00:00",
       "language": "shell",
-      "lines": 502,
-      "mtime_ns": 1787487555749160100,
-      "size": 20488,
+      "lines": 481,
+      "mtime_ns": 1787586161492914400,
+      "size": 19227,
       "symbols": [
         {
           "lines": [
             131,
-            164
+            143
           ],
           "name": "run_arm",
           "type": "function"
         },
         {
           "lines": [
-            205,
-            221
+            184,
+            200
           ],
           "name": "src_of",
           "type": "function"
         },
         {
           "lines": [
-            308,
-            316
+            287,
+            295
           ],
           "name": "marker_of",
           "type": "function"
@@ -1887,8 +1887,8 @@
         {
           "docstring": "Read the src of the FIRST record written, or the literal <none> if no record was produced at all. An empty src must be reported as EMPTY, never as abs",
           "lines": [
-            419,
-            427
+            398,
+            406
           ],
           "name": "g_src",
           "type": "function"
@@ -1896,8 +1896,8 @@
         {
           "docstring": "NOTE ON THE ENVIRONMENT, and it is load-bearing: this checker is itself one of the nine that export ROTMOE_DEBUG_SRC=test, so \"no declaration\" cannot",
           "lines": [
-            435,
-            467
+            414,
+            446
           ],
           "name": "g_cell",
           "type": "function"
@@ -1906,7 +1906,7 @@
     },
     "sessions-manifest.sh": {
       "hash": "9b50dd5180e7",
-      "indexed_at": "2026-08-22T17:50:25.353060+00:00",
+      "indexed_at": "2026-08-25T11:35:02.722419+00:00",
       "language": "shell",
       "lines": 162,
       "mtime_ns": 1787420487743929100,
@@ -1924,12 +1924,12 @@
       ]
     },
     "spdx-sweep.sh": {
-      "hash": "4d282ce40b34",
-      "indexed_at": "2026-08-22T20:06:20.177540+00:00",
+      "hash": "757d66c9490f",
+      "indexed_at": "2026-08-25T11:35:02.723078+00:00",
       "language": "shell",
-      "lines": 230,
-      "mtime_ns": 1787429169086278500,
-      "size": 11186,
+      "lines": 232,
+      "mtime_ns": 1787585783951784900,
+      "size": 11251,
       "symbols": [
         {
           "docstring": "Source files that must carry the header. Verbatim licence texts must NOT -- editing them would break the licences themselves. THE TYPE LIST IS THE WHO",
@@ -1944,7 +1944,7 @@
           "docstring": "The census, as a function, so the CONTROL below exercises the code production actually runs rather than a copy of it.",
           "lines": [
             98,
-            123
+            125
           ],
           "name": "census_unknown",
           "type": "function"
@@ -1953,7 +1953,7 @@
     },
     "status-verdict.sh": {
       "hash": "75065e5d171c",
-      "indexed_at": "2026-08-22T17:50:25.353724+00:00",
+      "indexed_at": "2026-08-25T11:35:02.723739+00:00",
       "language": "shell",
       "lines": 237,
       "mtime_ns": 1787420487848167400,
@@ -1989,7 +1989,7 @@
     },
     "tags-consistency.sh": {
       "hash": "86e30e32b58e",
-      "indexed_at": "2026-08-22T17:50:25.354236+00:00",
+      "indexed_at": "2026-08-25T11:35:02.724748+00:00",
       "language": "shell",
       "lines": 327,
       "mtime_ns": 1787420487903929200,
@@ -2016,7 +2016,7 @@
     },
     "trap.sh": {
       "hash": "9aec389c4717",
-      "indexed_at": "2026-08-22T17:50:25.354506+00:00",
+      "indexed_at": "2026-08-25T11:35:02.725441+00:00",
       "language": "shell",
       "lines": 150,
       "mtime_ns": 1787420487959476300,
@@ -2025,7 +2025,7 @@
     },
     "tree-integrity.sh": {
       "hash": "96e388cd0562",
-      "indexed_at": "2026-08-22T17:50:25.354776+00:00",
+      "indexed_at": "2026-08-25T11:35:02.726150+00:00",
       "language": "shell",
       "lines": 147,
       "mtime_ns": 1787420488012596400,
@@ -2043,7 +2043,7 @@
     },
     "verdict-fresh.sh": {
       "hash": "a2271c0b7624",
-      "indexed_at": "2026-08-22T23:40:49.708090+00:00",
+      "indexed_at": "2026-08-25T11:35:02.726671+00:00",
       "language": "shell",
       "lines": 75,
       "mtime_ns": 1787438435107923800,
@@ -2052,7 +2052,7 @@
     },
     "verdict-schedule-sim.sh": {
       "hash": "3b5c0ac1a792",
-      "indexed_at": "2026-08-22T17:50:25.355691+00:00",
+      "indexed_at": "2026-08-25T11:35:02.727957+00:00",
       "language": "shell",
       "lines": 345,
       "mtime_ns": 1787420488119791200,
@@ -2086,7 +2086,7 @@
     },
     "verdict-stability.sh": {
       "hash": "9394ee60cf25",
-      "indexed_at": "2026-08-22T17:50:25.356205+00:00",
+      "indexed_at": "2026-08-25T11:35:02.728808+00:00",
       "language": "shell",
       "lines": 248,
       "mtime_ns": 1787420488177644100,
@@ -2131,10 +2131,10 @@
     },
     "voice-contract.sh": {
       "hash": "a3bd8324d6e8",
-      "indexed_at": "2026-08-22T17:50:25.358588+00:00",
+      "indexed_at": "2026-08-25T11:35:02.733011+00:00",
       "language": "shell",
       "lines": 856,
-      "mtime_ns": 1787420488237074800,
+      "mtime_ns": 1787584902566480400,
       "size": 51663,
       "symbols": [
         {
@@ -2175,7 +2175,7 @@
     },
     "workflow-exit-reads.sh": {
       "hash": "56f2ecb8caaf",
-      "indexed_at": "2026-08-22T17:50:25.358878+00:00",
+      "indexed_at": "2026-08-25T11:35:02.733708+00:00",
       "language": "shell",
       "lines": 135,
       "mtime_ns": 1787420488295631400,
@@ -2194,10 +2194,10 @@
     },
     "workflow-lint.sh": {
       "hash": "73e490eb62f0",
-      "indexed_at": "2026-08-22T19:38:16.934518+00:00",
+      "indexed_at": "2026-08-25T11:35:02.738026+00:00",
       "language": "shell",
       "lines": 1581,
-      "mtime_ns": 1787427442578542500,
+      "mtime_ns": 1787584902567480600,
       "size": 81568,
       "symbols": [
         {
@@ -2370,10 +2370,10 @@
     },
     "workflow-roles.sh": {
       "hash": "fde8bd03a1bb",
-      "indexed_at": "2026-08-22T17:50:25.361229+00:00",
+      "indexed_at": "2026-08-25T11:35:02.739389+00:00",
       "language": "shell",
       "lines": 367,
-      "mtime_ns": 1787420488401234300,
+      "mtime_ns": 1787584902567480600,
       "size": 20216,
       "symbols": [
         {
@@ -2388,6 +2388,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-24T02:19:00.069299+00:00",
+  "generated_at": "2026-08-25T11:35:04.268078+00:00",
   "version": "1.0"
 }

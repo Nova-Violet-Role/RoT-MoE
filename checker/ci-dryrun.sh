@@ -211,11 +211,13 @@ fi
 # REDS, which cost exactly as much trust as false greens: the obvious repair is
 # to stop believing the instrument. The modes are copied over from the real
 # index instead of being invented by the filesystem.
-while IFS= read -r mode_and_path; do
-  m=${mode_and_path%% *}; f=${mode_and_path#* }
-  [ "$m" = "100755" ] || continue
+# The path is taken from the TAB-delimited field, never from a whitespace
+# split: `awk '{print $4}'` truncated 'Lean Theorem/...' to 'Lean', the
+# update-index above it failed into /dev/null, and the assertion below went
+# red by exactly the number of executable paths containing a space (4).
+while IFS= read -r f; do
   ( cd "$CLONE/repo" && git update-index --chmod=+x -- "$f" ) >/dev/null 2>&1
-done < <(git ls-files -s | awk '$1=="100755"{print $1, $4}')
+done < <(git ls-files -s | awk -F'\t' 'index($1, "100755") == 1 {print $2}')
 
 # Assert the transfer landed rather than trusting it: a silent failure here
 # would put the false red straight back.
