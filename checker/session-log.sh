@@ -139,7 +139,28 @@ run_arm () {  # run_arm <arm> <session_id> <projectdir>  -> prints the file crea
     printf '%s' "$_pl" | ROTMOE_DEBUG_LOCAL=1 ROTMOE_DEBUG_LOG="$_dir/central.jsonl" \
       pwsh -NoProfile -File "$PS" >/dev/null 2>&1
   fi
-  find "$_dir/.rot-moe" -name 'rot-route-*.jsonl' 2>/dev/null | head -1 | sed 's|.*/||'
+  # CARDINALITY IS PART OF THE CLAIM, so it is asserted rather than assumed.
+  # The filename this prints IS the entire verdict of the arm -- the caller compares it
+  # against $want and scores ok/bad on that string alone. `$_dir` is wiped at the top of
+  # this function, so exactly ONE route file must exist; but the previous form was
+  # `find ... | head -1`, which asserted nothing about how many were found and let
+  # FILESYSTEM ORDER pick the winner. The failure that hides behind it is precise: a
+  # sanitisation defect that writes TWO files for one session id (say the raw id and a
+  # scrubbed id) is the exact bug this gate exists to catch, and `head -1` could return
+  # the correct one of the pair and score green while the defect sat on disk beside it.
+  # `sort` also removes the order dependence outright, so a multi-file diagnostic is
+  # stable rather than varying run to run.
+  _found=$(find "$_dir/.rot-moe" -name 'rot-route-*.jsonl' 2>/dev/null | sed 's|.*/||' | sort)
+  _n=$(printf '%s\n' "$_found" | grep -c .)
+  if [ "$_n" -eq 1 ]; then
+    printf '%s\n' "$_found"
+  elif [ "$_n" -eq 0 ]; then
+    printf '<none>\n'
+  else
+    # Never silently pick one. This string cannot equal any $want, so the arm fails
+    # loudly and names every file it saw.
+    printf '<MULTIPLE:%s>\n' "$(printf '%s' "$_found" | tr '\n' ',')"
+  fi
 }
 
 i=0

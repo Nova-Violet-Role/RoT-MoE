@@ -119,7 +119,31 @@ fail=0
 # a gate that might be stuck red; one proved only to go green is not a gate.
 CTL_TMP=${TMPDIR:-/tmp}/r22ctl.$$
 mkdir -p "$CTL_TMP" || exit 1
-trap 'rm -rf "$CTL_TMP"' EXIT INT TERM
+# EXIT and INT/TERM DELIBERATELY SEPARATE. Sixth and last instance of one
+# mechanism -- release-longsession.sh:134-135, live-session-smoke.sh:445-462,
+# hook-footprint.sh:118-136, install-parity.sh:61-83, mutate-harness.sh:60,153.
+# A POSIX sh signal handler that does not itself exit RESUMES where the signal
+# landed. $CTL_TMP is read at :125 :133 :134 :144 :145 :157 :158.
+#
+# This file was ONCE CLEARED BY COUNTING and the clearing was wrong, which is
+# why the reasoning is written out rather than asserted. The count asked how
+# many ok/bad calls follow the trap and got zero -- but this file does not use
+# those helpers at all. It scores with `echo "CONTROL n ok"` and `fail=1`, so
+# the instrument measured a vocabulary this file never spoke.
+#
+# Both failure directions are present here, in one section:
+#   :124  CONTROL 1 passes a path that is SUPPOSED to be missing and expects
+#         "RED no-receipt". With $CTL_TMP gone it still prints ok -- it passes
+#         BECAUSE absence is what it asserts, and the handler manufactures
+#         absence. A green reached without the instrument existing.
+#   :133  CONTROL 2, :144 CONTROL 3 and :157 CONTROL 4 cannot write their
+#         fixtures, so all three collapse to "RED no-receipt" and report FAILED
+#         -- including CONTROL 4, the one whose whole job is proving this gate
+#         is not stuck red.
+#   :164  the run then prints "R22 RED: the controls did not behave", charging
+#         receipt_verdict with a defect it does not have.
+trap 'rm -rf "$CTL_TMP"' EXIT
+trap 'rm -rf "$CTL_TMP"; printf "\n  ---- KILLED by signal: run INCOMPLETE. The control fixtures were removed by this handler. CONTROL 1 can still print ok on the resulting absence, CONTROLS 2-4 collapse to no-receipt, and any R22 RED below is charged to the kill, NOT to receipt_verdict. No verdict was reached.\n"; exit 143' INT TERM
 
 # CONTROL 1 -- absence must read RED (absence_and_green_must_not_agree)
 c1=$(receipt_verdict "$CTL_TMP/nothing-here" "$MAX_DRIFT")

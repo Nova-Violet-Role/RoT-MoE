@@ -79,6 +79,10 @@ trap 'rm -rf "$TMP"' EXIT
 passed=0; failed=0
 ok()  { printf '  ok   %s\n' "$1"; passed=$((passed+1)); }
 bad() { printf '  FAIL %s\n' "$1"; failed=$((failed+1)); }
+# note() was called by the D7 host-tax branch since it landed, but never
+# defined -- every D7 run on a slower-than-reference host printed
+# "note: command not found" to stderr. Informative line, no verdict weight.
+note() { printf '  note %s\n' "$1"; }
 
 [ -f "$ROUTER" ]     || { echo "FATAL: $ROUTER missing"; exit 2; }
 [ -f "$HOOKS_JSON" ] || { echo "FATAL: $HOOKS_JSON missing"; exit 2; }
@@ -241,10 +245,19 @@ rm -f "$LOG"
 # it, and to take more samples. `RotDominance.aliased_sampling_cannot_detect_variation`
 # proves why the count alone was never the fix: at a constant stride, adding
 # replays changes nothing.
+# STATE PINNING, required since rot_mct: M scores the session streak and T the
+# gap since the previous turn, so replays into one shared state dir are twelve
+# DIFFERENT inputs by design -- replay 1 (no state) routes unlike replay 2
+# (gap~0s, streak 2), and D5 went red on a correct router. Determinism is
+# "same payload AND same state, same route": each replay gets a virgin
+# ROTMOE_STATE_DIR so the state term is identical every time.
 for _i in 1 2 3 4 5 6 7 8 9 10 11 12; do
   _k=0
   while [ "$_k" -lt "$_i" ]; do sh -c ':'; _k=$((_k+1)); done
-  drive "UserPromptSubmit" "debug this failing build error" "domD5" >/dev/null
+  # Subshell, not a bare prefix: `VAR=x fn` on a FUNCTION persists the
+  # assignment in dash/POSIX mode, and it would leak into every later gate.
+  ( ROTMOE_STATE_DIR="$TMP/d5state.$_i"; export ROTMOE_STATE_DIR
+    drive "UserPromptSubmit" "debug this failing build error" "domD5" >/dev/null )
 done
 _distinct=$(grep '"kind":"route"' "$LOG" 2>/dev/null \
   | sed -e 's/.*"lane":"\([A-Z]*\)".*"lens":"\([A-Za-z]*\)".*"Rs":"\([0-9.]*\)".*/\1|\2|\3/' \
@@ -268,7 +281,12 @@ _rec=$(node -e '
     if(r.kind!=="gauge"||!Array.isArray(r.lenses)) continue;
     n++;
     const sum=r.lenses.reduce((a,x)=>a+x.term,0);
-    const rs=sum/r.K*(r.M??1)*(r.C??1)*(r.T??1);
+    // Rs = sum/K, nothing more. Each logged term ALREADY carries M*C*T
+    // (rot-router.sh: term = lam*s*(1+H)*mu*M*C*T; R = sum/K), so
+    // multiplying the record M/C/T here counts them twice. Latent while
+    // rot_gauge_record passed 1 1 1; went 0/12 red the day rot_mct landed
+    // (Animus dynamic R/s+, 2026-08-29) and M/C/T left neutral.
+    const rs=sum/r.K;
     if(Math.abs(rs-r.Rs)<0.01) okc++;
   }
   console.log(okc+" "+n);

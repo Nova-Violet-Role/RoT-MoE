@@ -15,10 +15,16 @@ selected.
 ## Step 1 — read the roster from the contract, never from memory
 
 ```sh
-sed -n 's/.*<!ENTITY LENS\.[0-9]* *"\(.*\)">.*/\1/p' hooks/rot-voice.dtd
+LC_ALL=C sed -n 's/.*<!ENTITY LENS\.[0-9]* *"\(.*\)">.*/\1/p' hooks/rot-voice.dtd
 ```
 
 Rows are `name|element|sigil|charter|tools|bound`.
+
+`LC_ALL=C` is load-bearing. Without it, under any UTF-8 locale, the read
+returns **three** rows instead of nine — the regex engine will not cross the
+astral sigils — at exit 0, silently. **Count the rows before dispatching:
+fewer than nine means the roster read failed.** A swarm that refuses an
+unknown name (Step 2) will otherwise refuse six of its own lenses.
 
 ## Step 2 — scope the swarm
 

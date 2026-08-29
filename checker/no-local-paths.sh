@@ -62,8 +62,11 @@ fail=0
 # `D:/Temp/...` and `C:/Users/Saimono/...` still appear as OVERRIDABLE DEFAULTS
 # -- `${ROTMOE_AB_CORPUS:-D:/Temp/rotmoe-ab}` (checker/ab-analyze.sh:31),
 # `${ROTMOE_CONFIG_DIRS:-...}` (checker/plugin-root-consistency.sh:56),
-# `process.argv[2] || ...` (bench/pilot-rescore.js:32). Those are machine-local
-# by nature and CI overrides every one of them. Banning the string outright
+# `process.argv[2] || ...` (bench/pilot-rescore.js:35). Those are machine-local
+# by nature. The first two are overridden by CI; the third is not, because no
+# workflow invokes that scorer at all -- it is operator-run, so the override is
+# an argv the operator passes. That does not weaken the exemption, whose real
+# ground is the line below, not who supplies the override. Banning the string outright
 # would fail a correct file and the obvious repair would be to delete the
 # default -- destroying real coverage to satisfy a gate. The property that
 # actually matters is not "the string is absent" but "nothing resolves a
@@ -315,8 +318,16 @@ EOF
     printf '%s\n' "$_needle" > "$_czd/checker/no-local-paths.sh"
     ( cd "$_czd" && zip -X -q -r "$_czd/ctl.zip" . ) 2>/dev/null
     if [ -f "$_czd/ctl.zip" ]; then
+      # The `| head -5` that used to sit on this capture was INERT, not wrong:
+      # the test below is `-eq 1`, and `head -5` yields min(true,5), so a capped
+      # count of 1 implies a true count of 1. It could not forge the pass.
+      # It is removed anyway, because it was inert only by the accident that the
+      # expectation (1) sits below the cap (5). Raise the planted-needle count to
+      # five and the cap starts manufacturing the equality it is asked to check,
+      # silently, in a CONTROL -- the one place a false green is unrecoverable,
+      # since a broken control reports the sweep as verified.
       _ch=$(unzip -p "$_czd/ctl.zip" -x 'checker/patterns-forbidden.txt' 'checker/no-local-paths.sh' 2>/dev/null \
-            | grep -F -f "$PAT" | grep -v 'R2-ALLOW' | head -5)
+            | grep -F -f "$PAT" | grep -v 'R2-ALLOW')
       _cn=$(printf '%s\n' "$_ch" | grep -c .)
       if [ "$_cn" -eq 1 ]; then
         echo "control OK: the archive sweep catches a planted path, and the two exempt entries stay exempt"

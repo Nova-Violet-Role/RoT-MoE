@@ -441,7 +441,25 @@ cleanup_creds () {
     echo "        $CLAUDE_DIR/.credentials.json  -- DELETE IT BY HAND"
   fi
 }
-trap cleanup_creds EXIT INT TERM
+# EXIT and INT/TERM are DELIBERATELY SEPARATE. A POSIX sh signal handler that
+# does not itself exit RESUMES the shell where the signal interrupted it -- so a
+# combined `trap ... EXIT INT TERM` removes the credential and then lets the
+# remaining ~150 lines keep scoring. Everything below this point runs live
+# `claude` sessions, so after the scrub they would all fail to authenticate and
+# be scored as findings about the ROUTER. Two of those scores are wrong in
+# opposite directions:
+#
+#   :512  bad "... exited $CTX_RC with credentials present"  <- asserts the very
+#         thing the handler just falsified; the attribution is baked into the string.
+#   :554  ok  "CONTROL: disarmed, the line is absent from BOTH ..."  <- an `ok`
+#         that PASSES ON ABSENCE. A scrubbed credential produces absence, so a
+#         killed run can manufacture a GREEN here, not merely a red.
+#
+# Same mechanism as release-longsession.sh:134-135, one degree worse: that one
+# fabricated failures, this one can fabricate a pass. Killing this gate must END
+# it, not let it grade a machine it can no longer log into.
+trap cleanup_creds EXIT
+trap 'cleanup_creds; printf "\n  ---- KILLED by signal: run INCOMPLETE. The credential was removed by this handler, so every check below would have measured its ABSENCE. No verdict was reached and NO line above is a result.\n"; exit 143' INT TERM
 
 if [ "$HAVE_CREDS" -eq 0 ]; then
   echo "  SKIP  no credentials found -- context delivery UNVERIFIED (not passed)"

@@ -14,9 +14,16 @@ with real tools, and reports **inside its declared element** — the one
 ## Step 1 — read the roster from the contract, never from memory
 
 ```sh
-grep -o '<!ENTITY LENS[^>]*>' "$(dirname "$0")/../hooks/rot-voice.dtd" 2>/dev/null \
-  || sed -n 's/.*<!ENTITY LENS\.[0-9]* *"\(.*\)">.*/\1/p' hooks/rot-voice.dtd
+LC_ALL=C grep -o '<!ENTITY LENS[^>]*>' "$(dirname "$0")/../hooks/rot-voice.dtd" 2>/dev/null \
+  || LC_ALL=C sed -n 's/.*<!ENTITY LENS\.[0-9]* *"\(.*\)">.*/\1/p' hooks/rot-voice.dtd
 ```
+
+`LC_ALL=C` is load-bearing, not decoration. Under any UTF-8 locale the regex
+engine will not cross the astral sigils (`🎷 🕷️ 🩸 🔮 🜏 🧭`) and the read
+returns **three** rows — `⚜️ ⚪ ⬜`, the BMP three — at exit 0 with no
+diagnostic. **Expect nine rows. Fewer than nine means the read failed, not
+that the roster is small**; a partial parse is indistinguishable from a short
+contract unless you count.
 
 Each row is `name|element|sigil|charter|tools|bound`. The names are the
 agents: `rot-nova`, `rot-violet`, `rot-antivenom`, `rot-venom`,

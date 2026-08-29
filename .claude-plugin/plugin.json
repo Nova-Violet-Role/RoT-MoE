@@ -8,8 +8,10 @@
   },
   "license": "AGPL-3.0-or-later OR EUPL-1.2",
   "homepage": "https://github.com/Nova-Violet-Role/RoT-MoE",
+  "repository": "https://github.com/Nova-Violet-Role/RoT-MoE",
   "keywords": [
     "mixture-of-experts", "router", "lean4", "formal-verification",
-    "claude-code", "hooks", "mutation-testing", "theorem-proving"
+    "claude-code", "hooks", "mutation-testing", "theorem-proving",
+    "divergence-gauge", "nine-lens"
   ]
 }

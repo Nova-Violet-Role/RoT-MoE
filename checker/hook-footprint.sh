@@ -115,7 +115,25 @@ code_of () {
 # on other people's machines is worse than no checker: it teaches everyone to
 # ignore it.
 STRIPD="$(mktemp -d "${TMPDIR:-/tmp}/rotmoe-strip.XXXXXX")"
-trap 'rm -rf "$STRIPD"' EXIT INT TERM
+# EXIT and INT/TERM DELIBERATELY SEPARATE. Third instance of one mechanism --
+# see release-longsession.sh:134-135 and live-session-smoke.sh:445-462. A POSIX
+# sh signal handler that does not itself exit RESUMES where the signal landed.
+#
+# $STRIPD is the comment-stripped cache strip_of() builds its paths in, read at
+# 14 call sites below (:143 :145 :174 :176 :181 :183 :184 :185 :270 :278 :294
+# :295 :296 :316). After the handler removes it, strip_of STILL RETURNS A PATH:
+# the `code_of > "$_sf"` write fails on the missing directory and the function
+# prints "$_sf" regardless. Every caller then greps a file that is not there,
+# grep exits 2, and each `if` takes its else branch -- so absence reads as
+# cleanliness. `:192 ok "no network call in any of the 4 shipped hooks"` and
+# :193 both PASS because the evidence was deleted, not because it was absent.
+#
+# Stated so this is not overclaimed: the planted controls at :271 :279 :298 turn
+# RED under the same collapse -- a planted curl stops being detected -- so a kill
+# late enough to reach them IS caught. A kill between :192 and :270 is not: it
+# leaves a printed green with no control behind it.
+trap 'rm -rf "$STRIPD"' EXIT
+trap 'rm -rf "$STRIPD"; printf "\n  ---- KILLED by signal: run INCOMPLETE. The strip cache was removed by this handler, so every strip_of() read below would have found NOTHING and scored that absence as cleanliness. No verdict was reached and NO line above is a result.\n"; exit 143' INT TERM
 strip_of () {
   _sf="$STRIPD/$(printf '%s' "$1" | tr '/.' '__')"
   [ -f "$_sf" ] || code_of "$1" > "$_sf"

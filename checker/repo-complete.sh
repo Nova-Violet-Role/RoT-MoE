@@ -942,13 +942,23 @@ rm -rf "$_actl"
 # recover -- restore, never delete. Deleting the backup makes the mutant
 # permanent, which is the one irreversible mistake available here.
 # The properties are in lean/Proofs/RotObserve.lean §16.
-mutbaks="$(find . -name '*.mutbak' -not -path './.git/*' 2>/dev/null | head -10)"
+# `head` belongs on the DISPLAY, never on the source a COUNT is taken from.
+# MEASURED 2026-08-19: `| head -10` sat on this capture and `n` below was read
+# from behind it, so a 12-file condition would report "10 .mutbak file(s)" --
+# and would report "10" for 100. The VERDICT was never wrong (any .mutbak
+# fails), but the number handed to the operator was a constant wearing the
+# costume of a measurement, and the listing it prints is what someone reads to
+# decide how much damage a dead mutation run did.
+mutbaks="$(find . -name '*.mutbak' -not -path './.git/*' 2>/dev/null)"
 if [ -z "$mutbaks" ]; then
   ok "no .mutbak in the tree -- no mutation run died holding an original"
 else
   n=$(printf '%s\n' "$mutbaks" | grep -c .)
   bad "$n .mutbak file(s) present: a mutation run was INTERRUPTED and a MUTANT may be live:"
-  printf '%s\n' "$mutbaks" | sed 's/^/        /'
+  printf '%s\n' "$mutbaks" | head -10 | sed 's/^/        /'
+  if [ "$n" -gt 10 ]; then
+    echo "        ... and $((n - 10)) more (display truncated; the count above is complete)"
+  fi
   echo "        RESTORE, do not delete:  for b in \$(find . -name '*.mutbak'); do cp \"\$b\" \"\${b%.mutbak}\" && rm \"\$b\"; done"
   echo "        Deleting a .mutbak promotes the mutant to the real file."
 fi

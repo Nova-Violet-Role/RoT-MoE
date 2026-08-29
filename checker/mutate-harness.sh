@@ -57,7 +57,22 @@ bad () { printf '  FAIL %s\n' "$1"; failed=$((failed+1)); }
 # spaces, and REFUSE when a suite cannot be read. "I could not open it" and
 # "it is clean" must never produce the same exit code.
 SUITES_FILE=$(mktemp "${TMPDIR:-/tmp}/muths.XXXXXX") || { echo "FATAL: mktemp failed"; exit 2; }
-trap 'rm -f "$SUITES_FILE"' EXIT INT TERM
+# EXIT and INT/TERM DELIBERATELY SEPARATE. Fifth instance of one mechanism --
+# release-longsession.sh:134-135, live-session-smoke.sh:445-462,
+# hook-footprint.sh:118-136, install-parity.sh:61-83. A POSIX sh signal handler
+# that does not itself exit RESUMES where the signal landed.
+#
+# $SUITES_FILE is the WORK-LIST, and three loops below are fed by redirect from
+# it: :71, :98, :131, each `done < "$SUITES_FILE"`. Once the handler removes it
+# the open fails and every one of those loops runs ZERO iterations -- the sweep
+# scores neither pass nor fail for any suite, and prints nothing to say so.
+#
+# That is exactly the failure the comment directly above this block forbids:
+# "I could not open it" and "it is clean" must never produce the same exit code.
+# The guard at :64 cannot prevent it -- it runs once, before the window in which
+# a signal can arrive, so it proves the file was readable THEN, not now.
+trap 'rm -f "$SUITES_FILE"' EXIT
+trap 'rm -f "$SUITES_FILE"; printf "\n  ---- KILLED by signal: run INCOMPLETE. The suite work-list was removed by this handler, so the sweep loops below would have iterated over NOTHING and reported a clean sweep over an empty set. No verdict was reached.\n"; exit 143' INT TERM
 ls "$MUTDIR"/mutate_*.sh > "$SUITES_FILE" 2>/dev/null
 
 _n_suites=$(wc -l < "$SUITES_FILE" | tr -d ' ')
@@ -150,7 +165,20 @@ fi
 # matching would report a clean sweep forever.
 # ---------------------------------------------------------------------------
 CTL=$(mktemp -d "${TMPDIR:-/tmp}/muthc.XXXXXX") || { echo "FATAL: mktemp failed"; exit 2; }
-trap 'rm -rf "$CTL"' EXIT INT TERM
+# EXIT and INT/TERM DELIBERATELY SEPARATE -- same mechanism as the trap on
+# $SUITES_FILE above. $CTL holds the deliberately-defective suites this section
+# builds so it can prove its own predicates still fire. It is read at :155 :163
+# :164 :176 :182 :209 :215 :218. With $CTL gone, `cat > "$CTL/mutate_fake.sh"`
+# cannot write, the greps at :163-182 run against a file that is not there and
+# return empty, and the probe at :209 cannot log.
+#
+# The consequence is specific to a control section and worse than it looks: a
+# control that cannot be BUILT is indistinguishable from a control that RAN and
+# found nothing. This block exists precisely so a checker whose regex stopped
+# matching cannot report a clean sweep forever -- and a killed run turns the
+# guard against that into another instance of it.
+trap 'rm -rf "$CTL"' EXIT
+trap 'rm -rf "$CTL"; printf "\n  ---- KILLED by signal: run INCOMPLETE. The control scaffold was removed by this handler, so the self-checks below could not be BUILT -- which is not the same as their having run and passed. No verdict was reached.\n"; exit 143' INT TERM
 
 cat > "$CTL/mutate_fake.sh" <<'EOF'
 F="Proofs/RotFake.lean"

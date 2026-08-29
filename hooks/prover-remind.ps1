@@ -1,0 +1,677 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# prover-remind.ps1 -- ORGAN 4 of the packet, Windows arm: the proof-debt
+# reminder.
+#
+# This is the SAME reminder as hooks/prover-remind.sh, and "same" is mechanical:
+# checker/cross-diff-remind.sh runs both over one corpus in --decide mode and
+# requires BYTE-IDENTICAL output on every row. A shared bug would have to be
+# written twice, in two languages, by hand.
+#
+# The full rationale -- why a constant doctrine string became wallpaper, why
+# silence is the healthy state, why the kernel verdict outranks everything --
+# is in the POSIX arm's header and is not duplicated here, because two copies
+# of a paragraph drift and only one of them gets corrected.
+#
+# NEVER THROWS, ALWAYS EXITS 0 in hook mode. A reminder that breaks a session is
+# worse than no reminder. `-Decide` may exit 2 on a usage error: a checker
+# calling it wrongly must not silently pass.
+# =============================================================================
+
+[CmdletBinding()]
+param(
+  [switch] $Decide,
+  # -Measure / -Workspace: the MEASUREMENT half of the contract, at parity with
+  # the POSIX arm's --measure / --workspace. -Decide made the DECISION
+  # cross-armable and the checker states outright that what it does not cover is
+  # "that both arms measure the same things off disk". That uncovered half is
+  # exactly where the one-level proof scan lived, in both arms at once, while
+  # every gate stayed green.
+  [switch] $Measure,
+  [switch] $Workspace,
+  # -Kernel: prints the classified kernel verdict (the `<red>|<sorry>` pair the
+  # decision is fed). Exists so the DEMOTION can be tested from outside.
+  [switch] $Kernel,
+  [switch] $Version,
+  [Parameter(ValueFromRemainingArguments = $true)]
+  [string[]] $Rest
+)
+
+$ErrorActionPreference = 'Stop'
+
+# --- WINDOWS OUTPUT ENCODING ------------------------------------------------
+# MEASURED 2026-08-21, Win11 26200 + pwsh 7.6.5: under `pwsh -NoProfile -File`
+# [Console]::OutputEncoding is the OEM CONSOLE codepage (ibm437 on this host)
+# even though the ANSI codepage is utf-8 and $OutputEncoding is utf-8. Every
+# non-ASCII byte this arm writes is then best-fit mapped: a lens sigil becomes
+# one '?' per UTF-16 code unit (U+1F577 U+FE0F -> '???'), U+00D7 -> 'x',
+# U+00B7 -> byte 0xFA. checker/cross-diff.sh and checker/session-log.sh both
+# saw the two arms disagree here, and a live session rendered '?? Nova'.
+# The .sh arm has no such layer, so this is the one place the arms can drift
+# without either author writing a bug. Degrade OPEN: a host with no console
+# attached must not lose its router over an encoding assignment.
+try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch { }
+
+if ($Version) { Write-Output 'prover-remind.ps1 1.0.0'; exit 0 }
+
+# AN UNKNOWN ARGUMENT MUST REFUSE, NOT BE SWALLOWED -- 2026-08-08.
+#
+# Measured cross-arm divergence, found while answering whether the sanctum
+# idiom `-Event *` is safe to put on RoT MoE's own hooks (it is not: it kills
+# rot-router.ps1 with "A parameter cannot be found", exit 1). The same probe
+# showed the two arms of THIS hook disagreeing about an unknown flag:
+#
+#     bash prover-remind.sh --event '*'   ->  exit 2, usage printed
+#     pwsh prover-remind.ps1 -Event '*'   ->  exit 0, ZERO bytes, silently fine
+#
+# The PowerShell arm swallowed it because -Event is not declared, so it lands in
+# $Rest, and $Rest is only inspected under -Decide. checker/cross-diff-remind.sh
+# could not see this: it compares the two arms over --decide rows, and an
+# unknown flag never reaches that path.
+#
+# Swallowing is the wrong behaviour by this project's own rule, stated in
+# checker/router-duplication.sh: "An unknown flag must REFUSE, not be swallowed.
+# Swallowing an argument is how a typo becomes a silent no-op." A hook that
+# exits 0 having done nothing is indistinguishable from a hook that worked,
+# which is precisely the false green this repo exists to hunt.
+#
+# $Rest is legitimate under -Decide (seven positional values, checked below), so
+# the refusal applies only when no mode owns them.
+# $null -ne $Rest FIRST, and it is load-bearing: with no remaining arguments
+# $Rest is $null, and PowerShell's @($null).Count is 1, NOT 0. Testing the count
+# alone made plain hook mode -- the way every one of the eleven registrations
+# actually invokes this file -- exit 2 and refuse itself. Measured, not
+# reasoned: PS1_HOOKMODE_EXIT=2 on the first run of this guard.
+if (-not ($Decide -or $Measure -or $Workspace) -and $null -ne $Rest -and @($Rest).Count -gt 0) {
+  [Console]::Error.WriteLine('usage: prover-remind.ps1                (hook mode, JSON on stdin)')
+  [Console]::Error.WriteLine('       prover-remind.ps1 -Decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS')
+  [Console]::Error.WriteLine('       prover-remind.ps1 -Measure      (count, minutes and name, off disk)')
+  [Console]::Error.WriteLine("refusing unknown argument(s): $($Rest -join ' ')")
+  exit 2
+}
+
+# --- CONFIG ------------------------------------------------------------------
+function Get-EnvOr([string] $Name, [string] $Default) {
+  $v = [Environment]::GetEnvironmentVariable($Name)
+  if ([string]::IsNullOrWhiteSpace($v)) { return $Default } else { return $v }
+}
+$Here      = Split-Path -Parent $MyInvocation.MyCommand.Path
+# WHERE THE USER'S OWN PROOFS LIVE -- which is NOT where ours live. The POSIX
+# arm carries the full rationale; the chain is identical and deliberately so:
+# an explicit environment variable beats a recorded install, and a recorded
+# install beats our own shipped corpus. Defaulting to the bundled lean/ folder
+# pointed every measurement at a READ-ONLY corpus that can never acquire debt.
+# THE MIRROR OF A BUG THIS FILE'S SIBLING ALREADY DOCUMENTS, and it was found by
+# checker/remind-measure.sh on its very first run.
+#
+# prover-remind.sh normalises backslashes on READ because the PowerShell
+# installer naturally writes `<drive>:\path\Lean`. The reverse direction was
+# never handled: SETUP_LEAN.sh's `record_workspace` writes `$_ws` verbatim, and
+# under Git Bash on Windows that is a POSIX drive path, `/<letter>/...`, and
+# `Test-Path -LiteralPath` REFUSES that spelling on Windows -- so this function
+# good recorded workspace and fell through -- the recorded step was dead in this
+# arm for every user who ran the POSIX installer, which on Windows is most of
+# them. Silently: no error, just the wrong tree measured forever.
+#
+# The literal path is tried FIRST and the drive-letter reading only as a
+# fallback, which is what makes this safe on Linux -- there `/<letter>/...` is an
+# ordinary absolute path and must win. Preferring what EXISTS over what a rule
+# says should exist is the only version that cannot break the other platform.
+function Resolve-RecordedPath([string] $v) {
+  if ([string]::IsNullOrWhiteSpace($v)) { return '' }
+  $v = $v -replace '\\', '/'
+  if (Test-Path -LiteralPath $v) { return $v }
+  if ($v -match '^/([A-Za-z])/(.*)$') {
+    $win = $Matches[1].ToUpperInvariant() + ':/' + $Matches[2]
+    if (Test-Path -LiteralPath $win) { return $win }
+  }
+  return ''
+}
+function Get-RecordedWorkspace {
+  try {
+    $sd = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path (Get-HomeDir) '.local/state/rot-moe')
+    $f  = Join-Path $sd 'workspace'
+    if (Test-Path -LiteralPath $f) {
+      $v = (Get-Content -LiteralPath $f -TotalCount 1 -ErrorAction Stop).Trim()
+      $r = Resolve-RecordedPath $v
+      if ($r) { return $r }
+    }
+  } catch { }
+  return ''
+}
+$WatchRepo = Get-EnvOr 'ROTMOE_WATCH_REPO' '.'
+# HOME, ON EVERY PLATFORM POWERSHELL RUNS ON.
+#
+# MEASURED ON ubuntu-latest, 2026-08-01: this line read
+#   Join-Path $env:USERPROFILE '.local/state/rot-moe'
+# and USERPROFILE does not exist outside Windows. `Join-Path` REFUSES a null
+# Path -- "Cannot bind argument to parameter 'Path' because it is null" -- and
+# the script died at CONFIG time, before parsing an argument. Every one of the
+# 23 corpus rows reported "the Windows arm exited 1" on Linux, while the POSIX
+# arm (which uses $HOME) was fine. PowerShell Core is cross-platform; a hook
+# that assumes Windows because it is written in PowerShell is the same category
+# of mistake as assuming a shell script means Linux.
+#
+# Reproducible on Windows without a Linux box, which is how it was fixed here:
+#   env -u USERPROFILE pwsh -NoProfile -File hooks/prover-remind.ps1 -Decide ...
+function Get-HomeDir {
+  foreach ($n in 'USERPROFILE', 'HOME') {
+    $v = [Environment]::GetEnvironmentVariable($n)
+    if (-not [string]::IsNullOrWhiteSpace($v)) { return $v }
+  }
+  # Last resort: .NET's own idea of it. Never null, so Join-Path cannot throw.
+  $p = [Environment]::GetFolderPath('UserProfile')
+  if ([string]::IsNullOrWhiteSpace($p)) { return '.' } else { return $p }
+}
+
+# RESOLVED HERE, BELOW Get-HomeDir, AND THE ORDER IS LOAD-BEARING. PowerShell
+# executes a script top to bottom, so a function is not callable above its own
+# definition. The first draft of this put the resolution at line 58 while
+# Get-RecordedWorkspace calls Get-HomeDir, defined at 77 -- the call threw
+# CommandNotFoundException, my own try/catch swallowed it, and the workspace
+# SILENTLY fell back to the bundled corpus. That is worse than a crash: the
+# feature would have been dead in exactly the case it exists for, with every
+# gate green. Resolution stays below every function it depends on.
+#
+# DISCOVERY -- cross-arm parity with prover-remind.sh's `_ws_discover`, and it is
+# called out because the first attempt at this fix added discovery to the POSIX
+# arm ONLY. Two arms that resolve the workspace differently are two products: a
+# Windows user would keep getting "no proof written for 2907 minutes" from a
+# corpus nobody works in while a Linux user got the right answer, and no
+# cross-diff would see it, because --decide takes the measurements as arguments
+# and never resolves a workspace at all.
+#
+# The chain env -> RECORDED -> bundled corpus has a hole: nothing in the plugin
+# install path writes the recorded file, so the middle step is permanently empty
+# for a marketplace install. Discovery asks the filesystem instead. Both layouts
+# are accepted -- the workspace itself, and a project keeping Lean in a `lean/`
+# subdirectory, which is this repository's own shape.
+function Test-LeanWorkspace([string] $d) {
+  if ([string]::IsNullOrWhiteSpace($d)) { return $false }
+  if (-not (Test-Path -LiteralPath (Join-Path $d 'Proofs'))) { return $false }
+  return (Test-Path -LiteralPath (Join-Path $d 'lakefile.toml')) -or
+         (Test-Path -LiteralPath (Join-Path $d 'lakefile.lean'))
+}
+function Get-DiscoveredWorkspace {
+  try {
+    $d = Get-EnvOr 'ROTMOE_CWD' (Get-Location).Path
+    for ($n = 0; $n -lt 8 -and $d; $n++) {
+      if (Test-LeanWorkspace $d)                    { return $d }
+      if (Test-LeanWorkspace (Join-Path $d 'lean')) { return (Join-Path $d 'lean') }
+      $p = Split-Path -Parent $d
+      if (-not $p -or $p -eq $d) { break }
+      $d = $p
+    }
+  } catch { }
+  return ''
+}
+$Ws = $env:ROTMOE_LEAN_WORKSPACE
+if (-not $Ws) { $Ws = Get-RecordedWorkspace }
+if (-not $Ws) { $Ws = Get-DiscoveredWorkspace }
+if (-not $Ws) { $Ws = Join-Path $Here '../lean' }
+$ProofsDir = Join-Path $Ws 'Proofs'
+$StateDir  = Get-EnvOr 'ROTMOE_STATE_DIR' (Join-Path (Get-HomeDir) '.local/state/rot-moe')
+$GoalFile  = Get-EnvOr 'ROTMOE_GOAL_FILE' ''
+$StaleMin  = [int](Get-EnvOr 'ROTMOE_PROOF_STALE_MIN' '45')
+$DebtExt   = (Get-EnvOr 'ROTMOE_DEBT_EXT' 'rs c h cpp hpp go ts js py java kt swift') -split '\s+'
+$RiskRe    = Get-EnvOr 'ROTMOE_DEBT_PATTERN' 'as u8|as u16|as u32|as i8|as i16|as i32|as usize|saturating_|wrapping_|checked_|\.clamp\(|\.max\(|\.min\(|<<|>>|MAX_|MIN_|_CAP|_FLOOR|_LIMIT'
+
+# --- THE PROOF SCAN, IN ONE PLACE --------------------------------------------
+# Hook mode and -Measure must not each carry their own copy of this. A second
+# copy is how one of them would keep a defect the other had fixed -- which is
+# precisely the history here: the one-level scan survived because the only thing
+# that ever exercised the measurement was hook mode, and nothing compared it to
+# anything. One function, two callers, and the checker drives the exported one.
+function Get-ProofScan {
+  $r = [pscustomobject]@{ Count = 0; Mins = -1; Last = '-' }
+  try {
+    $all = @(Get-ChildItem -LiteralPath $ProofsDir -Filter '*.lean' -Recurse -ErrorAction Stop)
+    $r.Count = $all.Count
+    $p = $all | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    if ($p) {
+      $r.Mins = [int]((Get-Date).ToUniversalTime() - $p.LastWriteTimeUtc).TotalMinutes
+      $r.Last = $p.BaseName
+    }
+  } catch { }
+  return $r
+}
+
+# THE KNOWN NON-ANSWERS, defined once and shared by every consumer below.
+#
+# A reason matching this is a statement that the re-check NEVER COMPLETED, not
+# that the kernel refused a proof. Matching is by SHAPE because the producer
+# (~/.claude/reminders/lean4-prover-reminder.ps1) emits parameterised text:
+#   "TIMEOUT after ${perModuleTimeoutSec}s" · "LAUNCH_FAILED: <msg>" · "exit=$c $first"
+# The previous test compared the whole string to 'TIMEOUT' and so never fired.
+#
+# FAIL LOUD ON THE UNKNOWN still holds: a reason not listed here keeps the full
+# rejection alarm. "exit=1 leanchecker found a problem" matches nothing and
+# shouts, which is correct -- that one IS a rejection.
+$script:UnfinishedPat = '^TIMEOUT\b|^NOT_FOUND\b|^LAUNCH_FAILED\b|BAD_ALLOC|OUT OF MEMORY|INTERNAL PANIC|FAILED TO READ FILE'
+
+if ($Measure) {
+  $s = Get-ProofScan
+  Write-Output ('' + $s.Count + ' ' + $s.Mins + ' ' + $s.Last)
+  exit 0
+}
+# -Kernel: the instrument the classification never had, at parity with the POSIX
+# arm's --kernel. `-Decide` receives KRED already marked, so every test to date
+# exercised the WORDING of the verdict and none exercised the CLASSIFICATION
+# that produces it -- which is how a broken demotion survived 69 contract rows,
+# 31 cross-arm rows and a full gate. A parity checker cannot catch a bug both
+# arms share; only a fixture asserting the OUTPUT can.
+if ($Kernel) {
+  $kredK = @(); $ksorryK = @()
+  try {
+    $vsK = Join-Path $StateDir 'lean-verify-status.json'
+    if (Test-Path -LiteralPath $vsK) {
+      $vK = Get-Content -LiteralPath $vsK -Raw | ConvertFrom-Json
+      if ($vK.red) {
+        $kredK = @($vK.red | ForEach-Object {
+          $m = $_.module
+          $rs = if ($_.reason) { ([string]$_.reason).ToUpper() } else { '' }
+          if ($rs -match $script:UnfinishedPat) { "$m`?" } else { $m }
+        })
+      }
+      if ($vK.sorryFiles) { $ksorryK = @($vK.sorryFiles) }
+    }
+  } catch { }
+  Write-Output (($kredK -join ',') + '|' + ($ksorryK -join ','))
+  exit 0
+}
+# WHICH STEP OF THE CHAIN ANSWERED -- one derivation, two readers (-Workspace
+# prints it, hook mode's bundled-fallback gate decides on it). Mirrors the
+# POSIX arm's _ws_source exactly; a second copy of the chain would be a second
+# place for the two to disagree about what 'bundled' means.
+function Get-WsSource {
+  if ($env:ROTMOE_LEAN_WORKSPACE)   { return 'env' }
+  if (Get-RecordedWorkspace)        { return 'recorded' }
+  if (Get-DiscoveredWorkspace)      { return 'discovered' }
+  return 'bundled'
+}
+if ($Workspace) {
+  # Four steps, and the middle one was empty for every marketplace install
+  # until discovery was added; being able to ask turns that diagnosis into
+  # one command.
+  Write-Output ((Get-WsSource) + ' ' + $Ws)
+  exit 0
+}
+
+# --- DECIDE ------------------------------------------------------------------
+# A PURE function of measured inputs, mirroring the POSIX `decide()` clause for
+# clause and word for word. Field order is the contract: preamble, kernel,
+# sorry, debt, staleness, alarms, method.
+function Split-Csv([string] $S) {
+  if ([string]::IsNullOrEmpty($S) -or $S -eq '-') { return @() }
+  return @($S -split ',' | Where-Object { $_ -match '\S' })
+}
+function Join-FirstN([string[]] $Items, [int] $N) {
+  return (($Items | Select-Object -First $N) -join ',')
+}
+
+function Invoke-Decide {
+  param([string] $Event, [int] $Mins, [string] $Last, [string] $Debt,
+        [string] $KRed, [string] $KSorry, [int] $Alarms)
+
+  if ($Last -eq '-') { $Last = '' }
+  $d = Split-Csv $Debt; $r = Split-Csv $KRed; $s = Split-Csv $KSorry
+  $nd = @($d).Count; $nr = @($r).Count; $ns = @($s).Count
+
+  # SILENCE. The kernel conditions are ANDed in deliberately: a rejected proof
+  # term or a stray `sorry` breaks silence no matter how fresh the last proof is.
+  if ($nd -eq 0 -and $Mins -ge 0 -and $Mins -lt $StaleMin -and $nr -eq 0 -and $ns -eq 0) {
+    return $null
+  }
+
+  switch ($Event) {
+    'PreToolUse' {
+      $out = 'BEFORE YOU ACT: this is the one moment a proof obligation can change the action rather than judge it. If what you are about to do touches a bound, a cast or a clamp, decide NOW whether it needs a theorem -- deciding afterwards is how debt accumulates.'
+    }
+    'UserPromptSubmit' {
+      $out = 'THE SOCIO JUST SPOKE -- re-read the goal before assuming it is unchanged. Carry the standing proof debt into whatever was just asked; a new instruction does not retire an open obligation.'
+    }
+    default {
+      $out = 'RESULT IS IN -- attribute it. A green build is elaboration, not truth; bind the measurement to a theorem or say plainly that it is MEASURED, not PROVED.'
+    }
+  }
+
+  # Split the watchdog's red list into modules the kernel actually REJECTED and
+  # modules whose re-check never finished (trailing `?`, written by the reader
+  # below). A timeout reported as a rejection is a false accusation; measured
+  # 2026-08-09 on four modules that all verify at exit 0 with zero bytes.
+  # This must stay byte-identical in wording to the POSIX arm --
+  # checker/cross-diff-remind.sh diffs the two on every corpus row.
+  $rejList = @(); $unfList = @()
+  foreach ($t in $r) {
+    if ([string]::IsNullOrEmpty($t)) { continue }
+    if ($t.EndsWith('?')) { $unfList += $t.Substring(0, $t.Length - 1) }
+    else                  { $rejList += $t }
+  }
+  $nrej = $rejList.Count; $nunf = $unfList.Count
+
+  if ($nrej -gt 0) {
+    $out = "$out KERNEL REJECTED $nrej module(s): $(Join-FirstN $rejList 4). leanchecker disagrees with lake build -- those theorems are NOT proved. Fix before anything else."
+  }
+  if ($nunf -gt 0) {
+    $out = "$out KERNEL RE-CHECK DID NOT FINISH for $nunf module(s): $(Join-FirstN $unfList 4). A TIMEOUT IS NOT A REJECTION and it is not a pass either -- the question was never answered. Re-run lake env leanchecker on those modules with a longer bound before believing anything about them."
+  }
+  if ($ns -gt 0) {
+    $out = "$out SORRY PRESENT in: $(Join-FirstN $s 4). A sorry is an admission, never a result -- report it with a count."
+  }
+  if ($nd -gt 0) {
+    $more = ''
+    if ($nd -gt 4) { $more = " (+$($nd - 4) more)" }
+    $out = "$out LEAN DEBT: $nd uncommitted source file(s) carry cast/clamp/saturating/bound code -- $(Join-FirstN $d 4)$more."
+    $out = "$out For EACH: state in writing what must hold for ALL inputs, then PROVE it or say plainly there is no universal claim."
+  }
+  if ($Mins -ge $StaleMin) {
+    $out = "$out No proof written for $Mins min (last: $Last)."
+  } elseif ($Mins -lt 0) {
+    $out = "$out No .lean proofs found in the configured workspace -- verify ROTMOE_LEAN_WORKSPACE before assuming none exist."
+  }
+  if ($Alarms -gt 0) {
+    $out = "$out $Alarms alarm row(s) open in the goal file; an alarm closes ONLY with instrument + negative control."
+  }
+  $out = "$out Close a proof with THREE instruments: lake build (exit code read DIRECTLY, never through a pipe) -> #print axioms (sorryAx = NOT proved; no axioms at all is usually vacuous) -> lake env leanchecker <Module> (kernel recheck; exit 0 with ZERO bytes = pass, a module with no oleans exits 1 = the control). Then MUTATE, delete the stale .olean, rebuild, confirm the theorems DIE. Zero sorry. Never native_decide. A test SAMPLES; a theorem SETTLES."
+
+  # ASCII guard at the single exit point: a non-ASCII byte under a legacy code
+  # page can terminate the JSON string early and kill the injection silently.
+  return ($out -replace '[^\x20-\x7E]', ' ')
+}
+
+# --- deterministic mode ------------------------------------------------------
+if ($Decide) {
+  if (@($Rest).Count -ne 7) {
+    [Console]::Error.WriteLine('usage: prover-remind.ps1 -Decide EVENT MINS LASTPROOF DEBT KRED KSORRY ALARMS')
+    exit 2
+  }
+  $ctx = Invoke-Decide -Event $Rest[0] -Mins ([int]$Rest[1]) -Last $Rest[2] `
+                       -Debt $Rest[3] -KRed $Rest[4] -KSorry $Rest[5] -Alarms ([int]$Rest[6])
+  if ($null -ne $ctx) { [Console]::Out.Write($ctx); [Console]::Out.Write("`n") }
+  exit 0
+}
+
+# --- MEASURE + HOOK MODE -----------------------------------------------------
+# =============================================================================
+# THE HOOK INVOKES LEAN -- WHEN LEAN WORK HAS JUST HAPPENED, AND ONLY THEN.
+# The POSIX arm carries the full rationale and the measurements; this is its
+# mirror, and checker/cross-diff-remind.sh exists to keep the two honest.
+#
+# Measured: router 176 ms · one module no-op 1206 ms · one module edited
+# 1287 ms · whole corpus 4850 ms. Building on every prompt and every tool call
+# would cost a fifty-call session one to four MINUTES for verdicts that barely
+# change. Building on the turn a .lean file is written costs 1.2 s and cannot be
+# talked out of its answer.
+#
+# Silent -- never broken -- when lake is absent, when the build cannot be
+# bounded, or when ROTMOE_LEAN_VERIFY=0. An optional dependency that breaks the
+# hook when missing is not optional.
+function Invoke-LeanVerify {
+  param($Payload)
+  if (-not $Payload) { return '' }
+  if ((Get-EnvOr 'ROTMOE_LEAN_VERIFY' '1') -eq '0') { return '' }
+  if (-not (Get-Command lake -ErrorAction SilentlyContinue)) { return '' }
+
+  $fp = ''
+  try {
+    $ti = $Payload.tool_input
+    if ($ti) {
+      if ($ti.file_path) { $fp = [string]$ti.file_path }
+      elseif ($ti.path)  { $fp = [string]$ti.path }
+    }
+  } catch { }
+  if (-not $fp) { return '' }
+  if (-not $fp.EndsWith('.lean')) { return '' }
+
+  $wsAbs = ''
+  try { $wsAbs = (Resolve-Path -LiteralPath $Ws -ErrorAction Stop).Path } catch { return '' }
+  $norm = $fp -replace '\\', '/'
+  $wsn  = $wsAbs -replace '\\', '/'
+  $rel  = ''
+  if ($norm.StartsWith($wsn + '/')) { $rel = $norm.Substring($wsn.Length + 1) }
+  elseif ($norm -match '/lean/(.+)$') { $rel = $Matches[1] }
+  else { return '' }
+  $mod = ($rel -replace '\.lean$', '') -replace '/', '.'
+  if (-not $mod) { return '' }
+
+  $secs = [int](Get-EnvOr 'ROTMOE_LEAN_VERIFY_SECS' '300')
+  $sw = [Diagnostics.Stopwatch]::StartNew()
+  $job = Start-Job -ScriptBlock {
+    param($w, $m)
+    Set-Location -LiteralPath $w
+    $out = & lake build $m 2>&1 | Out-String
+    [pscustomobject]@{ Out = $out; Code = $LASTEXITCODE }
+  } -ArgumentList $wsAbs, $mod
+
+  if (-not (Wait-Job $job -Timeout $secs)) {
+    Stop-Job $job -ErrorAction SilentlyContinue
+    Remove-Job $job -Force -ErrorAction SilentlyContinue
+    return "LEAN TIMED OUT: $mod did not finish in ${secs}s. NOT proved -- a build you killed is not a verdict."
+  }
+  $res = Receive-Job $job
+  Remove-Job $job -Force -ErrorAction SilentlyContinue
+  $sw.Stop()
+  $ms = [int]$sw.ElapsedMilliseconds
+  $code = 0; $out = ''
+  if ($res) { $code = [int]$res.Code; $out = [string]$res.Out }
+
+  # A file may contain `sorry` and still elaborate. Reporting that as a pass is
+  # the exact laundering this project exists to prevent, so it is a THIRD state.
+  #
+  # THIS USED TO SCAN THE FILE'S TEXT for \bsorry\b and it cried wolf: a doc
+  # comment reading "no sorry, no native_decide" -- the sentence this project's
+  # own discipline puts in files -- was counted as an admission. An armed
+  # 50-turn session on 2026-08-03 wrote a clean module, was told twice it
+  # "contains 1 sorry", and had to argue with its own tool. An alarm that fires
+  # on correct work teaches people to ignore alarms.
+  #
+  # Ask the ELABORATOR instead; it knows a term from a word in a comment.
+  # Measured both ways on Lean 4.33.0-rc1:
+  #   a real `by sorry`        -> exit 0 AND "declaration uses `sorry`"
+  #   `sorry` only in comments -> exit 0 and ZERO such warnings (text scan: 2)
+  # Counting the warning is also per-DECLARATION, which is the honest unit.
+  $sry = 0
+  try {
+    $sry = @(($out -split "`n") | Where-Object { $_ -match 'declaration uses .sorry.' }).Count
+  } catch { $sry = 0 }
+
+  if ($code -ne 0) {
+    $err = ''
+    try { $err = (($out -split "`n") | Where-Object { $_ -match 'error:' } | Select-Object -First 1) } catch { }
+    if ($err) { $err = $err.Trim(); if ($err.Length -gt 200) { $err = $err.Substring(0, 200) } }
+    else { $err = '<no error line captured>' }
+    return "LEAN REFUSED: $mod does NOT build (lake build exit $code, ${ms}ms). First error: $err -- this is not proved. Fix it before the code is called delivered."
+  }
+  if ($sry -gt 0) {
+    return "LEAN INCOMPLETE: $mod builds (exit 0, ${ms}ms) but contains $sry sorry. A sorry is an ADMISSION, not a proof -- the module is not done."
+  }
+  return "LEAN VERIFIED: $mod builds, lake build exit 0 in ${ms}ms, zero sorry. Elaboration is not truth -- close it with #print axioms (sorryAx = not proved) and lake env leanchecker $mod."
+}
+
+# Everything below is wrapped so the contract holds: never throw, always exit 0.
+try {
+  # DISCOVER the invoking event from the hook payload on stdin. IsInputRedirected
+  # guards a manual run: reading stdin unconditionally BLOCKS FOREVER when
+  # nothing is piped, which would hang the tool that invoked us.
+  $ev = 'PostToolUse'
+  try {
+    if ([Console]::IsInputRedirected) {
+      $raw = [Console]::In.ReadToEnd()
+      if ($raw -and $raw.Trim()) {
+        $j = $raw | ConvertFrom-Json
+        if ($j.hook_event_name) { $ev = [string]$j.hook_event_name }
+      }
+    }
+  } catch { }
+  $ev = ($ev -replace '[^A-Za-z0-9_-]', '')
+  if (-not $ev) { $ev = 'PostToolUse' }
+
+  # VERIFY FIRST, ADVISE SECOND -- the POSIX arm carries the reasoning.
+  $leanVerdict = ''
+  if ($ev -eq 'PostToolUse' -and $j) {
+    try { $leanVerdict = Invoke-LeanVerify $j } catch { $leanVerdict = '' }
+  }
+
+  # Per-event throttle: independent stamps, so no lane can silence another.
+  $thr = switch ($ev) {
+    'UserPromptSubmit' { [int](Get-EnvOr 'ROTMOE_THROTTLE_PROMPT' '0') }
+    'PreToolUse'       { [int](Get-EnvOr 'ROTMOE_THROTTLE_PRE'    '7') }
+    default            { [int](Get-EnvOr 'ROTMOE_THROTTLE_POST'   '5') }
+  }
+  if (-not (Test-Path -LiteralPath $StateDir)) {
+    New-Item -ItemType Directory -Path $StateDir -Force | Out-Null
+  }
+  $stamp = Join-Path $StateDir "prover-remind.$ev.stamp"
+  # A build verdict is never throttled: throttling exists so a tight tool loop
+  # cannot spam ADVICE, and "this module does not compile" is not advice.
+  if ($leanVerdict) { $thr = 0 }
+  if ($thr -gt 0 -and (Test-Path -LiteralPath $stamp)) {
+    try {
+      $age = ((Get-Date).ToUniversalTime() - (Get-Item -LiteralPath $stamp).LastWriteTimeUtc).TotalMinutes
+      if ($age -lt $thr) { exit 0 }
+    } catch { }
+  }
+
+  # 1. minutes since the most recent proof, and its name
+  # ONE scan function, shared with -Measure, so the thing the checker drives is
+  # the thing the hook runs. -Recurse lives inside it: one level deep meant that
+  # as soon as proofs were filed by subject (Proofs\<SubjectA>\, ...) the newest
+  # visible file was whatever last landed in the root -- measured on one tree at
+  # one instant, one level -> 2947 min stale, recursive -> 54 min.
+  $scan = Get-ProofScan
+  $mins = $scan.Mins; $last = $scan.Last
+
+  # 2. uncommitted source that is PROOF-SHAPED
+  $debtFiles = @()
+  try {
+    Push-Location -LiteralPath $WatchRepo -ErrorAction Stop
+    $changed = @(& git diff --name-only --diff-filter=ACM 2>$null) +
+               @(& git diff --cached --name-only --diff-filter=ACM 2>$null)
+    $changed = $changed | Select-Object -Unique
+    foreach ($rel in $changed) {
+      $ext = [IO.Path]::GetExtension($rel).TrimStart('.')
+      if ($DebtExt -notcontains $ext) { continue }
+      if (Test-Path -LiteralPath $rel) {
+        try {
+          if (Select-String -LiteralPath $rel -Pattern $RiskRe -List -ErrorAction Stop) {
+            $debtFiles += (Split-Path $rel -Leaf)
+          }
+        } catch { }
+      }
+    }
+    Pop-Location
+  } catch { try { Pop-Location } catch { } }
+
+  # 3. open alarm rows in the configured goal file, if any
+  $alarms = 0
+  try {
+    if ($GoalFile -and (Test-Path -LiteralPath $GoalFile)) {
+      $alarms = @(Select-String -LiteralPath $GoalFile -Pattern '^>\s*\|\s*\*{0,2}R\d+[a-z]?\*{0,2}\s*\|' -ErrorAction Stop).Count
+    }
+  } catch { }
+
+  # 4. the kernel watchdog's verdict, if a status file exists
+  $kred = @(); $ksorry = @()
+  try {
+    $vs = Join-Path $StateDir 'lean-verify-status.json'
+    if (Test-Path -LiteralPath $vs) {
+      $v = Get-Content -LiteralPath $vs -Raw | ConvertFrom-Json
+      # Mark UNFINISHED re-checks with a trailing `?` so `Decide` can word them
+      # as "did not finish" instead of "rejected". Only KNOWN non-answers are
+      # demoted; an unrecognised reason keeps the full rejection alarm, because
+      # the safe default for an unknown failure is to shout. Mirrors the POSIX
+      # arm exactly -- cross-diff-remind.sh compares the two on every row.
+      #
+      # 2026-08-14 -- THIS TEST HAD NEVER ONCE FIRED, exactly like its POSIX
+      # twin. It compared the WHOLE reason string for equality with 'TIMEOUT',
+      # but the producer (~/.claude/reminders/lean4-prover-reminder.ps1) writes
+      # "TIMEOUT after ${perModuleTimeoutSec}s", "LAUNCH_FAILED: <msg>" and
+      # "exit=$code $first". None is a bare token, so every timeout was reported
+      # as KERNEL REJECTED -- the very failure the comment claimed was fixed.
+      # Measured today: Proofs.RotVacuity and Proofs.RotRoute were accused and
+      # both re-verify at exit 0 with ZERO bytes. Match on SHAPE, not equality.
+      # ONE definition of the pattern, at script scope, used by BOTH this inline
+      # path and -Kernel. Two copies would drift, and the drift would be exactly
+      # the kind nobody notices until an alarm lies again.
+      if ($v.red) {
+        $kred = @($v.red | ForEach-Object {
+          $m = $_.module
+          $rs = if ($_.reason) { ([string]$_.reason).ToUpper() } else { '' }
+          if ($rs -match $script:UnfinishedPat) { "$m`?" } else { $m }
+        })
+      }
+      if ($v.sorryFiles) { $ksorry = @($v.sorryFiles) }
+    }
+  } catch { }
+
+  # THE BUNDLED CORPUS CANNOT ACCUSE -- mirrors the POSIX arm (W5). When the
+  # workspace chain bottoms out at the plugin's own read-only lean/, the
+  # staleness figure measures OUR shipped proofs, a tree the user never
+  # worked in. Staleness is suppressed on that fallback; debt, kernel, sorry
+  # and alarms keep their voice -- they measure the USER's repository.
+  if ((Get-WsSource) -eq 'bundled') { $mins = 0; $last = '-' }
+
+  # STALENESS ALONE IS ADVICE, NOT A VERDICT -- one shared stamp throttles
+  # the staleness-only case to $StaleMin (the constant that defines staleness
+  # itself); every other channel, and every build verdict, is untouched. The
+  # stamp is only WRITTEN at the emission point below, so a suppressed or
+  # schema-gated turn never burns it. Mirrors the POSIX arm exactly.
+  $staleOnly = ($debtFiles.Count -eq 0 -and $kred.Count -eq 0 -and
+                $ksorry.Count -eq 0 -and $alarms -eq 0 -and $mins -ge $StaleMin)
+  if ($staleOnly -and -not $leanVerdict) {
+    $staleStamp = Join-Path $StateDir 'prover-remind.stale.stamp'
+    if (Test-Path -LiteralPath $staleStamp) {
+      try {
+        $sAge = ((Get-Date).ToUniversalTime() - (Get-Item -LiteralPath $staleStamp).LastWriteTimeUtc).TotalMinutes
+        if ($sAge -lt $StaleMin) { exit 0 }
+      } catch { }
+    }
+  }
+
+  $ctx = Invoke-Decide -Event $ev -Mins $mins -Last $last `
+           -Debt (($debtFiles -join ',')) -KRed (($kred -join ',')) `
+           -KSorry (($ksorry -join ',')) -Alarms $alarms
+  # THE VERDICT OUTRANKS THE ADVICE. Invoke-Decide returns nothing in the common
+  # case, so a build failure would otherwise be discarded on the way out because
+  # the REMINDER had nothing to add. Its presence alone is enough to speak.
+  if ($leanVerdict) {
+    if ($ctx) { $ctx = "$leanVerdict $ctx" } else { $ctx = $leanVerdict }
+  }
+  if ($null -eq $ctx -or $ctx -eq '') { exit 0 }
+
+  # SCHEMA GATE: being wired to an event is not permission to speak on it.
+  # Measured live 2026-08-09 on the 31-event wiring: the CLI answered
+  #   Hook JSON output validation failed - (root): Invalid input
+  # for a context payload emitted on SessionEnd. additionalContext is accepted on
+  # only some events; on the rest this hook was logging a failure every time it
+  # fired. The label above is NOT touched -- it must keep naming the invoking
+  # event -- only the emission is gated, and an event the CLI later starts
+  # accepting simply gets no injection, which is the safe direction.
+  # The set is proved a subset of the real events in lean/Proofs/RotInject.lean
+  # and compared against this array by checker/context-gate.sh.
+  $ctxEvents = @('PreToolUse','PostToolUse','PostToolBatch','SessionStart','UserPromptSubmit','UserPromptExpansion')
+  if ($ev -notin $ctxEvents) { exit 0 }
+
+  Set-Content -LiteralPath $stamp -Value (Get-Date -Format 'o') -Encoding ascii -ErrorAction SilentlyContinue
+  # The staleness-only stamp is written HERE, at the emission point: a stamp
+  # burned on a turn that then spoke nothing would silence the one reminder
+  # that was due.
+  if ($staleOnly) {
+    Set-Content -LiteralPath (Join-Path $StateDir 'prover-remind.stale.stamp') -Value (Get-Date -Format 'o') -Encoding ascii -ErrorAction SilentlyContinue
+  }
+
+  # The invoking event MUST be echoed back or Claude Code discards the payload.
+  $payload = [ordered]@{
+    hookSpecificOutput = [ordered]@{
+      hookEventName     = $ev
+      additionalContext = $ctx
+    }
+  }
+  $json = $payload | ConvertTo-Json -Compress -Depth 6
+  if ($json) { [Console]::Out.Write($json) }
+} catch { }
+
+exit 0

@@ -1,0 +1,128 @@
+# This file is part of RoT MoE.
+# SPDX-License-Identifier: AGPL-3.0-or-later OR EUPL-1.2
+# Copyright 2026 Saimonokuma.
+#
+# =============================================================================
+# ci2 -- the INDEPENDENT COLD RUNNER. Parallel to ci.yml, never a caller of it.
+#
+# ci.yml proves the gates on a warm path: `lake exe cache get` hands it a
+# prebuilt mathlib and the Lean job finishes in minutes. That is the right
+# trade for a per-push gate, and it is also a standing act of trust in a cache
+# artifact nobody here compiled. This workflow removes that trust once per
+# week and on demand: a fresh clone, elan from release, and `lake build` FROM
+# SOURCE -- no cache step exists in this file on purpose. The run is expected
+# to take hours (the 1H+ sweep); `timeout-minutes: 350` is the ceiling, and a
+# ceiling firing is a result, not a mystery.
+#
+# DELIBERATELY DISTINCT from verify.yml: verify calls ci.yml (`workflow_call`)
+# so the weekly verdict and the push gate cannot drift. ci2 shares NOTHING
+# callable with ci.yml -- if a cache artifact ever lied, this is the runner
+# that catches it, and a runner that reuses the warm path could not.
+#
+# Concurrency group is its own: a ci2 run and a ci run on the same ref must
+# coexist -- parallel is the point.
+# =============================================================================
+
+name: ci2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 3'
+
+concurrency:
+  group: ci2-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lean-cold:
+    name: lean cold sweep -- full build from source, axioms, kernel re-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: install elan (toolchain pinned by lean/lean-toolchain)
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain "$(cat lean/lean-toolchain)"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: toolchain (read, never assumed)
+        working-directory: lean
+        run: cat lean-toolchain && lake --version && lean --version
+
+      # NO `lake exe cache get` HERE. Its absence is the feature. Everything
+      # below is compiled by this runner or the job goes red.
+      - name: cold lake build -- the 1H+ run, exit code read DIRECTLY
+        working-directory: lean
+        run: |
+          n=$(ls Proofs/*.lean | wc -l)
+          if [ "$n" -lt 10 ]; then
+            echo "FAIL: only $n proof modules on disk -- enumeration broke"; exit 1
+          fi
+          lake build
+
+      - name: non-vacuity audit -- every guarded theorem has a witness
+        working-directory: lean
+        run: lake build Proofs.RotVacuity
+
+      - name: non-vacuity NEGATIVE CONTROL -- the audit must be able to fail
+        working-directory: lean
+        run: |
+          set +e
+          lake env lean mutate/vacuity_control.lean > vc.log 2>&1; rc=$?
+          echo "control exit=$rc"; cat vc.log
+          if [ "$rc" -eq 0 ]; then
+            echo "CONTROL DEAD: a witness was produced for hypotheses 1 = 2."
+            echo "The vacuity audit is decoration; fix it before trusting it."
+            exit 1
+          fi
+          echo "PASS: the audit refuses a vacuous theorem (exit $rc)"
+
+      - name: forbid native_decide
+        working-directory: lean
+        run: |
+          n=$(bash ../checker/status-verdict.sh --count native_decide)
+          if [ "$n" -ne 0 ]; then
+            echo "FAIL: $n file(s) contain native_decide -- trusts the compiler binary, not the kernel"; exit 1
+          fi
+          echo "PASS: no native_decide"
+
+      - name: axiom audit -- #print axioms on every theorem, zero sorryAx
+        run: LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/axiom-audit.sh
+
+      - name: axiom class -- KERNEL vs COMPILER vs BROKEN
+        run: bash checker/axiom-class.sh
+
+      - name: leanchecker -- kernel re-verification, with its negative control
+        working-directory: lean
+        run: |
+          set +e
+          mods=$(ls Proofs/*.lean | sed 's#Proofs/#Proofs.#; s#\.lean$##')
+          n=$(echo $mods | wc -w)
+          if [ "$n" -lt 10 ]; then echo "FAIL: only $n modules found -- enumeration broke"; exit 1; fi
+          fail=0
+          for m in $mods; do
+            lake env leanchecker "$m"; rc=$?
+            if [ "$rc" -ne 0 ]; then echo "FAIL: leanchecker rejected $m (exit $rc)"; fail=1; fi
+          done
+          lake env leanchecker Proofs.DeliberatelyAbsentModule > /dev/null 2>&1; crc=$?
+          if [ "$crc" -eq 0 ]; then
+            echo "CONTROL DEAD: leanchecker accepted a module that does not exist."; exit 1
+          fi
+          echo "negative control refused (exit $crc)"
+          exit "$fail"
+
+      - name: gauge cross-check -- Lean mirror vs the running hook (a SKIP is a FAILURE here)
+        run: |
+          set +e
+          LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/gauge-cross.sh; rc=$?
+          if [ "$rc" -ne 0 ]; then
+            echo "FAIL: gauge-cross exit $rc -- in the cold job a skip closes no obligation"; exit 1
+          fi

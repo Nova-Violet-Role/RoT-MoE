@@ -16,15 +16,20 @@
         "url": "https://github.com/Nova-Violet-Role"
       },
       "homepage": "https://github.com/Nova-Violet-Role/RoT-MoE",
+      "repository": "https://github.com/Nova-Violet-Role/RoT-MoE",
+      "license": "AGPL-3.0-or-later OR EUPL-1.2",
       "category": "productivity",
       "keywords": [
         "mixture-of-experts",
         "router",
         "lean4",
         "formal-verification",
+        "claude-code",
         "hooks",
         "mutation-testing",
-        "theorem-proving"
+        "theorem-proving",
+        "divergence-gauge",
+        "nine-lens"
       ]
     }
   ]

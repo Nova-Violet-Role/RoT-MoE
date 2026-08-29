@@ -1201,12 +1201,82 @@ rot_nsil_decide () {
   # extraction moved, its parse and charset guard did not.
 }
 
+# M/C/T -- MEASURED, NO LONGER PINNED (Animus dynamic R/s+, 2026-08-29).
+#
+# STUDY-USAGE-AGENTS.md:168 admitted the pin: "M, C, T are pinned at the
+# neutral 1.0 because one stateless hook call cannot measure memory residue,
+# confidence or recency." The premise expired: the router HAS state -- the
+# same per-session state directory the summons, stamps and debug log already
+# live in. So the three modifiers are now measured from what this turn and
+# that state actually contain, and `gauge_separates` (lens-bench.md:51,
+# PROVED: R/s+(M,C,T) = M·C·T·R/s+(1,1,1)) is the licence: the modifiers
+# factor out exactly, so the band is still judging the same lens arithmetic,
+# scaled by three auditable per-turn facts.
+#
+#   M  memory residue -- same-lane streak read from mct.<session>:
+#      100 + 2*min(streak-1,5) hundredths -> 1.00..1.10. Streak 1 (first
+#      sighting of this lane) is neutral; a lane that keeps winning carries
+#      residue; a lane switch resets to 1.00.
+#   C  confidence -- the NSIL verdict this turn, which TIER 2 already
+#      computed and records in the route record:
+#        CONFIRM with a matched stem  110   keyword evidence agrees
+#        FUSE / BOOST                 105   multi-lane or boosted intent
+#        ELEVATE                      100   dense query, all nine -- neutral
+#        CONFIRM with NO stem          95   fallback lane, no evidence
+#        OVERRIDE                      90   NSIL contradicted the keyword
+#   T  recency -- seconds since the previous routed turn in THIS session:
+#      no state (first turn) 100; gap<=30s 110; then -1 per 30s down to a
+#      90 floor at >=10min. A hot exchange scores hotter than a cold start.
+#
+# M and T default to EXACTLY 100 on a first turn (no state yet) and whenever
+# the state dir is unwritable -- degradation is neutral, never a failed turn.
+# C is turn-local (the verdict exists whether or not state does), so it is
+# live from the very first turn. The CLI (--vector) and the corpus
+# runners call gauge() directly and never pass through here -- their output
+# stays byte-identical, which is what keeps the cross-diff corpus green.
+# An unwritable state dir degrades to neutral, never to a failed turn.
+rot_mct () {
+  _M=1; _C=1; _T=1
+  _mct_m=100; _mct_c=100; _mct_t=100
+  case "$NSIL_DECISION" in
+    FUSE|BOOST) _mct_c=105 ;;
+    ELEVATE)    _mct_c=100 ;;
+    OVERRIDE)   _mct_c=90 ;;
+    CONFIRM)    if [ -n "${MATCHED_STEM:-}" ]; then _mct_c=110; else _mct_c=95; fi ;;
+  esac
+  _mct_dir="${ROTMOE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/rot-moe}"
+  _mct_f="$_mct_dir/mct.$_rot_sess"
+  _mct_now=$(date +%s 2>/dev/null || echo 0)
+  _mct_streak=1
+  if [ -f "$_mct_f" ] && [ "$_mct_now" -gt 0 ]; then
+    read -r _mct_prev _mct_lane _mct_ps < "$_mct_f" 2>/dev/null || :
+    case "$_mct_prev" in *[!0-9]*|'') _mct_prev=0 ;; esac
+    case "$_mct_ps"   in *[!0-9]*|'') _mct_ps=0 ;;   esac
+    if [ "$_mct_prev" -gt 0 ] && [ "$_mct_now" -ge "$_mct_prev" ]; then
+      _mct_gap=$((_mct_now - _mct_prev))
+      if [ "$_mct_gap" -le 30 ]; then _mct_t=110
+      elif [ "$_mct_gap" -ge 600 ]; then _mct_t=90
+      else _mct_t=$((110 - _mct_gap / 30)); fi
+    fi
+    if [ "$_mct_lane" = "${lane%% *}" ] && [ "$_mct_ps" -gt 0 ]; then
+      _mct_streak=$((_mct_ps + 1))
+    fi
+  fi
+  _mct_s5=$((_mct_streak - 1)); [ "$_mct_s5" -gt 5 ] && _mct_s5=5
+  _mct_m=$((100 + 2 * _mct_s5))
+  if mkdir -p "$_mct_dir" 2>/dev/null; then
+    printf '%s %s %s\n' "$_mct_now" "${lane%% *}" "$_mct_streak" > "$_mct_f" 2>/dev/null || :
+  fi
+  _M=$(hund "$_mct_m"); _C=$(hund "$_mct_c"); _T=$(hund "$_mct_t")
+}
+
 # Part two: gauge + both records. $1 non-empty = the voice path (LENSDATA on).
 rot_gauge_record () {
+  rot_mct
   if [ -n "${1:-}" ]; then
-    _gout=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}" voice)
+    _gout=$(gauge "$_vec" "$_br" "$_M" "$_C" "$_T" "${lane%% *}" voice)
   else
-    _gout=$(gauge "$_vec" "$_br" 1 1 1 "${lane%% *}")
+    _gout=$(gauge "$_vec" "$_br" "$_M" "$_C" "$_T" "${lane%% *}")
   fi
   _rs=$(printf '%s\n' "$_gout" | sed -n 's|^R/s+ = \([0-9.][0-9.]*\).*|\1|p')
   [ -z "$_rs" ] && _rs='n/a'
@@ -1604,6 +1674,10 @@ hook_mode () {
   _routed=$(route "$prompt")
   lane=${_routed%|*}
   _stem=${_routed##*|}
+  # `route` ran in a subshell, so its MATCHED_STEM side effect died there.
+  # Restore it from the parsed stem or rot_mct's CONFIRM-with-stem branch
+  # (110) is dead code and the ps1 arm scores C ahead of this one.
+  MATCHED_STEM=$_stem
 
   # README.md:77 promises this line carries "a named lane AND A GAUGE READING".
   # For a long time it carried the lane only, and the comment that used to sit
@@ -2202,6 +2276,7 @@ case "$MODE" in
         prompt=$PROMPT
         lane=$_cli_out
         _stem=${_routed##*|}
+        MATCHED_STEM=$_stem   # same subshell loss as the hook path; see there
         _lens=${lane#* }
         _ev='-'
         _nsil_query=1

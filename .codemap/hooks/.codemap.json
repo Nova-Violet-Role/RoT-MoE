@@ -3,7 +3,7 @@
   "files": {
     "animus-observe.sh": {
       "hash": "05bacbc228a1",
-      "indexed_at": "2026-08-25T11:35:02.886569+00:00",
+      "indexed_at": "2026-08-22T17:50:25.367303+00:00",
       "language": "shell",
       "lines": 338,
       "mtime_ns": 1787420489392405000,
@@ -64,7 +64,7 @@
     },
     "plugin-detect.js": {
       "hash": "5b2d16afa47b",
-      "indexed_at": "2026-08-25T11:35:02.887601+00:00",
+      "indexed_at": "2026-08-22T17:50:25.367875+00:00",
       "language": "javascript",
       "lines": 156,
       "mtime_ns": 1787420489504054600,
@@ -83,10 +83,10 @@
     },
     "prover-remind.sh": {
       "hash": "ffda0862e6bd",
-      "indexed_at": "2026-08-25T11:35:02.891266+00:00",
+      "indexed_at": "2026-08-24T01:49:18.484144+00:00",
       "language": "shell",
       "lines": 729,
-      "mtime_ns": 1787580166203285800,
+      "mtime_ns": 1787477957602275900,
       "size": 38354,
       "symbols": [
         {
@@ -213,7 +213,7 @@
     },
     "rot-env.sh": {
       "hash": "db0cbdd79e63",
-      "indexed_at": "2026-08-25T11:35:02.891766+00:00",
+      "indexed_at": "2026-08-22T17:50:25.370337+00:00",
       "language": "shell",
       "lines": 93,
       "mtime_ns": 1787420489731124000,
@@ -231,10 +231,10 @@
     },
     "rot-profile.sh": {
       "hash": "161ae83dc26a",
-      "indexed_at": "2026-08-25T11:35:02.892587+00:00",
+      "indexed_at": "2026-08-22T17:50:25.370798+00:00",
       "language": "shell",
       "lines": 171,
-      "mtime_ns": 1787584902570491000,
+      "mtime_ns": 1787420489787936500,
       "size": 8304,
       "symbols": [
         {
@@ -249,10 +249,10 @@
     },
     "rot-router.sh": {
       "hash": "2d27207bf5b7",
-      "indexed_at": "2026-08-25T11:35:02.910206+00:00",
+      "indexed_at": "2026-08-24T01:49:18.495811+00:00",
       "language": "shell",
       "lines": 2215,
-      "mtime_ns": 1787584902571865500,
+      "mtime_ns": 1787477957550766500,
       "size": 119363,
       "symbols": [
         {
@@ -441,7 +441,7 @@
     },
     "rot-voice-gate.sh": {
       "hash": "5dcad00deacb",
-      "indexed_at": "2026-08-25T11:35:02.910946+00:00",
+      "indexed_at": "2026-08-22T17:50:25.381771+00:00",
       "language": "shell",
       "lines": 187,
       "mtime_ns": 1787420490000394000,
@@ -450,10 +450,10 @@
     },
     "settings-merge.js": {
       "hash": "db13e1a713f4",
-      "indexed_at": "2026-08-25T11:35:02.912593+00:00",
+      "indexed_at": "2026-08-22T17:50:25.382764+00:00",
       "language": "javascript",
       "lines": 352,
-      "mtime_ns": 1787584902572870800,
+      "mtime_ns": 1787420490107638100,
       "size": 18492,
       "symbols": [
         {
@@ -469,6 +469,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-25T11:35:03.066565+00:00",
+  "generated_at": "2026-08-24T01:49:18.561882+00:00",
   "version": "1.0"
 }

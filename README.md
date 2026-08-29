@@ -355,20 +355,23 @@ yours is edited** — the hooks live inside the plugin, not in your
 `/plugin uninstall rot-moe` removes it, hooks and all.
 
 The marketplace follows `main` — `/plugin install` delivers whatever the
-default branch points at when you add it. Release tags (`v9.0.0`,
-`v9.0.1`, `v9.0.2`) mark the GitHub Release points for the downloadable
+default branch points at when you add it. Release tags (`v10.0.0`,
+`v10.0.1`, `v10.0.2`) mark the GitHub Release points for the downloadable
 archives below; they do not pin the marketplace install. The version you
 see after install is the one `plugin.json` declares.
 
-### 📦 Three archives, one version — and why the patch digit retired
+### 📦 Three archives, three versions — the patch digit is the tier again
 
 Through `5.x` the patch digit WAS the tier: `x.y.0` core, `x.y.1` +Lean,
-`x.y.2` +Extra. That convention is retired at `6.0.0`, and the reason is
-stated rather than implied: the criteria changed. The voices, their
-contract, the gate and the environment layer are the product, so they travel
-in **every** archive — the tiers now differ only in how much of the
-verification surface rides along, the tier lives in the **name**, and all
-three carry the same version. Nothing is released until everything is green.
+`x.y.2` +Extra. `6.0.0` retired that convention; `9.0.x` restored it — and
+this time it is stamped, not hoped: the packager writes each tier's version
+into that archive's own `plugin.json` and reads it back out of the zip
+before anything ships. The voices, their contract, the gate and the
+environment layer are the product, so they travel in **every** archive —
+the tiers differ only in how much of the verification surface rides along.
+The tier lives in the **name** and in the patch digit (`x.y.0` core,
+`x.y.1` +Lean, `x.y.2` +Extra), all three cut from the same commit.
+Nothing is released until everything is green.
 
 | archive | what is in it |
 |---|---|
@@ -400,6 +403,29 @@ claude --plugin-dir /path/to/RoT-MoE
 
 Loads the working tree directly. This is the development path: edit a hook, run
 `claude`, see the change. Nothing is written to your configuration.
+
+### 🧩 Piece by piece, with `npx degit`
+
+Every organ is a plain directory, so any one of them can be pulled without
+cloning the repository or its history — `degit` fetches a subtree of the
+default branch as flat files:
+
+```sh
+npx degit Nova-Violet-Role/RoT-MoE/hooks          rot-moe/hooks     # the router: both arms + hooks.json
+npx degit Nova-Violet-Role/RoT-MoE/engine         rot-moe/engine    # engine + voice contract + charters
+npx degit Nova-Violet-Role/RoT-MoE/lean           rot-moe/lean      # the proof corpus and mutation suites
+npx degit Nova-Violet-Role/RoT-MoE/checker        rot-moe/checker   # the executable checkers
+npx degit Nova-Violet-Role/RoT-MoE/agents         rot-moe/agents    # subagent definitions
+npx degit Nova-Violet-Role/RoT-MoE/commands       rot-moe/commands  # slash commands
+npx degit Nova-Violet-Role/RoT-MoE/docs           rot-moe/docs      # the documentation set
+npx degit Nova-Violet-Role/RoT-MoE/bonus/cmdpulse rot-moe/cmdpulse  # CmdPulse, the bonus organ
+```
+
+Needs Node (any current version); `degit` is fetched on first use. A piece
+pulled this way is a snapshot, not an install — the plugin mechanism, the
+zips above, or a clone remain the supported ways to *run* the router. This
+path exists for reading one organ, vendoring the checkers into another
+repository, or re-proving `lean/` on a machine that wants nothing else.
 
 ### ⚙️ `ARM_ROUTER.sh` — only if you cannot use plugins
 

@@ -340,6 +340,17 @@ for v in $WANT; do
     # the oracle can legitimately render 0.73 against 0.66 with no defect
     # anywhere -- which is why `lanematched` is tracked separately and is the
     # assertion that actually speaks to routing.
+    #
+    # SINCE M/C/T WENT DYNAMIC (2026-08-29) THE GAUGE VALUE IS STATE, NOT
+    # RENDERING. rot_mct reads the per-session mct.<sid> file and the wall
+    # clock: the live session and the oracle invocation run at different
+    # times with different streak files, so their gauges CANNOT be expected
+    # equal -- comparing them would measure the wall clock, exactly the
+    # "reporting its own construction" defect this oracle's header documents.
+    # The full-line claim is therefore split: the text BEFORE the gauge pipe
+    # (lane + model/NSIL tag) must match byte-for-byte, and the live gauge
+    # must still have the R/s+ N.NN shape. The gauge's VALUE is proved by
+    # checker/mutate-harness.sh and the corpus, not by this race.
     if [ -n "$live" ]; then fired=$((fired+1)); TOTAL_FIRED=$((TOTAL_FIRED+1)); fi
     want="$(oracle "$p" | sed 's/[[:space:]]*$//')"
     # THE LANE IS THE FIRST WORD. Everything after it -- the model tag, the
@@ -348,10 +359,14 @@ for v in $WANT; do
     # artifact's own router", which is a claim about routing and was false for
     # nine of the 138 rows in the 2026-08-21 run.
     livelane="${live%% *}"; wantlane="${want%% *}"
-    if [ -n "$live" ] && [ "$live" = "$want" ]; then matched=$((matched+1)); fi
+    livefront="$(printf '%s' "$live" | sed 's/[[:space:]]*|[[:space:]]*R\/s+.*$//')"
+    wantfront="$(printf '%s' "$want" | sed 's/[[:space:]]*|[[:space:]]*R\/s+.*$//')"
+    gaugeok=0
+    printf '%s' "$live" | grep -Eq '\| R/s\+ [0-9]+\.[0-9]{2}$' && gaugeok=1
+    if [ -n "$live" ] && [ "$livefront" = "$wantfront" ] && [ "$gaugeok" -eq 1 ]; then matched=$((matched+1)); fi
     if [ -n "$live" ] && [ "$livelane" = "$wantlane" ]; then lanematched=$((lanematched+1)); fi
     printf '    turn %-2s  router=%-18s oracle=%-18s %s\n' "$n" "${live:-<SILENT>}" "${want:-?}" \
-      "$([ -n "$live" ] && [ "$live" = "$want" ] && echo match || echo MISMATCH)"
+      "$([ -n "$live" ] && [ "$livefront" = "$wantfront" ] && [ "$gaugeok" -eq 1 ] && echo match || echo MISMATCH)"
   done
   elapsed=$(( $(date +%s) - START ))
   note "$v: $n turns in ${elapsed}s of continuous conversation"
@@ -378,9 +393,9 @@ for v in $WANT; do
     bad "$v: $((n-lanematched)) of $n turns ROUTED to a different lane than the shipped router"
   fi
   if [ "$matched" -eq "$n" ] && [ "$n" -gt 0 ]; then
-    ok "$v: the whole rendered line matched on all $n turns (lane, model tag and gauge)"
+    ok "$v: lane + model/NSIL tag matched and the gauge kept its R/s+ N.NN shape on all $n turns (gauge VALUE is dynamic M/C/T state -- proved elsewhere, not raced here)"
   else
-    bad "$v: $((n-matched)) of $n turns rendered a different line -- model tag or gauge diverged, see the lane result above"
+    bad "$v: $((n-matched)) of $n turns diverged before the gauge pipe or lost the gauge shape, see the lane result above"
   fi
   [ -n "$SID" ] && ok "$v: session continuity held (id ${SID%%-*}...)" \
                 || bad "$v: no session id -- the turns were not one conversation"

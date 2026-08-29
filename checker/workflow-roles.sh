@@ -61,7 +61,10 @@ WFDIR=.github/workflows
 # FAIL a corpus commit that would have shipped an empty `Lean Theorem/`. A gate
 # that can go red on real content belongs with the gates. It holds only
 # `contents: read`, which is what the code-gate rule below requires.
-CODE_GATES="ci.yml verify.yml corpus-update.yml"
+# `ci2.yml` is the INDEPENDENT COLD RUNNER -- parallel to ci.yml, never a
+# caller of it, `contents: read` only. It re-runs the gates from a cold
+# clone, so it is a CODE GATE by the same rule as ci.yml.
+CODE_GATES="ci.yml verify.yml corpus-update.yml ci2.yml"
 DOCS_MANAGERS="ads-manager.yml tag-manager.yml"
 
 # Every workflow on disk must be classified. A file nobody assigned a role to is

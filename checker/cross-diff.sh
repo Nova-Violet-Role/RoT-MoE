@@ -86,8 +86,19 @@ if [ "${1:-}" = "--make-golden" ]; then
   for _prof in CONVERGENT CLINICAL EXECUTIVE EMPATHIC STRATEGIC CREATIVE PREDICTIVE STEALTH RECURSIVE FORGE; do
     : > "$_gtd/g.jsonl"
     _gout=$(ROTMOE_DEBUG_LOG="$_gtd/g.jsonl" ROTMOE_DEBUG_SRC=test "$SH" --profile "$_prof" --vector "$_pvec" --breadth "$_pbr" --M 1 --C 1 --T 1)
+    # `head -1` is correct HERE only because the log is truncated at the top of
+    # this loop and exactly one invocation appends to it -- so "first record"
+    # and "only record" coincide. That coincidence is an ASSUMPTION about the
+    # arm's emit behaviour, and the `-n` guard below cannot see it break: a
+    # non-empty capture reads identically for one record and for two. If the arm
+    # ever double-emits, the golden is cut from whichever landed first and every
+    # later comparison against it reads clean. Assert the cardinality instead of
+    # trusting it. awk is used rather than `grep -c` because grep exits 1 on a
+    # zero count, which an assignment under `set -e` would turn into an abort.
+    _gn=$(awk '/"lenses":\[/ { n++ } END { print n+0 }' "$_gtd/g.jsonl" 2>/dev/null)
     _glens=$(sed -n 's/.*"lenses":\[\(.*\)\]}.*/\1/p' "$_gtd/g.jsonl" | head -1)
     { [ -n "$_gout" ] && [ -n "$_glens" ]; } || { echo "REFUSE: profile $_prof produced no output or no gauge record -- a golden must be cut from a healthy arm"; rm -rf "$_gtd"; rm -f "$GOLDENP.tmp"; exit 2; }
+    [ "$_gn" -eq 1 ] || { echo "REFUSE: profile $_prof wrote $_gn gauge records for ONE invocation into a log emptied immediately before it -- exactly one is expected, and a golden cut from record 1 of $_gn is a golden cut from an unknown state"; rm -rf "$_gtd"; rm -f "$GOLDENP.tmp"; exit 2; }
     printf '%s|%s|%s\n' "$_prof" "$_gout" "$_glens" >> "$GOLDENP.tmp"
   done
   rm -rf "$_gtd"
@@ -198,9 +209,18 @@ _cdt=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/cd-verify.$$"); mkdir -p "
 for _prof in CONVERGENT CLINICAL EXECUTIVE EMPATHIC STRATEGIC CREATIVE PREDICTIVE STEALTH RECURSIVE FORGE; do
   : > "$_cdt/g.jsonl"
   a=$(ROTMOE_DEBUG_LOG="$_cdt/g.jsonl" ROTMOE_DEBUG_SRC=test "$SH" --profile "$_prof" --vector "$_pvec" --breadth "$_pbr" --M 1 --C 1 --T 1)
+  # Same cardinality assumption as the --make-golden arm above, same assertion.
+  # The log is emptied at the top of this loop; one invocation appends. A second
+  # record here means `head -1` silently picks one and the golden comparison
+  # below passes or fails on a record nobody chose.
+  _an=$(awk '/"lenses":\[/ { n++ } END { print n+0 }' "$_cdt/g.jsonl" 2>/dev/null)
   al=$(sed -n 's/.*"lenses":\[\(.*\)\]}.*/\1/p' "$_cdt/g.jsonl" | head -1)
   if [ -z "$a" ]; then
     bad "profile $_prof: the POSIX arm produced NO OUTPUT -- this row measured nothing"
+    continue
+  fi
+  if [ "$_an" -ne 1 ]; then
+    bad "profile $_prof: ONE invocation wrote $_an gauge records into a log emptied immediately before it -- the comparison below would silently use record 1 of $_an"
     continue
   fi
   if [ -n "$_gp_ok" ]; then
@@ -606,26 +626,62 @@ echo "== THE PAYLOAD PATH WITH NO cwd AND THE PROJECT SINK LIVE (R2) =="
 #     * stdout is CAPTURED and compared  -> the marker is the evidence, not a log field
 _R2D=$(mktemp -d 2>/dev/null || echo "${TMPDIR:-/tmp}/xd-r2.$$")
 mkdir -p "$_R2D" 2>/dev/null
+# EACH ARM GETS ITS OWN STATE DIR. Measured 2026-08-29: with M/C/T live
+# (rot_mct / Get-RotMct), a shared ROTMOE_STATE_DIR made the sh arm's turn
+# write mct.xd-r2 and the ps1 arm READ it -- streak 2, gap ~0s, so ps1 scored
+# M=1.02 T=1.10 against sh's first-turn M=1.00 T=1.00 (0.63 vs 0.82) and this
+# comparison went red on a temporal artifact, not a payload difference. This
+# phase's subject is the cwd-less payload, so both arms run as FIRST turns:
+# separate dirs, both empty. A shared dir here would be testing mct state
+# hand-off, which needs its own phase with a deliberate ordering, not a
+# by-product of this one.
+mkdir -p "$_R2D/st-sh" "$_R2D/st-ps" 2>/dev/null
 _r2pl='{"prompt":"lake build the theorem","hook_event_name":"UserPromptSubmit","session_id":"xd-r2"}'
-_r2sh=$( cd "$_R2D" && printf '%s' "$_r2pl" | env ROTMOE_STATE_DIR="$_R2D" ROTMOE_DEBUG_LOCAL=1 \
-           ROTMOE_DEBUG_LOG="$_R2D/sh.jsonl" "$SH" 2>&1 | head -1 )
-_r2sh=$(printf '%s' "$_r2sh" | tr -d '\r')
+# `2>&1` is DELIBERATE and stays: the whole point of the arms below is that an awk
+# diagnostic must be VISIBLE, not swallowed. What was wrong was `| head -1` after it.
+# Merging the streams gives this capture TWO writers, and `head -1` then let position
+# decide which one was judged -- so the check intended "no diagnostic anywhere" but
+# implemented "no diagnostic on line 1". Both failure directions were measured:
+#   * marker on line 1, awk diagnostic on line 2 -> old form scored OK. A FALSE GREEN,
+#     and it defeats exactly the awk arm below that exists to catch it.
+#   * a benign stderr line ahead of a perfectly good marker -> old form scored "no
+#     recognisable marker". A false red on a healthy router.
+# The fix separates the two questions the site was conflating: diagnostics are hunted
+# across the ENTIRE capture, and the marker is then located by identity rather than by
+# position. Note the order of the case arms is load-bearing too -- "R/s+ n/a" must be
+# tested before the shape arm, because the shape pattern "R/s+ "* happily matches it.
+# STATE_DIR stays per-arm (st-sh / st-ps, header comment above): the router writes
+# mct.<session> on EVERY run (rot-router.sh:1268), so a shared dir hands arm 1's
+# timestamp to arm 2, the <=30s gap flips _mct_t 100->110, R/s+ moves, and the
+# byte-for-byte comparison below reports ARMS DISAGREE on a healthy pair.
+_r2all=$( cd "$_R2D" && printf '%s' "$_r2pl" | env ROTMOE_STATE_DIR="$_R2D/st-sh" ROTMOE_DEBUG_LOCAL=1 \
+            ROTMOE_DEBUG_LOG="$_R2D/sh.jsonl" "$SH" 2>&1 )
+_r2all=$(printf '%s' "$_r2all" | tr -d '\r')
+_r2sh=$(printf '%s\n' "$_r2all" | grep -m1 'RoT MoE ::')
 
-case "$_r2sh" in
+case "$_r2all" in
   *"R/s+ n/a"*)
     bad "R2: the sh arm lost the gauge on a cwd-less payload -- '$_r2sh'" ;;
   *"awk:"*|*"escape sequence"*)
-    bad "R2: awk diagnostics reached the marker on a cwd-less payload -- '$_r2sh'" ;;
+    bad "R2: awk diagnostics reached the output on a cwd-less payload -- '$_r2all'" ;;
+esac
+case "$_r2sh" in
   "RoT MoE :: TIER 1 -> "*"R/s+ "*)
     ok "R2: a cwd-less payload still carries a real gauge with the project sink live" ;;
   *)
-    bad "R2: the sh arm emitted no recognisable marker on a cwd-less payload -- '$_r2sh'" ;;
+    bad "R2: the sh arm emitted no recognisable marker on a cwd-less payload -- '$_r2all'" ;;
 esac
 
 if [ -n "$PWSH" ]; then
-  _r2ps=$( cd "$_R2D" && printf '%s' "$_r2pl" | env ROTMOE_STATE_DIR="$_R2D" ROTMOE_DEBUG_LOCAL=1 \
-             ROTMOE_DEBUG_LOG="$_R2D/ps.jsonl" "$PWSH" -NoProfile -File "$PS1" 2>&1 | head -1 )
-  _r2ps=$(printf '%s' "$_r2ps" | tr -d '\r')
+  # Same correction as the sh arm: capture everything, then locate the marker by identity.
+  # This one mattered more than its twin -- PowerShell writes progress and warning records
+  # to the error stream routinely, so `2>&1 | head -1` here was the likeliest of the three
+  # sites to compare a warning against a marker and report ARMS DISAGREE on a healthy pair.
+  # st-ps, not a shared dir -- same mct isolation as the sh arm above.
+  _r2psall=$( cd "$_R2D" && printf '%s' "$_r2pl" | env ROTMOE_STATE_DIR="$_R2D/st-ps" ROTMOE_DEBUG_LOCAL=1 \
+                ROTMOE_DEBUG_LOG="$_R2D/ps.jsonl" "$PWSH" -NoProfile -File "$PS1" 2>&1 )
+  _r2psall=$(printf '%s' "$_r2psall" | tr -d '\r')
+  _r2ps=$(printf '%s\n' "$_r2psall" | grep -m1 'RoT MoE ::')
   if [ "$_r2sh" = "$_r2ps" ]; then
     ok "R2: both arms agree BYTE FOR BYTE on a cwd-less payload"
   else
@@ -658,16 +714,23 @@ fi
 # That is the property the reordering protects, it is testable, and a control
 # proves the comparison can fail.
 _r2win='{"prompt":"lake build","hook_event_name":"UserPromptSubmit","session_id":"xd-r2w","cwd":"C:\NoSuch\Scratch\Dir"}'
-_r2wsh=$( printf '%s' "$_r2win" | env ROTMOE_STATE_DIR="$_R2D" ROTMOE_DEBUG_LOCAL=0 \
-            ROTMOE_DEBUG_LOG="$_R2D/w.jsonl" "$SH" 2>&1 | head -1 )
-_r2wsh=$(printf '%s' "$_r2wsh" | tr -d '\r')
-case "$_r2wsh" in
+# Third instance of the same correction, and the one where the old form was most nearly
+# self-defeating: this arm's whole purpose is to detect an awk diagnostic escaping from an
+# unnormalised Windows path, yet `head -1` would hide that diagnostic the moment the marker
+# happened to be flushed first. The scan is now over the full capture.
+_r2wall=$( printf '%s' "$_r2win" | env ROTMOE_STATE_DIR="$_R2D" ROTMOE_DEBUG_LOCAL=0 \
+             ROTMOE_DEBUG_LOG="$_R2D/w.jsonl" "$SH" 2>&1 )
+_r2wall=$(printf '%s' "$_r2wall" | tr -d '\r')
+_r2wsh=$(printf '%s\n' "$_r2wall" | grep -m1 'RoT MoE ::')
+case "$_r2wall" in
   *"escape sequence"*|*"awk:"*|*"R/s+ n/a"*)
-    bad "R2: a Windows-spelled cwd still reaches awk unnormalised -- '$_r2wsh'" ;;
-  "RoT MoE :: TIER 1 -> "*"R/s+ "*)
-    ok "R2: a Windows-spelled cwd is normalised before it can reach a redirect" ;;
-  *)
-    bad "R2: no recognisable marker on a Windows-spelled cwd -- '$_r2wsh'" ;;
+    bad "R2: a Windows-spelled cwd still reaches awk unnormalised -- '$_r2wall'" ;;
+  *) case "$_r2wsh" in
+       "RoT MoE :: TIER 1 -> "*"R/s+ "*)
+         ok "R2: a Windows-spelled cwd is normalised before it can reach a redirect" ;;
+       *)
+         bad "R2: no recognisable marker on a Windows-spelled cwd -- '$_r2wall'" ;;
+     esac ;;
 esac
 
 # CONTROL for the comparison itself: a deliberately mangled marker must NOT be

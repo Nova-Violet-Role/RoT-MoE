@@ -632,14 +632,22 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
   # THE INDEX is what fails: an `i/crlf` file arrives with CRLF in EVERY clone,
   # on every platform, and no attribute can undo it -- the bytes are committed.
   # That is the hard rule.
+  # `head` belongs on the DISPLAY, never on the source a COUNT is taken from.
+  # MEASURED here: the worktree arm below capped its capture at `| head -5` and
+  # then counted the capped list, so a 19-file condition reported "5 file(s)"
+  # -- and would have reported "5" for 500. The cap is not wrong; taking the
+  # count from behind it is. Capture whole, count whole, truncate on the way out.
   crlf_index="$(git ls-files --eol 2>/dev/null \
-    | awk '$1 ~ /^i\/crlf/ { print $NF }' | head -20)"
+    | awk '$1 ~ /^i\/crlf/ { print $NF }')"
   if [ -z "$crlf_index" ]; then
     ok "no tracked file carries CRLF in the INDEX -- every clone gets LF"
   else
     n=$(printf '%s\n' "$crlf_index" | grep -c .)
     bad "$n tracked file(s) carry CRLF in the index -- every clone gets CRLF and a byte comparison fails unreadably:"
-    printf '%s\n' "$crlf_index" | sed 's/^/        /'
+    printf '%s\n' "$crlf_index" | head -20 | sed 's/^/        /'
+    if [ "$n" -gt 20 ]; then
+      echo "        ... and $((n - 20)) more (display truncated; the count above is complete)"
+    fi
     echo "        repair: git add --renormalize ."
   fi
 
@@ -648,11 +656,20 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
   # git normalise it on `add`, so nothing wrong ever reaches the index. Failing
   # here would make a correct workflow go red and invite deleting the check --
   # the exact way real coverage gets destroyed. Report it, do not refuse it.
+  # The `| head -5` that used to sit on this capture is the defect described
+  # above: this NOTE reported "5 file(s)" while 19 tracked files were CRLF in
+  # the working tree. An informational line that cannot count past its own cap
+  # is worse than no line -- it reads as a measurement and is a constant.
   crlf_work="$(git ls-files --eol 2>/dev/null \
-    | awk '$1 ~ /^i\/lf/ && $2 ~ /^w\/crlf/ { print $NF }' | head -5)"
+    | awk '$1 ~ /^i\/lf/ && $2 ~ /^w\/crlf/ { print $NF }')"
   if [ -n "$crlf_work" ]; then
-    echo "  ----  NOTE: $(printf '%s\n' "$crlf_work" | grep -c .) file(s) are CRLF in the working tree over an LF index."
+    nw=$(printf '%s\n' "$crlf_work" | grep -c .)
+    echo "  ----  NOTE: $nw file(s) are CRLF in the working tree over an LF index."
     echo "        git normalises these on add; nothing reaches the index. Not a failure."
+    printf '%s\n' "$crlf_work" | head -5 | sed 's/^/        /'
+    if [ "$nw" -gt 5 ]; then
+      echo "        ... and $((nw - 5)) more (display truncated; the count above is complete)"
+    fi
   fi
 
   # CONTROL: the scan must be able to SEE a CRLF file, or its green means

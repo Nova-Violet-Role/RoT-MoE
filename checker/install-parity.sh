@@ -58,7 +58,29 @@ echo "== install parity: plugin registration vs ARM_ROUTER =="
 command -v node >/dev/null 2>&1 || { echo "SKIP: node is required"; exit 3; }
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/rotmoe-parity.XXXXXX")"
-trap 'rm -rf "$WORK"' EXIT INT TERM
+# EXIT and INT/TERM DELIBERATELY SEPARATE. Fourth instance of one mechanism --
+# release-longsession.sh:134-135, live-session-smoke.sh:445-462, and
+# hook-footprint.sh:118-136. A POSIX sh signal handler that does not itself exit
+# RESUMES where the signal landed.
+#
+# $WORK is read at 20 sites below, all of them directly (no helper indirection
+# here, unlike hook-footprint). What the resumed code does is NOT the same as
+# there, and the difference decides how the damage shows up:
+#
+#   :121  diff -u on two files that no longer exist errors instead of matching,
+#         so :124 prints `bad "INSTALL PATHS DIVERGE"` -- a red charged to
+#         ARM_ROUTER for a divergence that does not exist. Same misattribution
+#         that made release-longsession report 7 FAILs against the router.
+#   :132  `for _ev in $(cut -d' ' -f1 "$WORK/plugin.txt" ...)` iterates over an
+#         EMPTY list, so the per-event arms at :134 and :136 never execute. That
+#         check does not fail -- it VANISHES, with no line printed either way.
+#   :159  the control plant cannot be built, so :173 reports the control dead.
+#
+# This gate therefore fabricates REDS and one silent absence, where
+# hook-footprint fabricated greens. Both are verdicts reached by an instrument
+# that had already been dismantled.
+trap 'rm -rf "$WORK"' EXIT
+trap 'rm -rf "$WORK"; printf "\n  ---- KILLED by signal: run INCOMPLETE. The staging root was removed by this handler, so any FAIL below is charged to the kill, NOT to ARM_ROUTER or DISARM_ROUTER, and the per-event loop scored nothing at all. No verdict was reached.\n"; exit 143' INT TERM
 
 # --- 1. what the PLUGIN registers -------------------------------------------
 # Keyed by (event, script basename). The PATH is deliberately NOT compared: the

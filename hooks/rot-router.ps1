@@ -1059,12 +1059,69 @@ if ($env:ROTMOE_VOICE -ne '0') {
   elseif ($ctxEvents -ccontains $evName) { $voice = $true; $voiceJson = $true }
 }
 
+# M/C/T -- MEASURED, NO LONGER PINNED (Animus dynamic R/s+, 2026-08-29).
+# The sh arm's rot_mct is the reference, decision for decision -- see the
+# full note above hooks/rot-router.sh rot_mct. Summary of the contract:
+#   M memory residue  same-lane streak from mct.<session>:
+#     100 + 2*min(streak-1,5) hundredths -> 1.00..1.10; switch resets.
+#   C confidence      the NSIL verdict this turn:
+#     CONFIRM+stem 110 | FUSE/BOOST 105 | ELEVATE 100 | CONFIRM no stem 95
+#     | OVERRIDE 90 | anything else 100.
+#   T recency         gap to previous routed turn: no state 100; <=30s 110;
+#     then 110 - gap/30 (integer) down to a 90 floor at >=600s.
+# M and T degrade to EXACTLY 100 on a first turn or an unwritable state dir;
+# C is turn-local and always live. The CLI arm (-Vector) never passes through
+# here -- its output stays byte-identical for checker/cross-diff.sh.
+function Get-RotMct {
+  $m = 100; $c = 100; $t = 100
+  switch ($nsilDecision) {
+    'FUSE'     { $c = 105 }
+    'BOOST'    { $c = 105 }
+    'ELEVATE'  { $c = 100 }
+    'OVERRIDE' { $c = 90 }
+    'CONFIRM'  { if (-not [string]::IsNullOrEmpty($stem)) { $c = 110 } else { $c = 95 } }
+  }
+  $mctDir = if ($env:ROTMOE_STATE_DIR) { $env:ROTMOE_STATE_DIR }
+            elseif ($env:XDG_STATE_HOME) { Join-Path $env:XDG_STATE_HOME 'rot-moe' }
+            else { Join-Path $HOME '.local/state/rot-moe' }
+  $mctF = Join-Path $mctDir ('mct.' + $script:RotSession)
+  $now = [System.DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+  $streak = 1
+  $laneW = ($lane -split ' ')[0]
+  try {
+    if (Test-Path -LiteralPath $mctF) {
+      $parts = ((Get-Content -LiteralPath $mctF -TotalCount 1) -split '\s+')
+      $prev = 0; $ps = 0; $prevLane = ''
+      if ($parts.Count -ge 1 -and $parts[0] -match '^[0-9]+$') { $prev = [long]$parts[0] }
+      if ($parts.Count -ge 2) { $prevLane = $parts[1] }
+      if ($parts.Count -ge 3 -and $parts[2] -match '^[0-9]+$') { $ps = [int]$parts[2] }
+      if ($prev -gt 0 -and $now -ge $prev) {
+        $gap = $now - $prev
+        if ($gap -le 30) { $t = 110 }
+        elseif ($gap -ge 600) { $t = 90 }
+        else { $t = 110 - [int][math]::Floor($gap / 30) }
+      }
+      if ($prevLane -ceq $laneW -and $ps -gt 0) { $streak = $ps + 1 }
+    }
+  } catch { }
+  $s5 = $streak - 1; if ($s5 -gt 5) { $s5 = 5 }
+  $m = 100 + 2 * $s5
+  try {
+    New-Item -ItemType Directory -Force -Path $mctDir -ErrorAction Stop | Out-Null
+    [System.IO.File]::WriteAllText($mctF, ('{0} {1} {2}' -f $now, $laneW, $streak) + "`n",
+                                   (New-Object System.Text.UTF8Encoding($false)))
+  } catch { }
+  return @([double]($m / 100.0), [double]($c / 100.0), [double]($t / 100.0))
+}
+$mct = Get-RotMct
+$mM = [double]$mct[0]; $mC = [double]$mct[1]; $mT = [double]$mct[2]
+
 # The voice path passes -Voice, so the gauge also returns one LENSDATA line
 # per lens AFTER the human R/s+ line; every other path calls it exactly as
 # before. Full output is captured either way, and R/s+ is still parsed from
 # the human line, which stays first.
-if ($voice) { $g = Invoke-Gauge ($acts -join ',') $br 1 1 1 ($lane -split ' ')[0] -Voice }
-else        { $g = Invoke-Gauge ($acts -join ',') $br 1 1 1 ($lane -split ' ')[0] }
+if ($voice) { $g = Invoke-Gauge ($acts -join ',') $br $mM $mC $mT ($lane -split ' ')[0] -Voice }
+else        { $g = Invoke-Gauge ($acts -join ',') $br $mM $mC $mT ($lane -split ' ')[0] }
 $gLines = @($g)
 $gHead  = [string]$gLines[0]
 $rs = if ($gHead -match '^R/s\+ = ([0-9.]+)') { $Matches[1] } else { 'n/a' }

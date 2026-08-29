@@ -3,10 +3,10 @@
   "files": {
     "COMPENDIUM-instrument-defects.md": {
       "hash": "759520d121f5",
-      "indexed_at": "2026-08-25T11:35:02.871933+00:00",
+      "indexed_at": "2026-08-23T05:08:55.436689+00:00",
       "language": "markdown",
       "lines": 481,
-      "mtime_ns": 1787584902567480600,
+      "mtime_ns": 1787461734796207300,
       "size": 24800,
       "symbols": [
         {
@@ -159,10 +159,10 @@
     },
     "COMPENDIUM-the-unwritten-claim.md": {
       "hash": "92b2e83f38b0",
-      "indexed_at": "2026-08-25T11:35:02.872490+00:00",
+      "indexed_at": "2026-08-24T01:49:18.474839+00:00",
       "language": "markdown",
       "lines": 198,
-      "mtime_ns": 1787584902567480600,
+      "mtime_ns": 1787465368367639700,
       "size": 9569,
       "symbols": [
         {
@@ -252,10 +252,10 @@
     },
     "DIGEST-the-six-unrun-gates.md": {
       "hash": "4b4a27f018c5",
-      "indexed_at": "2026-08-25T11:35:02.872912+00:00",
+      "indexed_at": "2026-08-23T04:34:44.546029+00:00",
       "language": "markdown",
       "lines": 147,
-      "mtime_ns": 1787584902568484200,
+      "mtime_ns": 1787459683916888500,
       "size": 7820,
       "symbols": [
         {
@@ -325,10 +325,10 @@
     },
     "ENCYCLOPEDIA-instruments.md": {
       "hash": "a8750e0d7b68",
-      "indexed_at": "2026-08-25T11:35:02.874816+00:00",
+      "indexed_at": "2026-08-24T01:49:18.475781+00:00",
       "language": "markdown",
       "lines": 302,
-      "mtime_ns": 1787584902568484200,
+      "mtime_ns": 1787465486784879400,
       "size": 20860,
       "symbols": [
         {
@@ -427,10 +427,10 @@
     },
     "ESSAY-what-a-green-gate-is-worth.md": {
       "hash": "f98c00ae0a5b",
-      "indexed_at": "2026-08-25T11:35:02.875290+00:00",
+      "indexed_at": "2026-08-23T04:07:30.553767+00:00",
       "language": "markdown",
       "lines": 195,
-      "mtime_ns": 1787584902568484200,
+      "mtime_ns": 1787458049899917000,
       "size": 10632,
       "symbols": [
         {
@@ -509,7 +509,7 @@
     },
     "GIT-WORKFLOW.md": {
       "hash": "dd1140824700",
-      "indexed_at": "2026-08-25T11:35:02.875965+00:00",
+      "indexed_at": "2026-08-22T17:50:25.362963+00:00",
       "language": "markdown",
       "lines": 375,
       "mtime_ns": 1787420488673390800,
@@ -685,10 +685,10 @@
     },
     "PAPER-the-cost-of-a-verdict.md": {
       "hash": "fd83ee1a10ed",
-      "indexed_at": "2026-08-25T11:35:02.879587+00:00",
+      "indexed_at": "2026-08-23T04:06:27.566507+00:00",
       "language": "markdown",
       "lines": 266,
-      "mtime_ns": 1787584902568484200,
+      "mtime_ns": 1787457959535423700,
       "size": 15919,
       "symbols": [
         {
@@ -776,10 +776,10 @@
     },
     "PAPER-the-observer-effect.md": {
       "hash": "a7f2eada49cd",
-      "indexed_at": "2026-08-25T11:35:02.880007+00:00",
+      "indexed_at": "2026-08-23T04:08:28.841886+00:00",
       "language": "markdown",
       "lines": 222,
-      "mtime_ns": 1787584902568484200,
+      "mtime_ns": 1787458107880021400,
       "size": 10206,
       "symbols": [
         {
@@ -849,7 +849,7 @@
     },
     "SCRUTINY-0.7.md": {
       "hash": "e48bcbe2f9a9",
-      "indexed_at": "2026-08-25T11:35:02.880482+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363927+00:00",
       "language": "markdown",
       "lines": 212,
       "mtime_ns": 1787420488727900300,
@@ -962,7 +962,7 @@
     },
     "SCRUTINY-LOG.md": {
       "hash": "094b68fe311b",
-      "indexed_at": "2026-08-25T11:35:02.881025+00:00",
+      "indexed_at": "2026-08-22T23:40:49.718633+00:00",
       "language": "markdown",
       "lines": 299,
       "mtime_ns": 1787438435487250000,
@@ -1082,7 +1082,7 @@
     },
     "STUDY-USAGE-AGENTS.md": {
       "hash": "5e283b236d9c",
-      "indexed_at": "2026-08-25T11:35:02.882432+00:00",
+      "indexed_at": "2026-08-22T17:50:25.365238+00:00",
       "language": "markdown",
       "lines": 813,
       "mtime_ns": 1787420488836674200,
@@ -1351,7 +1351,7 @@
     },
     "easter-egg.md": {
       "hash": "78eff5036215",
-      "indexed_at": "2026-08-25T11:35:02.873637+00:00",
+      "indexed_at": "2026-08-22T17:50:25.362631+00:00",
       "language": "markdown",
       "lines": 421,
       "mtime_ns": 1787420488894531600,
@@ -1498,7 +1498,7 @@
     },
     "lean-and-corpus.md": {
       "hash": "cab1f37a05fd",
-      "indexed_at": "2026-08-25T11:35:02.876468+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363208+00:00",
       "language": "markdown",
       "lines": 195,
       "mtime_ns": 1787420488965060300,
@@ -1573,7 +1573,7 @@
     },
     "lens-bench.md": {
       "hash": "f0a77598c076",
-      "indexed_at": "2026-08-25T11:35:02.878302+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363412+00:00",
       "language": "markdown",
       "lines": 138,
       "mtime_ns": 1787420489020998500,
@@ -1603,10 +1603,10 @@
     },
     "modules.md": {
       "hash": "b6abf042f109",
-      "indexed_at": "2026-08-25T11:35:02.879083+00:00",
+      "indexed_at": "2026-08-22T17:50:25.363687+00:00",
       "language": "markdown",
       "lines": 384,
-      "mtime_ns": 1787584902568484200,
+      "mtime_ns": 1787420489074291600,
       "size": 24189,
       "symbols": [
         {
@@ -1622,7 +1622,7 @@
     },
     "tips.md": {
       "hash": "8438682e1d1f",
-      "indexed_at": "2026-08-25T11:35:02.883010+00:00",
+      "indexed_at": "2026-08-22T17:50:25.365477+00:00",
       "language": "markdown",
       "lines": 156,
       "mtime_ns": 1787420489128181800,
@@ -1677,6 +1677,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-25T11:35:03.064074+00:00",
+  "generated_at": "2026-08-24T01:49:18.560033+00:00",
   "version": "1.0"
 }
