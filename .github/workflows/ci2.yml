@@ -3,16 +3,17 @@
 # Copyright 2026 Saimonokuma.
 #
 # =============================================================================
-# ci2 -- the INDEPENDENT COLD RUNNER. Parallel to ci.yml, never a caller of it.
+# ci2 -- the LEAN LANE. Parallel to ci.yml, never a caller of it.
 #
-# ci.yml proves the gates on a warm path: `lake exe cache get` hands it a
-# prebuilt mathlib and the Lean job finishes in minutes. That is the right
-# trade for a per-push gate, and it is also a standing act of trust in a cache
-# artifact nobody here compiled. This workflow removes that trust once per
-# week and on demand: a fresh clone, elan from release, and `lake build` FROM
-# SOURCE -- no cache step exists in this file on purpose. The run is expected
-# to take hours (the 1H+ sweep); `timeout-minutes: 350` is the ceiling, and a
-# ceiling firing is a result, not a mystery.
+# ci.yml stays the fast board: checkers plus the release lever, minutes per
+# push. Everything Lean lives HERE since 2026-08-29 (operator decision): the
+# warm `lean` job moved over verbatim -- `lake exe cache get`, build, axioms,
+# kernel re-check, the mutation suites -- and still reports the required
+# check `lean -- build, axioms, kernel re-check` in minutes, while
+# `lean-cold` rebuilds FROM SOURCE with no cache step on purpose, expected
+# to take hours (the 1H+ sweep; `timeout-minutes: 350` is the ceiling, and a
+# ceiling firing is a result, not a mystery). A red lane here never holds a
+# release: ci.yml publishes on checkers alone.
 #
 # DELIBERATELY DISTINCT from verify.yml: verify calls ci.yml (`workflow_call`)
 # so the weekly verdict and the push gate cannot drift. ci2 shares NOTHING
@@ -26,11 +27,18 @@
 name: ci2
 
 on:
+  # Fires on the same push ci.yml fires on -- IN PARALLEL, never as a gate.
+  # The warm `lean` job (moved here from ci.yml, 2026-08-29, operator
+  # decision) keeps the required check `lean -- build, axioms, kernel
+  # re-check` reporting in minutes; `lean-cold` keeps distrusting the cache
+  # on every push. The release lane lives in ci.yml and waits on checkers
+  # only, so a red here never blocks a release -- it is inspected after the
+  # fact. No cron: push frequency exceeds the old weekly beat, and
+  # pull_request exists so the required check can report on PRs too.
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * 3'
 
 concurrency:
   group: ci2-${{ github.ref }}
@@ -38,11 +46,431 @@ concurrency:
 
 permissions:
   contents: read
+  # `actions: read` lets checker/deferred-closure.sh (a step of the warm lean
+  # job) read the log archive of the PREVIOUS completed ci2 run. It is the
+  # least privilege that closes the half of the CI step list ci-dryrun.sh
+  # must defer -- toolchain installs, the mathlib cache, the real lake build,
+  # the kernel re-check. Without it that gate SKIPs, and a SKIP is never
+  # counted as a pass here.
+  actions: read
 
 jobs:
+  # --------------------------------------------------------------------------
+  lean:
+    name: lean -- build, axioms, kernel re-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: install elan (toolchain pinned by lean/lean-toolchain)
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: toolchain (read, never assumed)
+        working-directory: lean
+        run: cat lean-toolchain && lake --version && lean --version
+
+      - name: mathlib cache -- NEVER build it from source
+        working-directory: lean
+        run: lake exe cache get
+
+      - name: lake build (exit code read DIRECTLY, never through a pipe)
+        working-directory: lean
+        run: |
+          # ENUMERATED FROM DISK, never hand-typed. The comment below this step
+          # already records that a hand-typed module list silently stopped
+          # covering RotRemind, RotAcquire and RotVerdict as they were added --
+          # and then this very line repeated the mistake, going stale again the
+          # day RotGates landed. A list in a file is wrong the day it changes.
+          mods=$(ls Proofs/*.lean | sed 's#Proofs/#Proofs.#; s#\.lean$##' | tr '\n' ' ')
+          echo "modules found on disk: $mods"
+          n=$(echo $mods | wc -w)
+          [ "$n" -lt 10 ] && { echo "FAIL: only $n modules found -- enumeration broke"; exit 1; }
+          lake build $mods
+          echo "lake build exit=$?"
+
+      # THIS STEP CLOSES A HOLE THAT WAS GREEN FOR THE WHOLE 0.7.x CYCLE.
+      #
+      # `checker/gauge-cross.sh` was wired ONCE, in the `checkers` job -- a job
+      # with no Lean toolchain. It therefore exited 3 and printed
+      # "SKIPPED: no built Lean workspace -- NOT a pass" on ubuntu, macos AND
+      # windows, every run, and the `lean` job (the one that HAS a built
+      # workspace) never invoked it at all. Found by reading the run's log.zip,
+      # not by any check: the instrument that verifies the Lean Float mirror
+      # against the RUNNING hook had never executed in CI. Locally it passes,
+      # which is exactly why nobody noticed.
+      #
+      # A skip that is honest in one job can be a hole in the suite. The label
+      # "NOT a pass" was true and still hid the fact that NO job was passing it.
+      #
+      # Here a SKIP IS A FAILURE. lake is installed and the workspace is built
+      # two steps above, so exit 3 can only mean the instrument did not run
+      # where it must -- and an instrument that never runs is decoration.
+      - name: gauge cross-check -- Lean mirror vs the running hook (MUST run here)
+        run: |
+          set +e
+          LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/gauge-cross.sh; rc=$?
+          echo "gauge-cross exit=$rc"
+          if [ "$rc" -eq 3 ]; then
+            echo "::error::gauge-cross SKIPPED in the lean job. lake and a built"
+            echo "::error::workspace exist here; a skip means the instrument did"
+            echo "::error::not run in the one job that can run it."
+            exit 1
+          fi
+          exit $rc
+
+      # A green build means it ELABORATED. It does not mean the theorems rest on
+      # nothing unsound, and it does not mean there is no `sorry`.
+      # THE STEP THAT USED TO BE HERE DID NEITHER THING ITS NAME CLAIMED, and it
+      # is worth recording why rather than quietly replacing it. It looped over
+      # a HAND-TYPED module list -- `RotGauge RotRoute RotInstall RotPath
+      # RotVacuity` -- which had silently stopped covering RotRemind, RotAcquire
+      # and RotVerdict as they were added; and for each one it wrote a file
+      # containing a single `import` and elaborated it, never once running
+      # `#print axioms`. Measured 2026-08-01: such a file exits 0 whatever the
+      # module rests on, and a file containing `theorem c : 1 = 1 := by sorry`
+      # ALSO exits 0, because `sorry` is a WARNING. The gate could not fail.
+      # What remained was a text `grep sorry` with hand-tuned exclusions -- the
+      # shape that reports a doc comment and the identifier `sorry_always_speaks`
+      # as holes.
+      #
+      # checker/axiom-audit.sh enumerates the modules from disk, extracts every
+      # theorem NAME (comment- and namespace-aware, attributes included),
+      # `#print axioms` each, requires every name to be answered, cross-checks
+      # its count against checker/count-theorems.sh, and plants a `sorry` to
+      # prove it can fail.
+      - name: portability -- exec bits in the index, CRLF-proof hooks
+        run: bash checker/portability.sh
+
+      - name: hook contract -- run the command strings hooks.json registers
+        run: bash checker/hook-contract.sh
+
+      - name: voice contract -- the lens roster, held both ways
+        run: bash checker/voice-contract.sh
+
+      # ORGAN 7 had no verifier until 9.0.x, and the file it guards is the one
+      # README.md:576 tells a user to source from their shell rc. Runs under sh,
+      # not bash, on purpose: that is the shell the shebang claims and the one a
+      # /bin/sh user would bring to it.
+      - name: env layer -- the rot command family and the three loader laws
+        run: ROTMOE_HOME=$GITHUB_WORKSPACE sh checker/env-layer.sh
+
+      # The configuration spectrum: hooks/rot-voice.dtd generates
+      # engine/rot.env.example, which engine/rot.bashrc loads through ORGAN 7 on
+      # macOS, Linux and git-bash -- and which the PowerShell twin reads to the
+      # same values (W7c). Registered here because a checker nobody runs is the
+      # defect this suite exists to find.
+      - name: env wiring -- the DTD generates the config the activation loads
+        run: bash checker/env-wiring.sh
+
+      # bonus/cmdpulse/cmdpulse-bonus.zip is a COMMITTED build artifact, and for
+      # most of this repository's life nothing could regenerate it. That cost a
+      # leaked absolute path that shipped past a green gate, and later a merge
+      # conflict on a binary two branches had each rebuilt by hand. This step
+      # asserts the archive still equals its tracked sources; `--rebuild` on the
+      # same script is how you make it true again.
+      - name: bonus archive -- the shipped zip IS its tracked sources
+        run: bash checker/bonus-archive.sh
+
+      # The three release bodies are published to three tags cut from one commit,
+      # and each one PROMISES the reader "the table above is the whole
+      # difference". Nothing checked that promise: the gate-all row above runs
+      # the generator into /dev/null and reads exit 0 only, so three unrelated
+      # pages would have passed it green.
+      - name: release body -- three tiers, one body
+        run: bash checker/release-package.sh && bash checker/release-body.sh
+      # THE ONE REMAINING SKIP IN THIS WORKFLOW, and it is a boundary rather than
+      # an omission. Stated plainly so nobody has to rediscover it:
+      #
+      # This runs the marketplace install AND a real authenticated session. The
+      # install half needs no auth and is already covered in CI by
+      # `plugin-install.sh` above, which now RUNS. The session half needs the
+      # maintainer's own Claude credentials, and the only way to give a public
+      # runner those is to put them in repository secrets.
+      #
+      # THAT QUESTION WAS PUT TO THE MAINTAINER AND ANSWERED: **no.** Credentials
+      # do not go into repository secrets; authenticated testing happens locally
+      # and in the CTT instance. So this is not an open item awaiting a decision
+      # -- it is a decided boundary, and the decision is recorded here so nobody
+      # reopens it looking for a way to make the line green.
+      #
+      # What is NOT acceptable is faking it: a planted credentials file would
+      # make this step exit 0 while proving nothing about a real session. So it
+      # exits 3 and says so, and 3 is never counted as a pass.
+      #
+      # It IS enforced, twice, off this runner: `gate-all --full` locally where
+      # auth exists, and a separate CTT Claude Code instance, which installs the
+      # published artifact as a stranger before any version ships.
+      # Registered here anyway so the checker cannot drift into being run by
+      # nothing at all -- which is how gauge-cross spent a whole cycle skipping.
+      #
+      # Every OTHER exit-3 gate in this file has been converted to a hard
+      # failure or given a corpus so it can genuinely run.
+      #
+      # ATTRIBUTION FIX (run 31187881399). This step used to print
+      # "SKIP (3): no credentials on the runner" whatever the cause, and the
+      # log of that run shows it doing so directly beneath the checker's own
+      # "no claude CLI on PATH" line. The cause reported was not the cause
+      # observed. marketplace-session.sh now separates them -- 3 no
+      # credentials, 4 no CLI -- so the log names the thing that was missing.
+      #
+      # This job does NOT install the CLI, so 4 is expected here and is a
+      # skip. In any job that DID install it, 4 means the install broke and
+      # must fail; that rule is applied at the matrix copy of this step.
+      - name: marketplace session -- install as a stranger (SKIPs without auth)
+        run: |
+          rc=0; bash checker/marketplace-session.sh || rc=$?
+          if [ "$rc" -eq 3 ]; then echo "SKIP (3): no credentials on the runner -- never counted as a pass"; exit 0; fi
+          if [ "$rc" -eq 4 ]; then echo "SKIP (4): no claude CLI in THIS job -- never counted as a pass, and NOT a credential skip"; exit 0; fi
+          exit "$rc"
+
+      # The Lean spec must GOVERN the shell. lean/Proofs/RotMutant.lean proves
+      # a mutation may only be counted when the patch landed -- tool exit 0,
+      # non-empty result, and genuinely changed. This asserts every mutation
+      # harness in the tree implements that rule, by one of the two recognised
+      # means. It found two live false-green paths the day it was written.
+      - name: mutation discipline -- RotMutant.lean binds every harness
+        run: bash checker/mutant-discipline.sh
+
+      # The INVERSE of mutation discipline. Discipline proves each suite refuses
+      # to score a mutant whose patch did not apply; this proves the needles
+      # still EXIST, so a suite cannot quietly become all-DISCARDED when someone
+      # edits the line a needle quotes. Static -- no build, no mutation.
+      - name: mutant needles -- no suite may be entirely DISCARDED
+        run: bash checker/mutant-needles.sh
+
+      # The other end of ci-dryrun.sh. That gate runs what it can of this
+      # step list in a clean tree and DEFERS anything needing a toolchain, a
+      # download, root or a pty -- printing "DEFERRED IS NOT PASSED", which is
+      # honest and leaves a gap. This closes the gap from the runner side: it
+      # reads the log archive of the last completed run and requires every
+      # declared step to have produced a log, with zero error and zero warning
+      # annotations EMITTED in it. "Emitted" is load-bearing: the check is
+      # anchored to the start of a log line, so a step that merely MENTIONS an
+      # annotation token in a comment is not counted. This comment is outside
+      # any `run:` block and is never echoed to the log; one inside a `run:`
+      # block IS echoed, and the unanchored check used to count it.
+      - name: deferred closure -- the runner ran what the dry run could not
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # GitHub runs this block as `bash -e {0}`, so a non-zero exit ABORTS
+          # THE STEP BEFORE `rc=$?` is ever read. Measured in run 30695224024:
+          # the gate exited 3 (SKIP), the step died on the spot, and the SKIP
+          # branch below -- written precisely to tolerate it -- never ran. An
+          # `if` makes the exit status part of a compound command, which `-e`
+          # does not act on.
+          if bash checker/deferred-closure.sh; then rc=0; else rc=$?; fi
+          # 3 is SKIP (no token, no completed run yet, or logs expired) and is
+          # NOT a pass -- it is reported and tolerated; 1 is a real failure.
+          if [ "$rc" -eq 3 ]; then echo "::notice::deferred closure SKIPPED -- not a pass"; exit 0; fi
+          exit "$rc"
+
+      - name: benchmark -- routing accuracy on a labelled key, and per-turn cost
+        run: bash checker/bench-router.sh
+
+      # The fast/deep gate split decides what a commit is allowed to SKIP, so a
+      # mistake in it is silent by construction: the gate that stops running
+      # looks exactly like the gate that passed. This step requires the shell
+      # table in gate-all.sh and the proved witness in lean/Proofs/RotGates.lean
+      # to be the same table, gate for gate and trigger for trigger.
+      - name: gate split -- the runner's tiers match the Lean witness
+        run: bash checker/gate-split.sh
+
+      # The P2.4 task corpus is a BENCHMARK, and a benchmark degrades silently.
+      # Two ways, both checked here: a task whose naive answer happens to be
+      # right contributes nothing while still counting toward n, and a prompt
+      # that no longer routes to its declared lane makes the lane field a
+      # fiction. The lane half is measured by running the shipped router, so
+      # this step also fails if a stem list is edited without re-checking the
+      # forty prompts that depend on it. Proved in lean/Proofs/RotTaskCorpus.lean.
+      - name: P2.4 corpus -- every task discriminates and routes to its lane
+        run: bash checker/corpus-verify.sh
+
+      # The `sessions160` obligation in checker/push-guard.sh was probed by a
+      # LINE COUNT on a file the pusher writes, which `seq 160` satisfies -- the
+      # largest row in the ledger, closable in one command, three lines below the
+      # docstring forbidding exactly that. The manifest now carries six fields
+      # per turn and this step requires the shape a real collection makes: four
+      # blocks of forty, complete turn numbering, four distinct session ids none
+      # shared between blocks, and 160 distinct content digests. Both forgeries
+      # that beat the old probe are negative controls inside the script.
+      - name: session manifest -- the obligation is not closable by counting to 160
+        run: bash checker/sessions-manifest.sh
+
+      - name: hook footprint -- no network, no lake, Lean stays optional
+        run: bash checker/hook-footprint.sh
+
+      # The static half only. The freshness half asks the API for the age of each
+      # workflow's youngest GREEN run, and inside a run of this very workflow that
+      # question is partly self-referential -- so it is measured from gate-all.sh
+      # on a developer machine. Exit 3 is this repository's skip code; it is
+      # accepted HERE and only here, and `checker/ci-log-skips.sh` requires the
+      # skip to be declared rather than silently swallowed.
+      - name: workflow roles -- a docs manager may not write code
+        run: |
+          # workflow-roles: its API half needs a credential a fork does not have
+          # This first line is deliberately distinctive. GitHub labels a log
+          # group with the run block's FIRST LINE, and checker/ci-log-skips.sh
+          # keys its declarations on that label -- so a block beginning with a
+          # generic `set -uo pipefail` shares a key with every other block that
+          # does, and declaring THAT key would excuse skips anywhere in the file.
+          # A unique first line keeps the declaration narrow.
+          set -uo pipefail
+          # `set -uo pipefail` does NOT cancel the `-e` in GitHub's default
+          # `bash -e {0}`. MEASURED in run 31622038695: this checker reported
+          # "10 passed, 0 failed, 1 skipped ... Exit 3", the case below was
+          # written precisely to accept that as a notice, and the step died at
+          # the invocation without ever reaching the case. The exit-3 branch has
+          # never once executed. Third occurrence of this hazard in this file.
+          if bash checker/workflow-roles.sh; then ec=0; else ec=$?; fi
+          case "$ec" in
+            0) echo "workflow-roles: PASS" ;;
+            3) echo "::notice::workflow-roles SKIPPED its API half (exit 3) -- not a pass, measured from gate-all.sh instead" ;;
+            *) exit "$ec" ;;
+          esac
+
+      # WHAT THIS STEP ASSERTS, and what it deliberately does NOT.
+      # push-guard.sh answers "may anything be transmitted right now". On any
+      # commit before the promise is fulfilled the honest answer is NO, so a CI
+      # step demanding exit 0 would fail every build until the research is
+      # finished -- and the repair everyone reaches for is to delete the step.
+      # A gate that cannot pass on correct work is a defect, not a safeguard.
+      #
+      # So CI verifies the INSTRUMENT, not the verdict: exit 0 and exit 1 are both
+      # acceptable outcomes because both are determinate. Exit 2 is not -- that is
+      # the guard saying its own controls failed and it cannot stand behind any
+      # answer. "I could not tell" is not "yes", and it is not a pass either.
+      - name: push guard -- the instrument must be sound, whatever its verdict
+        run: |
+          # push-guard: instrument soundness first, then the verdict it reports
+          # A distinctive first line, for the same reason as the block above:
+          # ci-log-skips.sh keys its declarations on the log group's label, which
+          # GitHub takes from a run block's FIRST LINE. A generic
+          # `set -uo pipefail` there would make one declaration silently cover
+          # every block that happens to open the same way.
+          set -uo pipefail
+          # --instrument asks whether the guard is SOUND, not which way it points.
+          # One implementation, shared with gate-all.sh, so the two can never drift.
+          # `-e` is on (GitHub runs this as `bash -e {0}`) and `set -uo pipefail`
+          # does not cancel it, so a bare invocation aborts the step before its
+          # status can be read. Both reads below use the `if` form for that
+          # reason; the second matters most, because exit 1 is the guard's
+          # NORMAL answer while an obligation is open and the bare form would
+          # have killed the step without ever printing the verdict it captured.
+          if bash checker/push-guard.sh --instrument; then ec=0; else ec=$?; fi
+          [ "$ec" -eq 0 ] || { echo "::error::push-guard is not sound (exit $ec)"; exit 1; }
+
+          # And the verdict itself, reported but never demanded. Exit 1 is the
+          # correct answer until the promise is fulfilled; exit 2 never is.
+          if bash checker/push-guard.sh > /tmp/pushguard.txt 2>&1; then vc=0; else vc=$?; fi
+          cat /tmp/pushguard.txt
+          case "$vc" in
+            0) echo "push-guard: promise FULFILLED -- transmission permitted" ;;
+            1) echo "::notice::push-guard REFUSES (exit 1) -- obligations outstanding. Correct answer today, not a failure of this step." ;;
+            *) echo "::error::push-guard could not determine the promise state (exit $vc)"; exit 1 ;;
+          esac
+
+      - name: axiom audit -- #print axioms on every theorem, zero sorryAx
+        run: LEAN_ROOT="$GITHUB_WORKSPACE/lean" bash checker/axiom-audit.sh
+
+      # Classifies what a READER must trust, which the audit above does not ask:
+      # KERNEL (the kernel checked it) vs COMPILER (native_decide -- executed,
+      # not proved) vs BROKEN (sorryAx). This is the only gate that can catch a
+      # native_decide theorem, because `leanchecker` exits 0 on one -- measured.
+      # A declared axiom is trusted by definition, so the kernel re-check agrees
+      # with the elaborator and stays silent.
+      - name: axiom class -- KERNEL vs COMPILER vs BROKEN
+        run: bash checker/axiom-class.sh
+
+      # A theorem with contradictory hypotheses is TRUE, builds green, has clean
+      # axioms and survives leanchecker -- and says nothing. This is the only
+      # gate here that asks whether the hypotheses can ever HOLD.
+      - name: non-vacuity audit -- every guarded theorem has a witness
+        working-directory: lean
+        run: lake build Proofs.RotVacuity
+
+      - name: non-vacuity NEGATIVE CONTROL -- the audit must be able to fail
+        working-directory: lean
+        run: |
+          set +e
+          lake env lean mutate/vacuity_control.lean > vc.log 2>&1; rc=$?
+          echo "control exit=$rc"; cat vc.log
+          if [ "$rc" -eq 0 ]; then
+            echo "CONTROL DEAD: a witness was produced for hypotheses 1 = 2."
+            echo "The vacuity audit is decoration; fix it before trusting it."
+            exit 1
+          fi
+          echo "PASS: the audit refuses a vacuous theorem (exit $rc)"
+
+      # A [DECORATIVE] label is an opinion until something tests it. This file
+      # states the decorative shape and the load-bearing shape against the SAME
+      # broken definition; the first holds, the second is refuted.
+      # Does each theorem actually CONSTRAIN the function it names? Each probe
+      # refutes the generalized form with a concrete counterexample.
+      - name: generalization probe -- decorative vs load-bearing
+        working-directory: lean
+        run: bash mutate/generalization_probe.sh
+
+      - name: decorative-vs-load-bearing isolation
+        working-directory: lean
+        run: lake env lean mutate/decorative_isolation.lean
+
+      - name: forbid native_decide
+        working-directory: lean
+        run: |
+          n=$(bash ../checker/status-verdict.sh --count native_decide)
+          if [ "$n" -ne 0 ]; then
+            echo "FAIL: $n file(s) contain native_decide -- trusts the compiler binary, not the kernel"; exit 1
+          fi
+          echo "PASS: no native_decide"
+
+      # The kernel's own second opinion, independent of the elaborator that
+      # produced the terms. Silence with exit 0 is the pass.
+      - name: leanchecker -- kernel re-verification, with its negative control
+        working-directory: lean
+        run: |
+          set +e
+          # Enumerated from disk for the same reason as the build step above: a
+          # hand-typed list stops covering whatever is added after it is written.
+          mods=$(ls Proofs/*.lean | sed 's#Proofs/#Proofs.#; s#\.lean$##')
+          n=$(echo $mods | wc -w)
+          [ "$n" -lt 10 ] && { echo "FAIL: only $n modules found -- enumeration broke"; exit 1; }
+          for m in $mods; do
+            lake env leanchecker "$m"; rc=$?
+            echo "$m -> $rc"
+            [ "$rc" -ne 0 ] && { echo "FAIL: kernel rejected $m"; exit 1; }
+          done
+          # NEGATIVE CONTROL: an instrument that cannot fail is decoration.
+          lake env leanchecker Proofs.DeliberatelyAbsentModule; ctl=$?
+          echo "control (absent module) -> $ctl"
+          [ "$ctl" -eq 0 ] && { echo "FAIL: leanchecker passed a module that does not exist"; exit 1; }
+          echo "PASS: all modules re-verified; the control failed as it must"
+
+      - name: mutation suites -- theorems must DIE when the model breaks
+        working-directory: lean
+        run: |
+          set -e
+          # Enumerated from disk. A hand-typed suite list has the same staleness
+          # defect as a hand-typed module list: a mutation suite added later is
+          # simply never run, and its theorems read as mutation-tested when
+          # nothing has ever tried to break them.
+          suites=$(ls mutate/mutate_*.sh)
+          n=$(echo $suites | wc -w)
+          [ "$n" -lt 8 ] && { echo "FAIL: only $n suites found -- enumeration broke"; exit 1; }
+          for s in $suites; do
+            echo "== $s =="
+            bash "$s"
+          done
+
   lean-cold:
     name: lean cold sweep -- full build from source, axioms, kernel re-check
     runs-on: ubuntu-latest
+    # PRs get the warm lean gate above; the hours-long cold sweep is for main.
+    if: github.event_name != 'pull_request'
     timeout-minutes: 350
     steps:
       - uses: actions/checkout@v7

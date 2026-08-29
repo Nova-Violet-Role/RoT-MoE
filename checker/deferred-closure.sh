@@ -15,7 +15,7 @@
 # That leaves an honest gap, and this file closes it from the other end. The
 # deferred steps DO run: on the GitHub runner, every push. So fetch the log
 # archive of the newest completed CI run and require, for every step declared
-# in .github/workflows/ci.yml, that the runner produced a log for it -- and
+# in .github/workflows/ci2.yml, that the runner produced a log for it -- and
 # that the whole archive is free of `##[error]` and `##[warning]`.
 #
 # Together the two instruments cover the list with no third state:
@@ -39,7 +39,7 @@ ok  () { printf '  PASS  %s\n' "$*"; PASS=$((PASS+1)); }
 bad () { printf '  FAIL  %s\n' "$*"; [ "${GITHUB_ACTIONS:-}" = "true" ] && printf '::error title=deferred-closure::%s\n' "$*"; FAIL=$((FAIL+1)); }
 skip() { printf '  SKIP  %s\n' "$*"; }
 
-WF=".github/workflows/ci.yml"
+WF=".github/workflows/ci2.yml"
 [ -f "$WF" ] || { echo "REFUSE: $WF missing"; exit 2; }
 command -v curl  >/dev/null 2>&1 || { skip "curl absent";  exit 3; }
 command -v unzip >/dev/null 2>&1 || { skip "unzip absent"; exit 3; }
@@ -92,7 +92,7 @@ trap 'rm -rf "$WORK"' EXIT
 PAGE=1; RID=""; CONC=""; SHA=""; SKIPPED_INCONCLUSIVE=0
 while [ "$PAGE" -le 6 ]; do
   curl -sS -H "Authorization: Bearer $TOK" \
-       "$API/actions/workflows/ci.yml/runs?per_page=1&page=$PAGE&branch=main&status=completed" \
+       "$API/actions/workflows/ci2.yml/runs?per_page=1&page=$PAGE&branch=main&status=completed" \
        -o "$WORK/runs.json" 2>/dev/null
   rc=$?
   if [ "$rc" -ne 0 ] || [ ! -s "$WORK/runs.json" ]; then
@@ -179,7 +179,7 @@ else
   ok "log archive extracted: $NLOG file(s), $NJOB job log(s) from run $RID"
 fi
 
-# --- 3. EVERY step declared in THAT RUN'S ci.yml must have a log -------------
+# --- 3. EVERY step declared in THAT RUN'S ci2.yml must have a log -------------
 #
 # THE SPEC MUST NOT FORBID A CORRECT FUTURE. The first version compared the
 # step list in the WORKING TREE against the logs of the PREVIOUS run, so adding
