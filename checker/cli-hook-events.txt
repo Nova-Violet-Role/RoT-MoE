@@ -1,21 +1,26 @@
 # THE HOOK EVENTS CLAUDE CODE DEFINES -- extracted, not remembered.
 #
 # Source          : the `Lz` array inside the compiled claude CLI binary
-# CLI version     : 2.1.226 (Claude Code)
-# Extracted       : 2026-08-08
+# CLI version     : 2.1.251 (Claude Code); first extracted from 2.1.226
+# Extracted       : 2026-08-08; re-extracted 2026-08-30 after 2.1.251 added
+#                   PreModelSwitch and PostModelSwitch between PostCompact and
+#                   PermissionRequest (position read from the binary's own
+#                   array, not chosen)
 # Cross-checked   : against the same binary's execute<Name>Hooks dispatchers
-#                   (28 of 31 have a dispatcher under exactly that name;
-#                   SubagentStop, WorktreeCreate and WorktreeRemove do not, and
-#                   SubagentStop is MEASURED firing in a live session, so those
-#                   three are dispatched under a different symbol, not absent)
+#                   (30 of 33 have a dispatcher under exactly that name --
+#                   executePreModelSwitchHooks and executePostModelSwitchHooks
+#                   both present; SubagentStop, WorktreeCreate and
+#                   WorktreeRemove do not, and SubagentStop is MEASURED firing
+#                   in a live session, so those three are dispatched under a
+#                   different symbol, not absent)
 # Deliberately excluded: TaskStop. It is a TOOL -- its surrounding text in the
 #                   binary reads "use TaskStop with task_id" -- and wiring it
 #                   would be the same class of error as missing SubagentStart.
 #
 # WHY THIS FILE EXISTS. RoT MoE's event list was previously derived by counting
 # which events other installed plugins bound. That is a lower bound: it cannot
-# reveal an event nothing on the machine happens to use, and it missed twenty of
-# the thirty-one below. A fixture extracted from the CLI removes the guesswork
+# reveal an event nothing on the machine happens to use, and it missed twenty-two
+# of the thirty-three below. A fixture extracted from the CLI removes the guesswork
 # and, more importantly, gives checker/cli-event-coverage.sh something to fail
 # against when a CLI upgrade adds an event the router does not yet bind.
 #
@@ -37,6 +42,8 @@ SubagentStart
 SubagentStop
 PreCompact
 PostCompact
+PreModelSwitch
+PostModelSwitch
 PermissionRequest
 PermissionDenied
 Setup

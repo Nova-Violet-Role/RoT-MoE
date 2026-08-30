@@ -41,7 +41,7 @@ namespace RotMoE.Event
 
 /-! ## The declared events -/
 
-/-- The thirty-one lifecycle events RoT MoE binds, in the order the CLI itself
+/-- The thirty-three lifecycle events RoT MoE binds, in the order the CLI itself
 lists them.
 
 PROVENANCE, because the previous provenance was the defect. This list was
@@ -50,16 +50,19 @@ PLUGINS USED. That method is a lower bound: it cannot reveal an event that
 nothing on the measuring machine happens to bind. It missed `SubagentStart`
 entirely, and it missed nineteen others.
 
-These thirty-one are read from the authoritative source -- the `Lz` array inside
-the compiled `claude` CLI binary -- and cross-checked against that binary's
-`execute<Name>Hooks` dispatch functions. `TaskStop` appears nearby and is
-deliberately EXCLUDED: its surrounding text reads "use TaskStop with task_id",
-which makes it a tool, not an event. -/
+These thirty-three are read from the authoritative source -- the `Lz` array
+inside the compiled `claude` CLI binary -- and cross-checked against that
+binary's `execute<Name>Hooks` dispatch functions. `TaskStop` appears nearby and
+is deliberately EXCLUDED: its surrounding text reads "use TaskStop with
+task_id", which makes it a tool, not an event. `PreModelSwitch` and
+`PostModelSwitch` were added by CLI 2.1.251 and re-extracted 2026-08-30; their
+position between `PostCompact` and `PermissionRequest` is the binary's own. -/
 def declared : List String :=
   ["PreToolUse", "PostToolUse", "PostToolUseFailure", "PostToolBatch",
    "Notification", "UserPromptSubmit", "UserPromptExpansion", "SessionStart",
    "SessionEnd", "Stop", "StopFailure", "SubagentStart", "SubagentStop",
-   "PreCompact", "PostCompact", "PermissionRequest", "PermissionDenied",
+   "PreCompact", "PostCompact", "PreModelSwitch", "PostModelSwitch",
+   "PermissionRequest", "PermissionDenied",
    "Setup", "TeammateIdle", "TaskCreated", "TaskCompleted", "Elicitation",
    "ElicitationResult", "ConfigChange", "WorktreeCreate", "WorktreeRemove",
    "InstructionsLoaded", "CwdChanged", "FileChanged", "DirectoryAdded",
@@ -158,9 +161,9 @@ theorem every_declared_event_survives :
 
 /-! ## What the coverage claim says -/
 
-/-- Thirty-one, and this is the number the manifest, `ARM_ROUTER.sh` and
+/-- Thirty-three, and this is the number the manifest, `ARM_ROUTER.sh` and
 `ARM_ROUTER.ps1` are asserted to agree on. -/
-theorem declared_count : declared.length = 31 := by rfl
+theorem declared_count : declared.length = 33 := by rfl
 
 /-- Deduplication, written out rather than imported, so this module depends on
 no library name that could move under it. -/
@@ -170,7 +173,7 @@ def dedup (l : List String) : List String :=
 /-- No event is registered twice. A duplicate would double-fire the router on
 that event -- the exact defect `checker/router-duplication.sh` exists to catch,
 arriving through the manifest instead of through a stacked install. -/
-theorem declared_has_no_duplicates : (dedup declared).length = 31 := by
+theorem declared_has_no_duplicates : (dedup declared).length = 33 := by
   rfl
 
 /-- THE DEFECT, stated as a theorem: what the router used to bind is a strict
@@ -178,11 +181,13 @@ subset of what it binds now. -/
 theorem old_binding_was_a_subset :
     boundBefore.all (fun e => declared.contains e) = true := by rfl
 
-/-- Twenty-eight events had no binding at all under the original three. This is
-the size of the blind spot, and it is the reason every prior A/B measured a
-partially installed router. -/
-theorem twentyeight_events_were_unbound :
-    (declared.filter (fun e => !boundBefore.contains e)).length = 28 := by rfl
+/-- Thirty of the current declared events had no binding at all under the
+original three. This is the size of the blind spot (twenty-eight when the list
+was thirty-one; the two events CLI 2.1.251 added were, by construction, also
+unbound then), and it is the reason every prior A/B measured a partially
+installed router. -/
+theorem thirty_events_were_unbound :
+    (declared.filter (fun e => !boundBefore.contains e)).length = 30 := by rfl
 
 /-! ## The counting method was the defect, and it is stated as a theorem
 
@@ -197,10 +202,12 @@ entirely incomplete. Every counted event is real. -/
 theorem counted_events_are_all_real :
     countedFromPlugins.all (fun e => declared.contains e) = true := by rfl
 
-/-- ... but it missed twenty of them. A lower bound cannot find what nothing on
-the machine happens to use. -/
-theorem counting_missed_twenty :
-    (declared.filter (fun e => !countedFromPlugins.contains e)).length = 20 := by rfl
+/-- ... but it missed twenty-two of them (twenty when the list was thirty-one,
+plus the two events CLI 2.1.251 added, which no counting of 2026-08-08 plugins
+could have seen). A lower bound cannot find what nothing on the machine happens
+to use. -/
+theorem counting_missed_twentytwo :
+    (declared.filter (fun e => !countedFromPlugins.contains e)).length = 22 := by rfl
 
 /-- `SubagentStart` is declared by the CLI and was absent from the counted list.
 This is the specific miss that prompted the re-derivation, kept as a theorem
@@ -242,9 +249,12 @@ theorem entries_equal_declared_count (evs : List String) :
 #guard sanitise "" == "-"
 #guard sanitise "Stop-1" == "-"
 #guard sanitise "Evil\",\"lane\":\"PWNED" == "-"
-#guard declared.length == 31
-#guard (declared.filter (fun e => !boundBefore.contains e)).length == 28
-#guard (declared.filter (fun e => !countedFromPlugins.contains e)).length == 20
+#guard declared.length == 33
+#guard (declared.filter (fun e => !boundBefore.contains e)).length == 30
+#guard (declared.filter (fun e => !countedFromPlugins.contains e)).length == 22
+#guard declared.contains "PreModelSwitch"
+#guard declared.contains "PostModelSwitch"
+#guard sanitise "PreModelSwitch" == "PreModelSwitch"
 #guard declared.contains "SubagentStart"
 #guard !declared.contains "TaskStop"
 #guard sanitise "SubagentStart" == "SubagentStart"

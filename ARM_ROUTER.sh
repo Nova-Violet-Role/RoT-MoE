@@ -164,7 +164,7 @@ ROUTER_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$RO
 # win has been demonstrated, and it is recorded here as a candidate rather than
 # a conclusion, because it has not yet been re-measured under full wiring.
 #
-# The thirty-one names are READ FROM THE CLI, not recalled and not counted from
+# The thirty-three names are READ FROM THE CLI, not recalled and not counted from
 # other plugins: the Lz array inside the compiled claude binary. An earlier list
 # of eleven was counted from every hooks.json and settings.json
 # on the measuring machine was scanned, and these are the event keys in real use
@@ -178,12 +178,16 @@ ROUTER_CMD="if command -v pwsh >/dev/null 2>&1; then pwsh -NoProfile -File \"$RO
 # rot-router exits 0 and emits its marker on every one, prover-remind exits 0
 # on every one -- 80 invocations across the four arms for the twenty new events. Widening the wiring without that measurement would have risked
 # a hook that crashes on Stop, which breaks the session rather than the build.
+# 2026-08-30: CLI 2.1.251 added PreModelSwitch and PostModelSwitch (read from
+# its Lz array, position between PostCompact and PermissionRequest); the same
+# payload measurement was repeated for both new events on every arm before the
+# CSV below was widened to thirty-three.
 ALL_EVENTS='UserPromptSubmit UserPromptExpansion PreToolUse PostToolUse SessionStart SessionEnd Stop SubagentStop Notification PreCompact PostCompact'
 EVENTS="$ALL_EVENTS"
-EVENTS_CSV='PreToolUse,PostToolUse,PostToolUseFailure,PostToolBatch,Notification,UserPromptSubmit,UserPromptExpansion,SessionStart,SessionEnd,Stop,StopFailure,SubagentStart,SubagentStop,PreCompact,PostCompact,PermissionRequest,PermissionDenied,Setup,TeammateIdle,TaskCreated,TaskCompleted,Elicitation,ElicitationResult,ConfigChange,WorktreeCreate,WorktreeRemove,InstructionsLoaded,CwdChanged,FileChanged,DirectoryAdded,MessageDisplay'
+EVENTS_CSV='PreToolUse,PostToolUse,PostToolUseFailure,PostToolBatch,Notification,UserPromptSubmit,UserPromptExpansion,SessionStart,SessionEnd,Stop,StopFailure,SubagentStart,SubagentStop,PreCompact,PostCompact,PreModelSwitch,PostModelSwitch,PermissionRequest,PermissionDenied,Setup,TeammateIdle,TaskCreated,TaskCompleted,Elicitation,ElicitationResult,ConfigChange,WorktreeCreate,WorktreeRemove,InstructionsLoaded,CwdChanged,FileChanged,DirectoryAdded,MessageDisplay'
 
 # The reminder ships in the same tree and is registered by the PLUGIN on the
-# same thirty-one events. The hand install has to match it or the two paths deliver
+# same thirty-three events. The hand install has to match it or the two paths deliver
 # different products -- see the block at the merge call for the measurement.
 REMIND_PS1="$(canon_path "$SELF_DIR/hooks/prover-remind.ps1")"
 REMIND_SH="$(canon_path "$SELF_DIR/hooks/prover-remind.sh")"
