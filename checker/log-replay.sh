@@ -376,10 +376,18 @@ tell me a story about the sea
 some entirely unremarkable sentence
 fix our relationship'
 
+# Each arm gets its OWN FRESH state dir. M and T are state (streak file +
+# wall-clock gap), and the real state dir leaks: earlier checker steps in the
+# same CI job had already run the sh router under session "unknown", so the sh
+# arm opened with M=1.1/T=1.09 while the ps1 arm read a different view and
+# wrote M=1/T=1.1 -- byte-identity across arms is impossible unless both start
+# from the same (empty) state and replay the same corpus. MEASURED on
+# ubuntu-latest: the cross-arm diff fired on M/T alone; every record still
+# recomputed, so it was state skew, not arithmetic.
 LOG_SH="$TMP/sh.log"
 while IFS= read -r p; do
   [ -n "$p" ] || continue
-  printf '{"prompt":"%s"}' "$p" | ROTMOE_DEBUG_LOG="$LOG_SH" sh hooks/rot-router.sh >/dev/null 2>&1
+  printf '{"prompt":"%s"}' "$p" | ROTMOE_DEBUG_LOG="$LOG_SH" ROTMOE_STATE_DIR="$TMP/state-sh" sh hooks/rot-router.sh >/dev/null 2>&1
 done <<EOF
 $CORPUS
 EOF
@@ -398,7 +406,7 @@ if command -v pwsh >/dev/null 2>&1; then
   LOG_PS="$TMP/ps.log"
   while IFS= read -r p; do
     [ -n "$p" ] || continue
-    printf '{"prompt":"%s"}' "$p" | ROTMOE_DEBUG_LOG="$LOG_PS" pwsh -NoProfile -File ./hooks/rot-router.ps1 >/dev/null 2>&1
+    printf '{"prompt":"%s"}' "$p" | ROTMOE_DEBUG_LOG="$LOG_PS" ROTMOE_STATE_DIR="$TMP/state-ps" pwsh -NoProfile -File ./hooks/rot-router.ps1 >/dev/null 2>&1
   done <<EOF
 $CORPUS
 EOF
@@ -473,12 +481,19 @@ ctl () {   # ctl <label> <sed-expression>
   fi
 }
 
-ctl "a tampered Rs"        's/"Rs":0\.66427/"Rs":0.99999/'
-# The ROUTE line specifically -- the rounding rule must not have loosened this.
-# 0.66 -> 0.70 is a rounding of nothing; it is a different number wearing the
-# right number of digits.
-ctl "a tampered route Rs"  's/"Rs":"0\.66"/"Rs":"0.70"/'
-ctl "a tampered sum"       's/"sum":5\.97843/"sum":4.00000/'
+# VALUE-AGNOSTIC patterns, deliberately. The first draft hardcoded the live
+# numbers ("Rs":0\.66427, "sum":5\.97843, "Rs":"0\.66") and paid for it: when
+# leaked state shifted M/T, the live values moved, all three seds matched zero
+# bytes, and the harness reported CONTROL DISCARDED three times on ubuntu.
+# A control keyed to today's output is a control that dies the day the output
+# legitimately changes. These match the FIELD, not the value; they corrupt
+# every record, and cmp -s still proves the mutation landed.
+ctl "a tampered Rs"        's/"Rs":[0-9][0-9.]*/"Rs":9.99999/'
+# The ROUTE line specifically (quoted Rs) -- the rounding rule must not have
+# loosened. A forged two-digit value is a different number wearing the right
+# number of digits.
+ctl "a tampered route Rs"  's/"Rs":"[0-9][0-9.]*"/"Rs":"9.99"/'
+ctl "a tampered sum"       's/"sum":[0-9][0-9.]*/"sum":4.00000/'
 ctl "a wrong mu"           's/"mu":1\.15/"mu":1.55/'
 ctl "a wrong sigma"        's/"sigma":0\.8257/"sigma":0.5000/'
 
