@@ -362,7 +362,11 @@ for v in $WANT; do
     livefront="$(printf '%s' "$live" | sed 's/[[:space:]]*|[[:space:]]*R\/s+.*$//')"
     wantfront="$(printf '%s' "$want" | sed 's/[[:space:]]*|[[:space:]]*R\/s+.*$//')"
     gaugeok=0
-    printf '%s' "$live" | grep -Eq '\| R/s\+ [0-9]+\.[0-9]{2}$' && gaugeok=1
+    # No pipe: `grep -q` exits on match, printf takes EPIPE, pipefail scores the
+    # MATCH as a miss (measured on ubuntu-latest 2026-08-01, workflow-lint rule).
+    # bash [[ =~ ]] evaluates the same ERE with no process and no pipe.
+    gauge_re='\| R/s\+ [0-9]+\.[0-9]{2}$'
+    [[ "$live" =~ $gauge_re ]] && gaugeok=1
     if [ -n "$live" ] && [ "$livefront" = "$wantfront" ] && [ "$gaugeok" -eq 1 ]; then matched=$((matched+1)); fi
     if [ -n "$live" ] && [ "$livelane" = "$wantlane" ]; then lanematched=$((lanematched+1)); fi
     printf '    turn %-2s  router=%-18s oracle=%-18s %s\n' "$n" "${live:-<SILENT>}" "${want:-?}" \

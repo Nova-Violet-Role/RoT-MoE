@@ -798,7 +798,10 @@ echo "-- drift: every Lean module and mutation suite must be in CI --"
 # it. `ls Proofs/*.lean` covers every module by construction; `ls Proofs/Rot*`
 # would not, and the control below proves this can still tell the difference.
 # -----------------------------------------------------------------------------
-ENUM_MOD="$(grep -oE 'ls Proofs/[^ |]*\.lean' .github/workflows/ci.yml | head -1)"
+# The Lean lane moved from ci.yml to ci2.yml on 2026-08-29 (release waits on
+# checkers only; proofs verify on the same push in ci2.yml). The enumeration
+# may live in ANY workflow -- scan them all, exactly as WF_TEXT already does.
+ENUM_MOD="$(grep -hoE 'ls Proofs/[^ |]*\.lean' .github/workflows/*.yml | head -1)"
 enum_mods() {
   [ -n "$ENUM_MOD" ] || return 0
   ( cd lean 2>/dev/null && eval "$ENUM_MOD" 2>/dev/null ) \
@@ -849,7 +852,9 @@ mut_except_reason () {
 # Same treatment as the module list, for the same reason: CI enumerates its
 # mutation suites from disk, so requiring each filename to appear as text would
 # force back the hand-typed list whose staleness is the whole problem.
-ENUM_MUT="$(grep -oE 'ls mutate/[^ |)]*\.sh' .github/workflows/ci.yml | head -1)"
+# Mutation lane moved to ci2.yml with the Lean lane (2026-08-29) -- scan all
+# workflows, same as ENUM_MOD above.
+ENUM_MUT="$(grep -hoE 'ls mutate/[^ |)]*\.sh' .github/workflows/*.yml | head -1)"
 MUT_ENUMERATED="$( [ -n "$ENUM_MUT" ] && ( cd lean 2>/dev/null && eval "$ENUM_MUT" 2>/dev/null ) | sed 's#^mutate/##' )"
 [ -n "$ENUM_MUT" ] && ok "CI enumerates its mutation suites from disk ($ENUM_MUT)"
 

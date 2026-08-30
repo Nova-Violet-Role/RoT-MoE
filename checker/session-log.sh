@@ -340,13 +340,21 @@ for arm in sh ps1; do
 done
 
 # Both arms must use the SAME wording, or a reader cannot grep one pattern.
+# WORDING is the contract -- not the live gauge. The marker line embeds R/s+
+# and term values computed from wall-clock timing, so byte-equality over the
+# raw lines is a coin flip: CI run 33280961426 failed on sh 'R/s+ 0.87' vs
+# ps1 'R/s+ 0.88' with every word identical. Mask numeric literals on both
+# sides, then demand byte-identity of everything that remains -- seals,
+# lens names, tier wording, and the UNWRITABLE alarm all stay load-bearing.
 if [ "$have_pwsh" = 1 ]; then
   a=$(marker_of sh  "$BLOCK/sub")
   b=$(marker_of ps1 "$BLOCK/sub")
-  if [ "$a" = "$b" ]; then
-    ok "both arms emit a byte-identical marker line"
+  na=$(printf '%s' "$a" | sed -E 's/[0-9]+([.][0-9]+)?/#/g')
+  nb=$(printf '%s' "$b" | sed -E 's/[0-9]+([.][0-9]+)?/#/g')
+  if [ -n "$na" ] && [ "$na" = "$nb" ]; then
+    ok "both arms emit an identical marker line (numerics masked)"
   else
-    bad "marker lines differ: sh='$a' ps1='$b'"
+    bad "marker lines differ beyond live numerics: sh='$a' ps1='$b'"
   fi
 else
   inap "cross-arm marker comparison -- pwsh not on PATH"
