@@ -80,9 +80,28 @@ else
   # the newest tag (an untagged release in progress), but it must never fall
   # BEHIND one. A tree declaring 0.5.2 while v0.6.2 is tagged means shipped
   # artifacts claim a version the source has already abandoned -- that is drift.
+  #
+  # THE TIER EXCEPTION, measured 2026-08-30 on CI run 236, the first push after
+  # the v10.0.x release. This repo's publisher cuts THREE tags per release --
+  # vX.Y.0 (core), vX.Y.1 (lean), vX.Y.2 (unsealed) -- all from ONE tree whose
+  # declared version is X.Y.0; the patch digit is the TIER, and CHANGELOG.md
+  # documents the twist. Plain semver therefore reads v10.0.2 as "newer than
+  # 10.0.0" and this gate went red on every leg of the first post-release push,
+  # a state its checkers had never seen (the dispatch run's own checkers execute
+  # BEFORE the tags exist). Same repair class as the block above: the spec was
+  # wrong, not the workflow. The exception is deliberately NARROW: it applies
+  # only when the tree declares patch 0 and the newest tag differs from it in
+  # nothing but a patch digit of 1 or 2. Any other divergence -- a different
+  # major.minor, a tag patch above 2, a nonzero tree patch -- still compares
+  # directionally and still fails behind.
+  _pj_base="${pj_ver%.*}"; _pj_patch="${pj_ver##*.}"
+  _tag_base="${tag_ver%.*}"; _tag_patch="${tag_ver##*.}"
   _cmp=$(printf '%s\n%s\n' "$tag_ver" "$pj_ver" | sort -V | head -1)
   if [ "$tag_ver" = "$pj_ver" ]; then
     ok "newest tag $newest_tag matches the declared version"
+  elif [ "$_tag_base" = "$_pj_base" ] && [ "$_pj_patch" = "0" ] \
+    && { [ "$_tag_patch" = "1" ] || [ "$_tag_patch" = "2" ]; }; then
+    ok "newest tag $newest_tag is TIER $_tag_patch of declared version $pj_ver -- the three-tag release scheme, not drift"
   elif [ "$_cmp" = "$tag_ver" ]; then
     ok "tree ($pj_ver) is AHEAD of the newest tag ($newest_tag) -- release in progress, not drift"
   else
@@ -186,6 +205,34 @@ case "1.0" in
   [0-9]*.[0-9]*.[0-9]*) bad "CONTROL DEAD: '1.0' passed the semver shape test" ;;
   *) ok "CONTROL: a two-part version '1.0' IS rejected as non-semver" ;;
 esac
+# The tier exception must stay NARROW. Each control replays the branch's
+# predicate on inputs that must NOT qualify; if one qualifies, the exception
+# has widened into amnesty and the directional check is dead.
+_t_ctl() { # <pj_ver> <tag_ver> -> 0 if the tier exception would apply
+  local _p="$1" _t="$2"
+  [ "${_t%.*}" = "${_p%.*}" ] && [ "${_p##*.}" = "0" ] \
+    && { [ "${_t##*.}" = "1" ] || [ "${_t##*.}" = "2" ]; }
+}
+if _t_ctl "10.0.0" "10.0.2"; then
+  ok "CONTROL: the tier exception DOES cover the real scheme (10.0.0 vs v10.0.2)"
+else
+  bad "CONTROL DEAD: the tier exception misses the exact case it was written for"
+fi
+if _t_ctl "10.0.0" "10.1.2"; then
+  bad "CONTROL DEAD: a different minor (v10.1.2 vs 10.0.0) qualified as a tier"
+else
+  ok "CONTROL: a different minor is NOT a tier -- directional drift still fires"
+fi
+if _t_ctl "10.0.0" "10.0.5"; then
+  bad "CONTROL DEAD: tag patch 5 qualified as a tier -- only 1 and 2 are tiers"
+else
+  ok "CONTROL: a tag patch above 2 is NOT a tier"
+fi
+if _t_ctl "10.0.1" "10.0.2"; then
+  bad "CONTROL DEAD: a nonzero tree patch (10.0.1) qualified for the tier exception"
+else
+  ok "CONTROL: the exception requires the tree to declare patch 0"
+fi
 
 printf '\n== release consistency: %d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
