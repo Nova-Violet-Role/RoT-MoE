@@ -213,7 +213,7 @@ echo "=== RotInject mutation suite ==="
 run_mut I01 \
   '"SessionStart", "UserPromptSubmit", "UserPromptExpansion"]' \
   '"SessionStart", "UserPromptSubmit", "UserPromptExpansion", "SessionEnd"]' \
-  'the SessionEnd guard, the length guard and the 25-refused guard'
+  'the SessionEnd guard, the length guard and the 27-refused guard'
 
 # I02 -- emission on everything: the behaviour that produced ~25 invalid
 # payloads per session. If nothing dies, the safety property proves nothing.

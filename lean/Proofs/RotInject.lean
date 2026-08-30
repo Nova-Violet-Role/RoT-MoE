@@ -116,7 +116,7 @@ theorem emitted_payload_is_valid (e : String) (h : emits e = true) :
 
 /-! ## The set is drawn from real events -/
 
-/-- Every accepting event is one of the 31 events the CLI actually dispatches.
+/-- Every accepting event is one of the 33 events the CLI actually dispatches.
 This is the typo catcher: a misspelled name in the PowerShell `$ctxEvents` array
 would silently disable injection on a lane that works, and nothing else would
 notice. `declared` comes from `Proofs.RotEvent`, so there is one roster, not two. -/
@@ -139,9 +139,10 @@ correct future CLI may falsify, and none of the theorems above depends on them. 
 -- Six accepting events at the version measured.
 #guard accepting.length = 6
 
--- 25 of the 31 wired events must stay silent -- the ~25 invalid payloads per
--- session that the gate removes.
-#guard (declared.filter (fun e => !emits e)).length = 25
+-- 27 of the 33 wired events must stay silent -- the invalid payloads per
+-- session that the gate removes (25 of 31 before CLI 2.1.251 added
+-- PreModelSwitch and PostModelSwitch, neither of which accepts context).
+#guard (declared.filter (fun e => !emits e)).length = 27
 
 -- The live rejection that started this: SessionEnd is refused.
 #guard emits "SessionEnd" = false
