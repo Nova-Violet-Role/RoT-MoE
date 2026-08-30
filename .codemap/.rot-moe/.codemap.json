@@ -2,12 +2,12 @@
   "directory": ".rot-moe",
   "files": {
     "animus-distillate.md": {
-      "hash": "04f2d1132bd1",
-      "indexed_at": "2026-08-25T11:35:02.604738+00:00",
+      "hash": "23c220ca157c",
+      "indexed_at": "2026-08-30T10:19:06.274318+00:00",
       "language": "markdown",
-      "lines": 20,
-      "mtime_ns": 1787606912971914800,
-      "size": 3381,
+      "lines": 26,
+      "mtime_ns": 1787951974333860100,
+      "size": 3917,
       "symbols": [
         {
           "lines": [
@@ -30,14 +30,48 @@
           "docstring": "- 2026-08-24T23:28:25+02:00 | 7aa6504e-bb87-f7bd-dd5a-cd4048ffdaa6 | Chroma | 3 consecutive actions, each costlier than the last (303ms -> 389ms) -- t",
           "lines": [
             5,
-            21
+            20
           ],
           "name": "animus run 2026-08-24T23:28:24+02:00 | session 7aa6504e-bb87-f7bd-dd5a-cd4048ffdaa6",
+          "type": "section"
+        },
+        {
+          "docstring": "- 2026-08-28T23:19:32+02:00 | RSTRIP | Venom | 3 prompt turns and not one act between them -- analysis is complete somewhere behind you; decide and mo",
+          "lines": [
+            21,
+            22
+          ],
+          "name": "animus run 2026-08-28T23:19:32+02:00 | session RSTRIP",
+          "type": "section"
+        },
+        {
+          "lines": [
+            23,
+            23
+          ],
+          "name": "animus run 2026-08-28T23:19:33+02:00 | session RSTRIP",
+          "type": "section"
+        },
+        {
+          "docstring": "- 2026-08-28T23:19:34+02:00 | RSTRIP | Venom | 2 prompt turns and not one act between them -- analysis is complete somewhere behind you; decide and mo",
+          "lines": [
+            24,
+            25
+          ],
+          "name": "animus run 2026-08-28T23:19:33+02:00 | session RSTRIP",
+          "type": "section"
+        },
+        {
+          "lines": [
+            26,
+            27
+          ],
+          "name": "animus run 2026-08-28T23:19:34+02:00 | session RSTRIP",
           "type": "section"
         }
       ]
     }
   },
-  "generated_at": "2026-08-25T11:35:04.228319+00:00",
+  "generated_at": "2026-08-30T10:19:06.308783+00:00",
   "version": "1.0"
 }

@@ -503,12 +503,12 @@
       ]
     },
     "rot-claude.md": {
-      "hash": "c9753da604b5",
-      "indexed_at": "2026-08-25T11:35:02.609241+00:00",
+      "hash": "83e9b436d8b3",
+      "indexed_at": "2026-08-30T10:19:06.274621+00:00",
       "language": "markdown",
       "lines": 230,
-      "mtime_ns": 1787420479185035900,
-      "size": 11907,
+      "mtime_ns": 1787939269763425400,
+      "size": 11912,
       "symbols": [
         {
           "docstring": "Eight lenses were transcribed from codices. This one was not. The \ud83e\udded Claude lens is newer than both source documents, and neither names an ability for",
@@ -1350,6 +1350,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-25T11:35:04.264095+00:00",
+  "generated_at": "2026-08-30T10:19:06.309117+00:00",
   "version": "1.0"
 }

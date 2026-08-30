@@ -292,12 +292,12 @@
       ]
     },
     "ci.yml": {
-      "hash": "115c45724ba2",
-      "indexed_at": "2026-08-25T11:35:02.601995+00:00",
+      "hash": "3e5dcdd8fccb",
+      "indexed_at": "2026-08-30T10:19:06.273849+00:00",
       "language": "yaml",
-      "lines": 1642,
-      "mtime_ns": 1787595437703504700,
-      "size": 94321,
+      "lines": 1228,
+      "mtime_ns": 1788045433774019100,
+      "size": 70340,
       "symbols": [
         {
           "docstring": "CI",
@@ -416,24 +416,15 @@
               "docstring": "read",
               "lines": [
                 52,
-                57
+                53
               ],
               "name": "contents",
-              "type": "key"
-            },
-            {
-              "docstring": "read",
-              "lines": [
-                58,
-                59
-              ],
-              "name": "actions",
               "type": "key"
             }
           ],
           "lines": [
             51,
-            59
+            53
           ],
           "name": "permissions",
           "type": "section"
@@ -443,8 +434,8 @@
             {
               "docstring": "ci-${{ github.workflow }}-${{ github.ref }}",
               "lines": [
-                70,
-                70
+                64,
+                64
               ],
               "name": "group",
               "type": "key"
@@ -452,16 +443,16 @@
             {
               "docstring": "true",
               "lines": [
-                71,
-                72
+                65,
+                66
               ],
               "name": "cancel-in-progress",
               "type": "key"
             }
           ],
           "lines": [
-            60,
-            72
+            54,
+            66
           ],
           "name": "concurrency",
           "type": "section"
@@ -473,8 +464,8 @@
                 {
                   "docstring": "checkers (${{ matrix.os }})",
                   "lines": [
-                    76,
-                    76
+                    70,
+                    70
                   ],
                   "name": "name",
                   "type": "key"
@@ -482,8 +473,8 @@
                 {
                   "docstring": "${{ matrix.os }}",
                   "lines": [
-                    77,
-                    77
+                    71,
+                    71
                   ],
                   "name": "runs-on",
                   "type": "key"
@@ -493,8 +484,8 @@
                     {
                       "docstring": "false          # one platform failing must not hide the other two",
                       "lines": [
-                        79,
-                        79
+                        73,
+                        73
                       ],
                       "name": "fail-fast",
                       "type": "key"
@@ -504,24 +495,24 @@
                         {
                           "docstring": "[ubuntu-latest, windows-latest, macos-latest]",
                           "lines": [
-                            81,
-                            81
+                            75,
+                            75
                           ],
                           "name": "os",
                           "type": "collection"
                         }
                       ],
                       "lines": [
-                        80,
-                        81
+                        74,
+                        75
                       ],
                       "name": "matrix",
                       "type": "section"
                     }
                   ],
                   "lines": [
-                    78,
-                    81
+                    72,
+                    75
                   ],
                   "name": "strategy",
                   "type": "section"
@@ -531,8 +522,8 @@
                     {
                       "docstring": "actions/checkout@v7",
                       "lines": [
-                        83,
-                        83
+                        77,
+                        77
                       ],
                       "name": "uses",
                       "type": "item"
@@ -542,16 +533,16 @@
                         {
                           "docstring": "0  # full-freshness.sh CONTROL 3 needs git history to build the stale case",
                           "lines": [
-                            85,
-                            86
+                            79,
+                            80
                           ],
                           "name": "fetch-depth",
                           "type": "key"
                         }
                       ],
                       "lines": [
-                        84,
-                        86
+                        78,
+                        80
                       ],
                       "name": "with",
                       "type": "section"
@@ -559,8 +550,8 @@
                     {
                       "docstring": "preflight -- what is available here",
                       "lines": [
-                        87,
-                        87
+                        81,
+                        81
                       ],
                       "name": "name",
                       "type": "item"
@@ -568,8 +559,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        88,
-                        88
+                        82,
+                        82
                       ],
                       "name": "shell",
                       "type": "key"
@@ -577,8 +568,8 @@
                     {
                       "docstring": "bash checker/preflight.sh",
                       "lines": [
-                        89,
-                        96
+                        83,
+                        90
                       ],
                       "name": "run",
                       "type": "key"
@@ -586,8 +577,8 @@
                     {
                       "docstring": "install comma-decimal locales",
                       "lines": [
-                        97,
-                        97
+                        91,
+                        91
                       ],
                       "name": "name",
                       "type": "item"
@@ -595,16 +586,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        98,
-                        98
+                        92,
+                        92
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        99,
-                        118
+                        93,
+                        112
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -612,8 +603,8 @@
                     {
                       "docstring": "theorem counter selftest",
                       "lines": [
-                        119,
-                        119
+                        113,
+                        113
                       ],
                       "name": "name",
                       "type": "item"
@@ -621,8 +612,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        120,
-                        120
+                        114,
+                        114
                       ],
                       "name": "shell",
                       "type": "key"
@@ -630,8 +621,8 @@
                     {
                       "docstring": "bash checker/count-theorems.sh --selftest",
                       "lines": [
-                        121,
-                        122
+                        115,
+                        116
                       ],
                       "name": "run",
                       "type": "key"
@@ -639,8 +630,8 @@
                     {
                       "docstring": "repo completeness + count drift",
                       "lines": [
-                        123,
-                        123
+                        117,
+                        117
                       ],
                       "name": "name",
                       "type": "item"
@@ -648,8 +639,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        124,
-                        124
+                        118,
+                        118
                       ],
                       "name": "shell",
                       "type": "key"
@@ -657,8 +648,8 @@
                     {
                       "docstring": "bash checker/repo-complete.sh",
                       "lines": [
-                        125,
-                        126
+                        119,
+                        120
                       ],
                       "name": "run",
                       "type": "key"
@@ -666,8 +657,8 @@
                     {
                       "docstring": "SPDX + copyright sweep",
                       "lines": [
-                        127,
-                        127
+                        121,
+                        121
                       ],
                       "name": "name",
                       "type": "item"
@@ -675,8 +666,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        128,
-                        128
+                        122,
+                        122
                       ],
                       "name": "shell",
                       "type": "key"
@@ -684,8 +675,8 @@
                     {
                       "docstring": "sh checker/spdx-sweep.sh",
                       "lines": [
-                        129,
-                        130
+                        123,
+                        124
                       ],
                       "name": "run",
                       "type": "key"
@@ -693,8 +684,8 @@
                     {
                       "docstring": "no machine-local paths",
                       "lines": [
-                        131,
-                        131
+                        125,
+                        125
                       ],
                       "name": "name",
                       "type": "item"
@@ -702,8 +693,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        132,
-                        132
+                        126,
+                        126
                       ],
                       "name": "shell",
                       "type": "key"
@@ -711,8 +702,8 @@
                     {
                       "docstring": "sh checker/no-local-paths.sh",
                       "lines": [
-                        133,
-                        141
+                        127,
+                        135
                       ],
                       "name": "run",
                       "type": "key"
@@ -720,8 +711,8 @@
                     {
                       "docstring": "lean module case (imports vs the real on-disk spelling)",
                       "lines": [
-                        142,
-                        142
+                        136,
+                        136
                       ],
                       "name": "name",
                       "type": "item"
@@ -729,8 +720,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        143,
-                        143
+                        137,
+                        137
                       ],
                       "name": "shell",
                       "type": "key"
@@ -738,8 +729,8 @@
                     {
                       "docstring": "sh checker/lean-module-case.sh",
                       "lines": [
-                        144,
-                        152
+                        138,
+                        146
                       ],
                       "name": "run",
                       "type": "key"
@@ -747,8 +738,8 @@
                     {
                       "docstring": "name collision (two modules, one qualified name)",
                       "lines": [
-                        153,
-                        153
+                        147,
+                        147
                       ],
                       "name": "name",
                       "type": "item"
@@ -756,8 +747,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        154,
-                        154
+                        148,
+                        148
                       ],
                       "name": "shell",
                       "type": "key"
@@ -765,8 +756,8 @@
                     {
                       "docstring": "bash checker/name-collision.sh",
                       "lines": [
-                        155,
-                        160
+                        149,
+                        154
                       ],
                       "name": "run",
                       "type": "key"
@@ -774,8 +765,8 @@
                     {
                       "docstring": "module claims (per-module counts in the prose vs the source)",
                       "lines": [
-                        161,
-                        161
+                        155,
+                        155
                       ],
                       "name": "name",
                       "type": "item"
@@ -783,8 +774,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        162,
-                        162
+                        156,
+                        156
                       ],
                       "name": "shell",
                       "type": "key"
@@ -792,8 +783,8 @@
                     {
                       "docstring": "sh checker/module-claims.sh",
                       "lines": [
-                        163,
-                        170
+                        157,
+                        164
                       ],
                       "name": "run",
                       "type": "key"
@@ -801,8 +792,8 @@
                     {
                       "docstring": "instrument encyclopedia (the gate reference vs the registry)",
                       "lines": [
-                        171,
-                        171
+                        165,
+                        165
                       ],
                       "name": "name",
                       "type": "item"
@@ -810,8 +801,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        172,
-                        172
+                        166,
+                        166
                       ],
                       "name": "shell",
                       "type": "key"
@@ -819,8 +810,8 @@
                     {
                       "docstring": "sh checker/encyclopedia.sh",
                       "lines": [
-                        173,
-                        187
+                        167,
+                        181
                       ],
                       "name": "run",
                       "type": "key"
@@ -828,8 +819,8 @@
                     {
                       "docstring": "FULL-only tier freshness (lean/Proofs/RotFreshness.lean)",
                       "lines": [
-                        188,
-                        188
+                        182,
+                        182
                       ],
                       "name": "name",
                       "type": "item"
@@ -837,8 +828,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        189,
-                        189
+                        183,
+                        183
                       ],
                       "name": "shell",
                       "type": "key"
@@ -846,16 +837,16 @@
                     {
                       "docstring": "true",
                       "lines": [
-                        190,
-                        190
+                        184,
+                        184
                       ],
                       "name": "continue-on-error",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        191,
-                        210
+                        185,
+                        204
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -863,8 +854,8 @@
                     {
                       "docstring": "plugin root consistency (declared roots exist and agree)",
                       "lines": [
-                        211,
-                        211
+                        205,
+                        205
                       ],
                       "name": "name",
                       "type": "item"
@@ -872,16 +863,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        212,
-                        212
+                        206,
+                        206
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        213,
-                        249
+                        207,
+                        243
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -889,8 +880,8 @@
                     {
                       "docstring": "dominance (does the routing layer strictly extend the default loop?)",
                       "lines": [
-                        250,
-                        250
+                        244,
+                        244
                       ],
                       "name": "name",
                       "type": "item"
@@ -898,8 +889,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        251,
-                        251
+                        245,
+                        245
                       ],
                       "name": "shell",
                       "type": "key"
@@ -907,8 +898,8 @@
                     {
                       "docstring": "bash checker/dominance.sh",
                       "lines": [
-                        252,
-                        265
+                        246,
+                        259
                       ],
                       "name": "run",
                       "type": "key"
@@ -916,8 +907,8 @@
                     {
                       "docstring": "trap corpus (all traps? scorer symmetric? latency order-controlled?)",
                       "lines": [
-                        266,
-                        266
+                        260,
+                        260
                       ],
                       "name": "name",
                       "type": "item"
@@ -925,8 +916,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        267,
-                        267
+                        261,
+                        261
                       ],
                       "name": "shell",
                       "type": "key"
@@ -934,8 +925,8 @@
                     {
                       "docstring": "bash checker/trap.sh",
                       "lines": [
-                        268,
-                        282
+                        262,
+                        276
                       ],
                       "name": "run",
                       "type": "key"
@@ -943,8 +934,8 @@
                     {
                       "docstring": "mutation harness integrity (a filtered suite must exit 3, never 0)",
                       "lines": [
-                        283,
-                        283
+                        277,
+                        277
                       ],
                       "name": "name",
                       "type": "item"
@@ -952,8 +943,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        284,
-                        284
+                        278,
+                        278
                       ],
                       "name": "shell",
                       "type": "key"
@@ -961,8 +952,8 @@
                     {
                       "docstring": "bash checker/mutate-harness.sh",
                       "lines": [
-                        285,
-                        304
+                        279,
+                        298
                       ],
                       "name": "run",
                       "type": "key"
@@ -970,8 +961,8 @@
                     {
                       "docstring": "debug-log integrity (records recovered, both writer arms run live)",
                       "lines": [
-                        305,
-                        305
+                        299,
+                        299
                       ],
                       "name": "name",
                       "type": "item"
@@ -979,8 +970,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        306,
-                        306
+                        300,
+                        300
                       ],
                       "name": "shell",
                       "type": "key"
@@ -988,8 +979,8 @@
                     {
                       "docstring": "bash checker/log-integrity.sh",
                       "lines": [
-                        307,
-                        322
+                        301,
+                        316
                       ],
                       "name": "run",
                       "type": "key"
@@ -997,8 +988,8 @@
                     {
                       "docstring": "work-trace extractor controls (both directions, 16 fixtures)",
                       "lines": [
-                        323,
-                        323
+                        317,
+                        317
                       ],
                       "name": "name",
                       "type": "item"
@@ -1006,8 +997,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        324,
-                        324
+                        318,
+                        318
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1015,8 +1006,8 @@
                     {
                       "docstring": "node bench/work-trace.js --selftest",
                       "lines": [
-                        325,
-                        326
+                        319,
+                        320
                       ],
                       "name": "run",
                       "type": "key"
@@ -1024,8 +1015,8 @@
                     {
                       "docstring": "installer round trip (scratch config dir only)",
                       "lines": [
-                        327,
-                        327
+                        321,
+                        321
                       ],
                       "name": "name",
                       "type": "item"
@@ -1033,8 +1024,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        328,
-                        328
+                        322,
+                        322
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1042,8 +1033,8 @@
                     {
                       "docstring": "bash checker/install-roundtrip.sh",
                       "lines": [
-                        329,
-                        335
+                        323,
+                        329
                       ],
                       "name": "run",
                       "type": "key"
@@ -1051,8 +1042,8 @@
                     {
                       "docstring": "install parity (plugin registration vs ARM_ROUTER)",
                       "lines": [
-                        336,
-                        336
+                        330,
+                        330
                       ],
                       "name": "name",
                       "type": "item"
@@ -1060,8 +1051,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        337,
-                        337
+                        331,
+                        331
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1069,8 +1060,8 @@
                     {
                       "docstring": "bash checker/install-parity.sh",
                       "lines": [
-                        338,
-                        350
+                        332,
+                        344
                       ],
                       "name": "run",
                       "type": "key"
@@ -1078,8 +1069,8 @@
                     {
                       "docstring": "cli event coverage (manifest + installers + Lean vs the CLI)",
                       "lines": [
-                        351,
-                        351
+                        345,
+                        345
                       ],
                       "name": "name",
                       "type": "item"
@@ -1087,8 +1078,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        352,
-                        352
+                        346,
+                        346
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1096,8 +1087,8 @@
                     {
                       "docstring": "bash checker/cli-event-coverage.sh",
                       "lines": [
-                        353,
-                        362
+                        347,
+                        356
                       ],
                       "name": "run",
                       "type": "key"
@@ -1105,8 +1096,8 @@
                     {
                       "docstring": "context gate (no context emitted on a rejecting event)",
                       "lines": [
-                        363,
-                        363
+                        357,
+                        357
                       ],
                       "name": "name",
                       "type": "item"
@@ -1114,8 +1105,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        364,
-                        364
+                        358,
+                        358
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1123,8 +1114,8 @@
                     {
                       "docstring": "bash checker/context-gate.sh",
                       "lines": [
-                        365,
-                        372
+                        359,
+                        366
                       ],
                       "name": "run",
                       "type": "key"
@@ -1132,8 +1123,8 @@
                     {
                       "docstring": "session log (scrubber, provenance, no traversal)",
                       "lines": [
-                        373,
-                        373
+                        367,
+                        367
                       ],
                       "name": "name",
                       "type": "item"
@@ -1141,8 +1132,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        374,
-                        374
+                        368,
+                        368
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1150,8 +1141,8 @@
                     {
                       "docstring": "bash checker/session-log.sh",
                       "lines": [
-                        375,
-                        399
+                        369,
+                        393
                       ],
                       "name": "run",
                       "type": "key"
@@ -1159,8 +1150,8 @@
                     {
                       "docstring": "provide zip (Git Bash on Windows ships unzip only)",
                       "lines": [
-                        400,
-                        400
+                        394,
+                        394
                       ],
                       "name": "name",
                       "type": "item"
@@ -1168,16 +1159,16 @@
                     {
                       "docstring": "pwsh",
                       "lines": [
-                        401,
-                        401
+                        395,
+                        395
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        402,
-                        500
+                        396,
+                        494
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1185,8 +1176,8 @@
                     {
                       "docstring": "provide a bound (gtimeout/timeout must exist on every runner)",
                       "lines": [
-                        501,
-                        501
+                        495,
+                        495
                       ],
                       "name": "name",
                       "type": "item"
@@ -1194,16 +1185,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        502,
-                        502
+                        496,
+                        496
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        503,
-                        565
+                        497,
+                        559
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1211,8 +1202,8 @@
                     {
                       "docstring": "release artifacts build, and assert their own contents",
                       "lines": [
-                        566,
-                        566
+                        560,
+                        560
                       ],
                       "name": "name",
                       "type": "item"
@@ -1220,8 +1211,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        567,
-                        567
+                        561,
+                        561
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1229,8 +1220,8 @@
                     {
                       "docstring": "bash checker/release-package.sh",
                       "lines": [
-                        568,
-                        569
+                        562,
+                        563
                       ],
                       "name": "run",
                       "type": "key"
@@ -1238,8 +1229,8 @@
                     {
                       "docstring": "release artifacts install from the zip (scratch config dir only)",
                       "lines": [
-                        570,
-                        570
+                        564,
+                        564
                       ],
                       "name": "name",
                       "type": "item"
@@ -1247,8 +1238,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        571,
-                        571
+                        565,
+                        565
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1256,8 +1247,8 @@
                     {
                       "docstring": "bash checker/release-install.sh",
                       "lines": [
-                        572,
-                        607
+                        566,
+                        601
                       ],
                       "name": "run",
                       "type": "key"
@@ -1265,8 +1256,8 @@
                     {
                       "docstring": "Lean witness must match the shipped weights",
                       "lines": [
-                        608,
-                        608
+                        602,
+                        602
                       ],
                       "name": "name",
                       "type": "item"
@@ -1274,8 +1265,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        609,
-                        609
+                        603,
+                        603
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1283,8 +1274,8 @@
                     {
                       "docstring": "bash checker/lean-binds-shell.sh",
                       "lines": [
-                        610,
-                        611
+                        604,
+                        605
                       ],
                       "name": "run",
                       "type": "key"
@@ -1292,8 +1283,8 @@
                     {
                       "docstring": "cross-diff -- both router arms + locale invariance",
                       "lines": [
-                        612,
-                        612
+                        606,
+                        606
                       ],
                       "name": "name",
                       "type": "item"
@@ -1301,8 +1292,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        613,
-                        613
+                        607,
+                        607
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1310,14 +1301,32 @@
                     {
                       "docstring": "bash checker/cross-diff.sh",
                       "lines": [
-                        614,
-                        621
+                        608,
+                        615
                       ],
                       "name": "run",
                       "type": "key"
                     },
                     {
                       "docstring": "debug channel -- a lost record must be MARKED, and the log bounded",
+                      "lines": [
+                        616,
+                        616
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/debug-channel.sh",
+                      "lines": [
+                        617,
+                        621
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "cross-diff -- both reminder arms (organ 4)",
                       "lines": [
                         622,
                         622
@@ -1326,28 +1335,10 @@
                       "type": "item"
                     },
                     {
-                      "docstring": "bash checker/debug-channel.sh",
-                      "lines": [
-                        623,
-                        627
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "cross-diff -- both reminder arms (organ 4)",
-                      "lines": [
-                        628,
-                        628
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
                       "docstring": "bash",
                       "lines": [
-                        629,
-                        629
+                        623,
+                        623
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1355,8 +1346,8 @@
                     {
                       "docstring": "bash checker/cross-diff-remind.sh",
                       "lines": [
-                        630,
-                        653
+                        624,
+                        647
                       ],
                       "name": "run",
                       "type": "key"
@@ -1364,8 +1355,8 @@
                     {
                       "docstring": "router duplication -- the plugin and ARM_ROUTER must not stack",
                       "lines": [
-                        654,
-                        654
+                        648,
+                        648
                       ],
                       "name": "name",
                       "type": "item"
@@ -1373,8 +1364,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        655,
-                        655
+                        649,
+                        649
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1382,8 +1373,8 @@
                     {
                       "docstring": "bash checker/router-duplication.sh",
                       "lines": [
-                        656,
-                        657
+                        650,
+                        651
                       ],
                       "name": "run",
                       "type": "key"
@@ -1391,8 +1382,8 @@
                     {
                       "docstring": "disarm safety -- a dry run writes nothing, --all reaches plugin entries",
                       "lines": [
-                        658,
-                        658
+                        652,
+                        652
                       ],
                       "name": "name",
                       "type": "item"
@@ -1400,8 +1391,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        659,
-                        659
+                        653,
+                        653
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1409,8 +1400,8 @@
                     {
                       "docstring": "bash checker/disarm-safety.sh",
                       "lines": [
-                        660,
-                        661
+                        654,
+                        655
                       ],
                       "name": "run",
                       "type": "key"
@@ -1418,8 +1409,8 @@
                     {
                       "docstring": "remind measure -- both arms, one tree, including a nested proof",
                       "lines": [
-                        662,
-                        662
+                        656,
+                        656
                       ],
                       "name": "name",
                       "type": "item"
@@ -1427,8 +1418,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        663,
-                        663
+                        657,
+                        657
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1436,8 +1427,8 @@
                     {
                       "docstring": "bash checker/remind-measure.sh",
                       "lines": [
-                        664,
-                        671
+                        658,
+                        665
                       ],
                       "name": "run",
                       "type": "key"
@@ -1445,8 +1436,8 @@
                     {
                       "docstring": "kernel verdict class -- a non-answer is not a rejection",
                       "lines": [
-                        672,
-                        672
+                        666,
+                        666
                       ],
                       "name": "name",
                       "type": "item"
@@ -1454,8 +1445,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        673,
-                        673
+                        667,
+                        667
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1463,8 +1454,8 @@
                     {
                       "docstring": "bash checker/kernel-verdict-class.sh",
                       "lines": [
-                        674,
-                        675
+                        668,
+                        669
                       ],
                       "name": "run",
                       "type": "key"
@@ -1472,8 +1463,8 @@
                     {
                       "docstring": "log replay -- every gauge record recomputed from its own fields",
                       "lines": [
-                        676,
-                        676
+                        670,
+                        670
                       ],
                       "name": "name",
                       "type": "item"
@@ -1481,8 +1472,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        677,
-                        677
+                        671,
+                        671
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1490,8 +1481,8 @@
                     {
                       "docstring": "bash checker/log-replay.sh",
                       "lines": [
-                        678,
-                        682
+                        672,
+                        676
                       ],
                       "name": "run",
                       "type": "key"
@@ -1499,8 +1490,8 @@
                     {
                       "docstring": "install-document lint -- the agent-facing docs cannot go stale",
                       "lines": [
-                        683,
-                        683
+                        677,
+                        677
                       ],
                       "name": "name",
                       "type": "item"
@@ -1508,8 +1499,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        684,
-                        684
+                        678,
+                        678
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1517,8 +1508,8 @@
                     {
                       "docstring": "bash checker/claude-md-lint.sh",
                       "lines": [
-                        685,
-                        689
+                        679,
+                        683
                       ],
                       "name": "run",
                       "type": "key"
@@ -1526,8 +1517,8 @@
                     {
                       "docstring": "licence bridge -- NOTICE.md must match what is on disk",
                       "lines": [
-                        690,
-                        690
+                        684,
+                        684
                       ],
                       "name": "name",
                       "type": "item"
@@ -1535,8 +1526,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        691,
-                        691
+                        685,
+                        685
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1544,8 +1535,8 @@
                     {
                       "docstring": "bash checker/license-bridge.sh",
                       "lines": [
-                        692,
-                        696
+                        686,
+                        690
                       ],
                       "name": "run",
                       "type": "key"
@@ -1553,8 +1544,8 @@
                     {
                       "docstring": "release consistency -- version, tag and date cannot disagree",
                       "lines": [
-                        697,
-                        697
+                        691,
+                        691
                       ],
                       "name": "name",
                       "type": "item"
@@ -1562,8 +1553,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        698,
-                        698
+                        692,
+                        692
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1571,8 +1562,8 @@
                     {
                       "docstring": "bash checker/release-consistency.sh",
                       "lines": [
-                        699,
-                        700
+                        693,
+                        694
                       ],
                       "name": "run",
                       "type": "key"
@@ -1580,8 +1571,8 @@
                     {
                       "docstring": "tag consistency -- tags.txt, README and CITATION cannot drift",
                       "lines": [
-                        701,
-                        701
+                        695,
+                        695
                       ],
                       "name": "name",
                       "type": "item"
@@ -1589,8 +1580,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        702,
-                        702
+                        696,
+                        696
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1598,8 +1589,8 @@
                     {
                       "docstring": "bash checker/tags-consistency.sh",
                       "lines": [
-                        703,
-                        711
+                        697,
+                        705
                       ],
                       "name": "run",
                       "type": "key"
@@ -1607,8 +1598,8 @@
                     {
                       "docstring": "verdict stability -- the scheduled commit rule can say nothing",
                       "lines": [
-                        712,
-                        712
+                        706,
+                        706
                       ],
                       "name": "name",
                       "type": "item"
@@ -1616,8 +1607,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        713,
-                        713
+                        707,
+                        707
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1625,8 +1616,8 @@
                     {
                       "docstring": "bash checker/verdict-stability.sh",
                       "lines": [
-                        714,
-                        722
+                        708,
+                        716
                       ],
                       "name": "run",
                       "type": "key"
@@ -1634,8 +1625,8 @@
                     {
                       "docstring": "verdict freshness -- is the committed STATUS.md true of this tree",
                       "lines": [
-                        723,
-                        723
+                        717,
+                        717
                       ],
                       "name": "name",
                       "type": "item"
@@ -1643,8 +1634,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        724,
-                        724
+                        718,
+                        718
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1652,8 +1643,8 @@
                     {
                       "docstring": "bash checker/verdict-fresh.sh",
                       "lines": [
-                        725,
-                        731
+                        719,
+                        725
                       ],
                       "name": "run",
                       "type": "key"
@@ -1661,8 +1652,8 @@
                     {
                       "docstring": "README FACTS block -- the published counts against the tree",
                       "lines": [
-                        732,
-                        732
+                        726,
+                        726
                       ],
                       "name": "name",
                       "type": "item"
@@ -1670,8 +1661,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        733,
-                        733
+                        727,
+                        727
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1679,8 +1670,8 @@
                     {
                       "docstring": "bash checker/facts-block.sh",
                       "lines": [
-                        734,
-                        739
+                        728,
+                        733
                       ],
                       "name": "run",
                       "type": "key"
@@ -1688,8 +1679,8 @@
                     {
                       "docstring": "workflow exit reads -- every $? must actually be reachable",
                       "lines": [
-                        740,
-                        740
+                        734,
+                        734
                       ],
                       "name": "name",
                       "type": "item"
@@ -1697,8 +1688,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        741,
-                        741
+                        735,
+                        735
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1706,8 +1697,8 @@
                     {
                       "docstring": "bash checker/workflow-exit-reads.sh",
                       "lines": [
-                        742,
-                        748
+                        736,
+                        742
                       ],
                       "name": "run",
                       "type": "key"
@@ -1715,8 +1706,8 @@
                     {
                       "docstring": "tree integrity -- no tracked file is EMPTY while git holds content",
                       "lines": [
-                        749,
-                        749
+                        743,
+                        743
                       ],
                       "name": "name",
                       "type": "item"
@@ -1724,8 +1715,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        750,
-                        750
+                        744,
+                        744
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1733,8 +1724,8 @@
                     {
                       "docstring": "bash checker/tree-integrity.sh",
                       "lines": [
-                        751,
-                        752
+                        745,
+                        746
                       ],
                       "name": "run",
                       "type": "key"
@@ -1742,8 +1733,8 @@
                     {
                       "docstring": "scheduled verdict, three weeks with a real (local) remote",
                       "lines": [
-                        753,
-                        753
+                        747,
+                        747
                       ],
                       "name": "name",
                       "type": "item"
@@ -1751,8 +1742,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        754,
-                        754
+                        748,
+                        748
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1760,8 +1751,8 @@
                     {
                       "docstring": "bash checker/verdict-schedule-sim.sh",
                       "lines": [
-                        755,
-                        781
+                        749,
+                        775
                       ],
                       "name": "run",
                       "type": "key"
@@ -1769,8 +1760,8 @@
                     {
                       "docstring": "gauge hook corpus -- the running hook vs the Lean-verified values",
                       "lines": [
-                        782,
-                        782
+                        776,
+                        776
                       ],
                       "name": "name",
                       "type": "item"
@@ -1778,8 +1769,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        783,
-                        783
+                        777,
+                        777
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1787,8 +1778,8 @@
                     {
                       "docstring": "bash checker/gauge-hook-corpus.sh",
                       "lines": [
-                        784,
-                        792
+                        778,
+                        786
                       ],
                       "name": "run",
                       "type": "key"
@@ -1796,8 +1787,8 @@
                     {
                       "docstring": "hook timeout -- declared, adequate, same on both install paths",
                       "lines": [
-                        793,
-                        793
+                        787,
+                        787
                       ],
                       "name": "name",
                       "type": "item"
@@ -1805,8 +1796,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        794,
-                        794
+                        788,
+                        788
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1814,8 +1805,8 @@
                     {
                       "docstring": "bash checker/hook-timeout.sh",
                       "lines": [
-                        795,
-                        806
+                        789,
+                        800
                       ],
                       "name": "run",
                       "type": "key"
@@ -1823,8 +1814,8 @@
                     {
                       "docstring": "A/B corpus -- published figures re-derived from bench/ab-metrics.jsonl",
                       "lines": [
-                        807,
-                        807
+                        801,
+                        801
                       ],
                       "name": "name",
                       "type": "item"
@@ -1832,8 +1823,8 @@
                     {
                       "docstring": "bash checker/ab-analyze.sh",
                       "lines": [
-                        808,
-                        815
+                        802,
+                        809
                       ],
                       "name": "run",
                       "type": "key"
@@ -1841,8 +1832,8 @@
                     {
                       "docstring": "A/B instruction compliance -- exit 3 SKIP without the raw corpus",
                       "lines": [
-                        816,
-                        816
+                        810,
+                        810
                       ],
                       "name": "name",
                       "type": "item"
@@ -1850,16 +1841,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        817,
-                        817
+                        811,
+                        811
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        818,
-                        847
+                        812,
+                        841
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1867,8 +1858,8 @@
                     {
                       "docstring": "profile binding -- Lean lane tables vs the spec they came from",
                       "lines": [
-                        848,
-                        848
+                        842,
+                        842
                       ],
                       "name": "name",
                       "type": "item"
@@ -1876,8 +1867,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        849,
-                        849
+                        843,
+                        843
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1885,8 +1876,8 @@
                     {
                       "docstring": "bash checker/profile-bind.sh",
                       "lines": [
-                        850,
-                        851
+                        844,
+                        845
                       ],
                       "name": "run",
                       "type": "key"
@@ -1894,8 +1885,8 @@
                     {
                       "docstring": "mutate the checker -- it must be able to fail",
                       "lines": [
-                        852,
-                        852
+                        846,
+                        846
                       ],
                       "name": "name",
                       "type": "item"
@@ -1903,8 +1894,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        853,
-                        853
+                        847,
+                        847
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1912,8 +1903,8 @@
                     {
                       "docstring": "bash checker/mutate-checker.sh",
                       "lines": [
-                        854,
-                        872
+                        848,
+                        866
                       ],
                       "name": "run",
                       "type": "key"
@@ -1921,8 +1912,8 @@
                     {
                       "docstring": "install the claude CLI -- the CLI-gated checkers must RUN",
                       "lines": [
-                        873,
-                        873
+                        867,
+                        867
                       ],
                       "name": "name",
                       "type": "item"
@@ -1930,16 +1921,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        874,
-                        874
+                        868,
+                        868
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        875,
-                        886
+                        869,
+                        880
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1947,8 +1938,8 @@
                     {
                       "docstring": "plugin + fresh-user install (MUST run -- the CLI is installed)",
                       "lines": [
-                        887,
-                        887
+                        881,
+                        881
                       ],
                       "name": "name",
                       "type": "item"
@@ -1956,16 +1947,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        888,
-                        888
+                        882,
+                        882
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        889,
-                        905
+                        883,
+                        899
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -1973,8 +1964,8 @@
                     {
                       "docstring": "workflow lint -- parse + drift",
                       "lines": [
-                        906,
-                        906
+                        900,
+                        900
                       ],
                       "name": "name",
                       "type": "item"
@@ -1982,8 +1973,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        907,
-                        907
+                        901,
+                        901
                       ],
                       "name": "shell",
                       "type": "key"
@@ -1991,8 +1982,8 @@
                     {
                       "docstring": "bash checker/workflow-lint.sh",
                       "lines": [
-                        908,
-                        913
+                        902,
+                        907
                       ],
                       "name": "run",
                       "type": "key"
@@ -2000,8 +1991,8 @@
                     {
                       "docstring": "README download links name archives the packager builds",
                       "lines": [
-                        914,
-                        914
+                        908,
+                        908
                       ],
                       "name": "name",
                       "type": "item"
@@ -2009,8 +2000,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        915,
-                        915
+                        909,
+                        909
                       ],
                       "name": "shell",
                       "type": "key"
@@ -2018,8 +2009,8 @@
                     {
                       "docstring": "bash checker/readme-variants.sh",
                       "lines": [
-                        916,
-                        917
+                        910,
+                        911
                       ],
                       "name": "run",
                       "type": "key"
@@ -2027,8 +2018,8 @@
                     {
                       "docstring": "live-session smoke (MUST run -- the CLI is installed)",
                       "lines": [
-                        918,
-                        918
+                        912,
+                        912
                       ],
                       "name": "name",
                       "type": "item"
@@ -2036,16 +2027,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        919,
-                        919
+                        913,
+                        913
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        920,
-                        942
+                        914,
+                        936
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2053,8 +2044,8 @@
                     {
                       "docstring": "marketplace session -- CLI present, so \"no CLI\" is a FAILURE",
                       "lines": [
-                        943,
-                        943
+                        937,
+                        937
                       ],
                       "name": "name",
                       "type": "item"
@@ -2062,16 +2053,16 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        944,
-                        944
+                        938,
+                        938
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        945,
-                        965
+                        939,
+                        959
                       ],
                       "name": "run",
                       "type": "multiline"
@@ -2079,8 +2070,8 @@
                     {
                       "docstring": "CTT session report -- re-derive the README numbers from the corpus",
                       "lines": [
-                        966,
-                        966
+                        960,
+                        960
                       ],
                       "name": "name",
                       "type": "item"
@@ -2088,8 +2079,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        967,
-                        967
+                        961,
+                        961
                       ],
                       "name": "shell",
                       "type": "key"
@@ -2097,8 +2088,8 @@
                     {
                       "docstring": "bash checker/ctt-session.sh --report",
                       "lines": [
-                        968,
-                        1007
+                        962,
+                        1001
                       ],
                       "name": "run",
                       "type": "key"
@@ -2106,8 +2097,8 @@
                     {
                       "docstring": "tty guard -- pty refusal where a pty exists, non-blocking everywhere",
                       "lines": [
-                        1008,
-                        1008
+                        1002,
+                        1002
                       ],
                       "name": "name",
                       "type": "item"
@@ -2115,32 +2106,32 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        1009,
-                        1009
+                        1003,
+                        1003
                       ],
                       "name": "shell",
                       "type": "key"
                     },
                     {
                       "lines": [
-                        1010,
-                        1087
+                        1004,
+                        1105
                       ],
                       "name": "run",
                       "type": "multiline"
                     }
                   ],
                   "lines": [
-                    82,
-                    1087
+                    76,
+                    1105
                   ],
                   "name": "steps",
                   "type": "list"
                 }
               ],
               "lines": [
-                75,
-                1087
+                69,
+                1105
               ],
               "name": "checkers",
               "type": "section"
@@ -2148,731 +2139,10 @@
             {
               "children": [
                 {
-                  "docstring": "lean -- build, axioms, kernel re-check",
-                  "lines": [
-                    1089,
-                    1089
-                  ],
-                  "name": "name",
-                  "type": "key"
-                },
-                {
-                  "docstring": "ubuntu-latest",
-                  "lines": [
-                    1090,
-                    1090
-                  ],
-                  "name": "runs-on",
-                  "type": "key"
-                },
-                {
-                  "children": [
-                    {
-                      "docstring": "actions/checkout@v7",
-                      "lines": [
-                        1092,
-                        1093
-                      ],
-                      "name": "uses",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "install elan (toolchain pinned by lean/lean-toolchain)",
-                      "lines": [
-                        1094,
-                        1094
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "lines": [
-                        1095,
-                        1100
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "toolchain (read, never assumed)",
-                      "lines": [
-                        1101,
-                        1101
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1102,
-                        1102
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "cat lean-toolchain && lake --version && lean --version",
-                      "lines": [
-                        1103,
-                        1104
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "mathlib cache -- NEVER build it from source",
-                      "lines": [
-                        1105,
-                        1105
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1106,
-                        1106
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "lake exe cache get",
-                      "lines": [
-                        1107,
-                        1108
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "lake build (exit code read DIRECTLY, never through a pipe)",
-                      "lines": [
-                        1109,
-                        1109
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1110,
-                        1110
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "lines": [
-                        1111,
-                        1140
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "gauge cross-check -- Lean mirror vs the running hook (MUST run here)",
-                      "lines": [
-                        1141,
-                        1141
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "lines": [
-                        1142,
-                        1173
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "portability -- exec bits in the index, CRLF-proof hooks",
-                      "lines": [
-                        1174,
-                        1174
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/portability.sh",
-                      "lines": [
-                        1175,
-                        1176
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "hook contract -- run the command strings hooks.json registers",
-                      "lines": [
-                        1177,
-                        1177
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/hook-contract.sh",
-                      "lines": [
-                        1178,
-                        1179
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "voice contract -- the lens roster, held both ways",
-                      "lines": [
-                        1180,
-                        1180
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/voice-contract.sh",
-                      "lines": [
-                        1181,
-                        1186
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "env layer -- the rot command family and the three loader laws",
-                      "lines": [
-                        1187,
-                        1187
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "ROTMOE_HOME=$GITHUB_WORKSPACE sh checker/env-layer.sh",
-                      "lines": [
-                        1188,
-                        1194
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "env wiring -- the DTD generates the config the activation loads",
-                      "lines": [
-                        1195,
-                        1195
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/env-wiring.sh",
-                      "lines": [
-                        1196,
-                        1203
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "bonus archive -- the shipped zip IS its tracked sources",
-                      "lines": [
-                        1204,
-                        1204
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/bonus-archive.sh",
-                      "lines": [
-                        1205,
-                        1211
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "release body -- three tiers, one body",
-                      "lines": [
-                        1212,
-                        1212
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/release-package.sh && bash checker/release-body.sh",
-                      "lines": [
-                        1213,
-                        1251
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "marketplace session -- install as a stranger (SKIPs without auth)",
-                      "lines": [
-                        1252,
-                        1252
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "lines": [
-                        1253,
-                        1263
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "mutation discipline -- RotMutant.lean binds every harness",
-                      "lines": [
-                        1264,
-                        1264
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/mutant-discipline.sh",
-                      "lines": [
-                        1265,
-                        1270
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "mutant needles -- no suite may be entirely DISCARDED",
-                      "lines": [
-                        1271,
-                        1271
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/mutant-needles.sh",
-                      "lines": [
-                        1272,
-                        1284
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "deferred closure -- the runner ran what the dry run could not",
-                      "lines": [
-                        1285,
-                        1285
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "children": [
-                        {
-                          "docstring": "${{ secrets.GITHUB_TOKEN }}",
-                          "lines": [
-                            1287,
-                            1287
-                          ],
-                          "name": "GITHUB_TOKEN",
-                          "type": "key"
-                        }
-                      ],
-                      "lines": [
-                        1286,
-                        1287
-                      ],
-                      "name": "env",
-                      "type": "section"
-                    },
-                    {
-                      "lines": [
-                        1288,
-                        1300
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "benchmark -- routing accuracy on a labelled key, and per-turn cost",
-                      "lines": [
-                        1301,
-                        1301
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/bench-router.sh",
-                      "lines": [
-                        1302,
-                        1308
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "gate split -- the runner's tiers match the Lean witness",
-                      "lines": [
-                        1309,
-                        1309
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/gate-split.sh",
-                      "lines": [
-                        1310,
-                        1318
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "P2.4 corpus -- every task discriminates and routes to its lane",
-                      "lines": [
-                        1319,
-                        1319
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/corpus-verify.sh",
-                      "lines": [
-                        1320,
-                        1329
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "session manifest -- the obligation is not closable by counting to 160",
-                      "lines": [
-                        1330,
-                        1330
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/sessions-manifest.sh",
-                      "lines": [
-                        1331,
-                        1332
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "hook footprint -- no network, no lake, Lean stays optional",
-                      "lines": [
-                        1333,
-                        1333
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/hook-footprint.sh",
-                      "lines": [
-                        1334,
-                        1341
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "workflow roles -- a docs manager may not write code",
-                      "lines": [
-                        1342,
-                        1342
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "lines": [
-                        1343,
-                        1375
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "push guard -- the instrument must be sound, whatever its verdict",
-                      "lines": [
-                        1376,
-                        1376
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "lines": [
-                        1377,
-                        1405
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "axiom audit -- #print axioms on every theorem, zero sorryAx",
-                      "lines": [
-                        1406,
-                        1406
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "LEAN_ROOT=\"$GITHUB_WORKSPACE/lean\" bash checker/axiom-audit.sh",
-                      "lines": [
-                        1407,
-                        1414
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "axiom class -- KERNEL vs COMPILER vs BROKEN",
-                      "lines": [
-                        1415,
-                        1415
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "bash checker/axiom-class.sh",
-                      "lines": [
-                        1416,
-                        1420
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "non-vacuity audit -- every guarded theorem has a witness",
-                      "lines": [
-                        1421,
-                        1421
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1422,
-                        1422
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "lake build Proofs.RotVacuity",
-                      "lines": [
-                        1423,
-                        1424
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "non-vacuity NEGATIVE CONTROL -- the audit must be able to fail",
-                      "lines": [
-                        1425,
-                        1425
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1426,
-                        1426
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "lines": [
-                        1427,
-                        1442
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "generalization probe -- decorative vs load-bearing",
-                      "lines": [
-                        1443,
-                        1443
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1444,
-                        1444
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "bash mutate/generalization_probe.sh",
-                      "lines": [
-                        1445,
-                        1446
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "decorative-vs-load-bearing isolation",
-                      "lines": [
-                        1447,
-                        1447
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1448,
-                        1448
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "lake env lean mutate/decorative_isolation.lean",
-                      "lines": [
-                        1449,
-                        1450
-                      ],
-                      "name": "run",
-                      "type": "key"
-                    },
-                    {
-                      "docstring": "forbid native_decide",
-                      "lines": [
-                        1451,
-                        1451
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1452,
-                        1452
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "lines": [
-                        1453,
-                        1461
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "leanchecker -- kernel re-verification, with its negative control",
-                      "lines": [
-                        1462,
-                        1462
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1463,
-                        1463
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "lines": [
-                        1464,
-                        1481
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    },
-                    {
-                      "docstring": "mutation suites -- theorems must DIE when the model breaks",
-                      "lines": [
-                        1482,
-                        1482
-                      ],
-                      "name": "name",
-                      "type": "item"
-                    },
-                    {
-                      "docstring": "lean",
-                      "lines": [
-                        1483,
-                        1483
-                      ],
-                      "name": "working-directory",
-                      "type": "key"
-                    },
-                    {
-                      "lines": [
-                        1484,
-                        1519
-                      ],
-                      "name": "run",
-                      "type": "multiline"
-                    }
-                  ],
-                  "lines": [
-                    1091,
-                    1519
-                  ],
-                  "name": "steps",
-                  "type": "list"
-                }
-              ],
-              "lines": [
-                1088,
-                1519
-              ],
-              "name": "lean",
-              "type": "section"
-            },
-            {
-              "children": [
-                {
                   "docstring": "release -- publish only what this run proved",
                   "lines": [
-                    1521,
-                    1521
+                    1107,
+                    1107
                   ],
                   "name": "name",
                   "type": "key"
@@ -2880,17 +2150,17 @@
                 {
                   "docstring": "ubuntu-latest",
                   "lines": [
-                    1522,
-                    1522
+                    1108,
+                    1108
                   ],
                   "name": "runs-on",
                   "type": "key"
                 },
                 {
-                  "docstring": "[checkers, lean]",
+                  "docstring": "[checkers]",
                   "lines": [
-                    1523,
-                    1523
+                    1109,
+                    1109
                   ],
                   "name": "needs",
                   "type": "collection"
@@ -2900,16 +2170,16 @@
                     {
                       "docstring": "write",
                       "lines": [
-                        1529,
-                        1529
+                        1115,
+                        1115
                       ],
                       "name": "contents",
                       "type": "key"
                     }
                   ],
                   "lines": [
-                    1524,
-                    1529
+                    1110,
+                    1115
                   ],
                   "name": "permissions",
                   "type": "section"
@@ -2919,8 +2189,8 @@
                     {
                       "docstring": "actions/checkout@v7",
                       "lines": [
-                        1531,
-                        1532
+                        1117,
+                        1118
                       ],
                       "name": "uses",
                       "type": "item"
@@ -2928,8 +2198,8 @@
                     {
                       "docstring": "release archives rebuilt in the publishing job's own workspace",
                       "lines": [
-                        1533,
-                        1533
+                        1119,
+                        1119
                       ],
                       "name": "name",
                       "type": "item"
@@ -2937,8 +2207,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        1534,
-                        1534
+                        1120,
+                        1120
                       ],
                       "name": "shell",
                       "type": "key"
@@ -2946,8 +2216,8 @@
                     {
                       "docstring": "bash checker/release-package.sh",
                       "lines": [
-                        1535,
-                        1536
+                        1121,
+                        1122
                       ],
                       "name": "run",
                       "type": "key"
@@ -2955,8 +2225,8 @@
                     {
                       "docstring": "publish -- three tags, one body, three archives",
                       "lines": [
-                        1537,
-                        1537
+                        1123,
+                        1123
                       ],
                       "name": "name",
                       "type": "item"
@@ -2964,8 +2234,8 @@
                     {
                       "docstring": "bash",
                       "lines": [
-                        1538,
-                        1538
+                        1124,
+                        1124
                       ],
                       "name": "shell",
                       "type": "key"
@@ -2975,8 +2245,8 @@
                         {
                           "docstring": "${{ secrets.GITHUB_TOKEN }}",
                           "lines": [
-                            1540,
-                            1540
+                            1126,
+                            1126
                           ],
                           "name": "GH_TOKEN",
                           "type": "key"
@@ -2984,48 +2254,1192 @@
                         {
                           "docstring": "${{ github.event.inputs.publish }}",
                           "lines": [
-                            1541,
-                            1541
+                            1127,
+                            1127
                           ],
                           "name": "RELEASE_ASK",
                           "type": "key"
                         }
                       ],
                       "lines": [
-                        1539,
-                        1541
+                        1125,
+                        1127
                       ],
                       "name": "env",
                       "type": "section"
                     },
                     {
                       "lines": [
-                        1542,
-                        1643
+                        1128,
+                        1229
                       ],
                       "name": "run",
                       "type": "multiline"
                     }
                   ],
                   "lines": [
-                    1530,
-                    1643
+                    1116,
+                    1229
                   ],
                   "name": "steps",
                   "type": "list"
                 }
               ],
               "lines": [
-                1520,
-                1643
+                1106,
+                1229
               ],
               "name": "release",
               "type": "section"
             }
           ],
           "lines": [
-            73,
-            1643
+            67,
+            1229
+          ],
+          "name": "jobs",
+          "type": "section"
+        }
+      ]
+    },
+    "ci2.yml": {
+      "hash": "104d6a81d1dc",
+      "indexed_at": "2026-08-30T10:19:06.547856+00:00",
+      "language": "yaml",
+      "lines": 556,
+      "mtime_ns": 1788045433774019100,
+      "size": 30237,
+      "symbols": [
+        {
+          "docstring": "ci2",
+          "lines": [
+            27,
+            28
+          ],
+          "name": "name",
+          "type": "key"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "[main]",
+                  "lines": [
+                    39,
+                    39
+                  ],
+                  "name": "branches",
+                  "type": "collection"
+                }
+              ],
+              "lines": [
+                38,
+                39
+              ],
+              "name": "push",
+              "type": "section"
+            },
+            {
+              "lines": [
+                40,
+                40
+              ],
+              "name": "pull_request",
+              "type": "section"
+            },
+            {
+              "lines": [
+                41,
+                42
+              ],
+              "name": "workflow_dispatch",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            29,
+            42
+          ],
+          "name": "on",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "ci2-${{ github.ref }}",
+              "lines": [
+                44,
+                44
+              ],
+              "name": "group",
+              "type": "key"
+            },
+            {
+              "docstring": "true",
+              "lines": [
+                45,
+                46
+              ],
+              "name": "cancel-in-progress",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            43,
+            46
+          ],
+          "name": "concurrency",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "docstring": "read",
+              "lines": [
+                48,
+                54
+              ],
+              "name": "contents",
+              "type": "key"
+            },
+            {
+              "docstring": "read",
+              "lines": [
+                55,
+                56
+              ],
+              "name": "actions",
+              "type": "key"
+            }
+          ],
+          "lines": [
+            47,
+            56
+          ],
+          "name": "permissions",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "docstring": "lean -- build, axioms, kernel re-check",
+                  "lines": [
+                    60,
+                    60
+                  ],
+                  "name": "name",
+                  "type": "key"
+                },
+                {
+                  "docstring": "ubuntu-latest",
+                  "lines": [
+                    61,
+                    61
+                  ],
+                  "name": "runs-on",
+                  "type": "key"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "actions/checkout@v7",
+                      "lines": [
+                        63,
+                        64
+                      ],
+                      "name": "uses",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "install elan (toolchain pinned by lean/lean-toolchain)",
+                      "lines": [
+                        65,
+                        65
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        66,
+                        71
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "toolchain (read, never assumed)",
+                      "lines": [
+                        72,
+                        72
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        73,
+                        73
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "cat lean-toolchain && lake --version && lean --version",
+                      "lines": [
+                        74,
+                        75
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "mathlib cache -- NEVER build it from source",
+                      "lines": [
+                        76,
+                        76
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        77,
+                        77
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake exe cache get",
+                      "lines": [
+                        78,
+                        79
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake build (exit code read DIRECTLY, never through a pipe)",
+                      "lines": [
+                        80,
+                        80
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        81,
+                        81
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        82,
+                        111
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "gauge cross-check -- Lean mirror vs the running hook (MUST run here)",
+                      "lines": [
+                        112,
+                        112
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        113,
+                        144
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "portability -- exec bits in the index, CRLF-proof hooks",
+                      "lines": [
+                        145,
+                        145
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/portability.sh",
+                      "lines": [
+                        146,
+                        147
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "hook contract -- run the command strings hooks.json registers",
+                      "lines": [
+                        148,
+                        148
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/hook-contract.sh",
+                      "lines": [
+                        149,
+                        150
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "voice contract -- the lens roster, held both ways",
+                      "lines": [
+                        151,
+                        151
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/voice-contract.sh",
+                      "lines": [
+                        152,
+                        157
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "env layer -- the rot command family and the three loader laws",
+                      "lines": [
+                        158,
+                        158
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "ROTMOE_HOME=$GITHUB_WORKSPACE sh checker/env-layer.sh",
+                      "lines": [
+                        159,
+                        165
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "env wiring -- the DTD generates the config the activation loads",
+                      "lines": [
+                        166,
+                        166
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/env-wiring.sh",
+                      "lines": [
+                        167,
+                        174
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bonus archive -- the shipped zip IS its tracked sources",
+                      "lines": [
+                        175,
+                        175
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/bonus-archive.sh",
+                      "lines": [
+                        176,
+                        182
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "release body -- three tiers, one body",
+                      "lines": [
+                        183,
+                        183
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/release-package.sh && bash checker/release-body.sh",
+                      "lines": [
+                        184,
+                        222
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "marketplace session -- install as a stranger (SKIPs without auth)",
+                      "lines": [
+                        223,
+                        223
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        224,
+                        234
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "mutation discipline -- RotMutant.lean binds every harness",
+                      "lines": [
+                        235,
+                        235
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/mutant-discipline.sh",
+                      "lines": [
+                        236,
+                        241
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "mutant needles -- no suite may be entirely DISCARDED",
+                      "lines": [
+                        242,
+                        242
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/mutant-needles.sh",
+                      "lines": [
+                        243,
+                        255
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "deferred closure -- the runner ran what the dry run could not",
+                      "lines": [
+                        256,
+                        256
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "children": [
+                        {
+                          "docstring": "${{ secrets.GITHUB_TOKEN }}",
+                          "lines": [
+                            258,
+                            258
+                          ],
+                          "name": "GITHUB_TOKEN",
+                          "type": "key"
+                        }
+                      ],
+                      "lines": [
+                        257,
+                        258
+                      ],
+                      "name": "env",
+                      "type": "section"
+                    },
+                    {
+                      "lines": [
+                        259,
+                        271
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "benchmark -- routing accuracy on a labelled key, and per-turn cost",
+                      "lines": [
+                        272,
+                        272
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/bench-router.sh",
+                      "lines": [
+                        273,
+                        279
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "gate split -- the runner's tiers match the Lean witness",
+                      "lines": [
+                        280,
+                        280
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/gate-split.sh",
+                      "lines": [
+                        281,
+                        289
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "P2.4 corpus -- every task discriminates and routes to its lane",
+                      "lines": [
+                        290,
+                        290
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/corpus-verify.sh",
+                      "lines": [
+                        291,
+                        300
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "session manifest -- the obligation is not closable by counting to 160",
+                      "lines": [
+                        301,
+                        301
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/sessions-manifest.sh",
+                      "lines": [
+                        302,
+                        303
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "hook footprint -- no network, no lake, Lean stays optional",
+                      "lines": [
+                        304,
+                        304
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/hook-footprint.sh",
+                      "lines": [
+                        305,
+                        312
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "workflow roles -- a docs manager may not write code",
+                      "lines": [
+                        313,
+                        313
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        314,
+                        346
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "push guard -- the instrument must be sound, whatever its verdict",
+                      "lines": [
+                        347,
+                        347
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        348,
+                        376
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "axiom audit -- #print axioms on every theorem, zero sorryAx",
+                      "lines": [
+                        377,
+                        377
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "LEAN_ROOT=\"$GITHUB_WORKSPACE/lean\" bash checker/axiom-audit.sh",
+                      "lines": [
+                        378,
+                        385
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "axiom class -- KERNEL vs COMPILER vs BROKEN",
+                      "lines": [
+                        386,
+                        386
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/axiom-class.sh",
+                      "lines": [
+                        387,
+                        391
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "non-vacuity audit -- every guarded theorem has a witness",
+                      "lines": [
+                        392,
+                        392
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        393,
+                        393
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake build Proofs.RotVacuity",
+                      "lines": [
+                        394,
+                        395
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "non-vacuity NEGATIVE CONTROL -- the audit must be able to fail",
+                      "lines": [
+                        396,
+                        396
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        397,
+                        397
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        398,
+                        413
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "generalization probe -- decorative vs load-bearing",
+                      "lines": [
+                        414,
+                        414
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        415,
+                        415
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "bash mutate/generalization_probe.sh",
+                      "lines": [
+                        416,
+                        417
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "decorative-vs-load-bearing isolation",
+                      "lines": [
+                        418,
+                        418
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        419,
+                        419
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake env lean mutate/decorative_isolation.lean",
+                      "lines": [
+                        420,
+                        421
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "forbid native_decide",
+                      "lines": [
+                        422,
+                        422
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        423,
+                        423
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        424,
+                        432
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "leanchecker -- kernel re-verification, with its negative control",
+                      "lines": [
+                        433,
+                        433
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        434,
+                        434
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        435,
+                        452
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "mutation suites -- theorems must DIE when the model breaks",
+                      "lines": [
+                        453,
+                        453
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        454,
+                        454
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        455,
+                        468
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    }
+                  ],
+                  "lines": [
+                    62,
+                    468
+                  ],
+                  "name": "steps",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                59,
+                468
+              ],
+              "name": "lean",
+              "type": "section"
+            },
+            {
+              "children": [
+                {
+                  "docstring": "lean cold sweep -- full build from source, axioms, kernel re-check",
+                  "lines": [
+                    470,
+                    470
+                  ],
+                  "name": "name",
+                  "type": "key"
+                },
+                {
+                  "docstring": "ubuntu-latest",
+                  "lines": [
+                    471,
+                    472
+                  ],
+                  "name": "runs-on",
+                  "type": "key"
+                },
+                {
+                  "docstring": "github.event_name != 'pull_request'",
+                  "lines": [
+                    473,
+                    473
+                  ],
+                  "name": "if",
+                  "type": "key"
+                },
+                {
+                  "docstring": "350",
+                  "lines": [
+                    474,
+                    474
+                  ],
+                  "name": "timeout-minutes",
+                  "type": "key"
+                },
+                {
+                  "children": [
+                    {
+                      "docstring": "actions/checkout@v7",
+                      "lines": [
+                        476,
+                        477
+                      ],
+                      "name": "uses",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "install elan (toolchain pinned by lean/lean-toolchain)",
+                      "lines": [
+                        478,
+                        478
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        479,
+                        483
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "toolchain (read, never assumed)",
+                      "lines": [
+                        484,
+                        484
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        485,
+                        485
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "cat lean-toolchain && lake --version && lean --version",
+                      "lines": [
+                        486,
+                        489
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "cold lake build -- the 1H+ run, exit code read DIRECTLY",
+                      "lines": [
+                        490,
+                        490
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        491,
+                        491
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        492,
+                        498
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "non-vacuity audit -- every guarded theorem has a witness",
+                      "lines": [
+                        499,
+                        499
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        500,
+                        500
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "lake build Proofs.RotVacuity",
+                      "lines": [
+                        501,
+                        502
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "non-vacuity NEGATIVE CONTROL -- the audit must be able to fail",
+                      "lines": [
+                        503,
+                        503
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        504,
+                        504
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        505,
+                        515
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "forbid native_decide",
+                      "lines": [
+                        516,
+                        516
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        517,
+                        517
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        518,
+                        524
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "axiom audit -- #print axioms on every theorem, zero sorryAx",
+                      "lines": [
+                        525,
+                        525
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "LEAN_ROOT=\"$GITHUB_WORKSPACE/lean\" bash checker/axiom-audit.sh",
+                      "lines": [
+                        526,
+                        527
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "axiom class -- KERNEL vs COMPILER vs BROKEN",
+                      "lines": [
+                        528,
+                        528
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "bash checker/axiom-class.sh",
+                      "lines": [
+                        529,
+                        530
+                      ],
+                      "name": "run",
+                      "type": "key"
+                    },
+                    {
+                      "docstring": "leanchecker -- kernel re-verification, with its negative control",
+                      "lines": [
+                        531,
+                        531
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "docstring": "lean",
+                      "lines": [
+                        532,
+                        532
+                      ],
+                      "name": "working-directory",
+                      "type": "key"
+                    },
+                    {
+                      "lines": [
+                        533,
+                        549
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    },
+                    {
+                      "docstring": "gauge cross-check -- Lean mirror vs the running hook (a SKIP is a FAILURE here)",
+                      "lines": [
+                        550,
+                        550
+                      ],
+                      "name": "name",
+                      "type": "item"
+                    },
+                    {
+                      "lines": [
+                        551,
+                        557
+                      ],
+                      "name": "run",
+                      "type": "multiline"
+                    }
+                  ],
+                  "lines": [
+                    475,
+                    557
+                  ],
+                  "name": "steps",
+                  "type": "list"
+                }
+              ],
+              "lines": [
+                469,
+                557
+              ],
+              "name": "lean-cold",
+              "type": "section"
+            }
+          ],
+          "lines": [
+            57,
+            557
           ],
           "name": "jobs",
           "type": "section"
@@ -4006,6 +4420,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-25T11:35:04.222856+00:00",
+  "generated_at": "2026-08-30T10:19:06.702409+00:00",
   "version": "1.0"
 }

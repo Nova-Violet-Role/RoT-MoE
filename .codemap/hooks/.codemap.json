@@ -2,17 +2,17 @@
   "directory": "hooks",
   "files": {
     "animus-observe.sh": {
-      "hash": "05bacbc228a1",
-      "indexed_at": "2026-08-22T17:50:25.367303+00:00",
+      "hash": "babe824c3e88",
+      "indexed_at": "2026-08-30T10:19:06.292677+00:00",
       "language": "shell",
-      "lines": 338,
-      "mtime_ns": 1787420489392405000,
-      "size": 14529,
+      "lines": 710,
+      "mtime_ns": 1787855164644774500,
+      "size": 32043,
       "symbols": [
         {
           "lines": [
-            117,
-            120
+            124,
+            127
           ],
           "name": "distill",
           "type": "function"
@@ -20,42 +20,148 @@
         {
           "docstring": "--- field extraction: parameter expansion, one shell, no interpreter --------",
           "lines": [
-            153,
-            339
+            175,
+            711
           ],
           "name": "f_str",
           "type": "function"
         },
         {
           "lines": [
-            159,
-            339
+            181,
+            711
           ],
           "name": "f_num",
           "type": "function"
         },
         {
+          "docstring": "--- the gauge: the router's own measurement, out of this observer's own input Beside every route record the router writes a `\"kind\":\"gauge\"` record: K",
+          "lines": [
+            201,
+            711
+          ],
+          "name": "v_str",
+          "type": "function"
+        },
+        {
+          "lines": [
+            205,
+            711
+          ],
+          "name": "v_num",
+          "type": "function"
+        },
+        {
+          "docstring": "\"4.95429\" -> 4954. Truncating, not rounding: a milli-unit of a share is already finer than any decision made from it. Junk -> 0, never an error.",
+          "lines": [
+            212,
+            711
+          ],
+          "name": "fp2milli",
+          "type": "function"
+        },
+        {
+          "docstring": "One lens's term out of a gauge line. The line is sliced at that lens's own object first, so no neighbour's number can be read by mistake.",
+          "lines": [
+            226,
+            711
+          ],
+          "name": "g_term_of",
+          "type": "function"
+        },
+        {
+          "docstring": "permille -> \"0.720\" text, zero padded, without a fork.",
+          "lines": [
+            239,
+            244
+          ],
+          "name": "milli3",
+          "type": "function"
+        },
+        {
+          "docstring": "One gauge record: the run's weights, and the turn's.",
+          "lines": [
+            247,
+            711
+          ],
+          "name": "handle_gauge",
+          "type": "function"
+        },
+        {
+          "docstring": "A threshold, weighted by the lens that would speak it. Parity is 1/9 = 111 permille, which returns the base unchanged; a lens carrying the turn divide",
+          "lines": [
+            298,
+            308
+          ],
+          "name": "eff_n",
+          "type": "function"
+        },
+        {
+          "docstring": "The budget is the lens's own accumulated weight, not a constant 3. A lens the gauge has been carrying earns more; a starved lens still earns one, beca",
+          "lines": [
+            314,
+            322
+          ],
+          "name": "lens_budget",
+          "type": "function"
+        },
+        {
+          "docstring": "Every remark carries the measurement that summoned it. A reader who does not believe the remark can check the number; a remark whose number cannot be",
+          "lines": [
+            328,
+            335
+          ],
+          "name": "gauge_tag",
+          "type": "function"
+        },
+        {
           "docstring": "--- the queue: rename-atomic, never touches an existing file ----------------",
           "lines": [
-            167,
-            178
+            337,
+            351
           ],
           "name": "queue_remark",
           "type": "function"
         },
         {
           "lines": [
-            179,
-            189
+            352,
+            362
           ],
           "name": "flush_pending",
           "type": "function"
         },
         {
+          "docstring": "--- the turn's verdict: the gauge read backwards, at Stop ------------------- Every voice in this system speaks BEFORE the act. The router reads a pro",
+          "lines": [
+            377,
+            380
+          ],
+          "name": "vcand",
+          "type": "function"
+        },
+        {
+          "lines": [
+            382,
+            499
+          ],
+          "name": "turn_verdict",
+          "type": "function"
+        },
+        {
+          "docstring": "The turn is the unit. A budget spent per RUN is a budget spent in the first twenty minutes of a seven-hour session, and eight of the nine lenses are t",
+          "lines": [
+            504,
+            513
+          ],
+          "name": "turn_reset",
+          "type": "function"
+        },
+        {
           "docstring": "--- one record --------------------------------------------------------------",
           "lines": [
-            192,
-            300
+            515,
+            666
           ],
           "name": "handle_record",
           "type": "function"
@@ -83,10 +189,10 @@
     },
     "prover-remind.sh": {
       "hash": "ffda0862e6bd",
-      "indexed_at": "2026-08-24T01:49:18.484144+00:00",
+      "indexed_at": "2026-08-30T10:19:06.638959+00:00",
       "language": "shell",
       "lines": 729,
-      "mtime_ns": 1787477957602275900,
+      "mtime_ns": 1788042984321817000,
       "size": 38354,
       "symbols": [
         {
@@ -231,10 +337,10 @@
     },
     "rot-profile.sh": {
       "hash": "161ae83dc26a",
-      "indexed_at": "2026-08-22T17:50:25.370798+00:00",
+      "indexed_at": "2026-08-30T10:19:06.639722+00:00",
       "language": "shell",
       "lines": 171,
-      "mtime_ns": 1787420489787936500,
+      "mtime_ns": 1787584902570491000,
       "size": 8304,
       "symbols": [
         {
@@ -248,12 +354,12 @@
       ]
     },
     "rot-router.sh": {
-      "hash": "2d27207bf5b7",
-      "indexed_at": "2026-08-24T01:49:18.495811+00:00",
+      "hash": "f1ff67e1e43d",
+      "indexed_at": "2026-08-30T10:19:06.301874+00:00",
       "language": "shell",
-      "lines": 2215,
-      "mtime_ns": 1787477957550766500,
-      "size": 119363,
+      "lines": 2290,
+      "mtime_ns": 1788042984271614000,
+      "size": 123312,
       "symbols": [
         {
           "docstring": "Session id -> filename-safe token. The executable twin of `sanitiseSession` in lean/Proofs/RotSessionLog.lean; checker/session-log.sh compares the two",
@@ -329,7 +435,7 @@
           "docstring": "--- TIER 2: NSIL -- FUSE and ELEVATE ---------------------------------------- These two were SPECIFIED in rot-lean.md section 3 and NOT IMPLEMENTED. T",
           "lines": [
             436,
-            2216
+            2291
           ],
           "name": "nsil_active_lenses",
           "type": "function"
@@ -355,7 +461,7 @@
         {
           "lines": [
             573,
-            2216
+            2291
           ],
           "name": "band_flag",
           "type": "function"
@@ -397,7 +503,7 @@
         {
           "lines": [
             758,
-            2216
+            2291
           ],
           "name": "gauge",
           "type": "function"
@@ -406,24 +512,33 @@
           "docstring": "--- HOOK MODE --------------------------------------------------------------- THE DEFECT THIS EXISTS TO FIX, recorded because it is the most useful th",
           "lines": [
             950,
-            2216
+            2291
           ],
           "name": "rot_nsil_decide",
           "type": "function"
         },
         {
+          "docstring": "M/C/T -- MEASURED, NO LONGER PINNED (Animus dynamic R/s+, 2026-08-29).  STUDY-USAGE-AGENTS.md:168 admitted the pin: \"M, C, T are pinned at the neutral",
+          "lines": [
+            1238,
+            1271
+          ],
+          "name": "rot_mct",
+          "type": "function"
+        },
+        {
           "docstring": "Part two: gauge + both records. $1 non-empty = the voice path (LENSDATA on).",
           "lines": [
-            1205,
-            2216
+            1274,
+            2291
           ],
           "name": "rot_gauge_record",
           "type": "function"
         },
         {
           "lines": [
-            1412,
-            2216
+            1482,
+            2291
           ],
           "name": "hook_mode",
           "type": "function"
@@ -431,8 +546,8 @@
         {
           "docstring": "A FLAG WITHOUT ITS VALUE MUST REFUSE, NOT SPIN. Measured 2026-08-01: `rot-router.sh --vector` (no value) ran until it was killed at 120 s. Not a stdin",
           "lines": [
-            2139,
-            2146
+            2213,
+            2220
           ],
           "name": "need_value",
           "type": "function"
@@ -450,10 +565,10 @@
     },
     "settings-merge.js": {
       "hash": "db13e1a713f4",
-      "indexed_at": "2026-08-22T17:50:25.382764+00:00",
+      "indexed_at": "2026-08-30T10:19:06.652120+00:00",
       "language": "javascript",
       "lines": 352,
-      "mtime_ns": 1787420490107638100,
+      "mtime_ns": 1787584902572870800,
       "size": 18492,
       "symbols": [
         {
@@ -469,6 +584,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-24T01:49:18.561882+00:00",
+  "generated_at": "2026-08-30T10:19:06.714314+00:00",
   "version": "1.0"
 }

@@ -1030,14 +1030,27 @@ inv_check () {   # <regex with one capture> <expected> <label>
     #
     # Passing the filename to grep removes the giant-argument path entirely, and
     # is what the theorem loop already does.
-    while IFS= read -r got; do
-      [ -n "$got" ] || continue
+    #
+    # NO PROCESS SUBSTITUTION IN THIS INNER LOOP. The grep-direct form above
+    # replaced the SIGBUS, and the very next macos run died anyway: run
+    # 31649xxxx (checkers, macos-latest), `24804 Trace/BPT trap: 5 bash
+    # checker/repo-complete.sh`, exit 133, immediately after the "measured:"
+    # line -- the first inv_check call killed the whole interpreter. What
+    # remained after the SIGBUS fix was `done < <(grep ...)` opened PER FILE
+    # inside the outer `done < <(git ls-files -z)` loop: bash 3.2 corrupts its
+    # heap on repeated nested process substitutions, and on arm64 the abort
+    # renders as SIGTRAP. The theorem loop never nests procsubs, which is why
+    # it survives on the same runner. A command substitution holds only digits
+    # here (never a whole README), so the giant-argument hazard the SIGBUS
+    # comment records does not come back.
+    nums=$(grep -oE "$re" "$REPO/$f" 2>/dev/null | grep -oE '[0-9]+') || true
+    for got in $nums; do
       hits=$((hits+1))
       if [ "$got" != "$want" ]; then
         echo "  FAIL  $f claims $got $label; the tree has $want"
         fail=$((fail+1)); bad=$((bad+1))
       fi
-    done < <(grep -oE "$re" "$REPO/$f" 2>/dev/null | grep -oE '[0-9]+')
+    done
   done < <(cd "$REPO" && git ls-files -z)
   if [ "$hits" -eq 0 ]; then
     # Zero sites is not a pass. If the phrasing changes, this check silently

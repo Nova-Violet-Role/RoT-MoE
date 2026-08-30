@@ -1,13 +1,105 @@
 {
   "directory": "",
   "files": {
+    "AGENT_SETUP.md": {
+      "hash": "d9c22b0d7e21",
+      "indexed_at": "2026-08-30T10:19:06.486159+00:00",
+      "language": "markdown",
+      "lines": 164,
+      "mtime_ns": 1787584902553426700,
+      "size": 6918,
+      "symbols": [
+        {
+          "docstring": "1. **Never elevate.** No `sudo`, no admin shell, no system directory, no package manager. Nothing in this project needs it. If a step seems to, you ha",
+          "lines": [
+            17,
+            32
+          ],
+          "name": "THE TWO LIMITS",
+          "type": "section"
+        },
+        {
+          "docstring": "A Claude Code plugin: a nine-lens Mixture-of-Experts router with a measured divergence gauge (`R/s+`), specified in Lean 4 and bound to the shipped ho",
+          "lines": [
+            33,
+            56
+          ],
+          "name": "WHAT THIS IS, IN ONE PARAGRAPH",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
+              "lines": [
+                63,
+                75
+              ],
+              "name": "Step 0 \u2014 verify the tree before trusting it",
+              "type": "subsection"
+            },
+            {
+              "docstring": "POSIX:",
+              "lines": [
+                76,
+                95
+              ],
+              "name": "Step 1 \u2014 install the plugin (offline, seconds, reversible)",
+              "type": "subsection"
+            },
+            {
+              "docstring": "Installed is not running. Ask the user to start a new Claude Code session and send any message; the router fires on `UserPromptSubmit`. You can also e",
+              "lines": [
+                96,
+                110
+              ],
+              "name": "Step 2 \u2014 confirm it is actually running",
+              "type": "subsection"
+            },
+            {
+              "docstring": "**Ask first. Show the size. Wait for an answer.**",
+              "lines": [
+                111,
+                140
+              ],
+              "name": "Step 3 (OPTIONAL) \u2014 Lean, only if the user wants to re-verify the proofs",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "Run these from the repository root. **Read each exit code directly.** Never through a pipe: `cmd | tail` reports `tail`'s status, and that has produce",
+          "lines": [
+            57,
+            140
+          ],
+          "name": "INSTALL \u2014 the whole thing, in order",
+          "type": "section"
+        },
+        {
+          "docstring": "Report the real error text and the real exit code. Do not summarise it as \"there was an issue\", and do not work around a red gate by disabling it.",
+          "lines": [
+            141,
+            155
+          ],
+          "name": "IF SOMETHING FAILS",
+          "type": "section"
+        },
+        {
+          "docstring": "* Do not `git commit` anything on the user's behalf unless asked. * Do not modify `~/.claude` beyond what `ARM_ROUTER` does. * Do not run `lake exe ca",
+          "lines": [
+            156,
+            165
+          ],
+          "name": "WHAT YOU MUST NOT DO WHILE INSTALLING THIS",
+          "type": "section"
+        }
+      ]
+    },
     "ARM_ROUTER.sh": {
-      "hash": "4306077eeb57",
-      "indexed_at": "2026-08-25T11:35:02.507515+00:00",
+      "hash": "cbb2102e6cf4",
+      "indexed_at": "2026-08-30T10:19:06.270136+00:00",
       "language": "shell",
-      "lines": 354,
-      "mtime_ns": 1787584902552426900,
-      "size": 17626,
+      "lines": 358,
+      "mtime_ns": 1788083791154577600,
+      "size": 17937,
       "symbols": [
         {
           "docstring": "--- CANONICAL PATH FORM -- shared rule, both arms, or the user gets stranded -- The command string is the identity used for idempotence AND for remova",
@@ -2663,12 +2755,12 @@
       ]
     },
     "CHANGELOG.md": {
-      "hash": "0832e51c85b4",
-      "indexed_at": "2026-08-25T11:35:02.581929+00:00",
+      "hash": "b129a6e8cd6a",
+      "indexed_at": "2026-08-30T10:19:06.270526+00:00",
       "language": "markdown",
-      "lines": 169,
-      "mtime_ns": 1787584902552426900,
-      "size": 9384,
+      "lines": 243,
+      "mtime_ns": 1787937248685610700,
+      "size": 13396,
       "symbols": [
         {
           "children": [
@@ -2702,10 +2794,66 @@
         {
           "children": [
             {
+              "docstring": "- `hooks/animus-observe.sh` decided when a lens should speak from seven hardcoded integers (`AN_N=2` `COST_N=3` `DITHER_N=3` `BLOAT_N=3` `LOOP_N=4` `T",
+              "lines": [
+                59,
+                72
+              ],
+              "name": "Changed \u2014 the seven integers became bases",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- Five hooks in Nushell (`prover-remind.nu`, `rot-env.nu`, `rot-profile.nu`, `rot-router.nu`, `rot-voice-gate.nu`, +2431 lines) are now tracked and SP",
+              "lines": [
+                73,
+                82
+              ],
+              "name": "Added \u2014 the Nushell lane ships, first in dispatch",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- `active` is a comma-joined set during NSIL FUSE. Membership was tested against single names only, so every fused lens was credited with zero electio",
+              "lines": [
+                83,
+                97
+              ],
+              "name": "Fixed \u2014 fused lenses were credited with zero elections",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- 2390 gauge records parsed; 170 remarks over 52 turns, never 3 in one turn. - 189 verdicts written; 8 of 9 lenses fired unforced. Carnage's condition",
+              "lines": [
+                98,
+                107
+              ],
+              "name": "Measured \u2014 a 4781-record replay of a live session sink",
+              "type": "subsection"
+            },
+            {
+              "docstring": "- `hooks/rot-voice.dtd` ENV.26-32 now describe the bases as scaled by measured share rather than as constants, and `engine/rot.env.example` was regene",
+              "lines": [
+                108,
+                119
+              ],
+              "name": "Notes",
+              "type": "subsection"
+            }
+          ],
+          "docstring": "**Major: the observer is driven by the measured gauge, not by seven fixed integers.** `10.0.0` core \u00b7 `10.0.1` lean \u00b7 `10.0.2` unsealed, published sep",
+          "lines": [
+            46,
+            119
+          ],
+          "name": "[10.0.0] \u2014 2026-08-27",
+          "type": "section"
+        },
+        {
+          "children": [
+            {
               "docstring": "- **R1** both PowerShell arms emitted OEM best-fit garbage for every non-ASCII byte (`\u269c\ufe0f`\u2192`??`, `\u03bb`\u2192`?`, `\u00b7`\u2192`0xFA`). One pinned encoding per arm. Rev",
               "lines": [
-                53,
-                62
+                127,
+                136
               ],
               "name": "Fixed \u2014 two RED, found by audit and each proven load-bearing by mutation",
               "type": "subsection"
@@ -2713,8 +2861,8 @@
             {
               "docstring": "- **R3** the CI audit judged whatever run came back; it now NAMES its workflow and refuses (exit 2) if that workflow is absent. Steps read: 5 \u2192 **221*",
               "lines": [
-                63,
-                83
+                137,
+                157
               ],
               "name": "Fixed \u2014 instrument and latent defects",
               "type": "subsection"
@@ -2722,8 +2870,8 @@
             {
               "docstring": "87/87 modules kernel re-verified \u00b7 **797/797 mutants killed, 0 survived** \u00b7 1632 theorems \u00b7 **0 sorry** \u00b7 31 hook events / 63 entries all execute \u00b7 An",
               "lines": [
-                84,
-                93
+                158,
+                167
               ],
               "name": "Verified",
               "type": "subsection"
@@ -2731,8 +2879,8 @@
           ],
           "docstring": "**The tier is the patch digit again \u2014 and the audit that earned the release.** `9.0.0` core \u00b7 **`9.0.1` lean** \u00b7 `9.0.2` unsealed, published separatel",
           "lines": [
-            46,
-            93
+            120,
+            167
           ],
           "name": "[9.0.1] \u2014 2026-08-21",
           "type": "section"
@@ -2742,8 +2890,8 @@
             {
               "docstring": "The router recorded a summons as `Name|element|charter|bound`; the DTD's sigil never left the router, so the gate's refusal could not show it, and a b",
               "lines": [
-                106,
-                117
+                180,
+                191
               ],
               "name": "Fixed \u2014 the seals ride the summons now",
               "type": "subsection"
@@ -2751,8 +2899,8 @@
             {
               "docstring": "B4's pattern returned, one CLI generation later. Blocked over a trivial turn, the 2.1.237-era convening model refused the old demand \u2014 *\"I won't manuf",
               "lines": [
-                118,
-                135
+                192,
+                209
               ],
               "name": "Fixed \u2014 the refusal no longer reads as an order to fabricate",
               "type": "subsection"
@@ -2760,8 +2908,8 @@
             {
               "docstring": "Found by the blind run: its Animus observer saw nothing for ten turns. Six hypotheses died by controlled reproduction before the instrumented rerun ca",
               "lines": [
-                136,
-                158
+                210,
+                232
               ],
               "name": "Fixed \u2014 every armed session ran sinkless; the fossil pin is retired",
               "type": "subsection"
@@ -2769,8 +2917,8 @@
             {
               "docstring": "`checker/voice-contract.sh` D10 now also holds: every summons row carries five fields with a non-empty seal; the blocking refusal shows the seals besi",
               "lines": [
-                159,
-                170
+                233,
+                244
               ],
               "name": "Held \u2014 the contract grew six rows, each falsified first",
               "type": "subsection"
@@ -2778,102 +2926,10 @@
           ],
           "docstring": "**Patch: the gate learns to show its seals and to ask without demanding theatre \u2014 and the armed sink comes back from the dead.** The Socio ran the voi",
           "lines": [
-            94,
-            170
+            168,
+            244
           ],
           "name": "[8.0.1] \u2014 2026-08-20",
-          "type": "section"
-        }
-      ]
-    },
-    "CLAUDE.md": {
-      "hash": "d9c22b0d7e21",
-      "indexed_at": "2026-08-25T11:35:02.583052+00:00",
-      "language": "markdown",
-      "lines": 164,
-      "mtime_ns": 1787584902553426700,
-      "size": 6918,
-      "symbols": [
-        {
-          "docstring": "1. **Never elevate.** No `sudo`, no admin shell, no system directory, no package manager. Nothing in this project needs it. If a step seems to, you ha",
-          "lines": [
-            17,
-            32
-          ],
-          "name": "THE TWO LIMITS",
-          "type": "section"
-        },
-        {
-          "docstring": "A Claude Code plugin: a nine-lens Mixture-of-Experts router with a measured divergence gauge (`R/s+`), specified in Lean 4 and bound to the shipped ho",
-          "lines": [
-            33,
-            56
-          ],
-          "name": "WHAT THIS IS, IN ONE PARAGRAPH",
-          "type": "section"
-        },
-        {
-          "children": [
-            {
-              "lines": [
-                63,
-                75
-              ],
-              "name": "Step 0 \u2014 verify the tree before trusting it",
-              "type": "subsection"
-            },
-            {
-              "docstring": "POSIX:",
-              "lines": [
-                76,
-                95
-              ],
-              "name": "Step 1 \u2014 install the plugin (offline, seconds, reversible)",
-              "type": "subsection"
-            },
-            {
-              "docstring": "Installed is not running. Ask the user to start a new Claude Code session and send any message; the router fires on `UserPromptSubmit`. You can also e",
-              "lines": [
-                96,
-                110
-              ],
-              "name": "Step 2 \u2014 confirm it is actually running",
-              "type": "subsection"
-            },
-            {
-              "docstring": "**Ask first. Show the size. Wait for an answer.**",
-              "lines": [
-                111,
-                140
-              ],
-              "name": "Step 3 (OPTIONAL) \u2014 Lean, only if the user wants to re-verify the proofs",
-              "type": "subsection"
-            }
-          ],
-          "docstring": "Run these from the repository root. **Read each exit code directly.** Never through a pipe: `cmd | tail` reports `tail`'s status, and that has produce",
-          "lines": [
-            57,
-            140
-          ],
-          "name": "INSTALL \u2014 the whole thing, in order",
-          "type": "section"
-        },
-        {
-          "docstring": "Report the real error text and the real exit code. Do not summarise it as \"there was an issue\", and do not work around a red gate by disabling it.",
-          "lines": [
-            141,
-            155
-          ],
-          "name": "IF SOMETHING FAILS",
-          "type": "section"
-        },
-        {
-          "docstring": "* Do not `git commit` anything on the user's behalf unless asked. * Do not modify `~/.claude` beyond what `ARM_ROUTER` does. * Do not run `lake exe ca",
-          "lines": [
-            156,
-            165
-          ],
-          "name": "WHAT YOU MUST NOT DO WHILE INSTALLING THIS",
           "type": "section"
         }
       ]
@@ -3652,12 +3708,12 @@
       ]
     },
     "README.md": {
-      "hash": "287a51953363",
-      "indexed_at": "2026-08-25T11:35:02.592931+00:00",
+      "hash": "0a74aca29f24",
+      "indexed_at": "2026-08-30T10:19:06.272322+00:00",
       "language": "markdown",
-      "lines": 1520,
-      "mtime_ns": 1787584902554433200,
-      "size": 85346,
+      "lines": 1565,
+      "mtime_ns": 1788084555710305700,
+      "size": 88175,
       "symbols": [
         {
           "docstring": "**You are welcome here, whatever you came for.** If you want a router for your Claude Code sessions, [start with Install](#-install) \u2014 it takes a minu",
@@ -3755,27 +3811,36 @@
         {
           "children": [
             {
-              "docstring": "Through `5.x` the patch digit WAS the tier: `x.y.0` core, `x.y.1` +Lean, `x.y.2` +Extra. That convention is retired at `6.0.0`, and the reason is stat",
+              "docstring": "Through `5.x` the patch digit WAS the tier: `x.y.0` core, `x.y.1` +Lean, `x.y.2` +Extra. `6.0.0` retired that convention; `9.0.x` restored it \u2014 and th",
               "lines": [
                 363,
-                394
+                397
               ],
-              "name": "\ud83d\udce6 Three archives, one version \u2014 and why the patch digit retired",
+              "name": "\ud83d\udce6 Three archives, three versions \u2014 the patch digit is the tier again",
               "type": "subsection"
             },
             {
               "lines": [
-                395,
-                403
+                398,
+                406
               ],
               "name": "\ud83d\udee0\ufe0f From a clone, without installing",
               "type": "subsection"
             },
             {
+              "docstring": "Every organ is a plain directory, so any one of them can be pulled without cloning the repository or its history \u2014 `degit` fetches a subtree of the de",
+              "lines": [
+                407,
+                429
+              ],
+              "name": "\ud83e\udde9 Piece by piece, with `npx degit`",
+              "type": "subsection"
+            },
+            {
               "docstring": "This is the **advanced** path and it is the one that edits `~/.claude/settings.json`. Use it when the plugin mechanism is unavailable to you; otherwis",
               "lines": [
-                404,
-                432
+                430,
+                458
               ],
               "name": "\u2699\ufe0f `ARM_ROUTER.sh` \u2014 only if you cannot use plugins",
               "type": "subsection"
@@ -3783,8 +3848,8 @@
             {
               "docstring": "| | | |:--|:--| | \ud83d\udcac **Claude Code** | any recent version \u2014 the plugin is hooks + markdown | | \ud83d\udc1a **A shell** | POSIX `sh`/`bash` **or** PowerShell 7. B",
               "lines": [
-                433,
-                440
+                459,
+                466
               ],
               "name": "\ud83d\udd27 Requirements",
               "type": "subsection"
@@ -3792,8 +3857,8 @@
             {
               "docstring": "| Variable | Effect | |:--|:--| | `ROTMOE_LEAN_WORKSPACE` | which Lean workspace to build and remind about. Defaults to the packet's own `lean/`. | |",
               "lines": [
-                441,
-                453
+                467,
+                479
               ],
               "name": "\u2699\ufe0f Configuration",
               "type": "subsection"
@@ -3802,7 +3867,7 @@
           "docstring": "**One command installs it. Everything else on this page is for a reason you do not have yet.**",
           "lines": [
             335,
-            453
+            479
           ],
           "name": "\ud83d\ude80 Install",
           "type": "section"
@@ -3812,8 +3877,8 @@
             {
               "docstring": "One line per routed turn:",
               "lines": [
-                462,
-                497
+                488,
+                523
               ],
               "name": "The hook line, decoded",
               "type": "subsection"
@@ -3821,16 +3886,16 @@
             {
               "docstring": "Both arms take the same flags; the outputs below are the `.sh` arm's, and the cross-diff suite compares the two arms byte for byte over a shared corpu",
               "lines": [
-                498,
-                542
+                524,
+                568
               ],
               "name": "The router from the command line",
               "type": "subsection"
             },
             {
               "lines": [
-                543,
-                561
+                569,
+                587
               ],
               "name": "The reminder from the command line",
               "type": "subsection"
@@ -3838,8 +3903,8 @@
             {
               "docstring": "Every switch below can live in a plain `rot.env` file \u2014 `KEY=VALUE` lines, the `.env` shape \u2014 instead of your shell profile. The DTD is the schema: `h",
               "lines": [
-                562,
-                604
+                588,
+                630
               ],
               "name": "The environment layer \u2014 `rot.env`, no JSON anywhere",
               "type": "subsection"
@@ -3847,8 +3912,8 @@
             {
               "docstring": "The Configuration table above lists the ones you are most likely to want. The full set, measured from the shipped hooks rather than remembered, with d",
               "lines": [
-                605,
-                640
+                631,
+                666
               ],
               "name": "Every switch the hooks read",
               "type": "subsection"
@@ -3856,8 +3921,8 @@
             {
               "docstring": "With the voice on (the default), the marker line is followed by a frame and one stanza per **active** lens \u2014 its measured factors from this turn's gau",
               "lines": [
-                641,
-                699
+                667,
+                725
               ],
               "name": "The voices, when they speak",
               "type": "subsection"
@@ -3865,8 +3930,8 @@
             {
               "docstring": "* **`/corpus`** \u2014 checks or refreshes the shared Lean Theorem corpus. Documented in [docs/lean-and-corpus.md](docs/lean-and-corpus.md). * **`/rot-agen",
               "lines": [
-                700,
-                716
+                726,
+                742
               ],
               "name": "The rest of the surface",
               "type": "subsection"
@@ -3874,8 +3939,8 @@
           ],
           "docstring": "Nothing in this section is required. The router runs by itself from the moment the plugin is installed, and the healthy state of the reminder is silen",
           "lines": [
-            454,
-            716
+            480,
+            742
           ],
           "name": "\ud83d\udd79\ufe0f Usage \u2014 the line you read, the commands you can run",
           "type": "section"
@@ -3883,8 +3948,8 @@
         {
           "docstring": "**The worker solves. The observer watches what the worker actually *does* \u2014 its measured event stream, never its prose \u2014 and injects the perspective t",
           "lines": [
-            717,
-            786
+            743,
+            812
           ],
           "name": "\ud83d\udf02 Animus \u2014 two agents, one task (8.0.0)",
           "type": "section"
@@ -3892,8 +3957,8 @@
         {
           "docstring": "Twelve recordings, one law: **every frame is a real command running**, captured with asciinema and rendered with agg \u2014 nothing staged, nothing typed o",
           "lines": [
-            787,
-            894
+            813,
+            920
           ],
           "name": "\ud83c\udfac The Grand Gallery \u2014 every organ on camera",
           "type": "section"
@@ -3901,8 +3966,8 @@
         {
           "docstring": "The `lean4-prover` agent and how to spawn one (or several, or in the background), `/rot-agent` and `/rot-swarm`, what the router delivers on a real tu",
           "lines": [
-            895,
-            903
+            921,
+            929
           ],
           "name": "\ud83d\udca1 Tips & Tricks \u2014 getting real work out of it",
           "type": "section"
@@ -3912,8 +3977,8 @@
             {
               "docstring": "| Lane | Lens | Character | \u03bb | \u03bc | Hit | Accuracy | |---|---|---|---|---|---|---| | `FORGE` | \ud83e\udded **Claude** | build \u00b7 measure \u00b7 reality is the judge |",
               "lines": [
-                962,
-                986
+                991,
+                1031
               ],
               "name": "The ten lanes, and the lens each one leads with",
               "type": "subsection"
@@ -3921,8 +3986,8 @@
           ],
           "docstring": "This is what the plugin *does* on every turn: it reads the prompt, picks a lane, and injects the frame the model then reasons inside. Nine lenses co-r",
           "lines": [
-            904,
-            986
+            930,
+            1031
           ],
           "name": "\ud83e\udded How a prompt reaches a lane",
           "type": "section"
@@ -3930,8 +3995,8 @@
         {
           "docstring": "Everything above measures the router on corpora it can replay. This section is different: two real working campaigns, live sessions doing actual work",
           "lines": [
-            987,
-            1111
+            1032,
+            1156
           ],
           "name": "\ud83d\udcc8 Measured in the field \u2014 two campaigns, 110 real turns",
           "type": "section"
@@ -3941,8 +4006,8 @@
             {
               "docstring": "The speed is not a trick, it is an *architecture*: one pass of stem matching, no regex backtracking, one `awk` call for the gauge. `hooks/rot-router.s",
               "lines": [
-                1218,
-                1261
+                1263,
+                1306
               ],
               "name": "\u26a1 How the router's logic stays under its bound \u2014 and what makes it different",
               "type": "subsection"
@@ -3950,8 +4015,8 @@
             {
               "docstring": "Partly \u2014 and the exact line between what Lean settles and what remains design intent (plus the four newest theorems and the three silent defects that",
               "lines": [
-                1262,
-                1267
+                1307,
+                1312
               ],
               "name": "\ud83d\udd2c Are the nine benchmarkable in Lean?",
               "type": "subsection"
@@ -3959,8 +4024,8 @@
           ],
           "docstring": "Nine lenses are **scored** on every turn; exactly **one is activated**. That distinction is proved rather than asserted, in `lean/Proofs/RotLensActiva",
           "lines": [
-            1112,
-            1267
+            1157,
+            1312
           ],
           "name": "\ud83d\udf0f The nine \u2014 who they are, and what each one *does* in the router",
           "type": "section"
@@ -3968,8 +4033,8 @@
         {
           "docstring": "* **[`docs/SCRUTINY-0.7.md`](docs/SCRUTINY-0.7.md)** \u2014 an adversarial reading of this release by the person who wrote it. What could still be wrong, w",
           "lines": [
-            1268,
-            1281
+            1313,
+            1326
           ],
           "name": "\ud83d\udcda Two documents worth reading before you change anything",
           "type": "section"
@@ -3977,8 +4042,8 @@
         {
           "docstring": "The proofs are checked by CI on a clean runner for every commit, so you never *have* to. This is for the reader who would rather measure than trust \u2014",
           "lines": [
-            1282,
-            1348
+            1327,
+            1393
           ],
           "name": "\ud83c\udf93 Verify it yourself",
           "type": "section"
@@ -3986,8 +4051,8 @@
         {
           "docstring": "**RoT MoE is a mixture-of-experts router. It is not an experiment, and this section exists because an earlier version of this page introduced it as on",
           "lines": [
-            1349,
-            1387
+            1394,
+            1432
           ],
           "name": "\u2705 What RoT MoE claims \u2014 and the instrument behind each claim",
           "type": "section"
@@ -3995,8 +4060,8 @@
         {
           "docstring": "Where RoT actually came from: the diff hiding in a quote everyone misses, the brainwave entrainer, the Nova-Violet Role Merging Law, the Phantom Books",
           "lines": [
-            1388,
-            1398
+            1433,
+            1443
           ],
           "name": "\ud83e\udd5a The Easter Egg \u2014 the Infinite Symbiogenesis",
           "type": "section"
@@ -4004,8 +4069,8 @@
         {
           "docstring": "| Area | How you can help | |:--|:--| | \ud83d\udc1b **Break something** | Find a checker that cannot go red. That is the most valuable issue you can file here.",
           "lines": [
-            1399,
-            1413
+            1444,
+            1458
           ],
           "name": "\ud83e\udd1d Contributing",
           "type": "section"
@@ -4013,8 +4078,8 @@
         {
           "docstring": "RoT MoE is a **[Nova-Violet Role](https://github.com/Nova-Violet-Role)** project, and it is the *router* arm of a larger idea the organisation states",
           "lines": [
-            1414,
-            1446
+            1459,
+            1491
           ],
           "name": "\ud83c\udfdb\ufe0f Where this sits in the organisation",
           "type": "section"
@@ -4024,8 +4089,8 @@
             {
               "docstring": "This project is possible because of the [Lean 4](https://lean-lang.org/) team and the [mathlib](https://leanprover-community.github.io/) community, wh",
               "lines": [
-                1465,
-                1473
+                1510,
+                1518
               ],
               "name": "\ud83d\ude4f Standing on other people's work",
               "type": "subsection"
@@ -4033,8 +4098,8 @@
           ],
           "docstring": "**Nova-Violet Role is a non-profit organisation.** Everything here is free software under a copyleft licence and it stays that way \u2014 there is no paid",
           "lines": [
-            1447,
-            1473
+            1492,
+            1518
           ],
           "name": "\u2615 Supporting a non-profit",
           "type": "section"
@@ -4044,8 +4109,8 @@
             {
               "docstring": "*Nine lenses. One mind. The compiler has the last word.*",
               "lines": [
-                1497,
-                1521
+                1542,
+                1566
               ],
               "name": "\ud83d\udf0f RoT MoE",
               "type": "subsection"
@@ -4053,8 +4118,8 @@
           ],
           "docstring": "Dual: **AGPL-3.0-or-later OR EUPL-1.2**, at your option.",
           "lines": [
-            1474,
-            1521
+            1519,
+            1566
           ],
           "name": "\ud83d\udcc4 Licence",
           "type": "section"
@@ -4062,12 +4127,12 @@
       ]
     },
     "RELEASE.md": {
-      "hash": "9047dc3d286f",
-      "indexed_at": "2026-08-25T11:35:02.593347+00:00",
+      "hash": "c3adc1cf5741",
+      "indexed_at": "2026-08-30T10:19:06.272641+00:00",
       "language": "markdown",
       "lines": 157,
-      "mtime_ns": 1787584902555936300,
-      "size": 7254,
+      "mtime_ns": 1787864712460409400,
+      "size": 7281,
       "symbols": [
         {
           "docstring": "> *\"for everyone tired about waiting for the next update \u2014 I made something everyone was > searching for, because it is far easier than what I'm worki",
@@ -4079,7 +4144,7 @@
           "type": "section"
         },
         {
-          "docstring": "Three archives, three releases \u2014 and **the patch digit is the tier again**. The `5.x` convention is RESTORED at `9.0.x`: `9.0.0` core, **`9.0.1` lean*",
+          "docstring": "Three archives, three releases \u2014 and **the patch digit is the tier again**. The `5.x` convention is RESTORED at `10.0.x`: `10.0.0` core, **`10.0.1` le",
           "lines": [
             70,
             93
@@ -4093,7 +4158,7 @@
             94,
             128
           ],
-          "name": "\ud83d\udce6 v9.0.1 \u2014 Animus, three ways",
+          "name": "\ud83d\udce6 v10.0.1 \u2014 Gauge-driven, three ways",
           "type": "section"
         },
         {
@@ -4272,11 +4337,11 @@
       ]
     },
     "STATUS.md": {
-      "hash": "63d90cf0bcd2",
-      "indexed_at": "2026-08-25T11:35:02.596010+00:00",
+      "hash": "289104f39742",
+      "indexed_at": "2026-08-30T10:19:06.272803+00:00",
       "language": "markdown",
       "lines": 28,
-      "mtime_ns": 1787584902555936300,
+      "mtime_ns": 1787875978225717200,
       "size": 1012,
       "symbols": []
     },
@@ -4345,6 +4410,6 @@
       ]
     }
   },
-  "generated_at": "2026-08-25T11:35:02.864269+00:00",
+  "generated_at": "2026-08-30T10:19:06.698647+00:00",
   "version": "1.0"
 }
