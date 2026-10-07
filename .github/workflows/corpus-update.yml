@@ -91,7 +91,7 @@ jobs:
           fi
 
       - name: publishable archives
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rot-moe-archives
           # `.release` is what checker/release-package.sh:104 actually writes to
